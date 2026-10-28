@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='coinpurchasediscount',
             name='theme',
-            field=models.CharField(choices=[('celebration', 'Bayramona'), ('navruz', 'Navro‘z'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')], default='celebration', max_length=16),
+            field=models.CharField(choices=[('celebration', 'Bayramona'), ('navruz', 'Navröz'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')], default='celebration', max_length=16),
         ),
     ]

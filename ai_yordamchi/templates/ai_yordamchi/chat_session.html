@@ -1,18 +1,18 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}{{ session.title }} - AI Yordamchi{% endblock %}
+{% block title %}{{ session.title }} - AI Yordamçi{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/ai-motion.css' %}?v=20261027b">
 <script src="{% static 'js/ai-motion.js' %}?v=20261027c" defer></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <style>
-/* To'liq ekranli suhbat: faqat shu sahifada sayt navbar/footer yashiriladi. */
+/* Töliq ekranli suhbat: faqat şu sahifada sayt navbar/footer yaşiriladi. */
 #mainNavbar, .site-footer, #announcementBar { display: none !important; }
 html, body { overflow: hidden !important; }
 body { padding: 0 !important; }
-/* Keep fixed chat positioning relative to the viewport, including Premium. */
+/* Keep fixed çat positioning relative to the viewport, including Premium. */
 .cw-draw-locked { position: relative; text-decoration: none; opacity: .7; }
 .cw-draw-locked .cw-lock { position: absolute; right: 2px; bottom: 2px; font-size: 9px; }
 #drawBtn.on { background: var(--a-soft); color: var(--a); }
@@ -44,18 +44,18 @@ body { padding: 0 !important; }
             <div class="cw-sub" id="cwSub"><span class="dot"></span> Creative AI · Onlayn</div>
         </div>
         <span class="cw-coin" id="coinPill" title="Sizdagi coin"><i class="bi bi-coin"></i> <span id="coinCount">{{ user_coins }}</span></span>
-        <button type="button" class="am-icon" id="searchToggle" title="Suhbatdan qidirish"><i class="bi bi-search"></i></button>
-        <button type="button" class="am-icon" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
+        <button type="button" class="am-icon" id="searchToggle" title="Suhbatdan qidiriş"><i class="bi bi-search"></i></button>
+        <button type="button" class="am-icon" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalaş"><i class="bi bi-trash3"></i></button>
     </header>
 
     {# ===== IN-CHAT SEARCH ===== #}
     <div class="cw-search" id="cwSearch">
         <i class="bi bi-search"></i>
-        <input type="text" id="cwSearchInput" placeholder="Suhbatdan qidirish…" autocomplete="off">
+        <input type="text" id="cwSearchInput" placeholder="Suhbatdan qidiriş…" autocomplete="off">
         <span class="cw-search-count" id="cwSearchCount"></span>
         <button type="button" class="am-icon" id="cwSearchPrev" title="Oldingi"><i class="bi bi-chevron-up"></i></button>
         <button type="button" class="am-icon" id="cwSearchNext" title="Keyingi"><i class="bi bi-chevron-down"></i></button>
-        <button type="button" class="am-icon" id="cwSearchClose" title="Yopish"><i class="bi bi-x-lg"></i></button>
+        <button type="button" class="am-icon" id="cwSearchClose" title="Yopiş"><i class="bi bi-x-lg"></i></button>
     </div>
 
     {# ===== LIMITS ===== #}
@@ -63,7 +63,7 @@ body { padding: 0 !important; }
         {% if limits.is_premium %}<span class="prem"><i class="bi bi-gem"></i> PREMIUM</span>{% endif %}
         <span class="{% if limits.msg_left <= 5 %}danger{% elif limits.msg_left <= 15 %}warn{% endif %}"><b id="msgLeft">{{ limits.msg_left }}</b>/{{ limits.msg_limit }} xabar</span>
         <span class="{% if limits.img_left <= 1 %}danger{% endif %}"><b>{{ limits.img_left }}</b>/{{ limits.img_limit }} rasm</span>
-        {% if limits.can_generate %}<span class="{% if limits.gen_left <= 0 %}danger{% endif %}"><i class="bi bi-palette"></i> <b id="genLeft">{{ limits.gen_left }}</b>/{{ limits.gen_limit }} chizish</span>{% endif %}
+        {% if limits.can_generate %}<span class="{% if limits.gen_left <= 0 %}danger{% endif %}"><i class="bi bi-palette"></i> <b id="genLeft">{{ limits.gen_left }}</b>/{{ limits.gen_limit }} çiziş</span>{% endif %}
     </div>
 
     {# ===== MESSAGES ===== #}
@@ -74,17 +74,17 @@ body { padding: 0 !important; }
                 {% if msg.role == 'assistant' %}<div class="am-orb"><i class="bi bi-stars"></i></div>{% endif %}
                 <div class="cw-body">
                     {% if msg.role == 'assistant' %}
-                        {% comment %}Kontent `json_script` orqali beriladi: `|safe` bo'lganda AI javobidagi
-                           `</script>` matni script tegini yopib, XSS ochib yuborar edi.{% endcomment %}
+                        {% comment %}Kontent `json_script` orqali beriladi: `|safe` bölganda AI javobidagi
+                           `</script>` matni script tegini yopib, XSS oçib yuborar edi.{% endcomment %}
                         {% with mid=forloop.counter|stringformat:"s" %}{% with src_id="src-"|add:mid %}
                         <div class="cw-assistant-text"><div class="markdown-body" id="md-{{ mid }}"></div></div>
                         {{ msg.content|json_script:src_id }}
                         {% endwith %}{% endwith %}
-                        {% if msg.image %}<a href="{{ msg.image.url }}" target="_blank" rel="noopener"><img src="{{ msg.image.url }}" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>
-                        <a href="{{ msg.image.url }}" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>{% endif %}
+                        {% if msg.image %}<a href="{{ msg.image.url }}" target="_blank" rel="noopener"><img src="{{ msg.image.url }}" alt="AI çizgan rasm" class="cw-img cw-gen-img"></a>
+                        <a href="{{ msg.image.url }}" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab oliş</a>{% endif %}
                         <div class="cw-msg-tools" data-mid="{{ msg.pk }}">
-                            <button type="button" class="cw-tool copy" title="Nusxa olish" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>
-                            <button type="button" class="cw-tool tts" title="Ovozda o'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>
+                            <button type="button" class="cw-tool copy" title="Nusxa oliş" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>
+                            <button type="button" class="cw-tool tts" title="Ovozda öqiş" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>
                             <button type="button" class="cw-tool up{% if msg.rating == 1 %} on{% endif %}" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up{% if msg.rating == 1 %}-fill{% endif %}"></i></button>
                             <button type="button" class="cw-tool down{% if msg.rating == -1 %} on{% endif %}" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down{% if msg.rating == -1 %}-fill{% endif %}"></i></button>
                         </div>
@@ -105,13 +105,13 @@ body { padding: 0 !important; }
         {% else %}
             <div class="cw-empty" id="emptyState">
                 <div class="am-orb am-rv"><i class="bi bi-stars"></i></div>
-                <h4 class="am-rv">Creative AI bilan salomlashing</h4>
-                <p class="am-rv">Savol bering, rasm yoki fayl yuboring — bosqichma-bosqich tushuntirib beraman.</p>
+                <h4 class="am-rv">Creative AI bilan salomlaşing</h4>
+                <p class="am-rv">Savol bering, rasm yoki fayl yuboring — bosqichma-bosqich tuşuntirib beraman.</p>
                 <div class="cw-sugs">
-                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Python asoslarini tushuntiring')"><i class="bi bi-code-slash"></i><div><b>Python asoslari</b><span>O'zgaruvchi va sikllarni tushuntiring</span></div></button>
-                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kvadrat tenglamani bosqichma-bosqich yechib bering')"><i class="bi bi-calculator"></i><div><b>Masala yechish</b><span>Kvadrat tenglamani yechib bering</span></div></button>
-                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kodimdagi xatoni topib tuzating:\n')"><i class="bi bi-bug"></i><div><b>Xatoni topish</b><span>Kodimdagi xatoni tuzating</span></div></button>
-                    <button type="button" class="cw-sug am-rv" onclick="cwSet('HTML bo\'yicha 5 ta test savoli tuzib bering')"><i class="bi bi-journal-check"></i><div><b>Test tuzish</b><span>HTML bo'yicha 5 ta test</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Python asoslarini tuşuntiring')"><i class="bi bi-code-slash"></i><div><b>Python asoslari</b><span>Özgaruvçi va sikllarni tuşuntiring</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kvadrat tenglamani bosqichma-bosqich yeçib bering')"><i class="bi bi-calculator"></i><div><b>Masala yeçiş</b><span>Kvadrat tenglamani yeçib bering</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kodimdagi xatoni topib tuzating:\n')"><i class="bi bi-bug"></i><div><b>Xatoni topiş</b><span>Kodimdagi xatoni tuzating</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('HTML böyiça 5 ta test savoli tuzib bering')"><i class="bi bi-journal-check"></i><div><b>Test tuziş</b><span>HTML böyiça 5 ta test</span></div></button>
                 </div>
             </div>
         {% endif %}
@@ -128,11 +128,11 @@ body { padding: 0 !important; }
             <span class="cw-chip" id="fileChip"><i class="bi bi-paperclip" id="fileIco"></i><span class="nm" id="fileName">fayl</span><button type="button" class="rm" onclick="cwRemoveFile()"><i class="bi bi-x-circle-fill"></i></button></span>
         </div>
         <div class="cw-img-quick" id="imgQuick">
-            <span onclick="cwSet('Bu rasmdagi masalani yeching va bosqichma-bosqich tushuntiring')"><i class="bi bi-calculator"></i> Yeching</span>
-            <span onclick="cwSet('Bu rasmni batafsil tushuntiring')"><i class="bi bi-chat-text"></i> Tushuntiring</span>
+            <span onclick="cwSet('Bu rasmdagi masalani yeçing va bosqichma-bosqich tuşuntiring')"><i class="bi bi-calculator"></i> Yeçing</span>
+            <span onclick="cwSet('Bu rasmni batafsil tuşuntiring')"><i class="bi bi-chat-text"></i> Tuşuntiring</span>
             <span onclick="cwSet('Rasmdagi kodni yozib bering va xatolarini tuzating')"><i class="bi bi-code-slash"></i> Kod</span>
         </div>
-        <div class="cw-draw-hint" id="drawHint"><i class="bi bi-palette"></i> Rasm chizish rejimi — chizmoqchi bo'lgan rasmingizni tasvirlab yozing <button type="button" onclick="cwToggleDraw(false)"><i class="bi bi-x"></i></button></div>
+        <div class="cw-draw-hint" id="drawHint"><i class="bi bi-palette"></i> Rasm çiziş rejimi — çizmoqçi bölgan rasmingizni tasvirlab yozing <button type="button" onclick="cwToggleDraw(false)"><i class="bi bi-x"></i></button></div>
         <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-box" id="chatForm"{% if autosend and prefill %} data-autosend="1"{% endif %}>
             {% csrf_token %}
             <div class="cw-box-in">
@@ -147,13 +147,13 @@ body { padding: 0 !important; }
                         <input type="file" name="file" id="fileInput" onchange="cwPreviewFile(this)">
                     </label>
                     {% if limits.can_generate %}
-                    <button type="button" class="am-icon" id="drawBtn" title="Rasm chizish (Premium · kuniga {{ limits.gen_limit }} ta)"><i class="bi bi-palette"></i></button>
+                    <button type="button" class="am-icon" id="drawBtn" title="Rasm çiziş (Premium · kuniga {{ limits.gen_limit }} ta)"><i class="bi bi-palette"></i></button>
                     {% else %}
-                    <a href="{% url 'coin:buy_premium' %}" class="am-icon cw-draw-locked" title="Rasm chizish — faqat Premium uchun"><i class="bi bi-palette"></i><i class="bi bi-lock-fill cw-lock"></i></a>
+                    <a href="{% url 'coin:buy_premium' %}" class="am-icon cw-draw-locked" title="Rasm çiziş — faqat Premium uçun"><i class="bi bi-palette"></i><i class="bi bi-lock-fill cw-lock"></i></a>
                     {% endif %}
-                    <button type="button" class="am-icon" id="micBtn" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
-                    <span class="hint">Enter — yuborish · Shift+Enter — yangi qator</span>
-                    <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
+                    <button type="button" class="am-icon" id="micBtn" title="Ovozli kiritiş"><i class="bi bi-mic"></i></button>
+                    <span class="hint">Enter — yuboriş · Shift+Enter — yangi qator</span>
+                    <button type="submit" class="cw-send" id="sendBtn" title="Yuboriş"><i class="bi bi-arrow-up"></i></button>
                 </div>
             </div>
         </form>
@@ -167,14 +167,14 @@ body { padding: 0 !important; }
         <div class="modal-content">
             <div class="modal-body am-confirm">
                 <div class="ic"><i class="bi bi-trash3"></i></div>
-                <h6>Tarixni tozalash</h6>
-                <p>Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
+                <h6>Tarixni tozalaş</h6>
+                <p>Barça xabarlar öçiriladi. Bu amalni qaytarib bölmaydi.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor qiliş</button>
                 <form action="{% url 'ai_yordamchi:clear_history' pk=session.pk %}" method="post" style="margin:0">
                     {% csrf_token %}
-                    <button type="submit" class="am-mbtn danger">O'chirish</button>
+                    <button type="submit" class="am-mbtn danger">Öçiriş</button>
                 </form>
             </div>
         </div>
@@ -204,7 +204,7 @@ body { padding: 0 !important; }
         }
         return '<div class="code-block-wrapper"><div class="code-header">'
             + '<span class="code-lang">' + language + '</span>'
-            + '<button class="copy-btn"><i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span></button>'
+            + '<button class="copy-btn"><i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalaş</span></button>'
             + '</div><pre><code class="hljs language-' + language + '">' + html + '</code></pre></div>';
     };
     renderer.link = function (href, title, text) {
@@ -223,10 +223,10 @@ function cwRenderMarkdown(text) {
     if ((t.match(/```/g) || []).length % 2 !== 0) t += '\n```';  // close open fence
     var html;
     try { html = marked.parse(t); } catch (e) { return null; }
-    // Markdown natijasi `innerHTML` ga tushadi, shuning uchun sanitizatsiya shart:
-    // AI javobi foydalanuvchi matnini takrorlashi mumkin (`<img onerror=...>`,
-    // `javascript:` havola). Sanitizer yuklanmagan bo'lsa `null` qaytaramiz —
-    // chaqiruvchilar bu holatda HTML emas, oddiy matn ko'rsatadi.
+    // Markdown natijasi `innerHTML` ga tuşadi, şuning uçun sanitizatsiya şart:
+    // AI javobi foydalanuvçi matnini takrorlaşi mumkin (`<img onerror=...>`,
+    // `javascript:` havola). Sanitizer yuklanmagan bölsa `null` qaytaramiz —
+    // çaqiruvçilar bu holatda HTML emas, oddiy matn körsatadi.
     if (!window.DOMPurify || typeof DOMPurify.sanitize !== 'function') return null;
     return DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target'] });
 }
@@ -257,7 +257,7 @@ document.addEventListener('click', function (e) {
         if (i) i.className = 'bi bi-check2';
         setTimeout(function () {
             btn.classList.remove('copied');
-            if (s) s.textContent = 'Nusxalash';
+            if (s) s.textContent = 'Nusxalaş';
             if (i) i.className = 'bi bi-clipboard';
         }, 1800);
     };
@@ -272,7 +272,7 @@ document.addEventListener('click', function (e) {
     }
 });
 
-/* Autoscroll (stick to bottom) + fit chat to the space under the site navbar */
+/* Autoscroll (stick to bottom) + fit çat to the space under the site navbar */
 var messagesEl = document.getElementById('messages');
 var cwEl = document.querySelector('.cw');
 var stickBottom = true;
@@ -282,7 +282,7 @@ function cwScroll(force) {
     if (force || stickBottom) messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-/* Size the chat to the real leftover viewport height so there is no second
+/* Size the çat to the real leftover viewport height so there is no second
    scrollbar and the input never covers the last message (works with the site's
    floating navbar, any theme, and on resize / mobile keyboard). */
 function cwFit() {
@@ -365,14 +365,14 @@ function cwAddAssistantRow() {
     var id = 'stream-' + Date.now();
     var html = '<div class="cw-row assistant"><div class="am-orb thinking"><i class="bi bi-stars"></i></div>'
         + '<div class="cw-body"><div class="cw-assistant-text"><div class="markdown-body" id="' + id + '">'
-        + '<div class="cw-think"><span class="shim">O‘ylayapman</span><span class="cw-dots"><span></span><span></span><span></span></span></div>'
+        + '<div class="cw-think"><span class="shim">Öylayapman</span><span class="cw-dots"><span></span><span></span><span></span></span></div>'
         + '</div></div></div></div>';
     messagesEl.insertAdjacentHTML('beforeend', html);
     cwScroll();
     return document.getElementById(id);
 }
 
-/* Javob kutilayotganda: tugma aylanadi, kiritish maydoni chegarasi jonlanadi, sarlavhada "Yozmoqda". */
+/* Javob kutilayotganda: tugma aylanadi, kiritiş maydoni çegarasi jonlanadi, sarlavhada "Yozmoqda". */
 function cwSetBusy(busy) {
     isBusy = busy;
     if (sendBtn) {
@@ -424,8 +424,8 @@ function cwStreamRender(mdEl, raw) {
 
 function cwToolsHtml(mid) {
     return '<div class="cw-msg-tools am-new" data-mid="' + mid + '">'
-        + '<button type="button" class="cw-tool copy" title="Nusxa olish" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>'
-        + '<button type="button" class="cw-tool tts" title="Ovozda o\'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>'
+        + '<button type="button" class="cw-tool copy" title="Nusxa oliş" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>'
+        + '<button type="button" class="cw-tool tts" title="Ovozda öqiş" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>'
         + '<button type="button" class="cw-tool up" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up"></i></button>'
         + '<button type="button" class="cw-tool down" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down"></i></button>'
         + '</div>';
@@ -446,8 +446,8 @@ function cwFinalize(mdEl, content, msgId) {
 
 function cwStreamError(mdEl, raw, onRetry) {
     cwStopThinking(mdEl);
-    var base = raw ? (cwRenderMarkdown(raw) || cwEscape(raw)) : '<p>⚠️ Javob olishda xatolik yuz berdi.</p>';
-    mdEl.innerHTML = base + '<button class="cw-retry" type="button"><i class="bi bi-arrow-clockwise"></i> Qayta urinish</button>';
+    var base = raw ? (cwRenderMarkdown(raw) || cwEscape(raw)) : '<p>⚠️ Javob olişda xatolik yuz berdi.</p>';
+    mdEl.innerHTML = base + '<button class="cw-retry" type="button"><i class="bi bi-arrow-clockwise"></i> Qayta uriniş</button>';
     var btn = mdEl.querySelector('.cw-retry');
     if (btn) btn.addEventListener('click', function () { btn.remove(); onRetry(mdEl); });
     cwScroll();
@@ -495,7 +495,7 @@ async function cwStream(mdEl) {
 }
 
 /* ============================================================
-   Rasm chizish (faqat Premium)
+   Rasm çiziş (faqat Premium)
    ============================================================ */
 var drawMode = false;
 var drawBtn = document.getElementById('drawBtn');
@@ -508,7 +508,7 @@ function cwToggleDraw(on) {
     var hint = document.getElementById('drawHint');
     if (hint) hint.classList.toggle('active', drawMode);
     if (textarea) {
-        textarea.placeholder = drawMode ? 'Masalan: kosmosda gitara chalayotgan mushuk, multfilm uslubida…' : 'Xabar yozing…';
+        textarea.placeholder = drawMode ? 'Masalan: kosmosda gitara çalayotgan muşuk, multfilm uslubida…' : 'Xabar yozing…';
         textarea.focus();
     }
 }
@@ -521,7 +521,7 @@ async function cwDraw(prompt) {
     if (textarea) { textarea.value = ''; textarea.style.height = 'auto'; }
     var mdEl = cwAddAssistantRow();
     var shim = mdEl.querySelector('.shim');
-    if (shim) shim.textContent = 'Rasm chizyapman';
+    if (shim) shim.textContent = 'Rasm çizyapman';
     try {
         var body = new URLSearchParams({ prompt: prompt, csrfmiddlewaretoken: cwCsrf() });
         var resp = await fetch("{% url 'ai_yordamchi:generate_image' pk=session.pk %}", {
@@ -538,14 +538,14 @@ async function cwDraw(prompt) {
         cwFinalize(mdEl, data.content, data.message_id);
         var url = cwEscape(data.image_url);
         mdEl.closest('.cw-assistant-text').insertAdjacentHTML('afterend',
-            '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>'
-            + '<a href="' + url + '" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>');
+            '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="AI çizgan rasm" class="cw-img cw-gen-img"></a>'
+            + '<a href="' + url + '" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab oliş</a>');
         var left = document.getElementById('genLeft');
         if (left && data.gen_left != null) left.textContent = data.gen_left;
         if (data.gen_left === 0) cwToggleDraw(false);
     } catch (e) {
         cwStopThinking(mdEl);
-        mdEl.innerHTML = '<p>⚠️ Rasm chizishda xatolik yuz berdi. Qayta urinib ko‘ring.</p>';
+        mdEl.innerHTML = '<p>⚠️ Rasm çizişda xatolik yuz berdi. Qayta urinib köring.</p>';
     } finally {
         cwSetBusy(false);
     }
@@ -601,7 +601,7 @@ if (textarea && form) {
         this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
     form.addEventListener('submit', function (e) { e.preventDefault(); cwSend(); });
-    // Bosh sahifadagi "Bilasizmi?" savoli: sahifa ochilishi bilan yuboriladi.
+    // Boş sahifadagi "Bilasizmi?" savoli: sahifa oçilişi bilan yuboriladi.
     if (form.dataset.autosend === '1' && textarea.value.trim()) {
         delete form.dataset.autosend;
         if (window.history && history.replaceState) history.replaceState(null, '', location.pathname);
@@ -611,7 +611,7 @@ if (textarea && form) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cwSend(); }
     });
     textarea.focus();
-    // Pre-filled composer (from an "AI'dan so'rash" button): size it and place the cursor at the end.
+    // Pre-filled composer (from an "AI'dan söraş" button): size it and place the cursor at the end.
     if (textarea.value.trim()) {
         textarea.style.height = 'auto';
         textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
@@ -668,7 +668,7 @@ function cwRemoveFile() {
     var c = document.getElementById('fileChip'); if (c) c.classList.remove('active');
 }
 
-/* Javob matnini nusxalash */
+/* Javob matnini nusxalaş */
 function cwCopyAnswer(btn) {
     var body = btn.closest('.cw-body');
     var md = body && body.querySelector('.markdown-body');

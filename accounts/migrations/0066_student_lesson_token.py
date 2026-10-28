@@ -23,8 +23,8 @@ class Migration(migrations.Migration):
                 ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='lesson_tokens', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "O'quvchi dars tokeni",
-                'verbose_name_plural': "O'quvchi dars tokenlari",
+                'verbose_name': "Öquvçi dars tokeni",
+                'verbose_name_plural': "Öquvçi dars tokenlari",
                 'constraints': [models.UniqueConstraint(fields=('student', 'lesson'), name='unique_student_lesson_token')],
             },
         ),

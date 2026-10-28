@@ -25,26 +25,26 @@ const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(
 // ─── ELEMENT CATALOG ──────────────────────────────────────
 const ELEMENTS = [
   { type: 'h1', name: 'Sarlavha 1', tag: '<h1>', icon: 'bi-type-h1', cat: 'Matn', desc: 'Sahifaning asosiy sarlavhasi.' },
-  { type: 'h2', name: 'Sarlavha 2', tag: '<h2>', icon: 'bi-type-h2', cat: 'Matn', desc: "Bo'lim sarlavhasi." },
+  { type: 'h2', name: 'Sarlavha 2', tag: '<h2>', icon: 'bi-type-h2', cat: 'Matn', desc: "Bölim sarlavhasi." },
   { type: 'p', name: 'Paragraf', tag: '<p>', icon: 'bi-text-paragraph', cat: 'Matn', desc: 'Oddiy matn bloki.' },
-  { type: 'ul', name: "Ro'yxat", tag: '<ul>', icon: 'bi-list-ul', cat: 'Matn', desc: 'Belgilangan ro\'yxat.' },
-  { type: 'ol', name: 'Tartibli ro\'yxat', tag: '<ol>', icon: 'bi-list-ol', cat: 'Matn', desc: 'Raqamlangan ro\'yxat.' },
-  { type: 'img', name: 'Rasm', tag: '<img>', icon: 'bi-image', cat: 'Media', desc: 'Tasvir joylashtirish.' },
+  { type: 'ul', name: "Röyxat", tag: '<ul>', icon: 'bi-list-ul', cat: 'Matn', desc: 'Belgilangan röyxat.' },
+  { type: 'ol', name: 'Tartibli röyxat', tag: '<ol>', icon: 'bi-list-ol', cat: 'Matn', desc: 'Raqamlangan röyxat.' },
+  { type: 'img', name: 'Rasm', tag: '<img>', icon: 'bi-image', cat: 'Media', desc: 'Tasvir joylaştiriş.' },
   { type: 'btn', name: 'Tugma', tag: '<button>', icon: 'bi-hand-index', cat: 'Interaktiv', desc: 'Bosiladigan tugma.' },
-  { type: 'input', name: 'Kiritish maydoni', tag: '<input>', icon: 'bi-input-cursor-text', cat: 'Forma', desc: 'Matn kiritish maydoni.' },
-  { type: 'form', name: 'Forma', tag: '<form>', icon: 'bi-ui-checks', cat: 'Forma', desc: 'Ma\'lumot yig\'uvchi forma.' },
+  { type: 'input', name: 'Kiritiş maydoni', tag: '<input>', icon: 'bi-input-cursor-text', cat: 'Forma', desc: 'Matn kiritiş maydoni.' },
+  { type: 'form', name: 'Forma', tag: '<form>', icon: 'bi-ui-checks', cat: 'Forma', desc: 'Ma\'lumot yiğuvçi forma.' },
   { type: 'nav', name: 'Navigatsiya', tag: '<nav>', icon: 'bi-menu-button-wide', cat: 'Tuzilma', desc: 'Sahifa menyusi.' },
-  { type: 'div', name: "Bo'lim", tag: '<div>', icon: 'bi-square', cat: 'Tuzilma', desc: 'Universal konteyner.' },
+  { type: 'div', name: "Bölim", tag: '<div>', icon: 'bi-square', cat: 'Tuzilma', desc: 'Universal konteyner.' },
   { type: 'footer', name: 'Footer', tag: '<footer>', icon: 'bi-layout-sidebar-inset-reverse', cat: 'Tuzilma', desc: 'Sahifa pastki qismi.' },
 ];
 const EL = Object.fromEntries(ELEMENTS.map(e => [e.type, e]));
 const CATEGORIES = ['Hammasi', 'Matn', 'Media', 'Interaktiv', 'Forma', 'Tuzilma'];
 const DEFAULTS = {
-  h1: 'Asosiy Sarlavha', h2: "Bo'lim Sarlavhasi",
-  p: "Bu yerda matn joylashadi — sahifangiz haqida qisqacha ma'lumot.",
+  h1: 'Asosiy Sarlavha', h2: "Bölim Sarlavhasi",
+  p: "Bu yerda matn joylaşadi — sahifangiz haqida qisqaça ma'lumot.",
   img: null, btn: 'Bosing',
-  ul: ['Birinchi', 'Ikkinchi', 'Uchinchi'], ol: ['Birinchi qadam', 'Ikkinchi qadam', 'Uchinchi qadam'],
-  div: "Bo'sh bo'lim", nav: ['Bosh sahifa', 'Haqida', "Bog'lanish"],
+  ul: ['Birinçi', 'Ikkinçi', 'Uçinçi'], ol: ['Birinçi qadam', 'Ikkinçi qadam', 'Uçinçi qadam'],
+  div: "Böş bölim", nav: ['Boş sahifa', 'Haqida', "Boğlaniş"],
   input: 'Ismingizni kiriting…', form: 'Forma',
   footer: '© 2026 IT Creative LMS',
 };
@@ -53,22 +53,22 @@ const DEFAULTS = {
 function tHTML(s) { return s.replace(/\s+/g, ' ').trim(); }
 const LEVELS = {
   beginner: [
-    { id: 'b1', name: 'Birinchi sahifa', desc: 'Sarlavha va paragraf qo\'shing', xp: 100,
+    { id: 'b1', name: 'Birinçi sahifa', desc: 'Sarlavha va paragraf qöşing', xp: 100,
       required: [{ type: 'h1', n: 1, label: 'Asosiy sarlavha' }, { type: 'p', n: 1, label: 'Paragraf' }],
       types: ['h1', 'h2', 'p'],
       target: tHTML(`<h1 style="font-size:1.4rem;font-weight:800;color:#1e293b;margin-bottom:8px">Salom Dunyo</h1>
-        <p style="font-size:.85rem;color:#475569">Bu mening birinchi veb-sahifam.</p>`) },
-    { id: 'b2', name: 'Rasm va tugma', desc: 'Sahifaga rasm va tugma qo\'shing', xp: 130,
+        <p style="font-size:.85rem;color:#475569">Bu mening birinçi veb-sahifam.</p>`) },
+    { id: 'b2', name: 'Rasm va tugma', desc: 'Sahifaga rasm va tugma qöşing', xp: 130,
       required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'img', n: 1, label: 'Rasm' }, { type: 'btn', n: 1, label: 'Tugma' }],
       types: ['h1', 'h2', 'p', 'img', 'btn'],
       target: tHTML(`<h1 style="font-size:1.3rem;font-weight:800;color:#1e293b;margin-bottom:8px">Mening Profilim</h1>
         <img src="https://placehold.co/220x90/e2e8f0/94a3b8?text=Rasm" style="width:100%;max-height:80px;object-fit:cover;border-radius:6px;margin-bottom:8px">
-        <button style="background:#6366f1;color:#fff;border:0;border-radius:6px;padding:7px 16px;font-size:.82rem">Bog'lanish</button>`) },
-    { id: 'b3', name: 'To\'liq tanishuv', desc: 'Sarlavha, 2 paragraf, ro\'yxat', xp: 150,
-      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'ul', n: 1, label: "Ro'yxat" }],
+        <button style="background:#6366f1;color:#fff;border:0;border-radius:6px;padding:7px 16px;font-size:.82rem">Boğlaniş</button>`) },
+    { id: 'b3', name: 'Töliq tanişuv', desc: 'Sarlavha, 2 paragraf, röyxat', xp: 150,
+      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'ul', n: 1, label: "Röyxat" }],
       types: ['h1', 'h2', 'p', 'ul', 'ol', 'img', 'btn'],
       target: tHTML(`<h1 style="font-size:1.3rem;font-weight:800;color:#1e293b;margin-bottom:6px">Men haqimda</h1>
-        <p style="font-size:.82rem;color:#475569;margin-bottom:6px">Salom! Men dasturlashni o'rganyapman.</p>
+        <p style="font-size:.82rem;color:#475569;margin-bottom:6px">Salom! Men dasturlaşni örganyapman.</p>
         <p style="font-size:.82rem;color:#475569;margin-bottom:6px">Sevimli mavzularim:</p>
         <ul style="padding-left:18px;font-size:.8rem;color:#475569"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>`) },
   ],
@@ -77,45 +77,45 @@ const LEVELS = {
       required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 1, label: 'Paragraf' }, { type: 'btn', n: 1, label: 'Tugma' }],
       types: ['nav', 'h1', 'h2', 'p', 'img', 'btn', 'ul', 'div'],
       target: tHTML(`<nav style="background:#1e293b;padding:6px 10px;border-radius:5px;display:flex;gap:10px;margin-bottom:8px">
-        <span style="color:#e2e8f0;font-size:.72rem">Bosh</span><span style="color:#94a3b8;font-size:.72rem">Xizmatlar</span><span style="color:#94a3b8;font-size:.72rem">Aloqa</span></nav>
+        <span style="color:#e2e8f0;font-size:.72rem">Boş</span><span style="color:#94a3b8;font-size:.72rem">Xizmatlar</span><span style="color:#94a3b8;font-size:.72rem">Aloqa</span></nav>
         <h1 style="font-size:1.2rem;font-weight:800;color:#1e293b;margin-bottom:5px">Kompaniya Nomi</h1>
-        <p style="font-size:.78rem;color:#475569;margin-bottom:7px">Biz eng yaxshi xizmatlarni taklif etamiz.</p>
-        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 14px;font-size:.78rem">Boshlash</button>`) },
-    { id: 'm2', name: 'Xizmatlar bloki', desc: '2 sarlavha, ro\'yxat, rasm', xp: 230,
-      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 1, label: "Bo'lim sarlavhasi" }, { type: 'ul', n: 1, label: "Ro'yxat" }, { type: 'img', n: 1, label: 'Rasm' }],
+        <p style="font-size:.78rem;color:#475569;margin-bottom:7px">Biz eng yaxşi xizmatlarni taklif etamiz.</p>
+        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 14px;font-size:.78rem">Boşlaş</button>`) },
+    { id: 'm2', name: 'Xizmatlar bloki', desc: '2 sarlavha, röyxat, rasm', xp: 230,
+      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 1, label: "Bölim sarlavhasi" }, { type: 'ul', n: 1, label: "Röyxat" }, { type: 'img', n: 1, label: 'Rasm' }],
       types: ['h1', 'h2', 'p', 'ul', 'ol', 'img', 'btn', 'nav', 'div'],
       target: tHTML(`<h1 style="font-size:1.2rem;font-weight:800;color:#1e293b;margin-bottom:5px">Xizmatlarimiz</h1>
         <img src="https://placehold.co/220x70/e2e8f0/94a3b8?text=Banner" style="width:100%;max-height:60px;object-fit:cover;border-radius:6px;margin-bottom:8px">
         <h2 style="font-size:.95rem;font-weight:700;color:#334155;margin-bottom:4px">Nimalar taklif qilamiz</h2>
-        <ul style="padding-left:18px;font-size:.78rem;color:#475569"><li>Veb-dizayn</li><li>Dasturlash</li><li>Qo'llab-quvvatlash</li></ul>`) },
-    { id: 'm3', name: 'Aloqa formasi', desc: 'Forma va kiritish maydoni', xp: 260,
-      required: [{ type: 'h2', n: 1, label: 'Sarlavha' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'input', n: 1, label: 'Kiritish maydoni' }, { type: 'btn', n: 1, label: 'Tugma' }],
+        <ul style="padding-left:18px;font-size:.78rem;color:#475569"><li>Veb-dizayn</li><li>Dasturlaş</li><li>Qöllab-quvvatlash</li></ul>`) },
+    { id: 'm3', name: 'Aloqa formasi', desc: 'Forma va kiritiş maydoni', xp: 260,
+      required: [{ type: 'h2', n: 1, label: 'Sarlavha' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'input', n: 1, label: 'Kiritiş maydoni' }, { type: 'btn', n: 1, label: 'Tugma' }],
       types: ['h1', 'h2', 'p', 'form', 'input', 'btn', 'nav'],
-      target: tHTML(`<h2 style="font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:6px">Biz bilan bog'laning</h2>
+      target: tHTML(`<h2 style="font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:6px">Biz bilan boğlaning</h2>
         <form style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px">
         <input style="width:100%;border:1px solid #cbd5e1;border-radius:5px;padding:6px 9px;font-size:.76rem;margin-bottom:7px" placeholder="Ismingiz">
-        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 14px;font-size:.76rem">Yuborish</button></form>`) },
+        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 14px;font-size:.76rem">Yuboriş</button></form>`) },
   ],
   advanced: [
-    { id: 'a1', name: 'Professional landing', desc: 'To\'liq strukturali sahifa', xp: 350,
-      required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 2, label: '2 ta bo\'lim sarlavhasi' }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'img', n: 1, label: 'Rasm' }, { type: 'footer', n: 1, label: 'Footer' }],
+    { id: 'a1', name: 'Professional landing', desc: 'Töliq strukturali sahifa', xp: 350,
+      required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 2, label: '2 ta bölim sarlavhasi' }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'img', n: 1, label: 'Rasm' }, { type: 'footer', n: 1, label: 'Footer' }],
       types: ['nav', 'h1', 'h2', 'p', 'ul', 'ol', 'img', 'btn', 'div', 'footer'],
       target: tHTML(`<nav style="background:#1e293b;padding:5px 9px;border-radius:5px;display:flex;gap:9px;margin-bottom:6px">
-        <span style="color:#e2e8f0;font-size:.66rem">Bosh</span><span style="color:#94a3b8;font-size:.66rem">Xizmat</span><span style="color:#94a3b8;font-size:.66rem">Aloqa</span></nav>
+        <span style="color:#e2e8f0;font-size:.66rem">Boş</span><span style="color:#94a3b8;font-size:.66rem">Xizmat</span><span style="color:#94a3b8;font-size:.66rem">Aloqa</span></nav>
         <h1 style="font-size:1.05rem;font-weight:800;color:#1e293b;margin-bottom:3px">Pro Veb-Sayt</h1>
-        <p style="font-size:.7rem;color:#475569;margin-bottom:4px">Zamonaviy yechimlar.</p>
+        <p style="font-size:.7rem;color:#475569;margin-bottom:4px">Zamonaviy yeçimlar.</p>
         <h2 style="font-size:.85rem;font-weight:700;color:#334155;margin-bottom:3px">Biz haqimizda</h2>
         <p style="font-size:.7rem;color:#475569;margin-bottom:4px">Tajribali jamoa.</p>
-        <h2 style="font-size:.85rem;font-weight:700;color:#334155;margin-bottom:3px">Bog'lanish</h2>
+        <h2 style="font-size:.85rem;font-weight:700;color:#334155;margin-bottom:3px">Boğlaniş</h2>
         <footer style="background:#1e293b;color:#94a3b8;font-size:.66rem;padding:6px;text-align:center;border-radius:5px;margin-top:4px">© 2026</footer>`) },
-    { id: 'a2', name: 'To\'liq forma sahifasi', desc: 'Forma + ro\'yxat + footer', xp: 380,
-      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 1, label: 'Paragraf' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'input', n: 1, label: 'Kiritish' }, { type: 'btn', n: 1, label: 'Tugma' }, { type: 'footer', n: 1, label: 'Footer' }],
+    { id: 'a2', name: 'Töliq forma sahifasi', desc: 'Forma + röyxat + footer', xp: 380,
+      required: [{ type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 1, label: 'Paragraf' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'input', n: 1, label: 'Kiritiş' }, { type: 'btn', n: 1, label: 'Tugma' }, { type: 'footer', n: 1, label: 'Footer' }],
       types: ['h1', 'h2', 'p', 'ul', 'form', 'input', 'btn', 'nav', 'footer', 'div'],
-      target: tHTML(`<h1 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:4px">Ro'yxatdan o'tish</h1>
+      target: tHTML(`<h1 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:4px">Röyxatdan ötiş</h1>
         <p style="font-size:.72rem;color:#475569;margin-bottom:6px">Bepul akkaunt yarating.</p>
         <form style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:9px;margin-bottom:5px">
         <input style="width:100%;border:1px solid #cbd5e1;border-radius:5px;padding:6px 9px;font-size:.74rem;margin-bottom:6px" placeholder="Email">
-        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 13px;font-size:.74rem">Ro'yxatdan o'tish</button></form>
+        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 13px;font-size:.74rem">Röyxatdan ötiş</button></form>
         <footer style="background:#1e293b;color:#94a3b8;font-size:.66rem;padding:6px;text-align:center;border-radius:5px">© 2026 Kompaniya</footer>`) },
   ],
   challenge: [
@@ -123,42 +123,42 @@ const LEVELS = {
       required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'p', n: 1, label: 'Paragraf' }, { type: 'btn', n: 1, label: 'Tugma' }, { type: 'footer', n: 1, label: 'Footer' }],
       types: ['nav', 'h1', 'h2', 'p', 'img', 'btn', 'ul', 'footer', 'div'],
       target: tHTML(`<nav style="background:#1e293b;padding:5px 9px;border-radius:5px;display:flex;gap:9px;margin-bottom:6px">
-        <span style="color:#e2e8f0;font-size:.68rem">Bosh</span><span style="color:#94a3b8;font-size:.68rem">Aloqa</span></nav>
+        <span style="color:#e2e8f0;font-size:.68rem">Boş</span><span style="color:#94a3b8;font-size:.68rem">Aloqa</span></nav>
         <h1 style="font-size:1.1rem;font-weight:800;color:#1e293b;margin-bottom:4px">Tez Start</h1>
         <p style="font-size:.72rem;color:#475569;margin-bottom:6px">Vaqt ketmoqda!</p>
-        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 13px;font-size:.74rem;margin-bottom:6px">Boshlash</button>
+        <button style="background:#6366f1;color:#fff;border:0;border-radius:5px;padding:6px 13px;font-size:.74rem;margin-bottom:6px">Boşlaş</button>
         <footer style="background:#1e293b;color:#94a3b8;font-size:.66rem;padding:6px;text-align:center;border-radius:5px">© 2026</footer>`) },
-    { id: 'c2', name: 'Master sinov', desc: '120 soniyada to\'liq sahifa', xp: 420, time: 120,
-      required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 1, label: "Bo'lim" }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'footer', n: 1, label: 'Footer' }],
+    { id: 'c2', name: 'Master sinov', desc: '120 soniyada töliq sahifa', xp: 420, time: 120,
+      required: [{ type: 'nav', n: 1, label: 'Navigatsiya' }, { type: 'h1', n: 1, label: 'Sarlavha' }, { type: 'h2', n: 1, label: "Bölim" }, { type: 'p', n: 2, label: '2 ta paragraf' }, { type: 'form', n: 1, label: 'Forma' }, { type: 'footer', n: 1, label: 'Footer' }],
       types: ['nav', 'h1', 'h2', 'p', 'ul', 'img', 'form', 'input', 'btn', 'footer', 'div'],
       target: tHTML(`<nav style="background:#1e293b;padding:5px 9px;border-radius:5px;display:flex;gap:9px;margin-bottom:5px">
-        <span style="color:#e2e8f0;font-size:.64rem">Bosh</span><span style="color:#94a3b8;font-size:.64rem">Aloqa</span></nav>
+        <span style="color:#e2e8f0;font-size:.64rem">Boş</span><span style="color:#94a3b8;font-size:.64rem">Aloqa</span></nav>
         <h1 style="font-size:1rem;font-weight:800;color:#1e293b;margin-bottom:3px">Master Sahifa</h1>
-        <p style="font-size:.68rem;color:#475569;margin-bottom:3px">Birinchi paragraf.</p>
-        <h2 style="font-size:.82rem;font-weight:700;color:#334155;margin-bottom:3px">Bo'lim</h2>
-        <p style="font-size:.68rem;color:#475569;margin-bottom:4px">Ikkinchi paragraf.</p>
+        <p style="font-size:.68rem;color:#475569;margin-bottom:3px">Birinçi paragraf.</p>
+        <h2 style="font-size:.82rem;font-weight:700;color:#334155;margin-bottom:3px">Bölim</h2>
+        <p style="font-size:.68rem;color:#475569;margin-bottom:4px">Ikkinçi paragraf.</p>
         <footer style="background:#1e293b;color:#94a3b8;font-size:.64rem;padding:5px;text-align:center;border-radius:5px">© 2026</footer>`) },
   ],
 };
 const MODE_META = {
-  beginner:     { name: "Boshlang'ich", desc: 'Oddiy vazifalar, ko\'p yordam bilan HTML asoslari.', mult: 1.0 },
-  intermediate: { name: "O'rta", desc: 'Navigatsiya, ro\'yxat va formalar bilan murakkabroq sahifalar.', mult: 1.25 },
+  beginner:     { name: "Boşlanğiç", desc: 'Oddiy vazifalar, köp yordam bilan HTML asoslari.', mult: 1.0 },
+  intermediate: { name: "Örta", desc: 'Navigatsiya, röyxat va formalar bilan murakkabroq sahifalar.', mult: 1.25 },
   advanced:     { name: 'Murakkab', desc: 'Real-world strukturalar, minimal maslahat.', mult: 1.6 },
-  challenge:    { name: 'Challenge', desc: 'Vaqtli sinovlar, qo\'shimcha XP mukofotlari.', mult: 2.0 },
+  challenge:    { name: 'Challenge', desc: 'Vaqtli sinovlar, qöşimça XP mukofotlari.', mult: 2.0 },
 };
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────
 const ACHIEVEMENTS = [
-  { code: 'first_build', name: 'Ilk qadam', desc: 'Birinchi bosqichni yakunladingiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.firstEver },
+  { code: 'first_build', name: 'Ilk qadam', desc: 'Birinçi bosqiçni yakunladingiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.firstEver },
   { code: 'perfectionist', name: 'Mukammallik', desc: '100% aniqlik bilan yakunladingiz', icon: 'bi-bullseye', color: '#6366f1', cond: c => c.accuracy >= 100 },
-  { code: 'speed_runner', name: 'Chaqqon', desc: 'Bosqichni 60 soniyada tugatdingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.elapsed > 0 && c.elapsed < 60 && c.score >= 50 },
-  { code: 'no_hints', name: 'Mustaqil', desc: 'Maslahat ishlatmay yuqori ball oldingiz', icon: 'bi-mortarboard-fill', color: '#06b6d4', cond: c => !c.usedHint && c.score >= 80 },
-  { code: 'collector', name: 'Yig\'uvchi', desc: 'Bitta sahifada 8+ element', icon: 'bi-collection-fill', color: '#ec4899', cond: c => c.itemsCount >= 8 },
-  { code: 'streak_3', name: 'Izchil', desc: '3 kun ketma-ket o\'ynadingiz', icon: 'bi-fire', color: '#fb923c', cond: c => (c.profile.streak_days || 0) >= 3 },
-  { code: 'level_5', name: 'Yuksalish', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#a855f7', cond: c => (c.profile.level || 1) >= 5 },
-  { code: 'ten_builds', name: 'Tajribali', desc: '10 marta o\'ynadingiz', icon: 'bi-stars', color: '#eab308', cond: c => (c.profile.plays || 0) >= 10 },
-  { code: 'challenge_master', name: 'Challenge ustasi', desc: 'Challenge bosqichini yakunladingiz', icon: 'bi-stopwatch-fill', color: '#ef4444', cond: c => c.mode === 'challenge' && c.score >= 50 },
-  { code: 'advanced_done', name: 'Professional', desc: 'Murakkab bosqichni yakunladingiz', icon: 'bi-award-fill', color: '#14b8a6', cond: c => c.mode === 'advanced' && c.score >= 50 },
+  { code: 'speed_runner', name: 'Çaqqon', desc: 'Bosqiçni 60 soniyada tugatdingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.elapsed > 0 && c.elapsed < 60 && c.score >= 50 },
+  { code: 'no_hints', name: 'Mustaqil', desc: 'Maslahat işlatmay yuqori ball oldingiz', icon: 'bi-mortarboard-fill', color: '#06b6d4', cond: c => !c.usedHint && c.score >= 80 },
+  { code: 'collector', name: 'Yiğuvçi', desc: 'Bitta sahifada 8+ element', icon: 'bi-collection-fill', color: '#ec4899', cond: c => c.itemsCount >= 8 },
+  { code: 'streak_3', name: 'Izçil', desc: '3 kun ketma-ket öynadingiz', icon: 'bi-fire', color: '#fb923c', cond: c => (c.profile.streak_days || 0) >= 3 },
+  { code: 'level_5', name: 'Yuksaliş', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#a855f7', cond: c => (c.profile.level || 1) >= 5 },
+  { code: 'ten_builds', name: 'Tajribali', desc: '10 marta öynadingiz', icon: 'bi-stars', color: '#eab308', cond: c => (c.profile.plays || 0) >= 10 },
+  { code: 'challenge_master', name: 'Challenge ustasi', desc: 'Challenge bosqiçini yakunladingiz', icon: 'bi-stopwatch-fill', color: '#ef4444', cond: c => c.mode === 'challenge' && c.score >= 50 },
+  { code: 'advanced_done', name: 'Professional', desc: 'Murakkab bosqiçni yakunladingiz', icon: 'bi-award-fill', color: '#14b8a6', cond: c => c.mode === 'advanced' && c.score >= 50 },
 ];
 const ACH = Object.fromEntries(ACHIEVEMENTS.map(a => [a.code, a]));
 
@@ -245,7 +245,7 @@ async function verify() {
     LMS_USER = d.user || d;
   } catch (e) {
     LMS_USER = { id: 0, name: 'Mehmon', group: '' };
-    const el = $('load-error'); if (el) { el.classList.remove('hidden'); el.textContent = 'Ulanish: ' + e.message + ' — mehmon rejimida davom etamiz.'; }
+    const el = $('load-error'); if (el) { el.classList.remove('hidden'); el.textContent = 'Ulaniş: ' + e.message + ' — mehmon rejimida davom etamiz.'; }
   }
 }
 
@@ -265,7 +265,7 @@ function saveLocalProfile() { try { localStorage.setItem('htmlb_profile', JSON.s
 // ─── PROFILE UI ───────────────────────────────────────────
 function initials(n) { return (n || '?').trim()[0] ? (n || '?').trim()[0].toUpperCase() : '?'; }
 function renderProfile() {
-  const name = LMS_USER ? (LMS_USER.name || LMS_USER.username || 'O\'yinchi') : 'O\'yinchi';
+  const name = LMS_USER ? (LMS_USER.name || LMS_USER.username || 'Öyinçi') : 'Öyinçi';
   $('hero-name').textContent = name;
   $('hero-avatar').textContent = initials(name);
   $('nav-streak').textContent = profile.streak_days || 0;
@@ -309,7 +309,7 @@ function renderLevels() {
         <span class="lc-chip">${lv.required.length} vazifa${lv.time ? ' · ⏱' + lv.time + 's' : ''}</span>
         <span class="lc-xp">+${lv.xp} XP</span>
       </div>`;
-    const open = () => { if (unlocked) startLevel(curMode, lv); else toast('Avval oldingi bosqichni yakunlang', 'warn', 'bi-lock-fill'); };
+    const open = () => { if (unlocked) startLevel(curMode, lv); else toast('Avval oldingi bosqiçni yakunlang', 'warn', 'bi-lock-fill'); };
     card.addEventListener('click', open);
     card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
     grid.appendChild(card);
@@ -388,7 +388,7 @@ function renderLibrary() {
     const d = create('div', 'el-item');
     d.draggable = true; d.dataset.type = e.type;
     d.setAttribute('tabindex', '0'); d.setAttribute('role', 'button');
-    d.setAttribute('aria-label', e.name + ' qo\'shish');
+    d.setAttribute('aria-label', e.name + ' qöşiş');
     d.title = e.desc;
     d.innerHTML = `<div class="el-ico"><i class="bi ${e.icon}"></i></div>
       <div class="el-meta"><div class="el-name">${esc(e.name)}</div><div class="el-tag">${esc(e.tag)}</div></div>
@@ -396,7 +396,7 @@ function renderLibrary() {
     d.addEventListener('dragstart', ev => { dragType = e.type; d.classList.add('drag-source'); ev.dataTransfer.effectAllowed = 'copy'; makeGhost(e.name); });
     d.addEventListener('dragend', () => { d.classList.remove('drag-source'); killGhost(); dragType = null; });
     d.addEventListener('touchstart', ev => touchStart(ev, e.type, e.name), { passive: false });
-    d.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); addItem(e.type); toast(e.name + ' qo\'shildi', 'info', e.icon); } });
+    d.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); addItem(e.type); toast(e.name + ' qöşildi', 'info', e.icon); } });
     list.appendChild(d);
   });
 }
@@ -442,14 +442,14 @@ function renderCanvas() {
   c.classList.toggle('empty', items.length === 0);
   if (!items.length) {
     const e = create('div', 'canvas-empty-txt');
-    e.textContent = 'Chap paneldan elementlarni bu yerga sudrab tashlang yoki ustiga bosing';
+    e.textContent = 'Çap paneldan elementlarni bu yerga sudrab taşlang yoki ustiga bosing';
     c.appendChild(e);
     return;
   }
   items.forEach(it => {
     const w = create('div', 'canvas-el');
     w.dataset.id = it.id;
-    w.innerHTML = elHTML(it.type) + `<div class="el-del" onclick="hbRemove(${it.id})" title="O'chirish"><i class="bi bi-x"></i></div>`;
+    w.innerHTML = elHTML(it.type) + `<div class="el-del" onclick="hbRemove(${it.id})" title="Öçiriş"><i class="bi bi-x"></i></div>`;
     c.appendChild(w);
   });
 }
@@ -466,7 +466,7 @@ function elHTML(type) {
     case 'div': return `<div style="background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:8px;padding:14px;color:#94a3b8;font-size:.83rem;text-align:center;margin:0 0 8px">${d}</div>`;
     case 'nav': return `<nav style="background:#1e293b;padding:10px 14px;border-radius:8px;display:flex;gap:14px;margin:0 0 8px">${d.map((x, i) => `<span style="color:${i === 0 ? '#e2e8f0' : '#94a3b8'};font-size:.83rem;font-weight:${i === 0 ? 700 : 400}">${x}</span>`).join('')}</nav>`;
     case 'input': return `<input style="width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:9px 12px;font-size:.88rem;margin:0 0 8px" placeholder="${d}" readonly>`;
-    case 'form': return `<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin:0 0 8px"><div style="font-weight:700;margin-bottom:8px;color:#1e293b;font-size:.9rem">Forma</div><input style="width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 11px;font-size:.84rem;margin-bottom:8px" placeholder="Ismingiz" readonly><button style="background:#6366f1;color:#fff;border:0;border-radius:7px;padding:7px 16px;font-weight:700">Yuborish</button></div>`;
+    case 'form': return `<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin:0 0 8px"><div style="font-weight:700;margin-bottom:8px;color:#1e293b;font-size:.9rem">Forma</div><input style="width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 11px;font-size:.84rem;margin-bottom:8px" placeholder="Ismingiz" readonly><button style="background:#6366f1;color:#fff;border:0;border-radius:7px;padding:7px 16px;font-weight:700">Yuboriş</button></div>`;
     case 'footer': return `<footer style="background:#1e293b;color:#94a3b8;font-size:.8rem;padding:12px 16px;border-radius:8px;text-align:center;margin:0 0 8px">${d}</footer>`;
     default: return `<div>&lt;${type}&gt;</div>`;
   }
@@ -517,18 +517,18 @@ function buildHTML() {
 }
 function updatePreviews() {
   const html = buildHTML();
-  $('live-preview').innerHTML = html || '<div style="color:#94a3b8;font-style:italic;font-size:.85rem;text-align:center;padding:18px">Hali bo\'sh…</div>';
+  $('live-preview').innerHTML = html || '<div style="color:#94a3b8;font-style:italic;font-size:.85rem;text-align:center;padding:18px">Hali böş…</div>';
   // code
   const tags = { h1: 'h1', h2: 'h2', p: 'p', img: 'img', btn: 'button', ul: 'ul', ol: 'ol', div: 'div', nav: 'nav', input: 'input', form: 'form', footer: 'footer' };
   const lines = items.map(i => { const t = tags[i.type] || i.type; return `<span class="code-tag">&lt;${t}&gt;</span>…<span class="code-tag">&lt;/${t}&gt;</span>`; });
-  $('code-pre').innerHTML = lines.join('\n') || '<span class="code-empty">(Bo\'sh kanvas)</span>';
+  $('code-pre').innerHTML = lines.join('\n') || '<span class="code-empty">(Böş kanvas)</span>';
 }
 function renderTips() {
   const tips = [
-    { i: 'bi-cursor-fill', t: 'Elementlarni chap paneldan markazga sudrab tashlang yoki ularning ustiga bosing.' },
-    { i: 'bi-bullseye', t: 'O\'ngdagi "Maqsad"ga qarang va sahifangizni unga o\'xshating.' },
-    { i: 'bi-list-check', t: '"Vazifalar" tabidagi barcha bandlarni bajaring — ball oshadi.' },
-    { i: 'bi-braces', t: '"Kod" tabida real HTML teglaringizni ko\'ring.' },
+    { i: 'bi-cursor-fill', t: 'Elementlarni çap paneldan markazga sudrab taşlang yoki ularning ustiga bosing.' },
+    { i: 'bi-bullseye', t: 'Öngdagi "Maqsad"ga qarang va sahifangizni unga öxşating.' },
+    { i: 'bi-list-check', t: '"Vazifalar" tabidagi barça bandlarni bajaring — ball oşadi.' },
+    { i: 'bi-braces', t: '"Kod" tabida real HTML teglaringizni köring.' },
   ];
   $('tips-body').innerHTML = tips.map(x => `<div class="tip"><i class="bi ${x.i}"></i><div>${x.t}</div></div>`).join('');
 }
@@ -545,9 +545,9 @@ function showHint() {
   usedHint = true;
   const { c } = progress();
   const miss = curLevel.required.find(r => (c[r.type] || 0) < r.n);
-  if (!miss) { toast('Hammasi bajarildi! Topshiring 🎉', 'success', 'bi-check-circle-fill'); return; }
+  if (!miss) { toast('Hammasi bajarildi! Topşiring 🎉', 'success', 'bi-check-circle-fill'); return; }
   const e = EL[miss.type];
-  toast(`Keyingi: ${e.name} (${e.tag}) qo'shing`, 'info', 'bi-lightbulb-fill');
+  toast(`Keyingi: ${e.name} (${e.tag}) qöşing`, 'info', 'bi-lightbulb-fill');
   switchRTab('tasks');
 }
 
@@ -605,7 +605,7 @@ function showResult(score, acc, xp, coins, newly, leveledUp, newLevel) {
   const tier = acc >= 80 ? 'win' : acc >= 50 ? 'mid' : 'low';
   const ring = $('result-ring'); ring.className = 'result-ring ' + tier;
   ring.innerHTML = `<i class="bi ${acc >= 80 ? 'bi-trophy-fill' : acc >= 50 ? 'bi-emoji-smile-fill' : 'bi-lightbulb-fill'}"></i>`;
-  $('result-title').textContent = acc >= 80 ? 'Ajoyib!' : acc >= 50 ? 'Yaxshi ish!' : 'Davom eting!';
+  $('result-title').textContent = acc >= 80 ? 'Ajoyib!' : acc >= 50 ? 'Yaxşi iş!' : 'Davom eting!';
   $('result-sub').textContent = `${curLevel.name} — ${MODE_META[curMode].name}`;
   $('result-xp').textContent = '+' + xp + ' XP';
   $('rs-score').textContent = score;
@@ -638,7 +638,7 @@ function achievementToast(code) {
   const a = ACH[code]; if (!a) return;
   sfxOk();
   const t = create('div', 'toast ach');
-  t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq ochildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`;
+  t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq oçildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`;
   $('toasts').appendChild(t);
   setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200);
 }
@@ -693,7 +693,7 @@ async function renderLeaderboard() {
   try {
     const r = await fetch(URLS.gxLeader, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKEN, game: GAME, limit: 20 }) });
     const d = await r.json();
-    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yo\'q — birinchi bo\'ling!</div>'; return; }
+    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yöq — birinçi böling!</div>'; return; }
     list.innerHTML = '';
     d.leaderboard.forEach(p => {
       const row = create('div', 'lb-row' + (p.is_me ? ' me' : '') + (p.rank <= 3 ? ' r' + p.rank : ''));
@@ -703,8 +703,8 @@ async function renderLeaderboard() {
         <div class="lb-xp">${p.xp} XP</div>`;
       list.appendChild(row);
     });
-    if (d.me && d.me.rank) me.textContent = `Sizning o'rningiz: #${d.me.rank} · ${d.me.xp} XP`;
-  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bo\'lmadi</div>'; }
+    if (d.me && d.me.rank) me.textContent = `Sizning örningiz: #${d.me.rank} · ${d.me.xp} XP`;
+  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bölmadi</div>'; }
 }
 function renderStats() {
   const g = $('stats-grid');
@@ -715,9 +715,9 @@ function renderStats() {
     { i: 'bi-bar-chart-fill', c: '#6366f1', v: profile.level || 1, l: 'Daraja' },
     { i: 'bi-fire', c: '#fb923c', v: profile.streak_days || 0, l: 'Streak (kun)' },
     { i: 'bi-coin', c: '#eab308', v: profile.coins || 0, l: 'Coinlar' },
-    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'O\'ynaldi' },
+    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'Öynaldi' },
     { i: 'bi-trophy-fill', c: '#a855f7', v: (profile.achievements || []).length + '/' + ACHIEVEMENTS.length, l: 'Yutuqlar' },
-    { i: 'bi-check2-circle', c: '#06b6d4', v: totalDone + '/' + totalLevels, l: 'Bosqichlar' },
+    { i: 'bi-check2-circle', c: '#06b6d4', v: totalDone + '/' + totalLevels, l: 'Bosqiçlar' },
     { i: 'bi-award-fill', c: '#ec4899', v: profile.best_score || 0, l: 'Eng yuqori ball' },
   ];
   g.innerHTML = data.map(d => `<div class="stat-card"><div class="sc-ico" style="color:${d.c}"><i class="bi ${d.i}"></i></div><div class="sc-v">${d.v}</div><div class="sc-l">${d.l}</div></div>`).join('');
@@ -725,10 +725,10 @@ function renderStats() {
 
 // ─── ONBOARDING ───────────────────────────────────────────
 const ONBOARD_STEPS = [
-  { sel: '#mode-tabs', title: 'O\'yin rejimlari', text: 'Boshlang\'ich, O\'rta, Murakkab va Challenge rejimlaridan birini tanlang.' },
-  { sel: '#level-grid', title: 'Bosqichlar', text: 'Har bir karta — alohida bosqich. Birini tanlab boshlang. Yangi bosqichlar avvalgisini yakunlagach ochiladi.' },
-  { sel: '#chip-level', title: 'Daraja va XP', text: 'O\'yinlarda XP to\'plang, darajangizni oshiring va yutuqlar oching.' },
-  { sel: '#btn-leaderboard', title: 'Reyting', text: 'Boshqa o\'quvchilar bilan reytingda raqobatlashing!' },
+  { sel: '#mode-tabs', title: 'Öyin rejimlari', text: 'Boşlanğiç, Örta, Murakkab va Challenge rejimlaridan birini tanlang.' },
+  { sel: '#level-grid', title: 'Bosqiçlar', text: 'Har bir karta — alohida bosqiç. Birini tanlab boşlang. Yangi bosqiçlar avvalgisini yakunlagaç oçiladi.' },
+  { sel: '#chip-level', title: 'Daraja va XP', text: 'Öyinlarda XP töplang, darajangizni oşiring va yutuqlar oçing.' },
+  { sel: '#btn-leaderboard', title: 'Reyting', text: 'Boşqa öquvçilar bilan reytingda raqobatlaşing!' },
 ];
 let obIdx = 0;
 function maybeOnboard() { if (localStorage.getItem('htmlb_onboarded') !== '1') startOnboard(); }
@@ -739,7 +739,7 @@ function showOnboard() {
   $('onboard-step').textContent = (obIdx + 1) + '/' + ONBOARD_STEPS.length;
   $('onboard-title').textContent = s.title;
   $('onboard-text').textContent = s.text;
-  $('onboard-next').textContent = obIdx === ONBOARD_STEPS.length - 1 ? 'Tushunarli!' : 'Keyingisi';
+  $('onboard-next').textContent = obIdx === ONBOARD_STEPS.length - 1 ? 'Tuşunarli!' : 'Keyingisi';
   if (el) {
     const r = el.getBoundingClientRect();
     spot.style.left = (r.left - 6) + 'px'; spot.style.top = (r.top - 6) + 'px';

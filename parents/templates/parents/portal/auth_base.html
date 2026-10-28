@@ -10,7 +10,7 @@
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 {% include 'partials/pwa/_head.html' %}
 <script>
-/* Tema — o'quvchi login sahifasi bilan bir xil kalit ('theme') */
+/* Tema — öquvçi login sahifasi bilan bir xil kalit ('theme') */
 (function () {
   var t;
   try { t = localStorage.getItem('theme') || localStorage.getItem('itc-theme'); } catch (e) {}
@@ -31,8 +31,8 @@
 <header class="top">
   <div class="box glass"><a class="logo" href="{% url 'home' %}">&lt;<b>it</b>creative /&gt;</a></div>
   <div class="box glass">
-    <nav class="switch" aria-label="Kim sifatida kirish"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>O‘quvchi</a><a class="on" href="{% url 'parent_login' %}" aria-current="page">Ota-ona</a></nav>
-    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almashtirish"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
+    <nav class="switch" aria-label="Kim sifatida kiriş"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>Öquvçi</a><a class="on" href="{% url 'parent_login' %}" aria-current="page">Ota-ona</a></nav>
+    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almaştiriş"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
   </div>
 </header>
 
@@ -41,7 +41,7 @@
     <section class="card glass">
       {% block card %}{% endblock %}
     </section>
-    <div class="safe"><i class="bi bi-shield-lock-fill"></i> Ulanish shifrlangan — ma’lumotlaringiz himoyalangan</div>
+    <div class="safe"><i class="bi bi-shield-lock-fill"></i> Ulaniş şifrlangan — ma’lumotlaringiz himoyalangan</div>
   </div>
 
   <section class="stage" data-orb-stage aria-hidden="true">
@@ -56,7 +56,7 @@
 <script>
 (function () {
   var A = window.ITCAuth;
-  /* Telefon maydoni: 90 123 45 67 ko'rinishi; yuborishda +998901234567 */
+  /* Telefon maydoni: 90 123 45 67 körinişi; yuborişda +998901234567 */
   document.querySelectorAll('[data-uz-phone]').forEach(function (inp) {
     A.formatPhone(inp, 'plain');
     inp.form.addEventListener('submit', function () {

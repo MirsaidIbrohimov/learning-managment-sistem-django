@@ -87,11 +87,11 @@
             {% if unanswered_count %}<span style="background:var(--p-danger);color:#fff;border-radius:999px;padding:0 .5rem;font-size:.72rem;font-weight:800;">{{ unanswered_count }}</span>{% endif %}
         </a>
         <a href="{% url 'parents:admin_parent_password_requests' %}" class="p-btn" style="background:var(--p-card);border:1px solid var(--p-border);color:var(--p-text);">
-            <i class="bi bi-key"></i> Parol so'rovlari
+            <i class="bi bi-key"></i> Parol sörovlari
             {% if password_requests_count %}<span style="background:var(--p-warning);color:#fff;border-radius:999px;padding:0 .5rem;font-size:.72rem;font-weight:800;">{{ password_requests_count }}</span>{% endif %}
         </a>
         <a href="{% url 'parents:admin_parent_add' %}" class="p-btn p-btn-primary">
-            <i class="bi bi-plus-lg"></i> Yangi qo'shish
+            <i class="bi bi-plus-lg"></i> Yangi qöşiş
         </a>
     </div>
 </div>
@@ -99,7 +99,7 @@
 {% if unanswered_count %}
 <a href="{% url 'parents:admin_parent_messages' %}" class="p-card" style="display:flex;align-items:center;gap:.75rem;padding:.85rem 1.1rem;margin-bottom:1rem;text-decoration:none;color:var(--p-text);border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.05);">
     <i class="bi bi-envelope-exclamation-fill" style="font-size:1.3rem;color:var(--p-danger);"></i>
-    <span><b>{{ unanswered_count }} ta ota-ona xabari javob kutmoqda.</b> <span style="color:var(--p-muted);">Ko'rish va javob yozish →</span></span>
+    <span><b>{{ unanswered_count }} ta ota-ona xabari javob kutmoqda.</b> <span style="color:var(--p-muted);">Köriş va javob yoziş →</span></span>
 </a>
 {% endif %}
 
@@ -107,13 +107,13 @@
 <div class="p-card" style="margin-bottom:1rem;">
     <form method="GET" class="p-filter">
         <div class="f-group" style="flex:2;">
-            <label>Qidirish</label>
+            <label>Qidiriş</label>
             <input type="text" name="search" placeholder="Ism, telefon, login..." value="{{ search_query|default:'' }}">
         </div>
         <div class="f-group" style="flex:1;">
             <label>Holat</label>
             <select name="status">
-                <option value="">Barchasi</option>
+                <option value="">Barçasi</option>
                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
                 <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Nofaol</option>
             </select>
@@ -127,7 +127,7 @@
 
 <!-- TABLE -->
 <div class="p-card">
-    <div class="p-card-header">Ro'yxat ({{ parents|length }})</div>
+    <div class="p-card-header">Röyxat ({{ parents|length }})</div>
 
     {% if parents %}
     <div style="overflow-x:auto;">
@@ -139,7 +139,7 @@
                     <th>Login</th>
                     <th>Telefon</th>
                     <th style="text-align:center">Farzandlar</th>
-                    <th>Oxirgi kirish</th>
+                    <th>Oxirgi kiriş</th>
                     <th style="text-align:center">Holat</th>
                     <th>Amallar</th>
                 </tr>
@@ -161,7 +161,7 @@
                 <td data-label="Farzandlar" style="text-align:center">
                     <span class="p-badge p-badge-info">{{ p.children.count }}</span>
                 </td>
-                <td data-label="Oxirgi kirish">
+                <td data-label="Oxirgi kiriş">
                     {% if p.last_login %}
                         <span class="p-user-sub">{{ p.last_login|timesince }} oldin</span>
                     {% else %}
@@ -177,12 +177,12 @@
                 </td>
                 <td data-label="Amallar">
                     <div class="p-actions">
-                        <a href="{% url 'parents:admin_parent_view' p.pk %}" class="p-act p-act-info" title="Ko'rish"><i class="bi bi-eye"></i></a>
-                        <a href="{% url 'parents:admin_parent_edit' p.pk %}" class="p-act" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
-                        <a href="{% url 'parents:admin_parent_toggle' p.pk %}" class="p-act p-act-warning" title="{% if p.is_active %}Nofaol qilish{% else %}Faol qilish{% endif %}">
+                        <a href="{% url 'parents:admin_parent_view' p.pk %}" class="p-act p-act-info" title="Köriş"><i class="bi bi-eye"></i></a>
+                        <a href="{% url 'parents:admin_parent_edit' p.pk %}" class="p-act" title="Tahrirlaş"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'parents:admin_parent_toggle' p.pk %}" class="p-act p-act-warning" title="{% if p.is_active %}Nofaol qiliş{% else %}Faol qiliş{% endif %}">
                             <i class="bi bi-{% if p.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
                         </a>
-                        <button type="button" class="p-act p-act-danger" title="O'chirish" onclick="openDeleteModal('{{ p.full_name }}', '{% url 'parents:admin_parent_delete' p.pk %}')">
+                        <button type="button" class="p-act p-act-danger" title="Öçiriş" onclick="openDeleteModal('{{ p.full_name }}', '{% url 'parents:admin_parent_delete' p.pk %}')">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </div>
@@ -196,7 +196,7 @@
     <div class="p-empty">
         <i class="bi bi-people"></i>
         <p>Ota-onalar topilmadi</p>
-        <a href="{% url 'parents:admin_parent_add' %}" class="p-btn p-btn-primary"><i class="bi bi-plus-lg me-1"></i>Ota-ona qo'shish</a>
+        <a href="{% url 'parents:admin_parent_add' %}" class="p-btn p-btn-primary"><i class="bi bi-plus-lg me-1"></i>Ota-ona qöşiş</a>
     </div>
     {% endif %}
 </div>
@@ -207,11 +207,11 @@
 <div class="p-modal-overlay" id="deleteModal">
     <div class="p-modal">
         <div class="p-modal-icon"><i class="bi bi-trash3"></i></div>
-        <h4>O'chirish</h4>
-        <p><strong id="deleteParentName"></strong> ni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
+        <h4>Öçiriş</h4>
+        <p><strong id="deleteParentName"></strong> ni öçirmoqçimisiz? Bu amalni qaytarib bölmaydi.</p>
         <div class="p-modal-btns">
-            <button class="p-modal-btn p-modal-btn-cancel" onclick="closeDeleteModal()">Bekor qilish</button>
-            <a href="#" id="deleteConfirmBtn" class="p-modal-btn p-modal-btn-danger">O'chirish</a>
+            <button class="p-modal-btn p-modal-btn-cancel" onclick="closeDeleteModal()">Bekor qiliş</button>
+            <a href="#" id="deleteConfirmBtn" class="p-modal-btn p-modal-btn-danger">Öçiriş</a>
         </div>
     </div>
 </div>

@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Sertifikat berish - Admin Panel{% endblock %}
+{% block title %}Sertifikat beriş - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <div style="max-width:640px;margin:0 auto;">
@@ -10,8 +10,8 @@
             <i class="bi bi-arrow-left"></i>
         </a>
         <div>
-            <h4 style="font-weight:800;margin:0;">🎓 Sertifikat berish</h4>
-            <small style="color:var(--bs-secondary-color,#6c757d);">Ism-familiya kiriting yoki o'quvchini tanlang — sertifikat darhol tayyor bo'ladi</small>
+            <h4 style="font-weight:800;margin:0;">🎓 Sertifikat beriş</h4>
+            <small style="color:var(--bs-secondary-color,#6c757d);">Ism-familiya kiriting yoki öquvçini tanlang — sertifikat darhol tayyor böladi</small>
         </div>
     </div>
 
@@ -19,17 +19,17 @@
         <form method="post" id="manualCertForm">
             {% csrf_token %}
 
-            <!-- Rejim tanlash -->
+            <!-- Rejim tanlaş -->
             <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
                 <button type="button" id="modeManual" class="btn btn-sm btn-primary" style="flex:1;border-radius:10px;font-weight:700;">
-                    <i class="bi bi-pencil"></i> Ism kiritish
+                    <i class="bi bi-pencil"></i> Ism kiritiş
                 </button>
                 <button type="button" id="modeStudent" class="btn btn-sm btn-outline-primary" style="flex:1;border-radius:10px;font-weight:700;">
-                    <i class="bi bi-person-check"></i> O'quvchini tanlash
+                    <i class="bi bi-person-check"></i> Öquvçini tanlaş
                 </button>
             </div>
 
-            <!-- Qo'lda ism kiritish -->
+            <!-- Qölda ism kiritiş -->
             <div id="manualFields">
                 <div class="row g-3 mb-3">
                     <div class="col-sm-6">
@@ -43,16 +43,16 @@
                 </div>
             </div>
 
-            <!-- O'quvchini tanlash -->
+            <!-- Öquvçini tanlaş -->
             <div id="studentFields" style="display:none;" class="mb-3">
-                <label class="form-label fw-bold" style="font-size:.85rem;">O'quvchi</label>
+                <label class="form-label fw-bold" style="font-size:.85rem;">Öquvçi</label>
                 <select name="student_id" id="studentSelect" class="form-select">
-                    <option value="">— O'quvchini tanlang —</option>
+                    <option value="">— Öquvçini tanlang —</option>
                     {% for s in students %}
                     <option value="{{ s.pk }}">{{ s.first_name }} {{ s.last_name }} (@{{ s.username }})</option>
                     {% endfor %}
                 </select>
-                <small class="text-muted">O'quvchi tanlansa, sertifikat unga bog'lanadi va xabar yuboriladi</small>
+                <small class="text-muted">Öquvçi tanlansa, sertifikat unga boğlanadi va xabar yuboriladi</small>
             </div>
 
             <!-- Kurs -->
@@ -70,12 +70,12 @@
 
             <div id="seriesWarn" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:.7rem 1rem;font-size:.82rem;color:#b45309;margin-bottom:1rem;">
                 <i class="bi bi-exclamation-triangle"></i>
-                Bu kurs uchun seriya kodi sozlanmagan — avval
-                <a href="{% url 'admin_certificates' %}" style="color:#b45309;font-weight:700;">Sozlamalar</a> bo'limida kiriting.
+                Bu kurs uçun seriya kodi sozlanmagan — avval
+                <a href="{% url 'admin_certificates' %}" style="color:#b45309;font-weight:700;">Sozlamalar</a> bölimida kiriting.
             </div>
 
             <button type="submit" id="submitBtn" class="btn btn-primary w-100" style="border-radius:12px;padding:.7rem;font-weight:800;">
-                <i class="bi bi-award"></i> Sertifikat yaratish va yuklab olish
+                <i class="bi bi-award"></i> Sertifikat yaratiş va yuklab oliş
             </button>
         </form>
     </div>
@@ -116,7 +116,7 @@
     document.getElementById('manualCertForm').onsubmit = function(){
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Yaratilmoqda...';
-        setTimeout(function(){ btn.disabled = false; btn.innerHTML = '<i class="bi bi-award"></i> Sertifikat yaratish va yuklab olish'; }, 6000);
+        setTimeout(function(){ btn.disabled = false; btn.innerHTML = '<i class="bi bi-award"></i> Sertifikat yaratiş va yuklab oliş'; }, 6000);
     };
 })();
 </script>

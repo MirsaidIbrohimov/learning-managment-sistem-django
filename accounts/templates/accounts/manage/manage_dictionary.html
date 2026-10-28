@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ dictionary.lesson.title }} - So'zlar boshqaruvi{% endblock %}
+{% block title %}{{ dictionary.lesson.title }} - Sözlar boşqaruvi{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -209,7 +209,7 @@
             <div class="md-header-icon"><i class="bi bi-book-fill"></i></div>
             <h3>{{ dictionary.lesson.title }}</h3>
             <p>{{ dictionary.lesson.profession.name }}</p>
-            <div class="md-count"><i class="bi bi-hash"></i> {{ words|length }} ta so'z</div>
+            <div class="md-count"><i class="bi bi-hash"></i> {{ words|length }} ta söz</div>
         </div>
 
         <div class="md-body">
@@ -222,18 +222,18 @@
             <!-- Manual word add form -->
             <div class="md-add-form">
                 <div class="md-section-title">
-                    <i class="bi bi-plus-circle-fill" style="color: var(--md-accent);"></i> So'z qo'shish
+                    <i class="bi bi-plus-circle-fill" style="color: var(--md-accent);"></i> Söz qöşiş
                 </div>
                 <form method="POST" action="{% url 'add_dictionary_word' dictionary.pk %}">
                     {% csrf_token %}
                     <div class="md-add-grid">
                         <div>
-                            <div class="md-add-label">Yozilishi *</div>
+                            <div class="md-add-label">Yozilişi *</div>
                             <input type="text" name="term" class="form-control" placeholder="Masalan: variable" required>
                         </div>
                         <div>
                             <div class="md-add-label">Tarjimasi *</div>
-                            <input type="text" name="translation" class="form-control" placeholder="Masalan: o'zgaruvchi" required>
+                            <input type="text" name="translation" class="form-control" placeholder="Masalan: özgaruvçi" required>
                         </div>
                     </div>
                     <div class="md-add-full">
@@ -241,7 +241,7 @@
                         <input type="text" name="example" class="form-control" placeholder="Masalan: x = 5 — bu yerda x variable hisoblanadi">
                     </div>
                     <button type="submit" class="md-btn md-btn-primary" style="width:100%;">
-                        <i class="bi bi-plus-lg"></i> So'z qo'shish
+                        <i class="bi bi-plus-lg"></i> Söz qöşiş
                     </button>
                 </form>
             </div>
@@ -249,7 +249,7 @@
             <!-- AI Generation form -->
             <div class="md-ai-form">
                 <div class="md-section-title">
-                    <i class="bi bi-robot" style="color: var(--md-accent);"></i> AI orqali lug'at yaratish
+                    <i class="bi bi-robot" style="color: var(--md-accent);"></i> AI orqali luğat yaratiş
                 </div>
                 <form method="POST" action="{% url 'ai_generate_dictionary' dictionary.pk %}" id="aiGenForm">
                     {% csrf_token %}
@@ -259,26 +259,26 @@
                             <input type="text" name="language" class="form-control" placeholder="Masalan: Ingliz tili" required>
                         </div>
                         <div>
-                            <div class="md-add-label">So'zlar soni *</div>
+                            <div class="md-add-label">Sözlar soni *</div>
                             <input type="number" name="count" class="form-control" min="1" max="50" value="10" required>
                         </div>
                         <div>
                             <div class="md-add-label">Daraja *</div>
                             <select name="level" class="form-control form-select" required>
-                                <option value="Boshlang'ich">Boshlang'ich</option>
-                                <option value="O'rta" selected>O'rta</option>
+                                <option value="Boşlanğiç">Boşlanğiç</option>
+                                <option value="Örta" selected>Örta</option>
                                 <option value="Yuqori">Yuqori</option>
                                 <option value="Professional">Professional</option>
                             </select>
                         </div>
                     </div>
                     <button type="submit" class="md-btn md-btn-primary" style="width:100%;" id="aiGenBtn">
-                        <i class="bi bi-stars"></i> AI bilan yaratish
+                        <i class="bi bi-stars"></i> AI bilan yaratiş
                     </button>
                 </form>
                 <div class="md-ai-loading" id="aiLoading">
                     <div class="md-ai-spinner"></div>
-                    <span>AI so'zlar yaratmoqda...</span>
+                    <span>AI sözlar yaratmoqda...</span>
                 </div>
             </div>
 
@@ -289,7 +289,7 @@
                     <thead>
                         <tr>
                             <th style="width:45px;">#</th>
-                            <th>Yozilishi</th>
+                            <th>Yozilişi</th>
                             <th>Tarjimasi</th>
                             <th>Misol</th>
                             <th style="width:50px;"></th>
@@ -309,9 +309,9 @@
                                 {% endif %}
                             </td>
                             <td class="td-action">
-                                <form method="POST" action="{% url 'delete_dictionary_word' word.pk %}" onsubmit="return confirm('Bu so\'zni o\'chirmoqchimisiz?')">
+                                <form method="POST" action="{% url 'delete_dictionary_word' word.pk %}" onsubmit="return confirm('Bu sözni öçirmoqçimisiz?')">
                                     {% csrf_token %}
-                                    <button type="submit" class="md-word-delete" title="O'chirish">
+                                    <button type="submit" class="md-word-delete" title="Öçiriş">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </form>
@@ -324,8 +324,8 @@
             {% else %}
                 <div class="md-empty">
                     <i class="bi bi-book"></i>
-                    <p>Hali so'zlar qo'shilmagan</p>
-                    <p style="font-size:0.8rem; margin-top:0.5rem;">Yuqoridagi formadan, Excel import yoki AI orqali qo'shing</p>
+                    <p>Hali sözlar qöşilmagan</p>
+                    <p style="font-size:0.8rem; margin-top:0.5rem;">Yuqoridagi formadan, Excel import yoki AI orqali qöşing</p>
                 </div>
             {% endif %}
         </div>

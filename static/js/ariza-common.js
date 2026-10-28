@@ -1,5 +1,5 @@
-/* /ariza motion variantlari uchun umumiy yordamchilar.
-   gsap, ScrollTrigger va Lenis'dan keyin ulanadi; ular yuklanmasa ham forma ishlaydi. */
+/* /ariza motion variantlari uçun umumiy yordamçilar.
+   gsap, ScrollTrigger va Lenis'dan keyin ulanadi; ular yuklanmasa ham forma işlaydi. */
 (function () {
   'use strict';
   var hasGsap = typeof window.gsap !== 'undefined';
@@ -69,7 +69,7 @@
     });
   });
 
-  /* ── Qabul muddati: joriy oy oxirigacha ── */
+  /* ── Qabul muddati: joriy oy oxirigaça ── */
   function deadline() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth() + 1, 1, 0, 0, 0); }
   var cds = document.querySelectorAll('[data-countdown]');
   if (cds.length) {
@@ -87,7 +87,7 @@
   document.querySelectorAll('[data-month]').forEach(function (e) { e.textContent = MONTHS[new Date().getMonth()]; });
   document.querySelectorAll('[data-next-month]').forEach(function (e) { e.textContent = MONTHS[(new Date().getMonth() + 1) % 12]; });
 
-  /* ── Raqam sanagich ── */
+  /* ── Raqam sanagiç ── */
   AZ.count = function (el, to, opts) {
     opts = opts || {};
     var fmt = function (v) { return (opts.prefix || '') + Math.round(v).toLocaleString('ru').replace(/[\s,]/g, ' ') + (opts.suffix || ''); };
@@ -119,7 +119,7 @@
     });
   }
 
-  /* ── Mobil sticky CTA: hero'dan keyin chiqadi, forma ko'ringanda yashirinadi ── */
+  /* ── Mobil sticky CTA: hero'dan keyin çiqadi, forma köringanda yaşirinadi ── */
   var sticky = document.querySelector('[data-sticky]'), formSec = document.getElementById('ariza');
   if (sticky && formSec && 'IntersectionObserver' in window) {
     var formVisible = false;
@@ -151,7 +151,7 @@
     });
   }
 
-  /* ── Tema almashtirish ── */
+  /* ── Tema almaştiriş ── */
   document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
     b.addEventListener('click', function () {
       var t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';

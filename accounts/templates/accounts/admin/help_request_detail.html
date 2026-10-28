@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Yordam so'rovi #{{ help_request.pk }} - Admin{% endblock %}
+{% block title %}Yordam sörovi #{{ help_request.pk }} - Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -430,7 +430,7 @@
 <div class="hd-page">
 
     <a href="{% url 'admin_help_requests' %}" class="hd-back">
-        <i class="bi bi-arrow-left"></i> Barcha so'rovlar
+        <i class="bi bi-arrow-left"></i> Barça sörovlar
     </a>
 
     <div class="row g-4">
@@ -444,7 +444,7 @@
                         {% if help_request.status == 'pending' %}
                             <i class="bi bi-clock-fill"></i> Kutilmoqda
                         {% elif help_request.status == 'in_progress' %}
-                            <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
+                            <i class="bi bi-arrow-repeat"></i> Körilmoqda
                         {% elif help_request.status == 'resolved' %}
                             <i class="bi bi-check-circle-fill"></i> Hal qilindi
                         {% else %}
@@ -489,17 +489,17 @@
                             <label class="form-label">Holat</label>
                             <select name="status" class="form-select">
                                 <option value="pending" {% if help_request.status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
-                                <option value="in_progress" {% if help_request.status == 'in_progress' %}selected{% endif %}>Ko'rib chiqilmoqda</option>
+                                <option value="in_progress" {% if help_request.status == 'in_progress' %}selected{% endif %}>Körib çiqilmoqda</option>
                                 <option value="resolved" {% if help_request.status == 'resolved' %}selected{% endif %}>Hal qilindi</option>
                                 <option value="closed" {% if help_request.status == 'closed' %}selected{% endif %}>Yopildi</option>
                             </select>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">Javob yozish</label>
-                            <textarea name="admin_response" class="form-control" rows="5" placeholder="Foydalanuvchiga javob yozing...">{{ help_request.admin_response|default:'' }}</textarea>
+                            <label class="form-label">Javob yoziş</label>
+                            <textarea name="admin_response" class="form-control" rows="5" placeholder="Foydalanuvçiga javob yozing...">{{ help_request.admin_response|default:'' }}</textarea>
                         </div>
                         <button type="submit" class="hd-btn-save">
-                            <i class="bi bi-check-lg"></i> Saqlash
+                            <i class="bi bi-check-lg"></i> Saqlaş
                         </button>
                     </form>
                 </div>
@@ -538,7 +538,7 @@
                     </li>
                 </ul>
                 <a href="{% url 'admin_user_view' help_request.user.pk %}" class="hd-user-btn">
-                    <i class="bi bi-person me-1"></i> Profilni ko'rish
+                    <i class="bi bi-person me-1"></i> Profilni köriş
                 </a>
             </div>
         </div>

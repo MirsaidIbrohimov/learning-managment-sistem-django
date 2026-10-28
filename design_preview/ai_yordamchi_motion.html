@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Yordamchi — Motion dizayn (preview)</title>
+<title>AI Yordamçi — Motion dizayn (preview)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 /* =====================================================================
-   AI YORDAMCHI — MOTION v2 (preview)
+   AI YORDAMÇI — MOTION v2 (preview)
    Spring easing, jonli orb, spotlight kartalar, oqimli javoblar.
    ===================================================================== */
 :root {
@@ -44,7 +44,7 @@ body {
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
 a { color: inherit; text-decoration: none; }
 
-/* ---------- Fon: sekin suzuvchi gradient dog'lar ---------- */
+/* ---------- Fon: sekin suzuvçi gradient doğlar ---------- */
 .bg-mesh { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
 .bg-mesh i { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; filter: blur(80px); opacity: .22; animation: drift 26s ease-in-out infinite alternate; }
 .bg-mesh i:nth-child(1) { background: var(--a); top: -18vmax; left: -12vmax; }
@@ -53,7 +53,7 @@ a { color: inherit; text-decoration: none; }
 [data-theme="dark"] .bg-mesh i { opacity: .16; }
 @keyframes drift { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(6vmax,4vmax) scale(1.15); } 100% { transform: translate(-4vmax,8vmax) scale(.95); } }
 
-/* ---------- Preview boshqaruv paneli ---------- */
+/* ---------- Preview boşqaruv paneli ---------- */
 .pv-bar {
   position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 100;
   display: flex; gap: 4px; padding: 5px; border-radius: 999px;
@@ -83,7 +83,7 @@ a { color: inherit; text-decoration: none; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ---------- Kirish animatsiyalari ---------- */
+/* ---------- Kiriş animatsiyalari ---------- */
 .rv { opacity: 0; transform: translateY(18px) scale(.98); filter: blur(6px); }
 .rv.in { opacity: 1; transform: none; filter: none; transition: opacity .7s var(--smooth), transform .8s var(--spring), filter .6s var(--smooth); transition-delay: calc(var(--i, 0) * 55ms); }
 
@@ -102,7 +102,7 @@ a { color: inherit; text-decoration: none; }
 .magnetic { will-change: transform; }
 
 /* =====================================================================
-   VIEW 1: BOSH SAHIFA
+   VIEW 1: BOŞ SAHIFA
    ===================================================================== */
 .view { position: relative; z-index: 1; }
 .view[hidden] { display: none; }
@@ -129,7 +129,7 @@ a { color: inherit; text-decoration: none; }
 .hero-orb-wrap .ring:nth-child(2) { inset: 18px; border-style: solid; border-color: var(--a-soft); animation-direction: reverse; animation-duration: 24s; }
 .hero-orb-wrap .sat { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--b); top: -5px; left: calc(50% - 5px); box-shadow: 0 0 12px var(--b); }
 
-/* Prompt bar (hero ichida) */
+/* Prompt bar (hero içida) */
 .ask {
   position: relative; display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 18px;
   background: var(--surface-2); border: 1px solid var(--line); max-width: 560px; transition: box-shadow .4s, transform .4s var(--spring);
@@ -277,7 +277,7 @@ a { color: inherit; text-decoration: none; }
 .time { font-size: 11px; color: var(--text-3); margin-top: 6px; }
 .row.user .time { text-align: right; }
 
-/* O'ylash holati */
+/* Öylaş holati */
 .think { display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 14px; }
 .think .shim { background: linear-gradient(90deg, var(--text-3) 0%, var(--text) 40%, var(--text-3) 80%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimTxt 1.6s linear infinite; font-weight: 500; }
 @keyframes shimTxt { from { background-position: 200% 0; } to { background-position: -200% 0; } }
@@ -287,7 +287,7 @@ a { color: inherit; text-decoration: none; }
 .dots i:nth-child(3) { animation-delay: .3s; background: var(--c); }
 @keyframes bounce { 0%,60%,100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-6px); opacity: 1; } }
 
-/* Bo'sh holat */
+/* Böş holat */
 .empty { text-align: center; margin: auto; padding: 40px 10px; }
 .empty .orb { --s: 96px; margin: 0 auto 20px; }
 .empty h3 { font-size: 24px; letter-spacing: -.02em; margin: 0 0 6px; }
@@ -299,7 +299,7 @@ a { color: inherit; text-decoration: none; }
 .sug span { color: var(--text-2); }
 .sug:hover { transform: translateY(-3px); border-color: var(--a); box-shadow: 0 14px 30px -16px var(--glow); }
 
-/* Kiritish paneli */
+/* Kiritiş paneli */
 .dock { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; padding: 0 14px 18px; pointer-events: none; }
 .dock-in { max-width: 820px; margin: 0 auto; pointer-events: auto; }
 .quick { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
@@ -334,7 +334,7 @@ a { color: inherit; text-decoration: none; }
 .fab { position: fixed; right: max(20px, calc(50% - 470px)); bottom: 150px; z-index: 25; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-lg); color: var(--text-2); opacity: 0; transform: translateY(20px) scale(.6); pointer-events: none; transition: all .5s var(--spring); }
 .fab.show { opacity: 1; transform: none; pointer-events: auto; }
 
-/* View o'tishi */
+/* View ötişi */
 ::view-transition-old(root) { animation: vtOut .35s var(--smooth) both; }
 ::view-transition-new(root) { animation: vtIn .55s var(--spring) both; }
 @keyframes vtOut { to { opacity: 0; transform: scale(.98); filter: blur(6px); } }
@@ -344,7 +344,7 @@ a { color: inherit; text-decoration: none; }
 .toast { position: fixed; left: 50%; bottom: 120px; z-index: 200; transform: translate(-50%, 30px) scale(.9); opacity: 0; padding: 10px 16px; border-radius: 14px; font-size: 13.5px; font-weight: 600; background: var(--text); color: var(--bg); box-shadow: var(--shadow-lg); transition: all .5s var(--spring); pointer-events: none; display: flex; gap: 8px; align-items: center; }
 .toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 
-/* Moslashuvchanlik */
+/* Moslaşuvçanlik */
 @media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; padding: 24px; }
   .hero-orb-wrap { display: none; }
@@ -366,10 +366,10 @@ a { color: inherit; text-decoration: none; }
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--a)"/><stop offset="1" stop-color="var(--b)"/></linearGradient></defs></svg>
 <div class="bg-mesh"><i></i><i></i><i></i></div>
 
-<!-- Preview boshqaruvi (LMSga kirmaydi) -->
+<!-- Preview boşqaruvi (LMSga kirmaydi) -->
 <div class="pv-bar" id="pvBar">
   <span class="pv-ind"></span>
-  <button data-view="home" class="on"><i class="bi bi-grid-1x2"></i><span>Bosh sahifa</span></button>
+  <button data-view="home" class="on"><i class="bi bi-grid-1x2"></i><span>Boş sahifa</span></button>
   <button data-view="chat"><i class="bi bi-chat-dots"></i><span>Suhbat</span></button>
   <button data-view="empty"><i class="bi bi-stars"></i><span>Yangi suhbat</span></button>
   <i class="pv-sep"></i>
@@ -378,17 +378,17 @@ a { color: inherit; text-decoration: none; }
 </div>
 <div class="pv-tag">Preview · demo ma'lumotlar · LMSga hali tadbiq qilinmagan</div>
 
-<!-- ============================ BOSH SAHIFA ============================ -->
+<!-- ============================ BOŞ SAHIFA ============================ -->
 <main class="view home" id="vHome">
   <section class="hero rv">
     <div style="position:relative">
       <span class="hero-hi"><span class="dot"></span> Creative AI onlayn</span>
-      <h1 id="heroTitle" data-text="Salom, Husanbek! Bugun nimani o'rganamiz?"></h1>
-      <p>Dasturlash, matematika va boshqa fanlar bo'yicha savol bering — rasm yoki fayl yuborsangiz ham tushunadi.</p>
+      <h1 id="heroTitle" data-text="Salom, Husanbek! Bugun nimani örganamiz?"></h1>
+      <p>Dasturlaş, matematika va boşqa fanlar böyiça savol bering — rasm yoki fayl yuborsangiz ham tuşunadi.</p>
       <form class="ask" id="askForm">
         <i class="bi bi-stars" style="color:var(--a)"></i>
         <input id="askInput" placeholder="Masalan: Python'da dekorator nima?" autocomplete="off">
-        <button class="send magnetic" type="submit" title="Boshlash"><i class="bi bi-arrow-up"></i></button>
+        <button class="send magnetic" type="submit" title="Boşlaş"><i class="bi bi-arrow-up"></i></button>
       </form>
       <div class="marquee"><div class="marquee-track" id="topics"></div></div>
     </div>
@@ -405,13 +405,13 @@ a { color: inherit; text-decoration: none; }
   <div class="sec-head rv">
     <div class="seg" id="seg">
       <span class="ind"></span>
-      <button class="on" data-f="all"><i class="bi bi-collection"></i> Barchasi</button>
+      <button class="on" data-f="all"><i class="bi bi-collection"></i> Barçasi</button>
       <button data-f="pinned"><i class="bi bi-pin-angle-fill"></i> Muhim <span class="c">2</span></button>
       <button data-f="py"><span class="d" style="background:#6366f1"></span> Python <span class="c">3</span></button>
       <button data-f="web"><span class="d" style="background:#ec4899"></span> Web <span class="c">2</span></button>
       <button><i class="bi bi-plus-lg"></i> Papka</button>
     </div>
-    <label class="search"><i class="bi bi-search"></i><input id="search" placeholder="Suhbat qidirish…"></label>
+    <label class="search"><i class="bi bi-search"></i><input id="search" placeholder="Suhbat qidiriş…"></label>
   </div>
 
   <section class="grid" id="grid"></section>
@@ -419,10 +419,10 @@ a { color: inherit; text-decoration: none; }
   <section class="limit rv">
     <div>
       <b>Kunlik limit</b> <span class="prem-badge" id="premBadge" style="display:none;margin-left:6px"><i class="bi bi-gem"></i> Premium</span>
-      <p>18/60 xabar · 1/3 rasm ishlatildi. Limit har kuni 00:00 da (Toshkent vaqti) yangilanadi.</p>
+      <p>18/60 xabar · 1/3 rasm işlatildi. Limit har kuni 00:00 da (Toşkent vaqti) yangilanadi.</p>
       <div class="bar"><i data-w="30%"></i></div>
     </div>
-    <a class="btn magnetic" href="#"><i class="bi bi-gem" style="color:#f59e0b"></i> Premiumga o'tish</a>
+    <a class="btn magnetic" href="#"><i class="bi bi-gem" style="color:#f59e0b"></i> Premiumga ötiş</a>
   </section>
 </main>
 
@@ -436,8 +436,8 @@ a { color: inherit; text-decoration: none; }
       <div class="c-sub" id="cSub"><span class="dot"></span> Creative AI · Onlayn</div>
     </div>
     <span class="coin-pill" id="coin"><i class="bi bi-coin"></i> <span id="coinN">248</span></span>
-    <button class="icon-btn" title="Qidirish"><i class="bi bi-search"></i></button>
-    <button class="icon-btn" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
+    <button class="icon-btn" title="Qidiriş"><i class="bi bi-search"></i></button>
+    <button class="icon-btn" title="Tarixni tozalaş"><i class="bi bi-trash3"></i></button>
   </header>
   <div class="c-limits"><span><b id="msgLeft">42</b>/60 xabar</span><span><b>2</b>/3 rasm</span></div>
   <section class="msgs" id="msgs"></section>
@@ -448,7 +448,7 @@ a { color: inherit; text-decoration: none; }
     <div class="quick" id="quick">
       <button data-q="Batafsilroq tushuntiring">Batafsilroq</button>
       <button data-q="Misol keltiring">Misol keltiring</button>
-      <button data-q="Test savollari tuzib bering">Test tuzish</button>
+      <button data-q="Test savollari tuzib bering">Test tuziş</button>
     </div>
     <form class="box" id="box">
       <div class="box-in">
@@ -456,8 +456,8 @@ a { color: inherit; text-decoration: none; }
         <div class="box-row">
           <button type="button" class="icon-btn" title="Rasm"><i class="bi bi-image"></i></button>
           <button type="button" class="icon-btn" title="Fayl"><i class="bi bi-paperclip"></i></button>
-          <button type="button" class="icon-btn mic" id="mic" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
-          <span class="hint">Enter — yuborish · Shift+Enter — yangi qator</span>
+          <button type="button" class="icon-btn mic" id="mic" title="Ovozli kiritiş"><i class="bi bi-mic"></i></button>
+          <span class="hint">Enter — yuboriş · Shift+Enter — yangi qator</span>
           <button type="submit" class="send-btn" id="sendBtn" disabled><i class="bi bi-arrow-up"></i><span class="stop"></span></button>
         </div>
       </div>
@@ -477,12 +477,12 @@ a { color: inherit; text-decoration: none; }
   /* ---------- Demo ma'lumotlar ---------- */
   const FOLDERS = { py: ['Python', '#6366f1'], web: ['Web', '#ec4899'] };
   const SESSIONS = [
-    { t: 'Python dekoratorlari', p: 'Dekorator funksiyani o‘rab, unga yangi xatti-harakat qo‘shadi…', f: 'py', n: 8, d: 'Bugun, 14:20', pin: true, ic: 'bi-code-slash' },
-    { t: 'Django ORM: select_related va prefetch_related', p: 'select_related JOIN orqali, prefetch_related esa alohida so‘rov bilan…', f: 'py', n: 12, d: 'Bugun, 11:05', pin: true, ic: 'bi-database' },
-    { t: 'CSS Grid bilan responsive layout', p: 'grid-template-columns: repeat(auto-fill, minmax(…))…', f: 'web', n: 5, d: 'Kecha, 19:40', ic: 'bi-palette' },
-    { t: 'Kvadrat tenglamani yechish', p: 'Diskriminant D = b² − 4ac formulasi bilan topiladi…', f: null, n: 4, d: 'Kecha, 16:12', ic: 'bi-calculator' },
+    { t: 'Python dekoratorlari', p: 'Dekorator funksiyani örab, unga yangi xatti-harakat qöşadi…', f: 'py', n: 8, d: 'Bugun, 14:20', pin: true, ic: 'bi-code-slash' },
+    { t: 'Django ORM: select_related va prefetch_related', p: 'select_related JOIN orqali, prefetch_related esa alohida sörov bilan…', f: 'py', n: 12, d: 'Bugun, 11:05', pin: true, ic: 'bi-database' },
+    { t: 'CSS Grid bilan responsive layout', p: 'grid-template-columns: repeat(auto-fill, minmax(…))…', f: 'web', n: 5, d: 'Keça, 19:40', ic: 'bi-palette' },
+    { t: 'Kvadrat tenglamani yeçiş', p: 'Diskriminant D = b² − 4ac formulasi bilan topiladi…', f: null, n: 4, d: 'Keça, 16:12', ic: 'bi-calculator' },
     { t: 'JavaScript Promise va async/await', p: 'async funksiya har doim Promise qaytaradi…', f: 'web', n: 9, d: '24.10.2026', ic: 'bi-braces' },
-    { t: 'Python ro‘yxat comprehension', p: '[x*x for x in range(10) if x % 2 == 0]…', f: 'py', n: 3, d: '22.10.2026', ic: 'bi-list-ol' },
+    { t: 'Python röyxat comprehension', p: '[x*x for x in range(10) if x % 2 == 0]…', f: 'py', n: 3, d: '22.10.2026', ic: 'bi-list-ol' },
   ];
   const TOPICS = [['bi-code-slash','Python'],['bi-globe','Django'],['bi-palette','HTML/CSS'],['bi-braces','JavaScript'],['bi-database','SQL'],['bi-calculator','Matematika'],['bi-translate','Ingliz tili'],['bi-cpu','Algoritmlar'],['bi-git','Git']];
 
@@ -490,14 +490,14 @@ a { color: inherit; text-decoration: none; }
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .08 });
   const reveal = (root) => $$('.rv', root).forEach((el, i) => { el.classList.remove('in'); el.style.setProperty('--i', Math.min(i, 12)); io.observe(el); });
 
-  /* ---------- Hero: so'zma-so'z sarlavha ---------- */
+  /* ---------- Hero: sözma-söz sarlavha ---------- */
   const h1 = $('#heroTitle');
   h1.innerHTML = h1.dataset.text.split(' ').map((w, i) =>
     `<span class="word${i >= 2 ? ' grad' : ''}" style="--i:${i}">${w}</span>`).join(' ');
   const playHero = () => $$('.word', h1).forEach(w => { w.classList.remove('in'); requestAnimationFrame(() => requestAnimationFrame(() => w.classList.add('in'))); });
 
   /* ---------- Marquee ---------- */
-  const tHtml = TOPICS.map(([i, t]) => `<button type="button" class="topic" data-t="${t} bo‘yicha savolim bor"><i class="bi ${i}"></i>${t}</button>`).join('');
+  const tHtml = TOPICS.map(([i, t]) => `<button type="button" class="topic" data-t="${t} böyiça savolim bor"><i class="bi ${i}"></i>${t}</button>`).join('');
   $('#topics').innerHTML = tHtml + tHtml;
   $('#topics').addEventListener('click', e => { const b = e.target.closest('.topic'); if (b) { $('#askInput').value = b.dataset.t; $('#askInput').focus(); } });
 
@@ -520,8 +520,8 @@ a { color: inherit; text-decoration: none; }
         const fc = s.f ? FOLDERS[s.f][1] : 'var(--a)';
         return `<article class="card rv" data-k="${k}" data-f="${s.f || ''}" data-pin="${s.pin ? 1 : 0}" data-title="${s.t.toLowerCase()}" style="--fc:${fc}">
           <div class="card-acts">
-            <button class="card-act${s.pin ? ' pinned' : ''}" data-act="pin" title="Mahkamlash"><i class="bi ${s.pin ? 'bi-pin-angle-fill' : 'bi-pin-angle'}"></i></button>
-            <button class="card-act" data-act="more" title="Ko‘proq"><i class="bi bi-three-dots"></i></button>
+            <button class="card-act${s.pin ? ' pinned' : ''}" data-act="pin" title="Mahkamlaş"><i class="bi ${s.pin ? 'bi-pin-angle-fill' : 'bi-pin-angle'}"></i></button>
+            <button class="card-act" data-act="more" title="Köproq"><i class="bi bi-three-dots"></i></button>
           </div>
           <div class="card-top"><div class="card-ic"><i class="bi ${s.ic}"></i></div><div style="min-width:0;padding-right:64px"><h3 class="card-t">${s.t}</h3><p class="card-p">${s.p}</p></div></div>
           <div class="card-meta">${s.f ? `<span class="tag">${FOLDERS[s.f][0]}</span>` : ''}<span><i class="bi bi-clock"></i> ${s.d}</span><span><i class="bi bi-chat"></i> ${s.n}</span></div>
@@ -544,14 +544,14 @@ a { color: inherit; text-decoration: none; }
       const card = act.closest('.card'), on = card.dataset.pin !== '1';
       card.dataset.pin = on ? 1 : 0; act.classList.toggle('pinned', on);
       act.innerHTML = `<i class="bi ${on ? 'bi-pin-angle-fill' : 'bi-pin-angle'}"></i>`;
-      toast(on ? 'Mahkamlandi' : 'Mahkamlash olindi'); return;
+      toast(on ? 'Mahkamlandi' : 'Mahkamlaş olindi'); return;
     }
-    if (act) { toast('Menyu: nomini o‘zgartirish · ko‘chirish · o‘chirish'); return; }
+    if (act) { toast('Menyu: nomini özgartiriş · köçiriş · öçiriş'); return; }
     const c = e.target.closest('.card'); if (!c) return;
     if ('new' in c.dataset) go('empty'); else go('chat', SESSIONS[c.dataset.k].t);
   });
 
-  // Filtrlash
+  // Filtrlaş
   function filter() {
     const q = $('#search').value.trim().toLowerCase(), f = $('#seg .on').dataset.f || 'all';
     $$('#grid .card[data-k]').forEach(c => {
@@ -561,14 +561,14 @@ a { color: inherit; text-decoration: none; }
   }
   $('#search').addEventListener('input', filter);
 
-  /* ---------- Sirpanuvchi indikator (segment, preview bar) ---------- */
+  /* ---------- Sirpanuvçi indikator (segment, preview bar) ---------- */
   function slideInd(container, btn) {
     const ind = $('.ind, .pv-ind', container); if (!ind || !btn) return;
     ind.style.left = btn.offsetLeft + 'px'; ind.style.width = btn.offsetWidth + 'px';
   }
   $('#seg').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
-    if (!b.dataset.f) { toast('Yangi papka oynasi ochiladi'); return; }
+    if (!b.dataset.f) { toast('Yangi papka oynasi oçiladi'); return; }
     $$('#seg button').forEach(x => x.classList.toggle('on', x === b)); slideInd($('#seg'), b); filter();
   });
 
@@ -587,8 +587,8 @@ a { color: inherit; text-decoration: none; }
   let busy = false, stopFlag = false, coins = 248, left = 42;
 
   const DEMO = [
-    ['user', 'Python’da dekorator nima va qachon ishlatiladi?'],
-    ['ai', `<p><b>Dekorator</b> — bu boshqa funksiyani argument sifatida qabul qilib, uni o‘zgartirmasdan yangi xatti-harakat qo‘shadigan funksiya.</p>
+    ['user', 'Python’da dekorator nima va qaçon işlatiladi?'],
+    ['ai', `<p><b>Dekorator</b> — bu boşqa funksiyani argument sifatida qabul qilib, uni özgartirmasdan yangi xatti-harakat qöşadigan funksiya.</p>
 <h4>Oddiy misol</h4>
 <div class="code"><div class="code-h"><span>python</span><button type="button" data-copy><i class="bi bi-clipboard"></i> Nusxa</button></div><pre><span class="k">def</span> <span class="f">vaqt_olchagich</span>(func):
     <span class="k">def</span> <span class="f">wrapper</span>(*args, **kwargs):
@@ -602,10 +602,10 @@ a { color: inherit; text-decoration: none; }
 <span class="n">@vaqt_olchagich</span>
 <span class="k">def</span> <span class="f">hisobla</span>():
     <span class="k">return</span> <span class="f">sum</span>(<span class="f">range</span>(<span class="n">10_000_000</span>))</pre></div>
-<h4>Qachon ishlatiladi?</h4>
-<ul><li>Log yozish va vaqtni o‘lchash</li><li>Ruxsatni tekshirish — masalan Django’dagi <code>@login_required</code></li><li>Keshlash — <code>@functools.lru_cache</code></li></ul>`],
+<h4>Qaçon işlatiladi?</h4>
+<ul><li>Log yoziş va vaqtni ölçaş</li><li>Ruxsatni tekşiriş — masalan Django’dagi <code>@login_required</code></li><li>Keşlaş — <code>@functools.lru_cache</code></li></ul>`],
   ];
-  const ANSWER = `<p>Albatta! Keling, bosqichma-bosqich ko‘rib chiqamiz.</p><p><b>1-qadam.</b> Avval muammoni kichik qismlarga ajratamiz va har birini alohida tushunamiz.</p><p><b>2-qadam.</b> Keyin oddiy misol yozamiz — masalan <code>print("Salom")</code> — va natijani tekshiramiz.</p><p><b>3-qadam.</b> Oxirida bilimni mustahkamlash uchun o‘zingiz bitta mashq bajarib ko‘ring. Savollar bo‘lsa, bemalol yozing! 🚀</p>`;
+  const ANSWER = `<p>Albatta! Keling, bosqichma-bosqich körib çiqamiz.</p><p><b>1-qadam.</b> Avval muammoni kiçik qismlarga ajratamiz va har birini alohida tuşunamiz.</p><p><b>2-qadam.</b> Keyin oddiy misol yozamiz — masalan <code>print("Salom")</code> — va natijani tekşiramiz.</p><p><b>3-qadam.</b> Oxirida bilimni mustahkamlaş uçun özingiz bitta maşq bajarib köring. Savollar bölsa, bemalol yozing! 🚀</p>`;
 
   function userRow(text, anim = true) {
     const r = document.createElement('div'); r.className = 'row user' + (anim ? ' in-r' : '');
@@ -615,18 +615,18 @@ a { color: inherit; text-decoration: none; }
   function aiRow(html, anim = true) {
     const r = document.createElement('div'); r.className = 'row ai' + (anim ? ' in-l' : '');
     r.innerHTML = `<div class="orb"><i class="bi bi-stars"></i></div><div class="ai-body"><div class="content">${html}</div>
-      <div class="tools"><button class="tool" data-t="copy" title="Nusxa"><i class="bi bi-copy"></i></button><button class="tool" data-t="tts" title="Ovozda o‘qish"><i class="bi bi-volume-up"></i></button><button class="tool" data-t="up" title="Foydali"><i class="bi bi-hand-thumbs-up"></i></button><button class="tool" data-t="down" title="Foydasiz"><i class="bi bi-hand-thumbs-down"></i></button><button class="tool" data-t="re" title="Qayta yaratish"><i class="bi bi-arrow-clockwise"></i></button></div>
+      <div class="tools"><button class="tool" data-t="copy" title="Nusxa"><i class="bi bi-copy"></i></button><button class="tool" data-t="tts" title="Ovozda öqiş"><i class="bi bi-volume-up"></i></button><button class="tool" data-t="up" title="Foydali"><i class="bi bi-hand-thumbs-up"></i></button><button class="tool" data-t="down" title="Foydasiz"><i class="bi bi-hand-thumbs-down"></i></button><button class="tool" data-t="re" title="Qayta yaratiş"><i class="bi bi-arrow-clockwise"></i></button></div>
       <div class="time">${now()}</div></div>`;
     msgs.append(r); return r;
   }
   function emptyState() {
-    msgs.innerHTML = `<div class="empty"><div class="orb rv"><i class="bi bi-stars"></i></div><h3 class="rv">Creative AI bilan salomlashing</h3><p class="rv">Savol bering, rasm yoki fayl yuboring — bosqichma-bosqich tushuntirib beraman.</p>
-      <div class="sugs">${[['bi-code-slash','Python asoslari','O‘zgaruvchi va sikllarni tushuntiring'],['bi-calculator','Masala yechish','Kvadrat tenglamani yechib bering'],['bi-bug','Xatoni topish','Kodimdagi xatoni tuzating'],['bi-journal-check','Test tuzish','HTML bo‘yicha 5 ta test']].map(([i,b,s]) => `<button type="button" class="sug rv" data-q="${s}"><i class="bi ${i}"></i><div><b>${b}</b><span>${s}</span></div></button>`).join('')}</div></div>`;
+    msgs.innerHTML = `<div class="empty"><div class="orb rv"><i class="bi bi-stars"></i></div><h3 class="rv">Creative AI bilan salomlaşing</h3><p class="rv">Savol bering, rasm yoki fayl yuboring — bosqichma-bosqich tuşuntirib beraman.</p>
+      <div class="sugs">${[['bi-code-slash','Python asoslari','Özgaruvçi va sikllarni tuşuntiring'],['bi-calculator','Masala yeçiş','Kvadrat tenglamani yeçib bering'],['bi-bug','Xatoni topiş','Kodimdagi xatoni tuzating'],['bi-journal-check','Test tuziş','HTML böyiça 5 ta test']].map(([i,b,s]) => `<button type="button" class="sug rv" data-q="${s}"><i class="bi ${i}"></i><div><b>${b}</b><span>${s}</span></div></button>`).join('')}</div></div>`;
     reveal(msgs);
   }
 
   async function stream(el, html) {
-    // HTML ni tokenlarga ajratib, so'zma-so'z chiqaramiz (teglar buzilmaydi).
+    // HTML ni tokenlarga ajratib, sözma-söz çiqaramiz (teglar buzilmaydi).
     const tokens = html.match(/<[^>]+>|[^<\s]+\s*|\s+/g) || [];
     let out = ''; el.classList.add('caret');
     for (const t of tokens) {
@@ -653,7 +653,7 @@ a { color: inherit; text-decoration: none; }
     const cp = $('#coin'); cp.classList.remove('bump'); void cp.offsetWidth; cp.classList.add('bump');
     scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     setBusy(true); stopFlag = false;
-    const r = aiRow(`<div class="think"><span class="shim">O‘ylayapman</span><span class="dots"><i></i><i></i><i></i></span></div>`);
+    const r = aiRow(`<div class="think"><span class="shim">Öylayapman</span><span class="dots"><i></i><i></i><i></i></span></div>`);
     $('.orb', r).classList.add('thinking');
     await new Promise(res => setTimeout(res, reduce ? 50 : 1300));
     $('.orb', r).classList.remove('thinking');
@@ -678,19 +678,19 @@ a { color: inherit; text-decoration: none; }
       t.innerHTML = `<i class="bi bi-hand-thumbs-${t.dataset.t}${on ? '-fill' : ''}"></i>`;
       if (on) toast('Rahmat! Fikringiz saqlandi');
     } else if (t.dataset.t === 'copy') toast('Javob nusxalandi');
-    else if (t.dataset.t === 'tts') toast('Ovozda o‘qilmoqda…');
+    else if (t.dataset.t === 'tts') toast('Ovozda öqilmoqda…');
     else toast('Javob qayta yaratiladi');
   });
-  $('#mic').addEventListener('click', function () { this.classList.toggle('rec'); toast(this.classList.contains('rec') ? 'Tinglayapman…' : 'Yozib olish to‘xtatildi'); });
+  $('#mic').addEventListener('click', function () { this.classList.toggle('rec'); toast(this.classList.contains('rec') ? 'Tinglayapman…' : 'Yozib oliş töxtatildi'); });
 
-  // Header siqilishi + pastga tugmasi
+  // Header siqilişi + pastga tugmasi
   addEventListener('scroll', () => {
     $('#cHead').classList.toggle('shrink', scrollY > 30);
     $('#fab').classList.toggle('show', !$('#vChat').hidden && !atBottom());
   }, { passive: true });
   $('#fab').addEventListener('click', () => scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }));
 
-  /* ---------- View almashish ---------- */
+  /* ---------- View almaşiş ---------- */
   function go(view, title, prefill) {
     const apply = () => {
       const chat = view !== 'home';

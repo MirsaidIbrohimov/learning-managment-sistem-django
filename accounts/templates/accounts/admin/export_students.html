@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}O'quvchilarni Export qilish - Admin{% endblock %}
+{% block title %}Öquvçilarni Export qiliş - Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -97,7 +97,7 @@
 {% block content %}
 <div class="export-container">
     <div class="export-header">
-        <h2><i class="bi bi-file-earmark-excel me-2"></i> O'quvchilarni Excel ga Export qilish</h2>
+        <h2><i class="bi bi-file-earmark-excel me-2"></i> Öquvçilarni Excel ga Export qiliş</h2>
         <p class="mb-0">Kerakli maydonlarni tanlang va Excel fayl yuklab oling</p>
     </div>
 
@@ -106,9 +106,9 @@
 
         <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px;">
             <div class="card-body p-4">
-                <h5 class="mb-3"><i class="bi bi-people-fill me-2"></i> Guruh bo'yicha (ixtiyoriy)</h5>
+                <h5 class="mb-3"><i class="bi bi-people-fill me-2"></i> Guruh böyiça (ixtiyoriy)</h5>
                 <select name="group" class="form-select" style="max-width: 460px;">
-                    <option value="">Barcha o'quvchilar</option>
+                    <option value="">Barça öquvçilar</option>
                     {% for g in groups %}
                     <option value="{{ g.id }}" {% if selected_group == g.id|stringformat:"i" %}selected{% endif %}>
                         {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
@@ -116,7 +116,7 @@
                     {% endfor %}
                 </select>
                 <div class="text-muted small mt-2">
-                    <i class="bi bi-info-circle"></i> Guruh tanlansa, faqat o'sha guruh o'quvchilari eksport qilinadi.
+                    <i class="bi bi-info-circle"></i> Guruh tanlansa, faqat öşa guruh öquvçilari eksport qilinadi.
                 </div>
             </div>
         </div>
@@ -127,10 +127,10 @@
                     <h5 class="mb-0"><i class="bi bi-list-check me-2"></i> Maydonlarni tanlang</h5>
                     <div class="select-controls">
                         <button type="button" class="btn btn-sm btn-outline-success" onclick="selectAll()">
-                            <i class="bi bi-check-all"></i> Barchasini tanlash
+                            <i class="bi bi-check-all"></i> Barçasini tanlaş
                         </button>
                         <button type="button" class="btn btn-sm btn-outline-secondary" onclick="deselectAll()">
-                            <i class="bi bi-x-lg"></i> Bekor qilish
+                            <i class="bi bi-x-lg"></i> Bekor qiliş
                         </button>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                 <i class="bi bi-arrow-left"></i> Orqaga
             </a>
             <button type="submit" class="btn btn-export">
-                <i class="bi bi-download me-2"></i> Excel yuklab olish
+                <i class="bi bi-download me-2"></i> Excel yuklab oliş
             </button>
         </div>
     </form>

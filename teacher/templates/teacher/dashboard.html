@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Bosh sahifa - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Bosh sahifa{% endblock %}
+{% block title %}Boş sahifa - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Boş sahifa{% endblock %}
 
 {% block teacher_content %}
 <style>
@@ -51,8 +51,8 @@
 </style>
 
 <div class="t-welcome">
-    <h1>Xush kelibsiz, {{ user.first_name }}! <i class="bi bi-emoji-smile" style="opacity:.85;"></i></h1>
-    <p>O'qituvchi paneliga xush kelibsiz. Bugungi holatni ko'ring.</p>
+    <h1>Xuş kelibsiz, {{ user.first_name }}! <i class="bi bi-emoji-smile" style="opacity:.85;"></i></h1>
+    <p>Öqituvçi paneliga xuş kelibsiz. Bugungi holatni köring.</p>
 </div>
 
 <div class="t-stats-grid">
@@ -69,7 +69,7 @@
             <i class="bi bi-people-fill"></i>
         </div>
         <div class="t-stat-value">{{ total_students }}</div>
-        <div class="t-stat-label">O'quvchilar</div>
+        <div class="t-stat-label">Öquvçilar</div>
     </div>
 
     <div class="t-stat-card animate-fadeInUp delay-3">
@@ -112,14 +112,14 @@
             <i class="bi bi-star-fill"></i>
         </div>
         <div class="t-stat-value">{{ avg_grade }}</div>
-        <div class="t-stat-label">O'rtacha baho (vazifa)</div>
+        <div class="t-stat-label">Örtaça baho (vazifa)</div>
     </div>
     <div class="t-stat-card">
         <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
             <i class="bi bi-bullseye"></i>
         </div>
         <div class="t-stat-value">{{ pass_rate }}%</div>
-        <div class="t-stat-label">Testdan o'tish darajasi</div>
+        <div class="t-stat-label">Testdan ötiş darajasi</div>
     </div>
     <div class="t-stat-card">
         <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
@@ -131,25 +131,25 @@
                 {% if week_change >= 0 %}+{% endif %}{{ week_change }}%
             </small>
         </div>
-        <div class="t-stat-label">Haftalik topshiriqlar (o'tgan haftaga nisbatan)</div>
+        <div class="t-stat-label">Haftalik topşiriqlar (ötgan haftaga nisbatan)</div>
     </div>
     <div class="t-stat-card">
         <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
             <i class="bi bi-stopwatch"></i>
         </div>
         <div class="t-stat-value">{% if avg_check_hours is not None %}{{ avg_check_hours }} soat{% else %}—{% endif %}</div>
-        <div class="t-stat-label">O'rtacha tekshirish tezligi</div>
+        <div class="t-stat-label">Örtaça tekşiriş tezligi</div>
     </div>
 </div>
 
 <!-- ============ VIDEO MID-QUIZ DAROMADI (#6) ============ -->
-{# Ustozning video ichiga qo'shgan testlaridan tushgan daromad — vq_income #}
+{# Ustozning video içiga qöşgan testlaridan tuşgan daromad — vq_income #}
 {# konteksti teacher/views.py'dagi teacher_income_summary() dan keladi.       #}
 <div style="display:flex;align-items:center;gap:.55rem;margin:.25rem 0 1rem;">
     <i class="bi bi-play-circle-fill" style="color:#6366f1;font-size:1.15rem;"></i>
     <h3 style="font-size:1.02rem;font-weight:800;margin:0;">Videodagi testlar daromadi</h3>
     <a href="{% url 'video_quiz:teacher_videos' %}" class="btn btn-sm btn-outline-primary rounded-pill ms-auto">
-        <i class="bi bi-sliders"></i> Testlarni boshqarish
+        <i class="bi bi-sliders"></i> Testlarni boşqariş
     </a>
 </div>
 <div class="t-stats-grid">
@@ -157,28 +157,28 @@
         <div class="t-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
             <i class="bi bi-cash-coin"></i>
         </div>
-        <div class="t-stat-value">{{ vq_income.today|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">so'm</span></div>
+        <div class="t-stat-value">{{ vq_income.today|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
         <div class="t-stat-label">Bugungi daromad</div>
     </div>
     <div class="t-stat-card animate-fadeInUp delay-2">
         <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
             <i class="bi bi-calendar-week"></i>
         </div>
-        <div class="t-stat-value">{{ vq_income.week|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">so'm</span></div>
+        <div class="t-stat-value">{{ vq_income.week|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
         <div class="t-stat-label">Haftalik daromad</div>
     </div>
     <div class="t-stat-card animate-fadeInUp delay-3">
         <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
             <i class="bi bi-calendar-month"></i>
         </div>
-        <div class="t-stat-value">{{ vq_income.month|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">so'm</span></div>
+        <div class="t-stat-value">{{ vq_income.month|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
         <div class="t-stat-label">Oylik daromad</div>
     </div>
     <div class="t-stat-card animate-fadeInUp delay-4">
         <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
             <i class="bi bi-wallet2"></i>
         </div>
-        <div class="t-stat-value">{{ vq_income.total|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">so'm</span></div>
+        <div class="t-stat-value">{{ vq_income.total|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
         <div class="t-stat-label">Jami daromad</div>
     </div>
 </div>
@@ -186,11 +186,11 @@
 <!-- ============ EXPORT ============ -->
 <div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
     <div class="t-card-header">
-        <i class="bi bi-download" style="color:#4f46e5;"></i> Excel'ga yuklab olish
+        <i class="bi bi-download" style="color:#4f46e5;"></i> Excel'ga yuklab oliş
     </div>
     <div class="t-card-body" style="display:flex;gap:.75rem;flex-wrap:wrap;">
         <a href="{% url 'teacher:export' %}?type=students" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-people"></i> O'quvchilarim (.xlsx)
+            <i class="bi bi-people"></i> Öquvçilarim (.xlsx)
         </a>
         <a href="{% url 'teacher:export' %}?type=test_results" class="btn btn-sm btn-outline-primary">
             <i class="bi bi-clipboard-data"></i> Test natijalari (.xlsx)
@@ -204,7 +204,7 @@
 <!-- ============ 14 KUNLIK FAOLLIK ============ -->
 <div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
     <div class="t-card-header">
-        <i class="bi bi-bar-chart-fill" style="color:#3b82f6;"></i> So'nggi 14 kun faolligi
+        <i class="bi bi-bar-chart-fill" style="color:#3b82f6;"></i> Sönggi 14 kun faolligi
         <span style="font-weight:500;font-size:.78rem;color:var(--bs-secondary-color);margin-left:6px;">(vazifa + test)</span>
     </div>
     <div class="t-card-body">
@@ -220,22 +220,22 @@
     </div>
 </div>
 
-<!-- ============ KURSLAR BO'YICHA JADVAL ============ -->
+<!-- ============ KURSLAR BÖYIÇA JADVAL ============ -->
 {% if course_rows %}
 <div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
     <div class="t-card-header">
-        <i class="bi bi-table" style="color:#8b5cf6;"></i> Kurslarim bo'yicha ko'rsatkichlar
+        <i class="bi bi-table" style="color:#8b5cf6;"></i> Kurslarim böyiça körsatkiçlar
     </div>
     <div class="t-card-body" style="overflow-x:auto;" tabindex="0" role="region" aria-label="Jadval">
         <table class="table table-sm align-middle" style="min-width:640px;font-size:.85rem;">
             <thead>
                 <tr style="font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;">
                     <th>Kurs</th>
-                    <th class="text-center">O'quvchilar</th>
+                    <th class="text-center">Öquvçilar</th>
                     <th class="text-center">Darslar</th>
                     <th class="text-center">Kutilayotgan vazifa</th>
-                    <th class="text-center">Tekshirilganlik</th>
-                    <th class="text-center">O'rtacha test bali</th>
+                    <th class="text-center">Tekşirilganlik</th>
+                    <th class="text-center">Örtaça test bali</th>
                 </tr>
             </thead>
             <tbody>
@@ -268,7 +268,7 @@
 <div class="t-recent-grid">
     <div class="t-card animate-fadeInUp delay-3">
         <div class="t-card-header">
-            <i class="bi bi-journal-check" style="color: #f59e0b;"></i> So'nggi vazifa topshiriqlar
+            <i class="bi bi-journal-check" style="color: #f59e0b;"></i> Sönggi vazifa topşiriqlar
         </div>
         <div class="t-card-body">
             {% if recent_submissions %}
@@ -286,7 +286,7 @@
             {% endfor %}
             {% else %}
             <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali vazifa topshiriqlar yo'q</p>
+                <p style="margin:0;">Hali vazifa topşiriqlar yöq</p>
             </div>
             {% endif %}
         </div>
@@ -294,7 +294,7 @@
 
     <div class="t-card animate-fadeInUp delay-4">
         <div class="t-card-header">
-            <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> So'nggi Speaking topshiriqlar
+            <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> Sönggi Speaking topşiriqlar
         </div>
         <div class="t-card-body">
             {% if recent_speakings %}
@@ -312,7 +312,7 @@
             {% endfor %}
             {% else %}
             <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali speaking topshiriqlar yo'q</p>
+                <p style="margin:0;">Hali speaking topşiriqlar yöq</p>
             </div>
             {% endif %}
         </div>
@@ -322,7 +322,7 @@
 <div class="t-recent-grid" style="margin-top: 1.5rem;">
     <div class="t-card animate-fadeInUp delay-5">
         <div class="t-card-header">
-            <i class="bi bi-clipboard-data-fill" style="color: #0d6efd;"></i> So'nggi test natijalari
+            <i class="bi bi-clipboard-data-fill" style="color: #0d6efd;"></i> Sönggi test natijalari
         </div>
         <div class="t-card-body">
             {% if recent_tests %}
@@ -340,7 +340,7 @@
             {% endfor %}
             {% else %}
             <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali test natijalari yo'q</p>
+                <p style="margin:0;">Hali test natijalari yöq</p>
             </div>
             {% endif %}
         </div>

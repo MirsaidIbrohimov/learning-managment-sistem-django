@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=120)),
-                ('discount_type', models.CharField(choices=[('percentage', 'Foiz'), ('fixed', "So'm")], max_length=10)),
+                ('discount_type', models.CharField(choices=[('percentage', 'Foiz'), ('fixed', "Söm")], max_length=10)),
                 ('value', models.PositiveIntegerField()),
                 ('min_coins', models.PositiveIntegerField(default=1)),
                 ('is_active', models.BooleanField(default=False)),

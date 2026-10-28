@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='Section',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=200, verbose_name="Bo'lim nomi")),
+                ('title', models.CharField(max_length=200, verbose_name="Bölim nomi")),
                 ('description', models.TextField(blank=True, null=True, verbose_name='Tavsif')),
                 ('order', models.IntegerField(default=0, verbose_name='Tartib')),
                 ('is_active', models.BooleanField(default=True)),
@@ -23,14 +23,14 @@ class Migration(migrations.Migration):
                 ('profession', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sections', to='accounts.profession')),
             ],
             options={
-                'verbose_name': "Bo'lim",
-                'verbose_name_plural': "Bo'limlar",
+                'verbose_name': "Bölim",
+                'verbose_name_plural': "Bölimlar",
                 'ordering': ['order', 'created_at'],
             },
         ),
         migrations.AddField(
             model_name='lesson',
             name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lessons', to='accounts.section', verbose_name="Bo'lim"),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='lessons', to='accounts.section', verbose_name="Bölim"),
         ),
     ]

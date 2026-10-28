@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='securityevent',
             name='event_type',
-            field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oshirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP so'rov yubordi"), ('sqli_attempt', 'SQL Injection urinish'), ('xss_attempt', 'XSS urinish'), ('path_trav', 'Path Traversal urinish'), ('ssti', 'Template Injection urinish'), ('cmd_inject', 'Command Injection urinish'), ('brute_force', 'Brute-force urinish'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Shubhali fayl yuklanishga urinish'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kirish urinishi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol o'zgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boshqa')], db_index=True, max_length=40),
+            field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oşirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP sörov yubordi"), ('sqli_attempt', 'SQL Injection uriniş'), ('xss_attempt', 'XSS uriniş'), ('path_trav', 'Path Traversal uriniş'), ('ssti', 'Template Injection uriniş'), ('cmd_inject', 'Command Injection uriniş'), ('brute_force', 'Brute-force uriniş'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Şubhali fayl yuklanişga uriniş'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kiriş urinişi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol özgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boşqa')], db_index=True, max_length=40),
         ),
         migrations.AlterField(
             model_name='securityevent',
@@ -70,7 +70,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='securityevent',
             name='severity',
-            field=models.CharField(choices=[('low', '🟢 Past'), ('medium', "🟡 O'rta"), ('high', '🔴 Yuqori'), ('critical', '🚨 Kritik')], db_index=True, default='medium', max_length=10),
+            field=models.CharField(choices=[('low', '🟢 Past'), ('medium', "🟡 Örta"), ('high', '🔴 Yuqori'), ('critical', '🚨 Kritik')], db_index=True, default='medium', max_length=10),
         ),
         migrations.AlterField(
             model_name='securityevent',

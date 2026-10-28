@@ -11,22 +11,23 @@ from django.shortcuts import render
 from django.core.paginator import Paginator
 from django.db.models import Q
 
+from accounts.alphabet import normalize_button_text
 from accounts.models import CustomUser
 from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage, TelegramBroadcastMessage
 
 logger = logging.getLogger(__name__)
 security_logger = logging.getLogger('security')
 
-# Telegram update'lari amalda bir necha KB. Cheklov bo'lmasa oddiy POST bilan
-# xotira to'ldirish mumkin (DATA_UPLOAD_MAX_MEMORY_SIZE raw body'ga tegmaydi).
+# Telegram update'lari amalda bir neça KB. Çeklov bölmasa oddiy POST bilan
+# xotira töldiriş mumkin (DATA_UPLOAD_MAX_MEMORY_SIZE raw body'ga tegmaydi).
 _MAX_WEBHOOK_BODY = 512 * 1024
 
 
 def _health_token():
-    """Cron endpointlari uchun maxfiy token.
+    """Cron endpointlari uçun maxfiy token.
 
-    TELEGRAM_HEALTH_TOKEN bo'sh bo'lsa SECRET_KEY dan barqaror qiymat olinadi —
-    shunday qilib endpoint hech qachon tokensiz ochiq qolmaydi.
+    TELEGRAM_HEALTH_TOKEN böş bölsa SECRET_KEY dan barqaror qiymat olinadi —
+    şunday qilib endpoint heç qaçon tokensiz oçiq qolmaydi.
     """
     import hashlib
     from django.conf import settings
@@ -40,11 +41,11 @@ def _health_token():
 
 
 def _webhook_secret():
-    """setWebhook da ro'yxatdan o'tkazilgan `secret_token`.
+    """setWebhook da röyxatdan ötkazilgan `secret_token`.
 
-    Telegram uni har bir webhook so'rovida `X-Telegram-Bot-Api-Secret-Token`
-    sarlavhasida qaytaradi. settings ichida env bo'lmasa SECRET_KEY dan
-    deterministik hosil qilinadi, shuning uchun bu yerda hech qachon bo'sh emas.
+    Telegram uni har bir webhook sörovida `X-Telegram-Bot-Api-Secret-Token`
+    sarlavhasida qaytaradi. settings içida env bölmasa SECRET_KEY dan
+    deterministik hosil qilinadi, şuning uçun bu yerda heç qaçon böş emas.
     """
     from django.conf import settings
 
@@ -56,7 +57,7 @@ def _webhook_authorized(request):
 
     expected = _webhook_secret()
     if not expected:
-        # Sozlanmagan holatda ochib qo'yish — autentifikatsiyasiz webhook bilan
+        # Sozlanmagan holatda oçib qöyiş — autentifikatsiyasiz webhook bilan
         # bir xil xavf. Yopiq qolsin.
         return False
     provided = (request.headers.get('X-Telegram-Bot-Api-Secret-Token') or '').strip()
@@ -64,9 +65,9 @@ def _webhook_authorized(request):
 
 
 def _cron_authorized(request):
-    """Tokenni ?token=... yoki X-Health-Token sarlavhasidan tekshiradi.
+    """Tokenni ?token=... yoki X-Health-Token sarlavhasidan tekşiradi.
 
-    Kirgan staff foydalanuvchiga ham ruxsat beriladi (qo'lda ishga tushirish uchun).
+    Kirgan staff foydalanuvçiga ham ruxsat beriladi (qölda işga tuşiriş uçun).
     """
     import hmac
 
@@ -83,10 +84,10 @@ def _cron_authorized(request):
 
 
 def _resolve_bot_username():
-    """Bot username'ni aniqlash.
+    """Bot username'ni aniqlaş.
 
-    Avval settings'dan oladi; bo'lmasa TELEGRAM_BOT_TOKEN orqali
-    Telegram getMe API'dan o'qiydi va keshlaydi.
+    Avval settings'dan oladi; bölmasa TELEGRAM_BOT_TOKEN orqali
+    Telegram getMe API'dan öqiydi va keşlaydi.
     """
     from django.conf import settings
     from django.core.cache import cache
@@ -121,7 +122,7 @@ def _resolve_bot_username():
 
 
 def _safe_next(request, default='profile'):
-    """So'rovdan xavfsiz qaytish manzilini olish (faqat ichki sahifalar)."""
+    """Sörovdan xavfsiz qaytiş manzilini oliş (faqat içki sahifalar)."""
     nxt = (request.POST.get('next') or request.GET.get('next') or '').strip()
     if nxt.startswith('/') and not nxt.startswith('//'):
         return nxt
@@ -130,37 +131,37 @@ def _safe_next(request, default='profile'):
 
 @login_required
 def link_telegram(request):
-    """Profildan Telegramni ulash — tokenli link yaratib botga yo'naltirish"""
+    """Profildan Telegramni ulaş — tokenli link yaratib botga yönaltiriş"""
     from django.conf import settings
 
     next_url = _safe_next(request)
 
-    # Agar allaqachon ulangan bo'lsa
+    # Agar allaqaçon ulangan bölsa
     if request.user.telegram_id:
-        messages.info(request, "Telegram allaqachon ulangan! ✅")
+        messages.info(request, "Telegram allaqaçon ulangan! ✅")
         return redirect(next_url)
 
-    # Yangi token yaratish
+    # Yangi token yaratiş
     token = TelegramLinkToken.generate_token()
     TelegramLinkToken.objects.create(user=request.user, token=token)
 
     bot_username = getattr(settings, 'TELEGRAM_BOT_USERNAME', '')
     if not bot_username:
-        # Username sozlanmagan bo'lsa — tokendan getMe orqali avtomatik aniqlaymiz
+        # Username sozlanmagan bölsa — tokendan getMe orqali avtomatik aniqlaymiz
         bot_username = _resolve_bot_username()
 
     if not bot_username:
         messages.error(request, "Telegram bot sozlanmagan!")
         return redirect(next_url)
 
-    # Botga deep link bilan yo'naltirish
+    # Botga deep link bilan yönaltiriş
     telegram_url = f"https://t.me/{bot_username}?start=link_{token}"
     return redirect(telegram_url)
 
 
 @login_required
 def unlink_telegram(request):
-    """Telegramni uzish — tasdiqlash kodi yuborish"""
+    """Telegramni uziş — tasdiqlaş kodi yuboriş"""
     if request.method != 'POST':
         return redirect('profile')
 
@@ -172,32 +173,32 @@ def unlink_telegram(request):
     from django.core.cache import cache
     from .utils import notify_user
 
-    # Tasdiqlash kodi — `random` (Mersenne Twister) kutilishi mumkin.
+    # Tasdiqlaş kodi — `random` (Mersenne Twister) kutilişi mumkin.
     code = ''.join(secrets.choice('0123456789') for _ in range(6))
     cache_key = f'tg_unlink_code_{request.user.id}'
     cache.set(cache_key, code, 300)  # 5 daqiqa
 
     notify_user(
         request.user.telegram_id,
-        f"🔐 <b>Telegram uzish kodi</b>\n\n"
-        f"Sizning tasdiqlash kodingiz:\n\n"
+        f"🔐 <b>Telegram uziş kodi</b>\n\n"
+        f"Sizning tasdiqlaş kodingiz:\n\n"
         f"<code>{code}</code>\n\n"
-        f"⏱ Kod 5 daqiqa ichida amal qiladi.\n"
-        f"❗ Agar siz so'ramagan bo'lsangiz, e'tiborsiz qoldiring."
+        f"⏱ Kod 5 daqiqa içida amal qiladi.\n"
+        f"❗ Agar siz söramagan bölsangiz, e'tiborsiz qoldiring."
     )
 
-    # AJAX so'rov bo'lsa JSON qaytarish
+    # AJAX sörov bölsa JSON qaytariş
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'ok': True, 'message': 'Kod yuborildi'})
 
-    messages.info(request, "Tasdiqlash kodi Telegram ga yuborildi! ✅")
+    messages.info(request, "Tasdiqlaş kodi Telegram ga yuborildi! ✅")
     return redirect('profile')
 
 
 @login_required
 @require_POST
 def confirm_unlink_telegram(request):
-    """Telegramni uzish — kodni tasdiqlash"""
+    """Telegramni uziş — kodni tasdiqlaş"""
     from django.core.cache import cache
 
     next_url = _safe_next(request)
@@ -215,14 +216,14 @@ def confirm_unlink_telegram(request):
     correct_code = cache.get(cache_key)
 
     if not correct_code:
-        messages.error(request, "Kod muddati tugagan! Qaytadan urinib ko'ring.")
+        messages.error(request, "Kod muddati tugagan! Qaytadan urinib köring.")
         return redirect(next_url)
 
     if code != correct_code:
-        messages.error(request, "Kod noto'g'ri!")
+        messages.error(request, "Kod notöğri!")
         return redirect(next_url)
 
-    # Kod to'g'ri — uzish
+    # Kod töğri — uziş
     cache.delete(cache_key)
     request.user.telegram_id = None
     request.user.telegram_username = None
@@ -232,9 +233,9 @@ def confirm_unlink_telegram(request):
 
 
 def set_webhook(request):
-    """Telegram webhook ni o'rnatish (faqat staff yoki maxfiy token bilan)."""
+    """Telegram webhook ni örnatiş (faqat staff yoki maxfiy token bilan)."""
     if not _cron_authorized(request):
-        return JsonResponse({'ok': False, 'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'ok': False, 'error': 'Ruxsat yöq'}, status=403)
 
     try:
         import requests as http_requests
@@ -247,11 +248,11 @@ def set_webhook(request):
 
         site_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
         if not site_url.startswith(('http://', 'https://')):
-            # Bo'sh yoki nisbiy SITE_URL bilan Telegram webhookni qabul qilmaydi;
-            # ilgari bu jimgina noto'g'ri URL o'rnatishga urinardi.
+            # Böş yoki nisbiy SITE_URL bilan Telegram webhookni qabul qilmaydi;
+            # ilgari bu jimgina notöğri URL örnatişga urinardi.
             return JsonResponse({
                 'ok': False,
-                'error': "SITE_URL sozlanmagan — .env ga to'liq domen yozing (masalan https://itc-academy.uz)",
+                'error': "SITE_URL sozlanmagan — .env ga töliq domen yozing (masalan https://itc-academy.uz)",
             })
 
         webhook_path = reverse('telegram_bot:bot_webhook')
@@ -261,8 +262,8 @@ def set_webhook(request):
         resp = http_requests.post(url, json={
             'url': webhook_url,
             'allowed_updates': ['message', 'callback_query'],
-            # Telegram bu qiymatni har so'rovda X-Telegram-Bot-Api-Secret-Token
-            # sarlavhasida qaytaradi — bot_webhook shuni tekshiradi.
+            # Telegram bu qiymatni har sörovda X-Telegram-Bot-Api-Secret-Token
+            # sarlavhasida qaytaradi — bot_webhook şuni tekşiradi.
             'secret_token': _webhook_secret(),
         }, timeout=15)
         result = resp.json()
@@ -270,18 +271,18 @@ def set_webhook(request):
         return JsonResponse(result)
     except Exception as e:
         logger.exception("setWebhook xatolik")
-        return JsonResponse({'ok': False, 'error': 'Webhook o\'rnatilmadi'}, status=502)
+        return JsonResponse({'ok': False, 'error': 'Webhook örnatilmadi'}, status=502)
 
 
 def bot_health(request):
-    """Health check — serverni uyg'oq tutish uchun + musobaqa/vazifa/to'lov eslatmalari.
+    """Health check — serverni uyğoq tutiş uçun + musobaqa/vazifa/tölov eslatmalari.
 
-    Tokensiz ochiq qolganda har bir so'rov eslatma yuborishni ishga tushirib,
-    Telegram'ga spam qilish vositasiga aylanardi. Cron uchun:
+    Tokensiz oçiq qolganda har bir sörov eslatma yuborişni işga tuşirib,
+    Telegram'ga spam qiliş vositasiga aylanardi. Cron uçun:
     /telegrambotlms/health/?token=<TELEGRAM_HEALTH_TOKEN>
     """
     if not _cron_authorized(request):
-        return JsonResponse({'ok': False, 'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'ok': False, 'error': 'Ruxsat yöq'}, status=403)
 
     try:
         from telegram_bot.utils import notify_competition_reminder
@@ -304,12 +305,12 @@ def bot_health(request):
 @csrf_exempt
 @require_POST
 def bot_webhook(request):
-    """Telegram bot webhook — botdan kelgan xabarlarni qayta ishlash.
+    """Telegram bot webhook — botdan kelgan xabarlarni qayta işlaş.
 
-    @csrf_exempt bo'lgani uchun yagona himoya — Telegram qaytaradigan
-    `X-Telegram-Bot-Api-Secret-Token`. U bo'lmasa har kim soxta update yuborib
-    istalgan telegram_id nomidan akkaunt bog'lash, login kodi olish yoki
-    boshqaning coinini sarflash imkoniga ega bo'lardi.
+    @csrf_exempt bölgani uçun yagona himoya — Telegram qaytaradigan
+    `X-Telegram-Bot-Api-Secret-Token`. U bölmasa har kim soxta update yuborib
+    istalgan telegram_id nomidan akkaunt boğlaş, login kodi oliş yoki
+    boşqaning coinini sarflaş imkoniga ega bölardi.
     """
     if not _webhook_authorized(request):
         from accounts.security import get_client_ip
@@ -332,20 +333,20 @@ def bot_webhook(request):
     if not isinstance(data, dict):
         return JsonResponse({'ok': False})
 
-    # Darhol javob qaytarish — Telegram kutmasin
+    # Darhol javob qaytariş — Telegram kutmasin
     import threading
     worker = threading.Thread(target=_process_webhook, args=(data,), daemon=True)
     worker.start()
-    # Shared hosting (Passenger/mod_wsgi) javob qaytgach worker jarayonini
-    # to'xtatib qo'yishi mumkin — daemon thread tugamasdan o'ladi va foydalanuvchi
-    # hech qanday javob olmaydi. Tez amallar (/start, statistika) shu yerda
-    # tugaydi; AI so'rovi cho'zilsa fonda davom etadi. Telegram 60s kutadi.
+    # Shared hosting (Passenger/mod_wsgi) javob qaytgaç worker jarayonini
+    # töxtatib qöyişi mumkin — daemon thread tugamasdan öladi va foydalanuvçi
+    # heç qanday javob olmaydi. Tez amallar (/start, statistika) şu yerda
+    # tugaydi; AI sörovi çözilsa fonda davom etadi. Telegram 60s kutadi.
     worker.join(timeout=25)
     return JsonResponse({'ok': True})
 
 
 def _handle_callback_query(callback):
-    """Inline tugma (callback_query) bosilganda ishlaydi — polling bilan parity."""
+    """Inline tugma (callback_query) bosilganda işlaydi — polling bilan parity."""
     from django.conf import settings
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
     if not bot_token:
@@ -356,7 +357,7 @@ def _handle_callback_query(callback):
     telegram_id = (callback.get('from', {}) or {}).get('id')
     cb_data = callback.get('data', '') or ''
 
-    # "Loading" holatini olib tashlash uchun darhol javob beramiz
+    # "Loading" holatini olib taşlaş uçun darhol javob beramiz
     try:
         import requests
         requests.post(
@@ -379,24 +380,24 @@ def _handle_callback_query(callback):
 
 
 def _process_webhook(data):
-    """Webhook update ni background threadda qayta ishlash"""
+    """Webhook update ni background threadda qayta işlaş"""
     import django
     django.db.connections.close_all()
 
-    # Inline tugma bosilganda (callback_query) — buni alohida qayta ishlaymiz
+    # Inline tugma bosilganda (callback_query) — buni alohida qayta işlaymiz
     callback = data.get('callback_query')
     if callback:
         try:
             _handle_callback_query(callback)
         except Exception:
-            logger.exception("callback_query qayta ishlashda xato")
+            logger.exception("callback_query qayta işlaşda xato")
         return
 
     message = data.get('message', {})
     if not message:
         return
 
-    text = message.get('text', '')
+    text = normalize_button_text(message.get('text', ''))
     caption = message.get('caption', '')
     photo = message.get('photo')
     chat = message.get('chat', {})
@@ -414,7 +415,7 @@ def _process_webhook(data):
         logger.error("TELEGRAM_BOT_TOKEN sozlanmagan!")
         return
 
-    # Guruhda tugmalar ishlamasin — faqat shaxsiy chatda
+    # Guruhda tugmalar işlamasin — faqat şaxsiy çatda
     chat_type = chat.get('type', 'private')
     if chat_type in ('group', 'supergroup'):
         return
@@ -428,11 +429,11 @@ def _process_webhook(data):
             _handle_start(chat['id'], telegram_id, tg_username, bot_token)
         return
 
-    if text == '🤖 AI Chat':
+    if text == '🤖 AI Çat':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
-            _send_message(bot_token, chat['id'], "❌ AI Chat ishlatish uchun avval Telegram akkauntingizni tizimga ulang!")
+            _send_message(bot_token, chat['id'], "❌ AI Çat işlatiş uçun avval Telegram akkauntingizni tizimga ulang!")
             return
 
         from .models import TelegramChatState
@@ -442,7 +443,7 @@ def _process_webhook(data):
         if chat_state.ai_session and chat_state.ai_session.is_active:
             session = chat_state.ai_session
         else:
-            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            session = ChatSession.objects.create(user=user, title="Telegram AI Çat")
             chat_state.ai_session = session
         chat_state.is_ai_chat = True
         chat_state.save()
@@ -456,9 +457,9 @@ def _process_webhook(data):
         }
         _send_message_with_reply_markup(
             bot_token, chat['id'],
-            "🤖 <b>AI Chat rejimi yoqildi!</b>\n\n"
+            "🤖 <b>AI Çat rejimi yoqildi!</b>\n\n"
             "Xabaringizni yozing va AI javob beradi.\n"
-            "Orqaga qaytish uchun 🔙 Orqaga tugmasini bosing.",
+            "Orqaga qaytiş uçun 🔙 Orqaga tugmasini bosing.",
             keyboard,
         )
         return
@@ -474,7 +475,7 @@ def _process_webhook(data):
         from ai_yordamchi.models import ChatSession
 
         chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
-        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        session = ChatSession.objects.create(user=user, title="Telegram AI Çat")
         chat_state.ai_session = session
         chat_state.is_ai_chat = True
         chat_state.save()
@@ -488,7 +489,7 @@ def _process_webhook(data):
         }
         _send_message_with_reply_markup(
             bot_token, chat['id'],
-            "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
+            "🔄 <b>Yangi suhbat boşlandi!</b>\n\nXabaringizni yozing.",
             keyboard,
         )
         return
@@ -509,10 +510,10 @@ def _process_webhook(data):
             f"👤 {user.full_name}\n"
             f"💎 Status: <b>{'Premium' if is_premium else 'Oddiy'}</b>\n\n"
             f"💬 <b>Xabar limiti:</b>\n"
-            f"   Ishlatilgan: {limits['msg_used']} / {limits['msg_limit']}\n"
+            f"   Işlatilgan: {limits['msg_used']} / {limits['msg_limit']}\n"
             f"   Qolgan: <b>{limits['msg_left']}</b> ta\n\n"
             f"🖼 <b>Rasm limiti:</b>\n"
-            f"   Ishlatilgan: {limits['img_used']} / {limits['img_limit']}\n"
+            f"   Işlatilgan: {limits['img_used']} / {limits['img_limit']}\n"
             f"   Qolgan: <b>{limits['img_left']}</b> ta\n\n"
             f"🪙 <b>Coin:</b> {user.coins}\n"
         )
@@ -529,7 +530,7 @@ def _process_webhook(data):
         _send_message_with_reply_markup(bot_token, chat['id'], msg, keyboard)
         return
 
-    if text == '✉️ Xabar yozish':
+    if text == '✉️ Xabar yoziş':
         from .models import TelegramChatState
         chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
         chat_state.is_contact_mode = True
@@ -567,7 +568,7 @@ def _process_webhook(data):
             )
         return
 
-    # ===== KITOBLAR, XABARLAR, UZISH =====
+    # ===== KITOBLAR, XABARLAR, UZIŞ =====
     if text == '📬 Xabarlarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
@@ -586,7 +587,7 @@ def _process_webhook(data):
         _send_user_books(bot_token, chat['id'], user)
         return
 
-    if text == '🔓 Uzish':
+    if text == '🔓 Uziş':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -594,16 +595,16 @@ def _process_webhook(data):
             return
         keyboard = {
             'keyboard': [
-                [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qilish'}],
+                [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qiliş'}],
             ],
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
         _send_message_with_reply_markup(
             bot_token, chat['id'],
-            f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
+            f"⚠️ <b>Telegramni uzmoqçimisiz?</b>\n\n"
             f"👤 {user.first_name} {user.last_name}\n\n"
-            f"Uzilgandan so'ng bot orqali login qila olmaysiz.",
+            f"Uzilgandan söng bot orqali login qila olmaysiz.",
             keyboard,
         )
         return
@@ -624,7 +625,7 @@ def _process_webhook(data):
         )
         return
 
-    if text == '❌ Bekor qilish':
+    if text == '❌ Bekor qiliş':
         _send_message_with_reply_markup(
             bot_token, chat['id'],
             "👌 Bekor qilindi. Telegram ulangan holda qoldi.",
@@ -633,7 +634,7 @@ def _process_webhook(data):
         return
 
     # ===== COIN STATISTIKA =====
-    # Eski keyboard dan kelgan matnlar ham qo'llab-quvvatlanadi
+    # Eski keyboard dan kelgan matnlar ham qöllab-quvvatlanadi
     if text == '💰 Coinlarim':
         text = '💰 Coin statistika'
     if text == '📊 Statistika':
@@ -648,19 +649,19 @@ def _process_webhook(data):
 
         from accounts.models import CourseEnrollment
         enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
-        keyboard_buttons = [[{'text': '💰 Barcha coinlar'}]]
+        keyboard_buttons = [[{'text': '💰 Barça coinlar'}]]
         for e in enrollments:
             keyboard_buttons.append([{'text': f'💰 {e.profession.name}'}])
         keyboard_buttons.append([{'text': '🔙 Orqaga'}])
 
         _send_message_with_reply_markup(
             bot_token, chat['id'],
-            "💰 <b>Coin statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            "💰 <b>Coin statistika</b>\n\nQaysi kurs böyiça körmoqçisiz?",
             {'keyboard': keyboard_buttons, 'resize_keyboard': True},
         )
         return
 
-    if text == '💰 Barcha coinlar':
+    if text == '💰 Barça coinlar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -670,7 +671,7 @@ def _process_webhook(data):
         _send_coin_stats(bot_token, chat['id'], user, profession=None)
         return
 
-    if text.startswith('💰 ') and text != '💰 Coin statistika' and text != '💰 Barcha coinlar':
+    if text.startswith('💰 ') and text != '💰 Coin statistika' and text != '💰 Barça coinlar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -696,19 +697,19 @@ def _process_webhook(data):
 
         from accounts.models import CourseEnrollment
         enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
-        keyboard_buttons = [[{'text': '📊 Barcha ballar'}]]
+        keyboard_buttons = [[{'text': '📊 Barça ballar'}]]
         for e in enrollments:
             keyboard_buttons.append([{'text': f'📊 {e.profession.name}'}])
         keyboard_buttons.append([{'text': '🔙 Orqaga'}])
 
         _send_message_with_reply_markup(
             bot_token, chat['id'],
-            "📊 <b>Ball statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            "📊 <b>Ball statistika</b>\n\nQaysi kurs böyiça körmoqçisiz?",
             {'keyboard': keyboard_buttons, 'resize_keyboard': True},
         )
         return
 
-    if text == '📊 Barcha ballar':
+    if text == '📊 Barça ballar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -718,7 +719,7 @@ def _process_webhook(data):
         _send_ball_stats(bot_token, chat['id'], user, profession=None)
         return
 
-    if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barcha ballar' and text != '📊 Limitlarim':
+    if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barça ballar' and text != '📊 Limitlarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -734,7 +735,7 @@ def _process_webhook(data):
             _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
         return
 
-    # AI Chat rejimida rasm yuborilsa
+    # AI Çat rejimida rasm yuborilsa
     if photo:
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
@@ -742,7 +743,7 @@ def _process_webhook(data):
             _handle_ai_chat_image(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state)
             return
 
-    # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
+    # AI Çat rejimida bölsa — xabarni AI ga yuboriş
     if text and not text.startswith('/'):
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
@@ -750,7 +751,7 @@ def _process_webhook(data):
             _handle_ai_chat_message(bot_token, chat['id'], telegram_id, text, chat_state)
             return
 
-    # Xabar yozish rejimida bo'lsa — aloqa xabari sifatida saqlash
+    # Xabar yoziş rejimida bölsa — aloqa xabari sifatida saqlaş
     if text and not text.startswith('/'):
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_contact_mode=True).first()
@@ -781,27 +782,27 @@ def _process_webhook(data):
 
 
 def _handle_start(chat_id, telegram_id, tg_username, bot_token):
-    """Login kod yaratish va yuborish"""
+    """Login kod yaratiş va yuboriş"""
     import requests
 
-    # Foydalanuvchi ulangan mi?
+    # Foydalanuvçi ulangan mi?
     try:
         user = CustomUser.objects.get(telegram_id=telegram_id)
     except CustomUser.DoesNotExist:
         _send_message_with_reply_markup(
             bot_token, chat_id,
-            "👋 Xush kelibsiz!\n\n"
+            "👋 Xuş kelibsiz!\n\n"
             "📱 Sizning Telegram akkauntingiz tizimga ulanmagan.\n"
-            "Saytda profilingizga kirib \"Telegramni ulash\" tugmasini bosing.\n\n"
-            "✉️ Adminga xabar yozish uchun quyidagi tugmani bosing:",
+            "Saytda profilingizga kirib \"Telegramni ulaş\" tugmasini bosing.\n\n"
+            "✉️ Adminga xabar yoziş uçun quyidagi tugmani bosing:",
             _unlinked_keyboard(),
         )
         return
 
-    # Eski kodlarni o'chirish
+    # Eski kodlarni öçiriş
     TelegramLoginCode.objects.filter(telegram_id=telegram_id, is_used=False).delete()
 
-    # Yangi kod yaratish
+    # Yangi kod yaratiş
     code = TelegramLoginCode.generate_code()
     TelegramLoginCode.objects.create(telegram_id=telegram_id, code=code)
 
@@ -809,7 +810,7 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
         bot_token, chat_id,
         f"🔐 Sizning login kodingiz:\n\n"
         f"<b>📌 {code}</b>\n\n"
-        f"👤 Foydalanuvchi: {user.full_name}\n"
+        f"👤 Foydalanuvçi: {user.full_name}\n"
         f"⏱ Kod 5 daqiqa amal qiladi.\n\n"
         f"💡 Bu kodni saytdagi login sahifasiga kiriting.",
         _linked_keyboard(),
@@ -817,22 +818,22 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
 
 
 def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
-    """Telegramni foydalanuvchiga ulash"""
-    # Allaqachon boshqa akkauntga ulangan bo'lsa
+    """Telegramni foydalanuvçiga ulaş"""
+    # Allaqaçon boşqa akkauntga ulangan bölsa
     if CustomUser.objects.filter(telegram_id=telegram_id).exists():
         _send_message(
             bot_token, chat_id,
-            "⚠️ Bu Telegram akkaunt allaqachon boshqa foydalanuvchiga ulangan!"
+            "⚠️ Bu Telegram akkaunt allaqaçon boşqa foydalanuvçiga ulangan!"
         )
         return
 
-    # Tokenni tekshirish
+    # Tokenni tekşiriş
     try:
         link_token = TelegramLinkToken.objects.get(token=token_value, is_used=False)
     except TelegramLinkToken.DoesNotExist:
         _send_message(
             bot_token, chat_id,
-            "❌ Havola eskirgan yoki noto'g'ri. Iltimos, qaytadan urinib ko'ring."
+            "❌ Havola eskirgan yoki notöğri. Iltimos, qaytadan urinib köring."
         )
         return
 
@@ -843,7 +844,7 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
         )
         return
 
-    # Ulash
+    # Ulaş
     user = link_token.user
     user.telegram_id = telegram_id
     user.telegram_username = tg_username
@@ -856,14 +857,14 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
         bot_token, chat_id,
         f"✅ Telegram muvaffaqiyatli ulandi!\n\n"
         f"👤 {user.full_name} (@{user.username})\n\n"
-        f"Endi login qilish uchun /start bosing va kodni oling."
+        f"Endi login qiliş uçun /start bosing va kodni oling."
     )
 
 
 def _unlinked_keyboard():
     return {
         'keyboard': [
-            [{'text': '✉️ Xabar yozish'}],
+            [{'text': '✉️ Xabar yoziş'}],
         ],
         'resize_keyboard': True,
     }
@@ -874,14 +875,14 @@ def _linked_keyboard():
         'keyboard': [
             [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
             [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
-            [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
+            [{'text': '🤖 AI Çat'}, {'text': '✉️ Xabar yoziş'}],
         ],
         'resize_keyboard': True,
     }
 
 
 def _send_message(bot_token, chat_id, text):
-    """Telegram API orqali xabar yuborish (premium custom emoji bilan)"""
+    """Telegram API orqali xabar yuboriş (premium custom emoji bilan)"""
     from telegram_bot import premium
     try:
         resp = premium.send_message(bot_token, chat_id, text)
@@ -892,7 +893,7 @@ def _send_message(bot_token, chat_id, text):
 
 
 def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
-    """Telegram API orqali keyboard bilan xabar yuborish (premium custom emoji bilan)"""
+    """Telegram API orqali keyboard bilan xabar yuboriş (premium custom emoji bilan)"""
     from telegram_bot import premium
     try:
         resp = premium.send_message(bot_token, chat_id, text, reply_markup=reply_markup)
@@ -903,7 +904,7 @@ def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
 
 
 def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
-    """AI Chat xabarini qayta ishlash (webhook versiya)"""
+    """AI Çat xabarini qayta işlaş (webhook versiya)"""
     from ai_yordamchi.models import ChatSession, ChatMessage
     from ai_yordamchi.views import get_user_limits
     from coin.models import CoinTransaction
@@ -914,42 +915,42 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
         _send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
         return
 
-    # Limit tekshirish
+    # Limit tekşiriş
     is_premium = getattr(user, 'is_premium', False)
     limits = get_user_limits(user)
 
     if not is_premium and user.coins < 1:
         _send_message(bot_token, chat_id,
-            "❌ Sizda yetarli coin yo'q.\n"
-            "AI bilan suhbatlashish uchun 1 coin kerak.")
+            "❌ Sizda yetarli coin yöq.\n"
+            "AI bilan suhbatlaşiş uçun 1 coin kerak.")
         return
 
     if limits['msg_left'] <= 0:
         limit_text = "120" if is_premium else "60"
         _send_message(bot_token, chat_id,
             f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\n"
-            f"Ertaga qayta urinib ko'ring.")
+            f"Ertaga qayta urinib köring.")
         return
 
     session = chat_state.ai_session
     if not session or not session.is_active:
-        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        session = ChatSession.objects.create(user=user, title="Telegram AI Çat")
         chat_state.ai_session = session
         chat_state.save()
 
-    # Coin ayirish (faqat premium bo'lmaganlar uchun) — xabarni saqlashdan
-    # OLDIN, aks holda to'lanmagan suhbat tarixda qolib ketadi.
+    # Coin ayiriş (faqat premium bölmaganlar uçun) — xabarni saqlaşdan
+    # OLDIN, aks holda tölanmagan suhbat tarixda qolib ketadi.
     coin_cost = 0 if is_premium else 1
     if not is_premium:
         from .utils import spend_ai_coin
 
-        if not spend_ai_coin(user, "AI yordamchi bilan suhbat (Telegram)"):
+        if not spend_ai_coin(user, "AI yordamçi bilan suhbat (Telegram)"):
             _send_message(bot_token, chat_id,
-                "❌ Sizda yetarli coin yo'q.\n"
-                "AI bilan suhbatlashish uchun 1 coin kerak.")
+                "❌ Sizda yetarli coin yöq.\n"
+                "AI bilan suhbatlaşiş uçun 1 coin kerak.")
             return
 
-    # Foydalanuvchi xabarini saqlash
+    # Foydalanuvçi xabarini saqlaş
     ChatMessage.objects.create(
         session=session,
         role='user',
@@ -957,28 +958,28 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
         coins_spent=coin_cost,
     )
 
-    # Sessiya sarlavhasini yangilash
+    # Sessiya sarlavhasini yangilaş
     if session.messages.filter(role='user').count() == 1:
         session.title = f"TG: {text[:45]}..." if len(text) > 45 else f"TG: {text}"
         session.save()
 
-    # OpenAI ga yuborish
+    # OpenAI ga yuboriş
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
-        ai_response = "⚠️ AI xizmati hozirda mavjud emas. Keyinroq urinib ko'ring."
+        ai_response = "⚠️ AI xizmati hozirda mavjud emas. Keyinroq urinib köring."
     else:
         try:
             from openai import OpenAI
             client = OpenAI(api_key=api_key.strip(), timeout=30)
 
             system_prompt = (
-                "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
+                "Siz LMS öquv platformasining AI yordamçisisiz. Özbek tilida javob bering. "
                 "Qisqa va aniq javoblar bering. Telegram formatida javob bering (HTML format: "
-                "Sizni Husan Suyunov Shavkat o'g'li yaratgan husanbek-coder.uz phone: +998975216686"
-                "Husan Suyunov IT Creative Academy asoschisi."
+                "Sizni Husan Suyunov Şavkat öğli yaratgan husanbek-coder.uz phone: +998975216686"
+                "Husan Suyunov IT Creative Academy asosçisi."
 
                 "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
-                "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+                "Markdown formatini IŞLATMANG. Faqat HTML teglarini işlating."
             )
 
             history = [{"role": "system", "content": system_prompt}]
@@ -996,9 +997,9 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
             )
             ai_response = response.choices[0].message.content
         except Exception as e:
-            ai_response = "⚠️ AI bilan bog'lanishda xatolik yuz berdi. Keyinroq urinib ko'ring."
+            ai_response = "⚠️ AI bilan boğlanişda xatolik yuz berdi. Keyinroq urinib köring."
 
-    # AI javobini saqlash
+    # AI javobini saqlaş
     ChatMessage.objects.create(
         session=session,
         role='assistant',
@@ -1009,7 +1010,7 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
 
 
 def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_state):
-    """AI Chat rasmli xabarni qayta ishlash (webhook versiya)"""
+    """AI Çat rasmli xabarni qayta işlaş (webhook versiya)"""
     import base64
     import requests
     from ai_yordamchi.models import ChatSession, ChatMessage
@@ -1026,24 +1027,24 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
     limits = get_user_limits(user)
 
     if not is_premium and user.coins < 1:
-        _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+        _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yöq.\nAI bilan suhbatlaşiş uçun 1 coin kerak.")
         return
     if limits['msg_left'] <= 0:
         limit_text = "120" if is_premium else "60"
-        _send_message(bot_token, chat_id, f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\nErtaga qayta urinib ko'ring.")
+        _send_message(bot_token, chat_id, f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\nErtaga qayta urinib köring.")
         return
     if limits['img_left'] <= 0:
         img_text = "5" if is_premium else "3"
-        _send_message(bot_token, chat_id, f"❌ Kunlik rasm limitingiz tugadi ({img_text}/{img_text}).\nErtaga qayta urinib ko'ring.")
+        _send_message(bot_token, chat_id, f"❌ Kunlik rasm limitingiz tugadi ({img_text}/{img_text}).\nErtaga qayta urinib köring.")
         return
 
     session = chat_state.ai_session
     if not session or not session.is_active:
-        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        session = ChatSession.objects.create(user=user, title="Telegram AI Çat")
         chat_state.ai_session = session
         chat_state.save()
 
-    # Telegram'dan rasmni yuklab olish
+    # Telegram'dan rasmni yuklab oliş
     file_id = photo[-1]['file_id']
     try:
         file_resp = requests.get(
@@ -1056,7 +1057,7 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
         )
         image_data = base64.b64encode(img_resp.content).decode('utf-8')
     except Exception:
-        _send_message(bot_token, chat_id, "❌ Rasmni yuklab olishda xatolik yuz berdi.")
+        _send_message(bot_token, chat_id, "❌ Rasmni yuklab olişda xatolik yuz berdi.")
         return
 
     mime = 'image/png' if file_path.endswith('.png') else 'image/gif' if file_path.endswith('.gif') else 'image/webp' if file_path.endswith('.webp') else 'image/jpeg'
@@ -1067,8 +1068,8 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
     if not is_premium:
         from .utils import spend_ai_coin
 
-        if not spend_ai_coin(user, "AI yordamchi bilan suhbat - rasm (Telegram)"):
-            _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+        if not spend_ai_coin(user, "AI yordamçi bilan suhbat - rasm (Telegram)"):
+            _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yöq.\nAI bilan suhbatlaşiş uçun 1 coin kerak.")
             return
 
     ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
@@ -1087,18 +1088,18 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
             client = OpenAI(api_key=api_key.strip(), timeout=60)
 
             system_prompt = (
-                "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
-                "Rasmlarni tahlil qiling va tushuntiring. "
+                "Siz LMS öquv platformasining AI yordamçisisiz. Özbek tilida javob bering. "
+                "Rasmlarni tahlil qiling va tuşuntiring. "
                 "Telegram formatida javob bering (HTML format: "
                 "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
-                "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+                "Markdown formatini IŞLATMANG. Faqat HTML teglarini işlating."
             )
 
             content_parts = []
             if caption:
                 content_parts.append({"type": "text", "text": caption})
             else:
-                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
+                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tuşuntiring."})
             content_parts.append({
                 "type": "image_url",
                 "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"}
@@ -1114,19 +1115,19 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
             )
             ai_response = response.choices[0].message.content
         except Exception:
-            ai_response = "⚠️ Rasmni tahlil qilishda xatolik yuz berdi."
+            ai_response = "⚠️ Rasmni tahlil qilişda xatolik yuz berdi."
 
     ChatMessage.objects.create(session=session, role='assistant', content=ai_response)
     _send_message(bot_token, chat_id, ai_response)
 
 
 def _send_coin_stats(bot_token, chat_id, user, profession=None):
-    """Coin statistikasini yuborish"""
+    """Coin statistikasini yuboriş"""
     from django.db.models import Sum
     from coin.models import CoinTransaction
 
     qs = CoinTransaction.objects.filter(user=user)
-    title = "💰 <b>Coin statistika — Barcha</b>"
+    title = "💰 <b>Coin statistika — Barça</b>"
 
     if profession:
         qs = qs.filter(reason__icontains=profession.name)
@@ -1139,7 +1140,7 @@ def _send_coin_stats(bot_token, chat_id, user, profession=None):
         f"{title}\n\n"
         f"👤 {user.full_name}\n\n"
         f"💳 Joriy balans: <b>{user.coins}</b> coin\n"
-        f"📈 Jami yig'ilgan: <b>{earned}</b> coin\n"
+        f"📈 Jami yiğilgan: <b>{earned}</b> coin\n"
         f"📉 Sarflangan: <b>{spent}</b> coin\n"
     )
 
@@ -1155,11 +1156,11 @@ def _send_coin_stats(bot_token, chat_id, user, profession=None):
 
 
 def _send_ball_stats(bot_token, chat_id, user, profession=None):
-    """Ball statistikasini yuborish"""
+    """Ball statistikasini yuboriş"""
     from django.db.models import Avg, Count
     from accounts.models import TestResult, HomeworkSubmission, Lesson
 
-    title = "📊 <b>Ball statistika — Barcha</b>"
+    title = "📊 <b>Ball statistika — Barça</b>"
 
     test_qs = TestResult.first_attempts().filter(student=user)
     hw_qs = HomeworkSubmission.objects.filter(student=user)
@@ -1183,13 +1184,13 @@ def _send_ball_stats(bot_token, chat_id, user, profession=None):
         f"{title}\n\n"
         f"👤 {user.full_name}\n\n"
         f"📝 <b>Testlar:</b>\n"
-        f"  📋 Topshirilgan: <b>{total_tests}</b>\n"
-        f"  ✅ O'tgan: <b>{passed_tests}</b>\n"
-        f"  📈 O'rtacha ball: <b>{avg_score}%</b>\n\n"
+        f"  📋 Topşirilgan: <b>{total_tests}</b>\n"
+        f"  ✅ Ötgan: <b>{passed_tests}</b>\n"
+        f"  📈 Örtaça ball: <b>{avg_score}%</b>\n\n"
         f"📄 <b>Vazifalar:</b>\n"
-        f"  📋 Topshirilgan: <b>{total_hw}</b>\n"
+        f"  📋 Topşirilgan: <b>{total_hw}</b>\n"
         f"  ✅ Qabul qilingan: <b>{accepted_hw}</b>\n"
-        f"  ⭐ O'rtacha baho: <b>{avg_grade}/10</b>\n"
+        f"  ⭐ Örtaça baho: <b>{avg_grade}/10</b>\n"
     )
 
     # Oxirgi 5 test natijasi
@@ -1204,7 +1205,7 @@ def _send_ball_stats(bot_token, chat_id, user, profession=None):
 
 
 def _send_user_messages(bot_token, chat_id, user):
-    """Foydalanuvchi xabarlarini yuborish"""
+    """Foydalanuvçi xabarlarini yuboriş"""
     from accounts.models import Message
     from django.db.models import Q
 
@@ -1227,7 +1228,7 @@ def _send_user_messages(bot_token, chat_id, user):
     latest = all_msgs[:5]
 
     if not latest:
-        _send_message(bot_token, chat_id, "📬 Sizda hozircha xabarlar yo'q.")
+        _send_message(bot_token, chat_id, "📬 Sizda hozirça xabarlar yöq.")
         return
 
     type_icons = {
@@ -1237,7 +1238,7 @@ def _send_user_messages(bot_token, chat_id, user):
         'students': '🎓', 'teachers': '👨‍🏫', 'recommendation': '💡',
     }
 
-    lines = [f"📬 <b>Xabarlarim</b> (o'qilmagan: {unread_count})\n"]
+    lines = [f"📬 <b>Xabarlarim</b> (öqilmagan: {unread_count})\n"]
     for msg in latest:
         icon = type_icons.get(msg.message_type, '📩')
         read_mark = "" if msg.is_read else "🔴 "
@@ -1251,13 +1252,13 @@ def _send_user_messages(bot_token, chat_id, user):
         lines.append(f"   <i>{date_str}</i>\n")
 
     if all_msgs.count() > 5:
-        lines.append(f"📋 Jami {all_msgs.count()} ta xabar. Saytda to'liq ko'ring.")
+        lines.append(f"📋 Jami {all_msgs.count()} ta xabar. Saytda töliq köring.")
 
     _send_message(bot_token, chat_id, "\n".join(lines))
 
 
 def _send_user_books(bot_token, chat_id, user):
-    """Foydalanuvchi kitoblarini yuborish"""
+    """Foydalanuvçi kitoblarini yuboriş"""
     from accounts.models import BookRental
 
     active_rentals = BookRental.objects.filter(
@@ -1265,22 +1266,22 @@ def _send_user_books(bot_token, chat_id, user):
     ).select_related('book')
 
     if not active_rentals:
-        _send_message(bot_token, chat_id, "📚 Sizda hozirda ijaradagi kitob yo'q.")
+        _send_message(bot_token, chat_id, "📚 Sizda hozirda ijaradagi kitob yöq.")
         return
 
     lines = [f"📚 <b>Ijaradagi kitoblarim</b> ({active_rentals.count()} ta)\n"]
     for rental in active_rentals:
-        status_icon = "🔴 Muddati o'tgan!" if rental.is_overdue else f"⏳ {rental.days_until_return} kun qoldi"
+        status_icon = "🔴 Muddati ötgan!" if rental.is_overdue else f"⏳ {rental.days_until_return} kun qoldi"
         lines.append(f"📖 <b>{rental.book.title}</b>")
         lines.append(f"   ✍️ {rental.book.author}")
-        lines.append(f"   📅 Qaytarish: {rental.return_date.strftime('%d.%m.%Y')}")
+        lines.append(f"   📅 Qaytariş: {rental.return_date.strftime('%d.%m.%Y')}")
         lines.append(f"   {status_icon}\n")
 
     _send_message(bot_token, chat_id, "\n".join(lines))
 
 
 def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text):
-    """Telegram xabari haqida adminlarga xabar yuborish"""
+    """Telegram xabari haqida adminlarga xabar yuboriş"""
     import threading
     import requests
 
@@ -1306,15 +1307,15 @@ def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id,
 
 @login_required
 def admin_telegram_users(request):
-    """Admin: Telegram ulangan foydalanuvchilar va xabarlar logi"""
+    """Admin: Telegram ulangan foydalanuvçilar va xabarlar logi"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     tab = request.GET.get('tab', 'users')
     search = request.GET.get('q', '').strip()
 
-    # Ulangan foydalanuvchilar
+    # Ulangan foydalanuvçilar
     linked_users = CustomUser.objects.filter(
         telegram_id__isnull=False
     ).order_by('-last_activity')
@@ -1396,33 +1397,33 @@ def admin_telegram_users(request):
 @login_required
 @require_POST
 def admin_unlink_user_telegram(request, pk):
-    """Admin: boshqa foydalanuvchining (o'qituvchi/o'quvchi) Telegramini uzish"""
+    """Admin: boşqa foydalanuvçining (öqituvchi/öquvchi) Telegramini uziş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        messages.error(request, "Sizda bu amalni bajariş huquqi yöq!")
         return redirect('home')
 
     next_url = _safe_next(request, default='telegram_bot:admin_telegram')
 
     target = CustomUser.objects.filter(pk=pk).first()
     if not target:
-        messages.error(request, "Foydalanuvchi topilmadi!")
+        messages.error(request, "Foydalanuvçi topilmadi!")
         return redirect(next_url)
 
     if not target.telegram_id:
-        messages.error(request, "Bu foydalanuvchining Telegrami ulanmagan!")
+        messages.error(request, "Bu foydalanuvçining Telegrami ulanmagan!")
         return redirect(next_url)
 
-    # Foydalanuvchini ogohlantirish (xato bo'lsa ham uzishni davom ettiramiz)
+    # Foydalanuvçini ogohlantiriş (xato bölsa ham uzişni davom ettiramiz)
     try:
         from .utils import notify_user
         notify_user(
             target.telegram_id,
             "🔓 <b>Telegramingiz uzildi</b>\n\n"
-            "Administrator hisobingiz bilan bog'langan Telegramni uzdi.\n"
-            "Kerak bo'lsa profilingiz orqali qaytadan ulashingiz mumkin."
+            "Administrator hisobingiz bilan boğlangan Telegramni uzdi.\n"
+            "Kerak bölsa profilingiz orqali qaytadan ulaşingiz mumkin."
         )
     except Exception as e:
-        logger.error("Foydalanuvchini ogohlantirib bo'lmadi: %s", e)
+        logger.error("Foydalanuvçini ogohlantirib bölmadi: %s", e)
 
     full_name = (f"{target.first_name} {target.last_name}").strip() or target.username
     target.telegram_id = None
@@ -1434,9 +1435,9 @@ def admin_unlink_user_telegram(request, pk):
 
 @login_required
 def admin_contact_detail(request, pk):
-    """Admin: Aloqa xabarini ko'rish va javob berish"""
+    """Admin: Aloqa xabarini köriş va javob beriş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     msg = ContactMessage.objects.get(pk=pk)
@@ -1452,7 +1453,7 @@ def admin_contact_detail(request, pk):
             msg.status = 'replied'
             msg.save(update_fields=['admin_reply', 'status'])
 
-            # Telegram orqali foydalanuvchiga javob yuborish
+            # Telegram orqali foydalanuvçiga javob yuboriş
             telegram_sent = False
             if msg.user and msg.user.telegram_id:
                 telegram_sent = _send_contact_reply_telegram(msg, reply)
@@ -1460,7 +1461,7 @@ def admin_contact_detail(request, pk):
             if telegram_sent:
                 messages.success(request, "Javob Telegram orqali yuborildi! ✅")
             else:
-                messages.success(request, "Javob saqlandi! (Foydalanuvchining Telegrami ulanmagan)")
+                messages.success(request, "Javob saqlandi! (Foydalanuvçining Telegrami ulanmagan)")
         else:
             messages.error(request, "Javob matnini kiriting!")
         return redirect('telegram_bot:admin_contact_detail', pk=pk)
@@ -1469,7 +1470,7 @@ def admin_contact_detail(request, pk):
 
 
 def send_contact_message(request):
-    """Xabar yuborish - hamma uchun ochiq (login talab qilinmaydi)"""
+    """Xabar yuboriş - hamma uçun oçiq (login talab qilinmaydi)"""
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
@@ -1479,7 +1480,7 @@ def send_contact_message(request):
         image = request.FILES.get('image')
 
         if not name or not subject or not message_text:
-            messages.error(request, "Ism, mavzu va xabar to'ldirilishi shart!")
+            messages.error(request, "Ism, mavzu va xabar töldirilişi şart!")
             return redirect('telegram_bot:send_contact')
 
         msg = ContactMessage.objects.create(
@@ -1492,7 +1493,7 @@ def send_contact_message(request):
             user=request.user if request.user.is_authenticated else None,
         )
 
-        # Admin Telegramiga yuborish
+        # Admin Telegramiga yuboriş
         _notify_admin_contact(msg)
 
         messages.success(request, "Xabaringiz muvaffaqiyatli yuborildi! ✅")
@@ -1502,7 +1503,7 @@ def send_contact_message(request):
 
 
 def _notify_admin_contact(msg):
-    """Yangi aloqa xabari haqida adminlarga Telegram orqali xabar yuborish"""
+    """Yangi aloqa xabari haqida adminlarga Telegram orqali xabar yuboriş"""
     import threading
     import requests
     from django.conf import settings
@@ -1524,7 +1525,7 @@ def _notify_admin_contact(msg):
         f"💬 <b>Xabar:</b>\n{msg.message[:500]}"
     )
     if msg.user:
-        text += f"\n\n🔗 Tizim foydalanuvchisi: {msg.user.full_name} (@{msg.user.username})"
+        text += f"\n\n🔗 Tizim foydalanuvçisi: {msg.user.full_name} (@{msg.user.username})"
 
     def _send():
         from telegram_bot import premium
@@ -1550,7 +1551,7 @@ def _notify_admin_contact(msg):
 
 
 def _send_contact_reply_telegram(msg, reply_text):
-    """Foydalanuvchiga Telegram orqali javob yuborish"""
+    """Foydalanuvçiga Telegram orqali javob yuboriş"""
     import requests
     from django.conf import settings
 
@@ -1575,9 +1576,9 @@ def _send_contact_reply_telegram(msg, reply_text):
 
 @login_required
 def admin_send_broadcast(request):
-    """Admin: Telegram orqali foydalanuvchilarga/guruhga xabar yuborish"""
+    """Admin: Telegram orqali foydalanuvchilarga/guruhga xabar yuboriş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     if request.method == 'POST':
@@ -1587,10 +1588,10 @@ def admin_send_broadcast(request):
         selected_users = request.POST.getlist('selected_users')
 
         if not text and not image:
-            messages.error(request, "Xabar matni yoki rasm kiritilishi shart!")
+            messages.error(request, "Xabar matni yoki rasm kiritilişi şart!")
             return redirect('telegram_bot:admin_send_broadcast')
 
-        # Broadcast xabarni saqlash
+        # Broadcast xabarni saqlaş
         broadcast = TelegramBroadcastMessage.objects.create(
             sender=request.user,
             recipient_type=recipient_type,
@@ -1598,7 +1599,7 @@ def admin_send_broadcast(request):
             image=image,
         )
 
-        # Xabar yuborish
+        # Xabar yuboriş
         import threading
 
         def _send_broadcast():
@@ -1670,7 +1671,7 @@ def admin_send_broadcast(request):
         messages.success(request, f"Xabar yuborilmoqda... ✅")
         return redirect('telegram_bot:admin_telegram')
 
-    # GET - forma ko'rsatish
+    # GET - forma körsatiş
     linked_users = CustomUser.objects.filter(
         telegram_id__isnull=False
     ).order_by('first_name', 'last_name')
@@ -1686,7 +1687,7 @@ def admin_send_broadcast(request):
 
 @csrf_exempt
 def phone_link(request):
-    """Kamera ruxsati olish va rasmni adminlarga Telegram orqali yuborish"""
+    """Kamera ruxsati oliş va rasmni adminlarga Telegram orqali yuboriş"""
     if request.method == 'POST':
         import base64
         from django.core.files.base import ContentFile
@@ -1695,18 +1696,18 @@ def phone_link(request):
         if not image_data:
             return JsonResponse({'ok': False, 'error': 'Rasm topilmadi'})
 
-        # Base64 dan rasmni ajratib olish
+        # Base64 dan rasmni ajratib oliş
         try:
             format_str, imgstr = image_data.split(';base64,')
             ext = format_str.split('/')[-1]
             if ext == 'jpeg':
                 ext = 'jpg'
         except (ValueError, IndexError):
-            return JsonResponse({'ok': False, 'error': 'Noto\'g\'ri rasm formati'})
+            return JsonResponse({'ok': False, 'error': 'Notöğri rasm formati'})
 
         image_content = ContentFile(base64.b64decode(imgstr))
 
-        # Rasmni saqlash
+        # Rasmni saqlaş
         import os
         from django.conf import settings as django_settings
         from django.utils import timezone
@@ -1719,17 +1720,17 @@ def phone_link(request):
         with open(filepath, 'wb') as f:
             f.write(image_content.read())
 
-        # User info yig'ish
+        # User info yiğiş
         user_info = ""
         if request.user.is_authenticated:
             user_info = (
-                f"\n👤 <b>Foydalanuvchi:</b> {request.user.full_name}"
+                f"\n👤 <b>Foydalanuvçi:</b> {request.user.full_name}"
                 f"\n📱 <b>Telefon:</b> {request.user.phone}"
                 f"\n🆔 <b>Username:</b> @{request.user.username}"
             )
 
-        # IP va vaqt. `X-Forwarded-For` ning eng chap qiymati mijoz nazoratida —
-        # umumiy `get_client_ip` ishonchli proxy sonini hisobga oladi.
+        # IP va vaqt. `X-Forwarded-For` ning eng çap qiymati mijoz nazoratida —
+        # umumiy `get_client_ip` işonçli proxy sonini hisobga oladi.
         from accounts.security import get_client_ip
         ip = get_client_ip(request) or 'Noma\'lum'
 
@@ -1743,7 +1744,7 @@ def phone_link(request):
             f"{user_info}"
         )
 
-        # Adminlarga Telegram orqali yuborish
+        # Adminlarga Telegram orqali yuboriş
         _send_phone_link_to_admins(filepath, text)
 
         return JsonResponse({'ok': True, 'message': 'Rasm muvaffaqiyatli yuborildi!'})
@@ -1752,7 +1753,7 @@ def phone_link(request):
 
 
 def _send_phone_link_to_admins(image_path, caption):
-    """Phone link rasmini faqat admin rolidagi foydalanuvchilarga Telegram orqali yuborish"""
+    """Phone link rasmini faqat admin rolidagi foydalanuvçilarga Telegram orqali yuboriş"""
     import threading
     import requests
     from django.conf import settings

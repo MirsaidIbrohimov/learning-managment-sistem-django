@@ -1,6 +1,6 @@
 ﻿{% extends 'parents/portal/base_parent.html' %}
 {% load parent_tags %}
-{% block title %}{{ child.full_name }} — to‘liq ma’lumot{% endblock %}
+{% block title %}{{ child.full_name }} — töliq ma’lumot{% endblock %}
 {% block page_title %}{{ child.full_name|default:child.username }}{% endblock %}
 
 {% block extra_css %}
@@ -37,9 +37,9 @@
     </div>
 </section>
 
-<nav class="cd-nav" aria-label="Bo‘limlar">
+<nav class="cd-nav" aria-label="Bölimlar">
     <a href="#umumiy">Umumiy</a><a href="#kurslar">Kurslar</a><a href="#testlar">Testlar</a><a href="#vazifalar">Vazifalar</a>
-    <a href="#davomat">Davomat</a><a href="#tolov">To‘lov</a><a href="#yutuqlar">Yutuqlar</a><a href="#faollik">Faollik</a>
+    <a href="#davomat">Davomat</a><a href="#tolov">Tölov</a><a href="#yutuqlar">Yutuqlar</a><a href="#faollik">Faollik</a>
 </nav>
 
 {% if alerts %}
@@ -52,18 +52,18 @@
 <section id="umumiy" class="cd-sec pp-grid c4">
     <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-play-circle-fill"></i></span></div>
         <div class="num"><span data-count="{{ progress.videos_watched }}">0</span><small>/{{ progress.videos_total }}</small></div><div class="lbl">Video darslar</div></div>
-    <div class="pp-card pp-kpi tone-{{ tests.avg|tone }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-ui-checks-grid"></i></span><span class="pp-badge {{ tests.avg|tone }}">{{ tests.pass_rate }}% o‘tdi</span></div>
-        <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div><div class="lbl">Test o‘rtachasi ({{ tests.taken }} ta)</div></div>
+    <div class="pp-card pp-kpi tone-{{ tests.avg|tone }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-ui-checks-grid"></i></span><span class="pp-badge {{ tests.avg|tone }}">{{ tests.pass_rate }}% ötdi</span></div>
+        <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div><div class="lbl">Test örtaçasi ({{ tests.taken }} ta)</div></div>
     <div class="pp-card pp-kpi tone-{{ homework.avg_grade|tone:10 }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-journal-check"></i></span></div>
         <div class="num"><span data-count="{{ homework.avg_grade|dot }}">0</span><small>/10</small></div><div class="lbl">Vazifa bahosi ({{ homework.submitted }}/{{ progress.hw_total }})</div></div>
     <div class="pp-card pp-kpi tone-vio" data-reveal><div class="top"><span class="ic"><i class="bi bi-mic-fill"></i></span></div>
-        <div class="num"><span data-count="{{ speaking.count }}">0</span></div><div class="lbl">Speaking{% if speaking.graded %} · o‘rtacha {{ speaking.avg_grade }}{% endif %}</div></div>
+        <div class="num"><span data-count="{{ speaking.count }}">0</span></div><div class="lbl">Speaking{% if speaking.graded %} · örtaça {{ speaking.avg_grade }}{% endif %}</div></div>
 </section>
 
 <!-- Kurslar -->
 <section id="kurslar" class="cd-sec pp-card" data-reveal>
     <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-mortarboard-fill"></i></span><h3>Kurslar</h3>
-        <a class="more" href="{% url 'parent_lessons' %}">Darslar bo‘yicha <i class="bi bi-arrow-right"></i></a></div>
+        <a class="more" href="{% url 'parent_lessons' %}">Darslar böyiça <i class="bi bi-arrow-right"></i></a></div>
     <div class="pp-grid c2">
         {% for k in courses %}
         <div class="cd-mini">
@@ -78,27 +78,27 @@
 <div class="pp-grid c2 keep1">
     <!-- Testlar -->
     <section id="testlar" class="cd-sec pp-card flat" data-reveal>
-        <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-ui-checks"></i></span><h3>So‘nggi testlar</h3>
+        <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-ui-checks"></i></span><h3>Sönggi testlar</h3>
             <a class="more" href="{% url 'parent_tests' %}">Hammasi <i class="bi bi-arrow-right"></i></a></div>
         <div class="pp-table-wrap"><table class="pp-table">
             <tbody>
             {% for r in test_rows %}
             <tr><td><b>{{ r.title }}</b><span class="sub">{{ r.kind }} · {{ r.date|date:"d.m.Y" }}</span></td>
                 <td style="width:150px;"><div class="pp-score tone-{{ r.score|tone }}"><div class="pp-bar sm"><i data-w="{{ r.score }}"></i></div><b>{{ r.score }}%</b></div></td></tr>
-            {% empty %}<tr><td class="pp-muted">Hali test ishlanmagan.</td></tr>{% endfor %}
+            {% empty %}<tr><td class="pp-muted">Hali test işlanmagan.</td></tr>{% endfor %}
             </tbody></table></div>
     </section>
 
     <!-- Vazifalar -->
     <section id="vazifalar" class="cd-sec pp-card flat" data-reveal>
-        <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-journal-check"></i></span><h3>So‘nggi vazifalar</h3>
+        <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-journal-check"></i></span><h3>Sönggi vazifalar</h3>
             <a class="more" href="{% url 'parent_homework' %}">Hammasi <i class="bi bi-arrow-right"></i></a></div>
         <div class="pp-table-wrap"><table class="pp-table">
             <tbody>
             {% for s in recent_homeworks %}
-            <tr><td><b>{{ s.homework.lesson.title }}</b><span class="sub">{{ s.submitted_at|date:"d.m.Y H:i" }}{% if s.is_late %} · <span style="color:var(--pp-warn)">kech</span>{% endif %}</span></td>
+            <tr><td><b>{{ s.homework.lesson.title }}</b><span class="sub">{{ s.submitted_at|date:"d.m.Y H:i" }}{% if s.is_late %} · <span style="color:var(--pp-warn)">keç</span>{% endif %}</span></td>
                 <td style="text-align:right;">{% if s.grade is not None %}<span class="pp-badge {{ s.grade|tone:10 }}">{{ s.grade }}/10</span>{% else %}<span class="pp-badge mute">{{ s.get_status_display }}</span>{% endif %}</td></tr>
-            {% empty %}<tr><td class="pp-muted">Hali vazifa topshirilmagan.</td></tr>{% endfor %}
+            {% empty %}<tr><td class="pp-muted">Hali vazifa topşirilmagan.</td></tr>{% endfor %}
             </tbody></table></div>
     </section>
 </div>
@@ -120,14 +120,14 @@
         </div>
     </section>
 
-    <!-- To'lov -->
+    <!-- Tölov -->
     <section id="tolov" class="cd-sec pp-card" data-reveal>
-        <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-wallet2"></i></span><h3>To‘lov</h3><span style="margin-left:auto">{% include 'parents/portal/partials/payment_badge.html' %}</span></div>
+        <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-wallet2"></i></span><h3>Tölov</h3><span style="margin-left:auto">{% include 'parents/portal/partials/payment_badge.html' %}</span></div>
         <div class="pp-grid c2" style="gap:10px;">
-            <div class="cd-mini"><small>Balans</small><b>{% if payment.balance %}{{ payment.balance.amount|money }}{% else %}0{% endif %} <span style="font-size:.8rem;color:var(--pp-text-3)">so‘m</span></b></div>
-            <div class="cd-mini"><small>Keyingi to‘lov</small><b style="font-size:1.05rem;">{{ payment.next_date|date:"d.m.Y"|default:"—" }}</b></div>
+            <div class="cd-mini"><small>Balans</small><b>{% if payment.balance %}{{ payment.balance.amount|money }}{% else %}0{% endif %} <span style="font-size:.8rem;color:var(--pp-text-3)">söm</span></b></div>
+            <div class="cd-mini"><small>Keyingi tölov</small><b style="font-size:1.05rem;">{{ payment.next_date|date:"d.m.Y"|default:"—" }}</b></div>
         </div>
-        <a class="pp-btn sm" style="margin-top:14px;" href="{% url 'parent_payments' %}">To‘lovlar tarixi <i class="bi bi-arrow-right"></i></a>
+        <a class="pp-btn sm" style="margin-top:14px;" href="{% url 'parent_payments' %}">Tölovlar tarixi <i class="bi bi-arrow-right"></i></a>
     </section>
 </div>
 
@@ -138,21 +138,21 @@
         <div>
             {% for cert in certificates %}
             <div class="pp-li"><span class="ic tone-info"><i class="bi bi-patch-check-fill"></i></span><span class="t"><b>{{ cert.profession.name }}</b><small class="pp-mono">{{ cert.certificate_id }} · {{ cert.valid_from|date:"d.m.Y" }}</small></span>
-                <a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener">Tekshirish</a></div>
-            {% empty %}<p class="pp-muted" style="font-size:.86rem;">Hali sertifikat yo‘q.</p>{% endfor %}
+                <a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener">Tekşiriş</a></div>
+            {% empty %}<p class="pp-muted" style="font-size:.86rem;">Hali sertifikat yöq.</p>{% endfor %}
         </div>
         <div>
             {% for r in active_rentals %}
-            <div class="pp-li"><span class="ic tone-vio"><i class="bi bi-book"></i></span><span class="t"><b>{{ r.book.title }}</b><small>Qaytarish: {{ r.return_date|date:"d.m.Y" }}</small></span>
-                {% if r.status == 'overdue' %}<span class="pp-badge bad">Muddati o‘tgan</span>{% endif %}</div>
-            {% empty %}<p class="pp-muted" style="font-size:.86rem;">Ijarada kitob yo‘q.</p>{% endfor %}
+            <div class="pp-li"><span class="ic tone-vio"><i class="bi bi-book"></i></span><span class="t"><b>{{ r.book.title }}</b><small>Qaytariş: {{ r.return_date|date:"d.m.Y" }}</small></span>
+                {% if r.status == 'overdue' %}<span class="pp-badge bad">Muddati ötgan</span>{% endif %}</div>
+            {% empty %}<p class="pp-muted" style="font-size:.86rem;">Ijarada kitob yöq.</p>{% endfor %}
         </div>
     </div>
 </section>
 
 <!-- Faollik -->
 <section id="faollik" class="cd-sec pp-card" data-reveal>
-    <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-clock-history"></i></span><h3>So‘nggi faollik</h3></div>
+    <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-clock-history"></i></span><h3>Sönggi faollik</h3></div>
     {% if activity %}
     <div class="pp-timeline">
         {% for a in activity %}
@@ -161,13 +161,13 @@
         </div>
         {% endfor %}
     </div>
-    {% else %}<p class="pp-muted">Hozircha faollik yo‘q.</p>{% endif %}
+    {% else %}<p class="pp-muted">Hozirça faollik yöq.</p>{% endif %}
 </section>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-/* Ko'rinib turgan bo'limni navigatsiyada belgilash */
+/* Körinib turgan bölimni navigatsiyada belgilaş */
 (function () {
     var links = document.querySelectorAll('.cd-nav a');
     if (!('IntersectionObserver' in window)) return;

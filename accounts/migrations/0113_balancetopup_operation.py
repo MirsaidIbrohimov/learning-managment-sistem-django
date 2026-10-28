@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
             model_name='balancetopup',
             name='operation',
             field=models.CharField(
-                choices=[('add', "Qo'shish"), ('deduct', 'Ayirish')],
+                choices=[('add', "Qöşiş"), ('deduct', 'Ayiriş')],
                 default='add',
                 max_length=10,
                 verbose_name='Amal',
@@ -22,8 +22,8 @@ class Migration(migrations.Migration):
             name='balancetopup',
             options={
                 'ordering': ['-created_at'],
-                'verbose_name': "Balans o'zgarishi",
-                'verbose_name_plural': "Balans o'zgarishlari tarixi",
+                'verbose_name': "Balans özgarişi",
+                'verbose_name_plural': "Balans özgarişlari tarixi",
             },
         ),
     ]

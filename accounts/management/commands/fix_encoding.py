@@ -1,13 +1,13 @@
 """
-Shablon (template) fayllaridagi UTF-8 bo'lmagan baytlarni tuzatadi.
+Şablon (template) fayllaridagi UTF-8 bölmagan baytlarni tuzatadi.
 
 Muammo: "UnicodeDecodeError: 'utf-8' codec can't decode byte 0x97 ..."
-Sabab:  Shablon UTF-8 bo'lmagan tahrirlovchida saqlangan (Windows-1252
-        "—" tire = 0x97 kabi belgilar tushib qolgan).
+Sabab:  Şablon UTF-8 bölmagan tahrirlovçida saqlangan (Windows-1252
+        "—" tire = 0x97 kabi belgilar tuşib qolgan).
 
-Ishlatish:
-    python manage.py fix_encoding          # tekshiradi va tuzatadi
-    python manage.py fix_encoding --dry     # faqat ko'rsatadi
+Işlatiş:
+    python manage.py fix_encoding          # tekşiradi va tuzatadi
+    python manage.py fix_encoding --dry     # faqat körsatadi
 """
 import os
 from django.conf import settings
@@ -19,8 +19,8 @@ PRUNE = ('node_modules', '__pycache__', '.git', 'venv', 'site-packages',
 
 
 def fix_bytes(raw: bytes) -> bytes:
-    """Faqat yaroqsiz UTF-8 baytlarni cp1252 sifatida talqin qilib UTF-8 ga o'tkazadi.
-    To'g'ri UTF-8 ketma-ketliklarga tegmaydi."""
+    """Faqat yaroqsiz UTF-8 baytlarni cp1252 sifatida talqin qilib UTF-8 ga ötkazadi.
+    Töğri UTF-8 ketma-ketliklarga tegmaydi."""
     out = bytearray()
     i, n = 0, len(raw)
     while i < n:
@@ -44,7 +44,7 @@ def fix_bytes(raw: bytes) -> bytes:
 
 
 def repair_templates(dry=False, log=print):
-    """Barcha shablon papkalarini skanerlaydi va buzilgan kodlashni tuzatadi.
+    """Barça şablon papkalarini skanerlaydi va buzilgan kodlaşni tuzatadi.
     (fixed_count, scanned_count) qaytaradi."""
     base = str(getattr(settings, 'BASE_DIR', '.'))
     fixed, scanned = 0, 0
@@ -76,7 +76,7 @@ def repair_templates(dry=False, log=print):
                 try:
                     fixed_bytes.decode('utf-8')
                 except UnicodeDecodeError:
-                    log(f"    -> avtomatik tuzatib bo'lmadi: {p}")
+                    log(f"    -> avtomatik tuzatib bölmadi: {p}")
                     continue
                 try:
                     open(p + '.bak', 'wb').write(raw)
@@ -84,23 +84,23 @@ def repair_templates(dry=False, log=print):
                     log(f"    -> TUZATILDI (zaxira: {p}.bak)")
                     fixed += 1
                 except Exception as ex:
-                    log(f"    -> yozishda xato: {ex}")
+                    log(f"    -> yozişda xato: {ex}")
     return fixed, scanned
 
 
 class Command(BaseCommand):
-    help = "Shablon fayllaridagi UTF-8 bo'lmagan baytlarni topadi va tuzatadi."
+    help = "Şablon fayllaridagi UTF-8 bölmagan baytlarni topadi va tuzatadi."
 
     def add_arguments(self, parser):
-        parser.add_argument('--dry', action='store_true', help="Faqat ko'rsatadi, o'zgartirmaydi")
+        parser.add_argument('--dry', action='store_true', help="Faqat körsatadi, özgartirmaydi")
 
     def handle(self, *args, **opts):
         dry = opts.get('dry')
-        self.stdout.write("Shablonlar tekshirilmoqda…")
+        self.stdout.write("Şablonlar tekşirilmoqda…")
         fixed, scanned = repair_templates(dry=dry, log=self.stdout.write)
         if dry:
-            self.stdout.write(self.style.WARNING(f"Tekshirildi: {scanned} fayl. (--dry: o'zgartirilmadi)"))
+            self.stdout.write(self.style.WARNING(f"Tekşirildi: {scanned} fayl. (--dry: özgartirilmadi)"))
         else:
-            self.stdout.write(self.style.SUCCESS(f"Tekshirildi: {scanned} fayl. Tuzatildi: {fixed} fayl."))
+            self.stdout.write(self.style.SUCCESS(f"Tekşirildi: {scanned} fayl. Tuzatildi: {fixed} fayl."))
             if fixed:
-                self.stdout.write("Endi serverni qayta ishga tushiring: touch passenger_wsgi.py")
+                self.stdout.write("Endi serverni qayta işga tuşiring: touch passenger_wsgi.py")

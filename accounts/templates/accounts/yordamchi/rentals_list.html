@@ -8,16 +8,16 @@
         <div class="d-flex gap-2 flex-wrap align-items-center">
             <form method="get" class="d-flex gap-2">
                 <select name="status" class="form-select form-select-sm" style="min-width:180px;">
-                    <option value="">— Barchasi —</option>
+                    <option value="">— Barçasi —</option>
                     <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
                     <option value="returned" {% if status == 'returned' %}selected{% endif %}>Qaytarilgan</option>
-                    <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati o'tgan</option>
+                    <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati ötgan</option>
                 </select>
                 <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i></button>
             </form>
             {% if can_give %}
             <a href="{% url 'yordamchi_rental_add' %}" class="btn btn-sm btn-success ms-auto">
-                <i class="bi bi-journal-plus"></i> Ijaraga berish
+                <i class="bi bi-journal-plus"></i> Ijaraga beriş
             </a>
             {% endif %}
         </div>
@@ -27,7 +27,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead style="background:rgba(16,185,129,0.06);">
-                    <tr><th>Kitob</th><th>O'quvchi</th><th>Berilgan</th><th>Qaytarish</th><th>Holat</th>{% if can_return %}<th class="text-end">Amal</th>{% endif %}</tr>
+                    <tr><th>Kitob</th><th>Öquvçi</th><th>Berilgan</th><th>Qaytariş</th><th>Holat</th>{% if can_return %}<th class="text-end">Amal</th>{% endif %}</tr>
                 </thead>
                 <tbody>
                 {% for r in rentals %}
@@ -41,20 +41,20 @@
                         <td style="font-size:.85rem;">
                             {{ r.return_date|date:"d.m.Y" }}
                             {% if r.is_overdue and r.status != 'returned' %}
-                                <br><span class="badge bg-danger">Muddat o'tgan</span>
+                                <br><span class="badge bg-danger">Muddat ötgan</span>
                             {% elif r.status != 'returned' %}
                                 <br><small class="text-muted">{{ r.days_until_return }} kun qoldi</small>
                             {% endif %}
                         </td>
                         <td>
                             {% if r.status == 'returned' %}<span class="badge bg-success">Qaytarilgan</span>
-                            {% elif r.is_overdue %}<span class="badge bg-danger">Kechikkan</span>
+                            {% elif r.is_overdue %}<span class="badge bg-danger">Keçikkan</span>
                             {% else %}<span class="badge bg-primary">Faol</span>{% endif %}
                         </td>
                         {% if can_return %}
                         <td class="text-end">
                             {% if r.status != 'returned' %}
-                            <form method="post" action="{% url 'yordamchi_rental_return' r.pk %}" style="display:inline;" onsubmit="return confirm('Kitobni qaytarib olishni tasdiqlaysizmi?');">
+                            <form method="post" action="{% url 'yordamchi_rental_return' r.pk %}" style="display:inline;" onsubmit="return confirm('Kitobni qaytarib olişni tasdiqlaysizmi?');">
                                 {% csrf_token %}
                                 <button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle"></i> Qaytarib oldim</button>
                             </form>
@@ -67,7 +67,7 @@
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Ijaralar yo'q</p></div>{% endif %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Ijaralar yöq</p></div>{% endif %}
     </div>
 </div>
 {% endblock %}

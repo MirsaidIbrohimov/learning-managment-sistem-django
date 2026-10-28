@@ -22,5 +22,5 @@ class Command(BaseCommand):
                     raise ValueError
                 backend.delete(key)
             except Exception:
-                raise CommandError(f'Redis {alias} tekshiruvi muvaffaqiyatsiz; URL/ACL/ruxsatni tekshiring.') from None
+                raise CommandError(f'Redis {alias} tekşiruvi muvaffaqiyatsiz; URL/ACL/ruxsatni tekşiring.') from None
             self.stdout.write(self.style.SUCCESS(f'Redis {alias}: OK'))

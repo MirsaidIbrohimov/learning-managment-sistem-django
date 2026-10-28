@@ -33,7 +33,7 @@ class StudyGroupFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         groups = StudyGroup.objects.filter(is_active=True).select_related('profession').order_by('name')
         lookups = [(str(g.pk), f"{g.name} — {g.profession.name}") for g in groups]
-        lookups.append(('none', "Guruhsiz o'quvchilar"))
+        lookups.append(('none', "Guruhsiz öquvçilar"))
         return lookups
 
     def queryset(self, request, queryset):
@@ -46,12 +46,12 @@ class StudyGroupFilter(admin.SimpleListFilter):
 
 
 class PaymentTypeFilter(admin.SimpleListFilter):
-    title = "To'lov turi"
+    title = "Tölov turi"
     parameter_name = 'payment_type'
 
     def lookups(self, request, model_admin):
         return [
-            ('contract', 'Shartnoma'),
+            ('contract', 'Şartnoma'),
             ('balance', 'Oddiy (balans)'),
         ]
 
@@ -88,23 +88,23 @@ class CustomUserAdmin(UserAdmin):
         (None, {
             'fields': ('username', 'password'),
         }),
-        ('Shaxsiy ma\'lumotlar', {
+        ('Şaxsiy ma\'lumotlar', {
             'fields': (
                 'first_name', 'last_name', 'phone', 'email', 'photo', 'bio',
                 'gender', 'birth_date', 'nationality', 'address',
             ),
-            'description': 'Foydalanuvchining asosiy shaxsiy ma\'lumotlari',
+            'description': 'Foydalanuvçining asosiy şaxsiy ma\'lumotlari',
         }),
-        ("O'quvchi ID", {
+        ("Öquvçi ID", {
             'fields': ('student_id',),
-            'description': "Avtomatik berilgan o'zgarmas 5 xonali ID raqam (Payme/Click to'lovlari uchun)",
+            'description': "Avtomatik berilgan özgarmas 5 xonali ID raqam (Payme/Click tölovlari uçun)",
         }),
-        ('Rol va yo\'nalish', {
+        ('Rol va yönaliş', {
             'fields': (
                 'role', 'profession', 'teaching_professions', 'coins',
                 'is_premium', 'premium_purchased_at', 'premium_expires_at',
             ),
-            'description': 'Foydalanuvchi roli, yo\'nalishi va coin balansi',
+            'description': 'Foydalanuvçi roli, yönalişi va coin balansi',
         }),
         ('Ota-ona ma\'lumotlari', {
             'fields': (
@@ -198,7 +198,7 @@ class CustomUserAdmin(UserAdmin):
             return format_html(
                 '<span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;'
                 'padding:2px 8px;border-radius:6px;font-weight:700;font-size:0.8em;'
-                'white-space:nowrap;">Shartnoma</span>'
+                'white-space:nowrap;">Şartnoma</span>'
             )
         if balance:
             return format_html(
@@ -206,7 +206,7 @@ class CustomUserAdmin(UserAdmin):
                 balance.formatted()
             )
         return format_html('<span style="color:#9ca3af;">—</span>')
-    payment_display.short_description = "To'lov"
+    payment_display.short_description = "Tölov"
 
 
 @admin.register(Profession)
@@ -219,12 +219,12 @@ class ProfessionAdmin(admin.ModelAdmin):
     def student_count(self, obj):
         count = obj.enrollments.filter(user__role='student').count()
         return format_html('<span class="badge bg-primary">{}</span>', count)
-    student_count.short_description = "O'quvchilar"
+    student_count.short_description = "Öquvçilar"
     
     def teacher_count(self, obj):
         count = obj.students.filter(role='teacher').count()
         return format_html('<span class="badge bg-success">{}</span>', count)
-    teacher_count.short_description = "O'qituvchilar"
+    teacher_count.short_description = "Öqituvçilar"
     
     def lesson_count(self, obj):
         return obj.lessons.count()
@@ -252,7 +252,7 @@ class LessonAdmin(admin.ModelAdmin):
         ('AI maqola', {
             'classes': ('collapse',),
             'fields': ('ai_article',),
-            'description': 'Video darslar uchun AI tomonidan yaratilgan maqola. O\'zgartirish mumkin.',
+            'description': 'Video darslar uçun AI tomonidan yaratilgan maqola. Özgartiriş mumkin.',
         }),
     )
 
@@ -271,7 +271,7 @@ class VideoLessonAdmin(admin.ModelAdmin):
     def has_article(self, obj):
         if obj.lesson.ai_article:
             return format_html('<span style="color:#28a745;">✓ Bor</span>')
-        return format_html('<span style="color:#dc3545;">✗ Yo\'q</span>')
+        return format_html('<span style="color:#dc3545;">✗ Yöq</span>')
     has_article.short_description = 'AI maqola'
 
     def save_model(self, request, obj, form, change):
@@ -329,8 +329,8 @@ class TestResultAdmin(admin.ModelAdmin):
     
     def passed(self, obj):
         if obj.passed:
-            return format_html('<span style="color: #28a745;">✓ O\'tdi</span>')
-        return format_html('<span style="color: #dc3545;">✗ O\'tmadi</span>')
+            return format_html('<span style="color: #28a745;">✓ Ötdi</span>')
+        return format_html('<span style="color: #dc3545;">✗ Ötmadi</span>')
     passed.short_description = 'Natija'
 
 
@@ -407,4 +407,4 @@ class SocialAccountAdmin(admin.ModelAdmin):
 # Admin site customization
 admin.site.site_header = "LMS Admin Panel"
 admin.site.site_title = "LMS"
-admin.site.index_title = "Boshqaruv paneli"
+admin.site.index_title = "Boşqaruv paneli"

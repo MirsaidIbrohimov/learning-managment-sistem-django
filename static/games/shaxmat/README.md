@@ -1,27 +1,27 @@
-# Shaxmat — LMS o'yini
+# Şaxmat — LMS öyini
 
-LMS ichida bir xil serverda ishlovchi shaxmat o'yini. AI yoki LMS o'quvchilari bilan multiplayer.
+LMS içida bir xil serverda işlovçi şaxmat öyini. AI yoki LMS öquvçilari bilan multiplayer.
 
 ## Imkoniyatlar
 
-- **AI rejimi**: Oson (random) / O'rta (greedy) / Qiyin (2-ply minimax)
+- **AI rejimi**: Oson (random) / Örta (greedy) / Qiyin (2-ply minimax)
 - **Multiplayer**: ikki turi
-  - **Shunchaki** — coin tegmasdan
-  - **Coin bilan** — wager rejimi: g'olib ikkita tikilishni oladi
-- **Coin mukofotlari**: AI g'alabasi uchun easy=25, medium=35, hard=50
-- **To'liq shaxmat qoidalari**:
+  - **Şunçaki** — coin tegmasdan
+  - **Coin bilan** — wager rejimi: ğolib ikkita tikilişni oladi
+- **Coin mukofotlari**: AI ğalabasi uçun easy=25, medium=35, hard=50
+- **Töliq şaxmat qoidalari**:
   - Castling (qisqa va uzun)
   - En passant
   - Promotion (modal orqali tanlanadi)
-  - SHOX/Mat aniqlash, Stalemate (durang)
-- **Musobaqalar**: shashka kabi, admin tomonidan
+  - SHOX/Mat aniqlaş, Stalemate (durang)
+- **Musobaqalar**: şaşka kabi, admin tomonidan
 - **Katta ekranli dizayn**, **maxsus modal**, **Taslim/Menyu**
 
 ## Server bilan integratsiya
 
-`/static/games/shaxmat/` papkasidadir. Shashka bilan bir xil API'dan foydalanadi (`mp/...`). Server `Game.config.engine == 'chess'` deb belgilanganda chess initial board (8x8) qaytaradi.
+`/static/games/shaxmat/` papkasidadir. Şaşka bilan bir xil API'dan foydalanadi (`mp/...`). Server `Game.config.engine == 'chess'` deb belgilanganda chess initial board (8x8) qaytaradi.
 
-## Admin sozlash
+## Admin sozlaş
 
 `Game.config`:
 ```json

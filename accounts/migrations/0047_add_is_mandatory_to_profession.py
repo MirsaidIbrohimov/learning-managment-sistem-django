@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             name='CourseUnenrollRequest',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('reason', models.TextField(verbose_name='Chiqish sababi')),
+                ('reason', models.TextField(verbose_name='Çiqiş sababi')),
                 ('status', models.CharField(choices=[('pending', 'Kutilmoqda'), ('approved', 'Tasdiqlandi'), ('rejected', 'Rad etildi')], default='pending', max_length=20, verbose_name='Holat')),
                 ('admin_message', models.TextField(blank=True, verbose_name='Admin javobi')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
@@ -35,8 +35,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='unenroll_requests', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Kursdan chiqish so'rovi",
-                'verbose_name_plural': "Kursdan chiqish so'rovlari",
+                'verbose_name': "Kursdan çiqiş sörovi",
+                'verbose_name_plural': "Kursdan çiqiş sörovlari",
                 'ordering': ['-created_at'],
                 'unique_together': {('user', 'profession')},
             },

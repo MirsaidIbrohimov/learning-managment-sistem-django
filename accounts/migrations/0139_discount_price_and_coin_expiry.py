@@ -11,12 +11,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='discount',
             name='discount_type',
-            field=models.CharField(choices=[('price', 'Yangi narx'), ('percentage', 'Foiz'), ('fixed', "Qat'iy summa")], default='percentage', max_length=20, verbose_name='Chegirma turi'),
+            field=models.CharField(choices=[('price', 'Yangi narx'), ('percentage', 'Foiz'), ('fixed', "Qat'iy summa")], default='percentage', max_length=20, verbose_name='Çegirma turi'),
         ),
         migrations.AlterField(
             model_name='coinpurchasediscount',
             name='discount_type',
-            field=models.CharField(choices=[('percentage', 'Foiz'), ('fixed', "So'm"), ('package', 'Maxsus narx')], max_length=10),
+            field=models.CharField(choices=[('percentage', 'Foiz'), ('fixed', "Söm"), ('package', 'Maxsus narx')], max_length=10),
         ),
         migrations.AddField(
             model_name='coinpurchasediscount',

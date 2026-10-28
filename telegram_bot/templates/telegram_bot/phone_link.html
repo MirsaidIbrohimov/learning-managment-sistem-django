@@ -212,17 +212,17 @@
             <i class="bi bi-phone-fill"></i>
         </div>
         <h1>Phone Link</h1>
-        <p>Kamerangizni yoqing va tasdiqlash uchun rasm oling</p>
+        <p>Kamerangizni yoqing va tasdiqlaş uçun rasm oling</p>
     </div>
 
     <div class="pl-card">
-        <!-- Kamera ruxsat so'rash -->
+        <!-- Kamera ruxsat söraş -->
         <div id="permissionBlock" class="pl-permission-block">
             <i class="bi bi-camera-video"></i>
-            <p>Davom etish uchun kamera ruxsatini bering</p>
+            <p>Davom etiş uçun kamera ruxsatini bering</p>
             <button class="pl-btn pl-btn-primary" id="startCamera">
                 <i class="bi bi-camera-video-fill"></i>
-                Kamerani yoqish
+                Kamerani yoqiş
             </button>
         </div>
 
@@ -234,7 +234,7 @@
             </div>
             <button class="pl-btn pl-btn-primary" id="captureBtn">
                 <i class="bi bi-camera-fill"></i>
-                Rasm olish
+                Rasm oliş
             </button>
         </div>
 
@@ -244,11 +244,11 @@
             <div style="margin-top:1rem;">
                 <button class="pl-btn pl-btn-success" id="sendBtn">
                     <i class="bi bi-send-fill"></i>
-                    Yuborish
+                    Yuboriş
                 </button>
                 <button class="pl-btn pl-btn-danger" id="retakeBtn">
                     <i class="bi bi-arrow-clockwise"></i>
-                    Qayta olish
+                    Qayta oliş
                 </button>
             </div>
         </div>
@@ -335,7 +335,7 @@
 
             if (data.ok) {
                 showStatus('✅ Rasm muvaffaqiyatli yuborildi!', 'success');
-                // Kamerani to'xtatish
+                // Kamerani töxtatiş
                 if (stream) {
                     stream.getTracks().forEach(t => t.stop());
                 }
@@ -344,16 +344,16 @@
             } else {
                 showStatus('❌ Xatolik: ' + (data.error || 'Noma\'lum xatolik'), 'error');
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
+                sendBtn.innerHTML = '<i class="bi bi-send-fill"></i> Yuboriş';
             }
         } catch (e) {
             showStatus('❌ Tarmoq xatoligi yuz berdi', 'error');
             sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
+            sendBtn.innerHTML = '<i class="bi bi-send-fill"></i> Yuboriş';
         }
     });
 
-    // Sahifa yopilganda kamerani to'xtatish
+    // Sahifa yopilganda kamerani töxtatiş
     window.addEventListener('beforeunload', function() {
         if (stream) {
             stream.getTracks().forEach(t => t.stop());

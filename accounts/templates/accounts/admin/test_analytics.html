@@ -681,24 +681,24 @@
     <div class="ta-stat blue anim-f anim-f2">
         <div class="ta-stat-icon"><i class="bi bi-pencil-square"></i></div>
         <div class="ta-stat-num">{{ total_attempts }}</div>
-        <div class="ta-stat-lbl">Jami urinishlar</div>
+        <div class="ta-stat-lbl">Jami urinişlar</div>
     </div>
     <div class="ta-stat green anim-f anim-f3">
         <div class="ta-stat-icon"><i class="bi bi-check-circle-fill"></i></div>
         <div class="ta-stat-num">{{ pass_rate }}%</div>
-        <div class="ta-stat-lbl">O'tish foizi</div>
+        <div class="ta-stat-lbl">Ötiş foizi</div>
     </div>
     <div class="ta-stat orange anim-f anim-f4">
         <div class="ta-stat-icon"><i class="bi bi-speedometer2"></i></div>
         <div class="ta-stat-num">{{ avg_score }}%</div>
-        <div class="ta-stat-lbl">O'rtacha ball</div>
+        <div class="ta-stat-lbl">Örtaça ball</div>
     </div>
 </div>
 
-<!-- Bugun ishlangan testlar -->
+<!-- Bugun işlangan testlar -->
 <div class="ta-card anim-f">
     <div class="ta-card-head">
-        <h6><i class="bi bi-calendar-check-fill" style="color:#f59e0b;"></i> Bugun ishlangan testlar</h6>
+        <h6><i class="bi bi-calendar-check-fill" style="color:#f59e0b;"></i> Bugun işlangan testlar</h6>
         <span class="ta-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">{{ today_results|length }}</span>
     </div>
     {% if today_results %}
@@ -706,7 +706,7 @@
         <table class="ta-table">
             <thead>
                 <tr>
-                    <th>O'quvchi</th>
+                    <th>Öquvçi</th>
                     <th>Test (Dars)</th>
                     <th>Kurs</th>
                     <th>Ball</th>
@@ -752,7 +752,7 @@
     {% else %}
     <div class="ta-empty">
         <div class="ta-empty-icon"><i class="bi bi-calendar-x"></i></div>
-        <p>Bugun hali test ishlanmagan</p>
+        <p>Bugun hali test işlanmagan</p>
     </div>
     {% endif %}
 </div>
@@ -775,13 +775,13 @@
             <select name="test" class="form-select" onchange="this.form.submit()">
                 <option value="">— Test tanlang —</option>
                 {% for t in profession_tests %}
-                <option value="{{ t.pk }}" {% if selected_test and selected_test.pk == t.pk %}selected{% endif %}>{{ t.lesson.title }} ({{ t.attempt_count }} urinish)</option>
+                <option value="{{ t.pk }}" {% if selected_test and selected_test.pk == t.pk %}selected{% endif %}>{{ t.lesson.title }} ({{ t.attempt_count }} uriniş)</option>
                 {% endfor %}
             </select>
         </div>
         {% endif %}
         <a href="{% url 'admin_test_analytics' %}" class="btn-reset">
-            <i class="bi bi-arrow-counterclockwise"></i>Tozalash
+            <i class="bi bi-arrow-counterclockwise"></i>Tozalaş
         </a>
     </form>
 </div>
@@ -798,9 +798,9 @@
             <thead>
                 <tr>
                     <th>Test (Dars)</th>
-                    <th class="text-center">Urinishlar</th>
-                    <th class="text-center">O'tganlar</th>
-                    <th>O'rtacha ball</th>
+                    <th class="text-center">Urinişlar</th>
+                    <th class="text-center">Ötganlar</th>
+                    <th>Örtaça ball</th>
                     <th class="text-end"></th>
                 </tr>
             </thead>
@@ -866,13 +866,13 @@
             </svg>
             <div class="ta-donut-center">
                 <div class="ta-donut-percent">{{ test_stats.pass_rate }}%</div>
-                <div class="ta-donut-label">O'tish foizi</div>
+                <div class="ta-donut-label">Ötiş foizi</div>
             </div>
         </div>
         <div class="ta-donut-legend">
             <div class="ta-legend-item">
                 <span class="ta-legend-dot passed"></span>
-                O'tganlar <span class="ta-legend-count" style="color:#10b981;">{{ test_stats.passed }}</span>
+                Ötganlar <span class="ta-legend-count" style="color:#10b981;">{{ test_stats.passed }}</span>
             </div>
             <div class="ta-legend-item">
                 <span class="ta-legend-dot failed"></span>
@@ -884,11 +884,11 @@
     <div class="ta-detail-stats">
         <div class="ta-detail-item anim-f anim-f1">
             <div class="ta-detail-num primary">{{ test_stats.total }}</div>
-            <div class="ta-detail-lbl">Jami urinish</div>
+            <div class="ta-detail-lbl">Jami uriniş</div>
         </div>
         <div class="ta-detail-item anim-f anim-f2">
             <div class="ta-detail-num success">{{ test_stats.passed }}</div>
-            <div class="ta-detail-lbl">O'tganlar</div>
+            <div class="ta-detail-lbl">Ötganlar</div>
         </div>
         <div class="ta-detail-item anim-f anim-f3">
             <div class="ta-detail-num danger">{{ test_stats.failed }}</div>
@@ -896,11 +896,11 @@
         </div>
         <div class="ta-detail-item anim-f anim-f4">
             <div class="ta-detail-num info">{{ test_stats.pass_rate }}%</div>
-            <div class="ta-detail-lbl">O'tish foizi</div>
+            <div class="ta-detail-lbl">Ötiş foizi</div>
         </div>
         <div class="ta-detail-item anim-f" style="animation-delay:0.25s;">
             <div class="ta-detail-num warning">{{ test_stats.avg_score }}%</div>
-            <div class="ta-detail-lbl">O'rtacha ball</div>
+            <div class="ta-detail-lbl">Örtaça ball</div>
         </div>
         <div class="ta-detail-item anim-f" style="animation-delay:0.3s;">
             {% if test_stats.best_score %}
@@ -925,7 +925,7 @@
             <thead>
                 <tr>
                     <th style="width:40px;">#</th>
-                    <th>O'quvchi</th>
+                    <th>Öquvçi</th>
                     <th>Ball</th>
                     <th>Holat</th>
                     <th>Sana</th>
@@ -959,7 +959,7 @@
                     </td>
                     <td>
                         {% if r.passed %}
-                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i>O'tdi</span>
+                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i>Ötdi</span>
                         {% else %}
                         <span class="ta-status failed"><i class="bi bi-x-circle-fill"></i>Yiqildi</span>
                         {% endif %}
@@ -974,7 +974,7 @@
     {% else %}
     <div class="ta-empty">
         <div class="ta-empty-icon"><i class="bi bi-clipboard"></i></div>
-        <p>Natijalar yo'q</p>
+        <p>Natijalar yöq</p>
     </div>
     {% endif %}
 </div>
@@ -987,7 +987,7 @@
         <span class="ta-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">{{ question_analysis|length }} savol</span>
     </div>
     <div style="padding: 16px 20px 8px;">
-        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Eng ko'p xato qilingan savollar yuqorida. Savol ustiga bosib javoblarni ko'ring.</small>
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Eng köp xato qilingan savollar yuqorida. Savol ustiga bosib javoblarni köring.</small>
     </div>
     {% for qa in question_analysis %}
     <div class="qa-card" style="margin: 8px 20px;">
@@ -1008,7 +1008,7 @@
         <div class="qa-body">
             <div style="margin-bottom:6px;font-size:0.82rem;color:#6c757d;">
                 Jami: <b>{{ qa.total }}</b> javob &nbsp;|&nbsp;
-                To'g'ri: <b style="color:#10b981;">{{ qa.correct }}</b> &nbsp;|&nbsp;
+                Töğri: <b style="color:#10b981;">{{ qa.correct }}</b> &nbsp;|&nbsp;
                 Xato: <b style="color:#ef4444;">{{ qa.wrong }}</b> &nbsp;|&nbsp;
                 Xato foizi: <b style="color:{% if qa.error_rate <= 30 %}#10b981{% elif qa.error_rate <= 60 %}#f59e0b{% else %}#ef4444{% endif %};">{{ qa.error_rate }}%</b>
             </div>
@@ -1033,10 +1033,10 @@
 
 {% endif %}
 
-<!-- Barcha natijalar -->
+<!-- Barça natijalar -->
 <div class="ta-card anim-f">
     <div class="ta-card-head">
-        <h6><i class="bi bi-clock-history" style="color:#6c757d;"></i> Barcha natijalar</h6>
+        <h6><i class="bi bi-clock-history" style="color:#6c757d;"></i> Barça natijalar</h6>
         <span class="ta-badge bg-secondary text-white">{{ recent_results.paginator.count }}</span>
     </div>
     {% if recent_results %}
@@ -1044,7 +1044,7 @@
         <table class="ta-table">
             <thead>
                 <tr>
-                    <th>O'quvchi</th>
+                    <th>Öquvçi</th>
                     <th>Test (Dars)</th>
                     <th>Kurs</th>
                     <th>Ball</th>
@@ -1097,7 +1097,7 @@
     {% else %}
     <div class="ta-empty">
         <div class="ta-empty-icon"><i class="bi bi-clipboard"></i></div>
-        <p>Hali natijalar yo'q</p>
+        <p>Hali natijalar yöq</p>
     </div>
     {% endif %}
 </div>

@@ -1,6 +1,6 @@
-"""ITC Academy ilova ikonkalari: static/img/logo.png dan PWA, Android va Windows uchun.
+"""ITC Academy ilova ikonkalari: static/img/logo.png dan PWA, Android va Windows uçun.
 
-Ishga tushirish (loyiha ildizidan):  venv\\Scripts\\python ilovalar\\assets\\generate_icons.py
+Işga tuşiriş (loyiha ildizidan):  venv\\Scripts\\python ilovalar\\assets\\generate_icons.py
 Natija:
   static/pwa/icons/        — PWA manifest ikonkalari (any + maskable, apple-touch-icon)
   ilovalar/assets/         — Android TWA va Windows (Tauri) manbalari: icon-1024.png, icon.ico, splash
@@ -13,11 +13,11 @@ ROOT = Path(__file__).resolve().parents[2]
 LOGO = ROOT / 'static' / 'img' / 'logo.png'
 PWA_DIR = ROOT / 'static' / 'pwa' / 'icons'
 ASSETS = ROOT / 'ilovalar' / 'assets'
-BG = (255, 255, 255, 255)  # logotipning o'z foni
+BG = (255, 255, 255, 255)  # logotipning öz foni
 
 
 def canvas(size, scale):
-    """Logotipni `scale` (0..1) ulushda markazga qo'yilgan kvadrat."""
+    """Logotipni `scale` (0..1) uluşda markazga qöyilgan kvadrat."""
     logo = Image.open(LOGO).convert('RGBA')
     img = Image.new('RGBA', (size, size), BG)
     inner = round(size * scale)
@@ -28,10 +28,10 @@ def canvas(size, scale):
 def main():
     PWA_DIR.mkdir(parents=True, exist_ok=True)
     ASSETS.mkdir(parents=True, exist_ok=True)
-    # "any": logotipning o'zida ~12% bo'sh chet bor — to'liq o'lcham
+    # "any": logotipning özida ~12% böş çet bor — töliq ölçam
     for s in (192, 512):
         canvas(s, 1.0).convert('RGB').save(PWA_DIR / f'icon-{s}.png', optimize=True)
-        # maskable: xavfsiz zona — diametri 80% doira; logotip 76% ga kichraytiriladi
+        # maskable: xavfsiz zona — diametri 80% doira; logotip 76% ga kiçraytiriladi
         canvas(s, 0.76).convert('RGB').save(PWA_DIR / f'maskable-{s}.png', optimize=True)
     canvas(180, 0.9).convert('RGB').save(PWA_DIR / 'apple-touch-icon.png', optimize=True)
 

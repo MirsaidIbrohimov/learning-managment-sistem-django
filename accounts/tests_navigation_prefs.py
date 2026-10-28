@@ -10,13 +10,13 @@ from accounts.models import CustomUser, NavigationPreference, UserSession
 
 
 class NavigationPreferencesTests(TestCase):
-    """Moslashtiriladigan navigatsiya: saqlash endpointi, base.html atributlari va rollar."""
+    """Moslaştiriladigan navigatsiya: saqlaş endpointi, base.html atributlari va rollar."""
 
     def login(self, role='student', client=None, **extra):
         cache.clear()
         cache.set('birthday_check_done', True, 86400)
         client = client or self.client
-        if role == 'student':  # ProfileCompletionMiddleware to'ldirilmagan profilni yo'naltiradi
+        if role == 'student':  # ProfileCompletionMiddleware töldirilmagan profilni yönaltiradi
             extra.setdefault('is_profile_completed', True)
             extra.setdefault('birth_date', date(2008, 5, 12))
         extra.setdefault('phone', f'+99890{sum(map(ord, role)):07d}')  # phone — unique
@@ -99,7 +99,7 @@ class NavigationPreferencesTests(TestCase):
         html = other.get(reverse('home')).content.decode()
         self.assertIn('data-layout="compact"', html)
 
-    # ── Rollar (yuqori menyu ham yon panel qoidalariga bo'ysunadi) ──
+    # ── Rollar (yuqori menyu ham yon panel qoidalariga böysunadi) ──
     def test_top_links_respect_roles(self):
         self.login('admin')
         html = self.home()
@@ -111,9 +111,9 @@ class NavigationPreferencesTests(TestCase):
         self.login('student')
         html = self.home()
         self.assertIn(reverse('my_study_schedule'), html)
-        self.assertNotIn('Boshqaruv paneli', html)
+        self.assertNotIn('Boşqaruv paneli', html)
 
-    # ── O'qituvchi va admin panellari ──
+    # ── Öqituvçi va admin panellari ──
     def panel(self, role, url_name):
         self.login(role, is_staff=role == 'admin')
         response = self.client.get(reverse(url_name))

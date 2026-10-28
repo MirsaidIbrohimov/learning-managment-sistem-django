@@ -21,11 +21,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='competition',
             name='prize_reserved',
-            field=models.PositiveIntegerField(default=0, help_text="Ustoz hisobidan yechib, g'oliblar aniqlanguncha ushlab turilgan coinlar.", verbose_name='Bron qilingan sovrin fondi'),
+            field=models.PositiveIntegerField(default=0, help_text="Ustoz hisobidan yeçib, ğoliblar aniqlangunça uşlab turilgan coinlar.", verbose_name='Bron qilingan sovrin fondi'),
         ),
         migrations.AddField(
             model_name='competition',
             name='prize_source',
-            field=models.CharField(choices=[('system', 'Tizim hisobidan'), ('teacher', 'Ustoz hisobidan')], default='system', help_text="'Ustoz hisobidan' — sovrin fondi yaratuvchining coinlaridan bron qilinadi.", max_length=10, verbose_name='Sovrin manbai'),
+            field=models.CharField(choices=[('system', 'Tizim hisobidan'), ('teacher', 'Ustoz hisobidan')], default='system', help_text="'Ustoz hisobidan' — sovrin fondi yaratuvçining coinlaridan bron qilinadi.", max_length=10, verbose_name='Sovrin manbai'),
         ),
     ]

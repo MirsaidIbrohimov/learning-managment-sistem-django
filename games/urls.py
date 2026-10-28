@@ -14,12 +14,12 @@ urlpatterns = [
     path('leaderboard/<int:competition_id>/api/', views.competition_leaderboard_api, name='competition_leaderboard_api'),
     path('word-leaderboard/<int:competition_id>/', views.word_game_leaderboard, name='word_game_leaderboard'),
 
-    # Spectating — slug dan OLDIN bo'lishi shart
+    # Spectating — slug dan OLDIN bölişi şart
     path('live/', views.live_games, name='live_games'),
     path('live/<int:match_id>/', views.spectate_match, name='spectate_match'),
     path('live/<int:match_id>/state/', views.spectate_state, name='spectate_state'),
 
-    # Jumanji jonli o'yin — slug dan OLDIN bo'lishi shart
+    # Jumanji jonli öyin — slug dan OLDIN bölişi şart
     path('jumanji/<int:session_id>/', jumanji_views.room, name='jumanji_room'),
     path('jumanji/<int:session_id>/state/', jumanji_views.state, name='jumanji_state'),
     path('jumanji/<int:session_id>/join/', jumanji_views.join, name='jumanji_join'),
@@ -27,7 +27,7 @@ urlpatterns = [
     path('jumanji/<int:session_id>/roll/', jumanji_views.roll, name='jumanji_roll'),
     path('jumanji/<int:session_id>/control/', jumanji_views.control, name='jumanji_control'),
 
-    # Sheriklar bilan — poyga xonalari (slug dan OLDIN)
+    # Şeriklar bilan — poyga xonalari (slug dan OLDIN)
     path('rooms/', room_views.lobby, name='rooms_lobby'),
     path('rooms/create/', room_views.create, name='room_create'),
     path('rooms/join/', room_views.join_by_code, name='room_join_by_code'),
@@ -51,7 +51,7 @@ urlpatterns = [
     path('<slug:slug>/launch/', views.game_launch, name='game_launch'),
     path('<slug:slug>/play/', views.game_play, name='game_play'),
     path('<slug:slug>/play/<int:competition_id>/', views.game_play, name='game_play_competition'),
-    # Yozish mashqi 2.0 — o'sha sessiya/submit, yangi ko'rinish
+    # Yoziş maşqi 2.0 — öşa sessiya/submit, yangi köriniş
     path('<slug:slug>/v2/', views.game_play, {'ui': 'v2'}, name='game_play_v2'),
     path('<slug:slug>/v2/<int:competition_id>/', views.game_play, {'ui': 'v2'}, name='game_play_v2_competition'),
     path('<slug:slug>/submit/', views.game_submit, name='game_submit'),

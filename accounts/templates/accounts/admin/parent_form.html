@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}{% if parent %}Ota-ona tahrirlash{% else %}Ota-ona qo'shish{% endif %} - Admin Panel{% endblock %}
+{% block title %}{% if parent %}Ota-ona tahrirlaş{% else %}Ota-ona qöşiş{% endif %} - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <a href="{% url 'admin_parents' %}" class="btn btn-outline-secondary rounded-pill mb-4">
@@ -12,7 +12,7 @@
         <div class="card">
             <div class="card-header">
                 <i class="bi bi-{% if parent %}pencil-square{% else %}person-plus{% endif %} me-2"></i>
-                {% if parent %}Ota-ona tahrirlash{% else %}Yangi ota-ona qo'shish{% endif %}
+                {% if parent %}Ota-ona tahrirlaş{% else %}Yangi ota-ona qöşiş{% endif %}
             </div>
             <div class="card-body p-4">
                 <form method="POST">
@@ -79,12 +79,12 @@
                             </label>
                             <input type="password" name="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
                                    {% if not parent %}required{% endif %}
-                                   placeholder="{% if parent %}Yangi parol (bo'sh qoldiring){% else %}Parol kiriting{% endif %}">
+                                   placeholder="{% if parent %}Yangi parol (böş qoldiring){% else %}Parol kiriting{% endif %}">
                             {% if form.password.errors %}
                             <div class="invalid-feedback">{{ form.password.errors.0 }}</div>
                             {% endif %}
                             {% if parent %}
-                            <small class="text-muted">O'zgartirmoqchi bo'lmasangiz bo'sh qoldiring</small>
+                            <small class="text-muted">Özgartirmoqçi bölmasangiz böş qoldiring</small>
                             {% endif %}
                         </div>
                     </div>
@@ -99,12 +99,12 @@
                                 {% if child.profession %} - {{ child.profession.name }}{% endif %}
                             </option>
                             {% empty %}
-                            <option disabled>O'quvchilar mavjud emas</option>
+                            <option disabled>Öquvçilar mavjud emas</option>
                             {% endfor %}
                         </select>
                         <small class="text-muted">
                             <i class="bi bi-info-circle me-1"></i>
-                            Bir nechta tanlash uchun Ctrl (yoki Cmd) tugmasini bosib turing
+                            Bir neçta tanlaş uçun Ctrl (yoki Cmd) tugmasini bosib turing
                         </small>
                     </div>
 
@@ -112,10 +112,10 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Saqlash
+                            <i class="bi bi-check-lg me-1"></i>Saqlaş
                         </button>
                         <a href="{% url 'admin_parents' %}" class="btn btn-outline-secondary">
-                            Bekor qilish
+                            Bekor qiliş
                         </a>
                     </div>
                 </form>
@@ -156,9 +156,9 @@
             </div>
             <div class="card-body">
                 <ul class="text-muted small ps-3 mb-0">
-                    <li class="mb-2">Ota-ona o'z farzandlarining o'qish jarayonini kuzatib boradi</li>
-                    <li class="mb-2">Bir nechta farzand tanlash mumkin</li>
-                    <li class="mb-2">Telefon raqami orqali bog'lanish mumkin</li>
+                    <li class="mb-2">Ota-ona öz farzandlarining öqiş jarayonini kuzatib boradi</li>
+                    <li class="mb-2">Bir neçta farzand tanlaş mumkin</li>
+                    <li class="mb-2">Telefon raqami orqali boğlaniş mumkin</li>
                     <li>Login va parol orqali tizimga kiradi</li>
                 </ul>
             </div>

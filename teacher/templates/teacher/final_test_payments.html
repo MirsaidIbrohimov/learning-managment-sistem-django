@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Yakuniy test to'lovlari - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Yakuniy test to'lovlari{% endblock %}
+{% block title %}Yakuniy test tölovlari - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Yakuniy test tölovlari{% endblock %}
 
 {% block teacher_content %}
 <style>
@@ -77,7 +77,7 @@
 <div class="ftp-header">
     <div class="ftp-title">
         <i class="bi bi-credit-card-2-front-fill" style="color: #ef4444;"></i>
-        Yakuniy test to'lovlari
+        Yakuniy test tölovlari
         {% if pending_count > 0 %}
         <span class="ftp-badge">{{ pending_count }} ta yangi</span>
         {% endif %}
@@ -93,7 +93,7 @@
             <i class="bi bi-x-circle me-1"></i> Rad etilgan
         </a>
         <a href="?status=" class="ftp-filter-btn {% if not status_filter %}active{% endif %}">
-            <i class="bi bi-list me-1"></i> Barchasi
+            <i class="bi bi-list me-1"></i> Barçasi
         </a>
     </div>
 </div>
@@ -103,10 +103,10 @@
     <table class="ftp-table">
         <thead>
             <tr>
-                <th>O'quvchi</th>
+                <th>Öquvçi</th>
                 <th>Test</th>
                 <th>Kurs</th>
-                <th>Chek</th>
+                <th>Çek</th>
                 <th>Summa</th>
                 <th>Holat</th>
                 <th>Sana</th>
@@ -134,9 +134,9 @@
                 <td>{{ payment.test.lesson.title }}</td>
                 <td>{{ payment.test.lesson.profession.name }}</td>
                 <td>
-                    <img src="{{ payment.receipt_image.url }}" class="ftp-receipt" onclick="showReceipt('{{ payment.receipt_image.url }}')" alt="Chek">
+                    <img src="{{ payment.receipt_image.url }}" class="ftp-receipt" onclick="showReceipt('{{ payment.receipt_image.url }}')" alt="Çek">
                 </td>
-                <td><strong>{{ payment.amount|floatformat:0 }} so'm</strong></td>
+                <td><strong>{{ payment.amount|floatformat:0 }} söm</strong></td>
                 <td>
                     <span class="ftp-status {{ payment.status }}">
                         {% if payment.status == 'pending' %}
@@ -153,13 +153,13 @@
                     {% if payment.status == 'pending' %}
                     <div class="ftp-actions">
                         <form method="POST" action="{% url 'teacher:approve_final_payment' payment.pk %}"
-                              onsubmit="return confirm('{{ payment.student.full_name|escapejs }}ning to\'lovini tasdiqlaysizmi?');">
+                              onsubmit="return confirm('{{ payment.student.full_name|escapejs }}ning tölovini tasdiqlaysizmi?');">
                             {% csrf_token %}
-                            <button type="submit" class="ftp-btn ftp-btn-approve" title="Tasdiqlash">
+                            <button type="submit" class="ftp-btn ftp-btn-approve" title="Tasdiqlaş">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                         </form>
-                        <button type="button" class="ftp-btn ftp-btn-reject" title="Rad etish"
+                        <button type="button" class="ftp-btn ftp-btn-reject" title="Rad etiş"
                                 onclick="openReject('{% url 'teacher:reject_final_payment' payment.pk %}', '{{ payment.student.full_name|escapejs }}')">
                             <i class="bi bi-x-lg"></i>
                         </button>
@@ -167,7 +167,7 @@
                     {% elif payment.reviewed_by %}
                     <span style="font-size: 0.8rem; color: var(--bs-secondary-color);">{{ payment.reviewed_by.full_name }}</span>
                     {% if payment.status == 'rejected' and payment.reject_reason %}
-                    <div style="font-size: 0.75rem; color: #ef4444; margin-top: 2px;" title="Rad etish sababi">
+                    <div style="font-size: 0.75rem; color: #ef4444; margin-top: 2px;" title="Rad etiş sababi">
                         <i class="bi bi-chat-left-text"></i> {{ payment.reject_reason|truncatechars:60 }}
                     </div>
                     {% endif %}
@@ -180,7 +180,7 @@
     {% else %}
     <div class="ftp-empty">
         <i class="bi bi-inbox"></i>
-        <p>To'lovlar topilmadi</p>
+        <p>Tölovlar topilmadi</p>
     </div>
     {% endif %}
 </div>
@@ -188,7 +188,7 @@
 <!-- Receipt Modal -->
 <div class="receipt-modal" id="receiptModal" onclick="hideReceipt()">
     <button class="receipt-modal-close" onclick="hideReceipt()"><i class="bi bi-x-lg"></i></button>
-    <img id="receiptImg" src="" alt="Chek">
+    <img id="receiptImg" src="" alt="Çek">
 </div>
 
 <!-- Reject Modal -->
@@ -196,18 +196,18 @@
     <div class="reject-modal-box">
         <div class="reject-modal-title">
             <i class="bi bi-x-octagon" style="color:#ef4444;"></i>
-            To'lovni rad etish
+            Tölovni rad etiş
         </div>
         <p class="reject-modal-sub" id="rejectModalSub"></p>
         <form method="POST" id="rejectForm">
             {% csrf_token %}
             <textarea name="reason" id="rejectReason" rows="3" maxlength="500"
-                      placeholder="Rad etish sababi (o'quvchiga ko'rsatiladi)..."></textarea>
+                      placeholder="Rad etiş sababi (öquvçiga körsatiladi)..."></textarea>
             <div class="reject-modal-actions">
                 <button type="button" class="ftp-btn" onclick="closeReject()"
-                        style="background: var(--bs-border-color); color: var(--bs-body-color);">Bekor qilish</button>
+                        style="background: var(--bs-border-color); color: var(--bs-body-color);">Bekor qiliş</button>
                 <button type="submit" class="ftp-btn ftp-btn-reject">
-                    <i class="bi bi-x-lg"></i> Rad etish
+                    <i class="bi bi-x-lg"></i> Rad etiş
                 </button>
             </div>
         </form>
@@ -255,7 +255,7 @@ function openReject(actionUrl, studentName) {
     var modal = document.getElementById('rejectModal');
     document.getElementById('rejectForm').action = actionUrl;
     document.getElementById('rejectModalSub').textContent =
-        studentName + "ning to'lov cheki rad etiladi. Sababini yozib qoldiring.";
+        studentName + "ning tölov çeki rad etiladi. Sababini yozib qoldiring.";
     document.getElementById('rejectReason').value = '';
     modal.classList.add('show');
     document.getElementById('rejectReason').focus();

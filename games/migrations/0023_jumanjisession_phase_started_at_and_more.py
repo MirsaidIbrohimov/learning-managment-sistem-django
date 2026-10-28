@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='jumanjisession',
             name='phase_started_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Bosqich boshlangan vaqt'),
+            field=models.DateTimeField(blank=True, null=True, verbose_name='Bosqiç boşlangan vaqt'),
         ),
         migrations.AlterField(
             model_name='jumanjisession',
             name='phase',
-            field=models.CharField(choices=[('waiting_turn', 'Navbat kutilmoqda'), ('question', 'Savol ochiq'), ('dice', 'Tosh tashlash kutilmoqda'), ('effect', 'Katak effekti'), ('finished', 'Yakunlandi')], default='waiting_turn', max_length=15, verbose_name='Bosqich'),
+            field=models.CharField(choices=[('waiting_turn', 'Navbat kutilmoqda'), ('question', 'Savol oçiq'), ('dice', 'Toş taşlaş kutilmoqda'), ('effect', 'Katak effekti'), ('finished', 'Yakunlandi')], default='waiting_turn', max_length=15, verbose_name='Bosqiç'),
         ),
     ]

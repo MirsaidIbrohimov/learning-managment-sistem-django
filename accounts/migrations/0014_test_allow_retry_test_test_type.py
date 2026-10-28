@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='test',
             name='allow_retry',
-            field=models.BooleanField(default=False, verbose_name='Qayta ishlashga ruxsat'),
+            field=models.BooleanField(default=False, verbose_name='Qayta işlaşga ruxsat'),
         ),
         migrations.AddField(
             model_name='test',
             name='test_type',
-            field=models.CharField(choices=[('lesson', 'Dars yuzasidan'), ('midterm', 'Oraliq test'), ('practice', 'Tajriba oshirish')], default='lesson', max_length=20, verbose_name='Test turi'),
+            field=models.CharField(choices=[('lesson', 'Dars yuzasidan'), ('midterm', 'Oraliq test'), ('practice', 'Tajriba oşiriş')], default='lesson', max_length=20, verbose_name='Test turi'),
         ),
     ]

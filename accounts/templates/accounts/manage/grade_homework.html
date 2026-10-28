@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load custom_filters %}
 
-{% block title %}Vazifani tekshirish - Admin Panel{% endblock %}
+{% block title %}Vazifani tekşiriş - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -369,7 +369,7 @@
         max-width: 100%;
         box-sizing: border-box;
     }
-    /* Robust, xavfsiz matnli javob ko'rinishi (iframe o'rniga) */
+    /* Robust, xavfsiz matnli javob körinişi (iframe örniga) */
     .gh-page .gh-text-toolbar {
         display: flex; align-items: center; justify-content: space-between;
         padding: 0 0 .6rem; font-size: .8rem; color: var(--bs-secondary-color, #6c757d); font-weight: 600;
@@ -619,7 +619,7 @@
         color: #fbbf24;
     }
 
-    /* chat */
+    /* çat */
     @keyframes ghChatSlideIn {
         from {
             opacity: 0;
@@ -1268,19 +1268,19 @@
 
     <!-- Back -->
     <a href="{% url 'homework_submissions' %}" class="gh-back">
-        <i class="bi bi-arrow-left"></i> Orqaga qaytish
+        <i class="bi bi-arrow-left"></i> Orqaga qaytiş
     </a>
 
     <!-- Header -->
     <div class="gh-header">
         <div>
-            <h1 class="gh-header-title"><i class="bi bi-journal-check"></i> Vazifani tekshirish</h1>
+            <h1 class="gh-header-title"><i class="bi bi-journal-check"></i> Vazifani tekşiriş</h1>
             <p class="gh-header-sub">{{ submission.homework.lesson.title }}</p>
         </div>
         <span class="gh-badge b-{{ submission.status }}">
             {% if submission.status == 'pending' %}<i class="bi bi-hourglass-split"></i> Kutilmoqda
-            {% elif submission.status == 'reviewing' %}<i class="bi bi-eye"></i> Ko'rilmoqda
-            {% elif submission.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta ishlash
+            {% elif submission.status == 'reviewing' %}<i class="bi bi-eye"></i> Körilmoqda
+            {% elif submission.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta işlaş
             {% elif submission.status == 'accepted' %}<i class="bi bi-check-lg"></i> Qabul qilindi
             {% elif submission.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ submission.grade }}/10
             {% endif %}
@@ -1306,7 +1306,7 @@
                     </div>
                     <div class="gh-mini-stats">
                         <div class="gh-mini-stat">
-                            <span class="gh-mini-stat-label">Topshirilgan</span>
+                            <span class="gh-mini-stat-label">Topşirilgan</span>
                             <span class="gh-mini-stat-val">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
                         </div>
                         <div class="gh-mini-stat">
@@ -1314,12 +1314,12 @@
                             <span class="gh-mini-stat-val">v{{ submission.version }}</span>
                         </div>
                         <div class="gh-mini-stat">
-                            <span class="gh-mini-stat-label">Qayta topshirish</span>
+                            <span class="gh-mini-stat-label">Qayta topşiriş</span>
                             <span class="gh-mini-stat-val">{{ submission.revision_count }}x</span>
                         </div>
                     </div>
                     {% if submission.is_late %}
-                    <div class="gh-late-alert"><i class="bi bi-clock"></i> Bu vazifa kech topshirilgan!</div>
+                    <div class="gh-late-alert"><i class="bi bi-clock"></i> Bu vazifa keç topşirilgan!</div>
                     {% endif %}
                 </div>
             </div>
@@ -1327,18 +1327,18 @@
             <!-- Submitted content -->
             <div class="gh-card">
                 {% if submission.file %}
-                <div class="gh-card-head"><i class="bi bi-file-earmark-arrow-down"></i> Topshirilgan fayl</div>
+                <div class="gh-card-head"><i class="bi bi-file-earmark-arrow-down"></i> Topşirilgan fayl</div>
                 <div class="gh-card-body">
                     <div class="gh-file-row">
                         <div class="gh-file-info">
                             <div class="gh-file-icon"><i class="bi bi-file-earmark-arrow-down"></i></div>
                             <div style="min-width:0;">
                                 <div class="gh-file-name">{{ submission.file.name|cut:"homework_submissions/" }}</div>
-                                <div class="gh-file-sub">Topshirilgan fayl</div>
+                                <div class="gh-file-sub">Topşirilgan fayl</div>
                             </div>
                         </div>
                         <a href="{{ submission.file.url }}" target="_blank" class="gh-file-btn">
-                            <i class="bi bi-download"></i> Ochish
+                            <i class="bi bi-download"></i> Oçiş
                         </a>
                     </div>
                 </div>
@@ -1352,8 +1352,8 @@
                 </div>
                 <div class="gh-text-body">
                     <div class="gh-text-toolbar">
-                        <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
-                        <button type="button" class="gh-copy-btn" onclick="ghCopyAnswer(this)" title="Nusxalash"><i class="bi bi-clipboard"></i> Nusxalash</button>
+                        <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} söz</span>
+                        <button type="button" class="gh-copy-btn" onclick="ghCopyAnswer(this)" title="Nusxalaş"><i class="bi bi-clipboard"></i> Nusxalaş</button>
                     </div>
                     <div class="gh-text-answer">{{ submission.text_content|submission_plain }}</div>
 {% include 'accounts/includes/homework_code_review.html' %}
@@ -1419,7 +1419,7 @@
                             {% csrf_token %}
                             <input type="hidden" name="action" value="set_reviewing">
                             <button type="submit" class="gh-act-btn a-review">
-                                <i class="bi bi-eye"></i> Ko'rib chiqishni boshlash
+                                <i class="bi bi-eye"></i> Körib çiqişni boşlaş
                             </button>
                         </form>
                         {% endif %}
@@ -1427,26 +1427,26 @@
                         {% if submission.status != 'accepted' %}
                         <button type="button" class="gh-act-btn a-revision" data-bs-toggle="modal"
                             data-bs-target="#revModal">
-                            <i class="bi bi-arrow-repeat"></i> Qayta ishlashga yuborish
+                            <i class="bi bi-arrow-repeat"></i> Qayta işlaşga yuboriş
                         </button>
                         <form method="POST" style="display:contents;">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="accept">
                             <button type="submit" class="gh-act-btn a-accept">
-                                <i class="bi bi-check-lg"></i> Qabul qilish
+                                <i class="bi bi-check-lg"></i> Qabul qiliş
                             </button>
                         </form>
                         {% endif %}
 
                         <button type="button" class="gh-act-btn a-auto" data-bs-toggle="modal"
                             data-bs-target="#autoGradeModal">
-                            <i class="bi bi-magic"></i> Avtomatik baholash (1 ball)
+                            <i class="bi bi-magic"></i> Avtomatik baholaş (1 ball)
                         </button>
                         <form method="POST" style="display:contents;" id="aiGradeForm">
                             {% csrf_token %}
                             <input type="hidden" name="action" value="ai_grade">
-                            <button type="submit" class="gh-act-btn" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: #fff; border: none;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
-                                <i class="bi bi-robot"></i> 🤖 AI bilan baholash
+                            <button type="submit" class="gh-act-btn" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: #fff; border: none;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekşirmoqda...'; this.form.submit();">
+                                <i class="bi bi-robot"></i> 🤖 AI bilan baholaş
                             </button>
                         </form>
                     </div>
@@ -1456,7 +1456,7 @@
 
             <!-- Grading form -->
             <div class="gh-card">
-                <div class="gh-card-head"><i class="bi bi-star" style="color:#f59e0b;"></i> Baholash</div>
+                <div class="gh-card-head"><i class="bi bi-star" style="color:#f59e0b;"></i> Baholaş</div>
                 <div class="gh-card-body">
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
@@ -1471,7 +1471,7 @@
                         <div style="margin-bottom:1rem;">
                             <label class="gh-grade-label">Izoh</label>
                             <textarea name="feedback" class="gh-grade-input" rows="3"
-                                placeholder="O'quvchiga izoh yozing..."
+                                placeholder="Öquvçiga izoh yozing..."
                                 style="resize:vertical;">{{ submission.feedback|default:'' }}</textarea>
                         </div>
 
@@ -1489,21 +1489,21 @@
                         </div>
 
                         <button type="submit" class="gh-grade-submit">
-                            <i class="bi bi-check-circle me-1"></i> Baholash
+                            <i class="bi bi-check-circle me-1"></i> Baholaş
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN - Chat -->
+        <!-- RIGHT COLUMN - Çat -->
         <div>
             <div class="gh-chat-wrap">
                 <div class="gh-chat-card">
                     <div class="gh-chat-header">
                         <div class="gh-chat-header-left">
                             <div class="gh-chat-header-icon"><i class="bi bi-chat-dots-fill"></i></div>
-                            O'quvchi bilan chat
+                            Öquvçi bilan çat
                         </div>
                         <span class="gh-chat-count">{{ chat_messages.count }}</span>
                     </div>
@@ -1520,7 +1520,7 @@
                                 {{ msg.message }}
                                 {% if msg.file %}
                                 <a href="{{ msg.file.url }}" target="_blank" class="gh-file-link">
-                                    <i class="bi bi-file-earmark-arrow-down"></i> Faylni yuklab olish
+                                    <i class="bi bi-file-earmark-arrow-down"></i> Faylni yuklab oliş
                                 </a>
                                 {% endif %}
                             </div>
@@ -1532,8 +1532,8 @@
                         {% else %}
                         <div class="gh-chat-empty">
                             <div class="gh-chat-empty-icon"><i class="bi bi-chat-dots"></i></div>
-                            <p>Hali xabarlar yo'q</p>
-                            <span>Birinchi xabarni yuboring</span>
+                            <p>Hali xabarlar yöq</p>
+                            <span>Birinçi xabarni yuboring</span>
                         </div>
                         {% endif %}
                     </div>
@@ -1814,7 +1814,7 @@
             <div class="modal-body">
                 <div class="rev-modal-header">
                     <div class="rev-modal-icon"><i class="bi bi-arrow-repeat"></i></div>
-                    <h5 class="rev-modal-title">Qayta ishlashga yuborish</h5>
+                    <h5 class="rev-modal-title">Qayta işlaşga yuboriş</h5>
                 </div>
 
                 <form method="POST" id="revisionForm">
@@ -1824,25 +1824,25 @@
                     <div class="rev-input-group">
                         <label class="rev-input-label">
                             <i class="bi bi-chat-left-text"></i>
-                            Nima uchun qayta ishlash kerak?
+                            Nima uçun qayta işlaş kerak?
                         </label>
                         <div class="rev-textarea-wrapper">
-                            <textarea name="revision_note" class="rev-textarea" required placeholder="O'quvchiga nimani to'g'rilash kerakligini tushuntiring...
+                            <textarea name="revision_note" class="rev-textarea" required placeholder="Öquvçiga nimani töğrilaş kerakligini tuşuntiring...
                                       
 Masalan:
 - Grammatika xatolari mavjud
-- Misollar ko'proq kerak
-- Savolga to'liq javob yo'q" data-max="1000" onkeyup="updateCharCount(this)"></textarea>
+- Misollar köproq kerak
+- Savolga töliq javob yöq" data-max="1000" onkeyup="updateCharCount(this)"></textarea>
                             <div class="rev-char-count"><span id="charCount">0</span>/1000</div>
                         </div>
                     </div>
 
                     <div class="rev-actions">
                         <button type="button" class="rev-btn rev-btn-cancel" data-bs-dismiss="modal">
-                            <i class="bi bi-x-lg"></i> Bekor qilish
+                            <i class="bi bi-x-lg"></i> Bekor qiliş
                         </button>
                         <button type="submit" class="rev-btn rev-btn-submit" id="revSubmitBtn">
-                            <i class="bi bi-send"></i> Yuborish
+                            <i class="bi bi-send"></i> Yuboriş
                         </button>
                     </div>
                 </form>
@@ -1856,7 +1856,7 @@ Masalan:
         var box = btn.closest('.gh-text-body').querySelector('.gh-text-answer');
         if (!box) return;
         var txt = box.innerText;
-        var done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash'; }, 1600); };
+        var done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalaş'; }, 1600); };
         if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(function () {}); }
         else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
     }
@@ -2204,7 +2204,7 @@ Masalan:
                     <i class="bi bi-magic ag-icon-inner"></i>
                 </div>
 
-                <h5 class="ag-title">Avtomatik baholash</h5>
+                <h5 class="ag-title">Avtomatik baholaş</h5>
 
                 <div class="ag-info">
                     <div class="ag-info-card">
@@ -2220,18 +2220,18 @@ Masalan:
                 </div>
 
                 <p class="ag-desc">
-                    Vazifa <strong>1 ball</strong> bilan baholanadi{% if not submission.is_late %}, o'quvchiga
-                    <strong>10 coin</strong> beriladi{% else %}, o'quvchiga <strong>5 coin</strong> beriladi (kech
-                    topshirilgan){% endif %}.
+                    Vazifa <strong>1 ball</strong> bilan baholanadi{% if not submission.is_late %}, öquvçiga
+                    <strong>10 coin</strong> beriladi{% else %}, öquvçiga <strong>5 coin</strong> beriladi (keç
+                    topşirilgan){% endif %}.
                 </p>
 
                 <form method="POST" id="autoGradeForm">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="auto_grade">
                     <div class="ag-btns">
-                        <button type="button" class="ag-btn-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="button" class="ag-btn-cancel" data-bs-dismiss="modal">Bekor qiliş</button>
                         <button type="submit" class="ag-btn-confirm" id="agConfirmBtn">
-                            <span><i class="bi bi-magic me-1"></i> Baholash</span>
+                            <span><i class="bi bi-magic me-1"></i> Baholaş</span>
                         </button>
                     </div>
                 </form>

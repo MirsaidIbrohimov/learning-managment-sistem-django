@@ -21,20 +21,20 @@
         <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'approve' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary btn-sm"
-                    onclick="return confirm('{% if kind == 'enroll' %}O\'quvchini kursga qabul qilasizmi?{% else %}O\'quvchini kursdan chiqarasizmi? Kursdan olingan coinlar ayiriladi.{% endif %}')">
-                <i class="bi bi-check-lg"></i> Tasdiqlash
+                    onclick="return confirm('{% if kind == 'enroll' %}Öquvçini kursga qabul qilasizmi?{% else %}Öquvçini kursdan çiqarasizmi? Kursdan olingan coinlar ayiriladi.{% endif %}')">
+                <i class="bi bi-check-lg"></i> Tasdiqlaş
             </button>
         </form>
         <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'reject' %}"
-              onsubmit="var m = prompt('Rad etish sababi (o\'quvchiga yuboriladi):'); if (m === null) return false; this.message.value = m; return true;">
+              onsubmit="var m = prompt('Rad etiş sababi (öquvçiga yuboriladi):'); if (m === null) return false; this.message.value = m; return true;">
             {% csrf_token %}
             <input type="hidden" name="message" value="">
-            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Rad etish</button>
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Rad etiş</button>
         </form>
     </div>
     {% else %}
     <div class="cr-reviewed">
-        {% if req.reviewed_by %}<i class="bi bi-person-check"></i> Ko'rib chiqdi: <b>{{ req.reviewed_by.full_name }}</b> ({{ req.reviewed_by.get_role_display }}){% endif %}
+        {% if req.reviewed_by %}<i class="bi bi-person-check"></i> Körib çiqdi: <b>{{ req.reviewed_by.full_name }}</b> ({{ req.reviewed_by.get_role_display }}){% endif %}
         {% if req.admin_message %}<div class="mt-1"><i class="bi bi-chat-left-text"></i> {{ req.admin_message }}</div>{% endif %}
     </div>
     {% endif %}

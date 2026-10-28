@@ -393,7 +393,7 @@
             <i class="bi bi-people-fill"></i>
         </div>
         <div class="stat-number" id="totalStudents">0</div>
-        <div class="stat-label">Jami o'quvchilar</div>
+        <div class="stat-label">Jami öquvçilar</div>
     </div>
 </div>
 
@@ -424,7 +424,7 @@
 
             <div class="course-student-count" data-students="{{ profession.student_count }}">
                 <i class="bi bi-people-fill"></i>
-                <span>{{ profession.student_count }} o'quvchi</span>
+                <span>{{ profession.student_count }} öquvçi</span>
             </div>
         </div>
 
@@ -434,17 +434,17 @@
             <p class="course-desc">{{ profession.description|truncatewords:12 }}</p>
 
             <div class="course-actions">
-                <a href="{% url 'admin_profession_edit' profession.pk %}" class="c-action" title="Tahrirlash">
-                    <i class="bi bi-pencil"></i> Tahrirlash
+                <a href="{% url 'admin_profession_edit' profession.pk %}" class="c-action" title="Tahrirlaş">
+                    <i class="bi bi-pencil"></i> Tahrirlaş
                 </a>
-                <a href="{% url 'profession_detail' profession.pk %}" class="c-action" title="Ko'rish">
-                    <i class="bi bi-eye"></i> Ko'rish
+                <a href="{% url 'profession_detail' profession.pk %}" class="c-action" title="Köriş">
+                    <i class="bi bi-eye"></i> Köriş
                 </a>
                 <a href="{% url 'manage_lessons' profession.pk %}" class="c-action warning" title="Darslar">
                     <i class="bi bi-journal-text"></i> Darslar
                 </a>
-                <button type="button" class="c-action" onclick="toggleStudents(this, {{ profession.pk }})" title="O'quvchilar">
-                    <i class="bi bi-people"></i> O'quvchilar ({{ profession.student_count }})
+                <button type="button" class="c-action" onclick="toggleStudents(this, {{ profession.pk }})" title="Öquvçilar">
+                    <i class="bi bi-people"></i> Öquvçilar ({{ profession.student_count }})
                 </button>
                 {% for teacher in profession.teachers.all %}
                 <a href="{% url 'admin_teacher_profile' teacher.pk %}" class="c-action" title="{{ teacher.full_name }}">
@@ -452,26 +452,26 @@
                 </a>
                 {% empty %}
                 <span class="c-action" style="opacity:0.5;cursor:default;">
-                    <i class="bi bi-person-video3"></i> O'qituvchi yo'q
+                    <i class="bi bi-person-video3"></i> Öqituvçi yöq
                 </span>
                 {% endfor %}
                 <button type="button" class="c-action success"
                         data-bs-toggle="modal" data-bs-target="#addStudentModal{{ profession.pk }}">
-                    <i class="bi bi-person-plus"></i> Qo'shish
+                    <i class="bi bi-person-plus"></i> Qöşiş
                 </button>
                 <form method="POST" action="{% url 'admin_profession_toggle_daily_limit' profession.pk %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="c-action {% if profession.daily_section_limit %}warning{% else %}success{% endif %}"
-                            title="Kunlik bo'lim cheklovi">
+                            title="Kunlik bölim çeklovi">
                         <i class="bi {% if profession.daily_section_limit %}bi-clock-fill{% else %}bi-clock{% endif %}"></i>
-                        {% if profession.daily_section_limit %}Kunlik cheklov ✓{% else %}Kunlik cheklov ✗{% endif %}
+                        {% if profession.daily_section_limit %}Kunlik çeklov ✓{% else %}Kunlik çeklov ✗{% endif %}
                     </button>
                 </form>
                 <form method="POST" action="{% url 'admin_profession_toggle_certificate' profession.pk %}" style="display:inline;"
-                      onsubmit="return confirm('{% if profession.has_certificate %}{{ profession.name }} kursi uchun sertifikatni olib tashlaysizmi? Endi o\'quvchilar sertifikat so\'rovi yubora olmaydi.{% else %}{{ profession.name }} kursi uchun sertifikat joriy qilinsinmi? O\'quvchilar sertifikat so\'rovi yubora oladi.{% endif %}')">
+                      onsubmit="return confirm('{% if profession.has_certificate %}{{ profession.name }} kursi uçun sertifikatni olib taşlaysizmi? Endi öquvçilar sertifikat sörovi yubora olmaydi.{% else %}{{ profession.name }} kursi uçun sertifikat joriy qilinsinmi? Öquvçilar sertifikat sörovi yubora oladi.{% endif %}')">
                     {% csrf_token %}
                     <button type="submit" class="c-action {% if profession.has_certificate %}success{% else %}warning{% endif %}"
-                            title="{% if profession.has_certificate %}Sertifikat joriy qilingan — o'chirish{% else %}Sertifikat joriy qilinmagan — yoqish{% endif %}">
+                            title="{% if profession.has_certificate %}Sertifikat joriy qilingan — öçiriş{% else %}Sertifikat joriy qilinmagan — yoqiş{% endif %}">
                         <i class="bi {% if profession.has_certificate %}bi-patch-check-fill{% else %}bi-patch-exclamation{% endif %}"></i>
                         {% if profession.has_certificate %}Sertifikat ON{% else %}Sertifikat OFF{% endif %}
                     </button>
@@ -479,9 +479,9 @@
                 <button type="button" class="c-action {% if profession.is_blocked %}success{% else %}danger{% endif %}"
                         data-bs-toggle="modal" data-bs-target="#blockModal{{ profession.pk }}">
                     <i class="bi {% if profession.is_blocked %}bi-unlock{% else %}bi-lock{% endif %}"></i>
-                    {% if profession.is_blocked %}Ochish{% else %}Bloklash{% endif %}
+                    {% if profession.is_blocked %}Oçiş{% else %}Bloklaş{% endif %}
                 </button>
-                <a href="{% url 'admin_profession_delete' profession.pk %}" class="c-action danger" title="O'chirish">
+                <a href="{% url 'admin_profession_delete' profession.pk %}" class="c-action danger" title="Öçiriş">
                     <i class="bi bi-trash"></i>
                 </a>
             </div>
@@ -506,10 +506,10 @@
                     </div>
                 </div>
                 <form method="POST" action="{% url 'admin_remove_student_from_course' profession.pk enrollment.user.pk %}"
-                      onsubmit="return confirm('{{ enrollment.user.full_name }} ni kursdan chiqarishni xohlaysizmi?')">
+                      onsubmit="return confirm('{{ enrollment.user.full_name }} ni kursdan çiqarişni xohlaysizmi?')">
                     {% csrf_token %}
                     <button type="submit" class="remove-btn">
-                        <i class="bi bi-person-x"></i> Chiqarish
+                        <i class="bi bi-person-x"></i> Çiqariş
                     </button>
                 </form>
             </div>
@@ -517,7 +517,7 @@
             {% endfor %}
             {% if profession.student_count == 0 %}
             <div class="text-center py-3" style="color: var(--text-secondary); font-size: 0.85rem;">
-                <i class="bi bi-inbox"></i> Hozircha o'quvchilar yo'q
+                <i class="bi bi-inbox"></i> Hozirça öquvçilar yöq
             </div>
             {% endif %}
         </div>
@@ -535,20 +535,20 @@
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold">
-                        <i class="bi bi-person-plus text-success me-2"></i>O'quvchi qo'shish
+                        <i class="bi bi-person-plus text-success me-2"></i>Öquvçi qöşiş
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="fw-semibold mb-1">{{ profession.name }}</p>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem;" class="mb-3">Kursga qo'shmoqchi bo'lgan o'quvchini tanlang</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;" class="mb-3">Kursga qöşmoqçi bölgan öquvçini tanlang</p>
                     <div class="mb-3">
                         <input type="text" class="form-control mb-2" style="border-radius: 12px;"
-                               placeholder="O'quvchi qidirish..." onkeyup="filterStudents(this, {{ profession.pk }})">
+                               placeholder="Öquvçi qidiriş..." onkeyup="filterStudents(this, {{ profession.pk }})">
                         <select name="user_pk" class="form-select" id="studentSelect{{ profession.pk }}" 
                                 style="border-radius: 12px;" size="6" required>
                             {% for student in all_students %}
-                            <option value="{{ student.pk }}">{{ student.full_name }} — {{ student.phone }}{% if student.is_assistant_admin %} (Yordamchi admin){% endif %}</option>
+                            <option value="{{ student.pk }}">{{ student.full_name }} — {{ student.phone }}{% if student.is_assistant_admin %} (Yordamçi admin){% endif %}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -556,7 +556,7 @@
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor</button>
                     <button type="submit" class="btn btn-success rounded-pill px-4">
-                        <i class="bi bi-person-plus me-1"></i>Qo'shish
+                        <i class="bi bi-person-plus me-1"></i>Qöşiş
                     </button>
                 </div>
             </form>
@@ -575,9 +575,9 @@
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold">
                         {% if profession.is_blocked %}
-                        <i class="bi bi-unlock text-success me-2"></i>Blokdan chiqarish
+                        <i class="bi bi-unlock text-success me-2"></i>Blokdan çiqariş
                         {% else %}
-                        <i class="bi bi-lock text-danger me-2"></i>Kursni bloklash
+                        <i class="bi bi-lock text-danger me-2"></i>Kursni bloklaş
                         {% endif %}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -585,18 +585,18 @@
                 <div class="modal-body">
                     <p class="fw-semibold">{{ profession.name }}</p>
                     {% if profession.is_blocked %}
-                    <p style="color: var(--text-secondary);">Bu kursni blokdan chiqarmoqchimisiz?</p>
+                    <p style="color: var(--text-secondary);">Bu kursni blokdan çiqarmoqçimisiz?</p>
                     {% else %}
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Sabab (ixtiyoriy)</label>
-                        <input type="text" name="blocked_reason" class="form-control" style="border-radius: 12px;" placeholder="Masalan: Texnik ishlar">
+                        <input type="text" name="blocked_reason" class="form-control" style="border-radius: 12px;" placeholder="Masalan: Texnik işlar">
                     </div>
                     {% endif %}
                 </div>
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor</button>
                     <button type="submit" class="btn {% if profession.is_blocked %}btn-success{% else %}btn-danger{% endif %} rounded-pill px-4">
-                        {% if profession.is_blocked %}Ochish{% else %}Bloklash{% endif %}
+                        {% if profession.is_blocked %}Oçiş{% else %}Bloklaş{% endif %}
                     </button>
                 </div>
             </form>
@@ -608,8 +608,8 @@
 {% else %}
 <div class="empty-state">
     <div class="empty-icon"><i class="bi bi-briefcase"></i></div>
-    <h5 style="color: var(--text-main);">Hozircha kasblar mavjud emas</h5>
-    <p style="color: var(--text-secondary);">Yangi kasb qo'shish uchun yuqoridagi tugmani bosing</p>
+    <h5 style="color: var(--text-main);">Hozirça kasblar mavjud emas</h5>
+    <p style="color: var(--text-secondary);">Yangi kasb qöşiş uçun yuqoridagi tugmani bosing</p>
 </div>
 {% endif %}
 

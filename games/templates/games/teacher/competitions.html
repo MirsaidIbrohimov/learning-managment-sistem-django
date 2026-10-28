@@ -1,13 +1,13 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Yozish musobaqalari - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Yozish musobaqalari{% endblock %}
+{% block title %}Yoziş musobaqalari - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Yoziş musobaqalari{% endblock %}
 
 {% block teacher_content %}
 {% include 'games/teacher/_styles.html' %}
 <div class="tc">
     <div class="tc-head">
-        <h1><i class="bi bi-trophy"></i> Yozish musobaqalari</h1>
+        <h1><i class="bi bi-trophy"></i> Yoziş musobaqalari</h1>
         <span class="tc-coin" title="Coin balansingiz"><b>₵</b>{{ user.coins }}</span>
         <a href="{% url 'games:teacher_competition_add' %}" class="tc-btn"><i class="bi bi-plus-lg"></i> Yangi musobaqa</a>
     </div>
@@ -20,8 +20,8 @@
     </div>
 
     <p class="tc-note mb-3"><i class="bi bi-info-circle"></i>
-        Sovrin <b>sizning coin hisobingizdan</b> to'lanadi: musobaqa yaratilganda fond bron qilinadi,
-        tugaganda g'oliblarga o'tadi, ishlatilmagan qismi (ishtirokchi yetmasa) va o'chirilgan musobaqa fondi sizga qaytadi.
+        Sovrin <b>sizning coin hisobingizdan</b> tölanadi: musobaqa yaratilganda fond bron qilinadi,
+        tugaganda ğoliblarga ötadi, işlatilmagan qismi (iştirokçi yetmasa) va öçirilgan musobaqa fondi sizga qaytadi.
     </p>
 
     {% if competitions %}
@@ -32,15 +32,15 @@
                 <h4>
                     {{ comp.title }}
                     {% if comp.status == 'active' and comp.is_active %}<span class="tc-pill live">Jonli</span>
-                    {% elif comp.status == 'upcoming' %}<span class="tc-pill"><i class="bi bi-clock"></i> Boshlanmagan</span>
+                    {% elif comp.status == 'upcoming' %}<span class="tc-pill"><i class="bi bi-clock"></i> Boşlanmagan</span>
                     {% else %}<span class="tc-pill"><i class="bi bi-flag-fill"></i> Tugagan</span>{% endif %}
-                    {% if not comp.is_active and comp.status != 'ended' %}<span class="tc-pill off"><i class="bi bi-pause-circle"></i> O'chirilgan</span>{% endif %}
+                    {% if not comp.is_active and comp.status != 'ended' %}<span class="tc-pill off"><i class="bi bi-pause-circle"></i> Öçirilgan</span>{% endif %}
                 </h4>
                 <div class="meta">
                     <span class="tc-pill"><i class="bi bi-keyboard"></i> {{ comp.game.title }}</span>
                     <span class="tc-pill"><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m H:i" }} — {{ comp.end_time|date:"d.m H:i" }}</span>
                     <span class="tc-pill"><i class="bi bi-people"></i> {{ comp.audience_display }}</span>
-                    <span class="tc-pill"><i class="bi bi-person-check"></i> {{ comp.participants_count }} ishtirokchi</span>
+                    <span class="tc-pill"><i class="bi bi-person-check"></i> {{ comp.participants_count }} iştirokçi</span>
                     {% if comp.prize_total %}<span class="tc-pill hot">🏆 {{ comp.coin_1st }} / {{ comp.coin_2nd }} / {{ comp.coin_3rd }}</span>{% endif %}
                     {% if comp.coins_awarded %}<span class="tc-pill"><i class="bi bi-check2-circle"></i> Hisob-kitob qilindi</span>
                     {% elif comp.prize_reserved %}<span class="tc-pill"><i class="bi bi-lock"></i> Bron: {{ comp.prize_reserved }}</span>{% endif %}
@@ -49,19 +49,19 @@
             <div class="acts">
                 <a href="{% url 'games:competition_leaderboard' comp.pk %}" class="tc-btn ghost sm"><i class="bi bi-bar-chart-fill"></i> Reyting</a>
                 {% if comp.status != 'ended' %}
-                <a href="{% url 'games:teacher_competition_edit' comp.pk %}" class="tc-btn ghost sm"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'games:teacher_competition_edit' comp.pk %}" class="tc-btn ghost sm"><i class="bi bi-pencil"></i> Tahrirlaş</a>
                 <form method="post" action="{% url 'games:teacher_competition_toggle' comp.pk %}">{% csrf_token %}
                     <button class="tc-btn ghost sm" type="submit">
-                        {% if comp.is_active %}<i class="bi bi-pause-fill"></i> O'chirish{% else %}<i class="bi bi-broadcast"></i> Yoqish{% endif %}
+                        {% if comp.is_active %}<i class="bi bi-pause-fill"></i> Öçiriş{% else %}<i class="bi bi-broadcast"></i> Yoqiş{% endif %}
                     </button>
                 </form>
                 <form method="post" action="{% url 'games:teacher_competition_end' comp.pk %}"
-                      onsubmit="return confirm('Musobaqani hozir tugatasizmi? G\'oliblarga sovrin beriladi.');">{% csrf_token %}
-                    <button class="tc-btn ghost sm" type="submit"><i class="bi bi-flag-fill"></i> Tugatish</button>
+                      onsubmit="return confirm('Musobaqani hozir tugatasizmi? Ğoliblarga sovrin beriladi.');">{% csrf_token %}
+                    <button class="tc-btn ghost sm" type="submit"><i class="bi bi-flag-fill"></i> Tugatiş</button>
                 </form>
                 {% if comp.status == 'upcoming' or not comp.participants_count %}
                 <form method="post" action="{% url 'games:teacher_competition_delete' comp.pk %}"
-                      onsubmit="return confirm('Musobaqa o\'chirilsinmi? Bron qilingan coin hisobingizga qaytadi.');">{% csrf_token %}
+                      onsubmit="return confirm('Musobaqa öçirilsinmi? Bron qilingan coin hisobingizga qaytadi.');">{% csrf_token %}
                     <button class="tc-btn danger sm" type="submit"><i class="bi bi-trash"></i></button>
                 </form>
                 {% endif %}
@@ -73,8 +73,8 @@
     {% else %}
     <div class="tc-empty">
         <i class="bi bi-flag"></i>
-        Hali musobaqa yo'q. Guruhingiz uchun birinchi yozish musobaqasini yoqing!
-        <div class="mt-3"><a href="{% url 'games:teacher_competition_add' %}" class="tc-btn"><i class="bi bi-rocket-takeoff"></i> Musobaqa yaratish</a></div>
+        Hali musobaqa yöq. Guruhingiz uçun birinçi yoziş musobaqasini yoqing!
+        <div class="mt-3"><a href="{% url 'games:teacher_competition_add' %}" class="tc-btn"><i class="bi bi-rocket-takeoff"></i> Musobaqa yaratiş</a></div>
     </div>
     {% endif %}
 </div>

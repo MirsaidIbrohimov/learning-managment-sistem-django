@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='studentbalance',
             name='contract_name',
-            field=models.CharField(blank=True, default='', max_length=150, verbose_name='Shartnoma nomi (masalan: PQ-9)'),
+            field=models.CharField(blank=True, default='', max_length=150, verbose_name='Şartnoma nomi (masalan: PQ-9)'),
         ),
     ]

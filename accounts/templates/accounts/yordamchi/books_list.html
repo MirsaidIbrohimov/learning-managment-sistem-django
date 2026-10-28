@@ -11,7 +11,7 @@
                 <button class="btn btn-warning btn-sm"><i class="bi bi-search"></i></button>
             </form>
             <a href="{% url 'yordamchi_rental_add' %}" class="btn btn-sm btn-success ms-auto">
-                <i class="bi bi-journal-plus"></i> Ijaraga berish
+                <i class="bi bi-journal-plus"></i> Ijaraga beriş
             </a>
             {% if can_add %}
             <a href="{% url 'yordamchi_book_add' %}" class="btn btn-sm btn-warning">
@@ -66,16 +66,16 @@
                             <div class="d-flex gap-1">
                                 {% if can_edit %}
                                 <a href="{% url 'yordamchi_book_edit' b.pk %}"
-                                   class="btn btn-sm btn-outline-warning" title="Tahrirlash">
+                                   class="btn btn-sm btn-outline-warning" title="Tahrirlaş">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 {% endif %}
                                 {% if can_delete %}
                                 <form method="post" action="{% url 'yordamchi_book_delete' b.pk %}"
-                                      onsubmit="return confirm('Haqiqatan «{{ b.title }}» kitobini o\'chirmoqchimisiz?')"
+                                      onsubmit="return confirm('Haqiqatan «{{ b.title }}» kitobini öçirmoqçimisiz?')"
                                       style="display:inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Öçiriş">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -92,7 +92,7 @@
         {% else %}
         <div class="text-center py-5 text-muted">
             <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
-            <p class="mt-2 mb-0">Kitoblar yo'q</p>
+            <p class="mt-2 mb-0">Kitoblar yöq</p>
         </div>
         {% endif %}
     </div>

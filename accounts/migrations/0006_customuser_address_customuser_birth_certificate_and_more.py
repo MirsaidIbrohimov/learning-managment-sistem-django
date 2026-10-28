@@ -13,17 +13,17 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='address',
-            field=models.CharField(blank=True, max_length=300, null=True, verbose_name='Yashash manzili'),
+            field=models.CharField(blank=True, max_length=300, null=True, verbose_name='Yaşaş manzili'),
         ),
         migrations.AddField(
             model_name='customuser',
             name='birth_certificate',
-            field=models.FileField(blank=True, null=True, upload_to='documents/birth_certificates/', verbose_name="Tug'ilganlik haqida guvohnoma"),
+            field=models.FileField(blank=True, null=True, upload_to='documents/birth_certificates/', verbose_name="Tuğilganlik haqida guvohnoma"),
         ),
         migrations.AddField(
             model_name='customuser',
             name='birth_date',
-            field=models.DateField(blank=True, null=True, verbose_name="Tug'ilgan kuni"),
+            field=models.DateField(blank=True, null=True, verbose_name="Tuğilgan kuni"),
         ),
         migrations.AddField(
             model_name='customuser',

@@ -90,13 +90,13 @@ class BookCreateSerializer(serializers.ModelSerializer):
         existing = qs.first()
         if existing:
             if isbn and existing.isbn and existing.isbn.lower() == isbn.lower():
-                reason = f"ISBN «{isbn}» allaqachon mavjud"
+                reason = f"ISBN «{isbn}» allaqaçon mavjud"
             else:
                 reason = "Nom va muallif bir xil"
             raise serializers.ValidationError({
                 'duplicate': True,
                 'reason': reason,
-                'message': f"Bu kitob allaqachon mavjud ({reason}): \"{existing.title}\" — {existing.author}",
+                'message': f"Bu kitob allaqaçon mavjud ({reason}): \"{existing.title}\" — {existing.author}",
                 'existing_id': existing.pk,
                 'existing_title': existing.title,
                 'existing_author': existing.author,
@@ -108,7 +108,7 @@ class BookCreateSerializer(serializers.ModelSerializer):
 
     def validate_total_copies(self, value):
         if value < 1:
-            raise serializers.ValidationError("Nusxalar soni 1 dan kam bo'lmasligi kerak.")
+            raise serializers.ValidationError("Nusxalar soni 1 dan kam bölmasligi kerak.")
         return value
 
     def create(self, validated_data):
@@ -142,7 +142,7 @@ class BookDuplicateCheckSerializer(serializers.Serializer):
         elif exact:
             duplicate_reason = 'title_author'
 
-        # O'xshash kitoblar — exact bor bo'lsa ham ko'rsatiladi, faqat exact ni o'zi chiqarilmaydi
+        # Öxşaş kitoblar — exact bor bölsa ham körsatiladi, faqat exact ni özi çiqarilmaydi
         similar_qs = Book.objects.none()
         if title or author:
             q = Q()
@@ -183,21 +183,21 @@ class BookRentalRequestCreateSerializer(serializers.ModelSerializer):
         student = self.context['request'].user
 
         if not book.is_available:
-            raise serializers.ValidationError("Bu kitob hozirda mavjud emas — barcha nusxalar ijarada.")
+            raise serializers.ValidationError("Bu kitob hozirda mavjud emas — barça nusxalar ijarada.")
 
         active_request = BookRentalRequest.objects.filter(
             book=book, student=student
         ).exclude(status__in=['cancelled', 'rejected']).first()
         if active_request:
             raise serializers.ValidationError(
-                f"Siz bu kitob uchun allaqachon ariza berdingiz (holat: {active_request.get_status_display()})."
+                f"Siz bu kitob uçun allaqaçon ariza berdingiz (holat: {active_request.get_status_display()})."
             )
 
         active_rental = BookRental.objects.filter(
             book=book, student=student, status__in=['active', 'overdue']
         ).first()
         if active_rental:
-            raise serializers.ValidationError("Siz bu kitobni allaqachon ijarada olganrsiz.")
+            raise serializers.ValidationError("Siz bu kitobni allaqaçon ijarada olganrsiz.")
 
         return data
 

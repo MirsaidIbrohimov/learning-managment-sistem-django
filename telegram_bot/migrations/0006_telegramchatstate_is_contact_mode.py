@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='telegramchatstate',
             name='is_contact_mode',
-            field=models.BooleanField(default=False, verbose_name='Xabar yozish rejimida'),
+            field=models.BooleanField(default=False, verbose_name='Xabar yoziş rejimida'),
         ),
     ]

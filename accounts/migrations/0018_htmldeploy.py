@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('html_content', models.TextField(verbose_name='HTML kodi')),
                 ('description', models.TextField(blank=True, null=True, verbose_name='Tavsif')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Faol')),
-                ('views_count', models.IntegerField(default=0, verbose_name="Ko'rishlar soni")),
+                ('views_count', models.IntegerField(default=0, verbose_name="Körişlar soni")),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('profession', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='deploys', to='accounts.profession')),

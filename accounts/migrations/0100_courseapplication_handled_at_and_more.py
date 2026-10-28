@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='courseapplication',
             name='handled_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name="Bog'langan vaqt"),
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Boğlangan vaqt"),
         ),
         migrations.AddField(
             model_name='courseapplication',
             name='handled_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_applications', to=settings.AUTH_USER_MODEL, verbose_name="Kim bog'landi"),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='handled_applications', to=settings.AUTH_USER_MODEL, verbose_name="Kim boğlandi"),
         ),
     ]

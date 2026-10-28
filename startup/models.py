@@ -1,12 +1,12 @@
-"""MY StartUp — o'quvchi startupini IDEA'dan FUNDING'gacha yuritish modellari.
+"""MY StartUp — öquvçi startupini IDEA'dan FUNDING'gacha yuritiş modellari.
 
 Bu modul mavjud LMS modellariga TEGMAYDI: `accounts.CustomUser` va
-`accounts.Profession` faqat `ForeignKey` orqali ishlatiladi, migratsiya faqat
+`accounts.Profession` faqat `ForeignKey` orqali işlatiladi, migratsiya faqat
 yangi jadval yaratadi.
 
-Mentor uchun alohida rol qo'shilmagan — `StartupMentor` biriktirish modeli
-mavjud `teacher`/`admin` rollari ustiga qo'yiladi (`CustomUser.ROLE_CHOICES`
-o'zgarmaydi).
+Mentor uçun alohida rol qöşilmagan — `StartupMentor` biriktiriş modeli
+mavjud `teacher`/`admin` rollari ustiga qöyiladi (`CustomUser.ROLE_CHOICES`
+özgarmaydi).
 """
 
 from django.conf import settings
@@ -23,15 +23,15 @@ User = settings.AUTH_USER_MODEL
 # ─────────────────────────── Konstantalar ───────────────────────────
 
 STAGE_CHOICES = (
-    ('IDEA', 'Idea — Gʻoya'),
-    ('VALIDATION', 'Validation — Tekshiruv'),
-    ('CUSTOMER_DISCOVERY', 'Customer Discovery — Mijozni topish'),
+    ('IDEA', 'Idea — Ğoya'),
+    ('VALIDATION', 'Validation — Tekşiruv'),
+    ('CUSTOMER_DISCOVERY', 'Customer Discovery — Mijozni topiş'),
     ('BUSINESS_MODEL', 'Business Model — Biznes model'),
     ('PROTOTYPE', 'Prototype — Prototip'),
     ('MVP', 'MVP — Minimal mahsulot'),
-    ('LAUNCH', 'Launch — Ishga tushirish'),
+    ('LAUNCH', 'Launch — Işga tuşiriş'),
     ('REVENUE', 'Revenue — Daromad'),
-    ('GROWTH', 'Growth — Oʻsish'),
+    ('GROWTH', 'Growth — Ösiş'),
     ('FUNDING', 'Funding — Investitsiya'),
 )
 STAGE_ORDER = [key for key, _ in STAGE_CHOICES]
@@ -47,19 +47,19 @@ CATEGORY_CHOICES = (
     ('SaaS', 'SaaS'),
     ('Mobile', 'Mobile'),
     ('Web', 'Web'),
-    ('Other', 'Boshqa'),
+    ('Other', 'Boşqa'),
 )
 
 PRIORITY_CHOICES = (
     ('low', 'Past'),
-    ('medium', 'Oʻrta'),
+    ('medium', 'Örta'),
     ('high', 'Yuqori'),
 )
 
 TASK_STATUS_CHOICES = (
-    ('TODO', 'Bajarilishi kerak'),
+    ('TODO', 'Bajarilişi kerak'),
     ('IN_PROGRESS', 'Bajarilmoqda'),
-    ('SUBMITTED', 'Tekshiruvda'),
+    ('SUBMITTED', 'Tekşiruvda'),
     ('REJECTED', 'Rad etilgan'),
     ('COMPLETED', 'Bajarilgan'),
 )
@@ -74,31 +74,31 @@ MEMBER_ROLE_CHOICES = (
     ('member', 'Aʻzo'),
 )
 
-# Metrika kalitlari formada `<select>` sifatida ishlatiladi. Model maydoni
-# ataylab erkin `CharField` — admin kelajakda yangi ko'rsatkich qo'sha oladi.
+# Metrika kalitlari formada `<select>` sifatida işlatiladi. Model maydoni
+# ataylab erkin `CharField` — admin kelajakda yangi körsatkiç qöşa oladi.
 METRIC_KEY_CHOICES = (
-    ('users', 'Foydalanuvchilar'),
+    ('users', 'Foydalanuvçilar'),
     ('customers', 'Mijozlar'),
-    ('active_users', 'Faol foydalanuvchilar'),
+    ('active_users', 'Faol foydalanuvçilar'),
     ('orders', 'Buyurtmalar'),
-    ('downloads', 'Yuklab olishlar'),
+    ('downloads', 'Yuklab olişlar'),
     ('mrr', 'MRR (oylik daromad)'),
     ('revenue', 'Daromad'),
 )
 
-# Yutuq ta'riflari kodda saqlanadi (`games.UserAchievement` naqshi) — DB faqat
-# ochilgan kodni yozadi, shuning uchun ta'rifni o'zgartirish migratsiya
+# Yutuq ta'riflari kodda saqlanadi (`games.UserAchievement` naqşi) — DB faqat
+# oçilgan kodni yozadi, şuning uçun ta'rifni özgartiriş migratsiya
 # talab qilmaydi.
 ACHIEVEMENT_DEFS = {
     'first_idea': {
-        'title': 'Birinchi gʻoya',
+        'title': 'Birinçi ğoya',
         'description': 'Startup yaratildi',
         'icon': 'bi-lightbulb',
         'xp': 0,
     },
     'team_builder': {
-        'title': 'Jamoa quruvchi',
-        'description': 'Jamoaga kamida 2 aʻzo qoʻshildi',
+        'title': 'Jamoa quruvçi',
+        'description': 'Jamoaga kamida 2 aʻzo qöşildi',
         'icon': 'bi-people',
         'xp': 50,
     },
@@ -109,26 +109,26 @@ ACHIEVEMENT_DEFS = {
         'xp': 100,
     },
     'mvp_builder': {
-        'title': 'MVP quruvchi',
-        'description': 'MVP bosqichi yakunlandi',
+        'title': 'MVP quruvçi',
+        'description': 'MVP bosqiçi yakunlandi',
         'icon': 'bi-rocket',
         'xp': 200,
     },
     'first_customer': {
-        'title': 'Birinchi mijoz',
-        'description': 'Customer Discovery bosqichi yakunlandi',
+        'title': 'Birinçi mijoz',
+        'description': 'Customer Discovery bosqiçi yakunlandi',
         'icon': 'bi-person-heart',
         'xp': 100,
     },
     'first_revenue': {
-        'title': 'Birinchi daromad',
-        'description': 'Birinchi daromad qayd etildi',
+        'title': 'Birinçi daromad',
+        'description': 'Birinçi daromad qayd etildi',
         'icon': 'bi-cash-coin',
         'xp': 150,
     },
     'top_startup': {
         'title': 'TOP startup',
-        'description': '1000 XP toʻplandi',
+        'description': '1000 XP töplandi',
         'icon': 'bi-trophy',
         'xp': 0,
     },
@@ -138,10 +138,11 @@ ACHIEVEMENT_DEFS = {
 def unique_slug(model, value, max_length=180):
     """Nomdan takrorlanmas slug yasaydi.
 
-    Kirill/uzbekcha nom `slugify` dan bo'sh chiqishi mumkin — u holda
-    `startup` zaxira qiymati ishlatiladi.
+    Kirill/uzbekcha nom `slugify` dan böş çiqişi mumkin — u holda
+    `startup` zaxira qiymati işlatiladi.
     """
-    base = slugify(value)[:max_length - 8] or 'startup'
+    from accounts.security import ascii_filename
+    base = slugify(ascii_filename(value).replace('_', ' '))[:max_length - 8] or 'startup'
     candidate = base
     counter = 2
     while model.objects.filter(slug=candidate).exists():
@@ -150,14 +151,14 @@ def unique_slug(model, value, max_length=180):
     return candidate
 
 
-# ─────────────────────────── Roadmap shablonlari ───────────────────────────
+# ─────────────────────────── Roadmap şablonlari ───────────────────────────
 
 
 class StageTemplate(models.Model):
-    """Global roadmap shabloni — progress hard-code qilinmaydi, admin tahrirlaydi."""
+    """Global roadmap şabloni — progress hard-code qilinmaydi, admin tahrirlaydi."""
 
     key = models.CharField(max_length=30, choices=STAGE_CHOICES, unique=True,
-                           verbose_name='Bosqich kodi')
+                           verbose_name='Bosqiç kodi')
     title = models.CharField(max_length=120, verbose_name='Sarlavha')
     description = models.TextField(blank=True, verbose_name='Tavsif')
     order = models.PositiveSmallIntegerField(default=0, verbose_name='Tartib')
@@ -166,8 +167,8 @@ class StageTemplate(models.Model):
 
     class Meta:
         ordering = ['order', 'id']
-        verbose_name = 'Bosqich shabloni'
-        verbose_name_plural = 'Bosqich shablonlari'
+        verbose_name = 'Bosqiç şabloni'
+        verbose_name_plural = 'Bosqiç şablonlari'
 
     def __str__(self):
         return f'{self.order}. {self.title}'
@@ -176,7 +177,7 @@ class StageTemplate(models.Model):
 class TaskTemplate(models.Model):
     stage_template = models.ForeignKey(StageTemplate, on_delete=models.CASCADE,
                                        related_name='task_templates',
-                                       verbose_name='Bosqich')
+                                       verbose_name='Bosqiç')
     title = models.CharField(max_length=200, verbose_name='Vazifa')
     description = models.TextField(blank=True, verbose_name='Tavsif')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium',
@@ -187,8 +188,8 @@ class TaskTemplate(models.Model):
 
     class Meta:
         ordering = ['stage_template__order', 'order', 'id']
-        verbose_name = 'Vazifa shabloni'
-        verbose_name_plural = 'Vazifa shablonlari'
+        verbose_name = 'Vazifa şabloni'
+        verbose_name_plural = 'Vazifa şablonlari'
 
     def __str__(self):
         return self.title
@@ -200,7 +201,7 @@ class TaskTemplate(models.Model):
 class Startup(models.Model):
     STATUS_CHOICES = (
         ('active', 'Faol'),
-        ('paused', 'Toʻxtatilgan'),
+        ('paused', 'Töxtatilgan'),
         ('archived', 'Arxivlangan'),
     )
 
@@ -212,12 +213,12 @@ class Startup(models.Model):
                               verbose_name='Egasi')
 
     short_description = models.CharField(max_length=300, verbose_name='Qisqa tavsif')
-    description = models.TextField(blank=True, verbose_name='Toʻliq tavsif')
+    description = models.TextField(blank=True, verbose_name='Töliq tavsif')
     problem = models.TextField(blank=True, verbose_name='Muammo')
-    solution = models.TextField(blank=True, verbose_name='Yechim')
+    solution = models.TextField(blank=True, verbose_name='Yeçim')
     target_audience = models.TextField(blank=True, verbose_name='Maqsadli auditoriya')
     business_model = models.TextField(blank=True, verbose_name='Biznes model')
-    competitors = models.TextField(blank=True, verbose_name='Raqobatchilar')
+    competitors = models.TextField(blank=True, verbose_name='Raqobatçilar')
 
     category = models.CharField(max_length=30, choices=CATEGORY_CHOICES, default='Other',
                                 verbose_name='Kategoriya')
@@ -231,12 +232,12 @@ class Startup(models.Model):
     instagram_url = models.URLField(blank=True, verbose_name='Instagram')
 
     current_stage = models.CharField(max_length=30, choices=STAGE_CHOICES, default='IDEA',
-                                     verbose_name='Joriy bosqich')
+                                     verbose_name='Joriy bosqiç')
     progress = models.PositiveSmallIntegerField(default=0, verbose_name='Progress (%)')
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='active',
                               verbose_name='Holat')
-    # Leaderboard har so'rovda `annotate(Sum(...))` qilmasligi uchun
-    # denormalizatsiya qilingan — `services.award_xp()` yagona yozuvchi.
+    # Leaderboard har sörovda `annotate(Sum(...))` qilmasligi uçun
+    # denormalizatsiya qilingan — `services.award_xp()` yagona yozuvçi.
     total_xp = models.PositiveIntegerField(default=0, verbose_name='Umumiy XP')
 
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Yaratilgan')
@@ -247,9 +248,9 @@ class Startup(models.Model):
         verbose_name = 'Startup'
         verbose_name_plural = 'Startuplar'
         constraints = [
-            # MVP qoidasi: 1 o'quvchi = 1 aktiv startup. Arxivlangan/to'xtatilgan
-            # startuplar cheklovga kirmaydi, shuning uchun kelajakda ko'p
-            # startupga o'tish uchun bu constraint'ni olib tashlash kifoya.
+            # MVP qoidasi: 1 öquvçi = 1 aktiv startup. Arxivlangan/töxtatilgan
+            # startuplar çeklovga kirmaydi, şuning uçun kelajakda köp
+            # startupga ötiş uçun bu constraint'ni olib taşlaş kifoya.
             models.UniqueConstraint(
                 fields=['owner'], condition=Q(status='active'),
                 name='startup_one_active_per_owner',
@@ -284,11 +285,11 @@ class Startup(models.Model):
 
 
 class StartupStage(models.Model):
-    """Startupning shaxsiy roadmap bosqichi (shablondan nusxalanadi)."""
+    """Startupning şaxsiy roadmap bosqiçi (şablondan nusxalanadi)."""
 
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='stages',
                                verbose_name='Startup')
-    key = models.CharField(max_length=30, choices=STAGE_CHOICES, verbose_name='Bosqich kodi')
+    key = models.CharField(max_length=30, choices=STAGE_CHOICES, verbose_name='Bosqiç kodi')
     title = models.CharField(max_length=120, verbose_name='Sarlavha')
     order = models.PositiveSmallIntegerField(default=0, verbose_name='Tartib')
     weight = models.PositiveSmallIntegerField(default=10, verbose_name='Vazn (%)')
@@ -298,8 +299,8 @@ class StartupStage(models.Model):
     class Meta:
         ordering = ['order', 'id']
         unique_together = [('startup', 'key')]
-        verbose_name = 'Startup bosqichi'
-        verbose_name_plural = 'Startup bosqichlari'
+        verbose_name = 'Startup bosqiçi'
+        verbose_name_plural = 'Startup bosqiçlari'
 
     def __str__(self):
         return f'{self.startup.name} — {self.title}'
@@ -309,7 +310,7 @@ class StartupTask(models.Model):
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='tasks',
                                verbose_name='Startup')
     stage = models.ForeignKey(StartupStage, on_delete=models.SET_NULL, null=True, blank=True,
-                              related_name='tasks', verbose_name='Bosqich')
+                              related_name='tasks', verbose_name='Bosqiç')
     title = models.CharField(max_length=200, verbose_name='Vazifa')
     description = models.TextField(blank=True, verbose_name='Tavsif')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -327,7 +328,7 @@ class StartupTask(models.Model):
                                   verbose_name='Fayl')
     source_template = models.ForeignKey(TaskTemplate, on_delete=models.SET_NULL, null=True,
                                         blank=True, related_name='tasks',
-                                        verbose_name='Shablon')
+                                        verbose_name='Şablon')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Yaratilgan')
     completed_at = models.DateTimeField(null=True, blank=True, verbose_name='Bajarilgan vaqt')
 
@@ -355,17 +356,17 @@ class StartupTask(models.Model):
 
 class StartupTaskSubmission(models.Model):
     STATUS_CHOICES = (
-        ('pending', 'Tekshiruvda'),
+        ('pending', 'Tekşiruvda'),
         ('approved', 'Tasdiqlangan'),
         ('rejected', 'Rad etilgan'),
-        ('changes_requested', 'Oʻzgartirish soʻralgan'),
+        ('changes_requested', 'Özgartiriş söralgan'),
     )
 
     task = models.ForeignKey(StartupTask, on_delete=models.CASCADE, related_name='submissions',
                             verbose_name='Vazifa')
     submitted_by = models.ForeignKey(User, on_delete=models.CASCADE,
                                      related_name='startup_submissions',
-                                     verbose_name='Topshirdi')
+                                     verbose_name='Topşirdi')
     description = models.TextField(blank=True, verbose_name='Izoh')
     file = models.FileField(upload_to='startup/submissions/', blank=True, null=True,
                             verbose_name='Fayl')
@@ -376,15 +377,15 @@ class StartupTaskSubmission(models.Model):
                               verbose_name='Holat')
     reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                     related_name='reviewed_startup_submissions',
-                                    verbose_name='Tekshirdi')
-    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='Tekshirilgan vaqt')
+                                    verbose_name='Tekşirdi')
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name='Tekşirilgan vaqt')
     review_comment = models.TextField(blank=True, verbose_name='Mentor izohi')
-    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name='Topshirilgan vaqt')
+    submitted_at = models.DateTimeField(auto_now_add=True, verbose_name='Topşirilgan vaqt')
 
     class Meta:
         ordering = ['-submitted_at']
-        verbose_name = 'Vazifa topshirigʻi'
-        verbose_name_plural = 'Vazifa topshiriqlari'
+        verbose_name = 'Vazifa topşiriği'
+        verbose_name_plural = 'Vazifa topşiriqlari'
         indexes = [
             models.Index(fields=['task', '-submitted_at'], name='startup_sub_task_idx'),
             models.Index(fields=['status'], name='startup_sub_status_idx'),
@@ -402,23 +403,23 @@ class StartupMember(models.Model):
         ('pending', 'Kutilmoqda'),
         ('active', 'Faol'),
         ('rejected', 'Rad etilgan'),
-        ('left', 'Chiqib ketgan'),
+        ('left', 'Çiqib ketgan'),
     )
 
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='members',
                                verbose_name='Startup')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='startup_memberships',
-                             verbose_name='Foydalanuvchi')
+                             verbose_name='Foydalanuvçi')
     role = models.CharField(max_length=20, choices=MEMBER_ROLE_CHOICES, default='member',
                             verbose_name='Rol')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending',
                               verbose_name='Holat')
-    # `invited_by` bo'sh bo'lsa — foydalanuvchi o'zi so'rov yuborgan (join request);
-    # to'lgan bo'lsa — egasi taklif qilgan (invite).
+    # `invited_by` böş bölsa — foydalanuvçi özi sörov yuborgan (join request);
+    # tölgan bölsa — egasi taklif qilgan (invite).
     invited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='sent_startup_invites',
                                    verbose_name='Kim taklif qildi')
-    joined_at = models.DateTimeField(auto_now_add=True, verbose_name='Qoʻshilgan vaqt')
+    joined_at = models.DateTimeField(auto_now_add=True, verbose_name='Qöşilgan vaqt')
 
     class Meta:
         ordering = ['-status', 'joined_at']
@@ -438,7 +439,7 @@ class StartupMember(models.Model):
 
 
 class StartupMentor(models.Model):
-    """Mentor biriktirish — yangi rol qo'shmasdan `teacher`/`admin` ustiga qo'yiladi."""
+    """Mentor biriktiriş — yangi rol qöşmasdan `teacher`/`admin` ustiga qöyiladi."""
 
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='mentors',
                                verbose_name='Startup')
@@ -465,13 +466,13 @@ class StartupXPTransaction(models.Model):
                                 related_name='xp_transactions', verbose_name='Startup')
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
                              related_name='startup_xp_transactions',
-                             verbose_name='Foydalanuvchi')
+                             verbose_name='Foydalanuvçi')
     amount = models.IntegerField(verbose_name='XP')
     reason = models.CharField(max_length=50, verbose_name='Sabab kodi')
     description = models.CharField(max_length=255, blank=True, verbose_name='Izoh')
-    # Idempotentlik kaliti: `task:<id>:approved` kabi. UNIQUE bo'lgani uchun
+    # Idempotentlik kaliti: `task:<id>:approved` kabi. UNIQUE bölgani uçun
     # bir vazifa ikki marta tasdiqlansa ham XP faqat bir marta beriladi.
-    dedupe_key = models.CharField(max_length=120, unique=True, verbose_name='Takrorlanish kaliti')
+    dedupe_key = models.CharField(max_length=120, unique=True, verbose_name='Takrorlaniş kaliti')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Vaqt')
 
     class Meta:
@@ -509,17 +510,17 @@ class StartupFeedback(models.Model):
 
 
 class StartupAchievement(models.Model):
-    """Ochilgan yutuq kodi. Ta'rif `ACHIEVEMENT_DEFS` da (kodda) saqlanadi."""
+    """Oçilgan yutuq kodi. Ta'rif `ACHIEVEMENT_DEFS` da (kodda) saqlanadi."""
 
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='achievements',
                                verbose_name='Startup')
     code = models.CharField(max_length=40, verbose_name='Yutuq kodi')
-    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name='Ochilgan vaqt')
+    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name='Oçilgan vaqt')
 
     class Meta:
         ordering = ['-unlocked_at']
         unique_together = [('startup', 'code')]
-        verbose_name = 'Startup yutugʻi'
+        verbose_name = 'Startup yutuği'
         verbose_name_plural = 'Startup yutuqlari'
 
     def __str__(self):
@@ -542,8 +543,8 @@ class StartupFinance(models.Model):
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='finances',
                                verbose_name='Startup')
     type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name='Turi')
-    # UZS butun so'mda — `accounts.PaymentStatus.monthly_fee` naqshi.
-    amount = models.DecimalField(max_digits=14, decimal_places=0, verbose_name='Summa (soʻm)')
+    # UZS butun sömda — `accounts.PaymentStatus.monthly_fee` naqşi.
+    amount = models.DecimalField(max_digits=14, decimal_places=0, verbose_name='Summa (söm)')
     description = models.CharField(max_length=255, blank=True, verbose_name='Izoh')
     date = models.DateField(default=timezone.localdate, verbose_name='Sana')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
@@ -565,7 +566,7 @@ class StartupFinance(models.Model):
 class StartupMetric(models.Model):
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='metrics',
                                verbose_name='Startup')
-    key = models.CharField(max_length=50, verbose_name='Koʻrsatkich')
+    key = models.CharField(max_length=50, verbose_name='Körsatkiç')
     value = models.DecimalField(max_digits=14, decimal_places=2, verbose_name='Qiymat')
     date = models.DateField(default=timezone.localdate, verbose_name='Sana')
     note = models.CharField(max_length=255, blank=True, verbose_name='Izoh')
@@ -589,7 +590,7 @@ class PitchDeck(models.Model):
     startup = models.OneToOneField(Startup, on_delete=models.CASCADE, related_name='pitch_deck',
                                    verbose_name='Startup')
     problem = models.TextField(blank=True, verbose_name='1. Muammo')
-    solution = models.TextField(blank=True, verbose_name='2. Yechim')
+    solution = models.TextField(blank=True, verbose_name='2. Yeçim')
     market = models.TextField(blank=True, verbose_name='3. Bozor hajmi')
     product = models.TextField(blank=True, verbose_name='4. Mahsulot')
     business_model = models.TextField(blank=True, verbose_name='5. Biznes model')
@@ -597,7 +598,7 @@ class PitchDeck(models.Model):
     team = models.TextField(blank=True, verbose_name='7. Jamoa')
     traction = models.TextField(blank=True, verbose_name='8. Natijalar')
     financials = models.TextField(blank=True, verbose_name='9. Moliya prognozi')
-    investment_ask = models.TextField(blank=True, verbose_name='10. Investitsiya soʻrovi')
+    investment_ask = models.TextField(blank=True, verbose_name='10. Investitsiya sörovi')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='Yangilangan')
 
     SECTION_FIELDS = (
@@ -618,12 +619,12 @@ class PitchDeck(models.Model):
 
 
 class StartupActivity(models.Model):
-    """Audit / analitika jurnali (`coin.ActivityLog` naqshi)."""
+    """Audit / analitika jurnali (`coin.ActivityLog` naqşi)."""
 
     startup = models.ForeignKey(Startup, on_delete=models.CASCADE, related_name='activities',
                                verbose_name='Startup')
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True,
-                             related_name='startup_activities', verbose_name='Foydalanuvchi')
+                             related_name='startup_activities', verbose_name='Foydalanuvçi')
     action_type = models.CharField(max_length=40, verbose_name='Amal turi')
     description = models.CharField(max_length=255, verbose_name='Tavsif')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Vaqt')

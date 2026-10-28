@@ -7,7 +7,7 @@
 <style>
 /* ══════════════════════════════════════════════════════════
    HOMEWORK STUDIO · 2026 — Warm Redesign
-   Yumshaq · Isiq ranglar · Rounded · Qulay
+   Yumşaq · Isiq ranglar · Rounded · Qulay
 ══════════════════════════════════════════════════════════ */
 :root {
   --sp-bg:          #090b1c;
@@ -504,7 +504,7 @@
   color: var(--sp-green); font-family: var(--sp-mono); margin-right: 5px;
 }
 
-/* ── Chat ── */
+/* ── Çat ── */
 .sp-chat-wrap { display: flex; flex-direction: column; height: 480px; }
 .sp-chat-msgs { flex: 1; overflow-y: auto; padding: 18px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
 .sp-msg-row { display: flex; gap: 10px; align-items: flex-end; animation: spMsgIn .35s var(--sp-ease); }
@@ -809,8 +809,8 @@
     <span class="sp-topbar-status" id="topStatus"></span>
   </div>
 
-  {% with prompt="«"|add:lesson.title|add:"» uy vazifasini bajarishda menga yordam bering. Tayyor javobni to'g'ridan-to'g'ri bermang — bosqichma-bosqich yo'naltiring." %}
-  {% if not portal %}<div style="margin:0 0 14px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt label="AI'dan yordam so'rash" %}</div>{% endif %}
+  {% with prompt="«"|add:lesson.title|add:"» uy vazifasini bajarişda menga yordam bering. Tayyor javobni töğridan-töğri bermang — bosqichma-bosqich yönaltiring." %}
+  {% if not portal %}<div style="margin:0 0 14px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt label="AI'dan yordam söraş" %}</div>{% endif %}
   {% endwith %}
 
   <!-- Status banner (populated by JS) -->
@@ -836,13 +836,13 @@
           <i class="bi bi-file-text"></i> <span class="sp-tab-label">Vazifa</span>
         </div>
         <div class="sp-tab" data-tab="submit" onclick="switchTab('submit')">
-          <i class="bi bi-upload"></i> <span class="sp-tab-label">Topshirish</span>
+          <i class="bi bi-upload"></i> <span class="sp-tab-label">Topşiriş</span>
         </div>
         <div class="sp-tab" data-tab="history" onclick="switchTab('history')">
           <i class="bi bi-clock-history"></i> <span class="sp-tab-label">Tarix</span>
         </div>
         <div class="sp-tab" data-tab="chat" onclick="switchTab('chat')">
-          <i class="bi bi-chat-dots"></i> <span class="sp-tab-label">Chat</span>
+          <i class="bi bi-chat-dots"></i> <span class="sp-tab-label">Çat</span>
           <span class="sp-tab-badge" id="chatBadge" style="display:none">0</span>
         </div>
       </div>
@@ -852,10 +852,10 @@
         <div class="sp-meta-row" id="descMetaRow">
           <span class="sp-pill info"><i class="bi bi-trophy"></i> <span id="metaMaxScore">—</span> ball</span>
           <span class="sp-pill" id="metaDue"></span>
-          <span class="sp-pill warn" id="metaCoins"><i class="bi bi-coin"></i> 50 coin gacha</span>
-          <span class="sp-pill violet" id="metaAi" style="display:none"><i class="bi bi-robot"></i> AI tekshiradi</span>
+          <span class="sp-pill warn" id="metaCoins"><i class="bi bi-coin"></i> 50 coin gaça</span>
+          <span class="sp-pill violet" id="metaAi" style="display:none"><i class="bi bi-robot"></i> AI tekşiradi</span>
           <span class="sp-pill warn" id="metaFileOnly" style="display:none"><i class="bi bi-paperclip"></i> Faqat fayl</span>
-          <span class="sp-pill warn" id="metaHandwritten" style="display:none"><i class="bi bi-pen"></i> Qo'lyozma</span>
+          <span class="sp-pill warn" id="metaHandwritten" style="display:none"><i class="bi bi-pen"></i> Qölyozma</span>
         </div>
         <div class="hw-desc-wrap" id="hwDesc">
           <div style="display:flex;flex-direction:column;gap:14px">
@@ -867,7 +867,7 @@
         </div>
       </div>
 
-      <!-- Panel: Topshirish -->
+      <!-- Panel: Topşiriş -->
       <div class="sp-tab-panel" id="panel-submit">
         <div class="sp-form" id="submitForm">
 
@@ -875,8 +875,8 @@
           <div class="sp-ai-notice" id="aiNotice" style="display:none">
             <i class="bi bi-robot"></i>
             <div>
-              <b>AI tekshiruvi yoqilgan</b> — vazifangiz yuborilgandan 1 soat keyin AI tomonidan avtomatik tekshiriladi.
-              O'zingizning ishingiz bo'lsin — halol ishlang! 🎯
+              <b>AI tekşiruvi yoqilgan</b> — vazifangiz yuborilgandan 1 soat keyin AI tomonidan avtomatik tekşiriladi.
+              Özingizning işingiz bölsin — halol işlang! 🎯
             </div>
           </div>
 
@@ -884,10 +884,10 @@
           <div class="sp-resubmit-notice" id="resubmitNotice" style="display:none">
             <i class="bi bi-arrow-repeat" style="font-size:20px;flex-shrink:0;margin-top:1px"></i>
             <div>
-              <b>Qayta topshirish</b><br>
-              Avvalgi versiyalaringiz saqlanib qoladi. Har bir qayta topshirishda
-              <strong><span id="resubmitPenalty">30</span> coin jarima</strong> yechiladi.
-              {% if request.user.is_premium %}<br><span class="badge bg-warning text-dark mt-1"><i class="bi bi-gem"></i> Premium 50% chegirma</span>{% endif %}
+              <b>Qayta topşiriş</b><br>
+              Avvalgi versiyalaringiz saqlanib qoladi. Har bir qayta topşirişda
+              <strong><span id="resubmitPenalty">30</span> coin jarima</strong> yeçiladi.
+              {% if request.user.is_premium %}<br><span class="badge bg-warning text-dark mt-1"><i class="bi bi-gem"></i> Premium 50% çegirma</span>{% endif %}
             </div>
           </div>
 
@@ -895,11 +895,11 @@
           <div class="sp-type-switch" id="typeSwitch">
             <div class="sp-type-card file-card active" id="typeFile" onclick="setType('file')">
               <i class="bi bi-file-earmark-arrow-up" style="color:var(--sp-accent)"></i>
-              <span>Fayl yuklash</span>
+              <span>Fayl yuklaş</span>
             </div>
             <div class="sp-type-card text-card" id="typeText" onclick="setType('text')">
               <i class="bi bi-code-square" style="color:var(--sp-accent2)"></i>
-              <span>Kod yozish</span>
+              <span>Kod yoziş</span>
             </div>
           </div>
 
@@ -909,8 +909,8 @@
                  ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
               <input type="file" id="fileInput" onchange="onFileChosen()">
               <div class="sp-drop-icon"><i class="bi bi-cloud-upload"></i></div>
-              <div class="sp-drop-label">Fayl tanlang yoki bu yerga tashlang</div>
-              <div class="sp-drop-sub" id="allowedFormatsHint">Ruxsat etilgan: barcha fayl turlari · max 5 MB</div>
+              <div class="sp-drop-label">Fayl tanlang yoki bu yerga taşlang</div>
+              <div class="sp-drop-sub" id="allowedFormatsHint">Ruxsat etilgan: barça fayl turlari · max 5 MB</div>
             </div>
             <div class="sp-file-chosen" id="fileChosen" style="display:none">
               <i class="bi bi-check-circle-fill"></i>
@@ -925,7 +925,7 @@
           </div>
 
           <div id="textSection" style="display:none">
-            <p>Dasturlash tilini tanlang va kodingizni yozing. Natijani ko‘rish uchun “Ishga tushirish” tugmasini bosing.</p>
+            <p>Dasturlaş tilini tanlang va kodingizni yozing. Natijani köriş uçun “Işga tuşiriş” tugmasini bosing.</p>
             <div id="codeEditor"></div>
             <small id="codeDraftStatus" aria-live="polite"></small>
           </div>
@@ -936,8 +936,8 @@
               <i class="bi bi-send" id="submitIcon"></i>
             </span>
             <span class="sp-submit-copy">
-              <strong id="submitBtnText">Topshirish</strong>
-              <small id="submitBtnHint">Vazifani tekshiruvga yuborish</small>
+              <strong id="submitBtnText">Topşiriş</strong>
+              <small id="submitBtnHint">Vazifani tekşiruvga yuboriş</small>
             </span>
             <span class="sp-submit-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
           </button>
@@ -954,13 +954,13 @@
         </div>
       </div>
 
-      <!-- Panel: Chat -->
+      <!-- Panel: Çat -->
       <div class="sp-tab-panel" id="panel-chat">
         <div class="sp-chat-wrap">
           <div class="sp-chat-msgs" id="chatMsgs">
             <div class="sp-empty">
               <i class="bi bi-chat-dots"></i>
-              <p>Hali xabar yo'q</p>
+              <p>Hali xabar yöq</p>
             </div>
           </div>
           <div class="sp-chat-input-row">
@@ -986,7 +986,7 @@
           <div class="sp-status-icon-wrap s-none" id="statusIcon">
             <i class="bi bi-hourglass"></i>
           </div>
-          <div class="sp-status-label" id="statusLabel">Topshirilmagan</div>
+          <div class="sp-status-label" id="statusLabel">Topşirilmagan</div>
           <div class="sp-status-sublabel" id="statusSubLabel" style="display:none"></div>
           <div class="sp-grade-display" id="gradeDisplay" style="display:none"></div>
           <div class="sp-grade-breakdown" id="gradeBreakdown" style="display:none"></div>
@@ -1006,7 +1006,7 @@
           <div class="sp-step-line"></div>
           <div class="sp-step" data-step="reviewing">
             <div class="sp-step-dot"><i class="bi bi-eye"></i></div>
-            <div class="sp-step-label">Tekshirildi</div>
+            <div class="sp-step-label">Tekşirildi</div>
           </div>
           <div class="sp-step-line"></div>
           <div class="sp-step" data-step="graded">
@@ -1020,7 +1020,7 @@
           <div class="sp-coin-earned">
             <div class="sp-coin-earned-icon">🪙</div>
             <div>
-              <div class="sp-coin-earned-label">Coin qo'lga kiritildi</div>
+              <div class="sp-coin-earned-label">Coin qölga kiritildi</div>
               <div class="sp-coin-earned-val" id="coinEarnedVal">+0 coin</div>
             </div>
           </div>
@@ -1030,7 +1030,7 @@
         <div class="sp-edit-timer" id="editTimerBlock" style="display:none">
           <i class="bi bi-pencil-square"></i>
           <div style="flex:1">
-            <div style="color:var(--sp-muted);font-size:10px;margin-bottom:2px">Tahrirlash oynasi</div>
+            <div style="color:var(--sp-muted);font-size:10px;margin-bottom:2px">Tahrirlaş oynasi</div>
             <span id="editTimerVal">00:00</span>
           </div>
         </div>
@@ -1042,7 +1042,7 @@
             <span class="sp-sidebar-row-val" id="sbVersion">—</span>
           </div>
           <div class="sp-sidebar-row">
-            <span class="sp-sidebar-row-label"><i class="bi bi-calendar-check"></i> Topshirilgan</span>
+            <span class="sp-sidebar-row-label"><i class="bi bi-calendar-check"></i> Topşirilgan</span>
             <span class="sp-sidebar-row-val" id="sbDate">—</span>
           </div>
           <div class="sp-sidebar-row">
@@ -1051,7 +1051,7 @@
           </div>
           <div class="sp-sidebar-row" id="sbLateRow" style="display:none">
             <span class="sp-sidebar-row-label"><i class="bi bi-exclamation-circle"></i> Holat</span>
-            <span class="sp-sidebar-row-val" style="color:var(--sp-amber)">Kech topshirildi</span>
+            <span class="sp-sidebar-row-val" style="color:var(--sp-amber)">Keç topşirildi</span>
           </div>
           <div class="sp-sidebar-row" id="sbCoinRow" style="display:none">
             <span class="sp-sidebar-row-label"><i class="bi bi-coin"></i> Coin</span>
@@ -1088,16 +1088,16 @@
       </div>
       {% else %}
       <!-- Vazifa hali tasdiqlanmagan (pending/reviewing/revision) --
-           keyingi darsga o'tish tugmasi o'rniga qayta topshirishni
-           eslatuvchi bloklangan holat ko'rsatiladi. Server tomonida ham
-           student_lesson_view shu holatni bloklaydi -- bu shunchaki UI
-           ko'rinishi, haqiqiy cheklov emas. -->
+           keyingi darsga ötiş tugmasi örniga qayta topşirişni
+           eslatuvçi bloklangan holat körsatiladi. Server tomonida ham
+           student_lesson_view şu holatni bloklaydi -- bu şunçaki UI
+           körinişi, haqiqiy çeklov emas. -->
       <div class="sp-next-card" style="opacity:.6;">
         <div class="sp-next-inner" style="cursor:not-allowed;">
           <div class="sp-next-icon"><i class="bi bi-lock-fill"></i></div>
           <div>
             <div class="sp-next-label">Keyingi dars</div>
-            <div class="sp-next-title">Vazifangiz tasdiqlanishi kutilmoqda — qayta topshiring 🔄</div>
+            <div class="sp-next-title">Vazifangiz tasdiqlanişi kutilmoqda — qayta topşiring 🔄</div>
           </div>
         </div>
       </div>
@@ -1143,7 +1143,7 @@ function initCodeEditor() {
   const submitted = HomeworkCode.decode(hwState.submission?.text_content);
   let project = submitted || {html:'', css:'', js:''};
   try { project = JSON.parse(localStorage.getItem(codeDraftKey)) || project; } catch (_) {}
-  // Brauzer keshida eski homework_code.js qolsa ham sahifa yiqilmasin.
+  // Brauzer keşida eski homework_code.js qolsa ham sahifa yiqilmasin.
   const isValidProject = typeof HomeworkCode.valid === 'function'
     ? HomeworkCode.valid
     : p => !!p && typeof p === 'object' && Object.values(p).every(v => typeof v === 'string');
@@ -1152,16 +1152,16 @@ function initCodeEditor() {
   document.getElementById('codeEditor').addEventListener('input', () => {
     try {
       localStorage.setItem(codeDraftKey, JSON.stringify(codeEditor.get()));
-      document.getElementById('codeDraftStatus').textContent = 'Qoralama shu brauzerda saqlandi';
+      document.getElementById('codeDraftStatus').textContent = 'Qoralama şu brauzerda saqlandi';
     } catch (_) { document.getElementById('codeDraftStatus').textContent = 'Qoralama saqlanmadi. Kodingizni nusxalab oling.'; }
   });
 }
 
 
 const STATUS_MAP = {
-  pending:   { cls:'s-pending',   icon:'bi-hourglass-split',  label:'Ko\'rib chiqilmoqda', sub:'Javobingiz tekshiruvda...',  emoji:'⏳', banner:'b-pending'  },
-  reviewing: { cls:'s-reviewing', icon:'bi-eye',               label:'Tekshirilmoqda',      sub:'Ustoz ko\'rib chiqmoqda',   emoji:'👀', banner:'b-reviewing'},
-  revision:  { cls:'s-revision',  icon:'bi-arrow-repeat',      label:'Qayta topshiring!',   sub:'Tuzatib qayta yuboring',   emoji:'🔄', banner:'b-revision' },
+  pending:   { cls:'s-pending',   icon:'bi-hourglass-split',  label:'Körib çiqilmoqda', sub:'Javobingiz tekşiruvda...',  emoji:'⏳', banner:'b-pending'  },
+  reviewing: { cls:'s-reviewing', icon:'bi-eye',               label:'Tekşirilmoqda',      sub:'Ustoz körib çiqmoqda',   emoji:'👀', banner:'b-reviewing'},
+  revision:  { cls:'s-revision',  icon:'bi-arrow-repeat',      label:'Qayta topşiring!',   sub:'Tuzatib qayta yuboring',   emoji:'🔄', banner:'b-revision' },
   accepted:  { cls:'s-accepted',  icon:'bi-check-circle-fill', label:'Qabul qilindi',       sub:'Ajoyib! Davom eting 🎉',   emoji:'✅', banner:'b-accepted' },
   graded:    { cls:'s-graded',    icon:'bi-stars',             label:'Baholandi',            sub:'Natijangiz tayyor!',       emoji:'🏆', banner:'b-graded'   },
 };
@@ -1202,7 +1202,7 @@ function renderMeta() {
   const hw = hwState.homework;
   if (!hw) return;
   document.getElementById('metaMaxScore').textContent = hw.max_score;
-  document.getElementById('metaCoins').innerHTML = `<i class="bi bi-coin"></i> ${hw.max_coin_reward || 50} coin gacha`;
+  document.getElementById('metaCoins').innerHTML = `<i class="bi bi-coin"></i> ${hw.max_coin_reward || 50} coin gaça`;
   const dueEl = document.getElementById('metaDue');
   if (hw.due_date) {
     dueEl.className = 'sp-pill ' + (hw.is_deadline_passed ? 'danger' : 'warn');
@@ -1226,7 +1226,7 @@ function renderDesc() {
   const hw = hwState.homework;
   const el = document.getElementById('hwDesc');
   if (!hw) return;
-  el.innerHTML = hw.description || '<p style="color:var(--sp-muted)">Tavsif yo\'q</p>';
+  el.innerHTML = hw.description || '<p style="color:var(--sp-muted)">Tavsif yöq</p>';
 }
 
 /* ─────────────────────────────────────────────
@@ -1245,7 +1245,7 @@ function renderStatus() {
   if (!sub) {
     iconEl.className   = 'sp-status-icon-wrap s-none';
     iconEl.innerHTML   = '<i class="bi bi-inbox"></i>';
-    labelEl.textContent= 'Topshirilmagan';
+    labelEl.textContent= 'Topşirilmagan';
     subLbl.style.display = 'none';
     gradeEl.style.display = 'none';
     gbEl.style.display    = 'none';
@@ -1289,7 +1289,7 @@ function renderStatus() {
     topEl.style.background = 'rgba(255,126,141,.12)';
     topEl.style.color      = 'var(--sp-red)';
     topEl.style.border     = '1px solid rgba(255,126,141,.3)';
-    topEl.textContent = '↩ Qayta topshiring';
+    topEl.textContent = '↩ Qayta topşiring';
   } else {
     topEl.classList.add('sp-topbar-status');
     topEl.style.background = 'rgba(255,200,90,.1)';
@@ -1380,14 +1380,14 @@ function renderGradeBreakdown(sub) {
   const rows = [];
   if (sub.previous_grade != null) {
     const vt = sub.previous_version ? ` (v${sub.previous_version})` : '';
-    rows.push(`<div class="sp-grade-breakdown-row"><span>Oldingi urinish${vt}</span><strong>${sub.previous_grade}/${max}</strong></div>`);
+    rows.push(`<div class="sp-grade-breakdown-row"><span>Oldingi uriniş${vt}</span><strong>${sub.previous_grade}/${max}</strong></div>`);
   }
   if (sub.current_grade != null) {
-    rows.push(`<div class="sp-grade-breakdown-row"><span>Joriy urinish (v${sub.version})</span><strong>${sub.current_grade}/${max}</strong></div>`);
+    rows.push(`<div class="sp-grade-breakdown-row"><span>Joriy uriniş (v${sub.version})</span><strong>${sub.current_grade}/${max}</strong></div>`);
   }
   if (sub.best_grade != null) {
     rows.push(`<div class="sp-grade-breakdown-row best"><span>Eng yuqori ball</span><strong>${sub.best_grade}/${max}</strong></div>`);
-    rows.push(`<div class="sp-grade-breakdown-note">Qayta topshirilganda eng yuqori baho yakuniy natija sifatida olinadi.</div>`);
+    rows.push(`<div class="sp-grade-breakdown-note">Qayta topşirilganda eng yuqori baho yakuniy natija sifatida olinadi.</div>`);
   }
   return rows.join('');
 }
@@ -1402,7 +1402,7 @@ function renderEditTimer(sub) {
     if (secs <= 0) {
       clearInterval(editTimerInterval);
       block.classList.add('expired');
-      document.getElementById('editTimerVal').textContent = 'Muddati o\'tdi';
+      document.getElementById('editTimerVal').textContent = 'Muddati ötdi';
       return;
     }
     const m = Math.floor(secs/60).toString().padStart(2,'0');
@@ -1424,7 +1424,7 @@ function renderAiFeedback(sub) {
   wrap.style.display = '';
   wrap.innerHTML = `
     <div class="sp-ai-block ${cls}">
-      <h6><i class="bi bi-robot"></i> AI Tekshiruvi ${icon}</h6>
+      <h6><i class="bi bi-robot"></i> AI Tekşiruvi ${icon}</h6>
       <div style="white-space:pre-wrap">${escapeHtml(sub.ai_feedback)}</div>
     </div>`;
 }
@@ -1465,7 +1465,7 @@ function renderSubmissionPreview(sub) {
       </div>
       <div style="padding:10px 0 2px">
         <a class="sp-dl-btn" href="${sub.file_url}" target="_blank" download>
-          <i class="bi bi-download"></i> Yuklab olish
+          <i class="bi bi-download"></i> Yuklab oliş
         </a>
       </div>`;
   } else if (sub.submission_type === 'text' && sub.text_content) {
@@ -1473,7 +1473,7 @@ function renderSubmissionPreview(sub) {
       <div class="sp-preview-wrap">
         <div class="sp-preview-head">
           <span><i class="bi bi-file-text"></i> Sizning javobingiz (v${sub.version})</span>
-          <span style="color:var(--sp-muted)">${countWords(sub.text_content)} so'z</span>
+          <span style="color:var(--sp-muted)">${countWords(sub.text_content)} söz</span>
         </div>
         <div class="sp-preview-content sp-text-answer">${escapeHtml(toPlainText(sub.text_content))}</div>
       </div>`;
@@ -1501,8 +1501,8 @@ function renderSubmitForm() {
 
   const isResub = !!sub;
   document.getElementById('resubmitNotice').style.display = isResub ? '' : 'none';
-  document.getElementById('submitBtnText').textContent    = isResub ? 'Qayta topshirish' : 'Topshirish';
-  document.getElementById('submitBtnHint').textContent    = isResub ? 'Yangi versiyani tekshiruvga yuborish' : 'Vazifani tekshiruvga yuborish';
+  document.getElementById('submitBtnText').textContent    = isResub ? 'Qayta topşiriş' : 'Topşiriş';
+  document.getElementById('submitBtnHint').textContent    = isResub ? 'Yangi versiyani tekşiruvga yuboriş' : 'Vazifani tekşiruvga yuboriş';
   document.getElementById('submitBtn').classList.toggle('is-resubmit', isResub);
   document.getElementById('submitIcon').className         = 'bi ' + (isResub ? 'bi-arrow-repeat' : 'bi-send');
   document.getElementById('resubmitPenalty').textContent  = hw.resubmit_coin_penalty || 30;
@@ -1570,7 +1570,7 @@ async function doSubmit() {
     } else {
       const project = codeEditor.get();
       if (!(project.code !== undefined ? project.code.trim() : Object.values(project).some(v => v.trim()))) { toast('Avval kod yozing','error'); return; }
-      fd.append('text_content', 'Dasturlash vazifasi');
+      fd.append('text_content', 'Dasturlaş vazifasi');
       fd.append('code_project', JSON.stringify(project));
       handleSubmitResponse(await api(API.submit,'POST',fd));
     }
@@ -1613,7 +1613,7 @@ function handleSubmitResponse(r) {
     document.getElementById('fileChosen').style.display = 'none';
     if (submitType === 'text') {
       try { localStorage.removeItem(codeDraftKey); } catch (_) {}
-      document.getElementById('codeDraftStatus').textContent = 'Kod topshirildi';
+      document.getElementById('codeDraftStatus').textContent = 'Kod topşirildi';
     }
   } else {
     toast(r.error || 'Xato yuz berdi','error');
@@ -1628,7 +1628,7 @@ async function loadHistory() {
   try {
     const r = await api(API.history,'GET');
     if (!r.ok || !r.history.length) {
-      el.innerHTML = `<div class="sp-empty"><i class="bi bi-inbox"></i><p>Topshirishlar tarixi yo'q</p></div>`;
+      el.innerHTML = `<div class="sp-empty"><i class="bi bi-inbox"></i><p>Topşirişlar tarixi yöq</p></div>`;
       return;
     }
     el.innerHTML = [...r.history].reverse().map(renderHistoryCard).join('');
@@ -1660,7 +1660,7 @@ function renderHistoryCard(sub) {
         <span class="sp-pill ${statusPillClass(sub.status)}" style="font-size:11px">
           <i class="bi ${info.icon}"></i> ${info.label}
         </span>
-        ${sub.is_late ? '<span class="sp-pill warn" style="font-size:11px;margin-left:4px"><i class="bi bi-clock"></i> Kech</span>' : ''}
+        ${sub.is_late ? '<span class="sp-pill warn" style="font-size:11px;margin-left:4px"><i class="bi bi-clock"></i> Keç</span>' : ''}
         ${fileHtml}${textHtml}${feedbackHtml}
       </div>
     </div>`;
@@ -1671,7 +1671,7 @@ function statusPillClass(s) {
 }
 
 /* ─────────────────────────────────────────────
-   CHAT
+   ÇAT
 ───────────────────────────────────────────── */
 async function loadMessages() {
   try {
@@ -1682,7 +1682,7 @@ async function loadMessages() {
 }
 function renderMessages(msgs) {
   const el = document.getElementById('chatMsgs');
-  if (!msgs.length) { el.innerHTML=`<div class="sp-empty"><i class="bi bi-chat-dots"></i><p>Hali xabar yo'q</p></div>`; return; }
+  if (!msgs.length) { el.innerHTML=`<div class="sp-empty"><i class="bi bi-chat-dots"></i><p>Hali xabar yöq</p></div>`; return; }
   el.innerHTML = msgs.map(renderMsg).join('');
   el.scrollTop = el.scrollHeight;
   document.getElementById('chatBadge').style.display = 'none';
@@ -1731,8 +1731,8 @@ async function api(url, method='GET', body=null) {
   if (body && !(body instanceof FormData)) { opts.headers['Content-Type']='application/json'; opts.body=JSON.stringify(body); }
   else if (body) opts.body = body;
   const resp = await fetch(url, opts);
-  if (resp.status===429) return {ok:false,error:"So'rovlar juda tez. Biroz kutib turing."};
-  if (resp.status===403) return {ok:false,error:"Ruxsat yo'q (403)"};
+  if (resp.status===429) return {ok:false,error:"Sörovlar juda tez. Biroz kutib turing."};
+  if (resp.status===403) return {ok:false,error:"Ruxsat yöq (403)"};
   const text = await resp.text();
   return parseApiResponse(text, resp.status);
 }
@@ -1747,9 +1747,9 @@ function parseApiResponse(text, status) {
     return {ok:false, error:'Sessiya tugagan. Sahifani yangilang va qayta kiring.'};
   }
   if (status >= 500) {
-    return {ok:false, error:'Serverda xatolik yuz berdi. Birozdan so\'ng qayta urinib ko\'ring.'};
+    return {ok:false, error:'Serverda xatolik yuz berdi. Birozdan söng qayta urinib köring.'};
   }
-  return {ok:false, error:`Server noto'g'ri javob qaytardi${status ? ` (${status})` : ''}. Sahifani yangilab qayta urinib ko'ring.`};
+  return {ok:false, error:`Server notöğri javob qaytardi${status ? ` (${status})` : ''}. Sahifani yangilab qayta urinib köring.`};
 }
 
 /* ─────────────────────────────────────────────

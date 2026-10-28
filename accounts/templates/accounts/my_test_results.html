@@ -116,7 +116,7 @@
       <div class="mtr-title-icon"><i class="bi bi-clipboard-check-fill"></i></div>
       <div>
         <h2>Test Natijalarim</h2>
-        <p>Barcha test natijalaringiz va statistika</p>
+        <p>Barça test natijalaringiz va statistika</p>
       </div>
     </div>
     <a href="{% url 'profile' %}" class="mtr-back">
@@ -139,7 +139,7 @@
     <div class="mtr-stat s-grn">
       <div class="mtr-stat-icon"><i class="bi bi-trophy-fill"></i></div>
       <div class="mtr-stat-val">{{ stats.passed }}</div>
-      <div class="mtr-stat-lbl">O'tganlar</div>
+      <div class="mtr-stat-lbl">Ötganlar</div>
     </div>
     <div class="mtr-stat s-red">
       <div class="mtr-stat-icon"><i class="bi bi-x-circle-fill"></i></div>
@@ -149,7 +149,7 @@
     <div class="mtr-stat s-cyn">
       <div class="mtr-stat-icon"><i class="bi bi-bar-chart-fill"></i></div>
       <div class="mtr-stat-val">{{ stats.avg_score|floatformat:0 }}%</div>
-      <div class="mtr-stat-lbl">O'rtacha ball</div>
+      <div class="mtr-stat-lbl">Örtaça ball</div>
     </div>
   </div>
 
@@ -158,7 +158,7 @@
   <div class="mtr-today-banner">
     <div class="mtr-sec-hdr">
       <i class="bi bi-lightning-charge-fill" style="color:#f59e0b;"></i>
-      <h5>Bugun ishlangan testlar</h5>
+      <h5>Bugun işlangan testlar</h5>
       <span class="mtr-sec-badge">{{ today_results.count }} ta</span>
     </div>
     <div class="mtr-list-card" style="border:none; border-radius:12px; margin:0;">
@@ -182,7 +182,7 @@
             <div class="mtr-bar-wrap"><div class="mtr-bar-fill {% if r.passed %}pass{% else %}fail{% endif %}" style="width:{{ r.score }}%;"></div></div>
           </div>
           <span class="mtr-score {% if r.passed %}pass{% else %}fail{% endif %}">{{ r.score }}%</span>
-          <a href="{% url 'test_result' r.pk %}" class="mtr-view-btn"><i class="bi bi-eye"></i> Ko'rish</a>
+          <a href="{% url 'test_result' r.pk %}" class="mtr-view-btn"><i class="bi bi-eye"></i> Köriş</a>
         </div>
       </div>
       {% endfor %}
@@ -193,7 +193,7 @@
   <!-- All results -->
   <div class="mtr-sec-hdr">
     <i class="bi bi-list-check" style="color:#6366f1;"></i>
-    <h5>Barcha natijalar</h5>
+    <h5>Barça natijalar</h5>
     {% if results %}<span class="mtr-sec-badge">{{ results.paginator.count }} ta</span>{% endif %}
   </div>
 
@@ -219,7 +219,7 @@
             <div class="mtr-bar-wrap"><div class="mtr-bar-fill {% if r.passed %}pass{% else %}fail{% endif %}" style="width:{{ r.score }}%;"></div></div>
           </div>
           <span class="mtr-score {% if r.passed %}pass{% else %}fail{% endif %}">{{ r.score }}%</span>
-          <a href="{% url 'test_result' r.pk %}" class="mtr-view-btn"><i class="bi bi-eye"></i> Ko'rish</a>
+          <a href="{% url 'test_result' r.pk %}" class="mtr-view-btn"><i class="bi bi-eye"></i> Köriş</a>
         </div>
       </div>
       {% endfor %}
@@ -227,7 +227,7 @@
       <div class="mtr-empty">
         <div class="mtr-empty-icon"><i class="bi bi-clipboard-x"></i></div>
         <h5>Natijalar topilmadi</h5>
-        <p>Siz hali birorta test ishlamagansiz.</p>
+        <p>Siz hali birorta test işlamagansiz.</p>
       </div>
     {% endif %}
   </div>
@@ -257,7 +257,7 @@
       </ul>
     </nav>
     <div class="mtr-pager-info">
-      {{ results.paginator.count }} ta natijadan {{ results.start_index }}–{{ results.end_index }} ko'rsatilmoqda
+      {{ results.paginator.count }} ta natijadan {{ results.start_index }}–{{ results.end_index }} körsatilmoqda
     </div>
   </div>
   {% endif %}

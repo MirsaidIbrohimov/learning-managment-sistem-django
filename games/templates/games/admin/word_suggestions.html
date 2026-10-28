@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}So'z takliflari | Admin{% endblock %}
+{% block title %}Söz takliflari | Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -231,7 +231,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
         <h2 class="fw-bold mb-0">
-            <i class="bi bi-puzzle text-primary"></i> So'z takliflari
+            <i class="bi bi-puzzle text-primary"></i> Söz takliflari
             <span class="count-badge">{{ suggestions|length }}</span>
         </h2>
     </div>
@@ -244,10 +244,10 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>O'quvchi</th>
-                            <th>Taklif so'z</th>
+                            <th>Öquvçi</th>
+                            <th>Taklif söz</th>
                             <th>Harflar</th>
-                            <th>O'yin</th>
+                            <th>Öyin</th>
                             <th>Sana</th>
                             <th>Amallar</th>
                         </tr>
@@ -269,12 +269,12 @@
                                     <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="accept">
-                                        <button type="submit" class="btn btn-accept">Qabul qilish ✅</button>
+                                        <button type="submit" class="btn btn-accept">Qabul qiliş ✅</button>
                                     </form>
                                     <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
                                         {% csrf_token %}
                                         <input type="hidden" name="action" value="reject">
-                                        <button type="submit" class="btn btn-reject">Rad etish ❌</button>
+                                        <button type="submit" class="btn btn-reject">Rad etiş ❌</button>
                                     </form>
                                 </div>
                             </td>
@@ -283,7 +283,7 @@
                         <tr>
                             <td colspan="7" class="text-center py-4 text-muted">
                                 <i class="bi bi-puzzle" style="font-size: 2rem; opacity: 0.4;"></i>
-                                <p class="mt-2 mb-0">Hozircha takliflar mavjud emas</p>
+                                <p class="mt-2 mb-0">Hozirça takliflar mavjud emas</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -309,7 +309,7 @@
                 </div>
                 <div class="stat-item">
                     <div class="val" style="font-size: 0.82rem;">{{ suggestion.word_round.game.title }}</div>
-                    <div class="lbl">O'yin</div>
+                    <div class="lbl">Öyin</div>
                 </div>
                 <div class="stat-item">
                     <div class="val" style="font-size: 0.82rem;">{{ suggestion.created_at|date:"d.m.Y" }}</div>
@@ -320,19 +320,19 @@
                 <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="accept">
-                    <button type="submit" class="btn btn-accept">Qabul qilish ✅</button>
+                    <button type="submit" class="btn btn-accept">Qabul qiliş ✅</button>
                 </form>
                 <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="reject">
-                    <button type="submit" class="btn btn-reject">Rad etish ❌</button>
+                    <button type="submit" class="btn btn-reject">Rad etiş ❌</button>
                 </form>
             </div>
         </div>
         {% empty %}
         <div class="text-center py-4 text-muted">
             <i class="bi bi-puzzle" style="font-size: 2rem; opacity: 0.4;"></i>
-            <p class="mt-2 mb-0">Hozircha takliflar mavjud emas</p>
+            <p class="mt-2 mb-0">Hozirça takliflar mavjud emas</p>
         </div>
         {% endfor %}
     </div>

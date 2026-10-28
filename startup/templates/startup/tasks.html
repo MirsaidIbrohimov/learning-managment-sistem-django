@@ -22,7 +22,7 @@
       </a>
       {% if can_manage_tasks %}
         <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#suNewTask">
-          <i class="bi bi-plus-lg"></i> Vazifa qoʻshish
+          <i class="bi bi-plus-lg"></i> Vazifa qöşiş
         </button>
       {% endif %}
     </div>
@@ -36,18 +36,18 @@
       <h2 class="su-card-title"><i class="bi bi-plus-circle"></i> Yangi vazifa</h2>
       {% include 'startup/_form.html' %}
       <button class="btn btn-primary btn-sm" style="margin-top:14px" type="submit">
-        <i class="bi bi-check-lg"></i> Saqlash
+        <i class="bi bi-check-lg"></i> Saqlaş
       </button>
     </form>
   </div>
   {% endif %}
 
   <div class="su-filters">
-    <a class="su-chip {% if not status %}active{% endif %}" href="?">Barchasi</a>
+    <a class="su-chip {% if not status %}active{% endif %}" href="?">Barçasi</a>
     {% for value, label in status_choices %}
       <a class="su-chip {% if status == value %}active{% endif %}" href="?status={{ value }}">{{ label }}</a>
     {% endfor %}
-    <a class="su-chip" href="?mine=1"><i class="bi bi-person"></i> Menga tegishli</a>
+    <a class="su-chip" href="?mine=1"><i class="bi bi-person"></i> Menga tegişli</a>
   </div>
 
   <div class="su-card">
@@ -63,7 +63,7 @@
             {% if task.deadline %} · <i class="bi bi-calendar-event"></i> {{ task.deadline|date:"d.m.Y" }}{% endif %}
           </small>
         </span>
-        {% if task.is_overdue %}<span class="su-badge is-overdue">Muddat oʻtdi</span>{% endif %}
+        {% if task.is_overdue %}<span class="su-badge is-overdue">Muddat ötdi</span>{% endif %}
         {% if task.priority == 'high' %}<span class="su-badge is-high">Muhim</span>{% endif %}
         <span class="su-badge is-{{ task.status|lower }}">{{ task.get_status_display }}</span>
         <span class="su-badge"><i class="bi bi-lightning-charge"></i> {{ task.points }}</span>

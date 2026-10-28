@@ -68,7 +68,7 @@ class CourseStatisticsGroupTests(TestCase):
             end_time='11:00',
         )
         self.other_group = StudyGroup.objects.create(
-            name='Boshqa guruh',
+            name='Boşqa guruh',
             profession=self.profession,
             start_time='14:00',
             end_time='16:00',
@@ -142,8 +142,8 @@ class UnreadMessagesContextTests(TestCase):
 
         self.assertEqual(unread_messages(request)['unread_messages_count'], 1)
 
-        # Eski implementatsiyadagi cache qiymati o'chirilgandan keyin ham
-        # navbar badge'ini 60 soniya noto'g'ri ko'rsatardi.
+        # Eski implementatsiyadagi cache qiymati öçirilgandan keyin ham
+        # navbar badge'ini 60 soniya notöğri körsatardi.
         cache.set(f'unread_msg_{student.pk}', 1, 60)
         message.delete()
 
@@ -212,8 +212,8 @@ class VideoWatchCoinRewardTests(TestCase):
         self.video = VideoLesson.objects.create(
             lesson=lesson,
             video_url='https://youtu.be/abcdefghijk',
-            # Serverda tasdiqlangan davomiylik — testlar YouTube'ga chiqmasligi
-            # uchun oldindan beriladi (aniqlash mantiqi alohida sinaladi).
+            # Serverda tasdiqlangan davomiylik — testlar YouTube'ga çiqmasligi
+            # uçun oldindan beriladi (aniqlaş mantiqi alohida sinaladi).
             verified_duration_seconds=600,
         )
         self.factory = RequestFactory()
@@ -226,7 +226,7 @@ class VideoWatchCoinRewardTests(TestCase):
             is_premium=premium,
         )
         # Server tomonlama talab bajarilgan holatni tayyorlaymiz (10 daqiqalik
-        # video to'liq ko'rilgan). Heartbeat mantiqi alohida sinaladi.
+        # video töliq körilgan). Heartbeat mantiqi alohida sinaladi.
         VideoProgress.objects.create(
             user=user,
             video=self.video,
@@ -303,7 +303,7 @@ class VideoWatchCoinRewardTests(TestCase):
 
 
 class _WatchSyncMixin:
-    """Yangi (v2) protokol: mijoz ko'rilgan segmentlarni yuboradi."""
+    """Yangi (v2) protokol: mijoz körilgan segmentlarni yuboradi."""
 
     def _setup_watch(self, *, duration=3600, role='admin', username='watch-user'):
         cache.clear()
@@ -351,7 +351,7 @@ class _WatchSyncMixin:
         return result
 
     def _elapse(self, seconds):
-        """Server soatini orqaga surib o'tgan real vaqtni simulyatsiya qiladi."""
+        """Server soatini orqaga surib ötgan real vaqtni simulyatsiya qiladi."""
         moment = timezone.now() - timedelta(seconds=seconds)
         VideoProgress.objects.get_or_create(user=self.user, video=self.video)
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
@@ -377,7 +377,7 @@ class _WatchSyncMixin:
         return response, json.loads(response.content)
 
     def _watch_honestly(self, until, step=10):
-        """Halol mijoz: har `step` soniyada shuncha segment yuboradi."""
+        """Halol mijoz: har `step` soniyada şunça segment yuboradi."""
         position = 0
         result = None
         while position < until:
@@ -385,7 +385,7 @@ class _WatchSyncMixin:
             self._elapse(nxt - position)
             result = self._sync([[position, nxt]], position=nxt)
             if result.get('presence'):
-                # O'quvchi "Ha, davom etaman" ni bosdi.
+                # Öquvçi "Ha, davom etaman" ni bosdi.
                 self._elapse(1)
                 result = self._sync([], position=nxt)
             position = nxt
@@ -393,7 +393,7 @@ class _WatchSyncMixin:
 
 
 class VideoWatchAntiCheatTests(_WatchSyncMixin, TestCase):
-    """Konsoldan timerni chetlab o'tish urinishlari serverda to'xtatilishi."""
+    """Konsoldan timerni çetlab ötiş urinişlari serverda töxtatilişi."""
 
     def setUp(self):
         self._setup_watch(duration=3600, username='anti-cheat-admin')
@@ -408,7 +408,7 @@ class VideoWatchAntiCheatTests(_WatchSyncMixin, TestCase):
         self.assertEqual(self.user.coins, 0)
 
     def test_fake_full_segment_is_limited_by_real_time(self):
-        """Bir zumda butun videoni "ko'rdim" deb yuborish ishlamaydi."""
+        """Bir zumda butun videoni "kördim" deb yuboriş işlamaydi."""
         self._elapse(10)
         result = self._sync([[0, 3600]], position=3600)
         self.assertLessEqual(result['verified_seconds'], 10 * 1.3 + 0.5)
@@ -424,7 +424,7 @@ class VideoWatchAntiCheatTests(_WatchSyncMixin, TestCase):
         self.assertLess(self._progress().verified_seconds, 5)
 
     def test_resending_same_segments_is_idempotent(self):
-        """Javob yo'qolib, mijoz qayta yuborsa — ikki marta sanalmaydi."""
+        """Javob yöqolib, mijoz qayta yuborsa — ikki marta sanalmaydi."""
         self._elapse(30)
         self._sync([[0, 30]])
         self._elapse(30)
@@ -443,7 +443,7 @@ class VideoWatchAntiCheatTests(_WatchSyncMixin, TestCase):
         self.assertEqual(progress.watched_segments, [[0.0, 30.0], [300.0, 330.0]])
 
     def test_budget_limited_remainder_is_credited_on_next_sync(self):
-        """2x tezlikda ko'rilgan qism yo'qolmaydi — keyingi sinxronda qabul qilinadi."""
+        """2x tezlikda körilgan qism yöqolmaydi — keyingi sinxronda qabul qilinadi."""
         self._elapse(10)
         first = self._sync([[0, 20]])
         self.assertTrue(first['budget_limited'])
@@ -519,7 +519,7 @@ class VideoWatchAntiCheatTests(_WatchSyncMixin, TestCase):
     def test_parallel_videos_cannot_multiply_watch_time(self):
         other = VideoLesson.objects.create(
             lesson=Lesson.objects.create(
-                profession=self.video.lesson.profession, title='Ikkinchi', lesson_type='video',
+                profession=self.video.lesson.profession, title='Ikkinçi', lesson_type='video',
             ),
             video_url='https://youtu.be/bbbbbbbbbbb',
             verified_duration_seconds=3600,
@@ -566,7 +566,7 @@ class VideoTemplateContractTests(TestCase):
 class VideoSessionResetTests(TestCase):
     def test_reopening_unfinished_video_preserves_progress_and_restarts_budget(self):
         profession = Profession.objects.create(
-            name='Qayta boshlash kursi', photo='professions/restart.jpg', description='Reset',
+            name='Qayta boşlaş kursi', photo='professions/restart.jpg', description='Reset',
         )
         lesson = Lesson.objects.create(
             profession=profession, title='Video', lesson_type='video', ai_article='Tayyor maqola',
@@ -590,12 +590,12 @@ class VideoSessionResetTests(TestCase):
         self.assertEqual(progress.watched_segments, [[0, 180]])
         self.assertEqual(progress.last_position, 180)
         self.assertEqual(progress.required_seconds, 540)
-        # Kredit byudjeti sahifa ochilgan paytdan boshlanadi.
+        # Kredit byudjeti sahifa oçilgan paytdan boşlanadi.
         self.assertGreater(progress.last_beat_at, timezone.now() - timedelta(seconds=30))
 
 
 class VideoWatchLivenessTests(_WatchSyncMixin, TestCase):
-    """O'quvchi (token URL) yo'li: presence va video-testlar taymerni qotirmasligi."""
+    """Öquvçi (token URL) yöli: presence va video-testlar taymerni qotirmasligi."""
 
     def setUp(self):
         self._setup_watch(duration=600, role='student', username='liveness-student')
@@ -634,7 +634,7 @@ class VideoWatchLivenessTests(_WatchSyncMixin, TestCase):
         self.assertEqual(ignored['presence']['token'], token)   # token qayta beriladi
 
     def test_late_presence_answer_is_still_accepted(self):
-        """Eski taymerning asosiy xatosi: kech bosilgan tugma uni abadiy qotirardi."""
+        """Eski taymerning asosiy xatosi: keç bosilgan tugma uni abadiy qotirardi."""
         self._elapse(10)
         self._sync([[0, 10]])
         VideoProgress.objects.filter(user=self.user, video=self.video).update(next_check_seconds=5)
@@ -762,14 +762,14 @@ class CertificateFinalTestRequirementTests(TestCase):
 
 class CourseProgressAndHomeworkCoinTests(TestCase):
     def setUp(self):
-        # `DeviceLimitMiddleware` faol sessiyani protsess bo'ylab yashaydigan
+        # `DeviceLimitMiddleware` faol sessiyani protsess böylab yaşaydigan
         # LocMemCache'da (`active_session_<user.id>`) saqlaydi — bu TestCase'ning
-        # har test uchun DB rollback'iga kirmaydi. SQLite bekor qilingan
-        # insert'ning rowid'ini qayta ishlatgani uchun keyingi testda yaratilgan
-        # user avvalgi testdagi user bilan bir xil id ga tushib, uning eskirgan
-        # cache yozuvini "meros" qilib oladi; middleware esa sessiyani boshqa
-        # deb hisoblab, yangi login'ni chiqarib yuboradi. Cache'ni tozalash
-        # izolyatsiyani tiklaydi (productionda id lar qayta ishlatilmaydi).
+        # har test uçun DB rollback'iga kirmaydi. SQLite bekor qilingan
+        # insert'ning rowid'ini qayta işlatgani uçun keyingi testda yaratilgan
+        # user avvalgi testdagi user bilan bir xil id ga tuşib, uning eskirgan
+        # cache yozuvini "meros" qilib oladi; middleware esa sessiyani boşqa
+        # deb hisoblab, yangi login'ni çiqarib yuboradi. Cache'ni tozalaş
+        # izolyatsiyani tiklaydi (productionda id lar qayta işlatilmaydi).
         cache.clear()
         self.student = CustomUser.objects.create_user(
             username='progress-student',
@@ -829,7 +829,7 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
 
         first_response = self.client.post(submit_url, {
             'submission_type': 'text',
-            'text_content': 'Birinchi topshirilgan vazifa matni',
+            'text_content': 'Birinçi topşirilgan vazifa matni',
         })
         self.assertEqual(first_response.status_code, 200)
         self.student.refresh_from_db()
@@ -837,7 +837,7 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
 
         second_response = self.client.post(submit_url, {
             'submission_type': 'text',
-            'text_content': 'Qayta topshirilgan vazifa matni',
+            'text_content': 'Qayta topşirilgan vazifa matni',
         })
         self.assertEqual(second_response.status_code, 200)
         self.student.refresh_from_db()
@@ -873,26 +873,26 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
 
         self.client.post(submit_url, {
             'submission_type': 'text',
-            'text_content': 'Birinchi yuborilgan vazifa matni',
+            'text_content': 'Birinçi yuborilgan vazifa matni',
         })
         submission = HomeworkSubmission.objects.get(student=self.student, homework__lesson=lesson)
         submission.status = 'revision'
-        submission.feedback = 'Birinchi javobni tuzating'
+        submission.feedback = 'Birinçi javobni tuzating'
         submission.save(update_fields=['status', 'feedback'])
 
         self.client.post(submit_url, {
             'submission_type': 'text',
-            'text_content': 'Ikkinchi tuzatilgan vazifa matni',
+            'text_content': 'Ikkinçi tuzatilgan vazifa matni',
         })
         submission.refresh_from_db()
         submission.status = 'graded'
         submission.grade = 8
-        submission.feedback = 'Yana bir marta yaxshilang'
+        submission.feedback = 'Yana bir marta yaxşilang'
         submission.save(update_fields=['status', 'grade', 'feedback'])
 
         self.client.post(submit_url, {
             'submission_type': 'text',
-            'text_content': 'Uchinchi yakuniy vazifa matni',
+            'text_content': 'Uçinçi yakuniy vazifa matni',
         })
 
         submission.refresh_from_db()
@@ -906,10 +906,10 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
         self.assertIsNone(submission.grade)
         self.assertEqual(len(revisions), 2)
         self.assertEqual(revisions[0].status, 'revision')
-        self.assertIn('Birinchi yuborilgan', revisions[0].text_content)
+        self.assertIn('Birinçi yuborilgan', revisions[0].text_content)
         self.assertEqual(revisions[1].status, 'graded')
         self.assertEqual(revisions[1].grade, 8)
-        self.assertIn('Ikkinchi tuzatilgan', revisions[1].text_content)
+        self.assertIn('Ikkinçi tuzatilgan', revisions[1].text_content)
 
         history_response = self.client.get(
             reverse('api_hw_history', args=[lesson.pk])
@@ -917,8 +917,8 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
         history = history_response.json()['history']
         self.assertEqual(len(history), 3)
         self.assertEqual([item['version'] for item in history], [1, 2, 3])
-        self.assertIn('Birinchi yuborilgan', history[0]['text_content'])
-        self.assertIn('Uchinchi yakuniy', history[2]['text_content'])
+        self.assertIn('Birinçi yuborilgan', history[0]['text_content'])
+        self.assertIn('Uçinçi yakuniy', history[2]['text_content'])
 
     def test_teacher_requested_resubmission_is_allowed_after_deadline(self):
         lesson = Lesson.objects.create(
@@ -950,7 +950,7 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
 
         response = self.client.post(reverse('api_hw_submit', args=[lesson.pk]), {
             'submission_type': 'text',
-            'text_content': 'Deadline tugagach tuzatilgan yangi javob',
+            'text_content': 'Deadline tugagaç tuzatilgan yangi javob',
         })
 
         self.assertEqual(response.status_code, 200)
@@ -980,7 +980,7 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
         submit_url = reverse('api_hw_submit', args=[lesson.pk])
         payload = {
             'submission_type': 'text',
-            'text_content': 'Premium foydalanuvchining topshirilgan vazifasi',
+            'text_content': 'Premium foydalanuvçining topşirilgan vazifasi',
         }
 
         self.client.post(submit_url, payload)
@@ -1016,7 +1016,7 @@ class AdminCoinHistoryTests(TestCase):
             'user_id': self.student.pk,
             'amount': 25,
             'action': 'add',
-            'reason': 'Faollik uchun',
+            'reason': 'Faollik uçun',
         })
         self.client.post(url, {
             'user_id': self.student.pk,
@@ -1026,7 +1026,7 @@ class AdminCoinHistoryTests(TestCase):
         })
 
         self.assertTrue(CoinTransaction.objects.filter(
-            user=self.student, amount=25, action='add', reason='Faollik uchun'
+            user=self.student, amount=25, action='add', reason='Faollik uçun'
         ).exists())
         self.assertTrue(CoinTransaction.objects.filter(
             user=self.student, amount=7, action='remove', reason='Jarima'
@@ -1123,7 +1123,7 @@ class AdminBalanceDeductTests(TestCase):
 
         response = self.client.post(self.url, {
             'amount': '125000',
-            'note': "Noto'g'ri kiritilgan to'lovni tuzatish",
+            'note': "Notöğri kiritilgan tölovni tuzatiş",
         })
 
         self.assertEqual(response.status_code, 200)
@@ -1134,7 +1134,7 @@ class AdminBalanceDeductTests(TestCase):
             amount=125_000,
             operation='deduct',
             added_by=self.admin,
-            note="Noto'g'ri kiritilgan to'lovni tuzatish",
+            note="Notöğri kiritilgan tölovni tuzatiş",
         ).exists())
 
         history = self.client.get(
@@ -1160,7 +1160,7 @@ class AdminBalanceDeductTests(TestCase):
     def test_deduction_cannot_make_balance_negative(self):
         self.client.force_login(self.admin)
 
-        response = self.client.post(self.url, {'amount': '600000', 'note': 'Tuzatish'})
+        response = self.client.post(self.url, {'amount': '600000', 'note': 'Tuzatiş'})
 
         self.assertEqual(response.status_code, 400)
         self.balance.refresh_from_db()
@@ -1188,7 +1188,7 @@ class ITShaharchaApplicationTests(TestCase):
         self.assistant.save()
 
     def test_removed_shaharcha_pages_are_gone(self):
-        # 280f6b99: IT Shaharcha ariza sahifalari va eksport ataylab olib tashlangan.
+        # 280f6b99: IT Şaharça ariza sahifalari va eksport ataylab olib taşlangan.
         for path in ('/qabul-it-shaharcha/', '/qabul-it-creative/', '/dashboard/applications/excel-shaharcha/'):
             with self.subTest(path=path):
                 self.assertEqual(self.client.get(path).status_code, 404)
@@ -1199,9 +1199,9 @@ class ITShaharchaApplicationTests(TestCase):
             first_name='Norm', last_name='User', phone='+998901111111',
             course_interest='Python', is_shaharcha=False
         )
-        # Create shaharcha application
+        # Create şaharça application
         CourseApplication.objects.create(
-            first_name='Shaharcha', last_name='User', phone='+998902222222',
+            first_name='Şaharça', last_name='User', phone='+998902222222',
             course_interest='Kompyuter savodxonligi (IT Creative)',
             school_number='10-maktab', age=15, neighborhood='Birlik',
             is_shaharcha=True
@@ -1209,15 +1209,15 @@ class ITShaharchaApplicationTests(TestCase):
 
         self.client.force_login(self.admin)
         
-        # Default view (course type) should exclude shaharcha applications
+        # Default view (course type) should exclude şaharça applications
         url = reverse('admin_applications')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         apps = response.context['applications']
         self.assertTrue(any(a.first_name == 'Norm' for a in apps))
-        self.assertFalse(any(a.first_name == 'Shaharcha' for a in apps))
+        self.assertFalse(any(a.first_name == 'Şaharça' for a in apps))
 
-        # Shaharcha turi olib tashlangan — bu filtr endi 404 qaytaradi.
+        # Şaharça turi olib taşlangan — bu filtr endi 404 qaytaradi.
         response = self.client.get(url + '?type=shaharcha')
         self.assertEqual(response.status_code, 404)
 
@@ -1232,7 +1232,7 @@ class SurveyResponsesExcelTests(TestCase):
             username='survey-student', password='test-password', role='student',
             phone='+998900000042', first_name='Ali', last_name='Valiyev',
         )
-        self.survey = SurveyForm.objects.create(title="Kurs bo'yicha so'rovnoma")
+        self.survey = SurveyForm.objects.create(title="Kurs böyiça sörovnoma")
         self.first_question = SurveyQuestion.objects.create(
             survey=self.survey, question_text='Kurs sizga yoqdimi?', order=0,
         )
@@ -1266,7 +1266,7 @@ class SurveyResponsesExcelTests(TestCase):
         worksheet = workbook.active
         self.assertEqual(
             [cell.value for cell in worksheet[1]],
-            ["Ism", "Familiya", "To'ldirgan vaqti", 'Kurs sizga yoqdimi?', 'Taklifingiz'],
+            ["Ism", "Familiya", "Töldirgan vaqti", 'Kurs sizga yoqdimi?', 'Taklifingiz'],
         )
         self.assertEqual(
             [worksheet.cell(row=2, column=column).value for column in (1, 2, 4, 5)],

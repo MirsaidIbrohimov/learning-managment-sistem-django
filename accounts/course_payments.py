@@ -26,19 +26,19 @@ def course_page(pk):
 
 
 def has_paid_course(user, profession):
-    """Bir marta sotib olingan kurs keyin qayta to'lovsiz ochiladi."""
+    """Bir marta sotib olingan kurs keyin qayta tölovsiz oçiladi."""
     return TezCheckPaymentOrder.objects.filter(
         student=user, purpose='course', course=profession, status='paid',
     ).exists()
 
 
 def price_changed(request, sale):
-    """Sahifada ko'rsatilgan narx bilan joriy narx farq qilsa, to'lovni boshlamaymiz."""
+    """Sahifada körsatilgan narx bilan joriy narx farq qilsa, tölovni boşlamaymiz."""
     shown = request.POST.get('expected_price')
     if shown is None or shown == str(sale.price):
         return False
-    messages.warning(request, (f"Kurs narxi o‘zgardi (chegirma muddati tugagan bo‘lishi mumkin). "
-                               f"Joriy narx: {sale.price:,} so‘m. Tekshirib, qayta to‘lang.").replace(',', ' '))
+    messages.warning(request, (f"Kurs narxi özgardi (çegirma muddati tugagan bölişi mumkin). "
+                               f"Joriy narx: {sale.price:,} söm. Tekşirib, qayta tölang.").replace(',', ' '))
     return True
 
 
@@ -84,7 +84,7 @@ def create_course_checkout(request, pk):
     try:
         reference = f'LMS-COURSE-{request.user.pk}-{pk}-{uuid.UUID(raw_token).hex}' if raw_token else None
     except (ValueError, TypeError, AttributeError):
-        messages.info(request, 'To‘lov sahifasini yangilab, qayta urinib ko‘ring.')
+        messages.info(request, 'Tölov sahifasini yangilab, qayta urinib köring.')
         return redirect(page)
     if has_paid_course(request.user, profession):
         return redirect(page)
@@ -99,7 +99,7 @@ def create_course_checkout(request, pk):
     amount_minor = sale.price * 100
     orders = TezCheckPaymentOrder.objects.filter(student=request.user, purpose='course', course=profession)
     if orders.filter(status='review').exists():
-        messages.error(request, 'Oldingi to‘lov administrator tekshiruvini talab qiladi.')
+        messages.error(request, 'Oldingi tölov administrator tekşiruvini talab qiladi.')
         return redirect(page)
     order = orders.filter(status='pending').first()
     try:
@@ -117,7 +117,7 @@ def create_course_checkout(request, pk):
                 _apply_successful_payment(order, _payment_data(payment))
                 return redirect(page)
             if order and (bill.get('paid') is True or payment.get('state') == 'succeeded'):
-                raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
+                raise TezCheckError('Oldingi tölov tasdiği kutilmoqda. Qayta tölov qilmang; birozdan söng tekşiring.')
             if order and (checkout_expired(order, bill) or order.amount_minor != amount_minor
                           or order.gateway != gateway
                           or (reference and reference != order.external_reference
@@ -154,7 +154,7 @@ def create_course_checkout(request, pk):
             if not retire_checkout(order):
                 return redirect(page)
             order = None
-        raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
+        raise TezCheckError('Yangi tölov havolasini hozir oçib bölmadi. Qayta urinib köring.')
     except TezCheckError as exc:
         if order:
             order.last_error = str(exc)[:500]
@@ -168,7 +168,7 @@ def create_course_checkout(request, pk):
 @require_POST
 @transaction.atomic
 def pay_course_from_balance(request, pk):
-    """Oylik to'lovdan ortgan balans bilan kursni darhol sotib olish."""
+    """Oylik tölovdan ortgan balans bilan kursni darhol sotib oliş."""
     from .balance_spend import BalanceError, spend_balance
     if not request.user.is_learner or request.user.is_finished:
         raise Http404
@@ -176,13 +176,13 @@ def pay_course_from_balance(request, pk):
     if not profession.is_sold_once or profession.is_mandatory:
         raise Http404
     page = course_page(pk)
-    # Bir o'quvchining parallel xaridlarini ketma-ket bajarish.
+    # Bir öquvçining parallel xaridlarini ketma-ket bajariş.
     CustomUser.objects.select_for_update().get(pk=request.user.pk)
     if has_paid_course(request.user, profession):
         return redirect(page)
     if TezCheckPaymentOrder.objects.filter(
             student=request.user, purpose='course', course=profession, status='review').exists():
-        messages.error(request, 'Oldingi to‘lov administrator tekshiruvini talab qiladi.')
+        messages.error(request, 'Oldingi tölov administrator tekşiruvini talab qiladi.')
         return redirect(page)
     sale = course_price(profession)
     if price_changed(request, sale):
@@ -204,8 +204,8 @@ def pay_course_from_balance(request, pk):
     enroll_paid_student(request.user, profession)
     Message.objects.create(
         recipient=request.user, message_type='payment', title='Kurs sotib olindi',
-        content=(f"'{profession.name}' kursi balansingizdan {price:,} so‘mga sotib olindi. "
-                 f"Qolgan balans: {left:,} so‘m.").replace(',', ' '),
+        content=(f"'{profession.name}' kursi balansingizdan {price:,} sömga sotib olindi. "
+                 f"Qolgan balans: {left:,} söm.").replace(',', ' '),
     )
     try:
         from telegram_bot.utils import notify_admins
@@ -213,11 +213,11 @@ def pay_course_from_balance(request, pk):
             f"💳 <b>Kurs balansdan sotib olindi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📖 {profession.name}\n"
-            f"💰 {price:,} so'm (balansdan)"
+            f"💰 {price:,} söm (balansdan)"
         )
     except Exception:
         pass
-    messages.success(request, f"'{profession.name}' kursi sotib olindi! O‘qishni boshlashingiz mumkin.")
+    messages.success(request, f"'{profession.name}' kursi sotib olindi! Öqişni boşlaşingiz mumkin.")
     return redirect('profession_detail', pk=pk)
 
 
@@ -230,7 +230,7 @@ def course_checkout_status(request, pk):
 
 
 def enroll_paid_student(user, profession):
-    """Kursga yozadi; qayta yozilishda eski progress tozalanadi."""
+    """Kursga yozadi; qayta yozilişda eski progress tozalanadi."""
     CourseUnenrollRequest.objects.filter(user=user, profession=profession).delete()
     CourseEnrollmentRequest.objects.filter(user=user, profession=profession).delete()
     _, created = CourseEnrollment.objects.get_or_create(user=user, profession=profession)
@@ -238,7 +238,7 @@ def enroll_paid_student(user, profession):
         from .views import _reset_course_progress
         from .course_membership import notify_student_joined
         _reset_course_progress(user, profession)
-        notify_student_joined(user, profession, how="Kurs sotib olindi (to'lov orqali)")
+        notify_student_joined(user, profession, how="Kurs sotib olindi (tölov orqali)")
     return created
 
 
@@ -255,7 +255,7 @@ def apply_course_payment(order, data):
             student_id=order.student_id, purpose='course', course_id=order.course_id, status='paid',
     ).exclude(pk=order.pk).exists():
         order.status = 'review'
-        order.last_error = 'Kurs avval sotib olingan; qo‘shimcha tushum tekshiruvga yuborildi.'
+        order.last_error = 'Kurs avval sotib olingan; qöşimça tuşum tekşiruvga yuborildi.'
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         return
     order.status = 'paid'
@@ -270,7 +270,7 @@ def apply_course_payment(order, data):
     enroll_paid_student(order.student, order.course)
     Message.objects.create(
         recipient=order.student, message_type='payment', title='Kurs sotib olindi',
-        content=f"{order.get_gateway_display()} orqali to‘lov qabul qilindi. Siz '{order.course.name}' kursiga yozildingiz.",
+        content=f"{order.get_gateway_display()} orqali tölov qabul qilindi. Siz '{order.course.name}' kursiga yozildingiz.",
     )
     try:
         from telegram_bot.utils import notify_admins
@@ -278,7 +278,7 @@ def apply_course_payment(order, data):
             f"💳 <b>Kurs sotib olindi!</b>\n\n"
             f"👤 {order.student.first_name} {order.student.last_name}\n"
             f"📖 {order.course.name}\n"
-            f"💰 {order.amount_som:,} so'm ({order.get_gateway_display()})"
+            f"💰 {order.amount_som:,} söm ({order.get_gateway_display()})"
         )
     except Exception:
         pass
@@ -287,14 +287,14 @@ def apply_course_payment(order, data):
 def refund_course_payment(order, data, *, partial=False):
     if partial or order.status != 'paid' or not order.course_id:
         order.status = 'review'
-        order.last_error = 'Qisman qaytarilgan kurs to‘lovi: administrator tekshiruvi kerak.'
+        order.last_error = 'Qisman qaytarilgan kurs tölovi: administrator tekşiruvi kerak.'
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         return
     CourseEnrollment.objects.filter(user_id=order.student_id, profession_id=order.course_id).delete()
     order.status = 'refunded'
-    order.last_error = 'Kurs to‘lovi qaytarildi; kursga kirish yopildi.'
+    order.last_error = 'Kurs tölovi qaytarildi; kursga kiriş yopildi.'
     order.save(update_fields=['status', 'last_error', 'updated_at'])
     Message.objects.create(
-        recipient=order.student, message_type='payment', title='Kurs to‘lovi qaytarildi',
-        content=f"'{order.course.name}' kursi uchun to‘lov qaytarildi va kursga kirish yopildi.",
+        recipient=order.student, message_type='payment', title='Kurs tölovi qaytarildi',
+        content=f"'{order.course.name}' kursi uçun tölov qaytarildi va kursga kiriş yopildi.",
     )

@@ -51,7 +51,7 @@
         <a class="pf-back" href="{% url 'parents:admin_parents' %}"><i class="bi bi-arrow-left"></i></a>
         <div>
             <h4 style="margin:0;font-weight:800;">{% if parent %}✏️ {{ parent.full_name }}{% else %}👨‍👩‍👧 Yangi ota-ona{% endif %}</h4>
-            <small style="color:var(--bs-secondary-color,#6b7280);">3 qadam: ma’lumot → kirish → farzand. Login va parolni bo‘sh qoldirsangiz, tizim o‘zi tayyorlaydi.</small>
+            <small style="color:var(--bs-secondary-color,#6b7280);">3 qadam: ma’lumot → kiriş → farzand. Login va parolni böş qoldirsangiz, tizim özi tayyorlaydi.</small>
         </div>
     </div>
 
@@ -68,34 +68,34 @@
                     <div class="pf-f">
                         <label for="pf-phone">Telefon raqam *</label>
                         <div class="pf-phone"><span>🇺🇿 +998</span><input id="pf-phone" name="phone" inputmode="numeric" value="{{ form.phone }}" placeholder="90 123 45 67" required autocomplete="off"></div>
-                        <div class="pf-hint" id="pfPhoneHint">Faqat O‘zbekiston raqami — 9 ta raqam.</div>
+                        <div class="pf-hint" id="pfPhoneHint">Faqat Özbekiston raqami — 9 ta raqam.</div>
                     </div>
                     <div class="pf-f" style="margin-bottom:0;"><label for="pf-email">Email (ixtiyoriy)</label><input id="pf-email" class="pf-in" type="email" name="email" value="{{ form.email }}" placeholder="email@example.com"></div>
                 </div>
 
                 <div class="pf-card">
-                    <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">2</span> Kirish ma’lumotlari</h5>
+                    <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">2</span> Kiriş ma’lumotlari</h5>
                     <div class="pf-f">
                         <label for="pf-user">Login</label>
-                        <input id="pf-user" class="pf-in" name="username" value="{{ form.username }}" maxlength="150" placeholder="Bo‘sh qoldirsangiz — telefon raqami">
-                        <div class="pf-hint">Bo‘sh bo‘lsa, telefon raqami login bo‘ladi (masalan <b>901234567</b>) — eslab qolish oson.</div>
+                        <input id="pf-user" class="pf-in" name="username" value="{{ form.username }}" maxlength="150" placeholder="Böş qoldirsangiz — telefon raqami">
+                        <div class="pf-hint">Böş bölsa, telefon raqami login böladi (masalan <b>901234567</b>) — eslab qoliş oson.</div>
                     </div>
                     <div class="pf-f" style="margin-bottom:0;">
-                        <label for="pf-pass">Parol {% if parent %}(o‘zgartirish uchun){% endif %}</label>
+                        <label for="pf-pass">Parol {% if parent %}(özgartiriş uçun){% endif %}</label>
                         <div class="pf-pass">
-                            <input id="pf-pass" class="pf-in" type="text" name="password" placeholder="{% if parent %}Bo‘sh — eski parol qoladi{% else %}Bo‘sh — avtomatik yaratiladi{% endif %}">
-                            <button type="button" class="pf-sbtn" id="pfGen" data-suggest="{{ suggested_password }}"><i class="bi bi-magic"></i> Yaratish</button>
+                            <input id="pf-pass" class="pf-in" type="text" name="password" placeholder="{% if parent %}Böş — eski parol qoladi{% else %}Böş — avtomatik yaratiladi{% endif %}">
+                            <button type="button" class="pf-sbtn" id="pfGen" data-suggest="{{ suggested_password }}"><i class="bi bi-magic"></i> Yaratiş</button>
                         </div>
-                        <div class="pf-hint" id="pfPassHint">Kamida 10 belgi. “Yaratish” tugmasi eslab qolish oson parol beradi.</div>
+                        <div class="pf-hint" id="pfPassHint">Kamida 10 belgi. “Yaratiş” tugmasi eslab qoliş oson parol beradi.</div>
                     </div>
                 </div>
             </div>
 
             <div class="pf-card">
-                <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">3</span> Farzandlarni biriktirish
+                <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">3</span> Farzandlarni biriktiriş
                     <span id="pfCount" style="margin-left:auto;font-size:.75rem;padding:.15rem .55rem;border-radius:99px;background:rgba(99,102,241,.1);color:#6366f1;">0</span></h5>
                 <div class="pf-chips" id="pfChips"><span class="empty">Hali farzand tanlanmagan — quyidan qidiring 👇</span></div>
-                <input class="pf-in" id="pfSearch" placeholder="🔍 Ism, telefon yoki kurs bo‘yicha qidiring..." style="margin-bottom:.6rem;">
+                <input class="pf-in" id="pfSearch" placeholder="🔍 Ism, telefon yoki kurs böyiça qidiring..." style="margin-bottom:.6rem;">
                 <div class="pf-list" id="pfList">
                     {% for s in students %}
                     <label class="pf-st" data-search="{{ s.first_name|lower }} {{ s.last_name|lower }} {{ s.username|lower }} {{ s.phone|default:'' }}{% for e in s.enrollments.all %} {{ e.profession.name|lower }}{% endfor %}">
@@ -106,12 +106,12 @@
                         {% with ps=s.parents.all %}{% if ps %}<span class="tag" title="{% for p in ps %}{{ p.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ ps|length }} ota-ona bor</span>{% endif %}{% endwith %}
                     </label>
                     {% empty %}
-                    <p style="padding:1rem;margin:0;color:#9ca3af;">O‘quvchilar mavjud emas.</p>
+                    <p style="padding:1rem;margin:0;color:#9ca3af;">Öquvçilar mavjud emas.</p>
                     {% endfor %}
-                    <p id="pfNone" style="display:none;padding:1rem;margin:0;color:#9ca3af;text-align:center;">Hech kim topilmadi.</p>
+                    <p id="pfNone" style="display:none;padding:1rem;margin:0;color:#9ca3af;text-align:center;">Heç kim topilmadi.</p>
                 </div>
                 <div class="pf-save">
-                    <button type="submit"><i class="bi bi-check-lg"></i> {% if parent %}Saqlash{% else %}Ota-onani qo‘shish{% endif %}</button>
+                    <button type="submit"><i class="bi bi-check-lg"></i> {% if parent %}Saqlaş{% else %}Ota-onani qöşiş{% endif %}</button>
                     <a href="{% url 'parents:admin_parents' %}">Bekor</a>
                 </div>
             </div>
@@ -121,7 +121,7 @@
 
 <script>
 (function () {
-    /* Telefon: faqat raqam, "90 123 45 67" ko'rinishida */
+    /* Telefon: faqat raqam, "90 123 45 67" körinişida */
     var phone = document.getElementById('pf-phone'), hint = document.getElementById('pfPhoneHint');
     function fmt(v) {
         var d = v.replace(/\D/g, '');
@@ -133,18 +133,18 @@
     function checkPhone() {
         var r = fmt(phone.value);
         phone.value = r.text;
-        if (!r.digits) { hint.className = 'pf-hint'; hint.textContent = 'Faqat O‘zbekiston raqami — 9 ta raqam.'; return true; }
+        if (!r.digits) { hint.className = 'pf-hint'; hint.textContent = 'Faqat Özbekiston raqami — 9 ta raqam.'; return true; }
         var ok = r.digits.length === 9 && r.digits[0] !== '0';
         hint.className = 'pf-hint ' + (ok ? 'ok' : 'err');
         hint.textContent = ok ? '✓ +998 ' + r.text : 'Yana ' + (9 - r.digits.length) + ' ta raqam kiriting';
-        if (r.digits.length === 9 && r.digits[0] === '0') hint.textContent = 'Raqam 0 bilan boshlanmaydi (masalan 90, 91, 93, 99...)';
+        if (r.digits.length === 9 && r.digits[0] === '0') hint.textContent = 'Raqam 0 bilan boşlanmaydi (masalan 90, 91, 93, 99...)';
         return ok;
     }
     phone.addEventListener('input', checkPhone); checkPhone();
 
-    /* Parol yaratish */
+    /* Parol yaratiş */
     var pass = document.getElementById('pf-pass'), gen = document.getElementById('pfGen');
-    var A = ['Bahor','Quyosh','Osmon','Daryo','Lola','Yulduz','Bulut','Tog','Bog','Nur'], B = ['Kitob','Qalam','Maktab','Dars','Bilim','Ilm','Daftar','Sinf','Ustoz','Zakovat'];
+    var A = ['Bahor','Quyoş','Osmon','Daryo','Lola','Yulduz','Bulut','Tog','Bog','Nur'], B = ['Kitob','Qalam','Maktab','Dars','Bilim','Ilm','Daftar','Sinf','Ustoz','Zakovat'];
     var first = true;
     gen.addEventListener('click', function () {
         if (first && gen.dataset.suggest) { pass.value = gen.dataset.suggest; first = false; }
@@ -158,12 +158,12 @@
     var ph = document.getElementById('pfPassHint');
     pass.addEventListener('input', function () {
         var n = pass.value.length;
-        if (!n) { ph.className = 'pf-hint'; ph.textContent = 'Kamida 10 belgi. “Yaratish” tugmasi eslab qolish oson parol beradi.'; return; }
+        if (!n) { ph.className = 'pf-hint'; ph.textContent = 'Kamida 10 belgi. “Yaratiş” tugmasi eslab qoliş oson parol beradi.'; return; }
         ph.className = 'pf-hint ' + (n >= 10 ? 'ok' : 'err');
-        ph.textContent = n >= 10 ? '✓ Parol saqlangandan keyin bir marta ko‘rsatiladi — ota-onaga bering.' : 'Yana ' + (10 - n) + ' ta belgi kerak';
+        ph.textContent = n >= 10 ? '✓ Parol saqlangandan keyin bir marta körsatiladi — ota-onaga bering.' : 'Yana ' + (10 - n) + ' ta belgi kerak';
     });
 
-    /* Farzandlar: qidiruv + chiplar */
+    /* Farzandlar: qidiruv + çiplar */
     var list = document.getElementById('pfList'), chips = document.getElementById('pfChips'), count = document.getElementById('pfCount');
     var boxes = Array.prototype.slice.call(list.querySelectorAll('input[type=checkbox]'));
     function render() {
@@ -173,7 +173,7 @@
         on.forEach(function (b) {
             b.closest('.pf-st').classList.add('on');
             var c = document.createElement('span'); c.className = 'pf-chip'; c.textContent = b.dataset.name;
-            var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Olib tashlash'); x.innerHTML = '<i class="bi bi-x-lg"></i>';
+            var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Olib taşlaş'); x.innerHTML = '<i class="bi bi-x-lg"></i>';
             x.addEventListener('click', function () { b.checked = false; b.closest('.pf-st').classList.remove('on'); render(); });
             c.appendChild(x); chips.appendChild(c);
         });

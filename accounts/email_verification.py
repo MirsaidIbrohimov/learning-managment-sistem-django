@@ -36,9 +36,9 @@ def send_verification(user, request=None):
         return False
     try:
         return send_mail('IT Creative Academy — Emailni tasdiqlang',
-            f'@{user.username} hisobingizga emailni bog‘lash uchun havolani oching:\n\n{url}\n\n'
-            'Havola 24 soat amal qiladi. Faqat o‘zingiz yaratgan hisob uchun tasdiqlang. '
-            'Bu hisob sizniki bo‘lmasa, havolani ochmang — email bog‘lanmaydi.',
+            f'@{user.username} hisobingizga emailni boğlaş uçun havolani oçing:\n\n{url}\n\n'
+            'Havola 24 soat amal qiladi. Faqat özingiz yaratgan hisob uçun tasdiqlang. '
+            'Bu hisob sizniki bölmasa, havolani oçmang — email boğlanmaydi.',
             settings.DEFAULT_FROM_EMAIL, [user.pending_email], fail_silently=False) == 1
     except Exception:
         logging.getLogger(__name__).warning('Email verification delivery failed for user %s', user.pk)
@@ -86,7 +86,7 @@ def resend_verification(request):
     if blocked:
         messages.error(request, message)
     elif send_verification(request.user, request):
-        messages.success(request, 'Emailni tasdiqlash havolasi qayta yuborildi.')
+        messages.success(request, 'Emailni tasdiqlaş havolasi qayta yuborildi.')
     else:
-        messages.error(request, 'Havola yuborilmadi. Email manzilini tekshiring va keyinroq qayta urining.')
+        messages.error(request, 'Havola yuborilmadi. Email manzilini tekşiring va keyinroq qayta urining.')
     return redirect('profile_edit')

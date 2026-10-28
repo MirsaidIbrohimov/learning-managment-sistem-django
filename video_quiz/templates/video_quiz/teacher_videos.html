@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Videodagi Testlar - O'qituvchi paneli{% endblock %}
+{% block title %}Videodagi Testlar - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Videodagi Testlar{% endblock %}
 
 {% block teacher_content %}
@@ -92,11 +92,11 @@
 </style>
 
 {% if view_mode == 'courses' %}
-<!-- ===== KURSLAR RO'YXATI ===== -->
+<!-- ===== KURSLAR RÖYXATI ===== -->
 <div class="vq-hero">
     <div>
         <h1><i class="bi bi-collection-play-fill"></i> Videodagi Testlar — Kurslarim</h1>
-        <p>Kursni tanlang — o'sha kursning videolari va testlari ochiladi</p>
+        <p>Kursni tanlang — öşa kursning videolari va testlari oçiladi</p>
     </div>
     <div class="vq-hero-stats">
         <div class="vq-hstat"><b>{{ total_courses }}</b><span>Kurslar</span></div>
@@ -118,9 +118,9 @@
             <div class="vq-title">{{ c.profession.name }}</div>
             <div class="vq-meta">
                 <div><i class="bi bi-patch-question-fill"></i> {{ c.quiz_count }} test</div>
-                <div><i class="bi bi-cash-stack"></i> {{ c.income }} so'm</div>
+                <div><i class="bi bi-cash-stack"></i> {{ c.income }} söm</div>
             </div>
-            <span class="vq-manage"><i class="bi bi-folder2-open"></i> Videolarni ochish</span>
+            <span class="vq-manage"><i class="bi bi-folder2-open"></i> Videolarni oçiş</span>
         </div>
     </a>
     {% endfor %}
@@ -137,21 +137,21 @@
 <!-- ===== TANLANGAN KURS VIDEOLARI ===== -->
 <div class="vq-hero">
     <div>
-        <a href="{% url 'video_quiz:teacher_videos' %}" class="vq-back"><i class="bi bi-arrow-left"></i> Kurslarga qaytish</a>
+        <a href="{% url 'video_quiz:teacher_videos' %}" class="vq-back"><i class="bi bi-arrow-left"></i> Kurslarga qaytiş</a>
         <h1><i class="bi bi-play-btn-fill"></i> {{ profession.name }}</h1>
-        <p>Video ichiga interaktiv testlar joylashtiring — o'quvchilar diqqati va daromadingiz oshadi</p>
+        <p>Video içiga interaktiv testlar joylaştiring — öquvçilar diqqati va daromadingiz oşadi</p>
     </div>
     <div class="vq-hero-stats">
         <div class="vq-hstat"><b>{{ total_quizzes }}</b><span>Jami test</span></div>
-        <div class="vq-hstat"><b>{{ total_attempts }}</b><span>Urinishlar</span></div>
-        <div class="vq-hstat"><b>{{ total_income }}</b><span>Daromad (so'm)</span></div>
+        <div class="vq-hstat"><b>{{ total_attempts }}</b><span>Urinişlar</span></div>
+        <div class="vq-hstat"><b>{{ total_income }}</b><span>Daromad (söm)</span></div>
     </div>
 </div>
 
 {% if cards %}
 <div class="vq-search">
     <i class="bi bi-search"></i>
-    <input type="text" id="vqSearch" placeholder="Video nomi bo'yicha qidirish..." autocomplete="off">
+    <input type="text" id="vqSearch" placeholder="Video nomi böyiça qidiriş..." autocomplete="off">
 </div>
 <div class="vq-grid" id="vqGrid">
     {% for c in cards %}
@@ -166,14 +166,14 @@
             <div class="vq-title">{{ c.video.lesson.title }}</div>
             <div class="vq-course"><i class="bi bi-mortarboard"></i> {{ c.video.lesson.profession.name }}</div>
             <div class="vq-meta">
-                <div><i class="bi bi-people-fill"></i> {{ c.attempt_count }} urinish</div>
-                <div><i class="bi bi-cash-stack"></i> {{ c.income }} so'm</div>
+                <div><i class="bi bi-people-fill"></i> {{ c.attempt_count }} uriniş</div>
+                <div><i class="bi bi-cash-stack"></i> {{ c.income }} söm</div>
                 <div style="grid-column:1/-1;"><i class="bi bi-arrow-clockwise"></i>
-                    {% if c.updated_at %}Yangilangan: {{ c.updated_at|date:"d.m.Y H:i" }}{% else %}Hali test qo'shilmagan{% endif %}
+                    {% if c.updated_at %}Yangilangan: {{ c.updated_at|date:"d.m.Y H:i" }}{% else %}Hali test qöşilmagan{% endif %}
                 </div>
             </div>
             <a href="{% url 'video_quiz:teacher_manager' c.video.pk %}" class="vq-manage">
-                <i class="bi bi-sliders"></i> Testlarni boshqarish
+                <i class="bi bi-sliders"></i> Testlarni boşqariş
             </a>
         </div>
     </div>
@@ -181,8 +181,8 @@
 </div>
 <div class="vq-empty vq-noresult" id="vqNoResult">
     <i class="bi bi-search"></i>
-    <h5 style="font-weight:800;">Hech narsa topilmadi</h5>
-    <p>Qidiruv so'zini o'zgartirib ko'ring.</p>
+    <h5 style="font-weight:800;">Heç narsa topilmadi</h5>
+    <p>Qidiruv sözini özgartirib köring.</p>
 </div>
 <script>
 (function() {
@@ -206,11 +206,11 @@
 <div class="vq-empty">
     <i class="bi bi-camera-video-off"></i>
     <h5 style="font-weight:800;">Videolar topilmadi</h5>
-    <p>Bu kursda hali video darslar yo'q.</p>
+    <p>Bu kursda hali video darslar yöq.</p>
 </div>
 {% endif %}
 {% endif %}
 {% endblock %}
 
-{# Bu fayl: ustozning videolari — har birida test soni, urinishlar, daromad #}
-{# va "Testlarni boshqarish" tugmasi bilan premium kartalar to'plami. #}
+{# Bu fayl: ustozning videolari — har birida test soni, urinişlar, daromad #}
+{# va "Testlarni boşqariş" tugmasi bilan premium kartalar töplami. #}

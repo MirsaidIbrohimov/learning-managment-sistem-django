@@ -107,7 +107,7 @@
 
 .dt-skeleton { background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%); background-size: 200% 100%; animation: mktShimmer 1.5s infinite; border-radius: 14px; }
 
-/* Toast (JS dt-toast klassini ishlatadi) */
+/* Toast (JS dt-toast klassini işlatadi) */
 .dt-toast {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     padding: 0.75rem 1.4rem; border-radius: 99px;
@@ -177,11 +177,11 @@
 
 <div class="dt-modal-overlay" id="purchaseModal">
     <div class="dt-modal">
-        <h3><i class="bi bi-cart-check"></i> Xaridni tasdiqlash</h3>
+        <h3><i class="bi bi-cart-check"></i> Xaridni tasdiqlaş</h3>
         <div class="dt-modal-info" id="modalInfo"></div>
         <div class="dt-modal-actions">
-            <button class="dt-modal-cancel" onclick="closeModal()">Bekor qilish</button>
-            <button class="dt-modal-confirm" id="confirmBtn" onclick="confirmPurchase()"><i class="bi bi-check-lg"></i> Sotib olish</button>
+            <button class="dt-modal-cancel" onclick="closeModal()">Bekor qiliş</button>
+            <button class="dt-modal-confirm" id="confirmBtn" onclick="confirmPurchase()"><i class="bi bi-check-lg"></i> Sotib oliş</button>
         </div>
     </div>
 </div>
@@ -204,8 +204,8 @@
     function fmtDate(iso) { return new Date(iso).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}); }
     function fmtTime(iso) { return new Date(iso).toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 
-    // Izoh matni va ismlar boshqa foydalanuvchi kiritgan ma'lumot — `innerHTML`
-    // ga qo'yishdan oldin escape qilinadi (stored XSS).
+    // Izoh matni va ismlar boşqa foydalanuvçi kiritgan ma'lumot — `innerHTML`
+    // ga qöyişdan oldin escape qilinadi (stored XSS).
     function esc(s) {
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
             return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -247,7 +247,7 @@
                         <i class="bi ${p.is_liked?'bi-heart-fill':'bi-heart'}"></i>
                     </button>
                     <button class="dt-purchase-btn" id="dtBuyBtn" ${outOfStock||!canAfford?'disabled':''} onclick="openModal()">
-                        <i class="bi bi-cart-plus"></i> ${outOfStock?'Tugagan':!canAfford?'Coin yetarli emas':'Sotib olish'}
+                        <i class="bi bi-cart-plus"></i> ${outOfStock?'Tugagan':!canAfford?'Coin yetarli emas':'Sotib oliş'}
                     </button>
                 </div>`;
         } catch(e) {
@@ -263,10 +263,10 @@
             let h = `<h3 class="dt-comments-title"><i class="bi bi-chat-dots"></i> Izohlar (${d.count})</h3>
                 <div class="dt-comment-form">
                     <textarea class="dt-comment-input" id="commentInput" placeholder="Izoh yozing..." rows="1"></textarea>
-                    <button class="dt-comment-submit" onclick="addComment()"><i class="bi bi-send"></i> Yuborish</button>
+                    <button class="dt-comment-submit" onclick="addComment()"><i class="bi bi-send"></i> Yuboriş</button>
                 </div>
                 <div class="dt-comment-list" id="commentList">`;
-            if(!d.results.length) { h+='<p style="color:var(--mkt-dim);text-align:center;padding:1rem;">Hali izohlar yo\'q</p>'; }
+            if(!d.results.length) { h+='<p style="color:var(--mkt-dim);text-align:center;padding:1rem;">Hali izohlar yöq</p>'; }
             else {
                 h += d.results.map(c => `<div class="dt-comment">
                     <div class="dt-comment-avatar">${esc((c.full_name||c.username||'?')[0].toUpperCase())}</div>
@@ -289,7 +289,7 @@
             }
             document.getElementById('dtComments').innerHTML = h;
         } catch(e) {
-            document.getElementById('dtComments').innerHTML = '<p style="color:var(--mkt-dim)">Izohlarni yuklab bo\'lmadi</p>';
+            document.getElementById('dtComments').innerHTML = '<p style="color:var(--mkt-dim)">Izohlarni yuklab bölmadi</p>';
         }
     }
 
@@ -329,7 +329,7 @@
             loadProduct();
         } catch(e) {
             toast(e.error||'Xatolik yuz berdi','error');
-        } finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Sotib olish'; }
+        } finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Sotib oliş'; }
     };
 
     window.addComment = async function() {
@@ -339,7 +339,7 @@
         try {
             await post(API+'/products/'+PID+'/comments/add/', {content});
             input.value = '';
-            toast("Izoh qo'shildi",'success');
+            toast("Izoh qöşildi",'success');
             loadComments(1);
         } catch(e) {
             toast(e.error||'Xatolik yuz berdi','error');

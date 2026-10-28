@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('telegram_name', models.CharField(blank=True, max_length=200, verbose_name='TG ism')),
                 ('text', models.TextField(verbose_name='Xabar matni')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='telegram_messages', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi')),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='telegram_messages', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi')),
             ],
             options={
                 'verbose_name': 'Telegram xabar',

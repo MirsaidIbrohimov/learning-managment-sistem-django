@@ -1,36 +1,36 @@
 ﻿{% extends 'accounts/base.html' %}
 {% load static %}
-{% block title %}Profilni tahrirlash | IT Creative{% endblock %}
+{% block title %}Profilni tahrirlaş | IT Creative{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
 {% block content %}
 <div class="account-page account-editor">
-<header class="account-heading"><div><span class="account-eyebrow">IT CREATIVE / HISOB SOZLAMALARI</span><h1>Profilni tahrirlash<span class="heading-dot">.</span></h1><p>Ma’lumotlaringizni yangilang va o‘zgarishlarni saqlang.</p></div><a class="account-button" href="{% url 'profile' %}"><i class="bi bi-arrow-left"></i> Profilga qaytish</a></header>
-<div class="account-layout"><aside class="account-sidebar"><section class="account-panel editor-note"><i class="bi bi-info-circle"></i><h2>Shaxsiy ma’lumotlaringiz</h2><p>Yulduzcha (*) bilan belgilangan maydonlar majburiy. O‘zgarishlar “Saqlash” tugmasini bosganingizdan so‘ng qo‘llanadi.</p><p>Yangi email yuborilgan havola orqali tasdiqlangach bog‘lanadi.</p>{% if user.pending_email %}<p>Tasdiqlash kutilmoqda: {{ user.pending_email }}</p>{% endif %}<a href="{% url 'change_password' %}">Parolni o‘zgartirish ↗</a></section></aside>
+<header class="account-heading"><div><span class="account-eyebrow">IT CREATIVE / HISOB SOZLAMALARI</span><h1>Profilni tahrirlaş<span class="heading-dot">.</span></h1><p>Ma’lumotlaringizni yangilang va özgarişlarni saqlang.</p></div><a class="account-button" href="{% url 'profile' %}"><i class="bi bi-arrow-left"></i> Profilga qaytiş</a></header>
+<div class="account-layout"><aside class="account-sidebar"><section class="account-panel editor-note"><i class="bi bi-info-circle"></i><h2>Şaxsiy ma’lumotlaringiz</h2><p>Yulduzça (*) bilan belgilangan maydonlar majburiy. Özgarişlar “Saqlaş” tugmasini bosganingizdan söng qöllanadi.</p><p>Yangi email yuborilgan havola orqali tasdiqlangaç boğlanadi.</p>{% if user.pending_email %}<p>Tasdiqlaş kutilmoqda: {{ user.pending_email }}</p>{% endif %}<a href="{% url 'change_password' %}">Parolni özgartiriş ↗</a></section></aside>
 <form method="post" enctype="multipart/form-data" class="account-main" id="profileEditForm">{% csrf_token %}
-{% if form.errors %}<div class="account-error-summary" role="alert"><strong>Ma’lumotlarni tekshiring</strong><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
-<section class="account-panel edit-section" id="personal"><div class="account-section-heading"><div><span class="account-eyebrow">PROFIL MA’LUMOTLARI</span><h2>O‘zingiz haqingizda</h2><p>Ism, aloqa ma’lumotlari va shaxsiy tanishuv.</p></div></div><div class="edit-fields">
+{% if form.errors %}<div class="account-error-summary" role="alert"><strong>Ma’lumotlarni tekşiring</strong><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul></div>{% endif %}
+<section class="account-panel edit-section" id="personal"><div class="account-section-heading"><div><span class="account-eyebrow">PROFIL MA’LUMOTLARI</span><h2>Özingiz haqingizda</h2><p>Ism, aloqa ma’lumotlari va şaxsiy tanişuv.</p></div></div><div class="edit-fields">
 {% for field in form %}
 <div class="edit-field field-{{ field.name }}"{% if field.name == 'id_card' %} id="documents"{% endif %}>
-<label for="{{ field.id_for_label }}">{% if field.name == 'first_name' %}Ism{% elif field.name == 'last_name' %}Familiya{% elif field.name == 'email' %}Email{% elif field.name == 'phone' %}Telefon raqami{% elif field.name == 'photo' %}Profil rasmi{% elif field.name == 'bio' %}Qisqacha tanishuv{% elif field.name == 'obektivka' %}Obyektivka{% else %}{{ field.label }}{% endif %}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+<label for="{{ field.id_for_label }}">{% if field.name == 'first_name' %}Ism{% elif field.name == 'last_name' %}Familiya{% elif field.name == 'email' %}Email{% elif field.name == 'phone' %}Telefon raqami{% elif field.name == 'photo' %}Profil rasmi{% elif field.name == 'bio' %}Qisqaça tanişuv{% elif field.name == 'obektivka' %}Obyektivka{% else %}{{ field.label }}{% endif %}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
 {% if field.name == 'photo' %}{% if user.photo %}<img class="edit-avatar" id="photoPreview" src="{{ user.photo.url }}" alt="Joriy profil rasmi">{% else %}<img class="edit-avatar" id="photoPreview" alt="Tanlangan profil rasmi" hidden>{% endif %}{% endif %}
 {{ field }}
 {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
 {% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}
 {% if field.name == 'phone' %}<small>Format: +998901234567</small>{% endif %}
-{% if field.name == 'id_card' and user.id_card %}<a class="current-document" href="{{ user.id_card.url }}" target="_blank" rel="noopener">Joriy ID karta / pasportni ko‘rish ↗</a>{% endif %}
-{% if field.name == 'birth_certificate' and user.birth_certificate %}<a class="current-document" href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener">Joriy guvohnomani ko‘rish ↗</a>{% endif %}
+{% if field.name == 'id_card' and user.id_card %}<a class="current-document" href="{{ user.id_card.url }}" target="_blank" rel="noopener">Joriy ID karta / pasportni köriş ↗</a>{% endif %}
+{% if field.name == 'birth_certificate' and user.birth_certificate %}<a class="current-document" href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener">Joriy guvohnomani köriş ↗</a>{% endif %}
 </div>
 {% endfor %}
 </div></section>
-<div class="editor-savebar"><span id="editStatus" role="status">Ma’lumotlarni saqlashga tayyor</span><div><a class="account-button" href="{% url 'profile' %}">Bekor qilish</a><button class="account-button primary" type="submit"><i class="bi bi-check2"></i> O‘zgarishlarni saqlash</button></div></div>
+<div class="editor-savebar"><span id="editStatus" role="status">Ma’lumotlarni saqlaşga tayyor</span><div><a class="account-button" href="{% url 'profile' %}">Bekor qiliş</a><button class="account-button primary" type="submit"><i class="bi bi-check2"></i> Özgarişlarni saqlaş</button></div></div>
 </form></div></div>
 <script>
 (function(){
  const form=document.getElementById('profileEditForm');
  const status=document.getElementById('editStatus');
  let dirty=false, previewUrl=null;
- form.addEventListener('input',()=>{dirty=true;status.textContent='Saqlanmagan o‘zgarishlar bor';});
- form.addEventListener('change',()=>{dirty=true;status.textContent='Saqlanmagan o‘zgarishlar bor';});
+ form.addEventListener('input',()=>{dirty=true;status.textContent='Saqlanmagan özgarişlar bor';});
+ form.addEventListener('change',()=>{dirty=true;status.textContent='Saqlanmagan özgarişlar bor';});
  form.addEventListener('submit',()=>{dirty=false;});
  window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
  const photo=document.getElementById('id_photo');

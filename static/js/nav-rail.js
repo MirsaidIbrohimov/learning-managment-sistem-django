@@ -6,7 +6,7 @@
     crumb.textContent = (document.title.split('|')[0].split('—')[0] || '').trim() || 'IT Creative';
   }
 
-  /* Mobil dock: "Menyu" hozirgi mobil panelni ochadi */
+  /* Mobil dock: "Menyu" hozirgi mobil panelni oçadi */
   var menuBtn = document.getElementById('nrDockMenu'), ham = document.getElementById('nbHamburger');
   if (menuBtn && ham) menuBtn.addEventListener('click', function () { ham.click(); });
 
@@ -16,7 +16,7 @@
   var input = document.getElementById('nrCmdIn'), res = document.getElementById('nrCmdRes');
   var searchUrl = cmd.getAttribute('data-search-url');
   var items = [], shown = [], sel = 0, seen = {};
-  // Elementlar navbardagi haqiqiy havolalardan yig'iladi — ro'yxat rol va ruxsatlarga mos bo'ladi
+  // Elementlar navbardagi haqiqiy havolalardan yiğiladi — röyxat rol va ruxsatlarga mos böladi
   document.querySelectorAll('[data-cmd-group] a[href]').forEach(function (a) {
     var label = (a.getAttribute('data-cmd-label') || a.textContent).replace(/\s+/g, ' ').trim();
     var href = a.getAttribute('href');
@@ -31,7 +31,7 @@
   function render() {
     var raw = input.value.trim(), q = norm(raw);
     shown = items.filter(function (x) { return !q || norm(x.label).indexOf(q) >= 0; }).slice(0, 12);
-    if (raw && searchUrl) shown.push({ g: 'QIDIRUV', label: '“' + raw + '” — butun sayt bo‘yicha qidirish', href: searchUrl + '?q=' + encodeURIComponent(raw), icon: 'bi bi-search', all: true });
+    if (raw && searchUrl) shown.push({ g: 'QIDIRUV', label: '“' + raw + '” — butun sayt böyiça qidiriş', href: searchUrl + '?q=' + encodeURIComponent(raw), icon: 'bi bi-search', all: true });
     sel = Math.min(sel, Math.max(0, shown.length - 1));
     if (!shown.length) { res.innerHTML = '<div class="it" style="justify-content:center;color:var(--nr-muted)">Sahifa nomini yozing</div>'; return; }
     var html = '', grp = '';

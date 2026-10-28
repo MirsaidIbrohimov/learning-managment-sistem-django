@@ -52,33 +52,33 @@
                     <div class="mb-3">
                         <label class="form-label">Savol matni <span class="text-danger">*</span></label>
                         <textarea name="text" class="form-control" rows="3" required
-                                  placeholder="Masalan: HTML da havola yaratish uchun qaysi teg ishlatiladi?">{{ question.text|default:'' }}</textarea>
+                                  placeholder="Masalan: HTML da havola yaratiş uçun qaysi teg işlatiladi?">{{ question.text|default:'' }}</textarea>
                     </div>
 
                     <div class="answer-box mb-3">
                         <label class="form-label mb-1">
                             <i class="bi bi-shield-lock text-success"></i>
-                            To'g'ri javob <span class="text-danger">*</span>
+                            Töğri javob <span class="text-danger">*</span>
                         </label>
                         <textarea name="correct_text" class="form-control" rows="2" required
                                   placeholder="Masalan: &lt;a&gt; tegi">{{ question.correct_text|default:'' }}</textarea>
                         <small class="text-muted">
-                            Bu matn faqat boshqaruvchiga (admin/o'qituvchi) ko'rinadi — o'quvchining ekraniga hech qachon yuborilmaydi.
+                            Bu matn faqat boşqaruvçiga (admin/öqituvchi) körinadi — öquvçining ekraniga heç qaçon yuborilmaydi.
                         </small>
                     </div>
 
                     <div class="opt-hint mb-3">
                         <i class="bi bi-info-circle"></i>
-                        Jumanji <strong>test emas</strong>: o'quvchi savolni ko'radi va javobni
-                        <strong>og'zaki</strong> aytadi, boshqaruvchi esa "To'g'ri / Noto'g'ri" tugmasi bilan baholaydi.
+                        Jumanji <strong>test emas</strong>: öquvçi savolni köradi va javobni
+                        <strong>oğzaki</strong> aytadi, boşqaruvçi esa "Töğri / Notöğri" tugmasi bilan baholaydi.
                         Har bir savolga <strong>60 soniya</strong> beriladi.
                     </div>
 
                     <div class="row g-3 mb-3">
                         <div class="col-md-5">
-                            <label class="form-label">Yo'nalish (kurs)</label>
+                            <label class="form-label">Yönaliş (kurs)</label>
                             <select name="profession" class="form-select">
-                                <option value="">Umumiy (yo'nalishsiz)</option>
+                                <option value="">Umumiy (yönalişsiz)</option>
                                 {% for p in professions %}
                                 <option value="{{ p.pk }}" {% if question.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
                                 {% endfor %}
@@ -88,7 +88,7 @@
                             <label class="form-label">Qiyinlik</label>
                             <select name="difficulty" class="form-select">
                                 <option value="easy" {% if question.difficulty == 'easy' %}selected{% endif %}>Oson</option>
-                                <option value="medium" {% if question.difficulty == 'medium' or not question %}selected{% endif %}>O'rta</option>
+                                <option value="medium" {% if question.difficulty == 'medium' or not question %}selected{% endif %}>Örta</option>
                                 <option value="hard" {% if question.difficulty == 'hard' %}selected{% endif %}>Qiyin</option>
                             </select>
                         </div>
@@ -106,7 +106,7 @@
                             <img src="{{ question.image.url }}" alt="Savol rasmi" class="preview-img">
                             <div class="form-check">
                                 <input type="checkbox" name="remove_image" class="form-check-input" id="removeImage">
-                                <label class="form-check-label small" for="removeImage">Rasmni o'chirish</label>
+                                <label class="form-check-label small" for="removeImage">Rasmni öçiriş</label>
                             </div>
                         </div>
                         {% endif %}
@@ -115,12 +115,12 @@
                     <div class="form-check form-switch">
                         <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
                                {% if question.is_active or not question %}checked{% endif %}>
-                        <label class="form-check-label fw-semibold" for="isActive">Faol (o'yinda chiqadi)</label>
+                        <label class="form-check-label fw-semibold" for="isActive">Faol (öyinda çiqadi)</label>
                     </div>
                 </div>
                 <div class="card-footer bg-transparent border-0 p-4 pt-0 d-flex gap-2 justify-content-end">
-                    <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-outline-secondary" style="border-radius: 12px;">Bekor qilish</a>
-                    <button type="submit" class="btn btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                    <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-outline-secondary" style="border-radius: 12px;">Bekor qiliş</a>
+                    <button type="submit" class="btn btn-save"><i class="bi bi-check-lg"></i> Saqlaş</button>
                 </div>
             </form>
         </div>

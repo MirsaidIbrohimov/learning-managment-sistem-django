@@ -7,5 +7,5 @@ register = template.Library()
 
 @register.simple_tag
 def get_app_entries():
-    """Navbar uchun barcha platformalar: [{key, label, icon, color, release|None}] (keshlangan)."""
+    """Navbar uçun barça platformalar: [{key, label, icon, color, release|None}] (keşlangan)."""
     return platform_entries()

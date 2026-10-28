@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 
 {% block title %}
-{% if lesson_type == 'video' %}Video darslik{% elif lesson_type == 'homework' %}Uyga vazifa{% elif lesson_type == 'dictionary' %}Lug'at{% elif lesson_type == 'speaking' %}Speaking{% else %}Quiz{% endif %} qo'shish - LMS
+{% if lesson_type == 'video' %}Video darslik{% elif lesson_type == 'homework' %}Uyga vazifa{% elif lesson_type == 'dictionary' %}Luğat{% elif lesson_type == 'speaking' %}Speaking{% else %}Quiz{% endif %} qöşiş - LMS
 {% endblock %}
 
 {% block extra_css %}
@@ -444,9 +444,9 @@
             <h3>
                 {% if lesson_type == 'video' %}Video darslik
                 {% elif lesson_type == 'homework' %}Uyga vazifa
-                {% elif lesson_type == 'dictionary' %}Lug'at
+                {% elif lesson_type == 'dictionary' %}Luğat
                 {% elif lesson_type == 'speaking' %}Speaking
-                {% else %}Test{% endif %} qo'shish
+                {% else %}Test{% endif %} qöşiş
             </h3>
             <p>{{ profession.name }}</p>
         </div>
@@ -471,13 +471,13 @@
                 </div>
 
                 <div class="al-group">
-                    <label class="al-label">Bo'lim</label>
+                    <label class="al-label">Bölim</label>
                     <input type="hidden" name="section" id="sectionInput" value="{% if section %}{{ section.pk }}{% endif %}">
                     {% if sections %}
                     <div class="al-section-cards">
                         <div class="al-section-none {% if not section %}active{% endif %}" onclick="selectSection(this, '')">
                             <div class="al-section-none-icon"><i class="bi bi-dash-circle"></i></div>
-                            <div class="al-section-none-text">Bo'limsiz</div>
+                            <div class="al-section-none-text">Bölimsiz</div>
                             <div class="al-section-none-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
                         {% for s in sections %}
@@ -496,17 +496,17 @@
                     {% else %}
                     <div class="al-section-empty">
                         <i class="bi bi-folder-x"></i>
-                        Hali bo'lim yaratilmagan
+                        Hali bölim yaratilmagan
                     </div>
                     {% endif %}
                 </div>
 
                 <div class="al-group">
                     <label class="al-label">
-                        {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% elif lesson_type == 'dictionary' %}Lug'at nomi{% elif lesson_type == 'speaking' %}Vazifa nomi{% else %}Test nomi{% endif %}
+                        {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% elif lesson_type == 'dictionary' %}Luğat nomi{% elif lesson_type == 'speaking' %}Vazifa nomi{% else %}Test nomi{% endif %}
                     </label>
                     {% if lesson_type == 'speaking' %}
-                    <input type="text" name="title" class="form-control" placeholder="Masalan: O'zingiz haqingizda gapiring" required>
+                    <input type="text" name="title" class="form-control" placeholder="Masalan: Özingiz haqingizda gapiring" required>
                     {% else %}
                     {{ form.title }}
                     {% endif %}
@@ -537,17 +537,17 @@
                 <div class="al-group">
                     <label class="al-label"><i class="bi bi-stopwatch me-1"></i> Davomiyligi (daqiqa)</label>
                     {{ form.duration }}
-                    <div class="al-hint">Bo'sh qoldiring — server o'zi aniqlaydi. Faqat "davomiylik aniqlanmadi" xabari kelsa to'ldiring.</div>
+                    <div class="al-hint">Böş qoldiring — server özi aniqlaydi. Faqat "davomiylik aniqlanmadi" xabari kelsa töldiring.</div>
                 </div>
 
                 <div class="al-info-card" style="background: linear-gradient(135deg, rgba(52,199,89,0.08), rgba(59,130,246,0.08)); border-color: rgba(52,199,89,0.2); margin-top: 0.5rem;">
                     <i class="bi bi-stopwatch" style="color: #34c759;"></i>
-                    <span>Video davomiyligi avtomatik aniqlanadi — o'quvchi videoning 90% ini ko'rgach "Ko'rdim" tugmasi faollashadi</span>
+                    <span>Video davomiyligi avtomatik aniqlanadi — öquvçi videoning 90% ini körgaç "Kördim" tugmasi faollaşadi</span>
                 </div>
 
                 <div class="al-info-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(59,130,246,0.08)); border-color: rgba(139,92,246,0.2); margin-top: 0.5rem;">
                     <i class="bi bi-robot" style="color: #8b5cf6;"></i>
-                    <span>Video saqlangandan so'ng AI avtomatik maqola yaratadi</span>
+                    <span>Video saqlangandan söng AI avtomatik maqola yaratadi</span>
                 </div>
 
                 {% elif lesson_type == 'homework' %}
@@ -562,7 +562,7 @@
 
                 <div class="al-info-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(59,130,246,0.08)); border-color: rgba(139,92,246,0.2); margin-top: 0.5rem;">
                     <i class="bi bi-robot" style="color: #8b5cf6;"></i>
-                    <span>Bo'lim tanlang va AI vazifa yaratsin. Keyin matnni tahrirlashingiz mumkin.</span>
+                    <span>Bölim tanlang va AI vazifa yaratsin. Keyin matnni tahrirlaşingiz mumkin.</span>
                 </div>
 
                 {% if request.user.is_teacher and not request.user.ai_access_enabled %}
@@ -572,46 +572,46 @@
                 </div>
                 {% else %}
                 <button type="button" class="al-btn" id="aiHomeworkBtn" onclick="generateAIHomework()" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: #fff; border: none; margin-top: 0.5rem; width: 100%; padding: 0.85rem; border-radius: 14px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s;">
-                    <i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish
+                    <i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratiş
                 </button>
                 {% endif %}
 
-                <!-- AI tekshirish -->
+                <!-- AI tekşiriş -->
                 <div class="al-group">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check" style="cursor:pointer;" checked>
                         <label class="form-check-label al-label" for="id_ai_check" style="cursor:pointer;">
-                            <i class="bi bi-robot me-1"></i> AI orqali tekshirish
+                            <i class="bi bi-robot me-1"></i> AI orqali tekşiriş
                         </label>
                     </div>
-                    <div class="al-hint">Yoqilsa, vazifalar avtomatik AI tomonidan tekshiriladi va baholanadi</div>
+                    <div class="al-hint">Yoqilsa, vazifalar avtomatik AI tomonidan tekşiriladi va baholanadi</div>
                 </div>
 
-                <!-- Yozma topshirish -->
+                <!-- Yozma topşiriş -->
                 <div class="al-group">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="handwritten_only" id="id_handwritten_only" style="cursor:pointer;">
                         <label class="form-check-label al-label" for="id_handwritten_only" style="cursor:pointer;">
-                            <i class="bi bi-pencil-square me-1"></i> Faqat yozma topshirish (rasm)
+                            <i class="bi bi-pencil-square me-1"></i> Faqat yozma topşiriş (rasm)
                         </label>
                     </div>
-                    <div class="al-hint">Til kurslari uchun: o'quvchilar daftarda yozib, rasm ko'rinishida yuboradi. Matn yozish imkoniyati o'chiriladi.</div>
+                    <div class="al-hint">Til kurslari uçun: öquvçilar daftarda yozib, rasm körinişida yuboradi. Matn yoziş imkoniyati öçiriladi.</div>
                 </div>
 
                 {% elif lesson_type == 'dictionary' %}
                 <div class="al-section" style="margin-top: 1.5rem;">
-                    <i class="bi bi-book-fill"></i> Lug'at tavsifi
+                    <i class="bi bi-book-fill"></i> Luğat tavsifi
                 </div>
 
                 <div class="al-group">
                     <label class="al-label">Tavsif (ixtiyoriy)</label>
                     {{ form.description }}
-                    <div class="al-hint">Lug'at haqida qisqa ma'lumot. So'zlarni keyinroq qo'shish mumkin.</div>
+                    <div class="al-hint">Luğat haqida qisqa ma'lumot. Sözlarni keyinroq qöşiş mumkin.</div>
                 </div>
 
                 <div class="al-info-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.08)); border-color: rgba(139,92,246,0.2); margin-top: 0.5rem;">
                     <i class="bi bi-file-earmark-excel" style="color: #8b5cf6;"></i>
-                    <span>Lug'at saqlangandan so'ng so'zlarni qo'lda yoki Excel fayldan import qilish mumkin</span>
+                    <span>Luğat saqlangandan söng sözlarni qölda yoki Excel fayldan import qiliş mumkin</span>
                 </div>
 
                 {% elif lesson_type == 'speaking' %}
@@ -621,7 +621,7 @@
 
                 <div class="al-group">
                     <label class="al-label">Vazifa tavsifi *</label>
-                    <textarea name="description" class="form-control" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Öquvçi nima haqida gapirişligi kerak, qanday şaroitda..." required></textarea>
                 </div>
 
                 <div class="al-group">
@@ -630,7 +630,7 @@
                     <div class="al-level-cards">
                         <div class="al-level-card" data-value="beginner" onclick="selectSpeakingLevel(this)">
                             <div class="al-level-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">🌱</div>
-                            <div class="al-level-name">Boshlang'ich</div>
+                            <div class="al-level-name">Boşlanğiç</div>
                             <div class="al-level-desc">A1 — Beginner</div>
                             <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
@@ -642,13 +642,13 @@
                         </div>
                         <div class="al-level-card active" data-value="intermediate" onclick="selectSpeakingLevel(this)">
                             <div class="al-level-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">📗</div>
-                            <div class="al-level-name">O'rta</div>
+                            <div class="al-level-name">Örta</div>
                             <div class="al-level-desc">B1 — Intermediate</div>
                             <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
                         <div class="al-level-card" data-value="upper_intermediate" onclick="selectSpeakingLevel(this)">
                             <div class="al-level-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">🔥</div>
-                            <div class="al-level-name">O'rta-yuqori</div>
+                            <div class="al-level-name">Örta-yuqori</div>
                             <div class="al-level-desc">B2 — Upper Inter.</div>
                             <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
@@ -675,7 +675,7 @@
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="al-group">
-                        <label class="al-label">Topshirish muddati</label>
+                        <label class="al-label">Topşiriş muddati</label>
                         <input type="datetime-local" name="due_date" class="form-control">
                     </div>
                     <div class="al-group"></div>
@@ -685,15 +685,15 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check_speaking" style="cursor:pointer;">
                         <label class="form-check-label al-label" for="id_ai_check_speaking" style="cursor:pointer;">
-                            🤖 AI avtomatik tekshirsin
+                            🤖 AI avtomatik tekşirsin
                         </label>
                     </div>
-                    <div class="al-hint">Yoqilsa, o'quvchi topshirganda AI avtomatik tekshiradi va baho beradi</div>
+                    <div class="al-hint">Yoqilsa, öquvçi topşirganda AI avtomatik tekşiradi va baho beradi</div>
                 </div>
 
                 <div class="al-group">
-                    <label class="al-label">Baholash mezonlari</label>
-                    <textarea name="criteria" class="form-control" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berishi kerak..."></textarea>
+                    <label class="al-label">Baholaş mezonlari</label>
+                    <textarea name="criteria" class="form-control" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berişi kerak..."></textarea>
                     <div class="al-hint">Masalan: Talaffuzga, grammatikaga, ravonlikka e'tibor berilsin</div>
                 </div>
 
@@ -719,7 +719,7 @@
                                 <i class="bi bi-clipboard2-check-fill"></i>
                             </div>
                             <div class="al-type-name">Oraliq test</div>
-                            <div class="al-type-desc">Yarim yillik tekshiruv</div>
+                            <div class="al-type-desc">Yarim yillik tekşiruv</div>
                             <div class="al-type-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
                         <div class="al-type-card" data-value="practice" onclick="selectTestType(this)">
@@ -727,11 +727,11 @@
                                 <i class="bi bi-lightning-fill"></i>
                             </div>
                             <div class="al-type-name">Tajriba</div>
-                            <div class="al-type-desc">Mashq uchun test</div>
+                            <div class="al-type-desc">Maşq uçun test</div>
                             <div class="al-type-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
 
-                        <!-- Ajratuvchi chiziq -->
+                        <!-- Ajratuvçi çiziq -->
                         <div class="al-final-divider" style="grid-column: 1 / -1;">
                             <i class="bi bi-shield-exclamation"></i>
                             Yakuniy imtihon
@@ -748,17 +748,17 @@
                                 </div>
                                 <div class="al-final-name">Yakuniy imtihon (Final)</div>
                                 <div class="al-final-desc">
-                                    Kursni yakunlash uchun majburiy test. Birinchi marta <strong style="color:#dc2626;">bepul</strong>, qayta topshirish uchun <strong style="color:#dc2626;">65,000 so'm</strong> to'lov talab etiladi.
+                                    Kursni yakunlaş uçun majburiy test. Birinçi marta <strong style="color:#dc2626;">bepul</strong>, qayta topşiriş uçun <strong style="color:#dc2626;">65,000 söm</strong> tölov talab etiladi.
                                 </div>
                             </div>
                             <div class="al-final-check"><i class="bi bi-check-circle-fill"></i></div>
                         </div>
 
-                        <!-- Final tanlanganida chiqadigan ogohlantirish -->
+                        <!-- Final tanlanganida çiqadigan ogohlantiriş -->
                         <div class="al-final-warning" id="finalWarning" style="grid-column: 1 / -1;">
                             <i class="bi bi-exclamation-triangle-fill"></i>
                             <div class="al-final-warning-text">
-                                <strong>Yakuniy test tanlandi!</strong> Bu test o'quvchilarga kursning oxirgi imtihoni sifatida ko'rinadi va asosiy darslar ro'yxatidan alohida, maxsus bo'limda chiqariladi. O'quvchi birinchi marta bepul topshiradi — muvaffaqiyatsiz bo'lganda qayta topshirish uchun <strong>65,000 so'm</strong> to'lov kerak bo'ladi.
+                                <strong>Yakuniy test tanlandi!</strong> Bu test öquvçilarga kursning oxirgi imtihoni sifatida körinadi va asosiy darslar röyxatidan alohida, maxsus bölimda çiqariladi. Öquvçi birinçi marta bepul topşiradi — muvaffaqiyatsiz bölganda qayta topşiriş uçun <strong>65,000 söm</strong> tölov kerak böladi.
                             </div>
                         </div>
                     </div>
@@ -770,13 +770,13 @@
                         {{ form.time_limit }}
                     </div>
                     <div class="al-group">
-                        <label class="al-label"><i class="bi bi-percent me-1"></i> O'tish bali</label>
+                        <label class="al-label"><i class="bi bi-percent me-1"></i> Ötiş bali</label>
                         {{ form.passing_score }}
                     </div>
                 </div>
 
                 <div class="al-section" style="margin-top: 1.5rem;">
-                    <i class="bi bi-gear-fill"></i> Qo'shimcha sozlamalar
+                    <i class="bi bi-gear-fill"></i> Qöşimça sozlamalar
                 </div>
 
                 <div class="al-toggle" onclick="toggleSwitch(this, 'allow_retry')">
@@ -784,8 +784,8 @@
                         <i class="bi bi-arrow-repeat"></i>
                     </div>
                     <div class="al-toggle-info">
-                        <div class="al-toggle-name">Qayta ishlash</div>
-                        <div class="al-toggle-desc">O'quvchi testni qayta topshirishi mumkin</div>
+                        <div class="al-toggle-name">Qayta işlaş</div>
+                        <div class="al-toggle-desc">Öquvçi testni qayta topşirişi mumkin</div>
                     </div>
                     <div class="al-switch" id="switch_allow_retry"></div>
                     <input type="checkbox" name="allow_retry" id="id_allow_retry" style="display:none;">
@@ -797,7 +797,7 @@
                     </div>
                     <div class="al-toggle-info">
                         <div class="al-toggle-name">Random savollar</div>
-                        <div class="al-toggle-desc">Har safar savollar tartibi aralashtiriladi</div>
+                        <div class="al-toggle-desc">Har safar savollar tartibi aralaştiriladi</div>
                     </div>
                     <div class="al-switch" id="switch_shuffle_questions"></div>
                     <input type="checkbox" name="shuffle_questions" id="id_shuffle_questions" style="display:none;">
@@ -809,7 +809,7 @@
                     </div>
                     <div class="al-toggle-info">
                         <div class="al-toggle-name">Random javoblar</div>
-                        <div class="al-toggle-desc">Har safar javoblar tartibi aralashtiriladi</div>
+                        <div class="al-toggle-desc">Har safar javoblar tartibi aralaştiriladi</div>
                     </div>
                     <div class="al-switch" id="switch_shuffle_answers"></div>
                     <input type="checkbox" name="shuffle_answers" id="id_shuffle_answers" style="display:none;">
@@ -819,17 +819,17 @@
                     <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i class="bi bi-ui-checks-grid" style="color: #af52de;"></i> Olinadigan savollar soni
                     </label>
-                    <input type="number" name="question_count" class="form-control form-control-sm" value="0" min="0" placeholder="0 = barcha savollar" style="border-radius: 10px; max-width: 200px;">
-                    <small style="color: var(--al-secondary, #86868b); font-size: 0.75rem;">0 qoldirsangiz barcha savollar olinadi. Masalan: 50 ta savoldan 20 tasini tanlash</small>
+                    <input type="number" name="question_count" class="form-control form-control-sm" value="0" min="0" placeholder="0 = barça savollar" style="border-radius: 10px; max-width: 200px;">
+                    <small style="color: var(--al-secondary, #86868b); font-size: 0.75rem;">0 qoldirsangiz barça savollar olinadi. Masalan: 50 ta savoldan 20 tasini tanlaş</small>
                 </div>
                 {% endif %}
 
                 <div class="al-actions">
                     <button type="submit" class="al-btn al-btn-primary" id="submitBtn">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                     <a href="{% url 'manage_lessons' profession.pk %}" class="al-btn al-btn-ghost">
-                        Bekor qilish
+                        Bekor qiliş
                     </a>
                 </div>
             </form>
@@ -942,7 +942,7 @@ function toggleSwitch(toggle, name) {
         var btn = document.getElementById('aiHomeworkBtn');
         
         if (!sectionId && !professionId) {
-            alert("Iltimos, avval bo'lim tanlang!");
+            alert("Iltimos, avval bölim tanlang!");
             return;
         }
         
@@ -964,34 +964,34 @@ function toggleSwitch(toggle, name) {
         .then(function(response) { return response.json(); })
         .then(function(data) {
             if (data.success) {
-                // Vazifa nomini to'ldirish
+                // Vazifa nomini töldiriş
                 var titleInput = document.querySelector('input[name="title"]');
                 if (titleInput && !titleInput.value) {
                     titleInput.value = data.title;
                 }
-                // Quill editorga vazifa matnini qo'yish
+                // Quill editorga vazifa matnini qöyiş
                 quill.setContents([]);
                 quill.clipboard.dangerouslyPasteHTML(0, data.description);
                 document.getElementById('descriptionField').value = data.description;
                 
-                btn.innerHTML = '<i class="bi bi-check-circle"></i> ✅ Vazifa yaratildi! Tahrirlashingiz mumkin';
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> ✅ Vazifa yaratildi! Tahrirlaşingiz mumkin';
                 btn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
                 setTimeout(function() {
-                    btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+                    btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratiş';
                     btn.style.background = 'linear-gradient(135deg, #8b5cf6, #3b82f6)';
                     btn.disabled = false;
                     btn.style.opacity = '1';
                 }, 3000);
             } else {
                 alert('❌ Xatolik: ' + (data.error || 'Noma\'lum xatolik'));
-                btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+                btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratiş';
                 btn.disabled = false;
                 btn.style.opacity = '1';
             }
         })
         .catch(function(err) {
             alert('❌ Tarmoq xatolik: ' + err.message);
-            btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+            btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratiş';
             btn.disabled = false;
             btn.style.opacity = '1';
         });

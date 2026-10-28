@@ -57,7 +57,7 @@
 }
 [data-bs-theme="dark"] .coin-section { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
 
-/* ===== Matn tanlash paneli ===== */
+/* ===== Matn tanlaş paneli ===== */
 .prompt-section {
     background: rgba(99, 102, 241, 0.04);
     border: 1px solid rgba(99, 102, 241, 0.15);
@@ -146,7 +146,7 @@
 }
 [data-bs-theme="dark"] .pool-hint { background: rgba(255,255,255,0.04); }
 
-/* ===== Auditoriya (kimlar uchun) paneli ===== */
+/* ===== Auditoriya (kimlar uçun) paneli ===== */
 .audience-section {
     background: rgba(16, 185, 129, 0.05);
     border: 1px solid rgba(16, 185, 129, 0.18);
@@ -252,7 +252,7 @@
                 {% csrf_token %}
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">O'yin *</label>
+                        <label class="form-label fw-bold">Öyin *</label>
                         <select name="game" id="gameSelect" class="form-select" required>
                             <option value="">-- Tanlang --</option>
                             {% include 'games/_game_choice_options.html' with selected_game_id=competition.game_id selected_ui=competition.play_ui %}
@@ -263,7 +263,7 @@
                         <input type="text" name="title" class="form-control" value="{{ competition.title|default:'' }}" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Boshlanish vaqti *</label>
+                        <label class="form-label fw-bold">Boşlaniş vaqti *</label>
                         <input type="datetime-local" name="start_time" id="startTime" class="form-control"
                             value="{{ competition.start_time|date:'Y-m-d\TH:i'|default:'' }}" required>
                         <div class="quick-times">
@@ -274,7 +274,7 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Tugash vaqti *</label>
+                        <label class="form-label fw-bold">Tugaş vaqti *</label>
                         <input type="datetime-local" name="end_time" id="endTime" class="form-control"
                             value="{{ competition.end_time|date:'Y-m-d\TH:i'|default:'' }}" required>
                         <div class="quick-times">
@@ -287,14 +287,14 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">Maksimal urinishlar</label>
+                        <label class="form-label fw-bold">Maksimal urinişlar</label>
                         <input type="number" name="max_attempts" class="form-control" value="{{ competition.max_attempts|default:1 }}" min="1">
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
                         <div class="form-check">
                             <input type="checkbox" name="allow_retry" class="form-check-input" id="allowRetry"
                                 {% if competition.allow_retry %}checked{% endif %}>
-                            <label class="form-check-label fw-bold" for="allowRetry">Qayta urinishga ruxsat</label>
+                            <label class="form-check-label fw-bold" for="allowRetry">Qayta urinişga ruxsat</label>
                         </div>
                     </div>
                     <div class="col-md-4 d-flex align-items-end">
@@ -310,31 +310,31 @@
                         <div class="prompt-section">
                             <h5 class="fw-bold mb-1"><i class="bi bi-card-text text-primary"></i> Musobaqa matnlari</h5>
                             <p class="text-muted small mb-3">
-                                Musobaqada aynan qaysi matnlar chiqishini tanlang. Har bir ishtirokchiga tanlanganlar ichidan tasodifiy matn beriladi.
+                                Musobaqada aynan qaysi matnlar çiqişini tanlang. Har bir iştirokçiga tanlanganlar içidan tasodifiy matn beriladi.
                             </p>
                             <div class="prompt-toolbar">
                                 <span class="prompt-counter"><span id="selCount">0</span> ta tanlangan</span>
-                                <button type="button" class="mini-btn" id="selectAllBtn">Hammasini tanlash</button>
-                                <button type="button" class="mini-btn" id="clearAllBtn">Tozalash</button>
-                                <input type="text" class="form-control" id="promptSearch" placeholder="Matn qidirish…">
+                                <button type="button" class="mini-btn" id="selectAllBtn">Hammasini tanlaş</button>
+                                <button type="button" class="mini-btn" id="clearAllBtn">Tozalaş</button>
+                                <input type="text" class="form-control" id="promptSearch" placeholder="Matn qidiriş…">
                             </div>
                             <div class="prompt-list" id="promptList">
-                                <div class="prompt-empty" id="promptEmpty">Avval o'yinni tanlang</div>
+                                <div class="prompt-empty" id="promptEmpty">Avval öyinni tanlang</div>
                             </div>
                             <div class="pool-hint">
                                 <i class="bi bi-info-circle"></i>
-                                Hech narsa tanlanmasa — o'yinning <strong>"Musobaqa"</strong> yoki <strong>"Ikkalasi"</strong>
-                                rejimidagi barcha faol matnlari ishlatiladi.
+                                Heç narsa tanlanmasa — öyinning <strong>"Musobaqa"</strong> yoki <strong>"Ikkalasi"</strong>
+                                rejimidagi barça faol matnlari işlatiladi.
                             </div>
                         </div>
                     </div>
 
-                    <!-- Auditoriya: kimlar uchun -->
+                    <!-- Auditoriya: kimlar uçun -->
                     <div class="col-12">
                         <div class="audience-section">
-                            <h5 class="fw-bold mb-1"><i class="bi bi-people-fill text-success"></i> Kimlar uchun</h5>
+                            <h5 class="fw-bold mb-1"><i class="bi bi-people-fill text-success"></i> Kimlar uçun</h5>
                             <p class="text-muted small mb-3">
-                                Musobaqada kimlar ishtirok eta olishini belgilang. Boshqalar musobaqani ko'rmaydi va o'ynay olmaydi.
+                                Musobaqada kimlar iştirok eta olişini belgilang. Boşqalar musobaqani körmaydi va öynay olmaydi.
                             </p>
 
                             <div class="audience-options">
@@ -343,7 +343,7 @@
                                         {% if not competition or competition.audience_type == 'all' %}checked{% endif %}>
                                     <span>
                                         <span class="a-title d-block"><i class="bi bi-globe2"></i> Hammaga</span>
-                                        <span class="a-desc d-block">Barcha o'quvchilar ishtirok etadi</span>
+                                        <span class="a-desc d-block">Barça öquvçilar iştirok etadi</span>
                                     </span>
                                 </label>
                                 <label class="audience-option" data-aud="groups">
@@ -351,15 +351,15 @@
                                         {% if competition.audience_type == 'groups' %}checked{% endif %}>
                                     <span>
                                         <span class="a-title d-block"><i class="bi bi-diagram-3"></i> Tanlangan guruhlar</span>
-                                        <span class="a-desc d-block">Faqat tanlangan guruh o'quvchilari</span>
+                                        <span class="a-desc d-block">Faqat tanlangan guruh öquvçilari</span>
                                     </span>
                                 </label>
                                 <label class="audience-option" data-aud="students">
                                     <input type="radio" name="audience_type" value="students"
                                         {% if competition.audience_type == 'students' %}checked{% endif %}>
                                     <span>
-                                        <span class="a-title d-block"><i class="bi bi-person-check"></i> Tanlangan o'quvchilar</span>
-                                        <span class="a-desc d-block">Faqat ro'yxatdan tanlanganlar</span>
+                                        <span class="a-title d-block"><i class="bi bi-person-check"></i> Tanlangan öquvçilar</span>
+                                        <span class="a-desc d-block">Faqat röyxatdan tanlanganlar</span>
                                     </span>
                                 </label>
                             </div>
@@ -376,21 +376,21 @@
                                             {% if g.pk in selected_group_ids %}checked{% endif %}>
                                         <span>
                                             <span class="p-name d-block">{{ g.name }}</span>
-                                            <span class="p-sub d-block">{{ g.profession.name }} · {{ g.student_count }} o'quvchi · {{ g.days_display }} {{ g.time_range }}</span>
+                                            <span class="p-sub d-block">{{ g.profession.name }} · {{ g.student_count }} öquvçi · {{ g.days_display }} {{ g.time_range }}</span>
                                         </span>
                                     </label>
                                     {% empty %}
-                                    <div class="pick-empty">Faol guruhlar yo'q. Avval guruh yarating.</div>
+                                    <div class="pick-empty">Faol guruhlar yöq. Avval guruh yarating.</div>
                                     {% endfor %}
                                 </div>
                             </div>
 
-                            <!-- O'quvchilar paneli -->
+                            <!-- Öquvçilar paneli -->
                             <div class="audience-pane d-none" id="studentsPane">
                                 <div class="prompt-toolbar">
-                                    <span class="pick-counter"><span id="studentSelCount">0</span> ta o'quvchi tanlangan</span>
-                                    <button type="button" class="mini-btn" id="studentClearBtn">Tozalash</button>
-                                    <input type="text" class="form-control" id="studentSearch" placeholder="Ism yoki login bo'yicha qidirish…">
+                                    <span class="pick-counter"><span id="studentSelCount">0</span> ta öquvçi tanlangan</span>
+                                    <button type="button" class="mini-btn" id="studentClearBtn">Tozalaş</button>
+                                    <input type="text" class="form-control" id="studentSearch" placeholder="Ism yoki login böyiça qidiriş…">
                                 </div>
                                 <div class="pick-list" id="studentList"></div>
                             </div>
@@ -406,20 +406,20 @@
                                     <div class="alert alert-warning py-2 mb-0">
                                         <i class="bi bi-wallet2"></i> Sovrin fondi ustoz
                                         <b>{{ competition.created_by.full_name|default:competition.created_by.username }}</b>
-                                        hisobidan bron qilingan ({{ competition.prize_reserved }} coin) — sovrinlarni faqat ustoz o'zgartira oladi.
+                                        hisobidan bron qilingan ({{ competition.prize_reserved }} coin) — sovrinlarni faqat ustoz özgartira oladi.
                                     </div>
                                 </div>
                                 {% endif %}
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">🥇 1-o'rin (coin)</label>
+                                    <label class="form-label fw-bold">🥇 1-örin (coin)</label>
                                     <input type="number" name="coin_1st" class="form-control" value="{{ competition.coin_1st|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">🥈 2-o'rin (coin)</label>
+                                    <label class="form-label fw-bold">🥈 2-örin (coin)</label>
                                     <input type="number" name="coin_2nd" class="form-control" value="{{ competition.coin_2nd|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label fw-bold">🥉 3-o'rin (coin)</label>
+                                    <label class="form-label fw-bold">🥉 3-örin (coin)</label>
                                     <input type="number" name="coin_3rd" class="form-control" value="{{ competition.coin_3rd|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                             </div>
@@ -428,7 +428,7 @@
                 </div>
                 <div class="mt-4">
                     <button type="submit" class="btn btn-save">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                 </div>
             </form>
@@ -473,13 +473,13 @@
         listEl.innerHTML = '';
 
         if (!gameId || !promptsData[gameId]) {
-            listEl.innerHTML = '<div class="prompt-empty">Avval o\'yinni tanlang</div>';
+            listEl.innerHTML = '<div class="prompt-empty">Avval öyinni tanlang</div>';
             return;
         }
 
         var items = promptsData[gameId];
         if (!items.length) {
-            listEl.innerHTML = '<div class="prompt-empty">Bu o\'yinda faol matnlar yo\'q. Avval matn qo\'shing.</div>';
+            listEl.innerHTML = '<div class="prompt-empty">Bu öyinda faol matnlar yöq. Avval matn qöşing.</div>';
             return;
         }
 
@@ -495,7 +495,7 @@
                 '<span><span class="p-text">' + escHtml(p.text) + '</span>' +
                 '<span class="p-meta d-block">' +
                     '<span class="tag ' + usageTagClass(p.usage_code) + '">' + escHtml(p.usage) + '</span>' +
-                    escHtml(p.difficulty) + ' · ' + p.words + ' so\'z' +
+                    escHtml(p.difficulty) + ' · ' + p.words + ' söz' +
                 '</span></span>';
 
             var cb = label.querySelector('input');
@@ -509,12 +509,12 @@
         });
 
         if (!shown) {
-            listEl.innerHTML = '<div class="prompt-empty">Qidiruv bo\'yicha matn topilmadi</div>';
+            listEl.innerHTML = '<div class="prompt-empty">Qidiruv böyiça matn topilmadi</div>';
         }
     }
 
     gameSelect.addEventListener('change', function() {
-        // O'yin o'zgarsa — eski tanlovlar boshqa o'yinga tegishli bo'lgani uchun tozalanadi
+        // Öyin özgarsa — eski tanlovlar boşqa öyinga tegişli bölgani uçun tozalanadi
         selectedIds.clear();
         updateCount();
         renderList();
@@ -578,7 +578,7 @@
     renderList();
 })();
 
-/* ===== Auditoriya (kimlar uchun) ===== */
+/* ===== Auditoriya (kimlar uçun) ===== */
 (function() {
     'use strict';
 
@@ -624,7 +624,7 @@
         studentListEl.innerHTML = '';
 
         if (!studentsData.length) {
-            studentListEl.innerHTML = '<div class="pick-empty">Faol o\'quvchilar topilmadi</div>';
+            studentListEl.innerHTML = '<div class="pick-empty">Faol öquvçilar topilmadi</div>';
             return;
         }
 
@@ -651,16 +651,16 @@
         });
 
         if (!shown) {
-            studentListEl.innerHTML = '<div class="pick-empty">Qidiruv bo\'yicha o\'quvchi topilmadi</div>';
+            studentListEl.innerHTML = '<div class="pick-empty">Qidiruv böyiça öquvçi topilmadi</div>';
         }
     }
 
-    // Radio almashganda panellarni ko'rsatish/yashirish
+    // Radio almaşganda panellarni körsatish/yashirish
     document.querySelectorAll('input[name="audience_type"]').forEach(function(radio) {
         radio.addEventListener('change', refreshPanes);
     });
 
-    // Guruh checkbox'lari: checked-klass va hisoblagich
+    // Guruh checkbox'lari: checked-klass va hisoblagiç
     document.querySelectorAll('.group-item input[name="group_ids"]').forEach(function(cb) {
         cb.addEventListener('change', function() {
             cb.closest('.pick-item').classList.toggle('checked', cb.checked);
@@ -677,9 +677,9 @@
         renderStudents();
     });
 
-    // Submit: tanlangan o'quvchilarni hidden input sifatida yuborish
-    // (qidiruv paytida ko'rinmay qolgan checkbox'lar yo'qolmasligi uchun)
-    // hamda bo'sh tanlov uchun client-side validatsiya.
+    // Submit: tanlangan öquvçilarni hidden input sifatida yuboriş
+    // (qidiruv paytida körinmay qolgan checkbox'lar yöqolmasligi uçun)
+    // hamda böş tanlov uçun client-side validatsiya.
     if (form) {
         form.addEventListener('submit', function(e) {
             var aud = currentAudience();
@@ -691,7 +691,7 @@
             }
             if (aud === 'students' && !selectedStudents.size) {
                 e.preventDefault();
-                alert("Kamida bitta o'quvchi tanlang!");
+                alert("Kamida bitta öquvçi tanlang!");
                 return;
             }
 

@@ -1,7 +1,7 @@
 {% extends 'parents/portal/base_parent.html' %}
 {% load parent_tags %}
-{% block title %}Bosh sahifa{% endblock %}
-{% block page_title %}Bosh sahifa{% endblock %}
+{% block title %}Boş sahifa{% endblock %}
+{% block page_title %}Boş sahifa{% endblock %}
 
 {% block parent_content %}
 {% if not selected_child %}
@@ -29,35 +29,35 @@
         <div class="pp-hero-stats">
             {% include 'parents/portal/partials/ring.html' with value=progress.percent size=112 label='Bajarildi' %}
             <div class="pp-hero-stat"><b><span data-count="{{ attendance.display_rate }}">0</span>%</b><small>{{ attendance.display_label }} (30 kun)</small></div>
-            <div class="pp-hero-stat"><b><span data-count="{{ tests.avg|dot }}">0</span>%</b><small>Test o‘rtachasi</small></div>
+            <div class="pp-hero-stat"><b><span data-count="{{ tests.avg|dot }}">0</span>%</b><small>Test örtaçasi</small></div>
         </div>
     </div>
 </section>
 
-<!-- ═════ Ogohlantirishlar ═════ -->
+<!-- ═════ Ogohlantirişlar ═════ -->
 <section class="pp-alerts pp-mb" data-tour="alerts">
     {% for a in alerts %}
     {% if a.url %}<a href="{% url a.url %}" class="pp-alert {{ a.level }}" data-reveal="left">{% else %}<div class="pp-alert {{ a.level }}" data-reveal="left">{% endif %}
         <i class="bi {{ a.icon }}"></i><span>{{ a.text }}</span>{% if a.url %}<i class="bi bi-arrow-right go"></i>{% endif %}
     {% if a.url %}</a>{% else %}</div>{% endif %}
     {% empty %}
-    <div class="pp-alert success" data-reveal="left"><i class="bi bi-emoji-smile"></i><span>Hammasi joyida — e’tibor talab qiladigan holat yo‘q.</span></div>
+    <div class="pp-alert success" data-reveal="left"><i class="bi bi-emoji-smile"></i><span>Hammasi joyida — e’tibor talab qiladigan holat yöq.</span></div>
     {% endfor %}
 </section>
 
-<!-- ═════ Asosiy ko'rsatkichlar ═════ -->
+<!-- ═════ Asosiy körsatkiçlar ═════ -->
 <section class="pp-grid c4 pp-mb" data-tour="kpis">
     <a href="{% url 'parent_lessons' %}" class="pp-card pp-kpi tone-pri" data-reveal>
         <div class="top"><span class="ic"><i class="bi bi-play-circle-fill"></i></span><span class="pp-badge">{{ progress.percent }}%</span></div>
         <div class="num"><span data-count="{{ progress.videos_watched }}">0</span><small>/{{ progress.videos_total }}</small></div>
-        <div class="lbl">Ko‘rilgan video darslar</div>
+        <div class="lbl">Körilgan video darslar</div>
         <div class="pp-bar sm" style="margin-top:12px;"><i data-w="{{ progress.videos_watched|pct:progress.videos_total }}"></i></div>
     </a>
     <a href="{% url 'parent_tests' %}" class="pp-card pp-kpi tone-{{ tests.avg|tone }}" data-reveal>
-        <div class="top"><span class="ic"><i class="bi bi-ui-checks-grid"></i></span><span class="pp-badge {{ tests.avg|tone }}">{{ tests.passed }}/{{ tests.taken }} o‘tdi</span></div>
+        <div class="top"><span class="ic"><i class="bi bi-ui-checks-grid"></i></span><span class="pp-badge {{ tests.avg|tone }}">{{ tests.passed }}/{{ tests.taken }} ötdi</span></div>
         <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div>
-        <div class="lbl">Testlar o‘rtacha bali</div>
-        <div class="sub">O‘tish ko‘rsatkichi: {{ tests.pass_rate }}%</div>
+        <div class="lbl">Testlar örtaça bali</div>
+        <div class="sub">Ötiş körsatkiçi: {{ tests.pass_rate }}%</div>
     </a>
     <a href="{% url 'parent_attendance' %}" class="pp-card pp-kpi tone-{{ attendance.display_rate|tone }}" data-reveal>
         <div class="top"><span class="ic"><i class="bi bi-calendar2-check-fill"></i></span>{% if attendance.absent %}<span class="pp-badge bad">{{ attendance.absent }} ta kelmagan</span>{% endif %}</div>
@@ -66,10 +66,10 @@
         <div class="sub">{{ attendance.active_days }} kun saytga kirdi{% if attendance.total %} · {{ attendance.present }}/{{ attendance.total }} darsga keldi{% endif %}</div>
     </a>
     <a href="{% url 'parent_homework' %}" class="pp-card pp-kpi tone-{{ homework.avg_grade|tone:10 }}" data-reveal>
-        <div class="top"><span class="ic"><i class="bi bi-journal-check"></i></span>{% if homework.missed %}<span class="pp-badge bad">{{ homework.missed }} topshirilmagan</span>{% endif %}</div>
+        <div class="top"><span class="ic"><i class="bi bi-journal-check"></i></span>{% if homework.missed %}<span class="pp-badge bad">{{ homework.missed }} topşirilmagan</span>{% endif %}</div>
         <div class="num"><span data-count="{{ homework.avg_grade|dot }}">0</span><small>/10</small></div>
-        <div class="lbl">Vazifalar o‘rtacha bahosi</div>
-        <div class="sub">{{ homework.submitted }}/{{ progress.hw_total }} topshirildi{% if homework.pending %} · {{ homework.pending }} tekshirilmoqda{% endif %}</div>
+        <div class="lbl">Vazifalar örtaça bahosi</div>
+        <div class="sub">{{ homework.submitted }}/{{ progress.hw_total }} topşirildi{% if homework.pending %} · {{ homework.pending }} tekşirilmoqda{% endif %}</div>
     </a>
 </section>
 
@@ -92,7 +92,7 @@
 
         <!-- Kurslar -->
         <div class="pp-card" data-reveal>
-            <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-mortarboard-fill"></i></span><h3>Kurslar bo‘yicha o‘zlashtirish</h3>
+            <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-mortarboard-fill"></i></span><h3>Kurslar böyiça özlaştiriş</h3>
                 <a class="more" href="{% url 'parent_lessons' %}">Batafsil <i class="bi bi-arrow-right"></i></a></div>
             {% for k in courses %}
             <div style="padding:10px 0;{% if not forloop.last %}border-bottom:1px dashed var(--pp-line);{% endif %}">
@@ -112,9 +112,9 @@
             {% endfor %}
         </div>
 
-        <!-- So'nggi faollik -->
+        <!-- Sönggi faollik -->
         <div class="pp-card" data-reveal>
-            <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-clock-history"></i></span><h3>So‘nggi faollik</h3>
+            <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-clock-history"></i></span><h3>Sönggi faollik</h3>
                 <a class="more" href="{% url 'parent_child_detail' c.id %}">Hammasi <i class="bi bi-arrow-right"></i></a></div>
             {% if activity %}
             <div class="pp-timeline">
@@ -127,7 +127,7 @@
                 {% endfor %}
             </div>
             {% else %}
-            <div class="pp-empty" style="padding:20px;"><p>Hozircha faollik yo‘q.</p></div>
+            <div class="pp-empty" style="padding:20px;"><p>Hozirça faollik yöq.</p></div>
             {% endif %}
         </div>
     </div>
@@ -147,26 +147,26 @@
                 </div>
             </div>
             {% else %}
-            <p class="pp-muted" style="margin:0;font-size:.88rem;">Farzandingiz hali hech qaysi guruh jadvaliga biriktirilmagan.</p>
+            <p class="pp-muted" style="margin:0;font-size:.88rem;">Farzandingiz hali heç qaysi guruh jadvaliga biriktirilmagan.</p>
             {% endif %}
         </a>
 
-        <!-- To'lov -->
+        <!-- Tölov -->
         <a href="#tolash" class="pp-card hover" data-reveal>
-            <div class="pp-card-h"><span class="ic tone-{% if payment.state == 'overdue' or payment.state == 'blocked' %}bad{% elif payment.state == 'soon' %}warn{% else %}ok{% endif %}"><i class="bi bi-wallet2"></i></span><h3>To‘lov holati</h3>
+            <div class="pp-card-h"><span class="ic tone-{% if payment.state == 'overdue' or payment.state == 'blocked' %}bad{% elif payment.state == 'soon' %}warn{% else %}ok{% endif %}"><i class="bi bi-wallet2"></i></span><h3>Tölov holati</h3>
                 <span style="margin-left:auto;">{% include 'parents/portal/partials/payment_badge.html' %}</span></div>
             {% if payment.balance and not payment.balance.is_contract %}
-            <div style="display:flex;align-items:baseline;gap:6px;"><b style="font-size:1.6rem;font-weight:850;letter-spacing:-.02em;" data-count="{{ payment.balance.amount|dot }}">0</b><span class="pp-muted">so‘m balans</span></div>
+            <div style="display:flex;align-items:baseline;gap:6px;"><b style="font-size:1.6rem;font-weight:850;letter-spacing:-.02em;" data-count="{{ payment.balance.amount|dot }}">0</b><span class="pp-muted">söm balans</span></div>
             {% elif payment.balance.is_contract %}
-            <b>Shartnoma: {{ payment.balance.contract_name|default:"faol" }}</b>
+            <b>Şartnoma: {{ payment.balance.contract_name|default:"faol" }}</b>
             {% endif %}
             <div class="pp-muted" style="font-size:.84rem;margin-top:6px;">
-                {% if payment.next_date %}Keyingi to‘lov: <b style="color:var(--pp-text)">{{ payment.next_date|date:"d.m.Y" }}</b>{% if payment.days_left is not None %} ({% if payment.days_left >= 0 %}{{ payment.days_left }} kun qoldi{% else %}{{ payment.days_left|absval }} kun o‘tdi{% endif %}){% endif %}{% else %}To‘lov sanasi belgilanmagan{% endif %}
-                {% if payment.fee %}<br>Oylik to‘lov: {{ payment.fee|money }} so‘m{% endif %}
+                {% if payment.next_date %}Keyingi tölov: <b style="color:var(--pp-text)">{{ payment.next_date|date:"d.m.Y" }}</b>{% if payment.days_left is not None %} ({% if payment.days_left >= 0 %}{{ payment.days_left }} kun qoldi{% else %}{{ payment.days_left|absval }} kun ötdi{% endif %}){% endif %}{% else %}Tölov sanasi belgilanmagan{% endif %}
+                {% if payment.fee %}<br>Oylik tölov: {{ payment.fee|money }} söm{% endif %}
             </div>
             {% if payment.state != 'contract' %}
-            <span class="pp-btn pri sm" style="margin-top:14px;"><i class="bi bi-credit-card-2-front"></i> Balansni to‘ldirish</span>
-            <div class="pp-dim" style="font-size:.74rem;margin-top:8px;">💡 O‘z vaqtidagi to‘lov — {{ selected_child.first_name }} uchun uzluksiz o‘qish.</div>
+            <span class="pp-btn pri sm" style="margin-top:14px;"><i class="bi bi-credit-card-2-front"></i> Balansni töldiriş</span>
+            <div class="pp-dim" style="font-size:.74rem;margin-top:8px;">💡 Öz vaqtidagi tölov — {{ selected_child.first_name }} uçun uzluksiz öqiş.</div>
             {% endif %}
         </a>
 
@@ -182,12 +182,12 @@
                     <span class="pp-badge {% if d.level == 'danger' %}bad{% elif d.level == 'warning' %}warn{% else %}info{% endif %}">{% if d.hours_left < 24 %}{{ d.hours_left }} soat{% else %}{{ d.days_left }} kun{% endif %}</span>
                 </div>
                 {% empty %}
-                <p class="pp-muted" style="margin:0;font-size:.88rem;"><i class="bi bi-check2-circle" style="color:var(--pp-ok)"></i> Keyingi 7 kunda topshirilmagan vazifa yo‘q.</p>
+                <p class="pp-muted" style="margin:0;font-size:.88rem;"><i class="bi bi-check2-circle" style="color:var(--pp-ok)"></i> Keyingi 7 kunda topşirilmagan vazifa yöq.</p>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Qo'shimcha -->
+        <!-- Qöşimça -->
         <div class="pp-grid c2" data-reveal>
             <a href="{% url 'parent_tests' %}" class="pp-card pp-kpi tone-vio hover" style="padding:16px;">
                 <span class="ic" style="margin-bottom:10px;"><i class="bi bi-mic-fill"></i></span>

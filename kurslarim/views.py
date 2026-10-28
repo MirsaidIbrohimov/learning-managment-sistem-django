@@ -1,8 +1,8 @@
 """Sotib olingan kurslar portali — asosiy tizimdan alohida sahifalar.
 
-Video, vazifa va test yechish mexanizmlari (anti-cheat, AI tekshiruv, quiz
-baholash) asosiy tizimdan qayta ishlatiladi, lekin har bir so'rov shu yerda
-kurs sotib olinganini tekshirgandan keyingina ularga yetib boradi.
+Video, vazifa va test yeçiş mexanizmlari (anti-cheat, AI tekşiruv, quiz
+baholaş) asosiy tizimdan qayta işlatiladi, lekin har bir sörov şu yerda
+kurs sotib olinganini tekşirgandan keyingina ularga yetib boradi.
 """
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -52,7 +52,7 @@ def my_courses(request):
 @login_required
 @require_POST
 def rejoin_course(request, pk):
-    """Sotib olingan kursdan chiqqan o'quvchi to'lovsiz qayta yoziladi."""
+    """Sotib olingan kursdan çiqqan öquvçi tölovsiz qayta yoziladi."""
     _learner_only(request)
     profession = get_object_or_404(Profession, pk=pk, is_blocked=False)
     if not TezCheckPaymentOrder.objects.filter(
@@ -154,7 +154,7 @@ def quiz_retry(request, lesson_pk):
     })
 
 
-# ─── Video: mavjud anti-cheat oqimi, faqat portal tekshiruvidan keyin ───
+# ─── Video: mavjud anti-cheat oqimi, faqat portal tekşiruvidan keyin ───
 
 def _video_lesson_json(request, lesson_pk):
     try:
@@ -210,7 +210,7 @@ def video_quiz_submit(request):
     try:
         quiz_id = int(_parse_body(request).get('quiz_id'))
     except (TypeError, ValueError):
-        return JsonResponse({'error': "quiz_id noto'g'ri"}, status=400)
+        return JsonResponse({'error': "quiz_id notöğri"}, status=400)
     quiz = VideoQuiz.objects.filter(pk=quiz_id).select_related('video__lesson').first()
     try:
         if quiz is None:
@@ -241,5 +241,5 @@ class PortalAttemptViewSet(AttemptViewSet):
 
 
 def api_root(request):
-    """JS uchun API bazaviy manzili; o'zi hech narsa qaytarmaydi."""
+    """JS uçun API bazaviy manzili; özi heç narsa qaytarmaydi."""
     return JsonResponse({'error': 'Topilmadi'}, status=404)

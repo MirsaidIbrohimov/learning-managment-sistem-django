@@ -31,8 +31,8 @@ from .security import check_rate_limit, get_client_ip, is_rate_limited
 logger = logging.getLogger(__name__)
 CAPTCHA_AFTER = 3
 CAPTCHA_TTL = 300
-MISMATCH_MESSAGE = 'Bu username ushbu emailga bog‘lanmagan. Iltimos, emailni to‘g‘ri kiriting.'
-BLOCKED_MESSAGE = 'Hisobingiz bloklangan. Parolni tiklash imkonsiz, so‘rov va email yuborilmadi. Administrator bilan bog‘laning.'
+MISMATCH_MESSAGE = 'Bu username uşbu emailga boğlanmagan. Iltimos, emailni töğri kiriting.'
+BLOCKED_MESSAGE = 'Hisobingiz bloklangan. Parolni tiklaş imkonsiz, sörov va email yuborilmadi. Administrator bilan boğlaning.'
 
 
 class RecoveryAccountBlocked(Exception):
@@ -124,7 +124,7 @@ class ChooseRecoveryPasswordForm(forms.Form):
     def clean(self):
         data = super().clean()
         if data.get('new_password1') and not data['new_password1'].strip():
-            self.add_error('new_password1', 'Parol faqat bo‘shliqlardan iborat bo‘lmasin.')
+            self.add_error('new_password1', 'Parol faqat böşliqlardan iborat bölmasin.')
         if data.get('new_password1') != data.get('new_password2'):
             self.add_error('new_password2', 'Parollar mos kelmaydi. / Пароли не совпадают.')
         return data
@@ -225,7 +225,7 @@ def email_password_reset(request):
             form.add_error(None, message)
             return render(request, 'accounts/password_reset_request.html', {'form': form, 'captcha_required': _captcha_required(request)}, status=429)
         if _captcha_required(request) and not _verify_captcha(request):
-            form.add_error(None, 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+            form.add_error(None, 'Rasmdagi CAPTCHA kodini töğri kiriting.')
             _record_failure(request)
             return render(request, 'accounts/password_reset_request.html', {'form': form, 'captcha_required': True})
         if form.is_valid():
@@ -238,7 +238,7 @@ def email_password_reset(request):
             except Exception as exc:
                 # Do not log credentials, message bodies, or SMTP exception contents.
                 logger.warning('Password recovery email failed (%s). Check SMTP configuration.', type(exc).__name__)
-                form.add_error(None, 'Emailni yuborib bo‘lmadi. Eski parolingiz o‘zgarmadi. Keyinroq qayta urinib ko‘ring.')
+                form.add_error(None, 'Emailni yuborib bölmadi. Eski parolingiz özgarmadi. Keyinroq qayta urinib köring.')
             else:
                 if delivered:
                     cache.delete_many(_failure_keys(request))

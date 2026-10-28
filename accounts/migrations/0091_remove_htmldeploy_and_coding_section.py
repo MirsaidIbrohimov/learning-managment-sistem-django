@@ -1,4 +1,4 @@
-# Coding (HTML Deploy) tizimini bazadan butunlay olib tashlaydi.
+# Coding (HTML Deploy) tizimini bazadan butunlay olib taşlaydi.
 
 from django.db import migrations, models
 
@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ],
                 max_length=50,
                 unique=True,
-                verbose_name="Bo'lim",
+                verbose_name="Bölim",
             ),
         ),
     ]

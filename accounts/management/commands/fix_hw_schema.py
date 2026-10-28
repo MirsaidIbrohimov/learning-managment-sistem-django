@@ -1,15 +1,15 @@
 """
-Uy vazifa jadvallarining sxemasini modelga moslashtiradi.
+Uy vazifa jadvallarining sxemasini modelga moslaştiradi.
 
-Migratsiya to'liq qo'llanmagan serverlarda `accounts_homeworksubmission`,
+Migratsiya töliq qöllanmagan serverlarda `accounts_homeworksubmission`,
 `accounts_homeworkrevision` yoki `accounts_homeworkmessage` jadvallarida
-modelда bor, lekin bazada yo'q ustunlar (masalan `coins_earned`) bo'lishi mumkin.
-Bu holda vazifa topshirish/qayta topshirish 500 (JSON o'rniga HTML) beradi.
+modelда bor, lekin bazada yöq ustunlar (masalan `coins_earned`) bölişi mumkin.
+Bu holda vazifa topshirish/qayta topşiriş 500 (JSON örniga HTML) beradi.
 
-Bu buyruq FAQAT yetishmayotgan ustunlarni qo'shadi (Django schema_editor orqali),
-hech qanday ustun yoki ma'lumotni o'chirmaydi. Xavfsiz va qayta ishga tushirsa bo'ladi.
+Bu buyruq FAQAT yetişmayotgan ustunlarni qöşadi (Django schema_editor orqali),
+heç qanday ustun yoki ma'lumotni öçirmaydi. Xavfsiz va qayta işga tuşirsa böladi.
 
-Ishlatish:
+Işlatiş:
     python manage.py fix_hw_schema
 """
 import traceback
@@ -32,7 +32,7 @@ def _existing_columns(table):
 
 
 class Command(BaseCommand):
-    help = "Uy vazifa jadvallariga yetishmayotgan ustunlarni xavfsiz qo'shadi."
+    help = "Uy vazifa jadvallariga yetişmayotgan ustunlarni xavfsiz qöşadi."
 
     def handle(self, *args, **options):
         added, failed = [], []
@@ -51,18 +51,18 @@ class Command(BaseCommand):
                         failed.append(f"{table}.{field.column}: {exc}")
 
         if added:
-            self.stdout.write(self.style.SUCCESS("Qo'shilgan ustunlar: " + ", ".join(added)))
+            self.stdout.write(self.style.SUCCESS("Qöşilgan ustunlar: " + ", ".join(added)))
         else:
-            self.stdout.write("Qo'shilgan ustun yo'q — hammasi joyida edi.")
+            self.stdout.write("Qöşilgan ustun yöq — hammasi joyida edi.")
 
         if failed:
-            self.stdout.write(self.style.ERROR("Qo'shib bo'lmadi: " + "; ".join(failed)))
+            self.stdout.write(self.style.ERROR("Qöşib bölmadi: " + "; ".join(failed)))
 
         self._verify()
         self._show_migrations()
 
     def _verify(self):
-        """Xavfli maydonlarni o'qib, ustunlar haqiqatan mavjudligini tekshiramiz."""
+        """Xavfli maydonlarni öqib, ustunlar haqiqatan mavjudligini tekşiramiz."""
         try:
             sub = HomeworkSubmission.objects.first()
             if sub is not None:
@@ -73,9 +73,9 @@ class Command(BaseCommand):
             rev = HomeworkRevision.objects.first()
             if rev is not None:
                 _ = (rev.feedback, rev.grade, rev.status, rev.submission_type, rev.text_content, rev.note)
-            self.stdout.write(self.style.SUCCESS("Tekshiruv: HomeworkSubmission/Revision o'qish OK"))
+            self.stdout.write(self.style.SUCCESS("Tekşiruv: HomeworkSubmission/Revision öqiş OK"))
         except Exception:
-            self.stdout.write(self.style.ERROR("Tekshiruvda XATO (ustun hali ham yetishmayapti?):"))
+            self.stdout.write(self.style.ERROR("Tekşiruvda XATO (ustun hali ham yetişmayapti?):"))
             self.stdout.write(traceback.format_exc())
 
     def _show_migrations(self):
@@ -86,6 +86,6 @@ class Command(BaseCommand):
                 .filter(app="accounts").order_by("id")
                 .values_list("name", flat=True)
             )[-6:]
-            self.stdout.write("Oxirgi qo'llangan migratsiyalar: " + ", ".join(names))
+            self.stdout.write("Oxirgi qöllangan migratsiyalar: " + ", ".join(names))
         except Exception:
             pass

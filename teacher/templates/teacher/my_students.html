@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}O'quvchilarim - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}O'quvchilarim{% endblock %}
+{% block title %}Öquvçilarim - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Öquvçilarim{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -219,7 +219,7 @@
 }
 .ms-view-btn.active { background: var(--bs-body-bg); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
 
-/* Boshqaruv */
+/* Boşqaruv */
 .ms-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ms-balance {
     display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
@@ -254,12 +254,12 @@
 
     <!-- Header -->
     <div class="ms-header">
-        <h1><i class="bi bi-people-fill" style="color: #7c3aed;"></i> O'quvchilarim <span class="ms-count">{{ total_students }}</span></h1>
+        <h1><i class="bi bi-people-fill" style="color: #7c3aed;"></i> Öquvçilarim <span class="ms-count">{{ total_students }}</span></h1>
         <div class="ms-header-right">
-            <span class="ms-balance" title="Sizning coin balansingiz — o'quvchiga berilgan coin shu yerdan yechiladi"><i class="bi bi-coin"></i> {{ teacher_coins }} coin</span>
+            <span class="ms-balance" title="Sizning coin balansingiz — öquvçiga berilgan coin şu yerdan yeçiladi"><i class="bi bi-coin"></i> {{ teacher_coins }} coin</span>
             {% if professions %}
             <button type="button" class="btn ms-btn-add" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                <i class="bi bi-person-plus-fill me-1"></i> O'quvchi qo'shish
+                <i class="bi bi-person-plus-fill me-1"></i> Öquvçi qöşiş
             </button>
             {% endif %}
             <div class="ms-view-toggle">
@@ -272,34 +272,34 @@
     <!-- Filters -->
     <form method="GET" class="ms-filters">
         <div class="ms-filter-group">
-            <label>Qidirish</label>
+            <label>Qidiriş</label>
             <input type="text" name="q" value="{{ filter_search }}" placeholder="Ism, telefon..." class="ms-search-input">
         </div>
         <div class="ms-filter-group">
             <label>Kurs</label>
             <select name="profession" onchange="this.form.submit()">
-                <option value="">Barcha kurslar</option>
+                <option value="">Barça kurslar</option>
                 {% for p in professions %}
                 <option value="{{ p.pk }}" {% if filter_profession == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="ms-filter-group">
-            <label>Saralash</label>
+            <label>Saralaş</label>
             <select name="sort" onchange="this.form.submit()">
-                <option value="name" {% if filter_sort == 'name' %}selected{% endif %}>Ism bo'yicha</option>
-                <option value="progress" {% if filter_sort == 'progress' %}selected{% endif %}>Progress bo'yicha</option>
-                <option value="hw_avg" {% if filter_sort == 'hw_avg' %}selected{% endif %}>Vazifa o'rtachasi</option>
-                <option value="test_avg" {% if filter_sort == 'test_avg' %}selected{% endif %}>Test o'rtachasi</option>
-                <option value="coins" {% if filter_sort == 'coins' %}selected{% endif %}>Coinlar bo'yicha</option>
+                <option value="name" {% if filter_sort == 'name' %}selected{% endif %}>Ism böyiça</option>
+                <option value="progress" {% if filter_sort == 'progress' %}selected{% endif %}>Progress böyiça</option>
+                <option value="hw_avg" {% if filter_sort == 'hw_avg' %}selected{% endif %}>Vazifa örtaçasi</option>
+                <option value="test_avg" {% if filter_sort == 'test_avg' %}selected{% endif %}>Test örtaçasi</option>
+                <option value="coins" {% if filter_sort == 'coins' %}selected{% endif %}>Coinlar böyiça</option>
             </select>
         </div>
         <button type="submit" class="btn btn-sm" style="background: linear-gradient(135deg,#7c3aed,#8b5cf6); color:#fff; border:none; border-radius:10px; padding:7px 16px; font-weight:600; font-size:.83rem;">
-            <i class="bi bi-search me-1"></i> Qidirish
+            <i class="bi bi-search me-1"></i> Qidiriş
         </button>
         {% if filter_search or filter_profession %}
         <a href="{% url 'teacher:my_students' %}" class="btn btn-sm btn-outline-secondary" style="border-radius:10px; padding:7px 12px; font-size:.83rem;">
-            <i class="bi bi-x-lg me-1"></i> Tozalash
+            <i class="bi bi-x-lg me-1"></i> Tozalaş
         </a>
         {% endif %}
     </form>
@@ -328,7 +328,7 @@
                 </div>
                 <div class="ms-badges">
                     <span class="ms-badge ms-badge-{{ data.status }}">
-                        {% if data.status == 'faol' %}<i class="bi bi-circle-fill text-success"></i> Faol{% elif data.status == 'ortacha' %}<i class="bi bi-circle-fill text-warning"></i> O'rtacha{% else %}<i class="bi bi-circle-fill text-danger"></i> Sust{% endif %}
+                        {% if data.status == 'faol' %}<i class="bi bi-circle-fill text-success"></i> Faol{% elif data.status == 'ortacha' %}<i class="bi bi-circle-fill text-warning"></i> Örtaça{% else %}<i class="bi bi-circle-fill text-danger"></i> Sust{% endif %}
                     </span>
                     {% if data.is_premium %}<span class="ms-badge ms-badge-premium"><i class="bi bi-star-fill"></i> Premium</span>{% endif %}
                 </div>
@@ -383,15 +383,15 @@
             <!-- Detail row -->
             <div class="ms-detail-row">
                 <div class="ms-detail-item">
-                    <i class="bi bi-journal-check" style="color: #f59e0b;"></i> Vazifa o'rtachasi
+                    <i class="bi bi-journal-check" style="color: #f59e0b;"></i> Vazifa örtaçasi
                     <span class="ms-di-val">{{ data.hw_avg }}/10</span>
                 </div>
                 <div class="ms-detail-item">
-                    <i class="bi bi-clipboard-data" style="color: #3b82f6;"></i> Test o'rtachasi
+                    <i class="bi bi-clipboard-data" style="color: #3b82f6;"></i> Test örtaçasi
                     <span class="ms-di-val">{{ data.test_avg }}%</span>
                 </div>
                 <div class="ms-detail-item">
-                    <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> Speaking o'rtachasi
+                    <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> Speaking örtaçasi
                     <span class="ms-di-val">{{ data.speaking_avg }}/10</span>
                 </div>
                 <div class="ms-detail-item">
@@ -400,11 +400,11 @@
                 </div>
             </div>
 
-            <!-- Boshqaruv -->
+            <!-- Boşqaruv -->
             <div class="ms-actions">
-                <button type="button" class="ms-act ms-act-give" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i> Coin berish</button>
-                <button type="button" class="ms-act ms-act-take" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i> Coin ayirish</button>
-                <button type="button" class="ms-act ms-act-remove" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i> Chiqarish</button>
+                <button type="button" class="ms-act ms-act-give" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i> Coin beriş</button>
+                <button type="button" class="ms-act ms-act-take" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i> Coin ayiriş</button>
+                <button type="button" class="ms-act ms-act-remove" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i> Çiqariş</button>
             </div>
         </div>
         {% endfor %}
@@ -416,7 +416,7 @@
             <thead>
                 <tr>
                     <th style="width:40px;"></th>
-                    <th>O'quvchi</th>
+                    <th>Öquvçi</th>
                     <th>Telefon</th>
                     <th>Kurslar</th>
                     <th class="text-center">Progress</th>
@@ -456,15 +456,15 @@
                     </td>
                     <td class="text-center">
                         <div style="font-weight:700;">{{ data.hw_done }}/{{ data.hw_total }}</div>
-                        <small class="text-muted">o'rt: {{ data.hw_avg }}</small>
+                        <small class="text-muted">ört: {{ data.hw_avg }}</small>
                     </td>
                     <td class="text-center">
                         <div style="font-weight:700;">{{ data.test_passed }}/{{ data.test_done }}</div>
-                        <small class="text-muted">o'rt: {{ data.test_avg }}%</small>
+                        <small class="text-muted">ört: {{ data.test_avg }}%</small>
                     </td>
                     <td class="text-center">
                         <div style="font-weight:700;">{{ data.speaking_done }}</div>
-                        <small class="text-muted">o'rt: {{ data.speaking_avg }}</small>
+                        <small class="text-muted">ört: {{ data.speaking_avg }}</small>
                     </td>
                     <td class="text-center">
                         <div style="font-weight:700;">{{ data.watched_videos }}/{{ data.total_videos }}</div>
@@ -472,14 +472,14 @@
                     <td class="text-center"><span style="font-weight:700;">{{ data.coins }} <i class="bi bi-coin" style="color:#f59e0b;"></i></span></td>
                     <td class="text-center">
                         <span class="ms-badge ms-badge-{{ data.status }}">
-                            {% if data.status == 'faol' %}<i class="bi bi-circle-fill text-success"></i> Faol{% elif data.status == 'ortacha' %}<i class="bi bi-circle-fill text-warning"></i> O'rtacha{% else %}<i class="bi bi-circle-fill text-danger"></i> Sust{% endif %}
+                            {% if data.status == 'faol' %}<i class="bi bi-circle-fill text-success"></i> Faol{% elif data.status == 'ortacha' %}<i class="bi bi-circle-fill text-warning"></i> Örtaça{% else %}<i class="bi bi-circle-fill text-danger"></i> Sust{% endif %}
                         </span>
                     </td>
                     <td class="text-center">
                         <div class="ms-table-acts">
-                            <button type="button" class="ms-act ms-act-give" title="Coin berish" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i></button>
-                            <button type="button" class="ms-act ms-act-take" title="Coin ayirish" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i></button>
-                            <button type="button" class="ms-act ms-act-remove" title="Kursdan chiqarish" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i></button>
+                            <button type="button" class="ms-act ms-act-give" title="Coin beriş" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i></button>
+                            <button type="button" class="ms-act ms-act-take" title="Coin ayiriş" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i></button>
+                            <button type="button" class="ms-act ms-act-remove" title="Kursdan çiqariş" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -491,7 +491,7 @@
     {% else %}
     <div class="ms-empty">
         <i class="bi bi-people"></i>
-        <p>{% if filter_search or filter_profession %}Qidiruv bo'yicha o'quvchi topilmadi{% else %}Hali o'quvchilar yo'q{% endif %}</p>
+        <p>{% if filter_search or filter_profession %}Qidiruv böyiça öquvçi topilmadi{% else %}Hali öquvçilar yöq{% endif %}</p>
     </div>
     {% endif %}
 
@@ -512,7 +512,7 @@
             <div class="modal-body">
                 <div class="mb-2"><b id="coinName"></b> — hozir <b id="coinCurrent"></b> coin</div>
                 <div class="alert alert-warning py-2 small" id="coinGiveHint">
-                    <i class="bi bi-info-circle"></i> Berilgan coin <b>sizning balansingizdan</b> yechiladi (balans: {{ teacher_coins }} coin).
+                    <i class="bi bi-info-circle"></i> Berilgan coin <b>sizning balansingizdan</b> yeçiladi (balans: {{ teacher_coins }} coin).
                 </div>
                 <div class="mb-2">
                     <label class="form-label small fw-bold">Kurs</label>
@@ -524,18 +524,18 @@
                 </div>
                 <div>
                     <label class="form-label small fw-bold">Sabab (ixtiyoriy)</label>
-                    <input type="text" name="reason" maxlength="300" class="form-control" placeholder="Masalan: darsda faol qatnashgani uchun">
+                    <input type="text" name="reason" maxlength="300" class="form-control" placeholder="Masalan: darsda faol qatnaşgani uçun">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
-                <button type="submit" class="btn btn-primary" id="coinSubmit">Tasdiqlash</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qiliş</button>
+                <button type="submit" class="btn btn-primary" id="coinSubmit">Tasdiqlaş</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Kursdan chiqarish modal -->
+<!-- Kursdan çiqariş modal -->
 <div class="modal fade" id="removeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" action="{% url 'teacher:remove_student' %}" class="modal-content">
@@ -543,41 +543,41 @@
             <input type="hidden" name="student" id="removeStudent">
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-box-arrow-right text-danger"></i> Kursdan chiqarish</h5>
+                <h5 class="modal-title"><i class="bi bi-box-arrow-right text-danger"></i> Kursdan çiqariş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-2"><b id="removeName"></b> ni kursdan chiqarmoqchimisiz?</p>
+                <p class="mb-2"><b id="removeName"></b> ni kursdan çiqarmoqçimisiz?</p>
                 <div class="mb-2">
                     <label class="form-label small fw-bold">Kurs</label>
                     <select name="profession" class="form-select js-course-select" required></select>
                 </div>
                 <div>
                     <label class="form-label small fw-bold">Sabab</label>
-                    <textarea name="reason" rows="2" maxlength="300" class="form-control" placeholder="O'quvchiga yuboriladi"></textarea>
+                    <textarea name="reason" rows="2" maxlength="300" class="form-control" placeholder="Öquvçiga yuboriladi"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
-                <button type="submit" class="btn btn-danger">Chiqarish</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qiliş</button>
+                <button type="submit" class="btn btn-danger">Çiqariş</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- O'quvchi qo'shish modal -->
+<!-- Öquvçi qöşiş modal -->
 <div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form method="POST" action="{% url 'teacher:add_student' %}" class="modal-content">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kursga o'quvchi qo'shish</h5>
+                <h5 class="modal-title"><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kursga öquvçi qöşiş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-2">
-                    <label class="form-label small fw-bold">O'quvchi ID raqami, telefoni yoki logini</label>
+                    <label class="form-label small fw-bold">Öquvçi ID raqami, telefoni yoki logini</label>
                     <input type="text" name="query" class="form-control" required placeholder="Masalan: 12345 yoki 901234567">
                 </div>
                 <div>
@@ -588,8 +588,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
-                <button type="submit" class="btn ms-btn-add">Qo'shish</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qiliş</button>
+                <button type="submit" class="btn ms-btn-add">Qöşiş</button>
             </div>
         </form>
     </div>
@@ -616,7 +616,7 @@ function setView(mode) {
     }
     localStorage.setItem('studentsView', mode);
 }
-// Coin / chiqarish modallari
+// Coin / çiqariş modallari
 var TEACHER_COINS = {{ teacher_coins|default:0 }};
 function fillCourses(select, raw) {
     select.innerHTML = '';
@@ -644,11 +644,11 @@ document.addEventListener('click', function (e) {
     document.getElementById('coinOp').value = op;
     document.getElementById('coinName').textContent = btn.dataset.name;
     document.getElementById('coinCurrent').textContent = btn.dataset.coins;
-    document.getElementById('coinTitle').textContent = give ? "Coin berish" : "Coin ayirish";
+    document.getElementById('coinTitle').textContent = give ? "Coin beriş" : "Coin ayiriş";
     document.getElementById('coinGiveHint').style.display = give ? '' : 'none';
     var submit = document.getElementById('coinSubmit');
     submit.className = 'btn ' + (give ? 'btn-primary' : 'btn-warning');
-    submit.textContent = give ? 'Berish' : 'Ayirish';
+    submit.textContent = give ? 'Beriş' : 'Ayiriş';
     var amount = document.querySelector('#coinModal input[name=amount]');
     amount.value = '';
     var limit = give ? TEACHER_COINS : (parseInt(btn.dataset.coins, 10) || 0);

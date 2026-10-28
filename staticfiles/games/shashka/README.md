@@ -1,31 +1,31 @@
-# Shashka — LMS o'yini
+# Şaşka — LMS öyini
 
-LMS ichida bir xil serverda ishlovchi shashka o'yini. AI yoki LMS o'quvchilari bilan multiplayer.
+LMS içida bir xil serverda işlovçi şaşka öyini. AI yoki LMS öquvçilari bilan multiplayer.
 
 ## Imkoniyatlar
 
-- **AI rejimi**: Oson / O'rta / Qiyin daraja
+- **AI rejimi**: Oson / Örta / Qiyin daraja
 - **Multiplayer**: ikki turi
-  - **Shunchaki** — coin tegmasdan, ko'ngil uchun
-  - **Coin bilan** — wager rejimi: o'quvchidan tikilish so'raladi, g'olib ikkita tikilishni oladi
-- **AI g'alabasi uchun coin mukofoti**: easy=25, medium=35, hard=50 (admin `Game.config.ai_coin_rewards` orqali sozlashi mumkin)
+  - **Şunçaki** — coin tegmasdan, köngil uçun
+  - **Coin bilan** — wager rejimi: öquvçidan tikiliş söraladi, ğolib ikkita tikilişni oladi
+- **AI ğalabasi uçun coin mukofoti**: easy=25, medium=35, hard=50 (admin `Game.config.ai_coin_rewards` orqali sozlaşi mumkin)
 - **Musobaqalar**: admin oddiy musobaqa yaratadi → student `?competition_id=N` bilan kirsa, natija musobaqa statistikasiga yoziladi
-- **To'liq ekran**, **maxsus modal** (sandbox-safe), **katta ekranli dizayn**
-- **Taslim / Menyu** tugmalari ishlaydi
+- **Töliq ekran**, **maxsus modal** (sandbox-safe), **katta ekranli dizayn**
+- **Taslim / Menyu** tugmalari işlaydi
 
 ## Server bilan integratsiya
 
-Faylar `/static/games/shashka/` papkasidadir. LMS `game_launch` view orqali HMAC SSO token bilan iframe ichida yuklanadi.
+Faylar `/static/games/shashka/` papkasidadir. LMS `game_launch` view orqali HMAC SSO token bilan iframe içida yuklanadi.
 
 API endpointlari (`/api/v1/games/external/...`):
-- `verify/` — token tekshirish, foydalanuvchi ma'lumotlari (+ coins)
-- `result/` — AI rejim uchun natija + coin mukofoti
-- `mp/find/` — match topish (mode: `casual` | `coin`, wager + ixtiyoriy competition_id)
+- `verify/` — token tekşiriş, foydalanuvçi ma'lumotlari (+ coins)
+- `result/` — AI rejim uçun natija + coin mukofoti
+- `mp/find/` — match topiş (mode: `casual` | `coin`, wager + ixtiyoriy competition_id)
 - `mp/state/` — polling
-- `mp/move/` — yurish yuborish
+- `mp/move/` — yuriş yuboriş
 - `mp/resign/` — taslim
 
-## Admin sozlash
+## Admin sozlaş
 
 `Game.config` (JSON):
 ```json
@@ -39,9 +39,9 @@ API endpointlari (`/api/v1/games/external/...`):
 }
 ```
 
-Multiplayer matchlar Django admin'da **"Multiplayer matchlari (taxta o'yini)"** bo'limida ko'rinadi (`BoardMatch`), ham shashka, ham shaxmat uchun. Coin transferi avtomatik amalga oshadi.
+Multiplayer matchlar Django admin'da **"Multiplayer matchlari (taxta öyini)"** bölimida körinadi (`BoardMatch`), ham şaşka, ham şaxmat uçun. Coin transferi avtomatik amalga oşadi.
 
 ## Musobaqa
 
-1. Admin: Django admin → Competitions → game=Shashka, sanalarni sozlang
-2. Student: `/games/shashka/launch/?competition_id=N` URL'i orqali kirsa, natija musobaqa leaderboard'iga qo'shiladi (`game_detail` sahifasidagi "Faol musobaqalar" panelidan ham tanlash mumkin)
+1. Admin: Django admin → Competitions → game=Şaşka, sanalarni sozlang
+2. Student: `/games/shashka/launch/?competition_id=N` URL'i orqali kirsa, natija musobaqa leaderboard'iga qöşiladi (`game_detail` sahifasidagi "Faol musobaqalar" panelidan ham tanlaş mumkin)

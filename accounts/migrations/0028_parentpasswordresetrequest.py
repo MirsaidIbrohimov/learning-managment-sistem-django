@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('reviewed_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_parent_password_requests', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Ota-ona parol tiklash so'rovi",
-                'verbose_name_plural': "Ota-ona parol tiklash so'rovlari",
+                'verbose_name': "Ota-ona parol tiklaş sörovi",
+                'verbose_name_plural': "Ota-ona parol tiklaş sörovlari",
                 'ordering': ['-created_at'],
             },
         ),

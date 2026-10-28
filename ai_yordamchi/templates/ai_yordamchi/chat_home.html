@@ -1,12 +1,12 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}AI Yordamchi - IT Creative LMS{% endblock %}
+{% block title %}AI Yordamçi - IT Creative LMS{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/ai-motion.css' %}?v=20261027b">
 <script src="{% static 'js/ai-motion.js' %}?v=20261027c" defer></script>
-<meta name="description" content="LMS ichida ishlovchi AI Yordamchi. Muallif: Suyunov Husan - IT Creative.">
+<meta name="description" content="LMS içida işlovçi AI Yordamçi. Muallif: Suyunov Husan - IT Creative.">
 {% endblock %}
 
 {% block content %}
@@ -18,13 +18,13 @@
                 <span class="ah-online"><span class="dot"></span> Creative AI onlayn</span>
                 <button type="button" class="am-btn" data-bs-toggle="modal" data-bs-target="#folderModal"><i class="bi bi-folder-plus"></i> <span class="lbl">Yangi papka</span></button>
             </div>
-            <h1 data-am-words="2">Salom, {{ user.first_name|default:user.username }}! Bugun nimani o'rganamiz?</h1>
-            <p>Dasturlash, matematika va boshqa fanlar bo'yicha savol bering — rasm yoki fayl yuborsangiz ham tushunadi.</p>
+            <h1 data-am-words="2">Salom, {{ user.first_name|default:user.username }}! Bugun nimani örganamiz?</h1>
+            <p>Dasturlaş, matematika va boşqa fanlar böyiça savol bering — rasm yoki fayl yuborsangiz ham tuşunadi.</p>
             <form class="ah-ask" action="{% url 'ai_yordamchi:new_session' %}" method="get">
                 <i class="bi bi-stars"></i>
                 <input type="text" name="q" maxlength="1500" placeholder="Masalan: Python'da dekorator nima?" autocomplete="off" required>
                 <input type="hidden" name="autosend" value="1">
-                <button type="submit" class="am-magnetic" title="Suhbatni boshlash"><i class="bi bi-arrow-up"></i></button>
+                <button type="submit" class="am-magnetic" title="Suhbatni boşlaş"><i class="bi bi-arrow-up"></i></button>
             </form>
             <div class="ah-marquee">
                 <div class="ah-marquee-track">
@@ -71,7 +71,7 @@
     <div class="ah-bar-row am-rv">
         <nav class="ah-seg" aria-label="Papkalar">
             <span class="ind" aria-hidden="true"></span>
-            <a href="?folder=all" class="{% if active_folder == 'all' %}on{% endif %}"><i class="bi bi-collection"></i> Barchasi</a>
+            <a href="?folder=all" class="{% if active_folder == 'all' %}on{% endif %}"><i class="bi bi-collection"></i> Barçasi</a>
             <a href="?folder=pinned" class="{% if active_folder == 'pinned' %}on{% endif %}"><i class="bi bi-pin-angle-fill"></i> Muhim <span class="c">{{ pinned_count }}</span></a>
             {% for folder in folders %}
             <a href="?folder={{ folder.id }}" class="{% if active_folder == folder.id|stringformat:'s' %}on{% endif %}"><span class="d" style="background:{{ folder.color }}"></span> {{ folder.name }} <span class="c">{{ folder.session_count }}</span></a>
@@ -79,15 +79,15 @@
             <button type="button" data-bs-toggle="modal" data-bs-target="#folderModal"><i class="bi bi-plus-lg"></i> Papka</button>
         </nav>
         {% if sessions %}
-        <label class="ah-search"><i class="bi bi-search"></i><input type="text" id="ahSearch" placeholder="Suhbat qidirish…" autocomplete="off"></label>
+        <label class="ah-search"><i class="bi bi-search"></i><input type="text" id="ahSearch" placeholder="Suhbat qidiriş…" autocomplete="off"></label>
         {% endif %}
     </div>
 
     {% for folder in folders %}{% if active_folder == folder.id|stringformat:'s' %}
     <div class="ah-folder-tools">
         <span class="lbl"><i class="bi bi-folder2-open"></i> {{ folder.name }} papkasi</span>
-        <button type="button" class="ah-mini" onclick="ahRenameFolder({{ folder.id }}, '{{ folder.name|escapejs }}')"><i class="bi bi-pencil"></i> Nomini o'zgartirish</button>
-        <button type="button" class="ah-mini danger" onclick="ahDeleteFolder({{ folder.id }})"><i class="bi bi-trash3"></i> Papkani o'chirish</button>
+        <button type="button" class="ah-mini" onclick="ahRenameFolder({{ folder.id }}, '{{ folder.name|escapejs }}')"><i class="bi bi-pencil"></i> Nomini özgartiriş</button>
+        <button type="button" class="ah-mini danger" onclick="ahDeleteFolder({{ folder.id }})"><i class="bi bi-trash3"></i> Papkani öçiriş</button>
     </div>
     {% endif %}{% endfor %}
 
@@ -95,23 +95,23 @@
     {# ===== SESSION CARDS ===== #}
     <section class="ah-grid" id="ahList">
         <a href="{% url 'ai_yordamchi:new_session' %}" class="ah-card ah-new am-rv">
-            <div><div class="plus"><i class="bi bi-plus-lg"></i></div><b>Yangi suhbat</b><small>Bo'sh suhbat ochish</small></div>
+            <div><div class="plus"><i class="bi bi-plus-lg"></i></div><b>Yangi suhbat</b><small>Böş suhbat oçiş</small></div>
         </a>
         {% for session in sessions %}
         <article class="ah-card am-rv" data-title="{{ session.title|lower }}"{% if session.folder %} style="--fc:{{ session.folder.color }}"{% endif %}>
             <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="ah-card-link" aria-label="{{ session.title }}"></a>
             <div class="ah-card-acts">
-                <button type="button" class="ah-act {% if session.is_pinned %}pinned{% endif %}" title="{% if session.is_pinned %}Mahkamlashni olish{% else %}Mahkamlash{% endif %}" onclick="ahTogglePin({{ session.pk }})">
+                <button type="button" class="ah-act {% if session.is_pinned %}pinned{% endif %}" title="{% if session.is_pinned %}Mahkamlaşni oliş{% else %}Mahkamlaş{% endif %}" onclick="ahTogglePin({{ session.pk }})">
                     <i class="bi {% if session.is_pinned %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}"></i>
                 </button>
                 <div class="dropdown">
-                    <button type="button" class="ah-act" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Ko'proq"><i class="bi bi-three-dots"></i></button>
+                    <button type="button" class="ah-act" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Köproq"><i class="bi bi-three-dots"></i></button>
                     <ul class="dropdown-menu dropdown-menu-end ah-menu">
-                        <li><a class="dropdown-item" href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}"><i class="bi bi-box-arrow-in-right"></i> Ochish</a></li>
-                        <li><button type="button" class="dropdown-item" onclick="ahRenameSession({{ session.pk }}, '{{ session.title|escapejs }}')"><i class="bi bi-pencil"></i> Nomini o'zgartirish</button></li>
-                        <li><button type="button" class="dropdown-item" onclick="ahMoveSession({{ session.pk }}, {{ session.folder_id|default:'null' }})"><i class="bi bi-folder-symlink"></i> Papkaga ko'chirish</button></li>
+                        <li><a class="dropdown-item" href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}"><i class="bi bi-box-arrow-in-right"></i> Oçiş</a></li>
+                        <li><button type="button" class="dropdown-item" onclick="ahRenameSession({{ session.pk }}, '{{ session.title|escapejs }}')"><i class="bi bi-pencil"></i> Nomini özgartiriş</button></li>
+                        <li><button type="button" class="dropdown-item" onclick="ahMoveSession({{ session.pk }}, {{ session.folder_id|default:'null' }})"><i class="bi bi-folder-symlink"></i> Papkaga köçiriş</button></li>
                         <li><hr></li>
-                        <li><button type="button" class="dropdown-item danger" onclick="ahDeleteSession({{ session.pk }})"><i class="bi bi-trash3"></i> O'chirish</button></li>
+                        <li><button type="button" class="dropdown-item danger" onclick="ahDeleteSession({{ session.pk }})"><i class="bi bi-trash3"></i> Öçiriş</button></li>
                     </ul>
                 </div>
             </div>
@@ -127,19 +127,19 @@
         </article>
         {% endfor %}
     </section>
-    <div class="ah-noresult" id="ahNoResult"><i class="bi bi-search"></i><p style="margin-top:.5rem">Hech qanday suhbat topilmadi</p></div>
+    <div class="ah-noresult" id="ahNoResult"><i class="bi bi-search"></i><p style="margin-top:.5rem">Heç qanday suhbat topilmadi</p></div>
     {% else %}
     {# ===== EMPTY ===== #}
     <section class="ah-empty am-rv">
         <div class="am-orb"><i class="bi bi-stars"></i></div>
         {% if active_folder == 'all' %}
-        <h3>AI Yordamchi bilan boshlang</h3>
-        <p>Dasturlash, matematika va boshqa mavzularda sun'iy intellekt yordamida o'rganing. Har qanday savolingizga aniq javob oling.</p>
-        <a href="{% url 'ai_yordamchi:new_session' %}" class="am-btn primary am-magnetic"><i class="bi bi-plus-lg"></i> Yangi suhbat boshlash</a>
+        <h3>AI Yordamçi bilan boşlang</h3>
+        <p>Dasturlaş, matematika va boşqa mavzularda sun'iy intellekt yordamida örganing. Har qanday savolingizga aniq javob oling.</p>
+        <a href="{% url 'ai_yordamchi:new_session' %}" class="am-btn primary am-magnetic"><i class="bi bi-plus-lg"></i> Yangi suhbat boşlaş</a>
         {% else %}
-        <h3>Bu yerda hali suhbat yo'q</h3>
-        <p>Bu bo'limda suhbatlar mavjud emas. Boshqa bo'limni tanlang yoki yangi suhbat boshlang.</p>
-        <a href="?folder=all" class="am-btn"><i class="bi bi-collection"></i> Barcha suhbatlar</a>
+        <h3>Bu yerda hali suhbat yöq</h3>
+        <p>Bu bölimda suhbatlar mavjud emas. Boşqa bölimni tanlang yoki yangi suhbat boşlang.</p>
+        <a href="?folder=all" class="am-btn"><i class="bi bi-collection"></i> Barça suhbatlar</a>
         {% endif %}
     </section>
     {% endif %}
@@ -152,7 +152,7 @@
             <span class="used">{{ limits.msg_used }}/{{ limits.msg_limit }} xabar · {{ limits.img_used }}/{{ limits.img_limit }} rasm</span>
         </div>
         <div class="ah-bar"><i data-w="{% widthratio limits.msg_used limits.msg_limit 100 %}"></i></div>
-        <p class="ah-note"><i class="bi bi-info-circle"></i><span>Oddiy: har bir xabar 1 coin, kuniga 60 xabar + 3 rasm · Premium: bepul, kuniga 120 xabar + 5 rasm. Limit har kuni 00:00 da (Toshkent vaqti) yangilanadi; suhbatni o‘chirish limitni qaytarmaydi.</span></p>
+        <p class="ah-note"><i class="bi bi-info-circle"></i><span>Oddiy: har bir xabar 1 coin, kuniga 60 xabar + 3 rasm · Premium: bepul, kuniga 120 xabar + 5 rasm. Limit har kuni 00:00 da (Toşkent vaqti) yangilanadi; suhbatni öçiriş limitni qaytarmaydi.</span></p>
     </section>
 </div>
 
@@ -169,7 +169,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
-                <button type="button" class="am-mbtn solid" id="folderSave">Saqlash</button>
+                <button type="button" class="am-mbtn solid" id="folderSave">Saqlaş</button>
             </div>
         </div>
     </div>
@@ -177,7 +177,7 @@
 <div class="modal fade am-modal" id="renameModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Suhbat nomini o'zgartirish</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h5 class="modal-title">Suhbat nomini özgartiriş</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <label class="lbl" for="renameInput">Yangi nom</label>
                 <input type="text" id="renameInput" class="am-input" maxlength="200">
@@ -185,7 +185,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
-                <button type="button" class="am-mbtn solid" id="renameSave">Saqlash</button>
+                <button type="button" class="am-mbtn solid" id="renameSave">Saqlaş</button>
             </div>
         </div>
     </div>
@@ -193,7 +193,7 @@
 <div class="modal fade am-modal" id="moveModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Papkaga ko'chirish</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header"><h5 class="modal-title">Papkaga köçiriş</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <div class="am-radio-list" id="moveList">
                     <label class="am-radio"><input type="radio" name="moveFolder" value=""> <i class="bi bi-inbox" style="color:var(--am-text-3)"></i> Papkasiz</label>
@@ -201,12 +201,12 @@
                     <label class="am-radio"><input type="radio" name="moveFolder" value="{{ folder.id }}"> <span class="swatch" style="background:{{ folder.color }}"></span> {{ folder.name }}</label>
                     {% endfor %}
                 </div>
-                {% if not folders %}<p style="font-size:13px;color:var(--am-text-3);margin:8px 0 0">Hali papka yo'q. Avval "Yangi papka" yarating.</p>{% endif %}
+                {% if not folders %}<p style="font-size:13px;color:var(--am-text-3);margin:8px 0 0">Hali papka yöq. Avval "Yangi papka" yarating.</p>{% endif %}
                 <div class="am-err" id="moveErr"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
-                <button type="button" class="am-mbtn solid" id="moveSave">Ko'chirish</button>
+                <button type="button" class="am-mbtn solid" id="moveSave">Köçiriş</button>
             </div>
         </div>
     </div>
@@ -216,12 +216,12 @@
         <div class="modal-content">
             <div class="modal-body am-confirm">
                 <div class="ic"><i class="bi bi-trash3"></i></div>
-                <h6 id="confirmTitle">O'chirish</h6>
+                <h6 id="confirmTitle">Öçiriş</h6>
                 <p id="confirmText"></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
-                <button type="button" class="am-mbtn danger" id="confirmOk">O'chirish</button>
+                <button type="button" class="am-mbtn danger" id="confirmOk">Öçiriş</button>
             </div>
         </div>
     </div>
@@ -265,7 +265,7 @@
     }
     function modal(id) { return window.bootstrap ? bootstrap.Modal.getOrCreateInstance(document.getElementById(id)) : null; }
     function reload() { window.location.reload(); }
-    /* Brauzerning confirm() oynasi o'rniga dizayndagi modal; bootstrap bo'lmasa confirm() ga qaytadi. */
+    /* Brauzerning confirm() oynasi örniga dizayndagi modal; bootstrap bölmasa confirm() ga qaytadi. */
     var confirmCb = null;
     function ask(title, text, cb) {
         var m = modal('confirmModal');
@@ -294,7 +294,7 @@
 
     /* ---- delete session ---- */
     window.ahDeleteSession = function (id) {
-        ask("Suhbatni o'chirish", "Bu suhbat butunlay o'chiriladi. Davom etasizmi?", function () { post(U.del(id)).then(reload); });
+        ask("Suhbatni öçiriş", "Bu suhbat butunlay öçiriladi. Davom etasizmi?", function () { post(U.del(id)).then(reload); });
     };
 
     /* ---- rename session ---- */
@@ -308,7 +308,7 @@
     };
     document.getElementById('renameSave').addEventListener('click', function () {
         var title = document.getElementById('renameInput').value.trim();
-        if (!title) { document.getElementById('renameErr').textContent = "Nom bo'sh bo'lmasin."; return; }
+        if (!title) { document.getElementById('renameErr').textContent = "Nom böş bölmasin."; return; }
         post(U.rename(renameId), { title: title }).then(function (r) {
             if (r.error) { document.getElementById('renameErr').textContent = r.error; return; }
             reload();
@@ -368,13 +368,13 @@
         var m = modal('folderModal'); if (m) m.show();
     };
     window.ahDeleteFolder = function (id) {
-        ask("Papkani o'chirish", "Suhbatlar o'chmaydi, faqat papkadan chiqadi. Davom etasizmi?", function () {
+        ask("Papkani öçiriş", "Suhbatlar öçmaydi, faqat papkadan çiqadi. Davom etasizmi?", function () {
             post(U.fDelete(id)).then(function () { window.location.href = '?folder=all'; });
         });
     };
     document.getElementById('folderSave').addEventListener('click', function () {
         var name = document.getElementById('folderName').value.trim();
-        if (!name) { document.getElementById('folderErr').textContent = "Papka nomi bo'sh bo'lmasin."; return; }
+        if (!name) { document.getElementById('folderErr').textContent = "Papka nomi böş bölmasin."; return; }
         if (folderMode === 'rename') {
             post(U.fRename(folderEditId), { name: name }).then(function (r) {
                 if (r.error) { document.getElementById('folderErr').textContent = r.error; return; }

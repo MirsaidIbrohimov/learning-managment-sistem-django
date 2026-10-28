@@ -552,33 +552,33 @@ function showCelebrationModal() {
     overlay.className = 'celebration-overlay';
     let coinHtml = '';
     {% if result.coin_awarded %}
-    coinHtml = '<div class="cel-coin"><i class="bi bi-coin"></i> +{{ result.correct_answers }} coin qo\'lga kiritdingiz!</div>';
+    coinHtml = '<div class="cel-coin"><i class="bi bi-coin"></i> +{{ result.correct_answers }} coin qölga kiritdingiz!</div>';
     {% endif %}
     let actionsHtml = '';
     {% if homework_lesson %}
     {% if homework_lesson_token %}
-    actionsHtml += '<a href="{% url "student_lesson_view" homework_lesson_token.token %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topshiriqqa o\'tish</a>';
+    actionsHtml += '<a href="{% url "student_lesson_view" homework_lesson_token.token %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topşiriqqa ötiş</a>';
     {% else %}
-    actionsHtml += '<a href="{% url "lesson_view" homework_lesson.pk %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topshiriqqa o\'tish</a>';
+    actionsHtml += '<a href="{% url "lesson_view" homework_lesson.pk %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topşiriqqa ötiş</a>';
     {% endif %}
     {% endif %}
     {% if video_lesson %}
     {% if video_lesson_token %}
-    actionsHtml += '<a href="{% url "student_lesson_view" video_lesson_token.token %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytish</a>';
+    actionsHtml += '<a href="{% url "student_lesson_view" video_lesson_token.token %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytiş</a>';
     {% else %}
-    actionsHtml += '<a href="{% url "lesson_view" video_lesson.pk %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytish</a>';
+    actionsHtml += '<a href="{% url "lesson_view" video_lesson.pk %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytiş</a>';
     {% endif %}
     {% endif %}
     {% if course_token %}
-    actionsHtml += '<a href="{% url "student_course_view" course_token.token %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytish</a>';
+    actionsHtml += '<a href="{% url "student_course_view" course_token.token %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytiş</a>';
     {% else %}
-    actionsHtml += '<a href="{% url "profession_detail" result.test.lesson.profession.pk %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytish</a>';
+    actionsHtml += '<a href="{% url "profession_detail" result.test.lesson.profession.pk %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytiş</a>';
     {% endif %}
     overlay.innerHTML = `
         <div class="celebration-modal">
             <div class="cel-icon"><i class="bi bi-trophy-fill"></i></div>
             <div class="cel-title">Tabriklaymiz!</div>
-            <p class="cel-subtitle">Siz testni muvaffaqiyatli topshirdingiz!<br>Natija: <strong>{{ result.score }}%</strong></p>
+            <p class="cel-subtitle">Siz testni muvaffaqiyatli topşirdingiz!<br>Natija: <strong>{{ result.score }}%</strong></p>
             ${coinHtml}
             <div class="cel-actions">${actionsHtml}</div>
         </div>
@@ -624,9 +624,9 @@ function showCelebrationModal() {
 
                 <p class="result-subtitle">
                     {% if result.passed %}
-                        Siz testni muvaffaqiyatli topshirdingiz!
+                        Siz testni muvaffaqiyatli topşirdingiz!
                     {% else %}
-                        Siz testdan o'ta olmadingiz. Qayta urinib ko'ring!
+                        Siz testdan öta olmadingiz. Qayta urinib köring!
                     {% endif %}
                 </p>
 
@@ -643,21 +643,21 @@ function showCelebrationModal() {
                 <div class="process-nodes">
                     <div class="process-node completed">
                         <div class="node-circle"><i class="bi bi-book"></i></div>
-                        <div class="node-label">Darsni o'qish</div>
+                        <div class="node-label">Darsni öqiş</div>
                     </div>
                     <div class="process-node completed">
                         <div class="node-circle"><i class="bi bi-journal-check"></i></div>
-                        <div class="node-label">Test boshlash</div>
+                        <div class="node-label">Test boşlaş</div>
                     </div>
                     <div class="process-node completed">
                         <div class="node-circle"><i class="bi bi-pencil-square"></i></div>
-                        <div class="node-label">Javob berish</div>
+                        <div class="node-label">Javob beriş</div>
                     </div>
                     <div class="process-node {% if result.passed %}completed{% else %}failed{% endif %}">
                         <div class="node-circle">
                             {% if result.passed %}<i class="bi bi-trophy-fill"></i>{% else %}<i class="bi bi-x-lg"></i>{% endif %}
                         </div>
-                        <div class="node-label">{% if result.passed %}Muvaffaqiyat{% else %}Qayta urinish{% endif %}</div>
+                        <div class="node-label">{% if result.passed %}Muvaffaqiyat{% else %}Qayta uriniş{% endif %}</div>
                     </div>
                 </div>
             </div>
@@ -667,7 +667,7 @@ function showCelebrationModal() {
                     <div class="stat-icon correct"><i class="bi bi-check-lg"></i></div>
                     <div class="stat-info">
                         <div class="stat-value">{{ result.correct_answers }}/{{ result.total_questions }}</div>
-                        <div class="stat-label">To'g'ri javoblar</div>
+                        <div class="stat-label">Töğri javoblar</div>
                     </div>
                 </div>
                 <div class="stat-box">
@@ -689,7 +689,7 @@ function showCelebrationModal() {
             {% if result.coin_awarded %}
             <div class="coin-banner">
                 <i class="bi bi-coin"></i>
-                <span>+{{ result.correct_answers }} coin qo'lga kiritdingiz!</span>
+                <span>+{{ result.correct_answers }} coin qölga kiritdingiz!</span>
             </div>
             {% endif %}
         </div>
@@ -698,7 +698,7 @@ function showCelebrationModal() {
         <div class="answers-card">
             <div class="answers-header">
                 <div class="answers-header-icon"><i class="bi bi-list-check"></i></div>
-                <h5>Noto'g'ri javoblar tahlili</h5>
+                <h5>Notöğri javoblar tahlili</h5>
             </div>
             <div class="answers-body">
                 {% for ua in user_answers %}
@@ -722,7 +722,7 @@ function showCelebrationModal() {
                             {% endif %}
                         </div>
                         <div class="detail-row">
-                            <span class="detail-label">To'g'ri javob:</span>
+                            <span class="detail-label">Töğri javob:</span>
                             <span class="detail-value correct-ans">
                                 {% for ans in ua.question.answers.all %}
                                     {% if ans.is_correct %}{{ ans.answer_text }}{% endif %}
@@ -749,7 +749,7 @@ function showCelebrationModal() {
             {% else %}
             <a href="{% url 'profession_detail' result.test.lesson.profession.pk %}" class="action-btn back">
             {% endif %}
-                <i class="bi bi-arrow-left"></i> Kursga qaytish
+                <i class="bi bi-arrow-left"></i> Kursga qaytiş
             </a>
             {% if video_lesson %}
             {% if video_lesson_token %}
@@ -757,7 +757,7 @@ function showCelebrationModal() {
             {% else %}
             <a href="{% url 'lesson_view' video_lesson.pk %}" class="action-btn video-nav">
             {% endif %}
-                <i class="bi bi-play-circle"></i> Video darslikka qaytish
+                <i class="bi bi-play-circle"></i> Video darslikka qaytiş
             </a>
             {% endif %}
             {% if homework_lesson %}
@@ -766,7 +766,7 @@ function showCelebrationModal() {
             {% else %}
             <a href="{% url 'lesson_view' homework_lesson.pk %}" class="action-btn homework-nav">
             {% endif %}
-                <i class="bi bi-pencil-square"></i> Topshiriqqa o'tish
+                <i class="bi bi-pencil-square"></i> Topşiriqqa ötiş
             </a>
             {% endif %}
             {% if result.test.allow_retry and not result.passed %}
@@ -775,7 +775,7 @@ function showCelebrationModal() {
             {% else %}
             <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
             {% endif %}
-                <i class="bi bi-arrow-repeat"></i> Qayta ishlash
+                <i class="bi bi-arrow-repeat"></i> Qayta işlaş
                 <span class="retry-coin-tag">{% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
             </a>
             {% endif %}
@@ -803,11 +803,11 @@ function showCelebrationModal() {
             <div class="retry-info-warn">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <span>
-                    Qayta ishlashda hisobingizdan
-                    <strong>{% if request.user.is_premium %}5{% else %}10{% endif %} coin</strong> yechiladi.
-                    Qayta topshirishda coin berilmaydi!
+                    Qayta işlaşda hisobingizdan
+                    <strong>{% if request.user.is_premium %}5{% else %}10{% endif %} coin</strong> yeçiladi.
+                    Qayta topşirişda coin berilmaydi!
                     {% if not request.user.is_premium %}
-                    <em>Premium bilan faqat 5 coin to'laysiz!</em>
+                    <em>Premium bilan faqat 5 coin tölaysiz!</em>
                     {% endif %}
                 </span>
             </div>

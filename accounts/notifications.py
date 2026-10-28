@@ -1,6 +1,6 @@
 """
-Avtomatik xabar yuborish tizimi
-Rag'batlantiruvchi va ogohlantiruvchi xabarlar
+Avtomatik xabar yuboriş tizimi
+Rağbatlantiruvçi va ogohlantiruvçi xabarlar
 """
 from django.utils import timezone
 from datetime import timedelta
@@ -12,7 +12,7 @@ from .models import (
 
 
 def send_notification(user, title, content, message_type='motivation'):
-    """Xabar yuborish"""
+    """Xabar yuboriş"""
     Message.objects.create(
         recipient=user,
         sender=None,
@@ -23,35 +23,35 @@ def send_notification(user, title, content, message_type='motivation'):
 
 
 def check_first_lesson_completed(user, lesson):
-    """Birinchi darsni tugatganini tekshirish"""
-    # Faqat birinchi marta video ko'rganda
+    """Birinçi darsni tugatganini tekşiriş"""
+    # Faqat birinçi marta video körganda
     total_watched = VideoProgress.objects.filter(user=user, watched=True).count()
     if total_watched == 1:
         send_notification(
             user,
-            "🚀 Tabriklaymiz! O'rganishni boshladingiz!",
-            f"Siz birinchi darsingizni tugatdingiz! Bu ajoyib boshlang'ich. Davom eting va yangi bilimlar oling!",
+            "🚀 Tabriklaymiz! Örganişni boşladingiz!",
+            f"Siz birinçi darsingizni tugatdingiz! Bu ajoyib boşlanğiç. Davom eting va yangi bilimlar oling!",
             'achievement'
         )
 
 
 def check_first_test_passed(user, test_result):
-    """Birinchi testdan o'tganini tekshirish"""
+    """Birinçi testdan ötganini tekşiriş"""
     passed_tests = TestResult.objects.filter(student=user, passed=True).count()
     if passed_tests == 1 and test_result.passed:
         send_notification(
             user,
-            "🎯 Birinchi yutuq! Oldinga!",
-            f"Siz birinchi testingizdan muvaffaqiyatli o'tdingiz! Ball: {test_result.score}%. Bundan ham yaxshisiga erishishingiz mumkin!",
+            "🎯 Birinçi yutuq! Oldinga!",
+            f"Siz birinçi testingizdan muvaffaqiyatli ötdingiz! Ball: {test_result.score}%. Bundan ham yaxşisiga erişişingiz mumkin!",
             'achievement'
         )
 
 
 def _notify_admin_progress(user, profession, milestone):
-    """Admin xabarlar bo'limiga va Telegram orqali kurs progress xabarini yuborish"""
+    """Admin xabarlar bölimiga va Telegram orqali kurs progress xabarini yuboriş"""
     from telegram_bot.utils import notify_admins
 
-    # Allaqachon shu milestone uchun xabar yuborilganmi tekshirish
+    # Allaqaçon şu milestone uçun xabar yuborilganmi tekşiriş
     check_title = f"{user.full_name} — {profession.name} {milestone}%"
     already_sent = Message.objects.filter(
         message_type='system',
@@ -63,7 +63,7 @@ def _notify_admin_progress(user, profession, milestone):
     emoji_map = {25: '🌱', 50: '⭐', 75: '🔥', 90: '🏆'}
     emoji = emoji_map.get(milestone, '📊')
 
-    # Adminlarga tizim ichida xabar
+    # Adminlarga tizim içida xabar
     admins = CustomUser.objects.filter(role='admin')
     for admin in admins:
         Message.objects.create(
@@ -71,7 +71,7 @@ def _notify_admin_progress(user, profession, milestone):
             sender=None,
             title=f"{emoji} {user.full_name} — {profession.name} {milestone}% tugatdi!",
             content=(
-                f"O'quvchi: {user.full_name} (@{user.username})\n"
+                f"Öquvçi: {user.full_name} (@{user.username})\n"
                 f"Kurs: {profession.name}\n"
                 f"Progress: {milestone}% bajarildi\n\n"
                 f"{'Tabriklaymiz! Kurs deyarli tugadi! 🎉' if milestone >= 90 else 'O`quvchi yaxshi rivojlanmoqda.'}"
@@ -82,7 +82,7 @@ def _notify_admin_progress(user, profession, milestone):
     # Telegram orqali adminlarga
     bot_text = (
         f"{emoji} <b>Kurs progress xabari</b>\n\n"
-        f"👤 O'quvchi: <b>{user.full_name}</b> (@{user.username})\n"
+        f"👤 Öquvçi: <b>{user.full_name}</b> (@{user.username})\n"
         f"📚 Kurs: <b>{profession.name}</b>\n"
         f"📊 Progress: <b>{milestone}%</b> bajarildi\n\n"
         f"{'🎉 Kurs deyarli tugadi!' if milestone >= 90 else '✅ O`quvchi yaxshi rivojlanmoqda.'}"
@@ -91,12 +91,12 @@ def _notify_admin_progress(user, profession, milestone):
 
 
 def notify_admin_video_duration_unknown(video):
-    """Video davomiyligi serverda aniqlanmadi — dars yopilmaydi, admin aralashishi kerak.
+    """Video davomiyligi serverda aniqlanmadi — dars yopilmaydi, admin aralaşişi kerak.
 
-    Davomiylik bo'lmasa ko'rish talabini hisoblab bo'lmaydi va "Ko'rdim" bloklanadi
-    (mijoz aytgan davomiylikka ishonish — anti-cheat teshigi). Shuning uchun admin
-    darhol xabardor qilinadi: kurs bo'limida `duration` (daqiqa) qo'lda kiritilsa
-    dars yana ishlaydi.
+    Davomiylik bölmasa köriş talabini hisoblab bölmaydi va "Kördim" bloklanadi
+    (mijoz aytgan davomiylikka işoniş — anti-cheat teşigi). Şuning uçun admin
+    darhol xabardor qilinadi: kurs bölimida `duration` (daqiqa) qölda kiritilsa
+    dars yana işlaydi.
     """
     title = f"⚠️ Video davomiyligi aniqlanmadi: {video.lesson.title}"
     if Message.objects.filter(message_type='system', title=title).exists():
@@ -107,10 +107,10 @@ def notify_admin_video_duration_unknown(video):
         f"Dars: {lesson.title}\n"
         f"Kurs: {lesson.profession.name if lesson.profession_id else '—'}\n"
         f"Havola: {video.youtube_url or video.video_url or '—'}\n\n"
-        "Server YouTube/Vimeo'dan video davomiyligini olishga urinib ko'rdi, lekin "
-        "aniqlay olmadi. Davomiylik bo'lmasa ko'rish vaqtini tekshirib bo'lmaydi, "
-        "shuning uchun o'quvchilar bu darsni YOPA OLMAYDI.\n\n"
-        "Yechim: darsni tahrirlab \"Davomiyligi (daqiqa)\" maydonini to'ldiring."
+        "Server YouTube/Vimeo'dan video davomiyligini olişga urinib kördi, lekin "
+        "aniqlay olmadi. Davomiylik bölmasa köriş vaqtini tekşirib bölmaydi, "
+        "şuning uçun öquvçilar bu darsni YOPA OLMAYDI.\n\n"
+        "Yeçim: darsni tahrirlab \"Davomiyligi (daqiqa)\" maydonini töldiring."
     )
 
     for admin in CustomUser.objects.filter(role='admin'):
@@ -128,15 +128,15 @@ def notify_admin_video_duration_unknown(video):
             f"⚠️ <b>Video davomiyligi aniqlanmadi</b>\n\n"
             f"📚 Dars: <b>{lesson.title}</b>\n"
             f"🔗 {video.youtube_url or video.video_url or '—'}\n\n"
-            f"O'quvchilar bu darsni yopa olmaydi. Darsdagi "
-            f"\"Davomiyligi (daqiqa)\" maydonini to'ldiring."
+            f"Öquvçilar bu darsni yopa olmaydi. Darsdagi "
+            f"\"Davomiyligi (daqiqa)\" maydonini töldiring."
         )
     except Exception:
         pass
 
 
 def check_course_progress_milestones(user, profession):
-    """Kurs progressi bosqichlarini tekshirish (25%, 50%, 75%, 90%)"""
+    """Kurs progressi bosqiçlarini tekşiriş (25%, 50%, 75%, 90%)"""
     # Umumiy darslar
     total_lessons = Lesson.objects.filter(profession=profession).count()
     if total_lessons == 0:
@@ -185,14 +185,14 @@ def check_course_progress_milestones(user, profession):
     
     milestones = [
         (90, "🏆", f"{profession.name} kursining 90% tugadi!", f"Ajoyib! Kurs deyarli tugadi! Oxirgi qadamlarni ham bajaring va sertifikatingizni oling! 🎓🏆"),
-        (75, "🔥", f"{profession.name} kursining 75% tugadi!", f"Siz allaqachon kursning 3/4 qismini tugatdingiz! Oxirigacha oz qoldi, davom eting! 💪"),
+        (75, "🔥", f"{profession.name} kursining 75% tugadi!", f"Siz allaqaçon kursning 3/4 qismini tugatdingiz! Oxirigaça oz qoldi, davom eting! 💪"),
         (50, "🎉", f"{profession.name} kursining yarmiga yetdingiz!", f"Siz kursning 50% ni tugatdingiz! Ajoyib natija, davom eting! 💪"),
-        (25, "✨", f"{profession.name} kursining 25% tugadi!", f"Yaxshi boshlang'ich! Siz allaqachon kursning chorak qismini tugatdingiz. Oldinga! 🚀"),
+        (25, "✨", f"{profession.name} kursining 25% tugadi!", f"Yaxşi boşlanğiç! Siz allaqaçon kursning çorak qismini tugatdingiz. Oldinga! 🚀"),
     ]
 
     for threshold, emoji, title, content in milestones:
         if progress >= threshold:
-            # O'quvchiga shu milestone allaqachon yuborilganmi
+            # Öquvçiga şu milestone allaqaçon yuborilganmi
             already_sent_to_user = Message.objects.filter(
                 recipient=user,
                 message_type='motivation',
@@ -205,20 +205,20 @@ def check_course_progress_milestones(user, profession):
 
 
 def check_coin_reward(user, amount):
-    """Coin olganini bildirish"""
+    """Coin olganini bildiriş"""
     send_notification(
         user,
         f"🪙 Bugun +{amount} coin oldingiz!",
-        f"Siz {amount} coin ishlab oldingiz! Coinlarni do'konda turli sovg'alarga almashtirishingiz mumkin.",
+        f"Siz {amount} coin işlab oldingiz! Coinlarni dökonda turli sovğalarga almaştirişingiz mumkin.",
         'achievement'
     )
 
 
 def check_test_difficulty(user, test_result):
-    """Ko'p testdan yiqilganini tekshirish"""
+    """Köp testdan yiqilganini tekşiriş"""
     lesson = test_result.test.lesson
     
-    # Shu testdan necha marta yiqilgan
+    # Şu testdan neça marta yiqilgan
     failed_attempts = TestResult.objects.filter(
         student=user,
         test=test_result.test,
@@ -228,19 +228,19 @@ def check_test_difficulty(user, test_result):
     if failed_attempts >= 2 and not test_result.passed:
         send_notification(
             user,
-            f"📚 {lesson.title} mavzusida qiyinchilik",
-            f"Bu mavzuda qiyinchilik bor ko'rinadi. Darsni qayta ko'rib chiqishni va savollarni o'qituvchiga berishni tavsiya qilamiz. Har qanday qiyinchilik - o'rganish imkoniyati!",
+            f"📚 {lesson.title} mavzusida qiyinçilik",
+            f"Bu mavzuda qiyinçilik bor körinadi. Darsni qayta körib çiqişni va savollarni öqituvçiga berişni tavsiya qilamiz. Har qanday qiyinçilik - örganiş imkoniyati!",
             'recommendation'
         )
 
 
 def check_homework_reminder(user, homework):
     """Uyga vazifa eslatmasi"""
-    # Vazifa topshirilmagan va deadline yaqin
+    # Vazifa topşirilmagan va deadline yaqin
     if homework.deadline:
         days_left = (homework.deadline - timezone.now().date()).days
         if days_left <= 2 and days_left >= 0:
-            # Allaqachon eslatma yuborilganmi
+            # Allaqaçon eslatma yuborilganmi
             exists = Message.objects.filter(
                 recipient=user,
                 message_type='reminder',
@@ -251,39 +251,39 @@ def check_homework_reminder(user, homework):
             if not exists:
                 send_notification(
                     user,
-                    f"⏰ Uyga vazifa muddati yaqinlashmoqda!",
-                    f"'{homework.lesson.title}' darsining uyga vazifasi {days_left} kun ichida tugaydi. Topshirishni unutmang!",
+                    f"⏰ Uyga vazifa muddati yaqinlaşmoqda!",
+                    f"'{homework.lesson.title}' darsining uyga vazifasi {days_left} kun içida tugaydi. Topşirişni unutmang!",
                     'reminder'
                 )
 
 
 def check_inactivity(user):
-    """Faolsizlikni tekshirish (3+ kun)"""
+    """Faolsizlikni tekşiriş (3+ kun)"""
     if not user.last_activity:
         return
     
     days_inactive = (timezone.now() - user.last_activity).days
     
     if days_inactive >= 3:
-        # Bugun allaqachon xabar yuborilganmi
+        # Bugun allaqaçon xabar yuborilganmi
         today_reminder = Message.objects.filter(
             recipient=user,
             message_type='warning',
-            title__icontains="faollik yo'q",
+            title__icontains="faollik yöq",
             created_at__date=timezone.now().date()
         ).exists()
         
         if not today_reminder:
             send_notification(
                 user,
-                f"🙂 {days_inactive} kundan beri faollik yo'q",
-                f"Siz {days_inactive} kundan beri platformada faol emassiz. O'rganishni davom ettiraylikmi? Sizni kutib qolyapmiz!",
+                f"🙂 {days_inactive} kundan beri faollik yöq",
+                f"Siz {days_inactive} kundan beri platformada faol emassiz. Örganişni davom ettiraylikmi? Sizni kutib qolyapmiz!",
                 'warning'
             )
 
 
 def check_progress_decrease(user, profession):
-    """Progress pasayishini tekshirish"""
+    """Progress pasayişini tekşiriş"""
     # Oxirgi 7 kundagi faollik
     week_ago = timezone.now() - timedelta(days=7)
     two_weeks_ago = timezone.now() - timedelta(days=14)
@@ -301,20 +301,20 @@ def check_progress_decrease(user, profession):
         watched_at__lt=week_ago
     ).count()
     
-    # Agar avval faol bo'lib, hozir sekinlashgan bo'lsa
+    # Agar avval faol bölib, hozir sekinlaşgan bölsa
     if previous_activity > 3 and recent_activity == 0:
         exists = Message.objects.filter(
             recipient=user,
             message_type='warning',
-            title__icontains="sekinlash",
+            title__icontains="sekinlaş",
             created_at__gte=week_ago
         ).exists()
         
         if not exists:
             send_notification(
                 user,
-                f"📉 {profession.name} kursida sekinlashdingiz",
-                f"Avval yaxshi edingiz, hozir sekinlashdingiz. Yordam kerakmi? O'qituvchiga murojaat qilishingiz mumkin.",
+                f"📉 {profession.name} kursida sekinlaşdingiz",
+                f"Avval yaxşi edingiz, hozir sekinlaşdingiz. Yordam kerakmi? Öqituvçiga murojaat qilişingiz mumkin.",
                 'warning'
             )
 
@@ -326,8 +326,8 @@ def check_streak_achievement(user, streak_days):
     if streak_days in milestones:
         send_notification(
             user,
-            f"🔥 {streak_days} kun ketma-ket o'qidingiz!",
-            f"Ajoyib! Siz {streak_days} kun ketma-ket platformada faol bo'ldingiz. Bu katta yutuq, davom eting!",
+            f"🔥 {streak_days} kun ketma-ket öqidingiz!",
+            f"Ajoyib! Siz {streak_days} kun ketma-ket platformada faol böldingiz. Bu katta yutuq, davom eting!",
             'achievement'
         )
 
@@ -346,7 +346,7 @@ def check_leaderboard_achievement(user, rank):
             send_notification(
                 user,
                 f"😎 Siz Top-10 ga kirdingiz!",
-                f"Tabriklaymiz! Siz reytingda {rank}-o'rindasiz! Davom eting va 1-o'ringa chiqing!",
+                f"Tabriklaymiz! Siz reytingda {rank}-örindasiz! Davom eting va 1-öringa çiqing!",
                 'achievement'
             )
 
@@ -356,17 +356,17 @@ def check_homework_graded(user, submission, grade):
     send_notification(
         user,
         f"📝 Uyga vazifa baholandi!",
-        f"'{submission.homework.lesson.title}' darsining vazifasi tekshirildi. Baho: {grade}. Natijani ko'ring!",
+        f"'{submission.homework.lesson.title}' darsining vazifasi tekşirildi. Baho: {grade}. Natijani köring!",
         'system'
     )
 
 
 def check_teacher_comment(user, lesson_title, teacher_name):
-    """O'qituvchi izoh qoldirdi"""
+    """Öqituvçi izoh qoldirdi"""
     send_notification(
         user,
-        f"💬 O'qituvchi izoh qoldirdi",
-        f"{teacher_name} sizning '{lesson_title}' vazifangizga izoh yozdi. Ko'rib chiqing!",
+        f"💬 Öqituvçi izoh qoldirdi",
+        f"{teacher_name} sizning '{lesson_title}' vazifangizga izoh yozdi. Körib çiqing!",
         'system'
     )
 
@@ -376,37 +376,37 @@ def check_new_device_login(user, device_name, ip_address):
     send_notification(
         user,
         f"🔐 Yangi qurilmadan kirildi",
-        f"Hisobingizga '{device_name}' qurilmasidan kirildi (IP: {ip_address}). Agar bu siz bo'lmasangiz, parolingizni o'zgartiring!",
+        f"Hisobingizga '{device_name}' qurilmasidan kirildi (IP: {ip_address}). Agar bu siz bölmasangiz, parolingizni özgartiring!",
         'security'
     )
 
 
 def check_password_changed(user):
-    """Parol o'zgartirildi"""
+    """Parol özgartirildi"""
     send_notification(
         user,
         f"🔒 Parol muvaffaqiyatli yangilandi",
-        f"Xavfsizlik uchun parolingiz yangilandi. Agar bu siz bo'lmasangiz, darhol biz bilan bog'laning!",
+        f"Xavfsizlik uçun parolingiz yangilandi. Agar bu siz bölmasangiz, darhol biz bilan boğlaning!",
         'security'
     )
 
 
 def notify_new_lesson_added(profession, lesson_title):
-    """Yangi dars qo'shildi - barcha yozilganlarga xabar"""
+    """Yangi dars qöşildi - barça yozilganlarga xabar"""
     enrollments = CourseEnrollment.objects.filter(profession=profession)
     
     for enrollment in enrollments:
         send_notification(
             enrollment.user,
-            f"📢 Yangi dars qo'shildi!",
-            f"'{profession.name}' kursiga yangi dars qo'shildi: '{lesson_title}'. Ko'rib chiqing!",
+            f"📢 Yangi dars qöşildi!",
+            f"'{profession.name}' kursiga yangi dars qöşildi: '{lesson_title}'. Körib çiqing!",
             'system'
         )
 
 
 def recommend_similar_courses(user):
-    """O'xshash kurslarni tavsiya qilish"""
-    # User qaysi kursda o'qiyotganini aniqlash
+    """Öxşaş kurslarni tavsiya qiliş"""
+    # User qaysi kursda öqiyotganini aniqlaş
     enrollments = user.enrollments.all()
     if not enrollments.exists():
         return
@@ -420,7 +420,7 @@ def recommend_similar_courses(user):
     if other_professions:
         profession_names = ", ".join([p.name for p in other_professions])
         
-        # Oxirgi 7 kunda shu xabar yuborilganmi
+        # Oxirgi 7 kunda şu xabar yuborilganmi
         exists = Message.objects.filter(
             recipient=user,
             message_type='recommendation',
@@ -431,32 +431,32 @@ def recommend_similar_courses(user):
         if not exists:
             send_notification(
                 user,
-                f"👀 Sizga o'xshash o'quvchilar nima o'qiyapti",
-                f"Sizga quyidagi kurslarni tavsiya qilamiz: {profession_names}. Ko'rib chiqing!",
+                f"👀 Sizga öxşaş öquvçilar nima öqiyapti",
+                f"Sizga quyidagi kurslarni tavsiya qilamiz: {profession_names}. Körib çiqing!",
                 'recommendation'
             )
 
 
-# ============ Video ko'rganda chaqiriladigan funksiya ============
+# ============ Video körganda çaqiriladigan funksiya ============
 def on_video_watched(user, video_progress):
-    """Video ko'rilganda"""
+    """Video körilganda"""
     lesson = video_progress.video.lesson
     profession = lesson.profession
     
-    # Birinchi dars tekshirish
+    # Birinçi dars tekşiriş
     check_first_lesson_completed(user, lesson)
     
-    # Kurs progressi tekshirish
+    # Kurs progressi tekşiriş
     check_course_progress_milestones(user, profession)
 
 
-# ============ Test topshirilganda chaqiriladigan funksiya ============
+# ============ Test topşirilganda çaqiriladigan funksiya ============
 def on_test_completed(user, test_result):
-    """Test topshirilganda"""
-    # Birinchi test
+    """Test topşirilganda"""
+    # Birinçi test
     check_first_test_passed(user, test_result)
     
-    # Qiyinchilik tekshirish
+    # Qiyinçilik tekşiriş
     if not test_result.passed:
         check_test_difficulty(user, test_result)
     
@@ -465,7 +465,7 @@ def on_test_completed(user, test_result):
     check_course_progress_milestones(user, profession)
 
 
-# ============ Vazifa baholanganda chaqiriladigan funksiya ============
+# ============ Vazifa baholanganda çaqiriladigan funksiya ============
 def on_homework_graded(user, submission, grade):
     """Vazifa baholanganda"""
     check_homework_graded(user, submission, grade)

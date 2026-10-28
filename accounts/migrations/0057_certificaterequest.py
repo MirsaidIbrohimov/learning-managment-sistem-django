@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certificate_requests', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Sertifikat so'rovi",
-                'verbose_name_plural': "Sertifikat so'rovlari",
+                'verbose_name': "Sertifikat sörovi",
+                'verbose_name_plural': "Sertifikat sörovlari",
                 'ordering': ['-created_at'],
                 'unique_together': {('student', 'profession')},
             },

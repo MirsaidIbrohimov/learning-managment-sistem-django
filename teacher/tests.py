@@ -1,4 +1,4 @@
-"""O'qituvchi: o'quvchilar coinlari, kursga qo'shish/chiqarish va kurs so'rovlari."""
+"""Öqituvçi: öquvçilar coinlari, kursga qöshish/chiqarish va kurs sörovlari."""
 import itertools
 from unittest import mock
 
@@ -58,7 +58,7 @@ class TeacherStudentManagementTests(TestCase):
     def test_my_students_lists_course_student(self, *_):
         resp = self.client.get(reverse('teacher:my_students'))
         self.assertContains(resp, self.student.full_name)
-        self.assertContains(resp, 'Coin berish')
+        self.assertContains(resp, 'Coin beriş')
 
     def test_give_coins_deducts_from_teacher(self, *_):
         self.coin_post('give', 30)
@@ -76,7 +76,7 @@ class TeacherStudentManagementTests(TestCase):
         self.coin_post('take', 20)
         self.assertEqual(coins(self.student), 30)
         self.assertEqual(coins(self.teacher), 100)
-        self.coin_post('take', 1000)  # minusga tushirilmaydi
+        self.coin_post('take', 1000)  # minusga tuşirilmaydi
         self.assertEqual(coins(self.student), 30)
 
     def test_cannot_touch_student_of_foreign_course(self, *_):
@@ -102,10 +102,10 @@ class TeacherStudentManagementTests(TestCase):
     def test_free_course_with_teacher_requires_approval(self, notify_user, _admins):
         newbie = make_user('vali')
         self.client.force_login(newbie)
-        self.client.post(reverse('enroll_course', args=[self.course.pk]), {'reason': "o'qimoqchiman"})
+        self.client.post(reverse('enroll_course', args=[self.course.pk]), {'reason': "öqimoqçiman"})
         self.assertFalse(CourseEnrollment.objects.filter(user=newbie, profession=self.course).exists())
         req = CourseEnrollmentRequest.objects.get(user=newbie, profession=self.course)
-        # O'qituvchiga Telegram xabar ketdi
+        # Öqituvçiga Telegram xabar ketdi
         self.assertIn(111, [c.args[0] for c in notify_user.call_args_list])
 
         self.client.force_login(self.teacher)
@@ -113,7 +113,7 @@ class TeacherStudentManagementTests(TestCase):
         self.assertTrue(CourseEnrollment.objects.filter(user=newbie, profession=self.course).exists())
         req.refresh_from_db()
         self.assertEqual((req.status, req.reviewed_by), ('approved', self.teacher))
-        # Ikkinchi marta bosish hech narsa qilmaydi
+        # Ikkinçi marta bosiş heç narsa qilmaydi
         self.client.post(reverse('teacher:review_request', args=['enroll', req.pk, 'approve']))
         self.assertEqual(TeacherStudentAction.objects.filter(action='approve_enroll').count(), 1)
 
@@ -123,7 +123,7 @@ class TeacherStudentManagementTests(TestCase):
         self.assertEqual(resp.status_code, 404)
 
     def test_unenroll_request_approved_by_teacher(self, *_):
-        req = CourseUnenrollRequest.objects.create(user=self.student, profession=self.course, reason='vaqtim yo\'q')
+        req = CourseUnenrollRequest.objects.create(user=self.student, profession=self.course, reason='vaqtim yöq')
         self.client.post(reverse('teacher:review_request', args=['unenroll', req.pk, 'approve']))
         self.assertFalse(CourseEnrollment.objects.filter(user=self.student, profession=self.course).exists())
 
@@ -131,10 +131,10 @@ class TeacherStudentManagementTests(TestCase):
         CourseEnrollmentRequest.objects.create(user=make_user('gani'), profession=self.course, reason='salom')
         resp = self.client.get(reverse('teacher:course_requests'))
         self.assertContains(resp, 'salom')
-        self.assertContains(resp, 'Tasdiqlash')
+        self.assertContains(resp, 'Tasdiqlaş')
         self.client.force_login(make_user('admin2', role='admin'))
         resp = self.client.get(reverse('admin_enrollment_requests'))
-        self.assertContains(resp, self.teacher.full_name)  # kurs o'qituvchisi ko'rinadi
+        self.assertContains(resp, self.teacher.full_name)  # kurs öqituvçisi körinadi
 
     def test_admin_sees_actions_log(self, *_):
         self.coin_post('give', 5)

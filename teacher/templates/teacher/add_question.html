@@ -1,17 +1,17 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Savol qo'shish - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Savol qo'shish{% endblock %}
+{% block title %}Savol qöşiş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Savol qöşiş{% endblock %}
 
 {% block teacher_content %}
 <div class="legacy-quiz-banner" style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-left:4px solid #10b981;padding:1rem 1.25rem;margin-bottom:1.25rem;border-radius:12px;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
     <i class="bi bi-stars" style="color:#10b981;font-size:1.4rem;"></i>
     <div style="flex:1;min-width:200px;">
         <strong style="color:#065f46;">Yangi versiya mavjud!</strong>
-        <span style="color:#047857;font-size:.92rem;">Yangilangan savollar yaratuvchi tayyor — qulay UI bilan.</span>
+        <span style="color:#047857;font-size:.92rem;">Yangilangan savollar yaratuvçi tayyor — qulay UI bilan.</span>
     </div>
     <a href="{% url 'quizui:question_create' %}" style="background:#10b981;color:#fff;padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem;white-space:nowrap;">
-        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga o'tish
+        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga ötiş
     </a>
 </div>
 <style>
@@ -39,12 +39,12 @@
 
 <div class="t-aq-page">
     <a href="{% url 'teacher:manage_questions' test.pk %}" class="t-aq-back">
-        <i class="bi bi-arrow-left"></i> Savollarga qaytish
+        <i class="bi bi-arrow-left"></i> Savollarga qaytiş
     </a>
 
     <div class="t-card">
         <div class="t-card-header">
-            <i class="bi bi-plus-circle" style="color: var(--t-primary);"></i> Yangi savol qo'shish
+            <i class="bi bi-plus-circle" style="color: var(--t-primary);"></i> Yangi savol qöşiş
         </div>
         <div class="t-card-body">
             <form method="POST" enctype="multipart/form-data">
@@ -58,11 +58,11 @@
                     <input type="file" name="question_image" class="t-input" accept="image/*">
                 </div>
                 <div style="margin-bottom: 1rem;">
-                    <label class="t-label">Izoh / Tushuntirish (ixtiyoriy)</label>
-                    <textarea name="explanation" class="t-input" rows="2" placeholder="To'g'ri javob uchun tushuntirish..."></textarea>
+                    <label class="t-label">Izoh / Tuşuntiriş (ixtiyoriy)</label>
+                    <textarea name="explanation" class="t-input" rows="2" placeholder="Töğri javob uçun tuşuntiriş..."></textarea>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
-                    <label class="t-label" style="margin-bottom: .75rem;">Javob variantlari (to'g'ri javobni tanlang)</label>
+                    <label class="t-label" style="margin-bottom: .75rem;">Javob variantlari (töğri javobni tanlang)</label>
                     {% for i in "1234" %}
                     <div class="t-answer-option">
                         <input type="radio" name="correct_answer" value="{{ i }}" class="t-answer-radio" {% if forloop.first %}checked{% endif %}>
@@ -73,10 +73,10 @@
                 </div>
                 <div style="display: flex; gap: .75rem; justify-content: flex-end;">
                     <a href="{% url 'teacher:manage_questions' test.pk %}" class="t-btn t-btn-outline">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </a>
                     <button type="submit" class="t-btn t-btn-primary">
-                        <i class="bi bi-plus-lg"></i> Qo'shish
+                        <i class="bi bi-plus-lg"></i> Qöşiş
                     </button>
                 </div>
             </form>

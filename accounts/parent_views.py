@@ -18,8 +18,8 @@ from accounts.security import (
 
 LOGIN_TEMPLATE = 'accounts/parent/login.html'
 
-# Enumeration'ga qarshi: login yo'q va parol xato holatlari uchun BIR XIL xabar.
-AUTH_ERROR = "Login yoki parol noto'g'ri"
+# Enumeration'ga qarşi: login yöq va parol xato holatlari uçun BIR XIL xabar.
+AUTH_ERROR = "Login yoki parol notöğri"
 
 
 def parent_required(view_func):
@@ -55,8 +55,8 @@ def parent_login_view(request):
 
         parent = Parent.objects.filter(username=username, is_active=True).first()
         if parent is None:
-            # Parolni baribir hashlaymiz: aks holda javob vaqti farqi
-            # ("tez" = login yo'q) enumeration kanaliga aylanardi.
+            # Parolni baribir haşlaymiz: aks holda javob vaqti farqi
+            # ("tez" = login yöq) enumeration kanaliga aylanardi.
             Parent().set_password(password)
             password_ok = False
         else:
@@ -69,8 +69,8 @@ def parent_login_view(request):
             )
             return render(request, LOGIN_TEMPLATE, {'error': AUTH_ERROR})
 
-        # Session fixation: hujumchi oldin bergan sessiya ID si bilan
-        # ota-ona sessiyasini o'zlashtirib olmasin.
+        # Session fixation: hujumçi oldin bergan sessiya ID si bilan
+        # ota-ona sessiyasini özlaştirib olmasin.
         request.session.cycle_key()
         request.session['parent_id'] = parent.id
         parent.last_login = timezone.now()
@@ -82,7 +82,7 @@ def parent_login_view(request):
 
 def parent_logout_view(request):
     request.session.pop('parent_id', None)
-    # Chiqishdan keyin eski sessiya ID si qayta ishlatilmasin.
+    # Çiqişdan keyin eski sessiya ID si qayta işlatilmasin.
     request.session.cycle_key()
     return redirect('parent_login')
 
@@ -150,7 +150,7 @@ def parent_dashboard(request):
                 'type': 'video',
                 'title': vp.video.lesson.title,
                 'date': vp.watched_at,
-                'description': "Video ko'rildi"
+                'description': "Video körildi"
             })
     
     recent_homework = HomeworkSubmission.objects.filter(
@@ -162,7 +162,7 @@ def parent_dashboard(request):
             'type': 'homework',
             'title': hw.homework.lesson.title,
             'date': hw.submitted_at,
-            'description': f"Vazifa topshirildi - {hw.get_status_display()}"
+            'description': f"Vazifa topşirildi - {hw.get_status_display()}"
         })
     
     recent_tests = TestResult.objects.filter(
@@ -253,7 +253,7 @@ def parent_children(request):
 
 @parent_required
 def parent_child_detail(request, child_id):
-    """Farzand haqida to'liq batafsil ma'lumot"""
+    """Farzand haqida töliq batafsil ma'lumot"""
     parent = request.parent
     children = parent.children.all()
     child = get_object_or_404(children, id=child_id)
@@ -312,7 +312,7 @@ def parent_child_detail(request, child_id):
     certificates = Certificate.objects.filter(student=child).select_related('profession', 'issued_by')
     active_rentals = BookRental.objects.filter(student=child, status__in=['active', 'overdue']).select_related('book')
 
-    # === KURS BO'YICHA STATISTIKA ===
+    # === KURS BÖYIÇA STATISTIKA ===
     courses_data = []
     for enrollment in enrollments:
         profession = enrollment.profession
@@ -353,19 +353,19 @@ def parent_child_detail(request, child_id):
             'avg_homework_grade': round(c_avg_hw, 1),
         })
 
-    # === SO'NGGI TEST NATIJALARI ===
+    # === SÖNGGI TEST NATIJALARI ===
     recent_tests = all_test_results.select_related(
         'test', 'test__lesson', 'test__lesson__profession'
     ).order_by('-completed_at')[:10]
 
-    # === SO'NGGI VAZIFA TOPSHIRIQLARI ===
+    # === SÖNGGI VAZIFA TOPŞIRIQLARI ===
     recent_homeworks = HomeworkSubmission.objects.filter(
         student=child, homework__lesson__profession_id__in=profession_ids
     ).select_related(
         'homework', 'homework__lesson', 'homework__lesson__profession'
     ).order_by('-submitted_at')[:10]
 
-    # === SO'NGGI FAOLLIK ===
+    # === SÖNGGI FAOLLIK ===
     recent_activities = []
 
     for vp in VideoProgress.objects.filter(
@@ -374,7 +374,7 @@ def parent_child_detail(request, child_id):
         if vp.watched_at:
             recent_activities.append({
                 'type': 'video', 'title': vp.video.lesson.title,
-                'date': vp.watched_at, 'description': "Video ko'rildi",
+                'date': vp.watched_at, 'description': "Video körildi",
             })
 
     for hw in HomeworkSubmission.objects.filter(
@@ -383,7 +383,7 @@ def parent_child_detail(request, child_id):
         recent_activities.append({
             'type': 'homework', 'title': hw.homework.lesson.title,
             'date': hw.submitted_at,
-            'description': f"Vazifa topshirildi - {hw.get_status_display()}",
+            'description': f"Vazifa topşirildi - {hw.get_status_display()}",
         })
 
     for tr in all_test_results.select_related('test__lesson').order_by('-completed_at')[:5]:
@@ -421,7 +421,7 @@ def parent_child_detail(request, child_id):
         'score_excellent': score_excellent,
         'score_good': score_good,
         'score_poor': score_poor,
-        # Kurs bo'yicha
+        # Kurs böyiça
         'courses_data': courses_data,
         'certificates': certificates,
         'active_rentals': active_rentals,
@@ -473,7 +473,7 @@ def parent_lessons(request):
                         video = lesson.video
                         vp = VideoProgress.objects.filter(user=selected_child, video=video).first()
                         is_completed = vp.watched if vp else False
-                        progress_detail = "Ko'rilgan" if is_completed else "Ko'rilmagan"
+                        progress_detail = "Körilgan" if is_completed else "Körilmagan"
                     except VideoLesson.DoesNotExist:
                         progress_detail = "Video mavjud emas"
                 
@@ -489,7 +489,7 @@ def parent_lessons(request):
                             if submission.grade:
                                 progress_detail += f" ({submission.grade} ball)"
                         else:
-                            progress_detail = "Topshirilmagan"
+                            progress_detail = "Topşirilmagan"
                     except Homework.DoesNotExist:
                         progress_detail = "Vazifa mavjud emas"
                 
@@ -501,10 +501,10 @@ def parent_lessons(request):
                         ).order_by('-completed_at').first()
                         if result:
                             is_completed = result.passed
-                            status_text = "O'tdi" if result.passed else "O'tmadi"
+                            status_text = "Ötdi" if result.passed else "Ötmadi"
                             progress_detail = f"{result.score}% - {status_text}"
                         else:
-                            progress_detail = "Ishlanmagan"
+                            progress_detail = "Işlanmagan"
                     except Test.DoesNotExist:
                         progress_detail = "Test mavjud emas"
                 
@@ -580,7 +580,7 @@ def parent_homework(request):
         homeworks_data.append({
             'homework': homework,
             'submission': submission,
-            'status': submission.get_status_display() if submission else 'Topshirilmagan',
+            'status': submission.get_status_display() if submission else 'Topşirilmagan',
             'grade': submission.grade if submission else None,
             'is_late': submission.is_late if submission else False,
             'is_deadline_passed': homework.is_deadline_passed,
@@ -711,7 +711,7 @@ def parent_achievements(request):
 
 @parent_required
 def parent_books(request):
-    """Farzandlarning ijaradagi kitoblari va qaytarish sanalari"""
+    """Farzandlarning ijaradagi kitoblari va qaytariş sanalari"""
     parent = request.parent
     children = parent.children.all()
     
@@ -754,7 +754,7 @@ def parent_messages(request):
         message = request.POST.get('message', '').strip()
         
         if not child_id or not subject or not message:
-            return JsonResponse({'success': False, 'error': "Barcha maydonlarni to'ldiring"})
+            return JsonResponse({'success': False, 'error': "Barça maydonlarni töldiring"})
         
         try:
             child = children.get(id=child_id)
@@ -802,7 +802,7 @@ def parent_profile(request):
 
 @parent_required
 def parent_profile_edit(request):
-    """Ota-ona profilini tahrirlash"""
+    """Ota-ona profilini tahrirlaş"""
     from django.contrib.auth.hashers import make_password
     
     parent = request.parent
@@ -821,7 +821,7 @@ def parent_profile_edit(request):
         if not phone.startswith('+998') or len(phone) != 13 or not phone[4:].isdigit():
             return render(request, 'accounts/parent/profile_edit.html', {
                 'parent': parent,
-                'error': "Telefon raqami noto'g'ri formatda. Masalan: +998901234567",
+                'error': "Telefon raqami notöğri formatda. Masalan: +998901234567",
             })
         
         email = request.POST.get('email', '').strip() or None
@@ -829,7 +829,7 @@ def parent_profile_edit(request):
         if Parent.objects.filter(phone=phone).exclude(pk=parent.pk).exists():
             return render(request, 'accounts/parent/profile_edit.html', {
                 'parent': parent,
-                'error': "Bu telefon raqam allaqachon mavjud!",
+                'error': "Bu telefon raqam allaqaçon mavjud!",
             })
         
         parent.first_name = first_name
@@ -847,7 +847,7 @@ def parent_profile_edit(request):
 
 @parent_required
 def parent_change_password(request):
-    """Ota-ona parolini o'zgartirish"""
+    """Ota-ona parolini özgartiriş"""
     from django.contrib.auth.hashers import check_password
 
     parent = request.parent
@@ -860,7 +860,7 @@ def parent_change_password(request):
         if not check_password(current_password, parent.password):
             return render(request, 'accounts/parent/change_password.html', {
                 'parent': parent,
-                'error': "Joriy parol noto'g'ri!",
+                'error': "Joriy parol notöğri!",
             })
 
         if new_password != confirm_password:
@@ -878,8 +878,8 @@ def parent_change_password(request):
 
         parent.password = make_password(new_password)
         parent.save()
-        # Parol o'zgardi — eski sessiya ID si bilan davom etilmasin.
-        # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almashtiradi.
+        # Parol özgardi — eski sessiya ID si bilan davom etilmasin.
+        # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almaştiradi.
         request.session.cycle_key()
 
         return redirect('parent_profile')
@@ -900,10 +900,10 @@ def parent_settings(request):
 
 
 def parent_password_reset_request(request):
-    """Ota-ona parol tiklash so'rovi"""
+    """Ota-ona parol tiklaş sörovi"""
     template = 'accounts/parent/password_reset_request.html'
-    # Enumeration'ga qarshi: login mavjud bo'lsa ham, bo'lmasa ham bir xil javob.
-    generic_success = "So'rov yuborildi! Admin tasdiqlashini kuting."
+    # Enumeration'ga qarşi: login mavjud bölsa ham, bölmasa ham bir xil javob.
+    generic_success = "Sörov yuborildi! Admin tasdiqlaşini kuting."
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -912,7 +912,7 @@ def parent_password_reset_request(request):
 
         if not username or not new_password:
             return render(request, template, {
-                'error': "Barcha maydonlarni to'ldiring"
+                'error': "Barça maydonlarni töldiring"
             })
 
         if new_password != confirm_password:
@@ -935,8 +935,8 @@ def parent_password_reset_request(request):
         if parent is not None:
             from .models import ParentPasswordResetRequest
 
-            # Parol so'rov paytida hashlanadi. Ilgari ochiq matnda saqlanardi:
-            # admin panelidan yoki DB nusxasidan o'qib olish mumkin edi.
+            # Parol sörov paytida haşlanadi. Ilgari oçiq matnda saqlanardi:
+            # admin panelidan yoki DB nusxasidan öqib oliş mumkin edi.
             ParentPasswordResetRequest.objects.create(
                 parent=parent,
                 new_password=make_password(new_password),

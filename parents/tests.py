@@ -39,12 +39,12 @@ def make_parent(username='rustam', phone='+998901112233', password='Bahor-1234-K
 
 
 def seed():
-    """Kurs, darslar, test, vazifa, guruh, davomat va to'lov bilan bitta farzand."""
+    """Kurs, darslar, test, vazifa, guruh, davomat va tölov bilan bitta farzand."""
     now = timezone.now()
     kid = make_user('aziz', first_name='Aziz', last_name='Karimov', coins=340, last_activity=now)
     prof = Profession.objects.create(name='Python', photo='p.jpg', description='d')
     CourseEnrollment.objects.create(user=kid, profession=prof)
-    sec = Section.objects.create(profession=prof, title="1-bo'lim", order=0)
+    sec = Section.objects.create(profession=prof, title="1-bölim", order=0)
     v = VideoLesson.objects.create(lesson=Lesson.objects.create(
         profession=prof, section=sec, title='Video', lesson_type='video', order=0), video_url='https://e.com/v')
     VideoProgress.objects.create(user=kid, video=v, watched=True, watched_at=now)
@@ -105,7 +105,7 @@ class LoginTests(BaseCase):
         self.assertTrue(self.client.session.get('pp_tour'))
         r = self.client.get(reverse('parent_dashboard'))
         self.assertContains(r, 'data-tour-auto')
-        # Qo'llanma faqat bir marta avtomatik chiqadi
+        # Qöllanma faqat bir marta avtomatik çiqadi
         self.assertNotContains(self.client.get(reverse('parent_dashboard')), 'data-tour-auto')
         parent.refresh_from_db()
         self.assertIsNotNone(parent.last_login)
@@ -125,7 +125,7 @@ class LoginTests(BaseCase):
         c = self.client.post(reverse('parent_login'), {'login_mode': 'phone', 'phone': '+7 900 000', 'password': 'x'})
         for r in (a, b, c):
             self.assertEqual(r.status_code, 200)
-            self.assertContains(r, "Login yoki parol noto")
+            self.assertContains(r, "Login yoki parol notö")
         self.assertNotIn('parent_id', self.client.session)
 
     def test_login_and_reset_pages_render(self):
@@ -148,10 +148,10 @@ class PortalPagesTests(BaseCase):
 
     def test_dashboard_shows_key_information(self):
         r = self.client.get(reverse('parent_dashboard'))
-        for text in ('Aziz Karimov', 'Keyingi dars', 'To‘lov holati', 'balansini to‘ldirish', 'PY-1'.replace('PY-1', 'Python')):
+        for text in ('Aziz Karimov', 'Keyingi dars', 'Tölov holati', 'balansini töldiriş', 'PY-1'.replace('PY-1', 'Python')):
             self.assertContains(r, text)
-        # Kecha darsga kelmagan + muddati o'tgan vazifa — ogohlantirishlar
-        self.assertContains(r, 'Keyingi to')
+        # Keça darsga kelmagan + muddati ötgan vazifa — ogohlantirişlar
+        self.assertContains(r, 'Keyingi tö')
 
     def test_no_children(self):
         lonely = make_parent(username='lonely', phone='+998935550000')
@@ -199,7 +199,7 @@ class InsightsTests(BaseCase):
             TestResult.objects.create(test=t, student=mate, score=score, total_questions=10,
                                       correct_answers=score // 10, started_at=timezone.now(), passed=True)
         ranks = {r['profession'].name: r for r in insights.course_rankings(kid)}
-        self.assertEqual(set(ranks), {'Python', 'Frontend'})  # har bir yo'nalish alohida
+        self.assertEqual(set(ranks), {'Python', 'Frontend'})  # har bir yönaliş alohida
         py = ranks['Python']
         # Aziz: test 80, vazifa 9 → (80 + 90) / 2 = 85; 95 > 85 > 60
         self.assertEqual((py['score']['position'], py['score']['total'], py['score']['value']), (2, 3, 85.0))
@@ -224,36 +224,36 @@ class MessagesTests(BaseCase):
 
     @mock.patch('telegram_bot.utils.notify_admins')
     def test_parent_message_reaches_admin_inbox_and_reply_flows_back(self, notify):
-        self.client.post(reverse('parent_messages'), {'child_id': self.kid.id, 'subject': 'Savol', 'message': 'Qalay o‘qiyapti?'})
+        self.client.post(reverse('parent_messages'), {'child_id': self.kid.id, 'subject': 'Savol', 'message': 'Qalay öqiyapti?'})
         msg = ParentMessage.objects.get()
         self.assertEqual(msg.sender_type, 'parent')
         notify.assert_called_once()
-        # Tizim bildirishnomasi admin qutisiga tushmaydi
+        # Tizim bildirişnomasi admin qutisiga tuşmaydi
         ParentMessage.objects.create(parent=self.parent, child=self.kid, subject='📚 Kitob', message='x', sender_type='system')
 
         admin, _ = self.admin_client()
         r = admin.get(reverse('parents:admin_parent_messages'))
-        self.assertContains(r, 'Qalay o‘qiyapti?')
+        self.assertContains(r, 'Qalay öqiyapti?')
         self.assertNotContains(r, '📚 Kitob')
         self.assertEqual(r.context['waiting_count'], 1)
         self.assertContains(admin.get(reverse('parents:admin_parents')), '1 ta ota-ona xabari javob kutmoqda')
 
-        admin.post(reverse('parents:admin_parent_messages'), {'message_id': msg.id, 'reply': 'Juda yaxshi!'})
+        admin.post(reverse('parents:admin_parent_messages'), {'message_id': msg.id, 'reply': 'Juda yaxşi!'})
         msg.refresh_from_db()
-        self.assertEqual((msg.reply, msg.is_read, msg.reply_seen_by_parent), ('Juda yaxshi!', True, False))
+        self.assertEqual((msg.reply, msg.is_read, msg.reply_seen_by_parent), ('Juda yaxşi!', True, False))
 
-        # Ota-ona: yangi javob belgisi, sahifa ochilgach "ko'rildi"
+        # Ota-ona: yangi javob belgisi, sahifa oçilgaç "körildi"
         self.assertEqual(self.client.get(reverse('parent_dashboard')).context['unread_replies'], 1)
         r = self.client.get(reverse('parent_messages'))
-        self.assertContains(r, 'Juda yaxshi!')
+        self.assertContains(r, 'Juda yaxşi!')
         self.assertContains(r, '· yangi')
         msg.refresh_from_db()
         self.assertTrue(msg.reply_seen_by_parent)
-        self.assertTrue(msg.is_read)  # admin uchun belgi o'zgarmaydi
+        self.assertTrue(msg.is_read)  # admin uçun belgi özgarmaydi
 
     def test_empty_message_rejected(self):
         r = self.client.post(reverse('parent_messages'), {'child_id': self.kid.id, 'message': '   ', 'topic': 'Davomat'})
-        self.assertContains(r, "Barcha maydonlarni")
+        self.assertContains(r, "Barça maydonlarni")
         self.assertFalse(ParentMessage.objects.exists())
 
     @mock.patch('telegram_bot.utils.notify_admins')
@@ -347,7 +347,7 @@ class AutoAttendanceTests(BaseCase):
         self.kid = make_user('aziz')
         prof = Profession.objects.create(name='P', photo='p.jpg', description='d')
         self.group = StudyGroup.objects.create(name='G', profession=prof, start_time=time(15), end_time=time(16))
-        self.today = date(2026, 10, 26)  # dushanba
+        self.today = date(2026, 10, 26)  # duşanba
         self.group.set_days_list([1]); self.group.save(); self.group.students.add(self.kid)
 
     def test_marks_present_on_lesson_day_once(self):
@@ -357,22 +357,22 @@ class AutoAttendanceTests(BaseCase):
         self.assertEqual((a.status, a.note), ('present', AUTO_NOTE))
 
     def test_no_lesson_day_teacher_mark_and_blocked(self):
-        self.assertEqual(auto_mark_present(self.kid, today=self.today + timedelta(days=1)), 0)  # seshanba — dars yo'q
+        self.assertEqual(auto_mark_present(self.kid, today=self.today + timedelta(days=1)), 0)  # seşanba — dars yöq
         StudentAttendance.objects.create(group=self.group, student=self.kid, date=self.today, status='absent')
         self.assertEqual(auto_mark_present(self.kid, today=self.today), 0)
-        self.assertEqual(StudentAttendance.objects.get().status, 'absent')  # o'qituvchi belgisi ustun
+        self.assertEqual(StudentAttendance.objects.get().status, 'absent')  # öqituvçi belgisi ustun
         self.kid.is_blocked = True
         self.assertEqual(auto_mark_present(self.kid, today=self.today + timedelta(days=7)), 0)
 
     def _lesson_today(self):
         today = timezone.localdate()
         if today.isoweekday() == 7:
-            self.skipTest("Yakshanba — dars kuni emas")
+            self.skipTest("Yakşanba — dars kuni emas")
         self.group.set_days_list([today.isoweekday()]); self.group.save()
         return today
 
     def test_login_marks_even_if_session_flag_already_set(self):
-        """Bugun avval kirgan (bayroq qo'yilgan) brauzerda qayta login ham belgilaydi."""
+        """Bugun avval kirgan (bayroq qöyilgan) brauzerda qayta login ham belgilaydi."""
         today = self._lesson_today()
         self.kid.set_password('Parol-12345'); self.kid.save()
         c = Client()
@@ -388,7 +388,7 @@ class AutoAttendanceTests(BaseCase):
         now = timezone.now()
         for d in (0, 1, 3):
             record_visit(lone, now=now - timedelta(days=d))
-        record_visit(lone, now=now)  # o'sha kun ikkinchi marta — yangi yozuv emas
+        record_visit(lone, now=now)  # öşa kun ikkinçi marta — yangi yozuv emas
         self.assertEqual(StudentDailyVisit.objects.filter(user=lone).count(), 3)
         att = insights.attendance_summary(lone)
         self.assertEqual((att['total'], att['active_days'], att['display_label'], att['display_rate']),
@@ -406,19 +406,19 @@ class AutoAttendanceTests(BaseCase):
         self.assertEqual(insights.attendance_summary(self.kid)['display_label'], 'Davomat')
 
     def test_teacher_mark_and_login_both_visible(self):
-        """O'qituvchi 'kelmadi' qo'ygan kuni o'quvchi saytga kirsa — ikkalasi ham ko'rinadi."""
+        """Öqituvçi 'kelmadi' qöygan kuni öquvçi saytga kirsa — ikkalasi ham körinadi."""
         from accounts.attendance_auto import record_visit
         today = timezone.localdate()
         StudentAttendance.objects.create(group=self.group, student=self.kid, date=today, status='absent')
         record_visit(self.kid)
-        # Ota-ona sahifasi: jadvalda kirish vaqti, kalendarda "v" (hoshiya) belgisi
+        # Ota-ona sahifasi: jadvalda kiriş vaqti, kalendarda "v" (hoşiya) belgisi
         parent = make_parent(children=[self.kid])
         c = self.login_parent(parent, Client())
         r = c.get(reverse('parent_attendance'))
         self.assertContains(r, 'Kelmagan')
         self.assertContains(r, 'bi-box-arrow-in-right"></i>' + timezone.localtime().strftime('%H:'))
         self.assertContains(r, ' v"')
-        # O'qituvchi/admin davomat sahifasi: "Saytga kirdi"
+        # Öqituvchi/admin davomat sahifasi: "Saytga kirdi"
         admin, _ = self.admin_client()
         r = admin.get(reverse('attendance_mark', args=[self.group.pk]) + f'?date={today:%Y-%m-%d}')
         self.assertContains(r, 'Saytga kirdi')

@@ -6,7 +6,7 @@ from .models import ChatMessage
 
 @receiver(post_save, sender=ChatMessage)
 def count_user_message(sender, instance, created, **kwargs):
-    """Har bir foydalanuvchi xabari kunlik limitga yoziladi (veb-chat o'zi band qilgan bo'lsa — qayta emas)."""
+    """Har bir foydalanuvçi xabari kunlik limitga yoziladi (veb-chat özi band qilgan bölsa — qayta emas)."""
     if not created or instance.role != 'user' or getattr(instance, '_usage_reserved', False):
         return
     from .usage import record

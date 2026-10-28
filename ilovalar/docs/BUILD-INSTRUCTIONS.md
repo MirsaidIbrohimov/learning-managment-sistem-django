@@ -1,11 +1,11 @@
-# Build ko‘rsatmalari (qayta takrorlanadigan)
+# Build körsatmalari (qayta takrorlanadigan)
 
-Barcha buyruqlar loyiha ildizidan (`D:\GitHub Repo\learning-managment-sistem-django`), PowerShell.
+Barça buyruqlar loyiha ildizidan (`D:\GitHub Repo\learning-managment-sistem-django`), PowerShell.
 
-## 0. Vositalar (2026-10-24 da ishlatilgan)
+## 0. Vositalar (2026-10-24 da işlatilgan)
 | Vosita | Versiya | Joy |
 |---|---|---|
-| JDK | Temurin 17.0.20.1 (portable, SHA-256 tekshirilgan) | `%USERPROFILE%\.itc-build\jdk17` |
+| JDK | Temurin 17.0.20.1 (portable, SHA-256 tekşirilgan) | `%USERPROFILE%\.itc-build\jdk17` |
 | Android SDK | build-tools 36.0.0, platform 36 | `%LOCALAPPDATA%\Android\Sdk` |
 | Gradle | 8.11.1 (wrapper) / AGP 8.9.1 | wrapper avtomatik yuklaydi |
 | Node.js | 24.22.0 | tizim |
@@ -22,18 +22,18 @@ venv\Scripts\python ilovalar\assets\generate_icons.py
 
 ## 2. Android (TWA)
 ### 2.1 Imzo kaliti (bir marta)
-Kalit repodan TASHQARIDA: `%USERPROFILE%\.itc-academy-signing\itc-academy-release.jks` (alias `itcacademy`,
-RSA 4096, 30 yil), parol: shu papkadagi `keystore-password.txt`. Papka faqat joriy foydalanuvchiga ochiq (icacls).
-**Bu ikki faylni xavfsiz joyda zaxiralang** — ularsiz ilovani yangilab bo‘lmaydi (yangi kalit = yangi ilova).
+Kalit repodan TAŞQARIDA: `%USERPROFILE%\.itc-academy-signing\itc-academy-release.jks` (alias `itcacademy`,
+RSA 4096, 30 yil), parol: şu papkadagi `keystore-password.txt`. Papka faqat joriy foydalanuvçiga oçiq (icacls).
+**Bu ikki faylni xavfsiz joyda zaxiralang** — ularsiz ilovani yangilab bölmaydi (yangi kalit = yangi ilova).
 
-### 2.2 Loyihani qayta yaratish (ixtiyoriy — loyiha `ilovalar/source/android/twa` da tayyor)
+### 2.2 Loyihani qayta yaratiş (ixtiyoriy — loyiha `ilovalar/source/android/twa` da tayyor)
 ```
 python -m http.server 8799 --bind 127.0.0.1 --directory static     # alohida oynada
 cd ilovalar\source\android\generator
 npm ci
 node generate.js http://127.0.0.1:8799/pwa/icons ..\twa "$env:USERPROFILE\.itc-academy-signing\itc-academy-release.jks"
 ```
-Eslatma: `generate.js` `minSdkVersion: 24` qo‘yadi (androidbrowserhelper 2.7.x talabi).
+Eslatma: `generate.js` `minSdkVersion: 24` qöyadi (androidbrowserhelper 2.7.x talabi).
 
 ### 2.3 Build
 ```
@@ -44,7 +44,7 @@ cd ilovalar\source\android\twa
 ```
 Log: `ilovalar/docs/logs/android-gradle-build.log` → `BUILD SUCCESSFUL in 1m 55s`.
 
-### 2.4 Imzolash va tekshirish
+### 2.4 Imzolaş va tekşiriş
 ```
 $bt="$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0"; $ks="$env:USERPROFILE\.itc-academy-signing\itc-academy-release.jks"
 $env:ITC_KS_PW = Get-Content "$env:USERPROFILE\.itc-academy-signing\keystore-password.txt" -Raw
@@ -56,18 +56,18 @@ Remove-Item Env:ITC_KS_PW
 & "$bt\aapt2.exe" dump badging ..\..\..\android\ITC-Academy-release.apk
 jarsigner -verify ..\..\..\android\ITC-Academy-release.aab
 ```
-Parol faqat muhit o‘zgaruvchisi orqali uzatiladi — buyruq satrida va loglarda ko‘rinmaydi.
+Parol faqat muhit özgaruvçisi orqali uzatiladi — buyruq satrida va loglarda körinmaydi.
 
 ### 2.5 Digital Asset Links (production — RUXSAT BILAN)
-TWA to‘liq ekranda ochilishi uchun server `https://itc-academy.uz/.well-known/assetlinks.json` ni berishi kerak.
-Django’da tayyor endpoint bor (`config/pwa.py`); serverdagi `.env` ga qo‘shiladi:
+TWA töliq ekranda oçilişi uçun server `https://itc-academy.uz/.well-known/assetlinks.json` ni berişi kerak.
+Django’da tayyor endpoint bor (`config/pwa.py`); serverdagi `.env` ga qöşiladi:
 ```
 ANDROID_APP_SHA256=A6:82:A8:B7:A6:BF:A6:A9:18:1F:54:86:1D:23:6F:4B:7D:D0:BE:21:08:3D:77:54:8F:EE:35:8E:40:EC:C5:62
 # Google Play App Signing ishlatilsa — vergul bilan Play kaliti ham:
 # ANDROID_APP_SHA256=A6:82:...:62,<PLAY_APP_SIGNING_SHA256>
 ```
-Barmoq izi sozlanmagan bo‘lsa endpoint 404 qaytaradi. Statik variant: `ilovalar/android/assetlinks.json`.
-Tekshirish: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://itc-academy.uz&relation=delegate_permission/common.handle_all_urls`
+Barmoq izi sozlanmagan bölsa endpoint 404 qaytaradi. Statik variant: `ilovalar/android/assetlinks.json`.
+Tekşiriş: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://itc-academy.uz&relation=delegate_permission/common.handle_all_urls`
 
 ## 3. Windows (Tauri 2)
 ### 3.1 MSVC (bir marta, administrator)
@@ -85,9 +85,9 @@ npx tauri build                                                 # NSIS (.exe) + 
 ```
 Natija: `src-tauri\target\release\bundle\nsis\ITC Academy_1.0.0_x64-setup.exe` va
 `bundle\msi\ITC Academy_1.0.0_x64_en-US.msi` → `ilovalar\windows\ITC-Academy-Setup.exe` / `ITC-Academy.msi` ga nusxalanadi.
-Tauri NSIS va WiX vositalarini birinchi build’da o‘zi yuklab oladi.
+Tauri NSIS va WiX vositalarini birinçi build’da özi yuklab oladi.
 
-### 3.3 Code signing (ixtiyoriy, sertifikat bo‘lsa)
+### 3.3 Code signing (ixtiyoriy, sertifikat bölsa)
 `signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "ITC-Academy-Setup.exe"`
 
 ## 4. Checksum

@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='courseenrollment',
             name='daily_limit_override',
-            field=models.BooleanField(blank=True, default=None, help_text="Bo'sh = kurs sozlamasi; Ha = majburan yoqilgan; Yo'q = majburan o'chirilgan.", null=True, verbose_name='Kunlik cheklov (shaxsiy)'),
+            field=models.BooleanField(blank=True, default=None, help_text="Böş = kurs sozlamasi; Ha = majburan yoqilgan; Yöq = majburan öçirilgan.", null=True, verbose_name='Kunlik çeklov (şaxsiy)'),
         ),
     ]

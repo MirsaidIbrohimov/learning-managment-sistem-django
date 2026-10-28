@@ -1,6 +1,6 @@
-/* AI Yordamchi — Motion v2: kirish animatsiyalari, sanovchi raqamlar,
-   spotlight kartalar, sirpanuvchi papka indikatori, suhbat mikro-harakatlari.
-   Funksional mantiq sahifa shablonlarida qoladi; bu fayl faqat bezak. */
+/* AI Yordamçi — Motion v2: kiriş animatsiyalari, sanovçi raqamlar,
+   spotlight kartalar, sirpanuvçi papka indikatori, suhbat mikro-harakatlari.
+   Funksional mantiq sahifa şablonlarida qoladi; bu fayl faqat bezak. */
 (() => {
   'use strict';
   const root = document.querySelector('.ai-motion');
@@ -21,7 +21,7 @@
   mesh.innerHTML = '<i></i><i></i><i></i>';
   document.body.prepend(mesh);
 
-  /* ---------- Kirish (reveal) ---------- */
+  /* ---------- Kiriş (reveal) ---------- */
   const revealEls = [...root.querySelectorAll('.am-rv')];
   if (reduce || !('IntersectionObserver' in window)) {
     revealEls.forEach(el => el.classList.add('in'));
@@ -32,7 +32,7 @@
     revealEls.forEach((el, i) => { el.style.setProperty('--i', Math.min(i, 12)); io.observe(el); });
   }
 
-  /* ---------- Hero sarlavha: so'zma-so'z ---------- */
+  /* ---------- Hero sarlavha: sözma-söz ---------- */
   const h1 = root.querySelector('[data-am-words]');
   if (h1) {
     const accentFrom = parseInt(h1.dataset.amWords, 10) || 0;
@@ -67,7 +67,7 @@
   });
   root.querySelectorAll('.ah-bar i[data-w]').forEach(b => raf2(() => { b.style.width = b.dataset.w + '%'; }));
 
-  /* ---------- Papka segmenti: sirpanuvchi indikator ---------- */
+  /* ---------- Papka segmenti: sirpanuvçi indikator ---------- */
   const seg = root.querySelector('.ah-seg');
   if (seg) {
     const ind = seg.querySelector('.ind');
@@ -92,7 +92,7 @@
     });
   }
 
-  /* ---------- Kartalar: spotlight + 3D egilish ---------- */
+  /* ---------- Kartalar: spotlight + 3D egiliş ---------- */
   const grid = root.querySelector('.ah-grid');
   if (grid) {
     grid.addEventListener('pointermove', e => {
@@ -101,7 +101,7 @@
       const r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
       c.style.setProperty('--mx', x + 'px');
       c.style.setProperty('--my', y + 'px');
-      // Menyusi ochiq kartani egmaymiz — dropdown joyida qolsin.
+      // Menyusi oçiq kartani egmaymiz — dropdown joyida qolsin.
       if (reduce || e.pointerType !== 'mouse' || c.querySelector('.dropdown-menu.show')) { c.style.transform = ''; return; }
       c.style.transform = `perspective(900px) rotateX(${(.5 - y / r.height) * 4}deg) rotateY(${(x / r.width - .5) * 5}deg) translateY(-4px)`;
     });
@@ -127,7 +127,7 @@
   /* ---------- Suhbat ---------- */
   const msgs = document.getElementById('messages');
   if (msgs) {
-    // Sahifa ochilganda faqat oxirgi 6 ta xabar ketma-ket chiqadi.
+    // Sahifa oçilganda faqat oxirgi 6 ta xabar ketma-ket çiqadi.
     const rows = [...msgs.querySelectorAll('.cw-row')];
     rows.slice(0, -6).forEach(r => r.classList.add('am-old'));
     rows.slice(-6).forEach((r, i) => { r.classList.add('am-initial'); r.style.setProperty('--i', i); });

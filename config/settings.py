@@ -18,20 +18,20 @@ from dotenv import load_dotenv
 import os
 import sys
 
-# Test runner ishlayaptimi. Test cache'i production Redis'dan ajratiladi; transport
-# (SSL redirect) o'chirish uchun kerak — Django test mijozi HTTPS emulyatsiya
-# qilmaydi va har bir so'rov 301 ga aylanib ketadi. Production yo'liga
-# ta'sir qilmaydi: `manage.py test` bo'lmasa qiymat o'zgarmaydi.
+# Test runner işlayaptimi. Test cache'i production Redis'dan ajratiladi; transport
+# (SSL redirect) öçiriş uçun kerak — Django test mijozi HTTPS emulyatsiya
+# qilmaydi va har bir sörov 301 ga aylanib ketadi. Production yöliga
+# ta'sir qilmaydi: `manage.py test` bölmasa qiymat özgarmaydi.
 RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.modules
 
-# `manage.py runserver` — lokal ishlab chiqish serveri. U TLS ni qo'llab
-# quvvatlamaydi, shuning uchun DEBUG=False bilan lokal sinaganda HTTPS
-# majburlash brauzerda ERR_SSL_PROTOCOL_ERROR beradi, `Secure` cookie'lar esa
-# http ustidan yuborilmagani uchun login umuman ishlamaydi.
-# Bu flag FAQAT transport sozlamalarini bo'shatadi — DEBUG o'zi o'zgarmaydi,
+# `manage.py runserver` — lokal işlab çiqiş serveri. U TLS ni qöllab
+# quvvatlamaydi, şuning uçun DEBUG=False bilan lokal sinaganda HTTPS
+# majburlaş brauzerda ERR_SSL_PROTOCOL_ERROR beradi, `Secure` cookie'lar esa
+# http ustidan yuborilmagani uçun login umuman işlamaydi.
+# Bu flag FAQAT transport sozlamalarini böşatadi — DEBUG özi özgarmaydi,
 # ya'ni xatolik sahifalari va traceback lar hamon yopiq qoladi.
-# cPanel production Passenger/WSGI orqali ishlaydi va `runserver` ni
-# ishlatmaydi, shuning uchun bu yerga hech qachon tushmaydi.
+# cPanel production Passenger/WSGI orqali işlaydi va `runserver` ni
+# işlatmaydi, şuning uçun bu yerga heç qaçon tuşmaydi.
 RUNNING_DEV_SERVER = 'runserver' in sys.argv
 
 load_dotenv(BASE_DIR / '.env')
@@ -55,8 +55,8 @@ EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() in ('true', '1', 'ye
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '').strip() or EMAIL_HOST_USER or 'webmaster@localhost'
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# Video davomiyligini SERVER tomonda aniqlash uchun (anti-cheat asosi). Bo'sh
-# bo'lsa zaxira manbalar sinaladi; ular ham ishlamasa admin qo'lda kiritadi.
+# Video davomiyligini SERVER tomonda aniqlaş uçun (anti-cheat asosi). Böş
+# bölsa zaxira manbalar sinaladi; ular ham işlamasa admin qölda kiritadi.
 YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
 
 # Quick-start development settings - unsuitable for production
@@ -71,9 +71,9 @@ def _env_bool(name, default=False):
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Default False — DEBUG yoqilishi uchun .env da ATAYLAB DEBUG=True yozilishi shart.
-# Pastdagi barcha cookie/HSTS/SSL himoyalari `not DEBUG` ga bog'langan, shuning
-# uchun bu qiymatni qattiq `True` qilib qoldirish ularning hammasini o'chiradi.    _env_bool('DEBUG', False)
+# Default False — DEBUG yoqilişi uçun .env da ATAYLAB DEBUG=True yozilişi şart.
+# Pastdagi barça cookie/HSTS/SSL himoyalari `not DEBUG` ga boğlangan, şuning
+# uçun bu qiymatni qattiq `True` qilib qoldiriş ularning hammasini öçiradi.    _env_bool('DEBUG', False)
 DEBUG = _env_bool('DEBUG', False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -84,8 +84,8 @@ if not SECRET_KEY:
     else:
         from django.core.exceptions import ImproperlyConfigured
         raise ImproperlyConfigured(
-            "DJANGO_SECRET_KEY o'rnatilmagan! Production uchun .env faylga "
-            "DJANGO_SECRET_KEY qo'shing (tasodifiy 50+ belgi)."
+            "DJANGO_SECRET_KEY örnatilmagan! Production uçun .env faylga "
+            "DJANGO_SECRET_KEY qöşing (tasodifiy 50+ belgi)."
         )
 
 _DEFAULT_HOSTS = 'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1'
@@ -99,15 +99,15 @@ def _split_csv(value):
     return [item.strip() for item in value.split(',') if item.strip()]
 
 
-# Productionda '*' Host tekshiruvini butunlay o'chiradi (Host header poisoning:
-# parol tiklash havolalarini soxta domenga yo'naltirish mumkin), shuning uchun
-# '*' env dan kelsa ham tashlab yuboriladi.
+# Productionda '*' Host tekşiruvini butunlay öçiradi (Host header poisoning:
+# parol tiklaş havolalarini soxta domenga yönaltiriş mumkin), şuning uçun
+# '*' env dan kelsa ham taşlab yuboriladi.
 ALLOWED_HOSTS = [
     h for h in _env_list('ALLOWED_HOSTS') if h != '*'
 ] or _split_csv(_DEFAULT_HOSTS)
-# Loopback nomlari doim ruxsat etiladi: ular tashqi hujumchiga hech narsa bermaydi
-# (soxta Host: localhost bilan yasalgan havola jabrlanuvchining o'z mashinasiga
-# ishora qiladi), lekin lokal ishga tushirishni kafolatlaydi.
+# Loopback nomlari doim ruxsat etiladi: ular taşqi hujumçiga heç narsa bermaydi
+# (soxta Host: localhost bilan yasalgan havola jabrlanuvçining öz maşinasiga
+# işora qiladi), lekin lokal işga tuşirişni kafolatlaydi.
 for _loopback in ('localhost', '127.0.0.1'):
     if _loopback not in ALLOWED_HOSTS:
         ALLOWED_HOSTS.append(_loopback)
@@ -161,10 +161,10 @@ JAZZMIN_SETTINGS = {
     "site_title": "IT Creative Zomin Admin",
     "site_header": "IT Creative Zomin 🚀",
     "site_brand": "IT Creative Zomin",
-    "welcome_sign": "Xush kelibsiz!",
+    "welcome_sign": "Xuş kelibsiz!",
     "copyright": "IT Creative Zomin",
 
-    # LOGO (agar static/images/logo.png bo‘lsa)
+    # LOGO (agar static/images/logo.png bölsa)
     "site_logo": "images/logo.png",
     "login_logo": "images/logo.png",
     "site_icon": "images/favicon.ico",
@@ -185,7 +185,7 @@ JAZZMIN_SETTINGS = {
 
     # 👤 USER MENU
     "usermenu_links": [
-        {"name": "🌐 Saytga o‘tish", "url": "/", "new_window": True},
+        {"name": "🌐 Saytga ötiş", "url": "/", "new_window": True},
         {"model": "accounts.CustomUser"},
     ],
 
@@ -319,16 +319,16 @@ SEO_CANONICAL_ORIGIN = os.getenv(
 ).rstrip('/')
 
 MIDDLEWARE = [
-    # ── 1. Xavfsizlik (eng birinchi — hamma narsadan oldin) ───────────────
+    # ── 1. Xavfsizlik (eng birinçi — hamma narsadan oldin) ───────────────
     'django.middleware.security.SecurityMiddleware',
-    'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklash
-    # Django admin login'i accounts.login_view rate-limitidan o'tmaydi, shuning
-    # uchun /admin/ uchun alohida (faqat POST) brute-force limiti.
+    'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklaş
+    # Django admin login'i accounts.login_view rate-limitidan ötmaydi, şuning
+    # uçun /admin/ uçun alohida (faqat POST) brute-force limiti.
     'accounts.middleware.AdminLoginRateLimitMiddleware',
-    # Global IP rate-limit o'chirilgan: bitta tarmoqdagi ko'p o'quvchini 429 bilan
-    # noto'g'ri bloklar edi. Login/register/parol va muhim API limitlari saqlanadi.
-    # O'CHIRILDI: noto'g'ri (false-positive) ravishda Market, to'lovlar filtri kabi
-    # oddiy sahifalarni 'xavfli' deb bloklab, request.user xatosini chiqarardi.
+    # Global IP rate-limit öçirilgan: bitta tarmoqdagi köp öquvçini 429 bilan
+    # notöğri bloklar edi. Login/register/parol va muhim API limitlari saqlanadi.
+    # ÖÇIRILDI: notöğri (false-positive) ravişda Market, tölovlar filtri kabi
+    # oddiy sahifalarni 'xavfli' deb bloklab, request.user xatosini çiqarardi.
     # 'accounts.middleware.SuspiciousRequestMiddleware',   # SQLi/XSS/PathTraversal skan
     # ── 2. Statik fayllar ─────────────────────────────────────────────────
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -375,9 +375,9 @@ TEMPLATES = [
                 'accounts.context_processors.student_payment_reminder',
                 'startup.context_processors.my_startup',
             ],
-            # Shablon keshi FAQAT production'da: DEBUG'da keshlansa, fayl
-            # o'zgarishlari server qayta ishga tushmaguncha ko'rinmaydi.
-            # Production'da ham har deploy'dan keyin server restart SHART
+            # Şablon keşi FAQAT production'da: DEBUG'da keşlansa, fayl
+            # özgarişlari server qayta işga tuşmagunça körinmaydi.
+            # Production'da ham har deploy'dan keyin server restart ŞART
             # (cPanel/Passenger: tmp/restart.txt ga touch yoki app restart).
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
@@ -418,9 +418,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
         'OPTIONS': {
             'timeout': 30,
-            # Fon thread'lari va so'rovlar parallel yozganda "database is locked"
-            # bo'lmasligi uchun: yozish qulfi tranzaksiya boshida olinadi va
-            # band bo'lsa timeout bo'yicha kutiladi (darhol xato bermaydi).
+            # Fon thread'lari va sörovlar parallel yozganda "database is locked"
+            # bölmasligi uçun: yoziş qulfi tranzaksiya boşida olinadi va
+            # band bölsa timeout böyiça kutiladi (darhol xato bermaydi).
             'transaction_mode': 'IMMEDIATE',
         },
         'CONN_MAX_AGE': 600,
@@ -530,7 +530,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# collectstatic qilganda hamma fayllar shu yerga yig‘iladi
+# collectstatic qilganda hamma fayllar şu yerga yiğiladi
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
@@ -547,9 +547,9 @@ LOGIN_REDIRECT_URL = 'home'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Django 5.1 dan STATICFILES_STORAGE olib tashlangan — STORAGES ishlatiladi.
-# (Eski STATICFILES_STORAGE qatori e'tiborsiz qolib, WhiteNoise siqishi ishlamay
-#  turgan edi.) Manifest emas: collectstatic esdan chiqsa sayt 500 bermaydi.
+# Django 5.1 dan STATICFILES_STORAGE olib taşlangan — STORAGES işlatiladi.
+# (Eski STATICFILES_STORAGE qatori e'tiborsiz qolib, WhiteNoise siqişi işlamay
+#  turgan edi.) Manifest emas: collectstatic esdan çiqsa sayt 500 bermaydi.
 STORAGES = {
     # Yuklangan fayllar: nomni tozalaydi, bajariladigan kengaytmalarni
     # zararsizlantiradi (accounts/storage.py izohiga qarang).
@@ -561,21 +561,21 @@ STORAGES = {
     },
 }
 
-# Serverga yangi JS/CSS yuklanib collectstatic esdan chiqsa, `staticfiles/`dagi
-# eski nusxa (yoki umuman yo'q fayl → 404 text/html) berilardi. Finder'lar
-# `static/` manbasini STATIC_ROOT ustidan qo'yadi: har doim joriy fayl beriladi.
+# Serverga yangi JS/CSS yuklanib collectstatic esdan çiqsa, `staticfiles/`dagi
+# eski nusxa (yoki umuman yöq fayl → 404 text/html) berilardi. Finder'lar
+# `static/` manbasini STATIC_ROOT ustidan qöyadi: har doim joriy fayl beriladi.
 WHITENOISE_USE_FINDERS = True
 
 # ══════════════════════════════════════════════════════════════════
 # KENG QAMROVLI XAVFSIZLIK SOZLAMALARI
 # ══════════════════════════════════════════════════════════════════
 
-# ── Parol hashlash ────────────────────────────────────────────────
-# Argon2 kutubxonasi o'rnatilgan bo'lsa ishlatiladi, aks holda PBKDF2
-# PBKDF2 (Django ichida, qo'shimcha kutubxonasiz) DEFAULT bo'ladi —
-# shunda parol yangilash/tekshirish hech qachon Argon2 ga bog'liq emas.
-# Argon2 faqat kutubxonasi HAQIQATAN ishlasa, eski argon2 hashlarini
-# tekshirish uchun ro'yxat OXIRIGA qo'shiladi (default emas).
+# ── Parol haşlaş ────────────────────────────────────────────────
+# Argon2 kutubxonasi örnatilgan bölsa işlatiladi, aks holda PBKDF2
+# PBKDF2 (Django içida, qöşimça kutubxonasiz) DEFAULT böladi —
+# şunda parol yangilash/tekshirish heç qaçon Argon2 ga boğliq emas.
+# Argon2 faqat kutubxonasi HAQIQATAN işlasa, eski argon2 haşlarini
+# tekşiriş uçun röyxat OXIRIGA qöşiladi (default emas).
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2PasswordHasher',
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
@@ -589,27 +589,27 @@ except Exception:
     pass
 
 # ── HTTPS (production) ────────────────────────────────────────────
-# `_PLAIN_HTTP_OK` — HTTPS mavjud bo'lmagan lokal muhitlar (test runner va
+# `_PLAIN_HTTP_OK` — HTTPS mavjud bölmagan lokal muhitlar (test runner va
 # `runserver`). Bu qiymat DEBUG dan mustaqil: production'da ikkisi ham False.
 _PLAIN_HTTP_OK = RUNNING_TESTS or RUNNING_DEV_SERVER
 
 SECURE_HSTS_SECONDS            = 0 if DEBUG else 31536000   # 1 yil (production)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD            = not DEBUG
-# DEBUG=False bilan lokal sinash uchun .env da SECURE_SSL_REDIRECT=False qilish mumkin.
+# DEBUG=False bilan lokal sinaş uçun .env da SECURE_SSL_REDIRECT=False qiliş mumkin.
 SECURE_SSL_REDIRECT            = (
     False if _PLAIN_HTTP_OK else _env_bool('SECURE_SSL_REDIRECT', not DEBUG)
 )
-# X-Forwarded-Proto ni faqat reverse proxy ortida ishonish mumkin. Django to'g'ridan
-# to'g'ri ochiq bo'lsa, mijoz bu headerni o'zi yuborib SSL redirectni chetlab o'tadi
-# va HTTP ustidan "secure" cookie o'rnatilishiga sabab bo'ladi.
+# X-Forwarded-Proto ni faqat reverse proxy ortida işoniş mumkin. Django töğridan
+# töğri oçiq bölsa, mijoz bu headerni özi yuborib SSL redirectni çetlab ötadi
+# va HTTP ustidan "secure" cookie örnatilişiga sabab böladi.
 if _env_bool('TRUST_PROXY_SSL_HEADER', True):
     SECURE_PROXY_SSL_HEADER    = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ── Reverse proxy / mijoz IP ─────────────────────────────────────
-# accounts.security.get_client_ip shu ikki qiymatga tayanadi.
-# USE_X_FORWARDED_FOR=False bo'lsa faqat REMOTE_ADDR ishlatiladi (proxy yo'q holat).
-# TRUSTED_PROXY_COUNT — Django oldida turgan O'ZIMIZNING proxy soni
+# accounts.security.get_client_ip şu ikki qiymatga tayanadi.
+# USE_X_FORWARDED_FOR=False bölsa faqat REMOTE_ADDR işlatiladi (proxy yöq holat).
+# TRUSTED_PROXY_COUNT — Django oldida turgan ÖZIMIZNING proxy soni
 # (masalan cPanel/Apache = 1, Cloudflare + Apache = 2).
 USE_X_FORWARDED_FOR = _env_bool('USE_X_FORWARDED_FOR', True)
 try:
@@ -622,10 +622,10 @@ SECURE_BROWSER_XSS_FILTER  = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS             = 'DENY'
 SECURE_REFERRER_POLICY      = 'strict-origin-when-cross-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # SecurityHeadersMiddleware boshqaradi
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # SecurityHeadersMiddleware boşqaradi
 
 # ── CSRF ─────────────────────────────────────────────────────────
-CSRF_COOKIE_HTTPONLY   = False           # JS Ajax uchun o'qilishi kerak
+CSRF_COOKIE_HTTPONLY   = False           # JS Ajax uçun öqilişi kerak
 CSRF_COOKIE_SECURE     = not (DEBUG or _PLAIN_HTTP_OK)
 CSRF_COOKIE_SAMESITE   = 'Lax'
 CSRF_COOKIE_NAME       = 'csrftoken'    # standart
@@ -641,9 +641,9 @@ CSRF_TRUSTED_ORIGINS   = [
 ]
 
 # ── Session ───────────────────────────────────────────────────────
-# DB sessiyalar — har bir Passenger jarayonida alohida bo'lgan LocMemCache
-# sessiya yo'lidan olib tashlanadi. Ko'p jarayonli serverda eng ishonchli
-# variant; hisoblar aralashib ketishining oldini oladi.
+# DB sessiyalar — har bir Passenger jarayonida alohida bölgan LocMemCache
+# sessiya yölidan olib taşlanadi. Köp jarayonli serverda eng işonçli
+# variant; hisoblar aralaşib ketişining oldini oladi.
 SESSION_ENGINE           = 'django.contrib.sessions.backends.db'
 if USE_REDIS_CACHE and _env_bool('REDIS_SESSIONS_ENABLED', False):
     # Keep the existing DB sessions as the durable source and rollback path.
@@ -655,7 +655,7 @@ SESSION_COOKIE_SAMESITE  = 'Lax'
 SESSION_COOKIE_NAME      = 'itc_sid'    # Default "sessionid" emas
 SESSION_COOKIE_AGE       = 60 * 60 * 2  # 2 soat
 
-# ── Fayl yuklash ─────────────────────────────────────────────────
+# ── Fayl yuklaş ─────────────────────────────────────────────────
 FILE_UPLOAD_MAX_MEMORY_SIZE  = 10 * 1024 * 1024   # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE  = 20 * 1024 * 1024   # 20 MB
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 500
@@ -721,7 +721,7 @@ CSP_CONNECT_SRC  = ("'self'", "https://cdn.jsdelivr.net",
                     "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
 CSP_FRAME_SRC    = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
 
-# O'yin xavfsizligi
+# Öyin xavfsizligi
 GAME_HMAC_SECRET = os.getenv('GAME_HMAC_SECRET', SECRET_KEY[:16])
 GAME_MAX_WPM = 180
 GAME_MIN_SECONDS_PER_WORD = 0.15
@@ -730,13 +730,13 @@ GAME_MAX_SCORE_MULTI = 10
 
 
 # ══════════════════════════════════════════════════════════════════
-# ONLAYN TO'LOV (Payme / Click)
+# ONLAYN TÖLOV (Payme / Click)
 # ══════════════════════════════════════════════════════════════════
 # MUHIM: bu kalitlar ilgari settings'ga ulanmagan edi. Natijada
-# payment_views.py dagi getattr(settings, 'PAYME_KEY', '') bo'sh satr
-# qaytarib, imzo/parol tekshiruvi bo'sh kalit bilan MOS kelardi —
-# ya'ni istalgan odam to'lovni "tasdiqlab" balansni tekinga to'ldira olardi.
-# Endi kalit bo'lmasa endpoint'lar butunlay ishlamaydi (fail-closed).
+# payment_views.py dagi getattr(settings, 'PAYME_KEY', '') böş satr
+# qaytarib, imzo/parol tekşiruvi böş kalit bilan MOS kelardi —
+# ya'ni istalgan odam tölovni "tasdiqlab" balansni tekinga töldira olardi.
+# Endi kalit bölmasa endpoint'lar butunlay işlamaydi (fail-closed).
 PAYME_KEY              = os.getenv('PAYME_KEY', '').strip()
 PAYME_ID               = os.getenv('PAYME_ID', '').strip()
 CLICK_SERVICE_ID       = os.getenv('CLICK_SERVICE_ID', '').strip()
@@ -759,60 +759,60 @@ TEZCHECK_LATE_GRACE_DAYS = max(0, int(os.getenv('TEZCHECK_LATE_GRACE_DAYS', '5')
 TEZCHECK_COIN_MIN_SOM = os.getenv('TEZCHECK_COIN_MIN_SOM', '')
 TEZCHECK_COIN_MAX_SOM = os.getenv('TEZCHECK_COIN_MAX_SOM', '')
 
-# inPAY API v2: Karta, Paynet, Alif, AnorBank, Visa/MC va Plum tugmalari shu
-# kassaga yo'naltiriladi (Click/Payme — Tezcheck). Kalit faqat serverda turadi.
+# inPAY API v2: Karta, Paynet, Alif, AnorBank, Visa/MC va Plum tugmalari şu
+# kassaga yönaltiriladi (Click/Payme — Tezcheck). Kalit faqat serverda turadi.
 INPAY_API_BASE_URL = os.getenv('INPAY_API_BASE_URL', 'https://inpay.uz/api/v2').strip().rstrip('/')
 INPAY_SECRET_KEY = os.getenv('INPAY_SECRET_KEY', '').strip()
 # whsec_… — `python manage.py inpay_webhook_secret` bilan olinadi.
 INPAY_WEBHOOK_SECRET = os.getenv('INPAY_WEBHOOK_SECRET', '').strip()
-# Bo'sh bo'lsa, return_url domenidan /inpay/webhook/ manzili hosil qilinadi.
+# Böş bölsa, return_url domenidan /inpay/webhook/ manzili hosil qilinadi.
 INPAY_WEBHOOK_URL = os.getenv('INPAY_WEBHOOK_URL', '').strip()
 
 # ══════════════════════════════════════════════════════════════════
-# ADMIN PANEL YO'LI
+# ADMIN PANEL YÖLI
 # ══════════════════════════════════════════════════════════════════
-# Standart '/admin/' — botlar birinchi navbatda shu manzilni urib ko'radi.
-# .env da ADMIN_URL=maxfiy-panel/ qo'yib yo'lni o'zgartirish tavsiya etiladi.
+# Standart '/admin/' — botlar birinçi navbatda şu manzilni urib köradi.
+# .env da ADMIN_URL=maxfiy-panel/ qöyib yölni özgartiriş tavsiya etiladi.
 ADMIN_URL = (os.getenv('ADMIN_URL', 'admin/').strip().lstrip('/') or 'admin/')
 if not ADMIN_URL.endswith('/'):
     ADMIN_URL += '/'
 
-# Admin login uchun brute-force limiti (AdminLoginRateLimitMiddleware)
+# Admin login uçun brute-force limiti (AdminLoginRateLimitMiddleware)
 ADMIN_LOGIN_MAX_ATTEMPTS = int(os.getenv('ADMIN_LOGIN_MAX_ATTEMPTS', '10'))
 ADMIN_LOGIN_WINDOW       = int(os.getenv('ADMIN_LOGIN_WINDOW', '900'))   # soniya
 
 
 # ══════════════════════════════════════════════════════════════════
-# TELEGRAM BOT (.env dan o'qiladi — ilgari settings'ga ulanmagan edi,
-# shuning uchun bot ishga tushmasdi)
+# TELEGRAM BOT (.env dan öqiladi — ilgari settings'ga ulanmagan edi,
+# şuning uçun bot işga tuşmasdi)
 # ══════════════════════════════════════════════════════════════════
 TELEGRAM_BOT_TOKEN     = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID', '').strip()
 TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
 
-# /telegrambotlms/health/ ochiq turganda har bir so'rov musobaqa/vazifa/to'lov
-# eslatmalarini yuborib, Telegram'ga spam qilish vositasiga aylanadi.
-# Cron uchun: https://.../telegrambotlms/health/?token=<TELEGRAM_HEALTH_TOKEN>
-# Bo'sh qoldirilsa SECRET_KEY dan olinadi (hech qachon ochiq qolmaydi).
+# /telegrambotlms/health/ oçiq turganda har bir sörov musobaqa/vazifa/tölov
+# eslatmalarini yuborib, Telegram'ga spam qiliş vositasiga aylanadi.
+# Cron uçun: https://.../telegrambotlms/health/?token=<TELEGRAM_HEALTH_TOKEN>
+# Böş qoldirilsa SECRET_KEY dan olinadi (heç qaçon oçiq qolmaydi).
 TELEGRAM_HEALTH_TOKEN  = os.getenv('TELEGRAM_HEALTH_TOKEN', '').strip()
 
-# Webhook endpoint (/telegrambotlms/webhook/) @csrf_exempt bo'lgani uchun
-# autentifikatsiyasiz har kim soxta "update" yuborib boshqa foydalanuvchining
-# telegram_id si nomidan ish qila olardi (akkauntni bog'lash, login kodi olish,
-# coin sarflash). Telegram `setWebhook` da berilgan `secret_token` ni har bir
-# so'rovda `X-Telegram-Bot-Api-Secret-Token` sarlavhasida qaytaradi.
-# Bo'sh qoldirilsa SECRET_KEY + bot token dan deterministik olinadi — ya'ni
-# qo'shimcha sozlashsiz ham endpoint hech qachon ochiq qolmaydi.
+# Webhook endpoint (/telegrambotlms/webhook/) @csrf_exempt bölgani uçun
+# autentifikatsiyasiz har kim soxta "update" yuborib boşqa foydalanuvçining
+# telegram_id si nomidan iş qila olardi (akkauntni boğlaş, login kodi oliş,
+# coin sarflaş). Telegram `setWebhook` da berilgan `secret_token` ni har bir
+# sörovda `X-Telegram-Bot-Api-Secret-Token` sarlavhasida qaytaradi.
+# Böş qoldirilsa SECRET_KEY + bot token dan deterministik olinadi — ya'ni
+# qöşimça sozlaşsiz ham endpoint heç qaçon oçiq qolmaydi.
 # Telegram talabi: 1-256 belgi, faqat A-Z a-z 0-9 _ -
 _raw_webhook_secret = os.getenv('TELEGRAM_WEBHOOK_SECRET', '').strip()
 if _raw_webhook_secret:
     TELEGRAM_WEBHOOK_SECRET = _raw_webhook_secret
 elif TELEGRAM_BOT_TOKEN:
-    # Bot tokendan olinadi, SECRET_KEY dan emas: setWebhook boshqa muhitdan
-    # (lokal mashina, cron, brauzer) chaqirilganda SECRET_KEY har xil bo'lsa
+    # Bot tokendan olinadi, SECRET_KEY dan emas: setWebhook boşqa muhitdan
+    # (lokal maşina, cron, brauzer) çaqirilganda SECRET_KEY har xil bölsa
     # secret mos kelmaydi va server har bir update'ni 403 qiladi — bot
-    # jimgina, hech qanday xatolik ko'rsatmasdan javob bermay qo'yadi.
-    # Bot token esa barcha muhitda bir xil.
+    # jimgina, heç qanday xatolik körsatmasdan javob bermay qöyadi.
+    # Bot token esa barça muhitda bir xil.
     import hashlib as _hashlib
     import hmac as _hmac
     TELEGRAM_WEBHOOK_SECRET = _hmac.new(
@@ -821,30 +821,30 @@ elif TELEGRAM_BOT_TOKEN:
         _hashlib.sha256,
     ).hexdigest()
 else:
-    # Token yo'q — bot ishlamaydi. Secretni bo'sh qoldiramiz, shunda webhook
-    # endpoint ochiq qolmaydi (_webhook_authorized hammani rad etadi).
+    # Token yöq — bot işlamaydi. Secretni böş qoldiramiz, şunda webhook
+    # endpoint oçiq qolmaydi (_webhook_authorized hammani rad etadi).
     TELEGRAM_WEBHOOK_SECRET = ''
 
 # Premium custom emoji va ixtiyoriy stikerlar (telegram_bot/premium.py).
-# Botning matnli xabarlari premium animatsiyali emojilarni xabar ichida ishlatadi;
+# Botning matnli xabarlari premium animatsiyali emojilarni xabar içida işlatadi;
 # xabardan keyin alohida stiker avtomatik yuborilmaydi.
-# ID lar noto'g'ri bo'lsa avtomatik oddiy emojiga qaytadi (botni buzmaydi).
+# ID lar notöğri bölsa avtomatik oddiy emojiga qaytadi (botni buzmaydi).
 TELEGRAM_USE_PREMIUM_EMOJI = os.getenv('TELEGRAM_USE_PREMIUM_EMOJI', 'true').lower() in ('1', 'true', 'yes')
 TELEGRAM_USE_STICKERS      = os.getenv('TELEGRAM_USE_STICKERS', 'true').lower() in ('1', 'true', 'yes')
 
-# SITE_URL: webhook (production) uchun real domen kerak.
-# '*' yoki bo'sh bo'lsa — lokal polling rejimi ishlaydi (webhook emas).
+# SITE_URL: webhook (production) uçun real domen kerak.
+# '*' yoki böş bölsa — lokal polling rejimi işlaydi (webhook emas).
 _raw_site_url = os.getenv('SITE_URL', '').strip()
 SITE_URL = '' if _raw_site_url in ('', '*') else _raw_site_url.rstrip('/')
 
-# Google orqali kirish / hisobni ulash (Google Cloud Console → OAuth client).
-# Redirect URI bo'sh bo'lsa so'rov kelgan domendan quriladi:
+# Google orqali kiriş / hisobni ulaş (Google Cloud Console → OAuth client).
+# Redirect URI böş bölsa sörov kelgan domendan quriladi:
 #   https://<domen>/auth/google/callback/
 GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '').strip()
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '').strip()
 GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', '').strip()
 
-# Facebook orqali kirish / hisobni ulash (Meta for Developers → App settings → Basic).
+# Facebook orqali kiriş / hisobni ulaş (Meta for Developers → App settings → Basic).
 # Valid OAuth Redirect URI: https://<domen>/auth/facebook/callback/
 FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID', '').strip()
 FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '').strip()
@@ -854,8 +854,8 @@ FACEBOOK_GRAPH_VERSION = os.getenv('FACEBOOK_GRAPH_VERSION', 'v21.0').strip()
 
 # ══════════════════════════════════════════════════════════════════
 # DJANGO REST FRAMEWORK
-# (settings'dan tushib qolgan edi -> API paginatsiyasi ishlamay,
-#  Market va boshqa API sahifalar "Xatolik yuz berdi" berardi)
+# (settings'dan tuşib qolgan edi -> API paginatsiyasi işlamay,
+#  Market va boşqa API sahifalar "Xatolik yuz berdi" berardi)
 # ══════════════════════════════════════════════════════════════════
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -873,9 +873,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'coin_transfer': '10/min',
     },
-    # DRF throttle mijozni IP bo'yicha ajratadi. `NUM_PROXIES` berilmasa
-    # `X-Forwarded-For` ning ENG CHAP qiymati olinadi — u butunlay mijoz
-    # nazoratida, ya'ni har so'rovda boshqa IP yozib limitni cheksiz
-    # aylanib o'tish mumkin edi (pul ko'chiruvchi endpoint uchun jiddiy).
+    # DRF throttle mijozni IP böyiça ajratadi. `NUM_PROXIES` berilmasa
+    # `X-Forwarded-For` ning ENG ÇAP qiymati olinadi — u butunlay mijoz
+    # nazoratida, ya'ni har sörovda boşqa IP yozib limitni çeksiz
+    # aylanib ötiş mumkin edi (pul köçiruvçi endpoint uçun jiddiy).
     'NUM_PROXIES': TRUSTED_PROXY_COUNT if USE_X_FORWARDED_FOR else 0,
 }

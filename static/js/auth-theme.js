@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function syncButton() {
       var dark = root.getAttribute('data-theme') === 'dark';
       button.setAttribute('aria-pressed', dark ? 'true' : 'false');
-      button.setAttribute('aria-label', dark ? "Yorug' rejimga o'tish" : "Qorong'i rejimga o'tish");
+      button.setAttribute('aria-label', dark ? "Yorug' rejimga ötiş" : "Qoronği rejimga ötiş");
       button.querySelector('span').textContent = dark ? 'Light' : 'Dark';
       button.querySelector('i').className = dark ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
     }

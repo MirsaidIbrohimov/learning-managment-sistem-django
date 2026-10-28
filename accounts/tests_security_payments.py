@@ -1,10 +1,10 @@
 """
-To'lov shlyuzlari (Payme/Click), Telegram service endpointlari va ommaviy
-root fayllar uchun xavfsizlik regression testlari.
+Tölov şlyuzlari (Payme/Click), Telegram service endpointlari va ommaviy
+root fayllar uçun xavfsizlik regression testlari.
 
-Asosiy himoya: kalit sozlanmagan bo'lsa (`PAYME_KEY=''`, `CLICK_SECRET_KEY=''`)
-autentifikatsiya "hammaga ruxsat" holatiga tushib qolmasligi kerak — aks holda
-istalgan odam to'lovni tasdiqlangan deb ko'rsatib, balansni oshira olardi.
+Asosiy himoya: kalit sozlanmagan bölsa (`PAYME_KEY=''`, `CLICK_SECRET_KEY=''`)
+autentifikatsiya "hammaga ruxsat" holatiga tuşib qolmasligi kerak — aks holda
+istalgan odam tölovni tasdiqlangan deb körsatib, balansni oşira olardi.
 """
 import base64
 import hashlib
@@ -14,7 +14,7 @@ from django.urls import reverse
 
 
 class PaymeAuthBypassTests(TestCase):
-    """PAYME_KEY sozlanmaganda hech kim to'lovni tasdiqlay olmasligi kerak."""
+    """PAYME_KEY sozlanmaganda heç kim tölovni tasdiqlay olmasligi kerak."""
 
     def _basic(self, password):
         raw = base64.b64encode(f"Paycom:{password}".encode()).decode()
@@ -28,7 +28,7 @@ class PaymeAuthBypassTests(TestCase):
             HTTP_AUTHORIZATION=self._basic(''), secure=True,
         )
         body = resp.json()
-        self.assertIn('error', body, "Bo'sh kalit bilan avtorizatsiya O'TIB KETDI!")
+        self.assertIn('error', body, "Böş kalit bilan avtorizatsiya ÖTIB KETDI!")
         self.assertEqual(body['error']['code'], -32504)
 
     @override_settings(PAYME_KEY='')
@@ -51,7 +51,7 @@ class PaymeAuthBypassTests(TestCase):
 
     @override_settings(PAYME_KEY='haqiqiy-maxfiy-kalit')
     def test_correct_password_passes_auth(self):
-        """To'g'ri kalit bilan auth o'tadi (keyin biznes-xato qaytadi, -32504 emas)."""
+        """Töğri kalit bilan auth ötadi (keyin biznes-xato qaytadi, -32504 emas)."""
         resp = self.client.post(
             '/payme/', data='{"method":"CheckPerformTransaction","params":{},"id":1}',
             content_type='application/json',
@@ -63,7 +63,7 @@ class PaymeAuthBypassTests(TestCase):
 class ClickSignatureTests(TestCase):
     @override_settings(CLICK_SECRET_KEY='', CLICK_SERVICE_ID='')
     def test_empty_secret_rejects_forged_signature(self):
-        """Hujumchi bo'sh kalit bilan o'zi imzo yasay olmasligi kerak."""
+        """Hujumçi böş kalit bilan özi imzo yasay olmasligi kerak."""
         payload = {
             'click_trans_id': '111', 'service_id': '222',
             'merchant_trans_id': '12345', 'amount': '500000',
@@ -76,7 +76,7 @@ class ClickSignatureTests(TestCase):
 
         resp = self.client.post('/click/prepare/', data=payload, secure=True)
         body = resp.json()
-        self.assertEqual(body.get('error'), -1, "Bo'sh kalit bilan imzo QABUL QILINDI!")
+        self.assertEqual(body.get('error'), -1, "Böş kalit bilan imzo QABUL QILINDI!")
 
 
 class TelegramHealthTests(TestCase):
@@ -116,4 +116,4 @@ class AdminBruteForceTests(TestCase):
                 secure=True,
             )
             statuses.append(r.status_code)
-        self.assertIn(429, statuses, f"Admin login cheklanmadi: {set(statuses)}")
+        self.assertIn(429, statuses, f"Admin login çeklanmadi: {set(statuses)}")

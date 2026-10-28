@@ -14,7 +14,7 @@ from accounts.models import (
 
 
 class CourseDiscountTests(TestCase):
-    """90 000 so'mlik kurs 3 kun 50 000 so'm: ko'rinadigan narx = to'lanadigan narx."""
+    """90 000 sömlik kurs 3 kun 50 000 söm: körinadigan narx = tölanadigan narx."""
 
     def setUp(self):
         cache.clear()
@@ -72,7 +72,7 @@ class CourseDiscountTests(TestCase):
         self.sale(profession=self.other, discount_type='fixed', discount_value=10 ** 9)
         self.assertEqual(course_price(self.other).price, 1000)
 
-    # ── To'lov ──
+    # ── Tölov ──
     def test_online_checkout_charges_discounted_price(self):
         self.sale()
         self.login(self.student)
@@ -121,7 +121,7 @@ class CourseDiscountTests(TestCase):
             self.client.post(reverse('course_checkout', args=[self.course.pk]))
         self.assertEqual(create.call_args.kwargs['order'].amount_minor, 5000000)
 
-    # ── Ko'rinish ──
+    # ── Köriniş ──
     def test_sale_visible_on_courses_landing_home_and_checkout(self):
         self.sale()
         pages = [self.client.get('/').content.decode(), self.client.get(reverse('public_courses')).content.decode(),
@@ -147,7 +147,7 @@ class CourseDiscountTests(TestCase):
         discount = Discount.objects.get()
         self.assertAlmostEqual((discount.valid_until - before).total_seconds(), 3 * 86400, delta=60)
         self.assertEqual(course_price(self.course).price, 50000)
-        self.assertTrue(Message.objects.filter(title='Kursga chegirma!').exists())
+        self.assertTrue(Message.objects.filter(title='Kursga çegirma!').exists())
 
     def test_admin_rejects_prices_that_are_not_discounts(self):
         self.login(self.admin)

@@ -33,7 +33,7 @@ class LoginNotificationTests(TestCase):
         for value in ('SM-S918B', 'Android 13', 'Chrome 120.0.0.0', '203.0.113.5', ua):
             self.assertIn(value, mail.outbox[0].body)
         self.assertEqual(mail.outbox[0].to, [self.user.email])
-        # Django 5.1 da (content, mimetype) tuple, 5.2+ da nomlangan tuple — indeks ikkalasida ishlaydi.
+        # Django 5.1 da (content, mimetype) tuple, 5.2+ da nomlangan tuple — indeks ikkalasida işlaydi.
         self.assertEqual(mail.outbox[0].alternatives[0][1], 'text/html')
 
     def test_missing_email_does_not_queue(self):
@@ -57,7 +57,7 @@ class LoginNotificationTests(TestCase):
 
     def test_ipad_edge_and_unknown_device(self):
         details = login_details(self.request('Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) Version/17.0 Mobile Safari/604.1'))
-        self.assertEqual(details['device_type'], 'Planshet')
+        self.assertEqual(details['device_type'], 'Planşet')
         self.assertEqual(details['os'], 'iOS 17.0')
         details = login_details(self.request('Mozilla/5.0 (Windows NT 10.0) Chrome/120.0 Safari/537.36 Edg/120.1'))
         self.assertEqual(details['browser'], 'Edge 120.1')

@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=120, verbose_name='Dizayn nomi')),
                 ('background', models.ImageField(help_text='PNG/JPG, albom (gorizontal) format. Tavsiya: 2400×1697 px.', upload_to='certificate_designs/', verbose_name='Fon rasmi')),
                 ('text_color', models.CharField(default='#141720', max_length=7, verbose_name='Matn rangi')),
-                ('course_format', models.CharField(default='<< {course} >> COURSE', help_text='{course} — kurs nomi (katta harflarda) bilan almashtiriladi.', max_length=120, verbose_name='Kurs qatori formati')),
+                ('course_format', models.CharField(default='<< {course} >> COURSE', help_text='{course} — kurs nomi (katta harflarda) bilan almaştiriladi.', max_length=120, verbose_name='Kurs qatori formati')),
                 ('name_x', models.FloatField(default=49.6)),
                 ('name_y', models.FloatField(default=49.8)),
                 ('name_size', models.PositiveSmallIntegerField(default=44)),
@@ -50,6 +50,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='certificatesettings',
             name='design',
-            field=models.ForeignKey(blank=True, help_text="Bo'sh bo'lsa standart dizayn ishlatiladi.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='course_settings', to='accounts.certificatedesign', verbose_name='Sertifikat dizayni'),
+            field=models.ForeignKey(blank=True, help_text="Böş bölsa standart dizayn işlatiladi.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='course_settings', to='accounts.certificatedesign', verbose_name='Sertifikat dizayni'),
         ),
     ]

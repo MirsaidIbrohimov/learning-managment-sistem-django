@@ -15,7 +15,7 @@
     .de-layout { display:grid; grid-template-columns: minmax(0,1fr) 340px; gap:1.2rem; align-items:start; }
     .de-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:18px; padding:1rem; }
 
-    /* Sahna — fon rasmi nisbatida; shrift o'lchami konteyner kengligiga bog'liq (PDF bilan bir xil) */
+    /* Sahna — fon rasmi nisbatida; şrift ölçami konteyner kengligiga boğliq (PDF bilan bir xil) */
     .de-stage { position:relative; container-type:inline-size; border-radius:10px; overflow:hidden; user-select:none; touch-action:none;
         box-shadow: 0 20px 50px -25px rgba(0,0,0,.45); }
     .de-stage img { display:block; width:100%; height:auto; pointer-events:none; }
@@ -51,8 +51,8 @@
         <div style="flex:1;">
             <h4 style="font-weight:800;margin:0;">🎨 {{ design.name }}</h4>
             <small class="de-muted">
-                Matnni sichqoncha bilan sudrang. Tanlangan matnni klaviatura strelkalari bilan aniq suring (Shift — tezroq).
-                {% if courses %}Biriktirilgan: {% for c in courses %}<b>{{ c.name }}</b>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Hali hech bir kursga biriktirilmagan.{% endif %}
+                Matnni siçqonça bilan sudrang. Tanlangan matnni klaviatura strelkalari bilan aniq suring (Shift — tezroq).
+                {% if courses %}Biriktirilgan: {% for c in courses %}<b>{{ c.name }}</b>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Hali heç bir kursga biriktirilmagan.{% endif %}
             </small>
         </div>
         <a href="{% url 'admin_certificate_design_preview' design.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;font-weight:700;">
@@ -73,7 +73,7 @@
                     {% endfor %}
                 </div>
                 <p class="de-muted" style="margin:.7rem 0 0;"><i class="bi bi-info-circle"></i>
-                    Ko'rinish taxminiy. Aniq natijani saqlagandan keyin "Namuna PDF" orqali tekshiring.</p>
+                    Köriniş taxminiy. Aniq natijani saqlagandan keyin "Namuna PDF" orqali tekşiring.</p>
             </div>
 
             <div>
@@ -89,10 +89,10 @@
                     <div class="mb-2 mt-2">
                         <label class="form-label fw-bold" style="font-size:.78rem;">Kurs qatori formati</label>
                         <input type="text" name="course_format" id="courseFmt" value="{{ design.course_format }}" maxlength="120" class="form-control form-control-sm">
-                        <small class="de-muted"><code>{course}</code> — kurs nomi bilan almashtiriladi</small>
+                        <small class="de-muted"><code>{course}</code> — kurs nomi bilan almaştiriladi</small>
                     </div>
                     <div>
-                        <label class="form-label fw-bold" style="font-size:.78rem;">Fon rasmini almashtirish</label>
+                        <label class="form-label fw-bold" style="font-size:.78rem;">Fon rasmini almaştiriş</label>
                         <input type="file" name="background" id="bgInput" accept=".png,.jpg,.jpeg,.webp" class="form-control form-control-sm">
                     </div>
                 </div>
@@ -106,19 +106,19 @@
                     <input type="hidden" name="{{ f.key }}_x" value="{{ f.x|stringformat:'.2f' }}">
                     <input type="hidden" name="{{ f.key }}_y" value="{{ f.y|stringformat:'.2f' }}">
                     <div class="de-row">
-                        <label>O'lcham</label>
+                        <label>Ölçam</label>
                         <input type="range" min="6" max="120" value="{{ f.size }}" data-size>
                         <input type="number" name="{{ f.key }}_size" min="6" max="120" value="{{ f.size }}" class="form-control form-control-sm" data-size>
                     </div>
                     <div class="de-row">
-                        <label>Shrift</label>
+                        <label>Şrift</label>
                         <select name="{{ f.key }}_font" class="form-select form-select-sm" data-font>
                             {% for val, lbl in font_choices %}<option value="{{ val }}" {% if f.font == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
                         </select>
                     </div>
                     {% if f.key != 'name' %}
                     <div class="de-row">
-                        <label>Ko'rinadi</label>
+                        <label>Körinadi</label>
                         <input type="checkbox" name="show_{{ f.key }}" value="1" {% if f.visible %}checked{% endif %} class="form-check-input" data-show>
                     </div>
                     {% endif %}
@@ -129,11 +129,11 @@
                     {% if courses %}
                     <label style="font-size:.8rem;display:flex;gap:6px;align-items:flex-start;margin-bottom:.7rem;">
                         <input type="checkbox" name="regenerate" value="1" class="form-check-input" style="margin-top:2px;">
-                        <span>Shu dizayndagi kurslarning <b>berilgan sertifikatlarini</b> ham qayta yaratish</span>
+                        <span>Şu dizayndagi kurslarning <b>berilgan sertifikatlarini</b> ham qayta yaratiş</span>
                     </label>
                     {% endif %}
                     <button type="submit" class="btn btn-primary w-100" style="border-radius:12px;font-weight:800;">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                 </div>
             </div>
@@ -179,7 +179,7 @@
         var el = txt[key], p = panel[key];
         setPos(key, parseFloat(p.querySelector('[name="' + key + '_x"]').value), parseFloat(p.querySelector('[name="' + key + '_y"]').value));
 
-        /* Sudrash */
+        /* Sudraş */
         el.addEventListener('pointerdown', function (e) {
             e.preventDefault(); select(key); el.focus();
             el.setPointerCapture(e.pointerId); el.classList.add('dragging');
@@ -189,7 +189,7 @@
             function move(ev) {
                 var x = (ev.clientX - ox - r.left) / r.width * 100;
                 var y = (ev.clientY - oy - r.top) / r.height * 100;
-                var snap = Math.abs(x - 50) < 0.8;   // markazga yopishish
+                var snap = Math.abs(x - 50) < 0.8;   // markazga yopişiş
                 guide.classList.toggle('on', snap);
                 setPos(key, snap ? 50 : x, y);
             }
@@ -200,7 +200,7 @@
             el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
         });
 
-        /* Klaviatura bilan aniq surish */
+        /* Klaviatura bilan aniq suriş */
         el.addEventListener('keydown', function (e) {
             var d = e.shiftKey ? 1 : 0.1, x = parseFloat(el.style.left), y = parseFloat(el.style.top);
             var map = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] };
@@ -210,7 +210,7 @@
         el.addEventListener('focus', function () { select(key); });
         p.addEventListener('click', function () { select(key); });
 
-        /* O'lcham: slider va raqam bir-biriga bog'langan */
+        /* Ölçam: slider va raqam bir-biriga boğlangan */
         var sizes = p.querySelectorAll('[data-size]');
         sizes.forEach(function (inp) {
             inp.addEventListener('input', function () {
@@ -225,7 +225,7 @@
 
     document.getElementById('color').addEventListener('input', function () { stage.style.color = this.value; });
     fmt.addEventListener('input', renderText);
-    /* Yangi fon tanlansa — darhol ko'rsatish (saqlanmaguncha faqat oldindan ko'rish) */
+    /* Yangi fon tanlansa — darhol körsatiş (saqlanmagunça faqat oldindan köriş) */
     document.getElementById('bgInput').addEventListener('change', function () {
         if (this.files && this.files[0]) document.getElementById('bgImg').src = URL.createObjectURL(this.files[0]);
     });

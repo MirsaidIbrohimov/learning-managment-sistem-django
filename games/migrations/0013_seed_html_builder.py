@@ -17,7 +17,7 @@ def seed(apps, schema_editor):
         slug='html-builder',
         defaults={
             'title': 'HTML Builder',
-            'description': "Drag & Drop orqali HTML sahifa yig'ish. Dasturlashni o'rganing!",
+            'description': "Drag & Drop orqali HTML sahifa yiğiş. Dasturlaşni örganing!",
             'game_type': 'external',
             'icon': 'bi-code-slash',
             'is_active': True,

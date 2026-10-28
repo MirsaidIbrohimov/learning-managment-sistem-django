@@ -1,9 +1,9 @@
 /* =============================================================
- * SHASHKA — LMS ichidagi o'yin (app.js)
+ * ŞAŞKA — LMS içidagi öyin (app.js)
  * -------------------------------------------------------------
  * Rejimlar:
  *   • AI (Easy/Medium/Hard)
- *   • Multiplayer (LMS o'quvchilari bilan, polling-based)
+ *   • Multiplayer (LMS öquvçilari bilan, polling-based)
  * ============================================================= */
 
 // ============== URL PARAMS / CONFIG ==============
@@ -25,7 +25,7 @@ const URLS = {
 };
 
 let LMS_USER = null;
-let SERVICE_FEE_PCT = 15;   // coin tikilganda g'oliblikdan ushlanadigan xizmat haqi (%)
+let SERVICE_FEE_PCT = 15;   // coin tikilganda ğoliblikdan uşlanadigan xizmat haqi (%)
 
 // ============== TEMA TIZIMI ==============
 const THEME_KEY = 'shashka_theme';
@@ -35,7 +35,7 @@ function applyTheme(theme) {
     if (!THEMES.includes(theme)) theme = 'premium';
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
-    // Faol swatch belgilash
+    // Faol swatch belgilaş
     document.querySelectorAll('.theme-swatch').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === theme);
     });
@@ -49,7 +49,7 @@ function initThemePicker() {
     });
 }
 
-// Sahifa yuklanganda darhol tema qo'llanilsin (flash oldini olish)
+// Sahifa yuklanganda darhol tema qöllanilsin (flash oldini oliş)
 (function() {
     const t = localStorage.getItem(THEME_KEY) || 'premium';
     document.body.setAttribute('data-theme', t);
@@ -71,7 +71,7 @@ function appendMoveLi(li) {
 // Copies the move history (PGN-like plain text) to the clipboard for export/sharing
 function copyMoveHistory() {
     const lines = Array.from($('moves-list').children).map((li, i) => `${i + 1}. ${li.textContent}`);
-    const text = lines.join('\n') || 'Yurishlar yo\'q';
+    const text = lines.join('\n') || 'Yurişlar yöq';
     const btn = $('btn-copy-moves');
     const flash = () => {
         if (!btn) return;
@@ -95,7 +95,7 @@ function showReconnectOverlay() {
     $('wait-text').innerHTML = '<i class="bi bi-wifi-off"></i> Aloqa uzildi, qayta ulanmoqda...';
     overlay.classList.remove('hidden');
     overlay.classList.add('reconnecting');
-    announce('Aloqa uzildi, qayta ulanishga harakat qilinmoqda');
+    announce('Aloqa uzildi, qayta ulanişga harakat qilinmoqda');
 }
 function hideReconnectOverlay() {
     const overlay = $('wait-overlay');
@@ -103,13 +103,13 @@ function hideReconnectOverlay() {
     overlay.classList.add('hidden');
     overlay.classList.remove('reconnecting');
 }
-// Token muddati tugaganda (HTTP 403) — jimgina "Raqib yurmoqda"da qotib qolish
-// o'rniga pollingni to'xtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
-// olinadi va o'yin davom etadi.
+// Token muddati tugaganda (HTTP 403) — jimgina "Raqib yurmoqda"da qotib qoliş
+// örniga pollingni töxtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
+// olinadi va öyin davom etadi.
 let _sessionExpired = false;
-// O'z yurishimiz serverga yuborilayotgan qisqa payt. Shu paytda polling
-// serverdagi (hali yangilanmagan) holatga qarab optimistik yurishimizni
-// qaytarib yubormasligi uchun reconcile'ni to'xtatamiz.
+// Öz yurişimiz serverga yuborilayotgan qisqa payt. Şu paytda polling
+// serverdagi (hali yangilanmagan) holatga qarab optimistik yurişimizni
+// qaytarib yubormasligi uçun reconcile'ni töxtatamiz.
 let _localMovePending = false;
 function showSessionExpired() {
     if (_sessionExpired) return;
@@ -117,7 +117,7 @@ function showSessionExpired() {
     if (pollInterval) clearInterval(pollInterval);
     const overlay = $('wait-overlay');
     if (overlay) {
-        $('wait-text').innerHTML = "<i class=\"bi bi-hourglass-bottom\"></i> Sessiya muddati tugadi. Davom etish uchun sahifani yangilang.";
+        $('wait-text').innerHTML = "<i class=\"bi bi-hourglass-bottom\"></i> Sessiya muddati tugadi. Davom etiş uçun sahifani yangilang.";
         overlay.classList.remove('hidden');
         overlay.classList.remove('reconnecting');
     }
@@ -234,7 +234,7 @@ let DIFFICULTY = 'medium';
 let PLAYER_COLOR = 'white';    // mp: 'white' or 'black'
 let OPPONENT = { name: 'AI', meta: 'Kompyuter raqib' };
 let MATCH_ID = null;
-let COMP_INFO = null;     // musobaqa urinishlari holati
+let COMP_INFO = null;     // musobaqa urinişlari holati
 let board = [];
 let selected = null;
 let possibleMoves = [];
@@ -258,15 +258,15 @@ function updateCompetitionReplay(data) {
     const exhausted = (data.can_play === false) || (!allowRetry && typeof left === 'number' && left <= 0);
     const st = $('submit-status');
     if (exhausted) {
-        st.innerHTML += `<br><i class="bi bi-trophy-fill"></i> Musobaqa urinishlari tugadi (${used}/${max}).`;
+        st.innerHTML += `<br><i class="bi bi-trophy-fill"></i> Musobaqa urinişlari tugadi (${used}/${max}).`;
     } else if (typeof left === 'number') {
-        st.innerHTML += `<br><i class="bi bi-info-circle"></i> Qolgan urinishlar: ${left}/${max}. Yangi urinish uchun o'yinlar sahifasidan qayta kiring.`;
+        st.innerHTML += `<br><i class="bi bi-info-circle"></i> Qolgan urinişlar: ${left}/${max}. Yangi uriniş uçun öyinlar sahifasidan qayta kiring.`;
     }
 }
 
 async function authenticate() {
     if (!TOKEN || !URLS.verify) {
-        return showAuthError('<i class="bi bi-lock-fill"></i> Tashqi token topilmadi. LMS orqali kiring.');
+        return showAuthError('<i class="bi bi-lock-fill"></i> Taşqi token topilmadi. LMS orqali kiring.');
     }
     try {
         const res = await fetch(URLS.verify, {
@@ -280,17 +280,17 @@ async function authenticate() {
         }
         LMS_USER = data.user;
         if (data.game && data.game.service_fee_percent != null) SERVICE_FEE_PCT = data.game.service_fee_percent;
-        // Coin tikilish faqat shaxmatda yoqilgan — boshqa o'yinlarda coin tugmasini yashiramiz
+        // Coin tikiliş faqat şaxmatda yoqilgan — boşqa öyinlarda coin tugmasini yaşiramiz
         if (data.game && data.game.coin_enabled === false) {
             const coinBtn = $('btn-find-coin');
             if (coinBtn) coinBtn.style.display = 'none';
         }
         renderUserHeader();
-        // Musobaqa rejimi: avtomatik AI Qiyin bilan boshlanadi
+        // Musobaqa rejimi: avtomatik AI Qiyin bilan boşlanadi
         if (COMPETITION_ID) {
             COMP_INFO = data.competition || null;
             if (COMP_INFO && COMP_INFO.can_play === false) {
-                return showAuthError(`<i class="bi bi-trophy-fill"></i> Musobaqada urinishlar tugadi (${COMP_INFO.attempts_used}/${COMP_INFO.max_attempts}).`);
+                return showAuthError(`<i class="bi bi-trophy-fill"></i> Musobaqada urinişlar tugadi (${COMP_INFO.attempts_used}/${COMP_INFO.max_attempts}).`);
             }
             MODE = 'ai';
             DIFFICULTY = 'hard';
@@ -306,10 +306,10 @@ async function authenticate() {
     }
 }
 function showAuthError(msg) {
-    $('auth-status').textContent = "Ulanishda xato";
+    $('auth-status').textContent = "Ulanişda xato";
     $('auth-spinner').classList.add('hidden');
     $('auth-error').classList.remove('hidden');
-    $('auth-error').innerHTML = msg + `<br><br><a href="${RETURN_URL}" target="_top" style="color:#a5b4fc"><i class="bi bi-arrow-left-circle"></i> O'yinlarga qaytish</a>`;
+    $('auth-error').innerHTML = msg + `<br><br><a href="${RETURN_URL}" target="_top" style="color:#a5b4fc"><i class="bi bi-arrow-left-circle"></i> Öyinlarga qaytiş</a>`;
 }
 
 function renderUserHeader() {
@@ -326,7 +326,7 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
         DIFFICULTY = btn.dataset.diff;
         OPPONENT = {
             name: 'AI',
-            meta: { easy:"Oson",  medium:"O'rta", hard:"Qiyin" }[DIFFICULTY],
+            meta: { easy:"Oson",  medium:"Örta", hard:"Qiyin" }[DIFFICULTY],
         };
         PLAYER_COLOR = 'white';
         startGame();
@@ -334,7 +334,7 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
 });
 
 // ============== CUSTOM CONFIRM MODAL (sandbox-safe) ==============
-function showConfirm({ title = "Tasdiqlash", text = "Davom etishni xohlaysizmi?", icon = "bi-exclamation-triangle-fill", yes = "Ha", no = "Bekor qilish" } = {}) {
+function showConfirm({ title = "Tasdiqlaş", text = "Davom etişni xohlaysizmi?", icon = "bi-exclamation-triangle-fill", yes = "Ha", no = "Bekor qiliş" } = {}) {
     return new Promise((resolve) => {
         $('confirm-icon').innerHTML = `<i class="bi ${icon}"></i>`;
         $('confirm-title').textContent = title;
@@ -373,7 +373,7 @@ function askWager() {
 
         const presets = document.querySelectorAll('.wager-preset');
 
-        // 15% xizmat haqi hisob-kitobini ko'rsatuvchi funksiya
+        // 15% xizmat haqi hisob-kitobini körsatuvçi funksiya
         function updateFeeInfo() {
             const n = parseInt(input.value, 10);
             const feeBox = $('wager-fee-info');
@@ -391,7 +391,7 @@ function askWager() {
 
         presets.forEach(b => b.onclick = () => { input.value = b.dataset.amount; updateFeeInfo(); });
         input.oninput = updateFeeInfo;
-        // fee boxni reset qilish
+        // fee boxni reset qiliş
         $('wager-fee-info').style.display = 'none';
         input.value = '';
 
@@ -423,8 +423,8 @@ if ($('btn-copy-moves')) $('btn-copy-moves').onclick = copyMoveHistory;
 $('btn-menu').onclick = async () => {
     const ok = await showConfirm({
         icon: "bi-arrow-left-circle", title: "Menyuga qaytasizmi?",
-        text: "Joriy o'yin tashlab ketiladi va natija yo'qoladi.",
-        yes: "Ha, qaytish", no: "Davom etish",
+        text: "Joriy öyin taşlab ketiladi va natija yöqoladi.",
+        yes: "Ha, qaytiş", no: "Davom etiş",
     });
     if (!ok) return;
     leaveGame();
@@ -484,12 +484,12 @@ function startGame(initialState = null) {
     } else {
         $('mode-pill').innerHTML = MP_MODE === 'coin'
             ? `<i class="bi bi-coin"></i> ${MP_WAGER} coin`
-            : `<i class="bi bi-controller"></i> Shunchaki`;
+            : `<i class="bi bi-controller"></i> Şunçaki`;
     }
 
     // You / Opponent display
     $('player-name').textContent = LMS_USER.name || LMS_USER.username;
-    $('player-meta').textContent = LMS_USER.group || (MODE === 'ai' ? 'Siz' : 'O\'quvchi');
+    $('player-meta').textContent = LMS_USER.group || (MODE === 'ai' ? 'Siz' : 'Öquvçi');
     $('opp-name').textContent = OPPONENT.name;
     $('opp-meta').textContent = OPPONENT.meta || '';
     $('role-self').innerHTML = PLAYER_COLOR === 'white' ? '<i class="bi bi-circle"></i>' : '<i class="bi bi-circle-fill"></i>';
@@ -510,19 +510,19 @@ function startGame(initialState = null) {
     updateTurnUI();
     startTimer();
 
-    // Multiplayer polling — versiyaga asoslangan moslashuvchan usul
+    // Multiplayer polling — versiyaga asoslangan moslaşuvçan usul
     if (pollInterval) clearInterval(pollInterval);
     if (MODE === 'mp') {
         startPolling();
     }
 }
 
-// ===== VERSIYAGA ASOSLANGAN MOSLASHUVCHAN POLLING =====
-// Har safar ARZON `mp/ping` (bitta qator: mc/status/turn) so'raladi. Faqat
-// biror narsa o'zgarsa (yurish soni/holat/navbat) — BIR MARTA to'liq
-// pollMatchState() (taxta + reconcile) chaqiriladi. Bu ko'p o'yinchi bir vaqtda
-// o'ynaganda serverni engillashtiradi. Raqib yurishini kutayotganda tez (~1s),
-// o'z navbatimizda sekin (~3s) so'raymiz.
+// ===== VERSIYAGA ASOSLANGAN MOSLAŞUVÇAN POLLING =====
+// Har safar ARZON `mp/ping` (bitta qator: mc/status/turn) söraladi. Faqat
+// biror narsa özgarsa (yuriş soni/holat/navbat) — BIR MARTA töliq
+// pollMatchState() (taxta + reconcile) çaqiriladi. Bu köp öyinçi bir vaqtda
+// öynaganda serverni engillaştiradi. Raqib yurişini kutayotganda tez (~1s),
+// öz navbatimizda sekin (~3s) söraymiz.
 function _pollDelay() {
     if (MODE !== 'mp' || resultSubmitted || _endPauseStarted) return 3000;
     return (currentTurn !== PLAYER_COLOR) ? 1000 : 3000;   // raqibni kutsak — tez
@@ -537,7 +537,7 @@ async function mpPingTick() {
         const d = await res.json();
         if (!d.ok) { if (res.status === 403) showSessionExpired(); return; }
         mpPollFailCount = 0; hideReconnectOverlay();
-        // O'zgarish bo'lsa — to'liq holatni olamiz (reconcile shu yerda)
+        // Özgariş bölsa — töliq holatni olamiz (reconcile şu yerda)
         if (d.mc !== lastSeenMoveCount || d.st === 'ended' || d.ct !== currentTurn) {
             await pollMatchState();
         }
@@ -580,10 +580,10 @@ function startTimer() {
 // ============== RENDER ==============
 function renderBoard() {
     const boardEl = $('board');
-    // Miltillashning oldini olish: kataklarni avval fragmentda yig'ib, keyin
-    // bitta atomik almashtirish bilan qo'yamiz (innerHTML='' bo'sh kadr bermaydi).
+    // Miltillaşning oldini oliş: kataklarni avval fragmentda yiğib, keyin
+    // bitta atomik almaştiriş bilan qöyamiz (innerHTML='' böş kadr bermaydi).
     const frag = document.createDocumentFragment();
-    const flip = PLAYER_COLOR === 'black'; // qora bo'lsa, doskani aylantirish
+    const flip = PLAYER_COLOR === 'black'; // qora bölsa, doskani aylantiriş
 
     for (let rr = 0; rr < 8; rr++) {
         for (let cc = 0; cc < 8; cc++) {
@@ -606,7 +606,7 @@ function renderBoard() {
                 cell.setAttribute('aria-hidden', 'true');
             }
 
-            // Oxirgi yurish belgisi — from + to kataklari. Manzil (to) kuchliroq.
+            // Oxirgi yuriş belgisi — from + to kataklari. Manzil (to) kuçliroq.
             const last = moveHistory[moveHistory.length - 1];
             if (last && last.from && last.to) {
                 const isTo = last.to[0] === r && last.to[1] === c;
@@ -624,7 +624,7 @@ function renderBoard() {
                 const p = document.createElement('div');
                 p.className = `piece ${piece.color}${piece.king ? ' king' : ''}`;
                 if (piece.color === PLAYER_COLOR && currentTurn === PLAYER_COLOR) p.classList.add('movable');
-                // Tanlangan yurish shu dushman donasini yesa — "capturable" belgisi (pulsing halqa)
+                // Tanlangan yuriş şu duşman donasini yesa — "capturable" belgisi (pulsing halqa)
                 if (selected && possibleMoves.some(m => m.captures.some(cap => cap.r === r && cap.c === c))) {
                     p.classList.add('capturable');
                 }
@@ -634,12 +634,12 @@ function renderBoard() {
                     cell.setAttribute('aria-label', `${square}, ${pieceLabel}`);
                 }
             } else if (isDark) {
-                cell.setAttribute('aria-label', `${square}, bo'sh`);
+                cell.setAttribute('aria-label', `${square}, böş`);
             }
             frag.appendChild(cell);
         }
     }
-    boardEl.replaceChildren(frag);   // bitta atomik almashtirish — miltillashsiz
+    boardEl.replaceChildren(frag);   // bitta atomik almaştiriş — miltillaşsiz
     updateCapturedDisplay();
 }
 
@@ -654,22 +654,22 @@ function updateTurnUI() {
     const chipIcon = currentTurn === 'white' ? '<i class="bi bi-circle"></i>' : '<i class="bi bi-circle-fill"></i>';
 
     if (myTurn) {
-        indicator.innerHTML = `${chipIcon} Sizning yurishingiz`;
+        indicator.innerHTML = `${chipIcon} Sizning yurişingiz`;
         indicator.classList.remove('opponent');
         $('player-self').classList.add('active');
         $('player-opp').classList.remove('active');
         hideReconnectOverlay();
-        announce('Sizning yurishingiz');
+        announce('Sizning yurişingiz');
     } else {
         const oppLabel = MODE === 'ai'
-            ? '<i class="bi bi-robot"></i> AI o\'ylayapti...'
+            ? '<i class="bi bi-robot"></i> AI öylayapti...'
             : `${chipIcon} ${OPPONENT.name} yurmoqda...`;
         indicator.innerHTML = oppLabel;
         indicator.classList.add('opponent');
         $('player-self').classList.remove('active');
         $('player-opp').classList.add('active');
         // Reconnect banner (if any) is owned by pollMatchState; turn-pill itself shows opponent's-turn state
-        announce(MODE === 'ai' ? 'AI o\'ylayapti' : `${OPPONENT.name} yurmoqda`);
+        announce(MODE === 'ai' ? 'AI öylayapti' : `${OPPONENT.name} yurmoqda`);
     }
     $('move-counter').textContent = moveHistory.length;
 }
@@ -786,7 +786,7 @@ function doMove(fromR, fromC, move, isRemote = false) {
             selected = { r: move.r, c: move.c };
             possibleMoves = next;
             renderBoard();
-            // AGAR AI bo'lsa, zanjirning keyingi yurishini avtomatik bajaramiz
+            // AGAR AI bölsa, zanjirning keyingi yurişini avtomatik bajaramiz
             if (MODE === 'ai' && currentTurn !== PLAYER_COLOR) {
                 setTimeout(aiMove, 450);
             }
@@ -802,11 +802,11 @@ function doMove(fromR, fromC, move, isRemote = false) {
     renderBoard();
     updateTurnUI();
 
-    // O'yin tugaganini aniqlash (lokal — endGame ham chaqirilishi mumkin)
+    // Öyin tugaganini aniqlaş (lokal — endGame ham çaqirilişi mumkin)
     const winner = checkGameEnd();
 
-    // Multiplayer: yurishni serverga yuboramiz (o'yin tugagan bo'lsa winner bilan),
-    // so'ng 30s ko'rib chiqish oynasini ikkala tomon uchun ko'rsatamiz.
+    // Multiplayer: yurişni serverga yuboramiz (öyin tugagan bölsa winner bilan),
+    // söng 30s körib çiqiş oynasini ikkala tomon uçun körsatamiz.
     if (MODE === 'mp' && !isRemote) {
         _localMovePending = true;
         sendMpMove(winner).then(match => {
@@ -845,7 +845,7 @@ function countPieces() {
     return { w, b, wk, bk };
 }
 
-// ==== Parametrlangan helpers (search uchun) ====
+// ==== Parametrlangan helpers (search uçun) ====
 function _hasAnyCaptureOnBoard(b, color) {
     for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
         const p = b[r][c];
@@ -899,10 +899,10 @@ function _getSingleStepMovesOnBoard(b, r, c, mustCaptureOnly = false) {
     return captures.length ? captures : (mustCaptureOnly ? [] : moves);
 }
 
-// Doska klonlash
+// Doska klonlaş
 function _cloneBoardOf(b) { return b.map(row => row.map(c => c ? {...c} : null)); }
 
-// Bir yurishni doskaga qo'llash (zanjir bo'lmasa)
+// Bir yurişni doskaga qöllaş (zanjir bölmasa)
 function _applySingleOnBoard(b, fromR, fromC, mv) {
     const piece = { ...b[fromR][fromC] };
     b[fromR][fromC] = null;
@@ -916,8 +916,8 @@ function _applySingleOnBoard(b, fromR, fromC, mv) {
     return { becameKing };
 }
 
-// To'liq multi-jump zanjirlarini generatsiya qilish (har bir variant alohida).
-// steps — single-step jumplar ketma-ketligi (UI uchun)
+// Töliq multi-jump zanjirlarini generatsiya qiliş (har bir variant alohida).
+// steps — single-step jumplar ketma-ketligi (UI uçun)
 function _enumerateChains(b, fromR, fromC, startR, startC, accumCaps, becameKingSoFar, accumSteps) {
     const piece = b[fromR][fromC];
     if (!piece) return [];
@@ -955,7 +955,7 @@ function _enumerateChains(b, fromR, fromC, startR, startC, accumCaps, becameKing
     return out;
 }
 
-// AI uchun barcha "to'liq" yurishlar (zanjir bilan)
+// AI uçun barça "töliq" yurişlar (zanjir bilan)
 function _getAllMovesForSearch(b, color) {
     const all = [];
     const must = _hasAnyCaptureOnBoard(b, color);
@@ -986,7 +986,7 @@ function _applyFullMoveOnBoard(b, am) {
     b[am.move.r][am.move.c] = piece;
 }
 
-// === Kuchaytirilgan eval ===
+// === Kuçaytirilgan eval ===
 function _evalBoard(b, aiColor) {
     let s = 0;
     const oppColor = aiColor === 'white' ? 'black' : 'white';
@@ -996,17 +996,17 @@ function _evalBoard(b, aiColor) {
         const pc = b[r][c];
         if (!pc) continue;
 
-        // Material: shoh = 3x qimmatroq
+        // Material: şoh = 3x qimmatroq
         let pv = pc.king ? 300 : 100;
 
         if (!pc.king) {
-            // Oldinga yurish bonusi (promotsiyaga yaqin)
+            // Oldinga yuriş bonusi (promotsiyaga yaqin)
             const advRow = pc.color === 'white' ? (7 - r) : r;
             pv += advRow * 8;
             // Oxirgi qatorda tura (xavfsiz)
             if ((pc.color === 'white' && r === 7) || (pc.color === 'black' && r === 0)) pv += 15;
         } else {
-            // Shoh: markazga yaqinroq bo'lishi kerak
+            // Şoh: markazga yaqinroq bölişi kerak
             const cr = Math.abs(3.5 - r), cc2 = Math.abs(3.5 - c);
             pv += (7 - cr - cc2) * 3;
         }
@@ -1015,10 +1015,10 @@ function _evalBoard(b, aiColor) {
         if (r >= 2 && r <= 5 && c >= 2 && c <= 5) pv += 10;
         if (r >= 3 && r <= 4 && c >= 3 && c <= 4) pv += 8;
 
-        // Chekka — donalar kamroq xatarli
+        // Çekka — donalar kamroq xatarli
         if (c === 0 || c === 7) pv += 6;
 
-        // Qo'shni do'stlar guruhi
+        // Qöşni döstlar guruhi
         const friends = [[r-1,c-1],[r-1,c+1],[r+1,c-1],[r+1,c+1]]
             .filter(([rr,cc]) => rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr][cc]?.color===pc.color).length;
         pv += friends * 4;
@@ -1036,15 +1036,15 @@ function _evalBoard(b, aiColor) {
         }
     }
 
-    // Moddiy ustunlik bonusi (raqibdan ko'p dona — bosim)
+    // Moddiy ustunlik bonusi (raqibdan köp dona — bosim)
     const matDiff = aiCount - oppCount;
     if (matDiff > 0) s += matDiff * 25;
 
-    // Shoh ustunligi
+    // Şoh ustunligi
     const kingDiff = aiKings - oppKings;
     if (kingDiff > 0) s += kingDiff * 40;
 
-    // Endgame: raqibning ozgina donasi qolsa — tezroq yutish
+    // Endgame: raqibning ozgina donasi qolsa — tezroq yutiş
     if (oppCount <= 3) s += (4 - oppCount) * 30;
 
     return s;
@@ -1060,7 +1060,7 @@ function _isLowPowerDevice() {
     return mobile || cores <= 4;
 }
 
-// ===== Transposition Table (shashka) =====
+// ===== Transposition Table (şaşka) =====
 const _TTc = new Map();
 const _TTC_MAX = 400000;
 const TTC_EXACT = 0, TTC_LOWER = 1, TTC_UPPER = 2;
@@ -1102,7 +1102,7 @@ function _negamax(b, depth, alpha, beta, sideToMove, aiColor) {
         return sign * _evalBoard(b, aiColor);
     }
 
-    // Move ordering: ko'p yutish → birinchi; so'ng king promotion
+    // Move ordering: köp yutiş → birinçi; söng king promotion
     moves.sort((a, bb) => {
         const capA = a.move.captures?.length || 0;
         const capB = bb.move.captures?.length || 0;
@@ -1130,13 +1130,13 @@ function _negamax(b, depth, alpha, beta, sideToMove, aiColor) {
 }
 
 function evaluateBoard() {
-    // Eski API saqlangan (boshqa joylarda ishlatilmasa ham)
+    // Eski API saqlangan (boşqa joylarda işlatilmasa ham)
     const { w, b, wk, bk } = countPieces();
     return (b - w) * 10 + (bk - wk) * 5;
 }
 
 function getAllMoves(color) {
-    // Eski API: faqat bir qadamli yurishlar (UI uchun keraksiz, eski mantiqlar uchun saqlangan)
+    // Eski API: faqat bir qadamli yurişlar (UI uçun keraksiz, eski mantiqlar uçun saqlangan)
     const all = [];
     const must = hasAnyCaptureFor(color);
     for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
@@ -1160,7 +1160,7 @@ function applyMoveToBoard(b, fromR, fromC, move) {
     }
 }
 
-// AI uchun zanjir bo'yicha rejalashtirilgan keyingi yurishlar (single-step)
+// AI uçun zanjir böyiça rejalaştirilgan keyingi yurişlar (single-step)
 let _aiChainPlan = null;
 
 function aiMove() {
@@ -1181,13 +1181,13 @@ function aiMove() {
             checkGameEnd();
             return;
         }
-        // Plan bo'yicha keyingi qadam
+        // Plan böyiça keyingi qadam
         if (_aiChainPlan && _aiChainPlan.length) {
             const step = _aiChainPlan.shift();
             const found = legal.find(m => m.r === step.r && m.c === step.c);
             if (found) return doMove(captureChainPiece.r, captureChainPiece.c, found);
         }
-        // Fallback: maksimum yutish
+        // Fallback: maksimum yutiş
         legal.sort((a, b) => (b.captures?.length || 0) - (a.captures?.length || 0));
         return doMove(captureChainPiece.r, captureChainPiece.c, legal[0]);
     }
@@ -1212,20 +1212,20 @@ function aiMove() {
             chosen = allMoves[Math.floor(Math.random() * allMoves.length)];
         }
     } else {
-        // Iterativ chuqurlashtirish + vaqt byudjeti.
+        // Iterativ çuqurlaştiriş + vaqt byudjeti.
         const lowPower = _isLowPowerDevice();
-        // O'rta: chuqurlik 6, 2s | Qiyin: chuqurlik 24, 20s — TT bilan deyarli yengilmas
+        // Örta: çuqurlik 6, 2s | Qiyin: çuqurlik 24, 20s — TT bilan deyarli yengilmas
         const maxDepth = DIFFICULTY === 'medium'
             ? (lowPower ? 5 : 7)
             : (lowPower ? 14 : 24);
         const budgetMs = DIFFICULTY === 'medium'
             ? (lowPower ? 1500 : 2500)
             : (lowPower ? 8000 : 20000);
-        // Qiyin darajada TT'ni tozalamaymiz — keyingi yurish uchun kesh saqlanadi
+        // Qiyin darajada TT'ni tozalamaymiz — keyingi yuriş uçun keş saqlanadi
         if (DIFFICULTY === 'hard' && _TTc.size > _TTC_MAX * 0.85) _TTc.clear();
         _searchDeadline = performance.now() + budgetMs;
 
-        // Move ordering: ko'p capture → birinchi
+        // Move ordering: köp capture → birinçi
         allMoves.sort((a, b) => (b.move.captures.length || 0) - (a.move.captures.length || 0));
         const oppColor = aiColor === 'white' ? 'black' : 'white';
 
@@ -1246,7 +1246,7 @@ function aiMove() {
                     candidates.length = 0;
                     candidates.push(am);
                 } else if (DIFFICULTY !== 'hard' && v >= bestScore - 5) {
-                    // Faqat O'rta darajada variativlik — Qiyin har doim eng yaxshisini tanlaydi
+                    // Faqat Örta darajada variativlik — Qiyin har doim eng yaxşisini tanlaydi
                     candidates.push(am);
                 }
                 if (bestScore > alpha) alpha = bestScore;
@@ -1258,19 +1258,19 @@ function aiMove() {
                     ? candidates[0]
                     : candidates[Math.floor(Math.random() * candidates.length)];
             }
-            // Vaqt tugab, chuqurlik to'liq tugamagan bo'lsa — chuqurlashtirishni to'xtatamiz
+            // Vaqt tugab, çuqurlik töliq tugamagan bölsa — çuqurlaştirişni töxtatamiz
             if (_searchAborted || performance.now() > _searchDeadline) break;
         }
         chosen = bestChosen;
     }
 
-    // Zanjir bo'lsa, qolgan qadamlarni rejaga qo'yamiz
+    // Zanjir bölsa, qolgan qadamlarni rejaga qöyamiz
     const steps = chosen.steps || [];
     if (steps.length >= 2) {
-        // Birinchi qadamni doMove ga beramiz, qolganlari _aiChainPlan da
+        // Birinçi qadamni doMove ga beramiz, qolganlari _aiChainPlan da
         _aiChainPlan = steps.slice(1);
         const first = steps[0];
-        // First step ni getMovesForPiece dan toping (yutilgan donalar haqiqiy bo'lishi uchun)
+        // First step ni getMovesForPiece dan toping (yutilgan donalar haqiqiy bölişi uçun)
         const legal = getMovesForPiece(chosen.fromR, chosen.fromC, chosen.move.captures.length > 0);
         const firstMove = legal.find(m => m.r === first.r && m.c === first.c) || {
             r: first.r, c: first.c, captures: first.captures,
@@ -1278,12 +1278,12 @@ function aiMove() {
         return doMove(chosen.fromR, chosen.fromC, firstMove);
     }
 
-    // Oddiy bir qadamli yurish
+    // Oddiy bir qadamli yuriş
     doMove(chosen.fromR, chosen.fromC, chosen.move);
 }
 
 function checkGameEnd() {
-    // Qaytaradi: 'white' | 'black' | 'draw' | null (o'yin davom etadi)
+    // Qaytaradi: 'white' | 'black' | 'draw' | null (öyin davom etadi)
     const { w, b } = countPieces();
     let winner = null;
     if (w === 0) winner = 'black';
@@ -1301,7 +1301,7 @@ function checkGameEnd() {
         }
     }
     if (!winner) return null;
-    // AI/lokal: darhol tugatamiz; multiplayer: avval serverga yuborib, 30s ko'rsatamiz.
+    // AI/lokal: darhol tugatamiz; multiplayer: avval serverga yuborib, 30s körsatamiz.
     if (MODE !== 'mp') endGame(winner);
     return winner;
 }
@@ -1338,7 +1338,7 @@ function endGame(winner) {
 
     if (window.Gamify) Gamify.onResult(result, score, MODE === 'ai' ? 'ai' : 'mp');
 
-    announce(result === 'win' ? 'O\'yin tugadi: siz g\'alaba qozondingiz!' : result === 'lose' ? 'O\'yin tugadi: siz mag\'lub bo\'ldingiz' : 'O\'yin tugadi: durang');
+    announce(result === 'win' ? 'Öyin tugadi: siz ğalaba qozondingiz!' : result === 'lose' ? 'Öyin tugadi: siz mağlub böldingiz' : 'Öyin tugadi: durang');
     showResult(result, score, elapsed);
 
     // Submit
@@ -1353,7 +1353,7 @@ function endGame(winner) {
             const fee = Math.floor(pot * SERVICE_FEE_PCT / 100);
             const netWin = pot - fee - MP_WAGER;   // xizmat haqidan keyingi sof yutuq
             if (result === 'win')      coinMsg = `  +${netWin} coin (yutuq, ${SERVICE_FEE_PCT}% xizmat haqi: -${fee})`;
-            else if (result === 'lose') coinMsg = `  -${MP_WAGER} coin (tikilish yo'qoldi)`;
+            else if (result === 'lose') coinMsg = `  -${MP_WAGER} coin (tikiliş yöqoldi)`;
             else                        coinMsg = `  ${MP_WAGER} coin qaytarildi (durang)`;
         }
         $('submit-status').innerHTML = '<i class="bi bi-check-circle-fill"></i> Natija LMS\'ga avtomatik saqlandi' + coinMsg;
@@ -1363,11 +1363,11 @@ function endGame(winner) {
 function showResult(result, score, elapsed) {
     $('result-bg').className = `result-bg ${result}`;
     const icons  = { win: 'bi-trophy-fill', lose: 'bi-emoji-frown', draw: 'bi-handshake' };
-    const titles = { win: "G'alaba!", lose: "Mag'lubiyat", draw: "Durang" };
+    const titles = { win: "Ğalaba!", lose: "Mağlubiyat", draw: "Durang" };
     const subs   = {
-        win:  MODE === 'mp' ? `${OPPONENT.name}'ni mag'lub etdingiz!` : `AI (${OPPONENT.meta})ni mag'lub etdingiz!`,
-        lose: MODE === 'mp' ? `${OPPONENT.name} g'alaba qozondi` : `${OPPONENT.meta} darajadagi AI yutdi`,
-        draw: 'Hech kim yutmadi',
+        win:  MODE === 'mp' ? `${OPPONENT.name}'ni mağlub etdingiz!` : `AI (${OPPONENT.meta})ni mağlub etdingiz!`,
+        lose: MODE === 'mp' ? `${OPPONENT.name} ğalaba qozondi` : `${OPPONENT.meta} darajadagi AI yutdi`,
+        draw: 'Heç kim yutmadi',
     };
     $('result-emoji').innerHTML = `<i class="bi ${icons[result]}"></i>`;
     $('result-title').textContent = titles[result];
@@ -1437,9 +1437,9 @@ async function submitAiResult(result, score, time) {
 async function resignGame() {
     if (resultSubmitted || _endPauseStarted) return;
     const ok = await showConfirm({
-        icon: "bi-flag-fill", title: "Taslim bo'lasizmi?",
-        text: "Bu mag'lubiyat sifatida yoziladi. Rostan ham taslim bo'lmoqchimisiz?",
-        yes: "Ha, taslim", no: "Davom etish",
+        icon: "bi-flag-fill", title: "Taslim bölasizmi?",
+        text: "Bu mağlubiyat sifatida yoziladi. Rostan ham taslim bölmoqçimisiz?",
+        yes: "Ha, taslim", no: "Davom etiş",
     });
     if (!ok) return;
     if (MODE === 'mp' && MATCH_ID) {
@@ -1477,7 +1477,7 @@ async function findMultiplayerMatch(mpMode = 'casual', wager = 0) {
     showScreen('mm');
     $('mm-title').innerHTML = mpMode === 'coin'
         ? `<i class="bi bi-coin"></i> ${wager} coin — raqib qidirilmoqda...`
-        : '<i class="bi bi-controller"></i> Shunchaki — raqib qidirilmoqda...';
+        : '<i class="bi bi-controller"></i> Şunçaki — raqib qidirilmoqda...';
     mmStart = Date.now();
     if (mmInterval) clearInterval(mmInterval);
     mmInterval = setInterval(() => {
@@ -1567,7 +1567,7 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     if (resultSubmitted || _endPauseStarted) return;
     _endPauseStarted = true;
     selected = null; possibleMoves = []; captureChainPiece = null;
-    // Polling va timer'larni to'xtatamiz — taxta holati o'zgarmaydi
+    // Polling va timer'larni töxtatamiz — taxta holati özgarmaydi
     if (pollInterval) clearInterval(pollInterval);
     hideReconnectOverlay();
 
@@ -1582,11 +1582,11 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     overlay.innerHTML = `
         <i class="bi ${wIcon}" style="color:${wColor};font-size:1.4rem"></i>
         <div style="line-height:1.3">
-            <div style="font-weight:700;font-size:0.95rem">O'yin tugadi</div>
-            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurishni ko'rib chiqing — <span id="end-pause-timer">${remaining}</span>s</div>
+            <div style="font-weight:700;font-size:0.95rem">Öyin tugadi</div>
+            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurişni körib çiqing — <span id="end-pause-timer">${remaining}</span>s</div>
         </div>
         <button id="end-pause-skip" style="background:#6366f1;border:0;color:#fff;padding:0.5rem 0.85rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;white-space:nowrap">
-            <i class="bi bi-fast-forward-fill"></i> O'tkazib yuborish
+            <i class="bi bi-fast-forward-fill"></i> Ötkazib yuboriş
         </button>`;
     document.body.appendChild(overlay);
 
@@ -1622,8 +1622,8 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
 let lastSeenMoveCount = 0;
 async function pollMatchState() {
     if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
-    // Eslatma: navbat o'zimizda bo'lsa ham so'rab turamiz — raqib taslim bo'lsa
-    // yoki match yopilsa tugashni aniqlash uchun (taxta move_count bilan himoyalangan).
+    // Eslatma: navbat özimizda bölsa ham sörab turamiz — raqib taslim bölsa
+    // yoki match yopilsa tugaşni aniqlaş uçun (taxta move_count bilan himoyalangan).
     try {
         const res = await fetch(URLS.mpState, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1639,14 +1639,14 @@ async function pollMatchState() {
         // Yangi yurish(lar) — raqib yurdi.
         const hasNewMove = m.move_count > lastSeenMoveCount;
         // Server bilan client holati farq qilyaptimi? FAQAT `>` emas, `!=` bilan
-        // tekshiramiz. Sabab: agar lastSeenMoveCount qandaydir yo'l bilan serverdan
-        // OSHIB ketgan bo'lsa (oldingi match qoldig'i yoki poll/send poygasi),
-        // eski kodda `>` hech qachon ishlamay, raqib yurishlari butunlay
+        // tekşiramiz. Sabab: agar lastSeenMoveCount qandaydir yöl bilan serverdan
+        // OŞIB ketgan bölsa (oldingi match qoldiği yoki poll/send poygasi),
+        // eski kodda `>` heç qaçon işlamay, raqib yurişlari butunlay
         // e'tiborsiz qolardi va taxta "Raqib yurmoqda"da qotib qolardi (faqat
-        // sahifani yangilash yordam berardi). Endi har qanday farqda serverga
-        // moslashamiz va lastSeenMoveCount'ni server qiymatiga tenglaymiz —
-        // shu bilan drift o'z-o'zidan tuzaladi. `_localMovePending` — o'z
-        // yurishimiz ketayotgan payt reconcile qilmaymiz.
+        // sahifani yangilaş yordam berardi). Endi har qanday farqda serverga
+        // moslaşamiz va lastSeenMoveCount'ni server qiymatiga tenglaymiz —
+        // şu bilan drift öz-özidan tuzaladi. `_localMovePending` — öz
+        // yurişimiz ketayotgan payt reconcile qilmaymiz.
         const diverged = (m.move_count !== lastSeenMoveCount) || (m.current_turn !== currentTurn);
         if (!_localMovePending && (diverged || isEnded)) {
             // Apply server board state
@@ -1673,12 +1673,12 @@ async function pollMatchState() {
                     }
                 }
             }
-            lastSeenMoveCount = m.move_count || 0;   // serverga ishonamiz (drift'ni tuzatadi)
+            lastSeenMoveCount = m.move_count || 0;   // serverga işonamiz (drift'ni tuzatadi)
             renderBoard();
             updateTurnUI();
         }
         if (isEnded) {
-            // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi chiqsin
+            // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi çiqsin
             requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
         }
     } catch (e) {
@@ -1697,8 +1697,8 @@ async function sendMpMove(winner = null) {
     const captureCount = mpCaptureAccum;
     mpCaptureAccum = 0;
 
-    // Yurishni serverga ISHONCHLI yetkazamiz: qulf/tarmoq xatosida qayta urinamiz.
-    // Aks holda yurish yo'qolib, raqib "Raqib yurmoqda"da qotib qolardi.
+    // Yurişni serverga IŞONÇLI yetkazamiz: qulf/tarmoq xatosida qayta urinamiz.
+    // Aks holda yuriş yöqolib, raqib "Raqib yurmoqda"da qotib qolardi.
     for (var attempt = 0; attempt < 3; attempt++) {
         try {
             const res = await fetch(URLS.mpMove, {
@@ -1718,12 +1718,12 @@ async function sendMpMove(winner = null) {
                 return data.match;
             }
             if (res.status === 403) { showSessionExpired(); return null; }
-            if (res.status === 409) return null;   // navbat/holat — qayta urinish foydasiz
-            // boshqa (5xx / qulf) — quyida qayta urinamiz
+            if (res.status === 409) return null;   // navbat/holat — qayta uriniş foydasiz
+            // boşqa (5xx / qulf) — quyida qayta urinamiz
         } catch (e) { /* tarmoq xatosi — qayta urinamiz */ }
         await new Promise(function (r) { setTimeout(r, 250 * (attempt + 1)); });
     }
-    showReconnectOverlay();   // 3 marta ham bo'lmadi — ogohlantiramiz
+    showReconnectOverlay();   // 3 marta ham bölmadi — ogohlantiramiz
     return null;
 }
 

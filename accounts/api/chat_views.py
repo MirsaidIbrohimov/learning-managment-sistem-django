@@ -1,13 +1,13 @@
 """
-Chat REST API — accounts/api/chat_views.py
+Çat REST API — accounts/api/chat_views.py
 
-Polling-based chat (no websockets). Two chat types:
+Polling-based çat (no websockets). Two çat types:
 
-GROUP CHAT (per course/profession):
+GROUP ÇAT (per course/profession):
   GET  /accounts/api/chat/group/<profession_pk>/messages/?after=<id>
   POST /accounts/api/chat/group/<profession_pk>/send/
 
-DIRECT CHAT (1:1 between two users):
+DIRECT ÇAT (1:1 between two users):
   GET  /accounts/api/chat/direct/<user_pk>/messages/?after=<id>
   POST /accounts/api/chat/direct/<user_pk>/send/
   GET  /accounts/api/chat/conversations/        → inbox (recent threads)
@@ -45,7 +45,7 @@ from accounts.models import (
 )
 from telegram_bot.utils import notify_user
 
-# Reuse the battle-tested helpers from the homework chat API
+# Reuse the battle-tested helpers from the homework çat API
 from .homework_views import (
     _ok, _err, rate_limited,
     _validate_file, _safe_filename, _sanitize_html,
@@ -53,23 +53,23 @@ from .homework_views import (
 
 MESSAGES_LIMIT = 200  # max messages returned per fetch
 
-# Chatda fayl yuborish limiti — 1 MB (messenger uchun maxsus;
-# umumiy homework validatori 5 MB ga ruxsat beradi, shuning uchun
-# hajm tekshiruvi shu yerda alohida bajariladi).
+# Çatda fayl yuboriş limiti — 1 MB (messenger uçun maxsus;
+# umumiy homework validatori 5 MB ga ruxsat beradi, şuning uçun
+# hajm tekşiruvi şu yerda alohida bajariladi).
 CHAT_MAX_FILE_BYTES = 1 * 1024 * 1024  # 1 MB
 
 
 def _validate_chat_file(up_file):
-    """Chat fayli uchun tekshiruv: max 1 MB + ruxsat etilgan turlar.
+    """Çat fayli uçun tekşiruv: max 1 MB + ruxsat etilgan turlar.
 
     Returns (ok: bool, error_msg: str|None) — `_validate_file` bilan bir xil
-    kontrakt, faqat hajm chegarasi chatga moslab qattiqroq."""
+    kontrakt, faqat hajm çegarasi çatga moslab qattiqroq."""
     if not up_file:
         return False, "Fayl yuklanmagan"
     if up_file.size > CHAT_MAX_FILE_BYTES:
         kb = up_file.size / 1024
         size_txt = f"{kb / 1024:.1f} MB" if kb >= 1024 else f"{kb:.0f} KB"
-        return False, f"Fayl hajmi juda katta: {size_txt}. Chatda maksimal 1 MB gacha fayl yuborish mumkin."
+        return False, f"Fayl hajmi juda katta: {size_txt}. Çatda maksimal 1 MB gaça fayl yuboriş mumkin."
     return _validate_file(up_file)
 
 
@@ -90,7 +90,7 @@ def _can_access_group(user, profession):
 
 
 def _can_dm(user, other):
-    """Who can start a private chat with `other`.
+    """Who can start a private çat with `other`.
     Allowed: anyone authenticated may message teachers/admins, and members of
     a shared course may message each other. Admins/teachers may message anyone."""
     if user.pk == other.pk:
@@ -109,8 +109,8 @@ def _can_dm(user, other):
 
 
 def _notify_dm_telegram(recipient, sender, text, has_file):
-    """Shaxsiy (1:1) chatga yangi xabar kelganda, agar qabul qiluvchi
-    Telegram botga ulangan bo'lsa — unga bildirishnoma yuboradi."""
+    """Şaxsiy (1:1) çatga yangi xabar kelganda, agar qabul qiluvçi
+    Telegram botga ulangan bölsa — unga bildirişnoma yuboradi."""
     if not recipient.telegram_id:
         return
     preview = html.escape(text[:150], quote=False) if text else "📎 Fayl yubordi"
@@ -123,9 +123,9 @@ def _notify_dm_telegram(recipient, sender, text, has_file):
 
 
 def _notify_group_telegram(profession, sender, text, has_file):
-    """Guruh (kurs) chatiga yangi xabar kelganda — biriktirilgan o'qituvchilar
-    va yozilgan o'quvchilardan Telegram botga ulangan barchasiga (yuboruvchidan
-    boshqa) bildirishnoma yuboradi."""
+    """Guruh (kurs) çatiga yangi xabar kelganda — biriktirilgan öqituvçilar
+    va yozilgan öquvçilardan Telegram botga ulangan barçasiga (yuboruvçidan
+    boşqa) bildirişnoma yuboradi."""
     teacher_ids = set(
         profession.teachers.exclude(pk=sender.pk)
         .exclude(telegram_id__isnull=True)
@@ -155,7 +155,7 @@ def _notify_group_telegram(profession, sender, text, has_file):
         preview = "📎 Fayl yubordi" if has_file else ""
 
     body = (
-        f"👥 <b>Guruh chatda yangi xabar</b>\n\n"
+        f"👥 <b>Guruh çatda yangi xabar</b>\n\n"
         f"📚 Kurs: <b>{course_name}</b>\n"
         f"👤 {sender_name}\n"
         f"💭 {preview}"
@@ -259,7 +259,7 @@ def _serialize_dm(msg, request):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# GROUP CHAT
+# GROUP ÇAT
 # ──────────────────────────────────────────────────────────────────────
 @login_required
 @rate_limited('chat_group_list')
@@ -267,7 +267,7 @@ def _serialize_dm(msg, request):
 def group_messages(request, profession_pk):
     profession = get_object_or_404(Profession, pk=profession_pk)
     if not _can_access_group(request.user, profession):
-        return _err("Bu guruh chatiga ruxsatingiz yo'q", 403)
+        return _err("Bu guruh çatiga ruxsatingiz yöq", 403)
 
     qs = GroupChatMessage.objects.filter(
         profession=profession, is_deleted=False
@@ -297,8 +297,8 @@ def group_messages(request, profession_pk):
 _ROLE_LABELS = {
     'admin': 'Admin',
     'assistant_admin': 'Admin',
-    'teacher': "O'qituvchi",
-    'student': "O'quvchi",
+    'teacher': "Öqituvçi",
+    'student': "Öquvçi",
 }
 
 
@@ -306,11 +306,11 @@ _ROLE_LABELS = {
 @rate_limited('chat_group_list')
 @require_http_methods(["GET"])
 def group_members(request, profession_pk):
-    """Guruh (kurs) a'zolari: biriktirilgan o'qituvchilar + yozilgan o'quvchilar.
-    O'ng paneldagi 'A'zolar' ro'yxati uchun ishlatiladi."""
+    """Guruh (kurs) a'zolari: biriktirilgan öqituvçilar + yozilgan öquvçilar.
+    Öng paneldagi 'A'zolar' röyxati uçun işlatiladi."""
     profession = get_object_or_404(Profession, pk=profession_pk)
     if not _can_access_group(request.user, profession):
-        return _err("Bu guruh chatiga ruxsatingiz yo'q", 403)
+        return _err("Bu guruh çatiga ruxsatingiz yöq", 403)
 
     seen = set()
     members = []
@@ -323,10 +323,10 @@ def group_members(request, profession_pk):
         brief['role_label'] = _ROLE_LABELS.get(u.role, u.role or '')
         members.append(brief)
 
-    # O'qituvchilar avval
+    # Öqituvçilar avval
     for t in profession.teachers.all():
         _add(t)
-    # Keyin yozilgan o'quvchilar
+    # Keyin yozilgan öquvçilar
     enrollments = (
         CourseEnrollment.objects
         .filter(profession=profession)
@@ -335,7 +335,7 @@ def group_members(request, profession_pk):
     for e in enrollments:
         _add(e.user)
 
-    # Tartib: avval rol (admin/o'qituvchi yuqorida), keyin online, keyin ism
+    # Tartib: avval rol (admin/öqituvchi yuqorida), keyin online, keyin ism
     role_rank = {'admin': 0, 'assistant_admin': 0, 'teacher': 1, 'student': 2}
     members.sort(key=lambda m: (
         role_rank.get(m.get('role'), 3),
@@ -362,7 +362,7 @@ def group_members(request, profession_pk):
 def group_send(request, profession_pk):
     profession = get_object_or_404(Profession, pk=profession_pk)
     if not _can_access_group(request.user, profession):
-        return _err("Bu guruh chatiga ruxsatingiz yo'q", 403)
+        return _err("Bu guruh çatiga ruxsatingiz yöq", 403)
 
     text = (request.POST.get('message') or '').strip()
     up_file = request.FILES.get('file')
@@ -395,7 +395,7 @@ def group_send(request, profession_pk):
 
 
 # ──────────────────────────────────────────────────────────────────────
-# DIRECT CHAT
+# DIRECT ÇAT
 # ──────────────────────────────────────────────────────────────────────
 def _dm_thread_qs(a, b):
     return DirectMessage.objects.filter(
@@ -406,9 +406,9 @@ def _dm_thread_qs(a, b):
 
 def _can_view_dm_thread(user, other):
     """
-    `_can_dm` dan yumshoqroq tekshiruv: YOZISH huquqi bo'lmasa ham mavjud
-    yozishmani O'QISHGA ruxsat beradi. Aks holda kursdan chiqqan o'quvchi
-    eski suhbat tarixini butunlay yo'qotardi.
+    `_can_dm` dan yumşoqroq tekşiruv: YOZIŞ huquqi bölmasa ham mavjud
+    yozişmani ÖQIŞGA ruxsat beradi. Aks holda kursdan çiqqan öquvçi
+    eski suhbat tarixini butunlay yöqotardi.
     """
     if user.pk == other.pk:
         return False
@@ -423,13 +423,13 @@ def _can_view_dm_thread(user, other):
 def direct_messages(request, user_pk):
     other = get_object_or_404(CustomUser, pk=user_pk)
     if other.pk == request.user.pk:
-        return _err("O'zingizga yozolmaysiz", 400)
+        return _err("Özingizga yozolmaysiz", 400)
     # Javobda `partner` profili (ism, username, rol, online holati) qaytadi.
-    # Tekshiruvsiz bu endpoint pk=1..N bo'ylab butun foydalanuvchi
-    # ro'yxatini yig'ib olish kanaliga aylanardi (`user_search` esa ayni
-    # siyosatni allaqachon qo'llaydi).
+    # Tekşiruvsiz bu endpoint pk=1..N böylab butun foydalanuvçi
+    # röyxatini yiğib oliş kanaliga aylanardi (`user_search` esa ayni
+    # siyosatni allaqaçon qöllaydi).
     if not _can_view_dm_thread(request.user, other):
-        return _err("Bu suhbatga ruxsatingiz yo'q", 403)
+        return _err("Bu suhbatga ruxsatingiz yöq", 403)
 
     qs = _dm_thread_qs(request.user, other).select_related(
         'reply_to__sender'
@@ -464,7 +464,7 @@ def direct_messages(request, user_pk):
 def direct_send(request, user_pk):
     other = get_object_or_404(CustomUser, pk=user_pk)
     if not _can_dm(request.user, other):
-        return _err("Bu foydalanuvchiga xabar yozolmaysiz", 403)
+        return _err("Bu foydalanuvçiga xabar yozolmaysiz", 403)
 
     text = (request.POST.get('message') or '').strip()
     up_file = request.FILES.get('file')
@@ -581,21 +581,21 @@ def _can_delete_message(user, kind, msg):
 def message_edit(request, kind, msg_id):
     model, msg = _get_message(kind, msg_id)
     if not model:
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     if not msg:
         return _err("Xabar topilmadi", 404)
     if msg.sender_id != request.user.pk:
-        return _err("Faqat o'z xabaringizni tahrirlay olasiz", 403)
+        return _err("Faqat öz xabaringizni tahrirlay olasiz", 403)
 
     text = (request.POST.get('message') or '').strip()
     if not text:
-        return _err("Xabar matni bo'sh bo'lishi mumkin emas")
+        return _err("Xabar matni böş bölişi mumkin emas")
     if len(text) > 5000:
         return _err("Xabar juda uzun (max 5000 belgi)")
 
     new_text = _sanitize_html(text)
-    # Shaxsiy xabarlar uchun tahrir tarixini saqlaymiz — admin panel
-    # investigatsiyasida asl matn ko'rinib turishi kerak.
+    # Şaxsiy xabarlar uçun tahrir tarixini saqlaymiz — admin panel
+    # investigatsiyasida asl matn körinib turişi kerak.
     if kind == 'dm' and msg.message != new_text:
         from accounts.models import DirectMessageEditHistory
         DirectMessageEditHistory.objects.create(message=msg, old_text=msg.message)
@@ -616,11 +616,11 @@ def message_edit(request, kind, msg_id):
 def message_delete(request, kind, msg_id):
     model, msg = _get_message(kind, msg_id)
     if not model:
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     if not msg:
         return _err("Xabar topilmadi", 404)
     if not _can_delete_message(request.user, kind, msg):
-        return _err("Bu xabarni o'chirish huquqingiz yo'q", 403)
+        return _err("Bu xabarni öçiriş huquqingiz yöq", 403)
 
     msg.is_deleted = True
     update = ['is_deleted']
@@ -638,16 +638,16 @@ def message_delete(request, kind, msg_id):
 def message_react(request, kind, msg_id):
     model, msg = _get_message(kind, msg_id)
     if not model:
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     if not msg:
         return _err("Xabar topilmadi", 404)
     if not _can_view_message(request.user, kind, msg):
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     emoji = (request.POST.get('emoji') or '').strip()
     valid_emojis = {choice[0] for choice in MessageReaction.EMOJI_CHOICES}
     if emoji not in valid_emojis:
-        return _err("Noto'g'ri emoji")
+        return _err("Notöğri emoji")
 
     field = 'direct_message' if kind == 'dm' else 'group_message'
     existing = MessageReaction.objects.filter(user=request.user, **{field: msg}).first()
@@ -669,16 +669,16 @@ def message_react(request, kind, msg_id):
 def message_forward(request, kind, msg_id):
     model, msg = _get_message(kind, msg_id)
     if not model:
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     if not msg:
         return _err("Xabar topilmadi", 404)
     if not _can_view_message(request.user, kind, msg):
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     to_kind = request.POST.get('to_kind')
     to_id = request.POST.get('to_id')
     if to_kind not in ('dm', 'group') or not (to_id or '').isdigit():
-        return _err("Qabul qiluvchi noto'g'ri")
+        return _err("Qabul qiluvçi notöğri")
     to_id = int(to_id)
 
     original_sender_name = msg.sender.full_name or msg.sender.username
@@ -686,7 +686,7 @@ def message_forward(request, kind, msg_id):
     if to_kind == 'dm':
         target_user = get_object_or_404(CustomUser, pk=to_id)
         if not _can_dm(request.user, target_user):
-            return _err("Bu foydalanuvchiga forward qilolmaysiz", 403)
+            return _err("Bu foydalanuvçiga forward qilolmaysiz", 403)
         new_msg = DirectMessage.objects.create(
             sender=request.user, recipient=target_user,
             message=msg.message, file=msg.file or None,
@@ -722,20 +722,20 @@ def typing_ping(request):
     kind = request.POST.get('kind')
     target_id = request.POST.get('target_id')
     if kind not in ('dm', 'group') or not (target_id or '').isdigit():
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     target_id = int(target_id)
 
     if kind == 'dm':
         other = get_object_or_404(CustomUser, pk=target_id)
         if not _can_dm(request.user, other):
-            return _err("Ruxsat yo'q", 403)
+            return _err("Ruxsat yöq", 403)
         ChatTypingStatus.objects.update_or_create(
             user=request.user, partner=other, profession=None,
         )
     else:
         profession = get_object_or_404(Profession, pk=target_id)
         if not _can_access_group(request.user, profession):
-            return _err("Ruxsat yo'q", 403)
+            return _err("Ruxsat yöq", 403)
         ChatTypingStatus.objects.update_or_create(
             user=request.user, partner=None, profession=profession,
         )
@@ -749,14 +749,14 @@ def typing_status(request):
     kind = request.GET.get('kind')
     target_id = request.GET.get('target_id')
     if kind not in ('dm', 'group') or not (target_id or '').isdigit():
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     target_id = int(target_id)
     cutoff = timezone.now() - timedelta(seconds=TYPING_TTL_SECONDS)
 
     if kind == 'dm':
         other = get_object_or_404(CustomUser, pk=target_id)
         if not _can_view_dm_thread(request.user, other):
-            return _err("Ruxsat yo'q", 403)
+            return _err("Ruxsat yöq", 403)
         is_typing = ChatTypingStatus.objects.filter(
             user_id=target_id, partner_id=request.user.pk, updated_at__gte=cutoff
         ).exists()
@@ -764,7 +764,7 @@ def typing_status(request):
 
     profession = get_object_or_404(Profession, pk=target_id)
     if not _can_access_group(request.user, profession):
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
     rows = (ChatTypingStatus.objects
             .filter(profession=profession, updated_at__gte=cutoff)
             .exclude(user_id=request.user.pk)
@@ -785,26 +785,26 @@ def pin_toggle(request):
     kind = request.POST.get('kind')
     target_id = request.POST.get('target_id')
     if kind not in ('dm', 'group') or not (target_id or '').isdigit():
-        return _err("Noto'g'ri so'rov", 400)
+        return _err("Notöğri sörov", 400)
     target_id = int(target_id)
 
     if kind == 'dm':
         other = get_object_or_404(CustomUser, pk=target_id)
         existing = ChatPin.objects.filter(user=request.user, partner=other).first()
         if existing:
-            # Olib tashlash har doim mumkin (holatni kamaytiradi).
+            # Olib taşlaş har doim mumkin (holatni kamaytiradi).
             existing.delete()
             return _ok({'pinned': False})
-        # Yangi pin sidebar'ga suhbatni qo'shadi va u yerda partner profili
-        # ko'rsatiladi — shuning uchun DM siyosati bu yerda ham amal qiladi.
+        # Yangi pin sidebar'ga suhbatni qöşadi va u yerda partner profili
+        # körsatiladi — şuning uçun DM siyosati bu yerda ham amal qiladi.
         if not _can_view_dm_thread(request.user, other):
-            return _err("Ruxsat yo'q", 403)
+            return _err("Ruxsat yöq", 403)
         ChatPin.objects.create(user=request.user, partner=other)
         return _ok({'pinned': True})
 
     profession = get_object_or_404(Profession, pk=target_id)
     if not _can_access_group(request.user, profession):
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
     existing = ChatPin.objects.filter(user=request.user, profession=profession).first()
     if existing:
         existing.delete()
@@ -846,30 +846,30 @@ def user_search(request):
 # Unified sidebar (Messenger-style page): merges direct + group threads
 # into one pinned-first, recency-sorted list.
 # ──────────────────────────────────────────────────────────────────────
-_WEEKDAYS_UZ = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+_WEEKDAYS_UZ = ['Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba', 'Yakşanba']
 
 
 def _format_relative_time(dt):
     """Telegram-style relative time for sidebar rows: '14:32' (today),
-    'Kecha' (yesterday), weekday name (this week), or 'dd.mm.yy' (older)."""
+    'Keça' (yesterday), weekday name (this week), or 'dd.mm.yy' (older)."""
     local = timezone.localtime(dt)
     today = timezone.localtime(timezone.now()).date()
     delta_days = (today - local.date()).days
     if delta_days == 0:
         return local.strftime('%H:%M')
     if delta_days == 1:
-        return 'Kecha'
+        return 'Keça'
     if delta_days < 7:
         return _WEEKDAYS_UZ[local.weekday()]
     return local.strftime('%d.%m.%y')
 
 
 def _format_last_seen(dt):
-    """Telegram-style 'oxirgi marta onlayn bo'lgan vaqt' matni:
+    """Telegram-style 'oxirgi marta onlayn bölgan vaqt' matni:
     'hozirgina', '5 daqiqa oldin', 'bugun soat 14:32da',
-    'kecha soat 09:10da', 'Dushanba kuni soat 18:00da' yoki 'dd.mm.yyyy'."""
+    'keça soat 09:10da', 'Duşanba kuni soat 18:00da' yoki 'dd.mm.yyyy'."""
     if not dt:
-        return "hech qachon"
+        return "heç qaçon"
     local = timezone.localtime(dt)
     now = timezone.localtime(timezone.now())
     seconds = (now - local).total_seconds()
@@ -881,14 +881,14 @@ def _format_last_seen(dt):
     if delta_days == 0:
         return f"bugun soat {local.strftime('%H:%M')}da"
     if delta_days == 1:
-        return f"kecha soat {local.strftime('%H:%M')}da"
+        return f"keça soat {local.strftime('%H:%M')}da"
     if delta_days < 7:
         return f"{_WEEKDAYS_UZ[local.weekday()]} kuni soat {local.strftime('%H:%M')}da"
     return local.strftime('%d.%m.%Y')
 
 
 def _online_sub(user):
-    """DM hamsuhbat uchun header/sidebar subtitle:
+    """DM hamsuhbat uçun header/sidebar subtitle:
     'Online • @user' yoki 'Oxirgi faollik: ... • @user'."""
     status = 'Online' if user.is_online else f"Oxirgi faollik: {_format_last_seen(user.last_activity)}"
     return f"{status} • @{user.username}"
@@ -907,7 +907,7 @@ def _group_initials(name):
 @rate_limited('chat_sidebar')
 @require_http_methods(["GET"])
 def sidebar(request):
-    """Combined conversation list (direct + group) for the unified chat page."""
+    """Combined conversation list (direct + group) for the unified çat page."""
     me = request.user
     items = []
 
@@ -993,7 +993,7 @@ def sidebar(request):
             'last_message': (
                 (('Siz: ' if last_msg.sender_id == me.pk else '') +
                  (last_msg.message[:60] if last_msg.message else ('📎 Fayl' if last_msg.file else '')))
-                if last_msg else "Hali xabar yo'q"
+                if last_msg else "Hali xabar yöq"
             ),
             'is_mine_last': bool(last_msg and last_msg.sender_id == me.pk),
             'last_at': _format_relative_time(last_msg.created_at) if last_msg else '',

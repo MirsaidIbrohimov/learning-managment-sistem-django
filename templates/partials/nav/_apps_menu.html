@@ -1,27 +1,27 @@
 {% load app_downloads %}{% comment %}
-  Navbar: "Ilovalar" ikonkasi — barcha platformalar. Admin panelda (Ilovalar boshqaruvi) e'lon qilingan eng yangi
-  versiya yuklab olinadi; hali yuklanmagan platforma "Tez kunda" bo'lib turadi.
+  Navbar: "Ilovalar" ikonkasi — barça platformalar. Admin panelda (Ilovalar boşqaruvi) e'lon qilingan eng yangi
+  versiya yuklab olinadi; hali yuklanmagan platforma "Tez kunda" bölib turadi.
 {% endcomment %}{% get_app_entries as app_entries %}
 <div class="dropdown nr-apps">
-  <button type="button" class="nr-ib" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Ilovani yuklab olish" aria-label="ITC Academy ilovasini yuklab olish"><i class="bi bi-phone" aria-hidden="true"></i></button>
+  <button type="button" class="nr-ib" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Ilovani yuklab oliş" aria-label="ITC Academy ilovasini yuklab oliş"><i class="bi bi-phone" aria-hidden="true"></i></button>
   <div class="dropdown-menu dropdown-menu-end nr-pop nr-social nr-apps-pop" data-cmd-group="ILOVALAR">
     <div class="nr-apps-head">ITC Academy ilovasi</div>
     {% for e in app_entries %}
     {% if e.release %}
     <a href="{% url 'app_release_download' e.release.pk %}" data-plat="{{ e.key }}" data-cmd-label="{{ e.label }} ilovasi" download>
       <i class="bi bi-{{ e.icon }}" style="background:{{ e.color }}" aria-hidden="true"></i>
-      <span>{{ e.label }} <em class="nr-apps-rec" hidden>Qurilmangiz uchun</em><small>v{{ e.release.version }} · {{ e.release.file_size|filesizeformat }}{% if e.release.min_os %} · {{ e.release.min_os }}{% endif %}</small></span>
+      <span>{{ e.label }} <em class="nr-apps-rec" hidden>Qurilmangiz uçun</em><small>v{{ e.release.version }} · {{ e.release.file_size|filesizeformat }}{% if e.release.min_os %} · {{ e.release.min_os }}{% endif %}</small></span>
       <b class="nr-apps-dl" aria-hidden="true"><i class="bi bi-download"></i></b>
     </a>
     {% else %}
     <div class="nr-apps-soon" data-plat="{{ e.key }}" aria-disabled="true">
       <i class="bi bi-{{ e.icon }}" style="background:{{ e.color }}" aria-hidden="true"></i>
-      <span>{{ e.label }} <em class="nr-apps-rec" hidden>Qurilmangiz uchun</em><small>Ilova tayyorlanmoqda</small></span>
+      <span>{{ e.label }} <em class="nr-apps-rec" hidden>Qurilmangiz uçun</em><small>Ilova tayyorlanmoqda</small></span>
       <b class="nr-apps-tag">Tez kunda</b>
     </div>
     {% endif %}
     {% endfor %}
-    <a href="{% url 'apps_page' %}" class="nr-apps-more"><span>Batafsil va o‘rnatish ko‘rsatmasi</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    <a href="{% url 'apps_page' %}" class="nr-apps-more"><span>Batafsil va örnatiş körsatmasi</span><i class="bi bi-arrow-right" aria-hidden="true"></i></a>
   </div>
 </div>
 <script>

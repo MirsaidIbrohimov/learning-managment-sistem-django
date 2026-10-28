@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Premium boshqaruv - Admin{% endblock %}
+{% block title %}Premium boşqaruv - Admin{% endblock %}
 
 {% block admin_content %}
 
@@ -574,8 +574,8 @@
     <!-- Header -->
     <div class="ap-header">
         <div class="ap-header-icon"><i class="bi bi-patch-check-fill"></i></div>
-        <h4>Premium boshqaruv</h4>
-        <p>Premium so'rovlar va foydalanuvchilarni boshqarish</p>
+        <h4>Premium boşqaruv</h4>
+        <p>Premium sörovlar va foydalanuvçilarni boşqariş</p>
     </div>
 
     <!-- Stats -->
@@ -591,7 +591,7 @@
             <div class="ap-stat blue ap-stat-anim-2">
                 <div class="ap-stat-icon"><i class="bi bi-people-fill"></i></div>
                 <div class="ap-stat-num">{{ total_students }}</div>
-                <div class="ap-stat-label">Jami o'quvchilar</div>
+                <div class="ap-stat-label">Jami öquvçilar</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
@@ -614,12 +614,12 @@
     <div class="ap-tabs">
         <a href="?tab=requests" class="ap-tab {% if tab == 'requests' %}active{% endif %}">
             <i class="bi bi-inbox"></i>
-            <span>So'rovlar</span>
+            <span>Sörovlar</span>
             {% if pending_count %}<span class="badge bg-danger">{{ pending_count }}</span>{% endif %}
         </a>
         <a href="?tab=users" class="ap-tab {% if tab == 'users' %}active{% endif %}">
             <i class="bi bi-people"></i>
-            <span>Foydalanuvchilar</span>
+            <span>Foydalanuvçilar</span>
         </a>
         <a href="?tab=history" class="ap-tab {% if tab == 'history' %}active{% endif %}">
             <i class="bi bi-clock-history"></i>
@@ -627,13 +627,13 @@
         </a>
     </div>
 
-    <!-- ======= TAB: SO'ROVLAR ======= -->
+    <!-- ======= TAB: SÖROVLAR ======= -->
     {% if tab == 'requests' %}
     <div class="ap-panel">
         <div class="ap-panel-header">
             <h5 class="ap-panel-title">
                 <i class="bi bi-inbox-fill"></i>
-                Kutilayotgan Premium so'rovlar
+                Kutilayotgan Premium sörovlar
                 {% if pending_count %}<span class="badge bg-danger" style="animation: ripple 2s infinite;">{{ pending_count }}</span>{% endif %}
             </h5>
         </div>
@@ -641,7 +641,7 @@
             <table class="ap-table">
                 <thead>
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Tarif</th>
                         <th class="text-center">Narx</th>
                         <th>Turi</th>
@@ -669,7 +669,7 @@
                         <td class="text-center"><span class="fw-bold">{{ req.price }}</span> <small class="text-muted">coin</small></td>
                         <td>
                             {% if req.is_extension %}
-                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytirish</span>
+                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytiriş</span>
                             {% else %}
                             <span class="ap-badge ap-badge-new"><i class="bi bi-plus-circle"></i> Yangi</span>
                             {% endif %}
@@ -679,8 +679,8 @@
                             <div class="ap-actions justify-content-center">
                                 <form method="POST" action="{% url 'approve_premium_request' req.pk %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="ap-btn-approve" onclick="return confirm('{{ req.user.full_name }}ning so\'rovini tasdiqlaysizmi?');">
-                                        <i class="bi bi-check-lg"></i>Tasdiqlash
+                                    <button type="submit" class="ap-btn-approve" onclick="return confirm('{{ req.user.full_name }}ning sörovini tasdiqlaysizmi?');">
+                                        <i class="bi bi-check-lg"></i>Tasdiqlaş
                                     </button>
                                 </form>
                                 <form method="POST" action="{% url 'reject_premium_request' req.pk %}" class="d-inline">
@@ -697,7 +697,7 @@
                         <td colspan="6">
                             <div class="ap-empty">
                                 <div class="ap-empty-icon"><i class="bi bi-inbox"></i></div>
-                                <div class="ap-empty-text">Kutilayotgan so'rovlar yo'q</div>
+                                <div class="ap-empty-text">Kutilayotgan sörovlar yöq</div>
                             </div>
                         </td>
                     </tr>
@@ -708,13 +708,13 @@
     </div>
     {% endif %}
 
-    <!-- ======= TAB: FOYDALANUVCHILAR ======= -->
+    <!-- ======= TAB: FOYDALANUVÇILAR ======= -->
     {% if tab == 'users' %}
     <div class="ap-filter">
         <form method="get" class="row g-2 align-items-end">
             <input type="hidden" name="tab" value="users">
             <div class="col-12 col-md-5">
-                <label class="form-label small fw-bold">Qidirish</label>
+                <label class="form-label small fw-bold">Qidiriş</label>
                 <div class="input-group">
                     <span class="input-group-text" style="border-radius: 0.6rem 0 0 0.6rem;"><i class="bi bi-search"></i></span>
                     <input type="text" name="search" class="form-control" placeholder="Ism, familiya, telefon..." value="{{ search }}" style="border-radius: 0 0.6rem 0.6rem 0;">
@@ -723,7 +723,7 @@
             <div class="col-12 col-md-4">
                 <label class="form-label small fw-bold">Filter</label>
                 <select name="filter" class="form-select" style="border-radius: 0.6rem;">
-                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Barcha o'quvchilar</option>
+                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Barça öquvçilar</option>
                     <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Faqat Premium ✅</option>
                     <option value="not_premium" {% if filter_type == 'not_premium' %}selected{% endif %}>Premiumsiz</option>
                     <option value="expiring" {% if filter_type == 'expiring' %}selected{% endif %}>Muddati tugayotgan ⚠️</option>
@@ -731,7 +731,7 @@
             </div>
             <div class="col-12 col-md-3">
                 <button type="submit" class="btn ap-search-btn w-100">
-                    <i class="bi bi-search me-1"></i>Qidirish
+                    <i class="bi bi-search me-1"></i>Qidiriş
                 </button>
             </div>
         </form>
@@ -741,7 +741,7 @@
         <div class="ap-panel-header">
             <h5 class="ap-panel-title">
                 <i class="bi bi-people-fill"></i>
-                O'quvchilar
+                Öquvçilar
                 <span class="ap-badge ap-badge-coin">{{ users.paginator.count }} ta</span>
             </h5>
         </div>
@@ -750,7 +750,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th class="d-none d-md-table-cell">Telefon</th>
                         <th class="text-center">Coin</th>
                         <th class="text-center">Status</th>
@@ -803,15 +803,15 @@
                         </td>
                         <td>
                             {% if u.is_premium %}
-                            <form method="post" class="d-inline" onsubmit="return confirm('{{ u.full_name }}dan Premiumni olib tashlamoqchimisiz?');">
+                            <form method="post" class="d-inline" onsubmit="return confirm('{{ u.full_name }}dan Premiumni olib taşlamoqçimisiz?');">
                                 {% csrf_token %}
                                 <input type="hidden" name="user_id" value="{{ u.pk }}">
                                 <input type="hidden" name="action" value="remove_premium">
-                                <button type="submit" class="ap-btn-remove"><i class="bi bi-star"></i> <span class="d-none d-lg-inline">Olib tashlash</span></button>
+                                <button type="submit" class="ap-btn-remove"><i class="bi bi-star"></i> <span class="d-none d-lg-inline">Olib taşlaş</span></button>
                             </form>
                             {% else %}
                             <button type="button" class="ap-btn-give" onclick="openGiveModal('{{ u.pk }}', '{{ u.full_name }}', '{{ u.phone }}', '{{ u.first_name.0 }}{{ u.last_name.0 }}', '{% if u.photo %}{{ u.photo.url }}{% endif %}')">
-                                <i class="bi bi-patch-check-fill"></i> <span class="d-none d-lg-inline">Berish</span>
+                                <i class="bi bi-patch-check-fill"></i> <span class="d-none d-lg-inline">Beriş</span>
                             </button>
                             {% endif %}
                         </td>
@@ -821,7 +821,7 @@
                         <td colspan="7">
                             <div class="ap-empty">
                                 <div class="ap-empty-icon"><i class="bi bi-people"></i></div>
-                                <div class="ap-empty-text">O'quvchilar topilmadi</div>
+                                <div class="ap-empty-text">Öquvçilar topilmadi</div>
                             </div>
                         </td>
                     </tr>
@@ -860,7 +860,7 @@
             <div class="col-8 col-md-4">
                 <label class="form-label small fw-bold">Holat</label>
                 <select name="status" class="form-select" style="border-radius: 0.6rem;">
-                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Barchasi</option>
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Barçasi</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
                     <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
                     <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
@@ -878,20 +878,20 @@
         <div class="ap-panel-header">
             <h5 class="ap-panel-title">
                 <i class="bi bi-clock-history"></i>
-                Barcha so'rovlar tarixi
+                Barça sörovlar tarixi
             </h5>
         </div>
         <div class="table-responsive">
             <table class="ap-table">
                 <thead>
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Tarif</th>
                         <th class="text-center d-none d-md-table-cell">Narx</th>
                         <th class="d-none d-md-table-cell">Turi</th>
                         <th>Holat</th>
-                        <th class="d-none d-lg-table-cell">So'rov sanasi</th>
-                        <th class="d-none d-lg-table-cell">Ko'rib chiqilgan</th>
+                        <th class="d-none d-lg-table-cell">Sörov sanasi</th>
+                        <th class="d-none d-lg-table-cell">Körib çiqilgan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -914,7 +914,7 @@
                         <td class="text-center d-none d-md-table-cell"><span class="fw-bold">{{ req.price }}</span> <small style="opacity:0.5;">coin</small></td>
                         <td class="d-none d-md-table-cell">
                             {% if req.is_extension %}
-                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytirish</span>
+                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytiriş</span>
                             {% else %}
                             <span class="ap-badge ap-badge-new"><i class="bi bi-plus-circle"></i> Yangi</span>
                             {% endif %}
@@ -945,7 +945,7 @@
                         <td colspan="7">
                             <div class="ap-empty">
                                 <div class="ap-empty-icon"><i class="bi bi-clock-history"></i></div>
-                                <div class="ap-empty-text">So'rovlar yo'q</div>
+                                <div class="ap-empty-text">Sörovlar yöq</div>
                             </div>
                         </td>
                     </tr>
@@ -958,7 +958,7 @@
 
 </div>
 
-<!-- Premium berish modal (jadvaldan tashqarida) -->
+<!-- Premium beriş modal (jadvaldan taşqarida) -->
 <div class="modal fade ap-modal" id="givePremiumModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -967,7 +967,7 @@
                 <input type="hidden" name="user_id" id="modalUserId">
                 <input type="hidden" name="action" value="give_premium">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-patch-check-fill text-warning me-2"></i>Premium berish</h5>
+                    <h5 class="modal-title"><i class="bi bi-patch-check-fill text-warning me-2"></i>Premium beriş</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -989,7 +989,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor</button>
                     <button type="submit" class="ap-btn-approve" style="padding: 0.5rem 1.5rem;">
-                        <i class="bi bi-patch-check-fill"></i>Premium berish
+                        <i class="bi bi-patch-check-fill"></i>Premium beriş
                     </button>
                 </div>
             </form>

@@ -2,7 +2,7 @@
 
 <div class="qz-page" id="qzApp" data-quiz-id="{{ quiz_id|default:'' }}">
     <a href="{% url 'quizui:quiz_list' %}" class="qz-back">
-        <i class="bi bi-arrow-left"></i> Testlar ro'yxatiga qaytish
+        <i class="bi bi-arrow-left"></i> Testlar röyxatiga qaytiş
     </a>
 
     <div class="qz-hero">
@@ -10,7 +10,7 @@
             <div class="qz-hero-icon blue"><i class="bi bi-ui-checks-grid"></i></div>
             <div>
                 <h1 class="qz-hero-title" id="qzTitle">Yangi test</h1>
-                <p class="qz-hero-subtitle">Test ma'lumotlari, sozlamalar va savollarini bir joyda boshqaring.</p>
+                <p class="qz-hero-subtitle">Test ma'lumotlari, sozlamalar va savollarini bir joyda boşqaring.</p>
             </div>
         </div>
         <div class="qz-hero-actions">
@@ -26,10 +26,10 @@
                 <i class="bi bi-file-earmark-arrow-up"></i> Import
             </a>
             {% endif %}
-            <button class="qz-btn qz-btn-success d-none" id="qzPublishBtn"><i class="bi bi-cloud-upload"></i> Chop etish</button>
-            <button class="qz-btn qz-btn-warning d-none" id="qzArchiveBtn"><i class="bi bi-archive"></i> Arxivlash</button>
+            <button class="qz-btn qz-btn-success d-none" id="qzPublishBtn"><i class="bi bi-cloud-upload"></i> Çop etiş</button>
+            <button class="qz-btn qz-btn-warning d-none" id="qzArchiveBtn"><i class="bi bi-archive"></i> Arxivlaş</button>
             <button class="qz-btn qz-btn-ghost d-none" id="qzRestoreBtn"><i class="bi bi-arrow-counterclockwise"></i> Qoralamaga</button>
-            <button class="qz-btn qz-btn-primary" id="qzSaveBtn"><i class="bi bi-check2"></i> Saqlash</button>
+            <button class="qz-btn qz-btn-primary" id="qzSaveBtn"><i class="bi bi-check2"></i> Saqlaş</button>
         </div>
     </div>
 
@@ -44,14 +44,14 @@
                 <div class="qz-surface-body">
                     <div class="mb-3">
                         <label class="form-label">Test nomi</label>
-                        <input type="text" class="form-control" id="qzTitleInput" placeholder="Masalan: Yakuniy imtihon — 1-bo'lim">
+                        <input type="text" class="form-control" id="qzTitleInput" placeholder="Masalan: Yakuniy imtihon — 1-bölim">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Tavsif <span class="text-muted">(ixtiyoriy)</span></label>
-                        <textarea class="form-control" id="qzDescription" rows="2" placeholder="Test haqida qisqacha..."></textarea>
+                        <textarea class="form-control" id="qzDescription" rows="2" placeholder="Test haqida qisqaça..."></textarea>
                     </div>
                     <div class="mb-0">
-                        <label class="form-label">Dars <span class="text-muted">(ixtiyoriy — bo'sh qoldirsa mustaqil test)</span></label>
+                        <label class="form-label">Dars <span class="text-muted">(ixtiyoriy — böş qoldirsa mustaqil test)</span></label>
                         <input type="hidden" id="qzLessonId">
 
                         <div id="qzLessonPicker">
@@ -69,18 +69,18 @@
                             </div>
 
                             <div id="qzLessonListWrap" class="d-none mb-2">
-                                <div class="text-muted small mb-1">Ushbu bo'limdagi bo'sh test darslari:</div>
+                                <div class="text-muted small mb-1">Uşbu bölimdagi böş test darslari:</div>
                                 <div id="qzLessonList" class="list-group" style="max-height:180px;overflow-y:auto;"></div>
                             </div>
 
                             <div class="input-group input-group-sm">
                                 <input type="text" class="form-control" id="qzNewLessonTitle" placeholder="...yoki yangi dars nomini kiriting" disabled autocomplete="off">
                                 <button class="btn btn-outline-primary" type="button" id="qzCreateLessonBtn" disabled>
-                                    <i class="bi bi-plus-lg"></i> Yangi dars sifatida qo'shish
+                                    <i class="bi bi-plus-lg"></i> Yangi dars sifatida qöşiş
                                 </button>
                             </div>
                             <p class="text-muted small mb-0 mt-1">
-                                <i class="bi bi-info-circle"></i> Kursni tanlagach, o'sha bo'limdagi mavjud bo'sh test darsini tanlashingiz yoki yangisini yaratishingiz mumkin.
+                                <i class="bi bi-info-circle"></i> Kursni tanlagaç, öşa bölimdagi mavjud böş test darsini tanlaşingiz yoki yangisini yaratişingiz mumkin.
                             </p>
                         </div>
 
@@ -96,36 +96,36 @@
                 <div class="qz-surface-body">
                     <div class="row g-3">
                         <div class="col-6">
-                            <label class="form-label">Vaqt chegarasi <span class="text-muted">(daqiqa)</span></label>
+                            <label class="form-label">Vaqt çegarasi <span class="text-muted">(daqiqa)</span></label>
                             <input type="number" min="1" class="form-control" id="qzTimeLimit" value="30">
                         </div>
                         <div class="col-6">
-                            <label class="form-label">O'tish bali <span class="text-muted">(%)</span></label>
+                            <label class="form-label">Ötiş bali <span class="text-muted">(%)</span></label>
                             <input type="number" min="0" max="100" class="form-control" id="qzPassingScore" value="60">
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Urinishlar <span class="text-muted">(0 = cheksiz)</span></label>
+                            <label class="form-label">Urinişlar <span class="text-muted">(0 = çeksiz)</span></label>
                             <input type="number" min="0" class="form-control" id="qzAttemptsAllowed" value="1">
                         </div>
                         <div class="col-6">
-                            <label class="form-label">Savollar soni <span class="text-muted">(0 = barchasi)</span></label>
+                            <label class="form-label">Savollar soni <span class="text-muted">(0 = barçasi)</span></label>
                             <input type="number" min="0" class="form-control" id="qzQuestionCount" value="0">
                         </div>
                         <div class="col-12 form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="qzAllowRetry">
-                            <label class="form-check-label" for="qzAllowRetry">Qayta ishlashga ruxsat</label>
+                            <label class="form-check-label" for="qzAllowRetry">Qayta işlaşga ruxsat</label>
                         </div>
                         <div class="col-12 form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="qzShuffleQuestions">
-                            <label class="form-check-label" for="qzShuffleQuestions">Savollar tartibini aralashtirish</label>
+                            <label class="form-check-label" for="qzShuffleQuestions">Savollar tartibini aralaştiriş</label>
                         </div>
                         <div class="col-12 form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="qzShuffleAnswers">
-                            <label class="form-check-label" for="qzShuffleAnswers">Javoblar tartibini aralashtirish</label>
+                            <label class="form-check-label" for="qzShuffleAnswers">Javoblar tartibini aralaştiriş</label>
                         </div>
                         <div class="col-12 form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="qzNegativeMarking">
-                            <label class="form-check-label" for="qzNegativeMarking">Noto'g'ri javob uchun ball ayirish</label>
+                            <label class="form-check-label" for="qzNegativeMarking">Notöğri javob uçun ball ayiriş</label>
                         </div>
                     </div>
                 </div>
@@ -137,14 +137,14 @@
                 <div class="qz-surface-head">
                     <div class="qz-surface-title"><i class="bi bi-list-ol"></i> Test savollari</div>
                     <button class="qz-btn qz-btn-primary" id="qzAttachBtn" data-bs-toggle="modal" data-bs-target="#qzAttachModal" disabled style="padding:8px 14px;font-size:.85rem;">
-                        <i class="bi bi-plus-lg"></i> Bankdan qo'shish
+                        <i class="bi bi-plus-lg"></i> Bankdan qöşiş
                     </button>
                 </div>
                 <div class="qz-surface-body" id="qzQuestionsPanel">
                     <div class="qz-empty" id="qzSaveFirstHint">
                         <div class="qz-empty-icon"><i class="bi bi-save"></i></div>
                         <h4>Avval testni saqlang</h4>
-                        <p>Savol qo'shish uchun avval testni saqlash kerak.</p>
+                        <p>Savol qöşiş uçun avval testni saqlaş kerak.</p>
                     </div>
                     <div id="qzQuestionsList"></div>
                 </div>
@@ -157,11 +157,11 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content" style="border-radius:16px;border:none;">
             <div class="modal-header" style="border-bottom:1px solid var(--quizui-border);">
-                <h5 class="modal-title" style="font-weight:700;"><i class="bi bi-collection" style="color:var(--quizui-primary);"></i> Savollar bazasidan qo'shish</h5>
+                <h5 class="modal-title" style="font-weight:700;"><i class="bi bi-collection" style="color:var(--quizui-primary);"></i> Savollar bazasidan qöşiş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <input type="search" class="form-control mb-3" id="qzBankSearch" placeholder="Savol qidirish..." style="border-radius:10px;">
+                <input type="search" class="form-control mb-3" id="qzBankSearch" placeholder="Savol qidiriş..." style="border-radius:10px;">
                 <div id="qzBankResults" class="list-group"></div>
             </div>
         </div>
@@ -178,7 +178,7 @@
             <div class="qz-question-text"></div>
             <span class="qz-badge info qz-question-type mt-1"></span>
         </div>
-        <button class="qz-icon-btn delete qz-detach-btn" title="Olib tashlash"><i class="bi bi-x-lg"></i></button>
+        <button class="qz-icon-btn delete qz-detach-btn" title="Olib taşlaş"><i class="bi bi-x-lg"></i></button>
     </div>
 </template>
 

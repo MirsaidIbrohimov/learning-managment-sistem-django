@@ -11,7 +11,7 @@
 
     const STATUS_LABELS = {
         draft: 'Qoralama',
-        published: 'Chop etilgan',
+        published: 'Çop etilgan',
         archived: 'Arxivlangan',
     };
     const PAGE_SIZE = 20;
@@ -85,7 +85,7 @@
                 professionSelect.appendChild(opt);
             }
             professionSelect.value = state.profession;
-        } catch (_) { /* filter stays as "Barcha kurslar" */ }
+        } catch (_) { /* filter stays as "Barça kurslar" */ }
     }
 
     async function loadQuizzes() {
@@ -184,10 +184,10 @@
 
     async function removeQuiz(quiz) {
         // eslint-disable-next-line no-alert
-        if (!confirm(`"${quiz.title}" testini o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.`)) return;
+        if (!confirm(`"${quiz.title}" testini öçirmoqçimisiz? Bu amalni qaytarib bölmaydi.`)) return;
         try {
             await window.QuizApi.delete(`quizzes/${quiz.id}/`);
-            window.QuizApi.toast("Test o'chirildi.");
+            window.QuizApi.toast("Test öçirildi.");
             loadQuizzes();
             loadStats();
         } catch (err) {

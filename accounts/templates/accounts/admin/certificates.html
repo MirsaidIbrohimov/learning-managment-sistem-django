@@ -427,14 +427,14 @@
     <div class="cert-header">
         <div class="cert-header-left">
             <h1><i class="bi bi-award"></i> Sertifikatlar</h1>
-            <div class="cert-header-sub">O'quvchilarga berilgan sertifikatlar va ularni boshqarish</div>
+            <div class="cert-header-sub">Öquvçilarga berilgan sertifikatlar va ularni boşqariş</div>
         </div>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
             <a href="{% url 'admin_certificate_designs' %}" class="cert-btn" style="border:1px solid var(--border-color,#dee2e6);color:inherit;">
                 <i class="bi bi-palette"></i> Dizaynlar
             </a>
             <a href="{% url 'admin_certificate_manual' %}" class="cert-btn cert-btn-primary">
-                <i class="bi bi-plus-lg"></i> Sertifikat berish
+                <i class="bi bi-plus-lg"></i> Sertifikat beriş
             </a>
         </div>
     </div>
@@ -473,13 +473,13 @@
         <form method="get">
             <div class="cert-filter-row">
                 <div class="cert-filter-group" style="flex:2;">
-                    <label><i class="bi bi-search"></i> Qidirish</label>
+                    <label><i class="bi bi-search"></i> Qidiriş</label>
                     <input type="text" name="search" placeholder="Ism, familiya yoki sertifikat ID..." value="{{ search }}">
                 </div>
                 <div class="cert-filter-group">
                     <label><i class="bi bi-funnel"></i> Holat</label>
                     <select name="status">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
                         <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Muddati tugagan</option>
                         <option value="frozen" {% if status_filter == 'frozen' %}selected{% endif %}>Muzlatilgan</option>
@@ -489,7 +489,7 @@
                 <div class="cert-filter-group">
                     <label><i class="bi bi-briefcase"></i> Kurs</label>
                     <select name="profession">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for p in professions %}
                         <option value="{{ p.pk }}" {% if profession_filter == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
                         {% endfor %}
@@ -497,11 +497,11 @@
                 </div>
                 <div style="display:flex; gap:0.5rem; align-items:flex-end;">
                     <button type="submit" class="cert-filter-btn">
-                        <i class="bi bi-search"></i> Qidirish
+                        <i class="bi bi-search"></i> Qidiriş
                     </button>
                     {% if search or status_filter or profession_filter %}
                     <a href="{% url 'admin_certificates' %}" class="cert-filter-reset">
-                        <i class="bi bi-x-lg"></i> Tozalash
+                        <i class="bi bi-x-lg"></i> Tozalaş
                     </a>
                     {% endif %}
                 </div>
@@ -509,23 +509,23 @@
         </form>
     </div>
 
-    <!-- ⚙️ Kurslar bo'yicha seriya sozlamalari (avtomatik berish) -->
+    <!-- ⚙️ Kurslar böyiça seriya sozlamalari (avtomatik beriş) -->
     <div class="cert-table-card" style="margin-bottom:1.5rem;">
         <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border-color,#e5e7eb);display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="document.getElementById('certSettingsBody').classList.toggle('d-none');document.getElementById('certSettingsChevron').classList.toggle('bi-chevron-down');document.getElementById('certSettingsChevron').classList.toggle('bi-chevron-up');">
             <div style="font-weight:800;display:flex;align-items:center;gap:8px;">
-                <i class="bi bi-gear-fill" style="color:#6366f1;"></i> ⚙️ Sozlamalar — kurs seriyalari va amal qilish muddati
+                <i class="bi bi-gear-fill" style="color:#6366f1;"></i> ⚙️ Sozlamalar — kurs seriyalari va amal qiliş muddati
             </div>
             <i class="bi bi-chevron-up" id="certSettingsChevron"></i>
         </div>
         <div id="certSettingsBody" style="padding:0.5rem 1.25rem 1rem;">
             <p style="font-size:0.8rem;color:var(--bs-secondary-color,#6c757d);margin:0.5rem 0 0.75rem;">
                 <i class="bi bi-info-circle"></i>
-                Seriya kodi yozilgan kurslarda sertifikat <b>yakuniy testdan o'tganda avtomatik</b> beriladi.
+                Seriya kodi yozilgan kurslarda sertifikat <b>yakuniy testdan ötganda avtomatik</b> beriladi.
                 Format: <code>SERIYA-YYNNN</code> (masalan: <code>ZMT-PY-26038</code>).
-                Seriya bo'sh bo'lsa yoki kursda "Sertifikat" o'chirilgan bo'lsa — berilmaydi.
+                Seriya böş bölsa yoki kursda "Sertifikat" öçirilgan bölsa — berilmaydi.
                 <br><i class="bi bi-palette"></i>
-                <b>Dizayn</b> tanlanmagan kurs <b>standart</b> sertifikat ko'rinishida beriladi.
-                Yangi dizaynni <a href="{% url 'admin_certificate_designs' %}">Dizaynlar</a> bo'limida yarating.
+                <b>Dizayn</b> tanlanmagan kurs <b>standart</b> sertifikat körinişida beriladi.
+                Yangi dizaynni <a href="{% url 'admin_certificate_designs' %}">Dizaynlar</a> bölimida yarating.
             </p>
             <div class="table-responsive">
                 <table class="table table-sm align-middle" style="font-size:0.85rem;">
@@ -563,7 +563,7 @@
                                 {% if cs.issued_count %}
                                 <label style="font-size:.7rem;display:flex;gap:4px;align-items:center;margin-top:3px;color:var(--bs-secondary-color,#6c757d);">
                                     <input type="checkbox" name="regenerate" value="1" form="csForm{{ cs.profession.pk }}">
-                                    Berilganlarini ham yangilash
+                                    Berilganlarini ham yangilaş
                                 </label>
                                 {% endif %}
                             </td>
@@ -572,13 +572,13 @@
                                 {% if cs.profession.has_certificate %}
                                 <span class="cert-badge active"><i class="bi bi-check-circle-fill"></i> Yoniq</span>
                                 {% else %}
-                                <span class="cert-badge revoked"><i class="bi bi-x-circle-fill"></i> O'chiq</span>
+                                <span class="cert-badge revoked"><i class="bi bi-x-circle-fill"></i> Öçiq</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <button type="submit" class="cert-action-btn" title="Saqlash"
+                                <button type="submit" class="cert-action-btn" title="Saqlaş"
                                         style="width:auto;padding:0 10px;" form="csForm{{ cs.profession.pk }}">
-                                    <i class="bi bi-check-lg"></i> Saqlash
+                                    <i class="bi bi-check-lg"></i> Saqlaş
                                 </button>
                             </td>
                         </tr>
@@ -603,11 +603,11 @@
                 <thead>
                     <tr>
                         <th>Sertifikat ID</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Kurs</th>
                         <th>Holat</th>
                         <th>Berilgan sana</th>
-                        <th>Amal qilish</th>
+                        <th>Amal qiliş</th>
                         <th>Amallar</th>
                     </tr>
                 </thead>
@@ -617,7 +617,7 @@
                         <td><span class="cert-id">{{ cert.certificate_id }}</span></td>
                         <td>
                             <span class="cert-user-name">{{ cert.recipient_display }}</span>
-                            <span class="cert-user-sub">{% if cert.student %}@{{ cert.student.username }}{% else %}qo'lda berilgan{% endif %}</span>
+                            <span class="cert-user-sub">{% if cert.student %}@{{ cert.student.username }}{% else %}qölda berilgan{% endif %}</span>
                         </td>
                         <td>{{ cert.profession.name }}</td>
                         <td>
@@ -636,7 +636,7 @@
                                 {% csrf_token %}
                                 <input type="date" name="valid_until" value="{{ cert.valid_until|date:'Y-m-d' }}"
                                        class="cert-status-select" style="min-width:135px;">
-                                <button type="submit" class="cert-action-btn" title="Muddatni saqlash (PDF yangilanadi)">
+                                <button type="submit" class="cert-action-btn" title="Muddatni saqlaş (PDF yangilanadi)">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                             </form>
@@ -653,19 +653,19 @@
                                     </select>
                                 </form>
                                 {% if cert.file %}
-                                <a href="{{ cert.file.url }}" target="_blank" class="cert-action-btn" title="Yuklab olish">
+                                <a href="{{ cert.file.url }}" target="_blank" class="cert-action-btn" title="Yuklab oliş">
                                     <i class="bi bi-download"></i>
                                 </a>
                                 {% endif %}
                                 <form method="post" action="{% url 'admin_certificate_regenerate' cert.pk %}" style="display:contents;">
                                     {% csrf_token %}
-                                    <button type="submit" class="cert-action-btn" title="PDF ni qayta yaratish">
+                                    <button type="submit" class="cert-action-btn" title="PDF ni qayta yaratiş">
                                         <i class="bi bi-arrow-clockwise"></i>
                                     </button>
                                 </form>
-                                <form method="post" action="{% url 'admin_certificate_delete' cert.pk %}" onsubmit="return confirm('Sertifikatni o\'chirmoqchimisiz?')" style="display:contents;">
+                                <form method="post" action="{% url 'admin_certificate_delete' cert.pk %}" onsubmit="return confirm('Sertifikatni öçirmoqçimisiz?')" style="display:contents;">
                                     {% csrf_token %}
-                                    <button type="submit" class="cert-action-btn danger" title="O'chirish">
+                                    <button type="submit" class="cert-action-btn danger" title="Öçiriş">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
@@ -705,14 +705,14 @@
     <div class="cert-empty">
         <i class="bi bi-award"></i>
         <h5>Sertifikatlar topilmadi</h5>
-        <p>{% if search or status_filter or profession_filter %}Qidiruv natijasi bo'sh. Boshqa parametrlar bilan sinab ko'ring.{% else %}Hali hech qanday sertifikat berilmagan.{% endif %}</p>
+        <p>{% if search or status_filter or profession_filter %}Qidiruv natijasi böş. Boşqa parametrlar bilan sinab köring.{% else %}Hali heç qanday sertifikat berilmagan.{% endif %}</p>
         {% if search or status_filter or profession_filter %}
         <a href="{% url 'admin_certificates' %}" class="cert-btn cert-btn-primary">
-            <i class="bi bi-x-lg"></i> Filtrni tozalash
+            <i class="bi bi-x-lg"></i> Filtrni tozalaş
         </a>
         {% else %}
         <a href="{% url 'admin_certificate_manual' %}" class="cert-btn cert-btn-primary">
-            <i class="bi bi-plus-lg"></i> Sertifikat berish
+            <i class="bi bi-plus-lg"></i> Sertifikat beriş
         </a>
         {% endif %}
     </div>

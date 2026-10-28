@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ lesson.title }} - Lug'at{% endblock %}
+{% block title %}{{ lesson.title }} - Luğat{% endblock %}
 
 {% block extra_css %}
 !
@@ -183,11 +183,11 @@
             <div class="dict-hero-icon"><i class="bi bi-book-fill"></i></div>
             <h1>{{ lesson.title }}</h1>
             <p>{{ profession.name }}</p>
-            {% with prompt="«"|add:lesson.title|add:"» lug'at mavzusidagi so'zlarni misollar bilan tushuntiring va yodlashga yordam bering." %}
+            {% with prompt="«"|add:lesson.title|add:"» luğat mavzusidagi sözlarni misollar bilan tuşuntiring va yodlaşga yordam bering." %}
             <div style="margin:10px 0">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
             {% endwith %}
             <div class="dict-hero-count">
-                <i class="bi bi-hash"></i> {{ words|length }} ta so'z
+                <i class="bi bi-hash"></i> {{ words|length }} ta söz
             </div>
         </div>
 
@@ -197,8 +197,8 @@
 
         <form method="GET" class="dict-search">
             <i class="bi bi-search"></i>
-            <input type="text" name="q" value="{{ search }}" placeholder="So'z qidirish..." autocomplete="off">
-            <button type="submit" class="dict-search-btn">Qidirish</button>
+            <input type="text" name="q" value="{{ search }}" placeholder="Söz qidiriş..." autocomplete="off">
+            <button type="submit" class="dict-search-btn">Qidiriş</button>
         </form>
 
         {% if words %}
@@ -207,7 +207,7 @@
                 <thead>
                     <tr>
                         <th style="width:50px;">#</th>
-                        <th>Yozilishi</th>
+                        <th>Yozilişi</th>
                         <th>Tarjimasi</th>
                         <th>Misol</th>
                     </tr>
@@ -234,9 +234,9 @@
             <div class="dict-empty">
                 <i class="bi bi-search"></i>
                 {% if search %}
-                <p>"{{ search }}" bo'yicha hech narsa topilmadi</p>
+                <p>"{{ search }}" böyiça heç narsa topilmadi</p>
                 {% else %}
-                <p>Hali so'zlar qo'shilmagan</p>
+                <p>Hali sözlar qöşilmagan</p>
                 {% endif %}
             </div>
         {% endif %}

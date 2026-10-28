@@ -10,7 +10,7 @@ from .models import (
 from .security import validate_document_upload, validate_upload
 
 
-# O'zbekiston operator va shahar kodlari (+998 dan keyingi 2 ta raqam).
+# Özbekiston operator va şahar kodlari (+998 dan keyingi 2 ta raqam).
 UZ_PHONE_CODES = {
     '20', '33', '50', '55', '61', '62', '65', '66', '67', '69', '70', '71', '72', '73', '74', '75',
     '76', '77', '78', '79', '87', '88', '90', '91', '93', '94', '95', '97', '98', '99',
@@ -20,7 +20,7 @@ UZ_PHONE_CODES = {
 def normalize_uz_phone(raw, *, required=True):
     """"(90) 123 45 67", "998901234567", "+998 90 123-45-67" → "+998901234567".
 
-    Faqat O'zbekiston raqami qabul qilinadi: +998, keyin operator kodi va 7 ta raqam.
+    Faqat Özbekiston raqami qabul qilinadi: +998, keyin operator kodi va 7 ta raqam.
     """
     raw = (raw or '').strip()
     if not raw:
@@ -28,73 +28,73 @@ def normalize_uz_phone(raw, *, required=True):
             raise forms.ValidationError("Telefon raqamini kiriting.")
         return ''
     if any(ch.isalpha() for ch in raw):
-        raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak.")
+        raise forms.ValidationError("Telefon raqamida faqat raqamlar bölişi kerak.")
     digits = ''.join(ch for ch in raw if ch.isdigit())
     if raw.lstrip().startswith('+') and not digits.startswith('998'):
-        raise forms.ValidationError("Faqat O'zbekiston raqami qabul qilinadi (+998 bilan boshlanadi).")
+        raise forms.ValidationError("Faqat Özbekiston raqami qabul qilinadi (+998 bilan boşlanadi).")
     if digits.startswith('998') and len(digits) == 12:
         digits = digits[3:]
     if len(digits) != 9:
-        raise forms.ValidationError("Raqam +998 dan keyin 9 ta raqamdan iborat bo'lishi kerak. Masalan: +998 90 123 45 67")
+        raise forms.ValidationError("Raqam +998 dan keyin 9 ta raqamdan iborat bölişi kerak. Masalan: +998 90 123 45 67")
     if digits[:2] not in UZ_PHONE_CODES:
-        raise forms.ValidationError(f"«{digits[:2]}» O'zbekiston operator kodi emas. Masalan: 90, 91, 93, 94, 95, 97, 98, 99, 33, 88, 77, 50.")
+        raise forms.ValidationError(f"«{digits[:2]}» Özbekiston operator kodi emas. Masalan: 90, 91, 93, 94, 95, 97, 98, 99, 33, 88, 77, 50.")
     return '+998' + digits
 
 
 def parse_jshshir(value):
-    """JSHSHIR (PINFL) dan jins va tug'ilgan sanani o'qiydi.
+    """JŞŞIR (PINFL) dan jins va tuğilgan sanani öqiydi.
 
-    Tuzilishi: 1-raqam — asr va jins (toq = erkak, juft = ayol; 1-2 → 1800-yillar,
+    Tuzilişi: 1-raqam — asr va jins (toq = erkak, juft = ayol; 1-2 → 1800-yillar,
     3-4 → 1900-yillar, 5-6 → 2000-yillar), 2-3 — kun, 4-5 — oy, 6-7 — yilning
     oxirgi ikki raqami. Masalan 5300105… → erkak, 30.01.2005.
-    Noto'g'ri bo'lsa ValidationError.
+    Notöğri bölsa ValidationError.
     """
     import datetime
 
     value = (value or '').strip()
     if not value.isdigit() or len(value) != 14:
-        raise forms.ValidationError("JSHSHIR 14 ta raqamdan iborat bo'lishi kerak.")
+        raise forms.ValidationError("JŞŞIR 14 ta raqamdan iborat bölişi kerak.")
     first = int(value[0])
     if not 1 <= first <= 6:
-        raise forms.ValidationError("JSHSHIR birinchi raqami 1 dan 6 gacha bo'lishi kerak (jins va tug'ilgan asr).")
+        raise forms.ValidationError("JŞŞIR birinçi raqami 1 dan 6 gaça bölişi kerak (jins va tuğilgan asr).")
     century = {1: 1800, 2: 1800, 3: 1900, 4: 1900, 5: 2000, 6: 2000}[first]
     day, month, year = int(value[1:3]), int(value[3:5]), century + int(value[5:7])
     try:
         birth = datetime.date(year, month, day)
     except ValueError:
         raise forms.ValidationError(
-            f"JSHSHIR dagi tug'ilgan sana noto'g'ri: {value[1:3]}.{value[3:5]}.{year}. "
-            "2-3 raqam — kun, 4-5 — oy, 6-7 — yil bo'lishi kerak."
+            f"JŞŞIR dagi tuğilgan sana notöğri: {value[1:3]}.{value[3:5]}.{year}. "
+            "2-3 raqam — kun, 4-5 — oy, 6-7 — yil bölişi kerak."
         ) from None
     if birth > datetime.date.today():
-        raise forms.ValidationError("JSHSHIR dagi tug'ilgan sana kelajakda bo'lishi mumkin emas.")
+        raise forms.ValidationError("JŞŞIR dagi tuğilgan sana kelajakda bölişi mumkin emas.")
     return {'gender': 'male' if first % 2 else 'female', 'birth_date': birth}
 
 
 def check_jshshir_matches(form, jshshir, birth_date, gender, *, jshshir_field='jshshir'):
-    """JSHSHIR tug'ilgan sana va jins bilan mos kelmasa formaga xato qo'shadi."""
+    """JŞŞIR tuğilgan sana va jins bilan mos kelmasa formaga xato qöşadi."""
     if not jshshir:
         return
     try:
         info = parse_jshshir(jshshir)
     except forms.ValidationError:
-        return  # format xatosi clean_jshshir'da allaqachon chiqarilgan
+        return  # format xatosi clean_jshshir'da allaqaçon çiqarilgan
     if birth_date and birth_date != info['birth_date']:
         form.add_error(jshshir_field, (
-            f"JSHSHIR tug'ilgan sanangiz bilan mos emas: JSHSHIR bo'yicha "
+            f"JŞŞIR tuğilgan sanangiz bilan mos emas: JŞŞIR böyiça "
             f"{info['birth_date']:%d.%m.%Y}, siz kiritgan sana {birth_date:%d.%m.%Y}."
         ))
     if gender and gender != info['gender']:
         expected = 'erkak' if info['gender'] == 'male' else 'ayol'
         form.add_error(jshshir_field, (
-            f"JSHSHIR jinsingiz bilan mos emas: birinchi raqam {jshshir[0]} — {expected} "
+            f"JŞŞIR jinsingiz bilan mos emas: birinçi raqam {jshshir[0]} — {expected} "
             "(toq raqam — erkak, juft raqam — ayol)."
         ))
 
 
 def _clean_name_field(name, field_label):
     """Remove emojis, stickers and special characters from name field."""
-    # Ko'rinmas va bo'sh belgilarni bloklash (Hangul Filler, braille blank, va h.k.)
+    # Körinmas va böş belgilarni bloklaş (Hangul Filler, braille blank, va h.k.)
     INVISIBLE_CHARS = set('\u3164\u115f\u1160\u2800\u200b\u200c\u200d\u2060\ufeff\u00a0\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u205f\u3000\u180e\u034f\u17b4\u17b5\uffa0')
     cleaned = ''
     for char in name:
@@ -105,7 +105,7 @@ def _clean_name_field(name, field_label):
             cleaned += char
     cleaned = cleaned.strip()
     if not cleaned or not any(c.isalpha() for c in cleaned):
-        raise forms.ValidationError(f"{field_label} faqat harflardan iborat bo'lishi kerak! Bo'sh yoki ko'rinmas belgilar qabul qilinmaydi.")
+        raise forms.ValidationError(f"{field_label} faqat harflardan iborat bölişi kerak! Böş yoki körinmas belgilar qabul qilinmaydi.")
     return cleaned
 
 
@@ -139,7 +139,7 @@ class RegisterForm(UserCreationForm):
         widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'})
     )
     role = forms.ChoiceField(
-        choices=[('student', 'O\'quvchi')],
+        choices=[('student', 'Öquvçi')],
         initial='student',
         required=False,
         widget=forms.HiddenInput(),
@@ -154,11 +154,11 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        # `role` ATAYLAB yo'q: ochiq ro'yxatdan o'tish faqat 'student' yaratadi.
-        # Ilgari `role` Meta.fields ichida edi va HiddenInput bo'lgani uchun
-        # hujumchi POST da role=teacher yuborib o'zini o'qituvchi qilib
-        # ro'yxatdan o'tkaza olardi (privilege escalation). Rol faqat serverda,
-        # save() ichida belgilanadi; o'qituvchi/admin rollari admin panelidan
+        # `role` ATAYLAB yöq: oçiq röyxatdan ötiş faqat 'student' yaratadi.
+        # Ilgari `role` Meta.fields içida edi va HiddenInput bölgani uçun
+        # hujumçi POST da role=teacher yuborib özini öqituvçi qilib
+        # röyxatdan ötkaza olardi (privilege escalation). Rol faqat serverda,
+        # save() içida belgilanadi; öqituvchi/admin rollari admin panelidan
         # beriladi.
         fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'password1', 'password2']
 
@@ -214,29 +214,29 @@ class ProfessionForm(forms.ModelForm):
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Pullik kurs (so'rov keladi)"
+        label="Pullik kurs (sörov keladi)"
     )
     is_mandatory = forms.BooleanField(
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Majburiy kurs (barcha o'quvchilar uchun)"
+        label="Majburiy kurs (barça öquvçilar uçun)"
     )
     one_time_payment = forms.BooleanField(
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Bir martalik to'lov (so'rovsiz, Tezcheck orqali sotiladi)"
+        label="Bir martalik tölov (sörovsiz, Tezcheck orqali sotiladi)"
     )
     one_time_price = forms.IntegerField(
         required=False,
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1000, 'step': 1000, 'placeholder': 'Masalan: 300000'}),
-        label="Kurs narxi (so'm)"
+        label="Kurs narxi (söm)"
     )
     closed_group_link = forms.URLField(
         required=False,
-        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://t.me/+... yoki boshqa havola'}),
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://t.me/+... yoki boşqa havola'}),
         label="Yopiq guruh havolasi"
     )
     kind = forms.ChoiceField(
@@ -255,35 +255,35 @@ class ProfessionForm(forms.ModelForm):
         required=False,
         min_value=0,
         initial=0,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = cheksiz', 'min': 0}),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = çeksiz', 'min': 0}),
         label="Mavzular (darslar) soni",
-        help_text="0 = cheksiz. Belgilangan sondan ortiq dars qo'shib bo'lmaydi."
+        help_text="0 = çeksiz. Belgilangan sondan ortiq dars qöşib bölmaydi."
     )
     duration_months = forms.IntegerField(
         required=False,
         min_value=0,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: 6', 'min': 0}),
-        label="O'qish davomiyligi (oy)"
+        label="Öqiş davomiyligi (oy)"
     )
 
-    # ─── Ustoz to'lov stavkalari (har kasb uchun alohida) ───
+    # ─── Ustoz tölov stavkalari (har kasb uçun alohida) ───
     price_per_video = forms.IntegerField(
         required=False, min_value=0, initial=25000,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '25000'}),
-        label="Video dars uchun to'lov (so'm)",
-        help_text="Ustozga shu kursda har video dars uchun to'lanadi."
+        label="Video dars uçun tölov (söm)",
+        help_text="Ustozga şu kursda har video dars uçun tölanadi."
     )
     price_per_test = forms.IntegerField(
         required=False, min_value=0, initial=10000,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '10000'}),
-        label="Test uchun to'lov (so'm)",
-        help_text="Ustozga shu kursda har test uchun to'lanadi."
+        label="Test uçun tölov (söm)",
+        help_text="Ustozga şu kursda har test uçun tölanadi."
     )
     price_per_homework = forms.IntegerField(
         required=False, min_value=0, initial=10000,
         widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '10000'}),
-        label="Uyga vazifa uchun to'lov (so'm)",
-        help_text="Ustozga shu kursda har uyga vazifa uchun to'lanadi."
+        label="Uyga vazifa uçun tölov (söm)",
+        help_text="Ustozga şu kursda har uyga vazifa uçun tölanadi."
     )
 
     def clean_topic_count(self):
@@ -291,7 +291,7 @@ class ProfessionForm(forms.ModelForm):
         return v if v else 0
 
     def _clean_rate(self, field, default):
-        """Bo'sh qoldirilsa standart qiymatga tushadi (maydon null bo'la olmaydi)."""
+        """Böş qoldirilsa standart qiymatga tuşadi (maydon null böla olmaydi)."""
         v = self.cleaned_data.get(field)
         return default if v is None else v
 
@@ -309,9 +309,9 @@ class ProfessionForm(forms.ModelForm):
         price = cleaned.get('one_time_price') or 0
         if cleaned.get('one_time_payment'):
             if price < 1000:
-                self.add_error('one_time_price', "Bir martalik to'lov uchun narx kamida 1 000 so'm bo'lishi kerak.")
+                self.add_error('one_time_price', "Bir martalik tölov uçun narx kamida 1 000 söm bölişi kerak.")
             if cleaned.get('is_mandatory'):
-                self.add_error('one_time_payment', "Majburiy kursni sotib bo'lmaydi.")
+                self.add_error('one_time_payment', "Majburiy kursni sotib bölmaydi.")
             # Sotiladigan kurs har doim pullik hisoblanadi.
             cleaned['is_paid'] = True
         cleaned['one_time_price'] = price
@@ -337,14 +337,14 @@ class UserProfileForm(forms.ModelForm):
     photo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     bio = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'O\'zingiz haqida...'})
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Özingiz haqida...'})
     )
     obektivka = forms.CharField(
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Obektivka...'})
     )
 
-    address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Yashash manzilingiz'}))
+    address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Yaşaş manzilingiz'}))
     birth_date = forms.DateField(required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}))
     id_card = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
     birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
@@ -372,13 +372,13 @@ class AdminUserEditForm(forms.ModelForm):
     role = forms.ChoiceField(choices=CustomUser.ROLE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
     profession = forms.ModelChoiceField(
         queryset=Profession.objects.only('id', 'name'), required=False,
-        widget=forms.Select(attrs={'class': 'form-control'}), empty_label="Yo'nalishni tanlang"
+        widget=forms.Select(attrs={'class': 'form-control'}), empty_label="Yönalişni tanlang"
     )
     assistant_role = forms.ModelChoiceField(
         queryset=None, required=False,
         widget=forms.Select(attrs={'class': 'form-control'}),
-        empty_label="— Permission profili (faqat Yordamchi admin uchun) —",
-        label="Yordamchi rol",
+        empty_label="— Permission profili (faqat Yordamçi admin uçun) —",
+        label="Yordamçi rol",
     )
     photo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     bio = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
@@ -394,7 +394,7 @@ class AdminUserEditForm(forms.ModelForm):
     birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     gender = forms.ChoiceField(required=False, choices=[('', 'Tanlang')] + list(CustomUser.GENDER_CHOICES), widget=forms.Select(attrs={'class': 'form-control'}))
-    nationality = forms.CharField(required=False, max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}))
+    nationality = forms.CharField(required=False, max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: Özbek"}))
     passport_series = forms.CharField(required=False, max_length=10, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA', 'maxlength': '2'}))
     passport_number = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1234567', 'maxlength': '7'}))
     jshshir = forms.CharField(required=False, max_length=14, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '14 xonali raqam', 'maxlength': '14'}))
@@ -476,20 +476,20 @@ class VideoLessonForm(forms.Form):
         }),
         label="YouTube havolasi"
     )
-    # Davomiylikni server o'zi YouTube/Vimeo'dan aniqlaydi (anti-cheat: mijoz
-    # aytgan qiymatga ishonib bo'lmaydi). Bu maydon — ZAXIRA: server aniqlay
-    # olmasa (private video, kvota tugagan) admin qo'lda kiritadi, aks holda
-    # ko'rish talabi hisoblanmay dars yopilmaydi.
+    # Davomiylikni server özi YouTube/Vimeo'dan aniqlaydi (anti-cheat: mijoz
+    # aytgan qiymatga işonib bölmaydi). Bu maydon — ZAXIRA: server aniqlay
+    # olmasa (private video, kvota tugagan) admin qölda kiritadi, aks holda
+    # köriş talabi hisoblanmay dars yopilmaydi.
     duration = forms.IntegerField(
         required=False,
         min_value=0,
         max_value=1440,
         widget=forms.NumberInput(attrs={
             'class': 'form-control',
-            'placeholder': "Bo'sh qoldiring — avtomatik aniqlanadi",
+            'placeholder': "Böş qoldiring — avtomatik aniqlanadi",
         }),
         label="Davomiyligi (daqiqa)",
-        help_text="Faqat server davomiylikni aniqlay olmagan holatda to'ldiring.",
+        help_text="Faqat server davomiylikni aniqlay olmagan holatda töldiring.",
     )
 
     def clean(self):
@@ -503,9 +503,9 @@ class VideoLessonForm(forms.Form):
             raise forms.ValidationError("Vimeo yoki YouTube havolasini kiriting.")
 
         if vimeo_url and 'vimeo.com' not in vimeo_url:
-            raise forms.ValidationError("Vimeo havolasi vimeo.com dan bo'lishi kerak.")
+            raise forms.ValidationError("Vimeo havolasi vimeo.com dan bölişi kerak.")
         if youtube_url and 'youtube.com' not in youtube_url and 'youtu.be' not in youtube_url:
-            raise forms.ValidationError("YouTube havolasi youtube.com yoki youtu.be dan bo'lishi kerak.")
+            raise forms.ValidationError("YouTube havolasi youtube.com yoki youtu.be dan bölişi kerak.")
 
         return cleaned_data
 
@@ -522,31 +522,31 @@ class HomeworkForm(forms.Form):
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="AI tekshirsin"
+        label="AI tekşirsin"
     )
     handwritten_only = forms.BooleanField(
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Faqat yozma topshirish (rasm)"
+        label="Faqat yozma topşiriş (rasm)"
     )
 
 
 class DictionaryForm(forms.Form):
     title = forms.CharField(
         max_length=300,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Lug'at nomi"})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Luğat nomi"})
     )
     description = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': "Lug'at haqida qisqa tavsif (ixtiyoriy)", 'rows': 2})
+        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': "Luğat haqida qisqa tavsif (ixtiyoriy)", 'rows': 2})
     )
 
 
 class HomeworkSubmissionForm(forms.ModelForm):
     SUBMISSION_TYPE_CHOICES = (
-        ('file', 'Fayl yuklash'),
-        ('text', 'Matn yozish'),
+        ('file', 'Fayl yuklaş'),
+        ('text', 'Matn yoziş'),
     )
     
     submission_type = forms.ChoiceField(
@@ -580,11 +580,11 @@ class HomeworkSubmissionForm(forms.ModelForm):
         text_content = cleaned_data.get('text_content')
         
         if submission_type == 'file' and not file:
-            raise forms.ValidationError("Fayl yuklashingiz kerak!")
+            raise forms.ValidationError("Fayl yuklaşingiz kerak!")
         if submission_type == 'file' and file and file.size > 5 * 1024 * 1024:
-            raise forms.ValidationError("Fayl hajmi 5 MB dan oshmasligi kerak!")
+            raise forms.ValidationError("Fayl hajmi 5 MB dan oşmasligi kerak!")
         if submission_type == 'text' and not text_content:
-            raise forms.ValidationError("Matn kiritishingiz kerak!")
+            raise forms.ValidationError("Matn kiritişingiz kerak!")
         
         return cleaned_data
 
@@ -604,7 +604,7 @@ class TestForm(forms.Form):
     TEST_TYPE_CHOICES = (
         ('lesson', 'Dars yuzasidan'),
         ('midterm', 'Oraliq test'),
-        ('practice', 'Tajriba oshirish'),
+        ('practice', 'Tajriba oşiriş'),
         ('final', 'Yakuniy test'),
     )
     
@@ -623,7 +623,7 @@ class TestForm(forms.Form):
     )
     passing_score = forms.IntegerField(
         initial=60,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'O\'tish bali (%)'})
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ötiş bali (%)'})
     )
     allow_retry = forms.BooleanField(
         required=False,
@@ -634,18 +634,18 @@ class TestForm(forms.Form):
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Savollar tartibini aralashtirish"
+        label="Savollar tartibini aralaştiriş"
     )
     shuffle_answers = forms.BooleanField(
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
-        label="Javoblar tartibini aralashtirish"
+        label="Javoblar tartibini aralaştiriş"
     )
     question_count = forms.IntegerField(
         initial=0,
         required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = barchasi', 'min': '0'}),
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = barçasi', 'min': '0'}),
         label="Olinadigan savollar soni"
     )
 
@@ -685,7 +685,7 @@ class CertificateForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: CERT-20260324-1234'}),
         label="Sertifikat ID raqami",
         required=False,
-        help_text="Bo'sh qoldirilsa avtomatik yaratiladi",
+        help_text="Böş qoldirilsa avtomatik yaratiladi",
     )
     file = forms.FileField(
         validators=[validate_document_upload],
@@ -699,7 +699,7 @@ class CertificateForm(forms.ModelForm):
     )
     valid_until = forms.DateField(
         widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
-        label="Amal qilish muddati",
+        label="Amal qiliş muddati",
         required=False,
     )
     status = forms.ChoiceField(
@@ -725,14 +725,14 @@ class CertificateForm(forms.ModelForm):
             if self.instance and self.instance.pk:
                 qs = qs.exclude(pk=self.instance.pk)
             if qs.exists():
-                raise forms.ValidationError("Bu ID raqam allaqachon mavjud!")
+                raise forms.ValidationError("Bu ID raqam allaqaçon mavjud!")
         return cert_id
 
 
 class SectionForm(forms.ModelForm):
     title = forms.CharField(
         max_length=200,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Bo'lim nomi"})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Bölim nomi"})
     )
     description = forms.CharField(
         required=False,
@@ -769,7 +769,7 @@ class PasswordResetRequestForm(forms.Form):
 
 
 class StudentProfileCompleteForm(forms.ModelForm):
-    """Profil to'ldirish formasi - login dan keyin majburiy"""
+    """Profil töldiriş formasi - login dan keyin majburiy"""
     
     first_name = forms.CharField(
         max_length=100,
@@ -781,7 +781,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
     )
     birth_date = forms.DateField(
         widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
-        label="Tug'ilgan kuni"
+        label="Tuğilgan kuni"
     )
     gender = forms.ChoiceField(
         choices=[('', 'Tanlang...')] + list(CustomUser.GENDER_CHOICES),
@@ -790,7 +790,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
     )
     nationality = forms.CharField(
         max_length=100,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: Özbek"}),
         label="Millati"
     )
     
@@ -802,7 +802,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
         label="Hujjat turi",
     )
 
-    # Passport fields (pasport tanlanganda majburiy — clean() da tekshiriladi)
+    # Passport fields (pasport tanlanganda majburiy — clean() da tekşiriladi)
     passport_series = forms.CharField(
         required=False, max_length=10,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA'}),
@@ -816,7 +816,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
     jshshir = forms.CharField(
         required=False, max_length=14,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678901234'}),
-        label="JSHSHIR (PINFL)"
+        label="JŞŞIR (PINFL)"
     )
     passport_issued_date = forms.DateField(
         required=False,
@@ -824,7 +824,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
         label="Pasport berilgan sana"
     )
 
-    # Metrika fields (metrika tanlanganda majburiy — JSHSHIR bo'lmaydi)
+    # Metrika fields (metrika tanlanganda majburiy — JŞŞIR bölmaydi)
     metrka_series = forms.CharField(
         required=False, max_length=10,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'I-GZ'}),
@@ -840,8 +840,8 @@ class StudentProfileCompleteForm(forms.ModelForm):
     father_name = forms.CharField(
         max_length=200,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Otangizning to'liq ismi"}),
-        label="Otasining to'liq ismi"
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Otangizning töliq ismi"}),
+        label="Otasining töliq ismi"
     )
     father_phone = forms.CharField(
         max_length=20,
@@ -857,8 +857,8 @@ class StudentProfileCompleteForm(forms.ModelForm):
     mother_name = forms.CharField(
         max_length=200,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Onangizning to'liq ismi"}),
-        label="Onasining to'liq ismi"
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Onangizning töliq ismi"}),
+        label="Onasining töliq ismi"
     )
     mother_phone = forms.CharField(
         max_length=20,
@@ -890,8 +890,8 @@ class StudentProfileCompleteForm(forms.ModelForm):
     )
     address = forms.CharField(
         max_length=300,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "To'liq yashash manzili"}),
-        label="Yashash manzili"
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Töliq yaşaş manzili"}),
+        label="Yaşaş manzili"
     )
 
     class Meta:
@@ -914,19 +914,19 @@ class StudentProfileCompleteForm(forms.ModelForm):
         return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
 
     def clean_jshshir(self):
-        # JSHSHIR faqat kiritilgan bo'lsa tekshiriladi (metrikada JSHSHIR bo'lmaydi).
+        # JŞŞIR faqat kiritilgan bölsa tekşiriladi (metrikada JŞŞIR bölmaydi).
         jshshir = ''.join((self.cleaned_data.get('jshshir') or '').split())
         if jshshir:
             parse_jshshir(jshshir)
         return jshshir
 
     def clean(self):
-        """Hujjat turiga qarab (pasport yoki metrika) mos maydonlarni tekshiradi.
+        """Hujjat turiga qarab (pasport yoki metrika) mos maydonlarni tekşiradi.
 
-        - Pasport: seriya + raqam + JSHSHIR majburiy.
-        - Metrika: seriya + raqam majburiy (JSHSHIR yo'q).
-        Hujjat turi tanlanmagan bo'lsa hujjat maydonlari majburiy emas — ammo
-        bunday holatda profil "to'ldirilmagan" bo'lib qoladi (foydalanuvchi skip qilishi mumkin).
+        - Pasport: seriya + raqam + JŞŞIR majburiy.
+        - Metrika: seriya + raqam majburiy (JŞŞIR yöq).
+        Hujjat turi tanlanmagan bölsa hujjat maydonlari majburiy emas — ammo
+        bunday holatda profil "töldirilmagan" bölib qoladi (foydalanuvçi skip qilişi mumkin).
         """
         cleaned = super().clean()
         doc_type = cleaned.get('document_type')
@@ -937,14 +937,14 @@ class StudentProfileCompleteForm(forms.ModelForm):
             if not cleaned.get('passport_number'):
                 self.add_error('passport_number', "Pasport raqami majburiy.")
             if not cleaned.get('jshshir'):
-                self.add_error('jshshir', "Pasport uchun JSHSHIR majburiy.")
+                self.add_error('jshshir', "Pasport uçun JŞŞIR majburiy.")
         elif doc_type == 'metrka':
             if not cleaned.get('metrka_series'):
                 self.add_error('metrka_series', "Metrika seriyasi majburiy (masalan: I-GZ).")
             if not cleaned.get('metrka_number'):
                 self.add_error('metrka_number', "Metrika raqami majburiy.")
 
-        # JSHSHIR ichidagi jins va tug'ilgan sana kiritilgan ma'lumotlarga mos bo'lishi shart.
+        # JŞŞIR içidagi jins va tuğilgan sana kiritilgan ma'lumotlarga mos bölişi şart.
         check_jshshir_matches(self, cleaned.get('jshshir'), cleaned.get('birth_date'), cleaned.get('gender'))
         return cleaned
 

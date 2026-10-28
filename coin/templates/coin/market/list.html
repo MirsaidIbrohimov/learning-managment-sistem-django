@@ -35,19 +35,19 @@
         </div>
         <div class="mkx-mside">
             <span class="mkx-eyebrow rv"><span class="dot"></span> Premium Market</span>
-            <h2 class="mkx-serif rv" style="--d:.06s">Imtiyozlaringiz <span class="mkx-gold">har bir xaridda</span> ishlaydi.</h2>
-            <p class="rv" style="--d:.12s">Mahsulotlarga 5% Premium chegirma va tanga uchun yarim narx avtomatik qo‘llanadi.</p>
+            <h2 class="mkx-serif rv" style="--d:.06s">Imtiyozlaringiz <span class="mkx-gold">har bir xaridda</span> işlaydi.</h2>
+            <p class="rv" style="--d:.12s">Mahsulotlarga 5% Premium çegirma va tanga uçun yarim narx avtomatik qöllanadi.</p>
             {% if request.user.premium_expires_at %}
             <div class="mkx-expiry rv" style="--d:.18s" id="mkExpiry" data-expires="{{ request.user.premium_expires_at|date:'c' }}">
                 <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true"><circle class="tr" cx="21" cy="21" r="18"/><circle class="fl" id="mkExpRing" cx="21" cy="21" r="18"/></svg>
                 <div><b id="mkExpTitle">Premium faol</b><span>Hozir uzaytirsangiz imtiyozlar uzilmaydi</span></div>
-                <a class="mkx-btn gold sm" href="{% url 'coin:extend_premium_page' %}">Uzaytirish</a>
+                <a class="mkx-btn gold sm" href="{% url 'coin:extend_premium_page' %}">Uzaytiriş</a>
             </div>
             {% endif %}
             <div class="mkx-links rv" style="--d:.24s">
                 <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Xaridlarim</a>
                 <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
-                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> O‘tkazma</a>
+                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> Ötkazma</a>
             </div>
         </div>
     </section>
@@ -59,18 +59,18 @@
         <div>
             <span class="mkx-kicker">ITC Academy · Coin Market</span>
             <h1>Market</h1>
-            <p>O‘qishda yig‘gan coinlaringizni foydali mahsulotlarga almashtiring.</p>
+            <p>Öqişda yiğgan coinlaringizni foydali mahsulotlarga almaştiring.</p>
             <div class="mkx-links">
                 <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Mening xaridlarim</a>
                 <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
-                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> O‘tkazma</a>
+                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> Ötkazma</a>
             </div>
         </div>
         <aside class="mkx-wallet">
             <div class="mkx-wallet-lbl">Coin balansi</div>
             <div class="mkx-wallet-amt"><i class="bi bi-coin"></i> <span id="mkBalanceValue">{{ request.user.coins }}</span></div>
             <div class="mkx-goal" id="mkGoal" hidden>
-                <div class="mkx-goal-row"><span>Haftalik Premium uchun</span><span id="mkRingLabel"></span></div>
+                <div class="mkx-goal-row"><span>Haftalik Premium uçun</span><span id="mkRingLabel"></span></div>
                 <div class="mkx-bar"><i id="mkGoalBar"></i></div>
             </div>
         </aside>
@@ -82,13 +82,13 @@
         <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-gem"></i></span><div><b id="mkStatPremium">0</b><small>Faol Premium a’zolar</small></div></div>
         <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-bag"></i></span><div><b id="mkStatToday">0</b><small>Bugungi xaridlar</small></div></div>
         <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-graph-up"></i></span><div><b id="mkStatTotal">0</b><small>Jami xaridlar</small></div></div>
-        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-hourglass-split"></i></span><div><b id="mkStatTimer">—</b><small>Hafta yakunigacha</small></div></div>
+        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-hourglass-split"></i></span><div><b id="mkStatTimer">—</b><small>Hafta yakunigaça</small></div></div>
     </section>
 
     {% if prem %}
     <!-- HAFTANING TANLOVI -->
     <section id="mkFeatureWrap" hidden>
-        <div class="mkx-sec rv"><div><span class="mkx-eyebrow">Haftaning tanlovi</span><h2>Eng ko‘p sotilayotgan</h2></div></div>
+        <div class="mkx-sec rv"><div><span class="mkx-eyebrow">Haftaning tanlovi</span><h2>Eng köp sotilayotgan</h2></div></div>
         <article class="mkx-feature rv" id="mkFeature"></article>
     </section>
     {% else %}
@@ -97,7 +97,7 @@
         <span class="mkx-upsell-ic"><i class="bi bi-gem"></i></span>
         <div class="mkx-upsell-copy">
             <h3 id="mkPremiumTitle">Premium bilan har xaridda tejang</h3>
-            <p id="mkPremiumDesc">Tanga 50% arzon • hisob to‘ldirishga +15% bonus tanga • marketda 5% chegirma • 2x coin</p>
+            <p id="mkPremiumDesc">Tanga 50% arzon • hisob töldirişga +15% bonus tanga • marketda 5% çegirma • 2x coin</p>
         </div>
         <div class="mkx-upsell-price" id="mkPremiumPriceRow" hidden>
             <del id="mkPremiumOldPrice"></del><span id="mkPremiumDiscount"></span>
@@ -110,21 +110,21 @@
     <!-- KATALOG -->
     <div class="mkx-sec{% if prem %} rv{% endif %}">
         <div>
-            {% if prem %}<span class="mkx-eyebrow">Katalog</span><h2>Siz uchun Premium narxlar</h2><p>Chegirma mavjud mahsulotlarda Premium narx ko‘rsatilgan.</p>
+            {% if prem %}<span class="mkx-eyebrow">Katalog</span><h2>Siz uçun Premium narxlar</h2><p>Çegirma mavjud mahsulotlarda Premium narx körsatilgan.</p>
             {% else %}<h2>Mahsulotlar</h2>{% endif %}
         </div>
-        <label class="mkx-search"><i class="bi bi-search"></i><input type="text" id="mkSearch" placeholder="Mahsulot qidirish..." aria-label="Mahsulot qidirish"></label>
+        <label class="mkx-search"><i class="bi bi-search"></i><input type="text" id="mkSearch" placeholder="Mahsulot qidiriş..." aria-label="Mahsulot qidiriş"></label>
     </div>
     <div class="mkx-grid mk-grid" id="mkGrid">
         <div class="mk-skeleton"></div><div class="mk-skeleton"></div><div class="mk-skeleton"></div>
     </div>
     <div id="mkPagination"></div>
 
-    <!-- ISHONCH -->
+    <!-- IŞONÇ -->
     <section class="mkx-trust{% if prem %} rv{% endif %}">
-        <div><i class="bi bi-shield-check"></i><span><b>Xavfsiz xarid</b>Barcha operatsiyalar coin balansi orqali himoyalangan</span></div>
-        <div><i class="bi bi-arrow-counterclockwise"></i><span><b>Bekor qilish imkoni</b>Yetkazilmagan buyurtmani bekor qilsangiz coin qaytadi</span></div>
-        <div><i class="bi bi-lightning-charge"></i><span><b>Tez yetkazish</b>Admin buyurtmalarni navbat bo‘yicha yetkazadi</span></div>
+        <div><i class="bi bi-shield-check"></i><span><b>Xavfsiz xarid</b>Barça operatsiyalar coin balansi orqali himoyalangan</span></div>
+        <div><i class="bi bi-arrow-counterclockwise"></i><span><b>Bekor qiliş imkoni</b>Yetkazilmagan buyurtmani bekor qilsangiz coin qaytadi</span></div>
+        <div><i class="bi bi-lightning-charge"></i><span><b>Tez yetkaziş</b>Admin buyurtmalarni navbat böyiça yetkazadi</span></div>
     </section>
 </div>
 {% endwith %}
@@ -153,7 +153,7 @@
         return r.json();
     }
     function formatNum(n){ return Math.round(n||0).toLocaleString('en-US').replace(/,/g,' '); }
-    // Server ma'lumoti `innerHTML` ga qo'yiladi — HTML metabelgilarini escape qilamiz.
+    // Server ma'lumoti `innerHTML` ga qöyiladi — HTML metabelgilarini escape qilamiz.
     function esc(s) {
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
             return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -161,7 +161,7 @@
     }
     const pad = n => String(n).padStart(2,'0');
 
-    // Raqamni 0 dan sanab chiqarish (premium); oddiy rejimda darhol.
+    // Raqamni 0 dan sanab çiqariş (premium); oddiy rejimda darhol.
     function countTo(el, to) {
         if (!el) return;
         if (!PREMIUM || REDUCED) { el.textContent = formatNum(to); return; }
@@ -169,7 +169,7 @@
         (function f(t){ const k = Math.min(1,(t-t0)/ms), e = 1-Math.pow(1-k,4); el.textContent = formatNum(to*e); if (k<1) requestAnimationFrame(f); })(t0);
     }
 
-    // ── Premium: scroll bilan ochilish ──
+    // ── Premium: scroll bilan oçiliş ──
     const io = (PREMIUM && 'IntersectionObserver' in window && !REDUCED)
         ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.12})
         : null;
@@ -182,11 +182,11 @@
     function setBalance(coins) { balanceEl.textContent = formatNum(coins); }
 
     if (PREMIUM) {
-        // Imtiyozlar oqimi (ikki marta — uzluksiz aylanish uchun)
-        const perks = ['Tanga 50% arzon','Hisob to‘ldirishga +15% bonus tanga','Marketda 5% chegirma','2x coin','Maxsus aksiyalar'];
+        // Imtiyozlar oqimi (ikki marta — uzluksiz aylaniş uçun)
+        const perks = ['Tanga 50% arzon','Hisob töldirişga +15% bonus tanga','Marketda 5% çegirma','2x coin','Maxsus aksiyalar'];
         document.getElementById('mkMarquee').innerHTML = perks.concat(perks).map(t => '<span><i class="bi bi-diamond-fill"></i>'+t+'</span>').join('');
 
-        // A'zolik kartasi: 3D egilish
+        // A'zolik kartasi: 3D egiliş
         const card = document.getElementById('mkMemberCard');
         if (!REDUCED && window.matchMedia('(hover: hover)').matches) {
             card.addEventListener('pointermove', e => {
@@ -202,12 +202,12 @@
         const exp = document.getElementById('mkExpiry');
         if (exp) {
             const days = Math.max(0, Math.ceil((Date.parse(exp.dataset.expires) - Date.now()) / 86400000));
-            document.getElementById('mkExpTitle').textContent = days > 0 ? 'Premium tugashiga ' + days + ' kun qoldi' : 'Premium muddati tugadi';
+            document.getElementById('mkExpTitle').textContent = days > 0 ? 'Premium tugaşiga ' + days + ' kun qoldi' : 'Premium muddati tugadi';
             setTimeout(() => { document.getElementById('mkExpRing').style.strokeDasharray = (Math.min(1, days/30)*113) + ' 113'; }, 500);
         }
     }
 
-    // ── Oddiy: haftalik Premiumgacha progress va Premium taklifi ──
+    // ── Oddiy: haftalik Premiumgaça progress va Premium taklifi ──
     async function loadSummaryAndPlans() {
         try {
             const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/').catch(()=>null)]);
@@ -225,16 +225,16 @@
             if (!plans) {
                 banner.hidden = false;
             } else if (plans.has_pending_request) {
-                title.innerHTML = 'Premium so‘rov kutilmoqda <span class="mk-premium-badge">⏳</span>';
-                desc.textContent = 'Admin tasdiqlashini kuting';
+                title.innerHTML = 'Premium sörov kutilmoqda <span class="mk-premium-badge">⏳</span>';
+                desc.textContent = 'Admin tasdiqlaşini kuting';
                 banner.hidden = false;
             } else if (!plans.eligible) {
                 title.innerHTML = '<i class="bi bi-lock"></i> Premium hali qulf ostida';
-                desc.textContent = 'Yana ' + plans.days_until_eligible + ' kunda ochiladi';
+                desc.textContent = 'Yana ' + plans.days_until_eligible + ' kunda oçiladi';
                 banner.hidden = false;
             } else if (!plans.is_premium) {
                 const mp = plans.plans.monthly;
-                title.innerHTML = 'Premium bilan har xaridda tejang <span class="mk-premium-badge">CHEGIRMA</span>';
+                title.innerHTML = 'Premium bilan har xaridda tejang <span class="mk-premium-badge">ÇEGIRMA</span>';
                 document.getElementById('mkPremiumOldPrice').textContent = formatNum(mp.price*2) + ' coin';
                 document.getElementById('mkPremiumNewPrice').textContent = formatNum(mp.price) + ' coin / oy';
                 document.getElementById('mkPremiumDiscount').textContent = '−50%';
@@ -289,12 +289,12 @@
         document.getElementById('mkFeature').innerHTML =
             '<div class="mkx-fimg">' + (p.image ? '<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'">' : '') + '</div>'
           + '<div class="mkx-ftxt">'
-          + (p.stock <= 3 ? '<span class="mkx-live">Faqat '+p.stock+' ta qoldi</span>' : '<span class="mkx-live">Bu hafta eng ko‘p olingan</span>')
+          + (p.stock <= 3 ? '<span class="mkx-live">Faqat '+p.stock+' ta qoldi</span>' : '<span class="mkx-live">Bu hafta eng köp olingan</span>')
           + '<h3 class="mkx-serif">'+esc(p.name)+'</h3><p>'+esc((p.description||'').substring(0,140))+'</p>'
           + '<div class="mkx-fprice"><b class="mkx-gold">'+formatNum(price)+' coin</b>'
           + (p.has_discount ? '<del>'+formatNum(p.coin_price)+'</del><span class="mkx-save">−'+p.discount_percent+'% Premium</span>' : '') + '</div>'
           + '<div class="mkx-timer" id="mkFeatureTimer"></div>'
-          + '<div class="mkx-links"><a class="mkx-btn gold" href="/market/'+p.id+'/">Batafsil ko‘rish <i class="bi bi-arrow-right"></i></a>'
+          + '<div class="mkx-links"><a class="mkx-btn gold" href="/market/'+p.id+'/">Batafsil köriş <i class="bi bi-arrow-right"></i></a>'
           + '<span class="mkx-btn"><i class="bi bi-heart-fill" style="color:var(--mkt-bad)"></i> '+p.likes_count+'</span></div></div>';
         paintFeatureTimer(remaining());
         wrap.hidden = false;
@@ -316,7 +316,7 @@
             + '<div class="mkx-body"><h3>'+esc(p.name)+'</h3><p>'+esc((p.description||'').substring(0,100))+(p.description && p.description.length>100?'...':'')+'</p>'
             + '<div class="mkx-meta"><span class="mkx-likes'+(p.is_liked?' on':'')+'"><i class="bi bi-heart-fill"></i> '+p.likes_count+'</span><span><i class="bi bi-chat"></i> '+p.comments_count+' izoh</span></div>'
             + '<div class="mkx-foot"><div class="mkx-price">'+price+'</div>'
-            + '<div class="mkx-acts"><button type="button" class="mkx-like'+(p.is_liked?' liked':'')+'" data-id="'+p.id+'" aria-label="Yoqtirish" aria-pressed="'+(p.is_liked?'true':'false')+'"><i class="bi '+(p.is_liked?'bi-heart-fill':'bi-heart')+'"></i></button>'
+            + '<div class="mkx-acts"><button type="button" class="mkx-like'+(p.is_liked?' liked':'')+'" data-id="'+p.id+'" aria-label="Yoqtiriş" aria-pressed="'+(p.is_liked?'true':'false')+'"><i class="bi '+(p.is_liked?'bi-heart-fill':'bi-heart')+'"></i></button>'
             + '<a href="/market/'+p.id+'/" class="mkx-btn mkx-more">Batafsil</a></div></div></div></article>';
     }
 
@@ -333,7 +333,7 @@
             const totalPages = Math.ceil(d.count/20);
             if (PREMIUM) renderFeature(d.results);
             if (!d.results.length) {
-                grid.innerHTML = '<div class="mk-empty"><i class="bi bi-box-seam"></i><h4>Mahsulotlar topilmadi</h4><p>Boshqa kalit so‘z bilan qidirib ko‘ring</p></div>';
+                grid.innerHTML = '<div class="mk-empty"><i class="bi bi-box-seam"></i><h4>Mahsulotlar topilmadi</h4><p>Boşqa kalit söz bilan qidirib köring</p></div>';
                 return;
             }
             grid.innerHTML = d.results.map(cardHtml).join('');
@@ -351,7 +351,7 @@
     }
     window.loadPage = function(p) { loadProducts(p); document.getElementById('mkGrid').scrollIntoView({behavior: REDUCED ? 'auto' : 'smooth', block: 'start'}); };
 
-    // Like (+ premiumda uchqunlar)
+    // Like (+ premiumda uçqunlar)
     const grid = document.getElementById('mkGrid');
     grid.addEventListener('click', async e => {
         const btn = e.target.closest('.mkx-like');
@@ -386,7 +386,7 @@
     });
     document.addEventListener('coin-payment-confirmed', () => { loadSummaryAndPlans(); loadProducts(page); });
 
-    // Avval statistika — trend ID'lari mahsulotlar chizilishidan oldin tayyor bo'ladi.
+    // Avval statistika — trend ID'lari mahsulotlar çizilişidan oldin tayyor böladi.
     (async function init(){
         await Promise.all([loadStats(), loadSummaryAndPlans()]);
         loadProducts(1);

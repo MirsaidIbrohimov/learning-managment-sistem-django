@@ -7,7 +7,7 @@
     .ch { display: grid; grid-template-columns: 300px minmax(0, 1fr); height: calc(100vh - 120px); min-height: 520px; border-radius: 24px; overflow: hidden;
         background: var(--pp-surface); border: 1px solid var(--pp-line); box-shadow: var(--pp-shadow); }
 
-    /* Suhbatlar ro'yxati */
+    /* Suhbatlar röyxati */
     .ch-list { border-right: 1px solid var(--pp-line); display: flex; flex-direction: column; min-height: 0; background: var(--pp-surface-2); }
     [data-bs-theme="dark"] .ch-list { background: rgba(255,255,255,.02); }
     .ch-list-h { padding: 18px 18px 10px; }
@@ -25,7 +25,7 @@
     .ch-conv .n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center; font-size: .68rem; font-weight: 800; color: #fff; background: var(--pp-ok); animation: ppPop .5s var(--pp-spring); }
     .ch-tip { margin: auto 12px 12px; padding: 12px; border-radius: 14px; font-size: .76rem; color: var(--pp-text-2); background: color-mix(in srgb, var(--pp-pri) 8%, transparent); }
 
-    /* Chat */
+    /* Çat */
     .ch-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .ch-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--pp-line); background: var(--pp-glass); backdrop-filter: blur(12px); }
     .ch-head .pp-ava { width: 42px; height: 42px; border-radius: 14px; }
@@ -61,7 +61,7 @@
         background: color-mix(in srgb, var(--pp-pri) 10%, transparent); animation: ppFloat 5s ease-in-out infinite; }
     .ch-empty h4 { margin: 0 0 6px; font-weight: 850; }
 
-    /* Yozish maydoni */
+    /* Yoziş maydoni */
     .ch-compose { border-top: 1px solid var(--pp-line); padding: 10px 14px 14px; background: var(--pp-surface); }
     .ch-topics { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
     .ch-topics label { flex-shrink: 0; cursor: pointer; }
@@ -96,23 +96,23 @@
 <div class="ch" data-reveal="scale">
     <!-- Suhbatlar -->
     <aside class="ch-list" aria-label="Suhbatlar">
-        <div class="ch-list-h"><h2>Xabarlar</h2><p>O‘quv markazi bilan farzandlaringiz haqida</p></div>
+        <div class="ch-list-h"><h2>Xabarlar</h2><p>Öquv markazi bilan farzandlaringiz haqida</p></div>
         <div class="ch-convs">
             {% for cv in convs %}
             <a class="ch-conv {% if chat_child and cv.child.id == chat_child.id %}on{% endif %}" href="?child={{ cv.child.id }}#end">
                 {% include 'parents/portal/partials/avatar.html' with person=cv.child size='' %}
                 <span class="t">
                     <b>{{ cv.child.full_name|default:cv.child.username }}{% if cv.last_at %}<small>{{ cv.last_at|date:"d.m" }}</small>{% endif %}</b>
-                    <span>{% if cv.last_text %}{{ cv.last_text|truncatechars:42 }}{% else %}Hali yozishmagansiz{% endif %}</span>
+                    <span>{% if cv.last_text %}{{ cv.last_text|truncatechars:42 }}{% else %}Hali yozişmagansiz{% endif %}</span>
                 </span>
                 {% if cv.new %}<span class="n">{{ cv.new }}</span>{% elif cv.waiting %}<i class="bi bi-clock" style="color:var(--pp-warn)" title="Javob kutilmoqda"></i>{% endif %}
             </a>
             {% endfor %}
         </div>
-        <div class="ch-tip"><i class="bi bi-lightbulb"></i> Javob odatda 1 ish kuni ichida keladi. Shoshilinch holatda o‘quv markaziga qo‘ng‘iroq qiling.</div>
+        <div class="ch-tip"><i class="bi bi-lightbulb"></i> Javob odatda 1 iş kuni içida keladi. Şoşilinç holatda öquv markaziga qönğiroq qiling.</div>
     </aside>
 
-    <!-- Chat -->
+    <!-- Çat -->
     <section class="ch-main">
         <div class="ch-kids">
             {% for cv in convs %}<a class="{% if chat_child and cv.child.id == chat_child.id %}on{% endif %}" href="?child={{ cv.child.id }}#end">{{ cv.child.first_name }}{% if cv.new %} · {{ cv.new }}{% endif %}</a>{% endfor %}
@@ -120,14 +120,14 @@
         <div class="ch-head">
             <span class="ch-av" style="width:42px;height:42px;border-radius:14px;align-self:center;"><i class="bi bi-mortarboard-fill"></i></span>
             <div style="min-width:0;">
-                <b>O‘quv markazi · {{ chat_child.first_name }} haqida</b>
+                <b>Öquv markazi · {{ chat_child.first_name }} haqida</b>
                 <small><span class="pp-online"></span> Ustoz va ma’muriyat javob beradi</small>
             </div>
         </div>
 
         <div class="ch-body" id="chBody">
             {% for e in events %}
-                {% if e.new_day %}<div class="ch-day"><span>{% with d=e.at|date:"Y-m-d" %}{% if d == today|date:"Y-m-d" %}Bugun{% elif d == yesterday|date:"Y-m-d" %}Kecha{% else %}{{ e.at|date:"d E" }}{% endif %}{% endwith %}</span></div>{% endif %}
+                {% if e.new_day %}<div class="ch-day"><span>{% with d=e.at|date:"Y-m-d" %}{% if d == today|date:"Y-m-d" %}Bugun{% elif d == yesterday|date:"Y-m-d" %}Keça{% else %}{{ e.at|date:"d E" }}{% endif %}{% endwith %}</span></div>{% endif %}
                 {% if e.kind == 'notice' %}
                 <div class="ch-notice"><i class="bi bi-bell-fill"></i><span><b>{{ e.title }}</b>{{ e.text }}</span></div>
                 {% elif e.kind == 'me' %}
@@ -140,8 +140,8 @@
             {% empty %}
             <div class="ch-empty">
                 <div class="art"><i class="bi bi-chat-heart"></i></div>
-                <h4>Suhbatni boshlang</h4>
-                <p>{{ chat_child.first_name }}ning o‘qishi, davomati yoki to‘lovi bo‘yicha savolingizni yozing —<br>ustoz yoki ma’muriyat shu yerda javob beradi.</p>
+                <h4>Suhbatni boşlang</h4>
+                <p>{{ chat_child.first_name }}ning öqişi, davomati yoki tölovi böyiça savolingizni yozing —<br>ustoz yoki ma’muriyat şu yerda javob beradi.</p>
             </div>
             {% endfor %}
             {% if waiting %}<div class="ch-typing"><span class="pp-typing" style="padding:8px 10px;"><i></i><i></i><i></i></span> Javob kutilmoqda…</div>{% endif %}
@@ -157,9 +157,9 @@
             </div>
             <div class="ch-input">
                 <textarea name="message" id="chText" rows="1" maxlength="4000" placeholder="{{ chat_child.first_name }} haqida xabar yozing..." required>{{ draft|default:'' }}</textarea>
-                <button type="submit" class="ch-send" id="chSend" aria-label="Yuborish" disabled><i class="bi bi-send-fill"></i></button>
+                <button type="submit" class="ch-send" id="chSend" aria-label="Yuboriş" disabled><i class="bi bi-send-fill"></i></button>
             </div>
-            <div class="ch-hint"><span>Enter — yuborish · Shift+Enter — yangi qator</span><span id="chCount"></span></div>
+            <div class="ch-hint"><span>Enter — yuboriş · Shift+Enter — yangi qator</span><span id="chCount"></span></div>
         </form>
     </section>
 </div>

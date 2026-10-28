@@ -78,11 +78,11 @@
      data-quiz-title="{{ quiz_title|escapejs|default:'' }}">
     {% if quiz_id %}
     <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-back">
-        <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytish
+        <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytiş
     </a>
     {% else %}
     <a href="{% url 'quizui:question_bank' %}" class="qz-back">
-        <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytish
+        <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytiş
     </a>
     {% endif %}
 
@@ -90,14 +90,14 @@
         <div class="qz-hero-left">
             <div class="qz-hero-icon green"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
             <div>
-                <h1 class="qz-hero-title">Savollarni import qilish</h1>
-                <p class="qz-hero-subtitle">Excel (.xlsx), CSV (.csv) yoki JSON (.json) fayl orqali savollarni bazaga qo'shing.</p>
+                <h1 class="qz-hero-title">Savollarni import qiliş</h1>
+                <p class="qz-hero-subtitle">Excel (.xlsx), CSV (.csv) yoki JSON (.json) fayl orqali savollarni bazaga qöşing.</p>
             </div>
         </div>
         <div class="qz-hero-actions">
             <div class="dropdown">
                 <button class="qz-btn qz-btn-ghost dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-download"></i> Namuna yuklab olish
+                    <i class="bi bi-download"></i> Namuna yuklab oliş
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px;border-color:var(--quizui-border);">
                     <li><a class="dropdown-item" href="{% static 'quiz/samples/quiz_import_template.xlsx' %}" download>
@@ -118,17 +118,17 @@
     <div class="imp-step">
         <div class="imp-step-item active" id="impStep1">
             <div class="imp-step-num">1</div>
-            <div class="imp-step-label">Fayl tanlash</div>
+            <div class="imp-step-label">Fayl tanlaş</div>
         </div>
         <i class="bi bi-chevron-right imp-step-arrow"></i>
         <div class="imp-step-item" id="impStep2">
             <div class="imp-step-num">2</div>
-            <div class="imp-step-label">Ko'rib chiqish</div>
+            <div class="imp-step-label">Körib çiqiş</div>
         </div>
         <i class="bi bi-chevron-right imp-step-arrow"></i>
         <div class="imp-step-item" id="impStep3">
             <div class="imp-step-num">3</div>
-            <div class="imp-step-label">Saqlash</div>
+            <div class="imp-step-label">Saqlaş</div>
         </div>
     </div>
 
@@ -138,13 +138,13 @@
             <label class="imp-drop" id="impDrop">
                 <input type="file" id="impFile" accept=".xlsx,.csv,.json" hidden>
                 <div class="imp-drop-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
-                <h4>Fayl tanlang yoki shu yerga torting</h4>
+                <h4>Fayl tanlang yoki şu yerga torting</h4>
                 <p>.xlsx, .csv yoki .json — maksimum 5 MB</p>
-                <p class="mt-2 mb-0"><small>Birinchi marta? <strong>Namuna yuklab olib</strong> formatini ko'ring.</small></p>
+                <p class="mt-2 mb-0"><small>Birinçi marta? <strong>Namuna yuklab olib</strong> formatini köring.</small></p>
             </label>
             <div class="mt-3 small text-muted">
                 <i class="bi bi-info-circle"></i>
-                <strong>Eslatma:</strong> Yuklash faqat ko'rib chiqishni boshlaydi. Saqlash uchun keyingi qadamda tasdiqlashingiz kerak.
+                <strong>Eslatma:</strong> Yuklaş faqat körib çiqişni boşlaydi. Saqlaş uçun keyingi qadamda tasdiqlaşingiz kerak.
             </div>
         </div>
     </div>
@@ -153,16 +153,16 @@
     <div class="qz-surface d-none" id="impStage2">
         <div class="qz-surface-head">
             <div class="qz-surface-title">
-                <i class="bi bi-eye"></i> Ko'rib chiqish — <span id="impPreviewFile" class="text-muted"></span>
+                <i class="bi bi-eye"></i> Körib çiqiş — <span id="impPreviewFile" class="text-muted"></span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 <span class="qz-badge success d-none" id="impStatOk"></span>
                 <span class="qz-badge danger d-none" id="impStatErr"></span>
                 <button class="qz-btn qz-btn-ghost" id="impReset" style="padding:8px 14px;font-size:.85rem;">
-                    <i class="bi bi-arrow-clockwise"></i> Boshqa fayl
+                    <i class="bi bi-arrow-clockwise"></i> Boşqa fayl
                 </button>
                 <button class="qz-btn qz-btn-success" id="impCommitBtn">
-                    <i class="bi bi-check2-circle"></i> To'g'rilarni saqlash
+                    <i class="bi bi-check2-circle"></i> Töğrilarni saqlaş
                 </button>
             </div>
         </div>
@@ -181,7 +181,7 @@
                 <div class="d-flex gap-2 justify-content-center mt-3">
                     {% if quiz_id %}
                     <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-btn qz-btn-primary">
-                        <i class="bi bi-arrow-left"></i> Testga qaytish
+                        <i class="bi bi-arrow-left"></i> Testga qaytiş
                     </a>
                     {% endif %}
                     <a href="{% url 'quizui:question_bank' %}" class="qz-btn qz-btn-ghost">
@@ -202,7 +202,7 @@
             <div class="imp-row-meta"></div>
             <div class="imp-row-errors d-none"></div>
         </div>
-        <button class="qz-icon-btn delete imp-row-skip" title="O'tkazib yuborish"><i class="bi bi-x-lg"></i></button>
+        <button class="qz-icon-btn delete imp-row-skip" title="Ötkazib yuboriş"><i class="bi bi-x-lg"></i></button>
     </div>
 </template>
 

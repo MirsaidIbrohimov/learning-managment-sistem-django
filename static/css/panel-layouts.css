@@ -1,20 +1,20 @@
-/* O'qituvchi/admin panellari — moslashtiriladigan navigatsiya (4 rejim).
+/* Öqituvchi/admin panellari — moslaştiriladigan navigatsiya (4 rejim).
    panel_nav.css va nav-layouts.css'dan keyin yuklanadi. <body class="pn ..."> + html[data-layout|data-sb|data-motion].
-   Compact = panelning hozirgi ko'rinishi (o'zgarishsiz). Mobil (≤992px): rejimdan qat'i nazar chiquvchi menyu. */
+   Compact = panelning hozirgi körinişi (özgarişsiz). Mobil (≤992px): rejimdan qat'i nazar çiquvçi menyu. */
 
-/* Sozlamalar paneli tokenlari — panel rangi (admin: binafsha, o'qituvchi: yashil) */
+/* Sozlamalar paneli tokenlari — panel rangi (admin: binafşa, öqituvçi: yaşil) */
 body.pn{--nr-solid:var(--pn-side-bg);--nr-field:var(--pn-chip-bg);--nr-line:var(--pn-side-border);--nr-line-2:color-mix(in srgb,var(--pn-text) 16%,transparent);--nr-ink:var(--pn-text);--nr-muted:var(--pn-text-soft);--nr-acc:var(--pn-accent);--nr-acc2:var(--pn-accent-2);--nr-gold:#d97706;--nr-red:#ef4444}
 body.pn .ns-panel{font-family:'Inter',system-ui,sans-serif}
 .ns-panel .nr-ib{display:grid;place-items:center;flex-shrink:0;width:40px;height:40px;border-radius:12px;border:1px solid var(--nr-line);background:var(--nr-field);color:var(--nr-ink);font-size:1rem;cursor:pointer}
 .ns-panel .nr-ib:hover{color:var(--nr-acc);border-color:color-mix(in srgb,var(--nr-acc) 40%,transparent)}
-/* Mini sxema: panelda Compact = to'liq yon panel (ikonka chiplari bilan) */
+/* Mini sxema: panelda Compact = töliq yon panel (ikonka çiplari bilan) */
 .ns-panel[data-ctx=panel] .ns-mini[data-l=compact]{--sbL:0%;--sbT:0%;--sbB:0%;--sbW:24%;--sbR:0px;--hdL:24%;--hdT:0%;--hdR:0%;--hdH:14%;--hdRad:0px;--mL:24%;--mT:14%}
 .ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-sb,.ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-hd{border-width:0 1px 1px 0}
 .ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-sb i{width:70%;height:7px;border-radius:4px}
 .ns-panel[data-ctx=panel] .ns-mini[data-c=collapsed][data-l=compact]{--sbW:10%;--hdL:10%;--mL:10%}
 .ns-panel[data-ctx=panel] .ns-mini[data-c=collapsed][data-l=compact] .m-sb i{width:38%}
 
-/* Header'dagi qo'shimcha elementlar (faqat kerakli rejimda ko'rinadi) */
+/* Header'dagi qöşimça elementlar (faqat kerakli rejimda körinadi) */
 .pn-brand,.pn-tn{display:none}
 .pn-navset{flex-shrink:0}
 .pn-brand{align-items:center;gap:10px;flex-shrink:0;text-decoration:none;color:var(--pn-text)}
@@ -42,7 +42,7 @@ body.pn .ns-panel{font-family:'Inter',system-ui,sans-serif}
 .pn-tn-menu .dropdown-header{padding:8px 10px 4px;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pn-text-faint)}
 .pn-tn-menu li[hidden]{display:none}
 
-/* Yig'ilgan yon panel: tezkor tooltip (nav-prefs.js) — panel chetida kesilmaydi */
+/* Yiğilgan yon panel: tezkor tooltip (nav-prefs.js) — panel çetida kesilmaydi */
 body.pn.sidebar-collapsed .sidebar .nav-link[data-nav-tip]:hover::after{content:none}
 body.pn .ns-tip{background:var(--pn-grad);color:#fff}
 
@@ -56,7 +56,7 @@ body.pn .ns-tip{background:var(--pn-grad);color:#fff}
   html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar{width:var(--pn-sb)}
   html:is([data-layout=classic],[data-layout=hybrid]) body.pn .main-content{margin-left:var(--pn-sb)}
 
-  /* Tekis ro'yxat uslubi (Classic va Hybrid) */
+  /* Tekis röyxat uslubi (Classic va Hybrid) */
   html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar{background:var(--pn-side-bg);box-shadow:none}
   html:is([data-layout=classic],[data-layout=hybrid]) body.pn .nav-icon-wrap{background:transparent;border-color:transparent}
   html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar-nav .nav-link:hover{transform:none}
@@ -67,7 +67,7 @@ body.pn .ns-tip{background:var(--pn-grad);color:#fff}
   /* --- 1. Classic Sidebar --- */
   html[data-layout=classic] body.pn .admin-topbar{left:var(--pn-sb)}
 
-  /* --- 2. Compact Sidebar: panelning hozirgi ko'rinishi o'zgarishsiz --- */
+  /* --- 2. Compact Sidebar: panelning hozirgi körinişi özgarişsiz --- */
 
   /* --- 3. Top Navigation --- */
   html[data-layout=top] body.pn .sidebar,
@@ -80,7 +80,7 @@ body.pn .ns-tip{background:var(--pn-grad);color:#fff}
   html[data-layout=top] body.pn .pn-brand,
   html[data-layout=top] body.pn .pn-tn{display:flex}
 
-  /* --- 4. Modern Hybrid: to'liq kenglikdagi header + ostida yon panel --- */
+  /* --- 4. Modern Hybrid: töliq kenglikdagi header + ostida yon panel --- */
   html[data-layout=hybrid] body.pn .admin-topbar{left:0}
   html[data-layout=hybrid] body.pn .pn-brand{display:flex}
   html[data-layout=hybrid] body.pn .topbar-title{padding-left:14px;margin-left:2px;border-left:1px solid var(--pn-side-border)}
@@ -95,5 +95,5 @@ body.pn .ns-tip{background:var(--pn-grad);color:#fff}
   html[data-layout=top] body.pn .topbar-name{display:none}
 }
 
-/* Animatsiyalar o'chirilgan — faqat panel navigatsiyasi */
+/* Animatsiyalar öçirilgan — faqat panel navigatsiyasi */
 html[data-motion=off] body.pn :is(.sidebar,.sidebar *,.admin-topbar,.admin-topbar *,.main-content,.sidebar-overlay){transition-duration:.001ms!important;transition-delay:0s!important;animation-duration:.001ms!important}

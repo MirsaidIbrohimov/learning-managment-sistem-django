@@ -891,7 +891,7 @@
         </div>
     </div>
     <div class="ls-header-actions">
-        <button type="button" class="btn btn-outline-secondary btn-print" onclick="window.print()" title="Chop etish">
+        <button type="button" class="btn btn-outline-secondary btn-print" onclick="window.print()" title="Çop etiş">
             <i class="bi bi-printer"></i>
         </button>
 
@@ -916,7 +916,7 @@
         <!-- Quick range chips -->
         <div class="ls-quick-chips">
             <a href="{{ range_urls.all }}" class="ls-chip {% if not selected_range and not selected_year and not selected_month and not date_from %}active{% endif %}">
-                <i class="bi bi-infinity"></i> Barchasi
+                <i class="bi bi-infinity"></i> Barçasi
             </a>
             <a href="{{ range_urls.today }}" class="ls-chip {% if selected_range == 'today' %}active{% endif %}">
                 <i class="bi bi-sun"></i> Bugun
@@ -925,22 +925,22 @@
                 <i class="bi bi-calendar-week"></i> 7 kun
             </a>
             <a href="{{ range_urls.month }}" class="ls-chip {% if selected_range == 'month' %}active{% endif %}">
-                <i class="bi bi-calendar-month"></i> Shu oy
+                <i class="bi bi-calendar-month"></i> Şu oy
             </a>
             <a href="{{ range_urls.year }}" class="ls-chip {% if selected_range == 'year' %}active{% endif %}">
-                <i class="bi bi-calendar-range"></i> Shu yil
+                <i class="bi bi-calendar-range"></i> Şu yil
             </a>
         </div>
 
         <div class="ls-filter-grid">
             <div class="fg">
-                <label><i class="bi bi-search"></i> Qidirish</label>
+                <label><i class="bi bi-search"></i> Qidiriş</label>
                 <input type="text" name="q" class="form-control" placeholder="Dars nomi..." value="{{ search_query }}">
             </div>
             <div class="fg">
                 <label><i class="bi bi-mortarboard"></i> Kurs (guruh)</label>
                 <select name="profession" class="form-select">
-                    <option value="">Barcha kurslar</option>
+                    <option value="">Barça kurslar</option>
                     {% for p in professions %}
                     <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
                     {% endfor %}
@@ -949,7 +949,7 @@
             <div class="fg">
                 <label><i class="bi bi-calendar3"></i> Yil</label>
                 <select name="year" class="form-select">
-                    <option value="">Barcha yillar</option>
+                    <option value="">Barça yillar</option>
                     {% for y in year_choices %}
                     <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
                     {% endfor %}
@@ -958,7 +958,7 @@
             <div class="fg">
                 <label><i class="bi bi-calendar-month"></i> Oy</label>
                 <select name="month" class="form-select">
-                    <option value="">Barcha oylar</option>
+                    <option value="">Barça oylar</option>
                     {% for m_num, m_name in month_choices %}
                     <option value="{{ m_num }}" {% if selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
                     {% endfor %}
@@ -969,17 +969,17 @@
                 <input type="date" name="date_from" class="form-control" value="{% if date_from %}{{ date_from|date:'Y-m-d' }}{% endif %}">
             </div>
             <div class="fg">
-                <label><i class="bi bi-calendar-check"></i> Gacha</label>
+                <label><i class="bi bi-calendar-check"></i> Gaça</label>
                 <input type="date" name="date_to" class="form-control" value="{% if date_to %}{{ date_to|date:'Y-m-d' }}{% endif %}">
             </div>
             <div class="ls-filter-actions">
                 {% if active_filters %}
                 <a href="{% url 'admin_lesson_statistics' %}" class="btn-reset">
-                    <i class="bi bi-x-circle"></i> Tozalash
+                    <i class="bi bi-x-circle"></i> Tozalaş
                 </a>
                 {% endif %}
                 <button type="submit" class="btn-search">
-                    <i class="bi bi-funnel-fill"></i> Filterlash
+                    <i class="bi bi-funnel-fill"></i> Filterlaş
                 </button>
             </div>
         </div>
@@ -990,7 +990,7 @@
             {% for f in active_filters %}
             <span class="ls-active-chip">
                 {{ f.label }}
-                <a href="{{ f.remove_url }}" title="Olib tashlash">
+                <a href="{{ f.remove_url }}" title="Olib taşlaş">
                     <i class="bi bi-x"></i>
                 </a>
             </span>
@@ -1010,22 +1010,22 @@
     <div class="ls-stat blue anim-fade anim-fade-2">
         <div class="ls-stat-icon"><i class="bi bi-people-fill"></i></div>
         <div class="ls-stat-num">{{ active_students }}<small style="font-size:0.6em;opacity:0.5;">/{{ total_students }}</small></div>
-        <div class="ls-stat-lbl">Faol o'quvchilar</div>
+        <div class="ls-stat-lbl">Faol öquvçilar</div>
     </div>
     <div class="ls-stat green anim-fade anim-fade-3">
         <div class="ls-stat-icon"><i class="bi bi-play-circle-fill"></i></div>
         <div class="ls-stat-num">{{ total_video_views }}</div>
-        <div class="ls-stat-lbl">Ko'rilgan videolar</div>
+        <div class="ls-stat-lbl">Körilgan videolar</div>
     </div>
     <div class="ls-stat orange anim-fade anim-fade-4">
         <div class="ls-stat-icon"><i class="bi bi-clipboard-check-fill"></i></div>
         <div class="ls-stat-num">{{ total_test_attempts }}</div>
-        <div class="ls-stat-lbl">Test urinishlari</div>
+        <div class="ls-stat-lbl">Test urinişlari</div>
     </div>
     <div class="ls-stat cyan anim-fade anim-fade-5">
         <div class="ls-stat-icon"><i class="bi bi-speedometer"></i></div>
         <div class="ls-stat-num">{{ avg_test_score }}%</div>
-        <div class="ls-stat-lbl">O'rtacha ball</div>
+        <div class="ls-stat-lbl">Örtaça ball</div>
     </div>
     <div class="ls-stat red anim-fade anim-fade-6">
         <div class="ls-stat-icon"><i class="bi bi-check2-all"></i></div>
@@ -1065,7 +1065,7 @@
         <span class="badge-count">{{ homework_stats|length }}</span>
     </button>
     <button class="ls-tab-btn" data-tab="tabStudents">
-        <i class="bi bi-people-fill"></i> O'quvchilar
+        <i class="bi bi-people-fill"></i> Öquvçilar
     </button>
 </div>
 
@@ -1117,7 +1117,7 @@
                 {% else %}
                 <div class="ls-empty">
                     <div class="ls-empty-icon"><i class="bi bi-award"></i></div>
-                    <p>Hozircha yo'q</p>
+                    <p>Hozirça yöq</p>
                 </div>
                 {% endif %}
             </div>
@@ -1153,7 +1153,7 @@
                 {% else %}
                 <div class="ls-empty">
                     <div class="ls-empty-icon"><i class="bi bi-camera-video"></i></div>
-                    <p>Ma'lumot yo'q</p>
+                    <p>Ma'lumot yöq</p>
                 </div>
                 {% endif %}
             </div>
@@ -1174,8 +1174,8 @@
                         <tr>
                             <th>Dars</th>
                             <th>Kurs</th>
-                            <th class="text-center">Ko'rilgan</th>
-                            <th class="text-center">Ko'rilmagan</th>
+                            <th class="text-center">Körilgan</th>
+                            <th class="text-center">Körilmagan</th>
                             <th>Foiz</th>
                         </tr>
                     </thead>
@@ -1202,7 +1202,7 @@
             {% else %}
             <div class="ls-empty">
                 <div class="ls-empty-icon"><i class="bi bi-camera-video"></i></div>
-                <p>Video darslar yo'q</p>
+                <p>Video darslar yöq</p>
             </div>
             {% endif %}
         </div>
@@ -1220,7 +1220,7 @@
                 <div class="table-responsive">
                     <table class="ls-table">
                         <thead>
-                            <tr><th>Test</th><th class="text-center">Urinish</th><th class="text-center">O'tdi</th><th class="text-center">Yiqildi</th><th>O'rtacha</th></tr>
+                            <tr><th>Test</th><th class="text-center">Uriniş</th><th class="text-center">Ötdi</th><th class="text-center">Yiqildi</th><th>Örtaça</th></tr>
                         </thead>
                         <tbody>
                             {% for t in test_stats %}
@@ -1248,7 +1248,7 @@
                 {% else %}
                 <div class="ls-empty">
                     <div class="ls-empty-icon"><i class="bi bi-clipboard"></i></div>
-                    <p>Testlar yo'q</p>
+                    <p>Testlar yöq</p>
                 </div>
                 {% endif %}
             </div>
@@ -1273,7 +1273,7 @@
                 {% else %}
                 <div class="ls-empty">
                     <div class="ls-empty-icon"><i class="bi bi-emoji-smile"></i></div>
-                    <p>Qiyin savol yo'q</p>
+                    <p>Qiyin savol yöq</p>
                 </div>
                 {% endif %}
             </div>
@@ -1294,10 +1294,10 @@
                         <tr>
                             <th>Vazifa</th>
                             <th>Kurs</th>
-                            <th class="text-center">Topshirgan</th>
-                            <th class="text-center">Topshirmagan</th>
+                            <th class="text-center">Topşirgan</th>
+                            <th class="text-center">Topşirmagan</th>
                             <th class="text-center">Kutilmoqda</th>
-                            <th>O'rtacha baho</th>
+                            <th>Örtaça baho</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1330,19 +1330,19 @@
             {% else %}
             <div class="ls-empty">
                 <div class="ls-empty-icon"><i class="bi bi-journal"></i></div>
-                <p>Vazifalar yo'q</p>
+                <p>Vazifalar yöq</p>
             </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- ===== O'QUVCHILAR ===== -->
+    <!-- ===== ÖQUVÇILAR ===== -->
     <div class="ls-tab-pane" id="tabStudents">
         <div class="ls-grid-2">
-            <!-- Passiv o'quvchilar -->
+            <!-- Passiv öquvçilar -->
             <div class="ls-section">
                 <div class="ls-section-header">
-                    <h6><i class="bi bi-moon-stars-fill" style="color:#f59e0b;"></i> Passiv o'quvchilar (7+ kun)</h6>
+                    <h6><i class="bi bi-moon-stars-fill" style="color:#f59e0b;"></i> Passiv öquvçilar (7+ kun)</h6>
                     <span class="section-badge bg-warning text-dark">{{ passive_students|length }}</span>
                 </div>
                 {% if passive_students %}
@@ -1360,7 +1360,7 @@
                                         {% endif %}
                                         <div>
                                             <div class="ls-user-name">{{ s.full_name }}</div>
-                                            <div class="ls-user-sub">{% if s.last_activity %}{{ s.last_activity|timesince }} oldin{% else %}Hech qachon{% endif %}</div>
+                                            <div class="ls-user-sub">{% if s.last_activity %}{{ s.last_activity|timesince }} oldin{% else %}Heç qaçon{% endif %}</div>
                                         </div>
                                     </div>
                                 </td>
@@ -1382,10 +1382,10 @@
                 {% endif %}
             </div>
 
-            <!-- Qiynalayotgan o'quvchilar -->
+            <!-- Qiynalayotgan öquvçilar -->
             <div class="ls-section">
                 <div class="ls-section-header">
-                    <h6><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i> Qiynalayotgan o'quvchilar</h6>
+                    <h6><i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i> Qiynalayotgan öquvçilar</h6>
                     <span class="section-badge bg-danger text-white">{{ struggling_students|length }}</span>
                 </div>
                 {% if struggling_students %}
@@ -1403,7 +1403,7 @@
                                         {% endif %}
                                         <div>
                                             <div class="ls-user-name">{{ s.full_name }}</div>
-                                            <div class="ls-user-sub">{{ s.low_score_count }} past ball · O'rtacha: {{ s.avg_score|floatformat:0 }}%</div>
+                                            <div class="ls-user-sub">{{ s.low_score_count }} past ball · Örtaça: {{ s.avg_score|floatformat:0 }}%</div>
                                         </div>
                                     </div>
                                 </td>
@@ -1420,7 +1420,7 @@
                 {% else %}
                 <div class="ls-empty">
                     <div class="ls-empty-icon"><i class="bi bi-emoji-smile"></i></div>
-                    <p>Hammasi yaxshi!</p>
+                    <p>Hammasi yaxşi!</p>
                 </div>
                 {% endif %}
             </div>
@@ -1451,7 +1451,7 @@ const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark'
 const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
 const tickColor = isDark ? '#9ca3af' : '#6b7280';
 
-// Rasmda ko'p nuqta bo'lsa ularni yashiraylik
+// Rasmda köp nuqta bölsa ularni yaşiraylik
 const showPoints = chartData.length <= 45;
 
 new Chart(ctx, {
@@ -1460,7 +1460,7 @@ new Chart(ctx, {
         labels: chartData.map(d => d.date),
         datasets: [
             {
-                label: 'Video ko\'rildi',
+                label: 'Video körildi',
                 data: chartData.map(d => d.videos),
                 borderColor: '#6366f1',
                 backgroundColor: makeGradient('rgba(99,102,241,0.28)', 'rgba(99,102,241,0)'),
@@ -1474,7 +1474,7 @@ new Chart(ctx, {
                 pointBorderWidth: 2,
             },
             {
-                label: 'Test yechildi',
+                label: 'Test yeçildi',
                 data: chartData.map(d => d.tests),
                 borderColor: '#10b981',
                 backgroundColor: makeGradient('rgba(16,185,129,0.28)', 'rgba(16,185,129,0)'),
@@ -1488,7 +1488,7 @@ new Chart(ctx, {
                 pointBorderWidth: 2,
             },
             {
-                label: 'Vazifa topshirildi',
+                label: 'Vazifa topşirildi',
                 data: chartData.map(d => d.homeworks),
                 borderColor: '#f59e0b',
                 backgroundColor: makeGradient('rgba(245,158,11,0.28)', 'rgba(245,158,11,0)'),
@@ -1567,8 +1567,8 @@ new Chart(ctx, {
 chartCanvas.parentElement.style.height = '320px';
 chartCanvas.parentElement.style.position = 'relative';
 
-// Quick-chip Barchasi da tugma default holatga qaytishi uchun
-// (chip href="?" ni tekshiradi)
+// Quick-chip Barçasi da tugma default holatga qaytişi uçun
+// (chip href="?" ni tekşiradi)
 
 // ===== Custom Tabs =====
 document.querySelectorAll('.ls-tab-btn').forEach(btn => {

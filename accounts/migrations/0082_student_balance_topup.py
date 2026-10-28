@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 def create_balances_for_existing_students(apps, schema_editor):
-    """Mavjud o'quvchilar uchun StudentBalance yozuvlari yaratish."""
+    """Mavjud öquvçilar uçun StudentBalance yozuvlari yaratiş."""
     CustomUser = apps.get_model('accounts', 'CustomUser')
     StudentBalance = apps.get_model('accounts', 'StudentBalance')
     now = timezone.now()
@@ -40,18 +40,18 @@ class Migration(migrations.Migration):
             name='StudentBalance',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=0, default=0, max_digits=14, verbose_name="Balans (so'm)")),
+                ('amount', models.DecimalField(decimal_places=0, default=0, max_digits=14, verbose_name="Balans (söm)")),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('user', models.OneToOneField(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='student_balance',
                     to=settings.AUTH_USER_MODEL,
-                    verbose_name="O'quvchi",
+                    verbose_name="Öquvçi",
                 )),
             ],
             options={
-                'verbose_name': "O'quvchi balansi",
-                'verbose_name_plural': "O'quvchilar balanslari",
+                'verbose_name': "Öquvçi balansi",
+                'verbose_name_plural': "Öquvçilar balanslari",
             },
         ),
         # BalanceTopUp modeli
@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
             name='BalanceTopUp',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('amount', models.DecimalField(decimal_places=0, max_digits=14, verbose_name="Miqdor (so'm)")),
+                ('amount', models.DecimalField(decimal_places=0, max_digits=14, verbose_name="Miqdor (söm)")),
                 ('note', models.CharField(blank=True, max_length=500, verbose_name='Izoh')),
                 ('ip_address', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP manzil')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
@@ -74,15 +74,15 @@ class Migration(migrations.Migration):
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='balance_topups',
                     to=settings.AUTH_USER_MODEL,
-                    verbose_name="O'quvchi",
+                    verbose_name="Öquvçi",
                 )),
             ],
             options={
-                'verbose_name': "Balans to'ldirish",
-                'verbose_name_plural': "Balans to'ldirish tarixi",
+                'verbose_name': "Balans töldiriş",
+                'verbose_name_plural': "Balans töldiriş tarixi",
                 'ordering': ['-created_at'],
             },
         ),
-        # Mavjud o'quvchilar uchun balans yozuvlari
+        # Mavjud öquvçilar uçun balans yozuvlari
         migrations.RunPython(create_balances_for_existing_students, reverse_balances),
     ]

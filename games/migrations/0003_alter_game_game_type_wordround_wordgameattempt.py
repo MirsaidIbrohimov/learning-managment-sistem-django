@@ -16,20 +16,20 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='game',
             name='game_type',
-            field=models.CharField(choices=[('typing', 'Typing Challenge'), ('quiz', 'Quiz'), ('word_builder', 'Word Builder')], default='typing', max_length=20, verbose_name="O'yin turi"),
+            field=models.CharField(choices=[('typing', 'Typing Challenge'), ('quiz', 'Quiz'), ('word_builder', 'Word Builder')], default='typing', max_length=20, verbose_name="Öyin turi"),
         ),
         migrations.CreateModel(
             name='WordRound',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('letters', models.CharField(max_length=20, verbose_name='Harflar (masalan: REACT)')),
-                ('valid_words', models.JSONField(default=list, verbose_name="To'g'ri so'zlar ro'yxati (JSON)")),
-                ('difficulty', models.CharField(choices=[('easy', 'Oson'), ('medium', "O'rta"), ('hard', 'Qiyin')], default='medium', max_length=10, verbose_name='Qiyinlik')),
-                ('time_limit', models.PositiveIntegerField(default=60, verbose_name='Vaqt chegarasi (soniya)')),
+                ('valid_words', models.JSONField(default=list, verbose_name="Töğri sözlar röyxati (JSON)")),
+                ('difficulty', models.CharField(choices=[('easy', 'Oson'), ('medium', "Örta"), ('hard', 'Qiyin')], default='medium', max_length=10, verbose_name='Qiyinlik')),
+                ('time_limit', models.PositiveIntegerField(default=60, verbose_name='Vaqt çegarasi (soniya)')),
                 ('is_active', models.BooleanField(default=True, verbose_name='Faol')),
                 ('order', models.IntegerField(default=0, verbose_name='Tartib')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_rounds', to='games.game', verbose_name="O'yin")),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_rounds', to='games.game', verbose_name="Öyin")),
             ],
             options={
                 'verbose_name': 'Word Builder raund',
@@ -41,13 +41,13 @@ class Migration(migrations.Migration):
             name='WordGameAttempt',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('found_words', models.JSONField(default=list, verbose_name="Topilgan so'zlar")),
+                ('found_words', models.JSONField(default=list, verbose_name="Topilgan sözlar")),
                 ('total_score', models.FloatField(default=0, verbose_name='Umumiy ball')),
                 ('time_spent', models.FloatField(default=0, verbose_name='Sarflangan vaqt (soniya)')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('competition', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='word_attempts', to='games.competition', verbose_name='Musobaqa')),
-                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_attempts', to='games.game', verbose_name="O'yin")),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_game_attempts', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi')),
+                ('game', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_attempts', to='games.game', verbose_name="Öyin")),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='word_game_attempts', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi')),
                 ('word_round', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='attempts', to='games.wordround', verbose_name='Raund')),
             ],
             options={

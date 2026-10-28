@@ -1,7 +1,7 @@
-"""Ota-ona paneli uchun farzand haqidagi ma'lumotlar (o'qish, davomat, jadval, to'lov).
+"""Ota-ona paneli uçun farzand haqidagi ma'lumotlar (öqiş, davomat, jadval, tölov).
 
-View'lar shu yerdagi funksiyalardan foydalanadi — bir xil hisob-kitob har sahifada
-qayta yozilmasin. Barcha funksiyalar faqat o'qiydi.
+View'lar şu yerdagi funksiyalardan foydalanadi — bir xil hisob-kitob har sahifada
+qayta yozilmasin. Barça funksiyalar faqat öqiydi.
 """
 from datetime import datetime, timedelta
 
@@ -17,15 +17,15 @@ from accounts.models import (
 
 SESSION_CHILD_KEY = 'parent_child_id'
 
-WEEKDAYS_SHORT = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
-WEEKDAYS_FULL = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
+WEEKDAYS_SHORT = ['Du', 'Se', 'Ç', 'Pa', 'Ju', 'Ş', 'Ya']
+WEEKDAYS_FULL = ['Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba', 'Yakşanba']
 
 
 def select_child(request, children):
-    """Tanlangan farzand: ?child_id= → sessiya → birinchi farzand.
+    """Tanlangan farzand: ?child_id= → sessiya → birinçi farzand.
 
-    Tanlov sessiyada saqlanadi, shuning uchun bir sahifada almashtirilgan
-    farzand boshqa sahifalarda ham tanlangan bo'lib qoladi.
+    Tanlov sessiyada saqlanadi, şuning uçun bir sahifada almaştirilgan
+    farzand boşqa sahifalarda ham tanlangan bölib qoladi.
     """
     child_id = request.GET.get('child_id')
     if child_id:
@@ -45,10 +45,10 @@ def course_ids(child):
 
 
 def _quiz_attempts(child):
-    """Yangi quiz tizimidagi yakunlangan urinishlar (eski TestResult'dan ko'chirilganlari hisobga olinmaydi)."""
+    """Yangi quiz tizimidagi yakunlangan urinişlar (eski TestResult'dan köçirilganlari hisobga olinmaydi)."""
     try:
         from quiz.models import Attempt
-    except Exception:  # pragma: no cover - quiz ilovasi o'chirilgan bo'lsa
+    except Exception:  # pragma: no cover - quiz ilovasi öçirilgan bölsa
         return None
     return Attempt.objects.filter(
         student=child, status__in=['submitted', 'graded'], legacy_test_result_id__isnull=True,
@@ -56,7 +56,7 @@ def _quiz_attempts(child):
 
 
 def progress_summary(child, prof_ids=None):
-    """Umumiy o'zlashtirish: video + test + vazifa bo'yicha foiz."""
+    """Umumiy özlaştiriş: video + test + vazifa böyiça foiz."""
     prof_ids = course_ids(child) if prof_ids is None else prof_ids
     total_videos = VideoLesson.objects.filter(lesson__profession_id__in=prof_ids).count()
     watched = VideoProgress.objects.filter(
@@ -81,7 +81,7 @@ def progress_summary(child, prof_ids=None):
 
 
 def test_summary(child):
-    """Eski testlar (birinchi urinish) + yangi quiz urinishlari birgalikda."""
+    """Eski testlar (birinçi uriniş) + yangi quiz urinişlari birgalikda."""
     legacy = TestResult.first_attempts().filter(student=child)
     agg = legacy.aggregate(avg=Avg('score'), n=Count('id'), passed=Count('id', filter=Q(passed=True)))
     scores_n, scores_sum, passed = agg['n'] or 0, (agg['avg'] or 0) * (agg['n'] or 0), agg['passed'] or 0
@@ -101,7 +101,7 @@ def test_summary(child):
 
 
 def combined_test_rows(child, limit=None):
-    """Eski va yangi test natijalari bitta ro'yxatda (eng yangisi birinchi)."""
+    """Eski va yangi test natijalari bitta röyxatda (eng yangisi birinçi)."""
     rows = []
     for r in TestResult.objects.filter(student=child).select_related('test__lesson__profession'):
         rows.append({
@@ -155,8 +155,8 @@ def speaking_summary(child):
 def attendance_summary(child, days=30):
     """Guruh davomati + platformaga kirgan kunlar (oxirgi N kun).
 
-    display_rate/display_label: guruh davomati bo'lsa — "Davomat", bo'lmasa — "Faol kunlar"
-    (o'quvchi saytga kirgan kunlar ulushi). Shunda guruhsiz o'quvchida ham ko'rsatkich bo'sh qolmaydi.
+    display_rate/display_label: guruh davomati bölsa — "Davomat", bölmasa — "Faol kunlar"
+    (öquvçi saytga kirgan kunlar uluşi). Şunda guruhsiz öquvçida ham körsatkiç böş qolmaydi.
     """
     from accounts.models import StudentDailyVisit
     today = timezone.localdate()
@@ -189,7 +189,7 @@ def attendance_summary(child, days=30):
 
 
 def _with_visit_times(child, records):
-    """Davomat yozuvlariga o'sha kuni saytga kirgan vaqtni qo'shadi (a.visited_at)."""
+    """Davomat yozuvlariga öşa kuni saytga kirgan vaqtni qöşadi (a.visited_at)."""
     from accounts.models import StudentDailyVisit
     records = list(records)
     visits = dict(StudentDailyVisit.objects.filter(
@@ -201,7 +201,7 @@ def _with_visit_times(child, records):
 
 
 def attendance_calendar(child, weeks=6):
-    """Oxirgi N hafta uchun kunlik davomat katakchalari (GitHub uslubida)."""
+    """Oxirgi N hafta uçun kunlik davomat katakçalari (GitHub uslubida)."""
     today = timezone.localdate()
     start = today - timedelta(days=today.weekday() + 7 * (weeks - 1))
     from accounts.models import StudentDailyVisit
@@ -210,7 +210,7 @@ def attendance_calendar(child, weeks=6):
     marks = {d: 'visited' for d in visits}
     rank = {'absent': 4, 'late': 3, 'sick': 2, 'excused': 1, 'present': 0, 'visited': -1}
     for a in StudentAttendance.objects.filter(student=child, date__gte=start, date__lte=today):
-        # Guruh belgisi "saytga kirdi"dan ustun; bir kunda bir nechta guruh bo'lsa — eng yomoni
+        # Guruh belgisi "saytga kirdi"dan ustun; bir kunda bir neçta guruh bölsa — eng yomoni
         prev = marks.get(a.date)
         if prev is None or rank[a.status] > rank[prev]:
             marks[a.date] = a.status
@@ -223,14 +223,14 @@ def attendance_calendar(child, weeks=6):
             seen = visits.get(day)
             cells.append({'date': day, 'status': marks.get(day), 'future': day > today,
                           'today': day == today, 'i': w * 7 + d,
-                          # Guruh belgisi ustida ham "saytga kirgan" ko'rinsin
+                          # Guruh belgisi ustida ham "saytga kirgan" körinsin
                           'visited_at': timezone.localtime(seen) if seen else None})
         rows.append({'label': WEEKDAYS_SHORT[d], 'cells': cells})
     return {'weeks': weeks, 'rows': rows, 'start': start, 'end': today}
 
 
 def _next_occurrence(group, now):
-    """Guruhning keyingi dars vaqti (bugun hali boshlanmagan bo'lsa — bugun)."""
+    """Guruhning keyingi dars vaqti (bugun hali boşlanmagan bölsa — bugun)."""
     days = group.get_days_list()
     if not days:
         return None
@@ -264,7 +264,7 @@ def schedule_summary(child):
     return {'groups': groups, 'week': week, 'next': upcoming[0] if upcoming else None}
 
 
-# ── To'lov ──
+# ── Tölov ──
 
 def payment_summary(child):
     from accounts.models import PaymentRecord, PaymentStatus, StudentBalance
@@ -301,7 +301,7 @@ def payment_summary(child):
 # ── Faollik ──
 
 def weekly_activity(child, days=7):
-    """Oxirgi N kun bo'yicha kunlik faollik (video, vazifa, test)."""
+    """Oxirgi N kun böyiça kunlik faollik (video, vazifa, test)."""
     today = timezone.localdate()
     start = today - timedelta(days=days - 1)
     buckets = {start + timedelta(days=i): 0 for i in range(days)}
@@ -331,7 +331,7 @@ def recent_activity(child, limit=8):
     for vp in VideoProgress.objects.filter(user=child, watched=True, watched_at__isnull=False) \
             .select_related('video__lesson').order_by('-watched_at')[:limit]:
         items.append({'type': 'video', 'icon': 'bi-play-fill', 'title': vp.video.lesson.title,
-                      'date': vp.watched_at, 'text': "Video darsni ko'rdi"})
+                      'date': vp.watched_at, 'text': "Video darsni kördi"})
     for hw in HomeworkSubmission.objects.filter(student=child) \
             .select_related('homework__lesson').order_by('-submitted_at')[:limit]:
         extra = f" · {hw.grade}/10" if hw.grade is not None else ''
@@ -359,33 +359,33 @@ def upcoming_deadlines(child, prof_ids=None, days=7):
 
 
 def alerts(child, *, payment, attendance, homework, tests):
-    """Ota-ona e'tibor berishi kerak bo'lgan holatlar (eng muhimi birinchi)."""
+    """Ota-ona e'tibor berişi kerak bölgan holatlar (eng muhimi birinçi)."""
     out = []
     if payment['state'] in ('overdue', 'blocked'):
         out.append({'level': 'danger', 'icon': 'bi-credit-card-2-front',
-                    'text': "To'lov muddati o'tgan" + (" — kirish bloklangan" if payment['state'] == 'blocked' else ''),
+                    'text': "Tölov muddati ötgan" + (" — kiriş bloklangan" if payment['state'] == 'blocked' else ''),
                     'url': 'parent_payments'})
     elif payment['state'] == 'soon':
         out.append({'level': 'warning', 'icon': 'bi-calendar-event',
-                    'text': f"Keyingi to'lovga {payment['days_left']} kun qoldi", 'url': 'parent_payments'})
+                    'text': f"Keyingi tölovga {payment['days_left']} kun qoldi", 'url': 'parent_payments'})
     if attendance['absent'] >= 2:
         out.append({'level': 'danger', 'icon': 'bi-person-x',
                     'text': f"Oxirgi {attendance['days']} kunda {attendance['absent']} marta darsga kelmagan",
                     'url': 'parent_attendance'})
     if homework['missed']:
         out.append({'level': 'warning', 'icon': 'bi-journal-x',
-                    'text': f"{homework['missed']} ta vazifa muddatida topshirilmagan", 'url': 'parent_homework'})
+                    'text': f"{homework['missed']} ta vazifa muddatida topşirilmagan", 'url': 'parent_homework'})
     if homework['revision']:
         out.append({'level': 'info', 'icon': 'bi-arrow-repeat',
-                    'text': f"{homework['revision']} ta vazifani qayta ishlash kerak", 'url': 'parent_homework'})
+                    'text': f"{homework['revision']} ta vazifani qayta işlaş kerak", 'url': 'parent_homework'})
     if tests['taken'] >= 3 and tests['avg'] < 60:
         out.append({'level': 'warning', 'icon': 'bi-graph-down-arrow',
-                    'text': f"Testlardan o'rtacha ball past: {tests['avg']}%", 'url': 'parent_tests'})
+                    'text': f"Testlardan örtaça ball past: {tests['avg']}%", 'url': 'parent_tests'})
     overdue_books = BookRental.objects.filter(student=child, status__in=['active', 'overdue'],
                                               return_date__lt=timezone.localdate()).count()
     if overdue_books:
         out.append({'level': 'warning', 'icon': 'bi-book',
-                    'text': f"{overdue_books} ta kitobni qaytarish muddati o'tgan", 'url': 'parent_books'})
+                    'text': f"{overdue_books} ta kitobni qaytariş muddati ötgan", 'url': 'parent_books'})
     if child.last_activity and timezone.now() - child.last_activity > timedelta(days=5):
         out.append({'level': 'info', 'icon': 'bi-moon-stars',
                     'text': f"{(timezone.now() - child.last_activity).days} kundan beri platformaga kirmagan",
@@ -394,10 +394,10 @@ def alerts(child, *, payment, attendance, homework, tests):
 
 
 def course_rankings(child):
-    """Har bir kurs bo'yicha farzandning o'rni: ball (test + vazifa) va coin bo'yicha.
+    """Har bir kurs böyiça farzandning örni: ball (test + vazifa) va coin böyiça.
 
-    Boshqa o'quvchilarning ismi qaytarilmaydi — faqat o'rin, jami, o'rtacha va eng yuqori qiymat.
-    Ball = shu kursdagi test o'rtachasi (eski + yangi quiz) va vazifa bahosi ×10 ning o'rtachasi.
+    Boşqa öquvçilarning ismi qaytarilmaydi — faqat örin, jami, örtaça va eng yuqori qiymat.
+    Ball = şu kursdagi test örtaçasi (eski + yangi quiz) va vazifa bahosi ×10 ning örtaçasi.
     """
     from accounts.models import CustomUser
     out = []
@@ -409,7 +409,7 @@ def course_rankings(child):
         if child.id not in ids:
             ids.append(child.id)
 
-        # Test: yig'indi va son (eski + yangi), keyin o'rtacha
+        # Test: yiğindi va son (eski + yangi), keyin örtaça
         sums, counts = {}, {}
         for sid, avg, n in TestResult.first_attempts().filter(
             test__lesson__profession=prof, student_id__in=ids,
@@ -465,14 +465,14 @@ def course_rankings(child):
 
 
 def _beat_percent(position, total):
-    """Nechta foiz o'quvchidan oldinda (o'zini hisobga olmaganda)."""
+    """Neçta foiz öquvçidan oldinda (özini hisobga olmaganda)."""
     if total <= 1:
         return 100
     return round((total - position) / (total - 1) * 100)
 
 
 def child_card(child):
-    """Farzandlar ro'yxati uchun qisqa ko'rsatkichlar."""
+    """Farzandlar röyxati uçun qisqa körsatkiçlar."""
     prof_ids = course_ids(child)
     return {
         'child': child,

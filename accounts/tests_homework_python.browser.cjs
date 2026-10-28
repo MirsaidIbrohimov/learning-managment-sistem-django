@@ -126,7 +126,7 @@ const assert = require('node:assert/strict');
       window.webEditor=HomeworkCode.create(document.querySelector('#root'),project,false);
     },origin);
     assert.equal(await page.locator('#root iframe').count(),0);
-    await page.getByRole('button',{name:'Ishga tushirish',exact:false}).click();
+    await page.getByRole('button',{name:'Işga tuşiriş',exact:false}).click();
     await page.waitForFunction(()=>document.querySelector('.hw-code-console').textContent.includes('attack checks complete'));
     let webMessages=await page.locator('.hw-code-console').textContent();
     assert(!webMessages.includes('ESCAPE'),webMessages);

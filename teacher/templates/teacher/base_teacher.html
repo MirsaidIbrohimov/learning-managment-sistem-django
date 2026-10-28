@@ -8,7 +8,7 @@
     <script src="{% static 'js/ai-jobs.js' %}?v=20261027"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% include 'partials/nav/_theme_head.html' %}
-    <title>{% block title %}O'qituvchi paneli - LMS{% endblock %}</title>
+    <title>{% block title %}Öqituvçi paneli - LMS{% endblock %}</title>
 
     <meta name="robots" content="noindex, nofollow">
 
@@ -202,28 +202,28 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="panel-teacher pn{% if nav_prefs.sidebar == 'collapsed' and nav_prefs.layout != 'top' %} sidebar-collapsed{% endif %}">
-<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
     <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
     <div class="sidebar" id="adminSidebar" role="navigation" aria-label="Panel menyusi">
-        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopish"><i class="bi bi-x-lg"></i></button>
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopiş"><i class="bi bi-x-lg"></i></button>
         <div class="sidebar-brand">
             <a href="{% url 'teacher:dashboard' %}">
                 <img src="{% static 'img/logo.png' %}" alt="Logo" style="width:30px;height:30px;border-radius:8px;object-fit:cover;flex-shrink:0;">
-                <span>O'qituvchi paneli</span>
+                <span>Öqituvçi paneli</span>
             </a>
         </div>
         <div class="sidebar-user-card">
             <div class="suc-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
             <div class="suc-info">
                 <div class="suc-name">{{ user.first_name }} {{ user.last_name }}</div>
-                <div class="suc-role">O'qituvchi</div>
+                <div class="suc-role">Öqituvçi</div>
             </div>
             <div class="suc-dot"></div>
         </div>
         <nav class="sidebar-nav">
             <div class="sidebar-group-label">Asosiy</div>
-            <a href="{% url 'teacher:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-title="Bosh sahifa">
-                <div class="nav-icon-wrap"><i class="bi bi-speedometer2"></i></div><span>Bosh sahifa</span>
+            <a href="{% url 'teacher:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-title="Boş sahifa">
+                <div class="nav-icon-wrap"><i class="bi bi-speedometer2"></i></div><span>Boş sahifa</span>
             </a>
             <a href="{% url 'teacher:statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" data-title="Statistika">
                 <div class="nav-icon-wrap"><i class="bi bi-graph-up"></i></div><span>Statistika</span>
@@ -231,11 +231,11 @@
             <a href="{% url 'teacher:courses' %}" class="nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}" data-title="Kurslarim">
                 <div class="nav-icon-wrap"><i class="bi bi-book"></i></div><span>Kurslarim</span>
             </a>
-            <a href="{% url 'teacher:my_students' %}" class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}" data-title="O'quvchilarim">
-                <div class="nav-icon-wrap"><i class="bi bi-people"></i></div><span>O'quvchilarim</span>
+            <a href="{% url 'teacher:my_students' %}" class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}" data-title="Öquvçilarim">
+                <div class="nav-icon-wrap"><i class="bi bi-people"></i></div><span>Öquvçilarim</span>
             </a>
-            <a href="{% url 'teacher:course_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'course_requests' %}active{% endif %}" data-title="Kurs so'rovlari">
-                <div class="nav-icon-wrap"><i class="bi bi-person-plus"></i></div><span>Kurs so'rovlari</span>
+            <a href="{% url 'teacher:course_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'course_requests' %}active{% endif %}" data-title="Kurs sörovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-person-plus"></i></div><span>Kurs sörovlari</span>
                 {% if teacher_pending_requests %}<span class="sidebar-badge" style="background:#ef4444;">{{ teacher_pending_requests }}</span>{% endif %}
             </a>
             <a href="{% url 'my_study_schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" data-title="Dars jadvalim">
@@ -244,10 +244,10 @@
             <a href="{% url 'attendance_home' %}" class="nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}" data-title="Davomat">
                 <div class="nav-icon-wrap"><i class="bi bi-clipboard-check-fill"></i></div><span>Davomat</span>
             </a>
-            <a href="{% url 'teacher:group_chats' %}" class="nav-link {% if request.resolver_match.url_name == 'group_chats' %}active{% endif %}" data-title="Guruh chatlari">
-                <div class="nav-icon-wrap"><i class="bi bi-chat-square-text"></i></div><span>Guruh chatlari</span>
+            <a href="{% url 'teacher:group_chats' %}" class="nav-link {% if request.resolver_match.url_name == 'group_chats' %}active{% endif %}" data-title="Guruh çatlari">
+                <div class="nav-icon-wrap"><i class="bi bi-chat-square-text"></i></div><span>Guruh çatlari</span>
             </a>
-            <div class="sidebar-group-label">O'quv jarayoni</div>
+            <div class="sidebar-group-label">Öquv jarayoni</div>
             <a href="{% url 'teacher:homeworks' %}" class="nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}" data-title="Uyga vazifalar">
                 <div class="nav-icon-wrap"><i class="bi bi-journal-check"></i></div><span>Uyga vazifalar</span>
                 {% if pending_homeworks_count %}<span class="sidebar-badge">{{ pending_homeworks_count }}</span>{% endif %}
@@ -265,18 +265,18 @@
             <a href="{% url 'quizui:quiz_list' %}" class="nav-link {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Quizlar">
                 <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div><span>Quizlar</span>
             </a>
-            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz to'lovlari">
-                <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div><span>Quiz to'lovlari</span>
+            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz tölovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div><span>Quiz tölovlari</span>
             </a>
-            <a href="{% url 'games:teacher_competitions' %}" class="nav-link {% if 'teacher_competition' in request.resolver_match.url_name %}active{% endif %}" data-title="Yozish musobaqalari">
-                <div class="nav-icon-wrap"><i class="bi bi-trophy"></i></div><span>Yozish musobaqalari</span>
+            <a href="{% url 'games:teacher_competitions' %}" class="nav-link {% if 'teacher_competition' in request.resolver_match.url_name %}active{% endif %}" data-title="Yoziş musobaqalari">
+                <div class="nav-icon-wrap"><i class="bi bi-trophy"></i></div><span>Yoziş musobaqalari</span>
             </a>
             <a href="{% url 'video_quiz:teacher_videos' %}" class="nav-link {% if request.resolver_match.namespace == 'video_quiz' %}active{% endif %}" data-title="Videodagi Testlar">
                 <div class="nav-icon-wrap"><i class="bi bi-play-circle-fill"></i></div><span>Videodagi Testlar</span>
             </a>
             {% if user.ai_access_enabled %}
-            <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
-                <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div><span>AI Tekshiruvchi</span>
+            <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekşiruvçi">
+                <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div><span>AI Tekşiruvçi</span>
             </a>
             {% endif %}
             <div class="sidebar-group-label">Moliya & Hujjatlar</div>
@@ -286,25 +286,25 @@
             <a href="{% url 'teacher:certificates' %}" class="nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlarim">
                 <div class="nav-icon-wrap"><i class="bi bi-award"></i></div><span>Sertifikatlarim</span>
             </a>
-            <div class="sidebar-group-label" data-tn-skip>Boshqa</div>
-            <a href="{% url 'home' %}" class="nav-link" data-title="Saytga qaytish">
-                <div class="nav-icon-wrap"><i class="bi bi-house"></i></div><span>Saytga qaytish</span>
+            <div class="sidebar-group-label" data-tn-skip>Boşqa</div>
+            <a href="{% url 'home' %}" class="nav-link" data-title="Saytga qaytiş">
+                <div class="nav-icon-wrap"><i class="bi bi-house"></i></div><span>Saytga qaytiş</span>
             </a>
-            <a href="{% url 'logout' %}" class="nav-link" data-title="Chiqish" style="color:rgba(239,68,68,0.75);">
+            <a href="{% url 'logout' %}" class="nav-link" data-title="Çiqiş" style="color:rgba(239,68,68,0.75);">
                 <div class="nav-icon-wrap" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.15);color:#ef4444;"><i class="bi bi-box-arrow-right"></i></div>
-                <span>Chiqish</span>
+                <span>Çiqiş</span>
             </a>
         </nav>
     </div>
     <div class="admin-topbar">
         <div class="admin-topbar-left">
             <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Menyuni ochish/yopish" aria-controls="adminSidebar"><i class="bi bi-list" id="sidebarToggleIcon"></i></button>
-            <a class="pn-brand" href="{% url 'teacher:dashboard' %}"><img src="{% static 'img/logo.png' %}" alt=""><span>O'qituvchi paneli</span></a>
-            <span class="topbar-title">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
+            <a class="pn-brand" href="{% url 'teacher:dashboard' %}"><img src="{% static 'img/logo.png' %}" alt=""><span>Öqituvçi paneli</span></a>
+            <span class="topbar-title">{% block topbar_title %}Öqituvçi paneli{% endblock %}</span>
         </div>
         <div class="admin-topbar-right">
             <button type="button" class="admin-theme-btn pn-navset d-none d-sm-flex" data-nav-settings title="Navigatsiya sozlamalari" aria-label="Navigatsiya sozlamalari" aria-controls="nsPanel"><i class="bi bi-sliders" aria-hidden="true"></i></button>
-            <button type="button" class="admin-theme-btn" id="themeToggle" title="Mavzu" aria-label="Yorug‘/qorong‘i rejimni almashtirish"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
+            <button type="button" class="admin-theme-btn" id="themeToggle" title="Mavzu" aria-label="Yorug‘/qoronği rejimni almaştiriş"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
             <div class="dropdown">
                 <button type="button" class="topbar-profile-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profil menyusi">
                     <div class="topbar-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
@@ -314,14 +314,14 @@
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;max-width:calc(100vw - 20px);padding:8px;">
                     <li class="px-3 py-2">
                         <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
-                        <small class="text-muted">O'qituvchi</small>
+                        <small class="text-muted">Öqituvçi</small>
                     </li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item rounded-3" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Saytga o'tish</a></li>
+                    <li><a class="dropdown-item rounded-3" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Saytga ötiş</a></li>
                     <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
-                    <li><button type="button" class="dropdown-item rounded-3" data-nav-settings><i class="bi bi-sliders me-2"></i>Ko‘rinish sozlamalari</button></li>
+                    <li><button type="button" class="dropdown-item rounded-3" data-nav-settings><i class="bi bi-sliders me-2"></i>Köriniş sozlamalari</button></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Chiqish</a></li>
+                    <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Çiqiş</a></li>
                 </ul>
             </div>
         </div>
@@ -333,7 +333,7 @@
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}-fill me-2"></i>
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopish"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopiş"></button>
         </div>
         {% endfor %}
         {% endif %}
@@ -366,7 +366,7 @@
         const closeBtn = document.getElementById('sidebarClose');
         function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
         function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow = ''; }
-        // Desktop: yig'ish/kengaytirish akkauntga saqlanadi (nav-prefs.js); holatni panel-nav.js qo'llaydi
+        // Desktop: yiğish/kengaytirish akkauntga saqlanadi (nav-prefs.js); holatni panel-nav.js qöllaydi
         toggleBtn.addEventListener('click', () => {
             if (window.innerWidth > 992) {
                 if (window.ITC_NAV && ITC_NAV.api) ITC_NAV.api.toggleSidebar();
@@ -378,7 +378,7 @@
         sidebar.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => { if (window.innerWidth <= 992) closeSidebar(); });
         });
-        // Desktop'ga qaytilganda ochiq mobil menyu yopiladi (yig'ilgan holatni panel-nav.js boshqaradi)
+        // Desktop'ga qaytilganda oçiq mobil menyu yopiladi (yiğilgan holatni panel-nav.js boşqaradi)
         let _resizeT;
         window.addEventListener('resize', () => {
             clearTimeout(_resizeT);

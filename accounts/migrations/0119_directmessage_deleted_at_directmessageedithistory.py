@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directmessage',
             name='deleted_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name="O'chirilgan vaqti"),
+            field=models.DateTimeField(blank=True, null=True, verbose_name="Öçirilgan vaqti"),
         ),
         migrations.CreateModel(
             name='DirectMessageEditHistory',
@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('message', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='edit_history', to='accounts.directmessage', verbose_name='Xabar')),
             ],
             options={
-                'verbose_name': 'Shaxsiy xabar tahrir tarixi',
-                'verbose_name_plural': 'Shaxsiy xabarlar tahrir tarixi',
+                'verbose_name': 'Şaxsiy xabar tahrir tarixi',
+                'verbose_name_plural': 'Şaxsiy xabarlar tahrir tarixi',
                 'ordering': ['edited_at'],
             },
         ),

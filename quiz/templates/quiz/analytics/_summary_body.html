@@ -1,6 +1,6 @@
 {% comment %}
 Shared "Test hulosalari" summary body — rendered inside every panel (admin,
-yordamchi, teacher). Panel-agnostic: all links use URL names passed via
+yordamçi, teacher). Panel-agnostic: all links use URL names passed via
 context so the same markup works under three different URL namespaces.
 
 Expected context:
@@ -70,19 +70,19 @@ Expected context:
       <div class="val">{{ overview.tests }}</div>
     </div>
     <div class="ts-kpi">
-      <div class="lbl">Urinishlar</div>
+      <div class="lbl">Urinişlar</div>
       <div class="val">{{ overview.attempts }}</div>
     </div>
     <div class="ts-kpi">
-      <div class="lbl">O'quvchilar</div>
+      <div class="lbl">Öquvçilar</div>
       <div class="val">{{ overview.students }}</div>
     </div>
     <div class="ts-kpi accent-green">
-      <div class="lbl">O'tish foizi</div>
+      <div class="lbl">Ötiş foizi</div>
       <div class="val">{{ overview.pass_rate }}<small>%</small></div>
     </div>
     <div class="ts-kpi accent-amber">
-      <div class="lbl">O'rtacha ball</div>
+      <div class="lbl">Örtaça ball</div>
       <div class="val">{{ overview.avg_score }}<small>%</small></div>
     </div>
   </div>
@@ -93,41 +93,41 @@ Expected context:
       <div class="fld">
         <label>Kurs</label>
         <select name="course">
-          <option value="">Barcha kurslar</option>
+          <option value="">Barça kurslar</option>
           {% for p in professions %}
             <option value="{{ p.id }}" {% if course_id == p.id|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="fld">
-        <label>O'quvchi (ism yoki ID)</label>
-        <input type="text" name="q" value="{{ q }}" placeholder="Qidirish...">
+        <label>Öquvçi (ism yoki ID)</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Qidiriş...">
       </div>
       <div class="fld">
         <label>Manba</label>
         <select name="source">
-          <option value="">Barchasi</option>
+          <option value="">Barçasi</option>
           <option value="quiz" {% if source_filter == 'quiz' %}selected{% endif %}>Yangi tizim</option>
           <option value="legacy" {% if source_filter == 'legacy' %}selected{% endif %}>Eski tizim</option>
         </select>
       </div>
       <div class="ts-actions">
-        <button type="submit" class="ts-btn">Filtrlash</button>
-        <a href="{% url summary_url_name %}" class="ts-btn ghost">Tozalash</a>
+        <button type="submit" class="ts-btn">Filtrlaş</button>
+        <a href="{% url summary_url_name %}" class="ts-btn ghost">Tozalaş</a>
       </div>
     </form>
   </div>
 
   {# ── Per-test summary ── #}
   <div class="ts-card">
-    <div class="ts-head"><i class="bi bi-clipboard-data"></i> Testlar kesimida <span class="muted">— har bir test bo'yicha umumiy ko'rsatkichlar</span></div>
+    <div class="ts-head"><i class="bi bi-clipboard-data"></i> Testlar kesimida <span class="muted">— har bir test böyiça umumiy körsatkiçlar</span></div>
     <div class="ts-scroll">
       <table class="ts-table">
         <thead>
           <tr>
             <th>Kurs</th><th>Dars</th><th>Test</th>
-            <th class="num">Urinishlar</th><th class="num">O'quvchilar</th>
-            <th class="num">O'rtacha</th><th class="num">O'tish %</th><th></th>
+            <th class="num">Urinişlar</th><th class="num">Öquvçilar</th>
+            <th class="num">Örtaça</th><th class="num">Ötiş %</th><th></th>
           </tr>
         </thead>
         <tbody>
@@ -145,7 +145,7 @@ Expected context:
               <td><a class="ts-link" href="{% url detail_url_name t.ref.key %}">Batafsil <i class="bi bi-arrow-right-short"></i></a></td>
             </tr>
           {% empty %}
-            <tr><td colspan="8" class="ts-empty">Hozircha test natijalari yo'q.</td></tr>
+            <tr><td colspan="8" class="ts-empty">Hozirça test natijalari yöq.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -154,14 +154,14 @@ Expected context:
 
   {# ── Student × Test detailed table ── #}
   <div class="ts-card">
-    <div class="ts-head"><i class="bi bi-people"></i> O'quvchi × Test <span class="muted">— kim qaysi testni necha marta ishlagan</span></div>
+    <div class="ts-head"><i class="bi bi-people"></i> Öquvçi × Test <span class="muted">— kim qaysi testni neça marta işlagan</span></div>
     <div class="ts-scroll">
       <table class="ts-table">
         <thead>
           <tr>
-            <th>O'quvchi</th><th>Kurs</th><th>Dars</th><th>Test</th>
-            <th class="num">Urinishlar</th><th class="num">Eng yaxshi</th>
-            <th class="num">Oxirgi</th><th class="num">O'rtacha</th>
+            <th>Öquvçi</th><th>Kurs</th><th>Dars</th><th>Test</th>
+            <th class="num">Urinişlar</th><th class="num">Eng yaxşi</th>
+            <th class="num">Oxirgi</th><th class="num">Örtaça</th>
             <th>Holat</th><th>Sana</th><th></th>
           </tr>
         </thead>
@@ -176,9 +176,9 @@ Expected context:
               <td class="num"><span class="ts-score {% if row.best_score >= 80 %}hi{% elif row.best_score >= 60 %}mid{% else %}lo{% endif %}">{{ row.best_score }}%</span></td>
               <td class="num">{{ row.last_score }}%</td>
               <td class="num">{{ row.avg_score }}%</td>
-              <td>{% if row.ever_passed %}<span class="ts-badge g">O'tgan</span>{% else %}<span class="ts-badge r">Yiqilgan</span>{% endif %}</td>
+              <td>{% if row.ever_passed %}<span class="ts-badge g">Ötgan</span>{% else %}<span class="ts-badge r">Yiqilgan</span>{% endif %}</td>
               <td>{{ row.last_finished_at|date:"d.m.Y H:i" }}</td>
-              <td><a class="ts-link" href="{% url detail_url_name row.ref.key %}">Ko'rish</a></td>
+              <td><a class="ts-link" href="{% url detail_url_name row.ref.key %}">Köriş</a></td>
             </tr>
           {% empty %}
             <tr><td colspan="11" class="ts-empty">Filtrga mos natija topilmadi.</td></tr>

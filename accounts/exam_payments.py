@@ -72,13 +72,13 @@ def create_exam_checkout(request, kind, pk):
     try:
         reference = f'LMS-EXAM-{request.user.pk}-{kind}-{pk}-{uuid.UUID(raw_token).hex}' if raw_token else None
     except (ValueError, TypeError, AttributeError):
-        messages.info(request, 'To‘lov sahifasini yangilab, qayta urinib ko‘ring.')
+        messages.info(request, 'Tölov sahifasini yangilab, qayta urinib köring.')
         return redirect(page)
     if not attempted:
-        messages.info(request, 'Birinchi urinish bepul.')
+        messages.info(request, 'Birinçi uriniş bepul.')
         return redirect(page)
     if model.objects.filter(student=request.user, status__in=['approved', 'pending'], **target).exists():
-        messages.info(request, 'Mavjud to‘lov holatini tekshiring. Yangi to‘lov talab qilinmaydi.')
+        messages.info(request, 'Mavjud tölov holatini tekşiring. Yangi tölov talab qilinmaydi.')
         return redirect(page)
     try:
         method, gateway = selected_method(request)
@@ -87,11 +87,11 @@ def create_exam_checkout(request, kind, pk):
         return redirect(page)
     amount_minor = int(amount * 100)
     if amount_minor <= 0:
-        messages.error(request, 'Imtihon to‘lov summasi sozlanmagan.')
+        messages.error(request, 'Imtihon tölov summasi sozlanmagan.')
         return redirect(page)
     orders = TezCheckPaymentOrder.objects.filter(student=request.user, purpose='exam', **order_target)
     if orders.filter(status='review').exists():
-        messages.error(request, 'Oldingi to‘lov administrator tekshiruvini talab qiladi.')
+        messages.error(request, 'Oldingi tölov administrator tekşiruvini talab qiladi.')
         return redirect(page)
     order = orders.filter(status='pending').first()
     try:
@@ -109,7 +109,7 @@ def create_exam_checkout(request, kind, pk):
                 _apply_successful_payment(order, _payment_data(payment))
                 return redirect(page)
             if order and (bill.get('paid') is True or payment.get('state') == 'succeeded'):
-                raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
+                raise TezCheckError('Oldingi tölov tasdiği kutilmoqda. Qayta tölov qilmang; birozdan söng tekşiring.')
             if order and (checkout_expired(order, bill) or order.amount_minor != amount_minor
                           or order.gateway != gateway
                           or (reference and reference != order.external_reference
@@ -146,7 +146,7 @@ def create_exam_checkout(request, kind, pk):
             if not retire_checkout(order):
                 return redirect(page)
             order = None
-        raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
+        raise TezCheckError('Yangi tölov havolasini hozir oçib bölmadi. Qayta urinib köring.')
     except TezCheckError as exc:
         if order:
             order.last_error = str(exc)[:500]
@@ -169,7 +169,7 @@ def apply_exam_payment(order, data):
     CustomUser.objects.select_for_update().get(pk=order.student_id)
     if bool(order.exam_quiz_id) == bool(order.exam_test_id):
         order.status = 'review'
-        order.last_error = 'Imtihon buyurtmasining maqsadi noto‘g‘ri.'
+        order.last_error = 'Imtihon buyurtmasining maqsadi notöğri.'
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         return
     if order.exam_quiz_id:
@@ -179,7 +179,7 @@ def apply_exam_payment(order, data):
         model, target, grant_field = FinalTestPayment, {'test_id': order.exam_test_id}, 'final_payment'
     if model.objects.filter(student_id=order.student_id, status='approved', **target).exists():
         order.status = 'review'
-        order.last_error = 'Imtihon uchun tasdiqlangan to‘lov mavjud; qo‘shimcha tushum tekshiruvga yuborildi.'
+        order.last_error = 'Imtihon uçun tasdiqlangan tölov mavjud; qöşimça tuşum tekşiruvga yuborildi.'
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         return
     grant = model.objects.create(student_id=order.student_id, amount=Decimal(order.amount_minor) / 100, status='approved', reviewed_at=timezone.now(), **target)
@@ -193,15 +193,15 @@ def apply_exam_payment(order, data):
     order.paid_at = timezone.now()
     order.last_error = ''
     order.save()
-    Message.objects.create(recipient=order.student, message_type='payment', title='Imtihon to‘lovi tasdiqlandi', content=f'{order.get_gateway_display()} orqali to‘lov qabul qilindi. Imtihonni bir marta qayta topshirishingiz mumkin.')
+    Message.objects.create(recipient=order.student, message_type='payment', title='Imtihon tölovi tasdiqlandi', content=f'{order.get_gateway_display()} orqali tölov qabul qilindi. Imtihonni bir marta qayta topşirişingiz mumkin.')
 
 
 def refund_exam_payment(order, data, *, partial=False):
     grant = order.quiz_payment if order.exam_quiz_id else order.final_payment
     if grant:
         grant.status = 'rejected'
-        grant.reject_reason = f'{order.get_gateway_display()} orqali to‘lov qaytarilgan.'
+        grant.reject_reason = f'{order.get_gateway_display()} orqali tölov qaytarilgan.'
         grant.save(update_fields=['status', 'reject_reason'])
     order.status = 'review' if partial or not grant else 'refunded'
-    order.last_error = 'Imtihon to‘lovi qaytarildi.' if grant and not partial else 'Ishlatilgan yoki qisman qaytarilgan imtihon to‘lovi: administrator tekshiruvi kerak.'
+    order.last_error = 'Imtihon tölovi qaytarildi.' if grant and not partial else 'Işlatilgan yoki qisman qaytarilgan imtihon tölovi: administrator tekşiruvi kerak.'
     order.save(update_fields=['status', 'last_error', 'updated_at'])

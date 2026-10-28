@@ -41,7 +41,7 @@ urlpatterns = [
 
     # Professions & Courses
     path('professions/', views.professions_view, name='professions'),
-    # Ochiq (login'siz) SEO sahifalari — sotuvdagi kurslar.
+    # Oçiq (login'siz) SEO sahifalari — sotuvdagi kurslar.
     path('kurslar/', public_courses.catalog, name='public_courses'),
     path('kurslar/<int:pk>/', public_courses.course_short, name='public_course_short'),
     path('kurslar/<int:pk>-<slug:slug>/', public_courses.course_landing, name='public_course'),
@@ -93,7 +93,7 @@ urlpatterns = [
     path('question/<int:pk>/delete/', views.delete_test_question, name='delete_test_question'),
     path('test/<int:pk>/import/', views.import_test_questions, name='import_test_questions'),
     
-    # Yakuniy test to'lovlari
+    # Yakuniy test tölovlari
     path('test/<int:pk>/final-payment/', views.final_test_payment, name='final_test_payment'),
     path('dashboard/final-test-payments/', views.admin_final_test_payments, name='admin_final_test_payments'),
     path('dashboard/final-test-payments/<int:pk>/approve/', views.approve_final_test_payment, name='approve_final_test_payment'),
@@ -117,7 +117,7 @@ urlpatterns = [
     path('settings/weather/', views.save_weather_effect, name='save_weather_effect'),
     path('settings/navigation/', views.save_navigation_preferences, name='save_navigation_preferences'),
     
-    # Kursdoshlar va boshqa o'quvchilar profili
+    # Kursdoşlar va boşqa öquvçilar profili
     path('professions/<int:pk>/classmates/', views.classmates_view, name='classmates'),
     path('students/<int:pk>/', views.student_public_profile, name='student_public_profile'),
     path('teachers/<int:pk>/', views.teacher_public_profile, name='teacher_public_profile'),
@@ -150,7 +150,7 @@ urlpatterns = [
     path('api/hw/submission/<int:sub_pk>/grade/',  hw_api.hw_grade,               name='api_hw_grade'),
     # ──────────────────────────────────────────────────────────────────────
     
-    # ==== CHAT (Guruh + Shaxsiy) ====
+    # ==== ÇAT (Guruh + Şaxsiy) ====
     # Sahifalar
     path('professions/<int:pk>/chat/', views.group_chat_view, name='group_chat'),
     path('chat/', views.chat_inbox_view, name='chat_inbox'),
@@ -160,7 +160,7 @@ urlpatterns = [
     path('dashboard/direct-chats/', views.admin_direct_chats, name='admin_direct_chats'),
     path('dashboard/direct-chats/ai/', views.admin_direct_chats_ai, name='admin_direct_chats_ai'),
     path('dashboard/direct-chats/<int:u1_pk>/<int:u2_pk>/', views.admin_direct_chat_detail, name='admin_direct_chat_detail'),
-    # Chat API (polling)
+    # Çat API (polling)
     path('api/chat/group/<int:profession_pk>/messages/', chat_api.group_messages, name='api_chat_group_messages'),
     path('api/chat/group/<int:profession_pk>/members/',  chat_api.group_members,  name='api_chat_group_members'),
     path('api/chat/group/<int:profession_pk>/send/',     chat_api.group_send,     name='api_chat_group_send'),
@@ -169,7 +169,7 @@ urlpatterns = [
     path('api/chat/conversations/',                      chat_api.conversations,   name='api_chat_conversations'),
     path('api/chat/sidebar/',                            chat_api.sidebar,         name='api_chat_sidebar'),
     path('api/chat/unread/',                             chat_api.unread_count,    name='api_chat_unread'),
-    # Per-message actions (Phase 1 chat upgrade)
+    # Per-message actions (Phase 1 çat upgrade)
     path('api/chat/msg/<str:kind>/<int:msg_id>/edit/',    chat_api.message_edit,    name='api_chat_msg_edit'),
     path('api/chat/msg/<str:kind>/<int:msg_id>/delete/',  chat_api.message_delete,  name='api_chat_msg_delete'),
     path('api/chat/msg/<str:kind>/<int:msg_id>/react/',   chat_api.message_react,   name='api_chat_msg_react'),
@@ -179,7 +179,7 @@ urlpatterns = [
     path('api/chat/pin/',                                 chat_api.pin_toggle,      name='api_chat_pin_toggle'),
     path('api/chat/users/search/',                        chat_api.user_search,     name='api_chat_user_search'),
 
-    # ── Bildirishnoma feed (barcha sahifalarda real-time toast + ovoz) ──
+    # ── Bildirişnoma feed (barça sahifalarda real-time toast + ovoz) ──
     path('api/notify/feed/', notify_api.notify_feed, name='api_notify_feed'),
     path('api/notify/mark-all-read/', notify_api.notify_mark_all_read, name='api_notify_mark_all_read'),
 
@@ -210,7 +210,7 @@ urlpatterns = [
     path('dashboard/assistant/', views.assistant_admin_dashboard, name='assistant_admin_dashboard'),
     path('dashboard/users/export/', views.admin_export_students, name='admin_export_students'),
     
-    # Admin: O'qituvchilar boshqaruvi
+    # Admin: Öqituvçilar boşqaruvi
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),
     path('dashboard/teachers/export-pdf/', views.export_teachers_pdf, name='export_teachers_pdf'),
     path('dashboard/teachers/<int:pk>/ai-toggle/', views.admin_teacher_ai_toggle, name='admin_teacher_ai_toggle'),
@@ -265,16 +265,16 @@ urlpatterns = [
     path('dashboard/study-groups/<int:pk>/edit/', views.admin_study_group_edit, name='admin_study_group_edit'),
     path('dashboard/study-groups/<int:pk>/delete/', views.admin_study_group_delete, name='admin_study_group_delete'),
 
-    # Foydalanuvchi uchun shaxsiy dars jadvali
+    # Foydalanuvçi uçun şaxsiy dars jadvali
     path('my-schedule/', views.my_study_schedule, name='my_study_schedule'),
 
-    # O'quvchilar davomati (Teacher & Assistant Admin & Admin)
+    # Öquvçilar davomati (Teacher & Assistant Admin & Admin)
     path('attendance/', views.attendance_home, name='attendance_home'),
     path('attendance/group/<int:group_pk>/', views.attendance_mark, name='attendance_mark'),
     path('attendance/group/<int:group_pk>/report/', views.attendance_report, name='attendance_report'),
     path('attendance/group/<int:group_pk>/report/excel/', views.attendance_report_excel, name='attendance_report_excel'),
 
-    # Ilovalar boshqaruvi (Android / Windows o'rnatuvchilari)
+    # Ilovalar boşqaruvi (Android / Windows örnatuvçilari)
     path('dashboard/apps/', app_releases.admin_app_releases, name='admin_app_releases'),
     path('dashboard/apps/<int:pk>/edit/', app_releases.admin_app_release_edit, name='admin_app_release_edit'),
     path('dashboard/apps/<int:pk>/toggle/', app_releases.admin_app_release_toggle, name='admin_app_release_toggle'),
@@ -282,13 +282,13 @@ urlpatterns = [
     path('ilovalar/', app_releases.apps_page, name='apps_page'),
     path('ilovalar/<int:pk>/download/', app_releases.app_release_download, name='app_release_download'),
 
-    # Discounts / Chegirmalar
+    # Discounts / Çegirmalar
     path('dashboard/discounts/', views.admin_discounts, name='admin_discounts'),
     path('dashboard/discounts/add/', views.admin_discount_add, name='admin_discount_add'),
     path('dashboard/discounts/<int:pk>/edit/', views.admin_discount_edit, name='admin_discount_edit'),
     path('dashboard/discounts/<int:pk>/delete/', views.admin_discount_delete, name='admin_discount_delete'),
     
-    # Qurilmalar boshqaruvi (User)
+    # Qurilmalar boşqaruvi (User)
     path('profile/devices/', views.my_devices, name='my_devices'),
     path('profile/devices/<int:pk>/remove/', views.remove_device, name='remove_device'),
     path('profile/devices/<int:pk>/logout/', views.logout_device, name='logout_device'),
@@ -305,17 +305,17 @@ urlpatterns = [
     
     # Admin: Hisobotlar
     
-    # Admin: Kursga yozilish so'rovlari
+    # Admin: Kursga yoziliş sörovlari
     path('dashboard/enrollment-requests/', views.admin_enrollment_requests, name='admin_enrollment_requests'),
     path('dashboard/enrollment-requests/<int:pk>/approve/', views.approve_enrollment_request, name='approve_enrollment_request'),
     path('dashboard/enrollment-requests/<int:pk>/reject/', views.reject_enrollment_request, name='reject_enrollment_request'),
     
-    # Admin: Kursdan chiqish so'rovlari
+    # Admin: Kursdan çiqiş sörovlari
     path('dashboard/unenroll-requests/', views.admin_unenroll_requests, name='admin_unenroll_requests'),
     path('dashboard/unenroll-requests/<int:pk>/approve/', views.approve_unenroll_request, name='approve_unenroll_request'),
     path('dashboard/unenroll-requests/<int:pk>/reject/', views.reject_unenroll_request, name='reject_unenroll_request'),
     
-    # Parol tiklash
+    # Parol tiklaş
     path('password-reset-request/', views.password_reset_request_view, name='password_reset_request'),
     path('password-reset-captcha/', password_recovery.password_recovery_captcha, name='password_reset_captcha'),
     path('password-reset/open/<str:token>/', password_recovery.open_recovery_link, name='open_recovery_link'),
@@ -332,20 +332,20 @@ urlpatterns = [
     path('dashboard/book-rentals/give/', views.admin_give_book, name='admin_give_book'),
     path('dashboard/book-rentals/<int:pk>/return/', views.admin_return_book, name='admin_return_book'),
     
-    # Admin: Premium boshqaruv
+    # Admin: Premium boşqaruv
     path('dashboard/premium/', views.admin_premium_management, name='admin_premium_management'),
     path('dashboard/premium/<int:pk>/approve/', views.approve_premium_request, name='approve_premium_request'),
     path('dashboard/premium/<int:pk>/reject/', views.reject_premium_request, name='reject_premium_request'),
     
-    # O'quvchi: Kutubxona sahifasi (API orqali)
+    # Öquvçi: Kutubxona sahifasi (API orqali)
     path('library/', views.student_library, name='student_library'),
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),
 
-    # Premium reklama flagini tozalash
+    # Premium reklama flagini tozalaş
     path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
     path('clear-ai-ad/', views.clear_ai_ad, name='clear_ai_ad'),
 
-    # Admin: O'quvchi sertifikatlari
+    # Admin: Öquvçi sertifikatlari
     path('dashboard/certificates/', views.admin_certificates, name='admin_certificates'),
     path('dashboard/certificates/issue/', views.admin_certificate_issue, name='admin_certificate_issue'),
     path('dashboard/certificates/settings/', views.admin_certificate_settings, name='admin_certificate_settings'),
@@ -360,7 +360,7 @@ urlpatterns = [
     path('dashboard/certificates/<int:pk>/delete/', views.admin_certificate_delete, name='admin_certificate_delete'),
     path('certificate/<int:pk>/download/', views.download_certificate, name='download_certificate'),
     
-    # Sertifikat tekshirish (login talab qilinmaydi)
+    # Sertifikat tekşiriş (login talab qilinmaydi)
     path('verify-certificate/', views.verify_certificate, name='verify_certificate'),
     
     # Ariza
@@ -369,18 +369,18 @@ urlpatterns = [
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
     path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
     
-    # Admin: AI Tekshiruvchi
+    # Admin: AI Tekşiruvçi
     # Admin: Xavfsizlik paneli
     path('dashboard/security/', views.admin_security_events, name='admin_security_events'),
     path('dashboard/security/block-ip/', views.admin_security_block_ip, name='admin_security_block_ip'),
 
-    # Admin: AI Tekshiruvchi
+    # Admin: AI Tekşiruvçi
     path('dashboard/ai-checker/', views.admin_ai_checker, name='admin_ai_checker'),
     path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
     path('dashboard/ai-checker/course-toggle/', views.admin_ai_course_toggle, name='admin_ai_course_toggle'),
     path('dashboard/ai-checker/file-only-toggle/', views.admin_file_only_toggle, name='admin_file_only_toggle'),
     
-    # Admin: So'rovnomalar
+    # Admin: Sörovnomalar
     path('dashboard/surveys/', views.admin_surveys, name='admin_surveys'),
     path('dashboard/surveys/create/', views.admin_survey_create, name='admin_survey_create'),
     path('dashboard/surveys/<int:pk>/edit/', views.admin_survey_edit, name='admin_survey_edit'),
@@ -389,10 +389,10 @@ urlpatterns = [
     path('dashboard/surveys/<int:pk>/responses/excel/', views.admin_survey_responses_excel, name='admin_survey_responses_excel'),
     path('dashboard/surveys/<int:pk>/toggle/', views.admin_survey_toggle, name='admin_survey_toggle'),
     
-    # So'rovnomani to'ldirish
+    # Sörovnomani töldiriş
     path('survey/<int:pk>/fill/', views.fill_survey, name='fill_survey'),
 
-    # Online to'lov (Payme & Click)
+    # Online tölov (Payme & Click)
     path('tezcheck/create-payment/', tezcheck_views.tezcheck_create_payment, name='tezcheck_create_payment'),
     path('tezcheck/exam/<str:kind>/<int:pk>/', exam_payments.create_exam_checkout, name='exam_checkout'),
     path('tezcheck/exam-status/<int:pk>/', exam_payments.exam_checkout_status, name='exam_checkout_status'),
@@ -416,9 +416,9 @@ urlpatterns = [
     path('dashboard/balans/<int:student_id>/set-fee/', views.admin_balance_set_fee, name='admin_balance_set_fee'),
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
 
-    # Oylik to'lovlar
+    # Oylik tölovlar
     path('dashboard/tezcheck/', tezcheck_views.admin_tezcheck_payments, name='admin_tezcheck_payments'),
     path('dashboard/tezcheck/<int:pk>/sync/', tezcheck_views.admin_sync_tezcheck_payment, name='admin_sync_tezcheck_payment'),
 
-    # Yordamchi admin — alohida sahifalar
+    # Yordamçi admin — alohida sahifalar
 ]

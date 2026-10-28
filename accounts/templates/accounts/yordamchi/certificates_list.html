@@ -7,7 +7,7 @@
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
         <form method="get" class="d-flex gap-2">
             <select name="status" class="form-select form-select-sm" style="max-width:200px;">
-                <option value="">— Barchasi —</option>
+                <option value="">— Barçasi —</option>
                 <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
                 <option value="frozen" {% if status == 'frozen' %}selected{% endif %}>Muzlatilgan</option>
                 <option value="expired" {% if status == 'expired' %}selected{% endif %}>Muddati tugagan</option>
@@ -23,7 +23,7 @@
                 <thead style="background:rgba(250,204,21,0.08);">
                     <tr>
                         <th>Seriya</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Kurs</th>
                         <th>Holat</th>
                         <th>Berilgan</th>
@@ -37,7 +37,7 @@
                         <td>
                             {% if c.student %}
                             <a href="{% url 'yordamchi_student_detail' c.student.pk %}" class="text-decoration-none">{{ c.recipient_display }}</a>
-                            {% else %}{{ c.recipient_display }} <small class="text-muted">(qo'lda)</small>{% endif %}
+                            {% else %}{{ c.recipient_display }} <small class="text-muted">(qölda)</small>{% endif %}
                         </td>
                         <td>{{ c.profession.name|default:"—" }}</td>
                         <td>
@@ -54,7 +54,7 @@
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-award" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Sertifikatlar yo'q — ular yakuniy testdan o'tganda avtomatik beriladi</p></div>{% endif %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-award" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Sertifikatlar yöq — ular yakuniy testdan ötganda avtomatik beriladi</p></div>{% endif %}
     </div>
 </div>
 {% endblock %}

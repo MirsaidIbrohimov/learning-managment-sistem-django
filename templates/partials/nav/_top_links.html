@@ -1,10 +1,10 @@
 {% comment %}
-  "Top Navigation" rejimi uchun gorizontal menyu (faqat desktop, html[data-layout=top] da ko'rinadi).
-  Havolalar va rol shartlari yon panel (nr-rail) bilan bir xil.
+  "Top Navigation" rejimi uçun gorizontal menyu (faqat desktop, html[data-layout=top] da körinadi).
+  Havolalar va rol şartlari yon panel (nr-rail) bilan bir xil.
 {% endcomment %}
 {% with rm=request.resolver_match %}
 <nav class="nr-tn" aria-label="Asosiy navigatsiya (yuqori)">
-  <a class="nr-tn-link {% if rm.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house" aria-hidden="true"></i><span>Bosh sahifa</span></a>
+  <a class="nr-tn-link {% if rm.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house" aria-hidden="true"></i><span>Boş sahifa</span></a>
   <a class="nr-tn-link {% if rm.url_name and 'profession' in rm.url_name %}active{% endif %}" href="{% url 'professions' %}" data-tour="courses"><i class="bi bi-book" aria-hidden="true"></i><span>Kurslar</span></a>
   {% if user.role != 'admin' and user.role != 'assistant_admin' %}
   <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" data-tour="schedule"><i class="bi bi-calendar2-week" aria-hidden="true"></i><span>Dars jadvalim</span></a>
@@ -12,18 +12,18 @@
   <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}" data-tour="rating"><i class="bi bi-trophy" aria-hidden="true"></i><span>Reyting</span></a>
 
   <div class="dropdown">
-    <button type="button" class="nr-tn-link nr-tn-dd" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>O‘qish</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
+    <button type="button" class="nr-tn-link nr-tn-dd" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>Öqiş</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
     <div class="dropdown-menu nr-pop nr-tn-menu">
       <a class="nr-mi" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-check"></i>Vazifalarim</a>
       <a class="nr-mi" href="{% url 'video_quiz:student_history' %}"><i class="bi bi-play-circle"></i>Video test tarixi</a>
       <a class="nr-mi" href="{% url 'student_library' %}"><i class="bi bi-book-half"></i>Kutubxona</a>
-      <a class="nr-mi" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check"></i>Sertifikat tekshirish</a>
+      <a class="nr-mi" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check"></i>Sertifikat tekşiriş</a>
       <a class="nr-mi" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot"></i>AI suhbat</a>
     </div>
   </div>
 
   <div class="dropdown">
-    <button type="button" class="nr-tn-link nr-tn-dd {% if rm.app_names and 'blog' in rm.app_names or rm.url_name == 'chat_inbox' or rm.url_name == 'help_page' %}active{% elif rm.url_name and 'market' in rm.url_name %}active{% endif %}" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid" aria-hidden="true"></i><span>Ko‘proq</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
+    <button type="button" class="nr-tn-link nr-tn-dd {% if rm.app_names and 'blog' in rm.app_names or rm.url_name == 'chat_inbox' or rm.url_name == 'help_page' %}active{% elif rm.url_name and 'market' in rm.url_name %}active{% endif %}" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid" aria-hidden="true"></i><span>Köproq</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
     <div class="dropdown-menu nr-pop nr-tn-menu">
       {% if user.role != 'admin' and user.role != 'assistant_admin' %}
       <a class="nr-mi nr-tn-narrow" href="{% url 'my_study_schedule' %}"><i class="bi bi-calendar2-week"></i>Dars jadvalim</a>
@@ -38,11 +38,11 @@
 
   {% if user.is_admin or user.is_teacher or user.is_assistant_admin %}
   <div class="dropdown">
-    <button type="button" class="nr-tn-link nr-tn-dd {% if rm.url_name == 'homework_submissions' %}active{% endif %}" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Boshqaruv</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
+    <button type="button" class="nr-tn-link nr-tn-dd {% if rm.url_name == 'homework_submissions' %}active{% endif %}" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-shield-lock" aria-hidden="true"></i><span>Boşqaruv</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>
     <div class="dropdown-menu nr-pop nr-tn-menu">
-      {% if user.is_admin %}<a class="nr-mi" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i>Boshqaruv paneli</a>{% endif %}
-      {% if user.is_teacher %}<a class="nr-mi" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard"></i>O'qituvchi paneli</a>{% endif %}
-      {% if user.is_assistant_admin %}<a class="nr-mi" href="{% url 'yordamchi_dashboard' %}"><i class="bi bi-speedometer2"></i>Yordamchi panel</a>{% endif %}
+      {% if user.is_admin %}<a class="nr-mi" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i>Boşqaruv paneli</a>{% endif %}
+      {% if user.is_teacher %}<a class="nr-mi" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard"></i>Öqituvçi paneli</a>{% endif %}
+      {% if user.is_assistant_admin %}<a class="nr-mi" href="{% url 'yordamchi_dashboard' %}"><i class="bi bi-speedometer2"></i>Yordamçi panel</a>{% endif %}
       {% if user.is_teacher or user.is_admin %}<a class="nr-mi" href="{% url 'homework_submissions' %}"><i class="bi bi-file-check"></i>Vazifalar</a>{% endif %}
     </div>
   </div>

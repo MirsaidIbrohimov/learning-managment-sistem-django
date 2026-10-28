@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def seed_watched_segments(apps, schema_editor):
-    """Eski uzluksiz progressni yangi segment formatiga o'tkazadi."""
+    """Eski uzluksiz progressni yangi segment formatiga ötkazadi."""
     VideoProgress = apps.get_model('accounts', 'VideoProgress')
     for progress in VideoProgress.objects.filter(verified_seconds__gt=0).iterator():
         end = progress.verified_seconds
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             field=models.JSONField(
                 blank=True,
                 default=list,
-                verbose_name="Tasdiqlangan ko'rilgan segmentlar",
+                verbose_name="Tasdiqlangan körilgan segmentlar",
             ),
         ),
         migrations.RunPython(seed_watched_segments, migrations.RunPython.noop),

@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load static widget_tweaks %}
 
-{% block title %}Profilni tasdiqlash — IT Creative{% endblock %}
+{% block title %}Profilni tasdiqlaş — IT Creative{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -13,30 +13,30 @@
 <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <div class="cv-layout">
-    <!-- ═══ Chap panel: progress + bosqichlar ═══ -->
+    <!-- ═══ Çap panel: progress + bosqiçlar ═══ -->
     <aside class="cv-side">
         <div class="cv-card cv-progress">
-            <div class="cv-ring" id="cvRing" style="--p:{{ completion_percent }}" role="img" aria-label="Profil {{ completion_percent }}% to'ldirilgan">
-                <span><b id="cvPercent">{{ completion_percent }}</b>%<small>TO'LDIRILDI</small></span>
+            <div class="cv-ring" id="cvRing" style="--p:{{ completion_percent }}" role="img" aria-label="Profil {{ completion_percent }}% töldirilgan">
+                <span><b id="cvPercent">{{ completion_percent }}</b>%<small>TÖLDIRILDI</small></span>
             </div>
-            <h1>Akkauntni tasdiqlash</h1>
-            <p>Ma'lumotlaringizni to'ldiring — bu sertifikat, to'lov va ota-onangiz bilan aloqa uchun kerak.</p>
+            <h1>Akkauntni tasdiqlaş</h1>
+            <p>Ma'lumotlaringizni töldiring — bu sertifikat, tölov va ota-onangiz bilan aloqa uçun kerak.</p>
         </div>
-        <nav class="cv-card cv-steps" aria-label="Bo'limlar">
-            <a href="#sec-personal" class="cv-step" data-step="personal"><span class="cv-step-ico"><i class="bi bi-person-fill"></i></span><span>Shaxsiy ma'lumotlar<small>Ism, tug'ilgan sana, jins</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
+        <nav class="cv-card cv-steps" aria-label="Bölimlar">
+            <a href="#sec-personal" class="cv-step" data-step="personal"><span class="cv-step-ico"><i class="bi bi-person-fill"></i></span><span>Şaxsiy ma'lumotlar<small>Ism, tuğilgan sana, jins</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
             <a href="#sec-document" class="cv-step" data-step="document"><span class="cv-step-ico"><i class="bi bi-person-vcard-fill"></i></span><span>Hujjat<small>Pasport yoki metrika</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
             <a href="#sec-parents" class="cv-step" data-step="parents"><span class="cv-step-ico"><i class="bi bi-people-fill"></i></span><span>Ota-ona<small>Ism va telefon</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
             <a href="#sec-school" class="cv-step" data-step="school"><span class="cv-step-ico"><i class="bi bi-mortarboard-fill"></i></span><span>Maktab va manzil<small>Ta'lim muassasasi</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
         </nav>
-        <div class="cv-card cv-secure"><i class="bi bi-shield-lock-fill"></i><span>Ma'lumotlaringiz shifrlangan holda saqlanadi va faqat o'quv markazi xodimlariga ko'rinadi.</span></div>
+        <div class="cv-card cv-secure"><i class="bi bi-shield-lock-fill"></i><span>Ma'lumotlaringiz şifrlangan holda saqlanadi va faqat öquv markazi xodimlariga körinadi.</span></div>
     </aside>
 
-    <!-- ═══ O'ng panel: forma ═══ -->
+    <!-- ═══ Öng panel: forma ═══ -->
     <main class="cv-main">
         {% if form.errors %}
         <div class="cv-alert" role="alert">
             <i class="bi bi-exclamation-octagon-fill"></i>
-            <div><b>Ba'zi maydonlarda xato bor.</b> Qizil bilan belgilangan joylarni tekshiring.
+            <div><b>Ba'zi maydonlarda xato bor.</b> Qizil bilan belgilangan joylarni tekşiring.
                 {% if form.non_field_errors %}<ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
             </div>
         </div>
@@ -45,14 +45,14 @@
         <form method="post" id="cvForm" novalidate>
             {% csrf_token %}
 
-            <!-- 1. SHAXSIY -->
+            <!-- 1. ŞAXSIY -->
             <section class="cv-card cv-sec" id="sec-personal" data-sec="personal">
                 <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#6366f1;--c2:#8b5cf6"><i class="bi bi-person-fill"></i></span>
-                    <div><h2>Shaxsiy ma'lumotlar</h2><p>Hujjatingizdagi kabi yozing</p></div></header>
+                    <div><h2>Şaxsiy ma'lumotlar</h2><p>Hujjatingizdagi kabi yozing</p></div></header>
                 <div class="cv-grid">
                     {% include 'accounts/_cv_field.html' with field=form.first_name icon='bi-person' label='Ism' required=True %}
                     {% include 'accounts/_cv_field.html' with field=form.last_name icon='bi-person' label='Familiya' required=True %}
-                    {% include 'accounts/_cv_field.html' with field=form.birth_date icon='bi-calendar-event' label="Tug'ilgan sana" required=True %}
+                    {% include 'accounts/_cv_field.html' with field=form.birth_date icon='bi-calendar-event' label="Tuğilgan sana" required=True %}
                     <div class="cv-field {% if form.gender.errors %}has-error{% endif %}">
                         <span class="cv-label"><i class="bi bi-gender-ambiguous"></i>Jinsi <em>*</em></span>
                         <div class="cv-seg" role="radiogroup" aria-label="Jinsi">
@@ -62,19 +62,19 @@
                         </div>
                         {% for e in form.gender.errors %}<div class="cv-err">{{ e }}</div>{% endfor %}
                     </div>
-                    {% include 'accounts/_cv_field.html' with field=form.nationality icon='bi-globe2' label='Millati' required=True hint="Masalan: O'zbek, Tojik, Qozoq" %}
+                    {% include 'accounts/_cv_field.html' with field=form.nationality icon='bi-globe2' label='Millati' required=True hint="Masalan: Özbek, Tojik, Qozoq" %}
                 </div>
             </section>
 
             <!-- 2. HUJJAT -->
             <section class="cv-card cv-sec" id="sec-document" data-sec="document">
                 <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#10b981;--c2:#059669"><i class="bi bi-person-vcard-fill"></i></span>
-                    <div><h2>Shaxsni tasdiqlovchi hujjat</h2><p>Pasport/ID karta yoki metrika — bittasi yetarli</p></div></header>
+                    <div><h2>Şaxsni tasdiqlovçi hujjat</h2><p>Pasport/ID karta yoki metrika — bittasi yetarli</p></div></header>
                 <div class="cv-doc-switch" role="radiogroup" aria-label="Hujjat turi">
                     <label class="cv-doc"><input type="radio" name="document_type" value="passport" {% if form.document_type.value == 'passport' %}checked{% endif %}>
-                        <span><i class="bi bi-credit-card-2-front-fill"></i><b>Pasport / ID karta</b><small>16 yoshdan katta — seriya, raqam, JSHSHIR</small></span></label>
+                        <span><i class="bi bi-credit-card-2-front-fill"></i><b>Pasport / ID karta</b><small>16 yoşdan katta — seriya, raqam, JŞŞIR</small></span></label>
                     <label class="cv-doc"><input type="radio" name="document_type" value="metrka" {% if form.document_type.value == 'metrka' %}checked{% endif %}>
-                        <span><i class="bi bi-file-earmark-person-fill"></i><b>Metrika (guvohnoma)</b><small>16 yoshgacha — seriya va raqam</small></span></label>
+                        <span><i class="bi bi-file-earmark-person-fill"></i><b>Metrika (guvohnoma)</b><small>16 yoşgaça — seriya va raqam</small></span></label>
                 </div>
                 {% for e in form.document_type.errors %}<div class="cv-err">{{ e }}</div>{% endfor %}
 
@@ -85,7 +85,7 @@
                         {% include 'accounts/_cv_field.html' with field=form.passport_issued_date icon='bi-calendar-date' label='Berilgan sana' %}
                     </div>
                     <div class="cv-field cv-jshshir {% if form.jshshir.errors %}has-error{% endif %}">
-                        <label class="cv-label" for="{{ form.jshshir.id_for_label }}"><i class="bi bi-fingerprint"></i>JSHSHIR (PINFL) <em>*</em></label>
+                        <label class="cv-label" for="{{ form.jshshir.id_for_label }}"><i class="bi bi-fingerprint"></i>JŞŞIR (PINFL) <em>*</em></label>
                         {% render_field form.jshshir class="cv-input cv-mono" inputmode="numeric" autocomplete="off" placeholder="14 ta raqam" %}
                         <div class="cv-pinfl" id="pinflInfo" aria-live="polite" hidden></div>
                         <div class="cv-hint"><i class="bi bi-info-circle"></i>1-raqam: toq — erkak, juft — ayol · 2-3: kun · 4-5: oy · 6-7: yil</div>
@@ -104,13 +104,13 @@
             <!-- 3. OTA-ONA -->
             <section class="cv-card cv-sec" id="sec-parents" data-sec="parents">
                 <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#3b82f6;--c2:#6366f1"><i class="bi bi-people-fill"></i></span>
-                    <div><h2>Ota-ona ma'lumotlari</h2><p>Siz bilan bog'lanish va xabar berish uchun</p></div></header>
+                    <div><h2>Ota-ona ma'lumotlari</h2><p>Siz bilan boğlaniş va xabar beriş uçun</p></div></header>
                 <div class="cv-grid">
                     <div class="cv-parent" data-parent="father">
                         <div class="cv-parent-head"><b><i class="bi bi-person-fill"></i> Otasi</b>
                             <label class="cv-switch"><input type="checkbox" name="{{ form.father_deceased.html_name }}" id="{{ form.father_deceased.id_for_label }}" {% if form.father_deceased.value %}checked{% endif %}><span></span>Vafot etgan</label></div>
                         <div class="cv-parent-body">
-                            {% include 'accounts/_cv_field.html' with field=form.father_name icon='bi-person' label="To'liq ismi" required=True %}
+                            {% include 'accounts/_cv_field.html' with field=form.father_name icon='bi-person' label="Töliq ismi" required=True %}
                             {% include 'accounts/_cv_field.html' with field=form.father_phone icon='bi-telephone' label='Telefon' phone=True %}
                         </div>
                     </div>
@@ -118,30 +118,30 @@
                         <div class="cv-parent-head"><b><i class="bi bi-person-fill"></i> Onasi</b>
                             <label class="cv-switch"><input type="checkbox" name="{{ form.mother_deceased.html_name }}" id="{{ form.mother_deceased.id_for_label }}" {% if form.mother_deceased.value %}checked{% endif %}><span></span>Vafot etgan</label></div>
                         <div class="cv-parent-body">
-                            {% include 'accounts/_cv_field.html' with field=form.mother_name icon='bi-person' label="To'liq ismi" required=True %}
+                            {% include 'accounts/_cv_field.html' with field=form.mother_name icon='bi-person' label="Töliq ismi" required=True %}
                             {% include 'accounts/_cv_field.html' with field=form.mother_phone icon='bi-telephone' label='Telefon' phone=True %}
                         </div>
                     </div>
                 </div>
                 <div class="cv-grid">
-                    {% include 'accounts/_cv_field.html' with field=form.parent_phone icon='bi-telephone-fill' label='Asosiy aloqa raqami' required=True phone=True hint="Ota yoki onangizdan biri — shu raqamga xabar beramiz" %}
+                    {% include 'accounts/_cv_field.html' with field=form.parent_phone icon='bi-telephone-fill' label='Asosiy aloqa raqami' required=True phone=True hint="Ota yoki onangizdan biri — şu raqamga xabar beramiz" %}
                 </div>
             </section>
 
             <!-- 4. MAKTAB -->
             <section class="cv-card cv-sec" id="sec-school" data-sec="school">
                 <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#f59e0b;--c2:#ef4444"><i class="bi bi-mortarboard-fill"></i></span>
-                    <div><h2>Maktab va manzil</h2><p>Hozir o'qiyotgan yoki oxirgi maktabingiz</p></div></header>
+                    <div><h2>Maktab va manzil</h2><p>Hozir öqiyotgan yoki oxirgi maktabingiz</p></div></header>
                 <div class="cv-grid">
                     {% include 'accounts/_cv_field.html' with field=form.school_name icon='bi-building' label='Maktab nomi' required=True %}
                     {% include 'accounts/_cv_field.html' with field=form.school_number icon='bi-123' label='Maktab raqami' required=True hint='Masalan: 15, 32-IDUM' %}
                 </div>
-                {% include 'accounts/_cv_field.html' with field=form.address icon='bi-geo-alt-fill' label='Yashash manzili' required=True hint="Viloyat, tuman, ko'cha va uy raqami" %}
+                {% include 'accounts/_cv_field.html' with field=form.address icon='bi-geo-alt-fill' label='Yaşaş manzili' required=True hint="Viloyat, tuman, köça va uy raqami" %}
             </section>
 
             <div class="cv-actions">
-                <button type="submit" class="cv-btn cv-btn-primary"><i class="bi bi-check2-circle"></i>Saqlash va tasdiqlash</button>
-                <button type="submit" name="action" value="skip" formnovalidate class="cv-btn cv-btn-ghost"><i class="bi bi-clock-history"></i>Keyinroq to'ldiraman</button>
+                <button type="submit" class="cv-btn cv-btn-primary"><i class="bi bi-check2-circle"></i>Saqlaş va tasdiqlaş</button>
+                <button type="submit" name="action" value="skip" formnovalidate class="cv-btn cv-btn-ghost"><i class="bi bi-clock-history"></i>Keyinroq töldiraman</button>
             </div>
         </form>
     </main>
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
         parentUpdate(box);
     });
 
-    // ── Telefon: +998 o'zgarmas, qolgani "90 123 45 67" ──
+    // ── Telefon: +998 özgarmas, qolgani "90 123 45 67" ──
     var UZ = ['20','33','50','55','61','62','65','66','67','69','70','71','72','73','74','75','76','77','78','79','87','88','90','91','93','94','95','97','98','99'];
     function fmtPhone(d) {
         var p = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean);
@@ -195,8 +195,8 @@ document.addEventListener('DOMContentLoaded', function () {
             d = d.slice(0, 9);
             inp.value = fmtPhone(d);
             var bad = '';
-            if (d.length >= 2 && UZ.indexOf(d.slice(0, 2)) === -1) bad = '«' + d.slice(0, 2) + '» — O‘zbekiston operator kodi emas';
-            else if (d.length && d.length < 9) bad = (9 - d.length) + ' ta raqam yetishmayapti';
+            if (d.length >= 2 && UZ.indexOf(d.slice(0, 2)) === -1) bad = '«' + d.slice(0, 2) + '» — Özbekiston operator kodi emas';
+            else if (d.length && d.length < 9) bad = (9 - d.length) + ' ta raqam yetişmayapti';
             hint.textContent = bad;
             hint.hidden = !bad;
             inp.closest('.cv-field').classList.toggle('is-ok', d.length === 9 && !bad);
@@ -206,17 +206,17 @@ document.addEventListener('DOMContentLoaded', function () {
         norm();
     });
 
-    // ── JSHSHIR: jins va tug'ilgan sanani o'qish ──
+    // ── JŞŞIR: jins va tuğilgan sanani öqiş ──
     function parsePinfl(v) {
         if (!/^\d{14}$/.test(v)) return null;
         var f = +v[0];
-        if (f < 1 || f > 6) return { error: '1-raqam 1 dan 6 gacha bo‘lishi kerak' };
+        if (f < 1 || f > 6) return { error: '1-raqam 1 dan 6 gaça bölişi kerak' };
         var century = f <= 2 ? 1800 : (f <= 4 ? 1900 : 2000);
         var day = +v.slice(1, 3), month = +v.slice(3, 5), year = century + +v.slice(5, 7);
         var dt = new Date(Date.UTC(year, month - 1, day));
         if (dt.getUTCFullYear() !== year || dt.getUTCMonth() !== month - 1 || dt.getUTCDate() !== day)
-            return { error: 'Tug‘ilgan sana noto‘g‘ri: ' + v.slice(1, 3) + '.' + v.slice(3, 5) + '.' + year };
-        if (dt > new Date()) return { error: 'Tug‘ilgan sana kelajakda bo‘lishi mumkin emas' };
+            return { error: 'Tuğilgan sana notöğri: ' + v.slice(1, 3) + '.' + v.slice(3, 5) + '.' + year };
+        if (dt > new Date()) return { error: 'Tuğilgan sana kelajakda bölişi mumkin emas' };
         var iso = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
         return { gender: f % 2 ? 'male' : 'female', iso: iso, human: v.slice(1, 3) + '.' + v.slice(3, 5) + '.' + year };
     }
@@ -235,21 +235,21 @@ document.addEventListener('DOMContentLoaded', function () {
         var p = parsePinfl(v);
         info.hidden = false;
         if (p.error) { info.className = 'cv-pinfl bad'; info.innerHTML = '<i class="bi bi-x-octagon-fill"></i>' + p.error; box.classList.add('is-bad'); box.classList.remove('is-ok'); return; }
-        // Bo'sh bo'lsa — JSHSHIR'dan avtomatik to'ldiramiz.
+        // Böş bölsa — JSHSHIR'dan avtomatik töldiramiz.
         if (birth && !birth.value) birth.value = p.iso;
         if (!genderValue()) setGender(p.gender);
         var issues = [];
-        if (birth && birth.value && birth.value !== p.iso) issues.push('tug‘ilgan sana (' + p.human + ')');
+        if (birth && birth.value && birth.value !== p.iso) issues.push('tuğilgan sana (' + p.human + ')');
         if (genderValue() && genderValue() !== p.gender) issues.push('jins (' + (p.gender === 'male' ? 'erkak' : 'ayol') + ')');
         var chips = '<span><i class="bi ' + (p.gender === 'male' ? 'bi-gender-male' : 'bi-gender-female') + '"></i>' + (p.gender === 'male' ? 'Erkak' : 'Ayol') + '</span><span><i class="bi bi-calendar-heart"></i>' + p.human + '</span>';
         if (issues.length) {
             info.className = 'cv-pinfl bad';
-            info.innerHTML = chips + '<div class="cv-pinfl-msg"><i class="bi bi-exclamation-triangle-fill"></i>JSHSHIR kiritilgan ' + issues.join(' va ') + ' bilan mos emas. <button type="button" id="pinflFix">JSHSHIR bo‘yicha to‘g‘rilash</button></div>';
+            info.innerHTML = chips + '<div class="cv-pinfl-msg"><i class="bi bi-exclamation-triangle-fill"></i>JŞŞIR kiritilgan ' + issues.join(' va ') + ' bilan mos emas. <button type="button" id="pinflFix">JŞŞIR böyiça töğrilaş</button></div>';
             $('pinflFix').addEventListener('click', function () { birth.value = p.iso; setGender(p.gender); pinflUpdate(); progress(); });
             box.classList.add('is-bad'); box.classList.remove('is-ok');
         } else {
             info.className = 'cv-pinfl ok';
-            info.innerHTML = chips + '<span class="cv-pinfl-ok"><i class="bi bi-check-circle-fill"></i>Haqiqiy JSHSHIR</span>';
+            info.innerHTML = chips + '<span class="cv-pinfl-ok"><i class="bi bi-check-circle-fill"></i>Haqiqiy JŞŞIR</span>';
             box.classList.add('is-ok'); box.classList.remove('is-bad');
         }
     }
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (ps) ps.addEventListener('input', function () { ps.value = ps.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2); });
     if (pn) pn.addEventListener('input', function () { pn.value = pn.value.replace(/\D/g, '').slice(0, 7); });
 
-    // ── Jonli progress va bosqich belgilari ──
+    // ── Jonli progress va bosqiç belgilari ──
     function filled(el) { return el && el.value && el.value.trim().length > 0; }
     function sectionDone(sec) {
         if (sec === 'personal') return ['{{ form.first_name.id_for_label }}', '{{ form.last_name.id_for_label }}', '{{ form.birth_date.id_for_label }}', '{{ form.nationality.id_for_label }}'].every(function (id) { return filled($(id)); }) && !!genderValue();
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
     form.addEventListener('input', progress);
     form.addEventListener('change', progress);
 
-    // Faol bo'limni yon panelda belgilash
+    // Faol bölimni yon panelda belgilaş
     var steps = document.querySelectorAll('.cv-step');
     var io = new IntersectionObserver(function (entries) {
         entries.forEach(function (e) {
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }, { rootMargin: '-40% 0px -55% 0px' });
     form.querySelectorAll('.cv-sec').forEach(function (s) { io.observe(s); });
 
-    // Birinchi xatoli maydonga o'tish
+    // Birinçi xatoli maydonga ötiş
     var firstErr = form.querySelector('.has-error');
     if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
 

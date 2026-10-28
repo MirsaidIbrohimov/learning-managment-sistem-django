@@ -13,7 +13,7 @@
             <h1>{{ profession.name }}</h1>
             <div class="kp-stats">
                 <span class="kp-stat"><i class="bi bi-check2-circle"></i><b>{{ state.done_count }}</b> / {{ state.total_count }} dars</span>
-                <span class="kp-stat"><i class="bi bi-layers-fill"></i><b>{{ state.sections|length }}</b> bo'lim</span>
+                <span class="kp-stat"><i class="bi bi-layers-fill"></i><b>{{ state.sections|length }}</b> bölim</span>
                 {% if state.limit_on and state.today_access %}
                 <span class="kp-stat"><i class="bi bi-calendar-check-fill"></i>Bugun: <b>{{ state.today_access.section.title }}</b></span>
                 {% endif %}
@@ -28,7 +28,7 @@
     <a href="{% url 'kurslarim:lesson' state.resume.pk %}" class="kp-resume kp-glass">
         <span class="kp-play"><i class="bi bi-play-fill"></i></span>
         <span>
-            <span class="kp-eyebrow d-block">{% if state.done_count %}Davom ettirish{% else %}Birinchi dars{% endif %}</span>
+            <span class="kp-eyebrow d-block">{% if state.done_count %}Davom ettiriş{% else %}Birinçi dars{% endif %}</span>
             <strong>{{ state.resume.title }}</strong>
         </span>
         <i class="bi bi-arrow-right-circle-fill kp-go" aria-hidden="true"></i>
@@ -36,12 +36,12 @@
     {% elif state.total_count and state.done_count == state.total_count %}
     <div class="kp-resume kp-glass" role="status">
         <span class="kp-play" style="background:var(--dash-success)"><i class="bi bi-trophy-fill"></i></span>
-        <span><span class="kp-eyebrow d-block">Tabriklaymiz!</span><strong>Kursning barcha darslari bajarildi 🎉</strong></span>
+        <span><span class="kp-eyebrow d-block">Tabriklaymiz!</span><strong>Kursning barça darslari bajarildi 🎉</strong></span>
     </div>
     {% endif %}
 
     {% if state.limit_on %}
-    <p class="kp-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Bu kursda kuniga bitta yangi bo'lim ochiladi.</p>
+    <p class="kp-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Bu kursda kuniga bitta yangi bölim oçiladi.</p>
     {% endif %}
 
     <div class="kp-roadmap">
@@ -64,14 +64,14 @@
             </summary>
             <div class="kp-lessons">
                 {% if block.locked == 'sequential' %}
-                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-lock me-1"></i>Oldingi bo'limdagi barcha darslarni bajaring.</p>
+                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-lock me-1"></i>Oldingi bölimdagi barça darslarni bajaring.</p>
                 {% elif block.locked == 'daily' %}
-                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-clock me-1"></i>Bugun boshqa bo'lim o'qilmoqda — bu bo'lim ertaga ochiladi.</p>
+                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-clock me-1"></i>Bugun boşqa bölim öqilmoqda — bu bölim ertaga oçiladi.</p>
                 {% endif %}
                 {% for item in block.lessons %}
                 {% include 'kurslarim/_lesson_row.html' %}
                 {% empty %}
-                <p class="kp-muted small px-2 py-2 mb-0">Bu bo'limda hali dars yo'q.</p>
+                <p class="kp-muted small px-2 py-2 mb-0">Bu bölimda hali dars yöq.</p>
                 {% endfor %}
             </div>
         </details>
@@ -81,7 +81,7 @@
         <details class="kp-section kp-glass" open>
             <summary>
                 <span class="kp-num"><i class="bi bi-plus-lg"></i></span>
-                <span class="kp-section-info"><span class="kp-section-title d-block">Qo'shimcha darslar</span></span>
+                <span class="kp-section-info"><span class="kp-section-title d-block">Qöşimça darslar</span></span>
                 <i class="bi bi-chevron-down kp-chev" aria-hidden="true"></i>
             </summary>
             <div class="kp-lessons">

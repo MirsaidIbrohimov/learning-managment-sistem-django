@@ -46,7 +46,7 @@ class RecoveryLinkTests(TestCase):
         self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
         self.assertTrue(UserSession.objects.filter(user=self.user, session_key=self.client.session.session_key, is_active=True).exists())
         self.assertIsNotNone(EmailRecoveryToken.objects.get().used_at)
-        self.assertContains(self.client.get(link), 'Havola ishlamaydi')
+        self.assertContains(self.client.get(link), 'Havola işlamaydi')
 
     def test_mismatched_passwords_do_not_consume_link(self):
         self.client.get(self.request_link())
@@ -58,17 +58,17 @@ class RecoveryLinkTests(TestCase):
     def test_expired_and_tampered_links_are_rejected(self):
         link = self.request_link()
         EmailRecoveryToken.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
-        self.assertContains(self.client.get(link), 'Havola ishlamaydi')
-        self.assertContains(self.client.get(reverse('open_recovery_link', args=['invalid-token'])), 'Havola ishlamaydi')
+        self.assertContains(self.client.get(link), 'Havola işlamaydi')
+        self.assertContains(self.client.get(reverse('open_recovery_link', args=['invalid-token'])), 'Havola işlamaydi')
 
     def test_new_request_and_email_change_invalidate_previous_links(self):
         old = self.request_link()
         self.request_link()
-        self.assertContains(self.client.get(old), 'Havola ishlamaydi')
+        self.assertContains(self.client.get(old), 'Havola işlamaydi')
         current = re.search(r'https://lms.example.com(/password-reset/open/[^\s]+/)', mail.outbox[-1].body).group(1)
         self.user.email = 'changed@example.com'
         self.user.save(update_fields=['email'])
-        self.assertContains(self.client.get(current), 'Havola ishlamaydi')
+        self.assertContains(self.client.get(current), 'Havola işlamaydi')
 
     def test_two_browsers_cannot_use_same_link_twice(self):
         link = self.request_link()
@@ -76,7 +76,7 @@ class RecoveryLinkTests(TestCase):
         self.client.get(link)
         other.get(link)
         self.client.post(reverse('choose_recovery_password'), {'new_password1': '1234', 'new_password2': '1234'})
-        self.assertContains(other.post(reverse('choose_recovery_password'), {'new_password1': '5678', 'new_password2': '5678'}), 'Havola ishlamaydi')
+        self.assertContains(other.post(reverse('choose_recovery_password'), {'new_password1': '5678', 'new_password2': '5678'}), 'Havola işlamaydi')
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('1234'))
 
@@ -114,7 +114,7 @@ class EmailLifecycleTests(TestCase):
         notification = UserEmailNotification.objects.get(kind='welcome')
         self.assertIsNotNone(notification.sent_at)
         self.assertEqual(mail.outbox[0].to, ['new@example.com'])
-        self.assertIn('Xush kelibsiz!', mail.outbox[0].subject)
+        self.assertIn('Xuş kelibsiz!', mail.outbox[0].subject)
         self.assertIn('Добро пожаловать!', mail.outbox[0].subject)
         self.assertIn('text/html', mail.outbox[0].alternatives[0])
 

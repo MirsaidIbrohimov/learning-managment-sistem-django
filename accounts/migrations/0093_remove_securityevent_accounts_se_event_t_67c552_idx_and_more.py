@@ -59,7 +59,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='ai_access_enabled',
-            field=models.BooleanField(default=True, help_text="O'qituvchi uchun AI yordamida test/vazifa yaratish va baholash funksiyalariga ruxsat.", verbose_name='AI funksiyasidan foydalanish ruxsati'),
+            field=models.BooleanField(default=True, help_text="Öqituvçi uçun AI yordamida test/vazifa yaratiş va baholaş funksiyalariga ruxsat.", verbose_name='AI funksiyasidan foydalaniş ruxsati'),
         ),
         migrations.AddField(
             model_name='customuser',
@@ -88,7 +88,7 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='event_type',
-                    field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oshirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP so'rov yubordi"), ('sqli_attempt', 'SQL Injection urinish'), ('xss_attempt', 'XSS urinish'), ('path_trav', 'Path Traversal urinish'), ('ssti', 'Template Injection urinish'), ('cmd_inject', 'Command Injection urinish'), ('brute_force', 'Brute-force urinish'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Shubhali fayl yuklanishga urinish'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kirish urinishi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol o'zgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boshqa')], db_index=True, max_length=40, verbose_name='Hodisa turi'),
+                    field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oşirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP sörov yubordi"), ('sqli_attempt', 'SQL Injection uriniş'), ('xss_attempt', 'XSS uriniş'), ('path_trav', 'Path Traversal uriniş'), ('ssti', 'Template Injection uriniş'), ('cmd_inject', 'Command Injection uriniş'), ('brute_force', 'Brute-force uriniş'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Şubhali fayl yuklanişga uriniş'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kiriş urinişi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol özgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boşqa')], db_index=True, max_length=40, verbose_name='Hodisa turi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
@@ -98,7 +98,7 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='path',
-                    field=models.CharField(blank=True, max_length=500, verbose_name='URL yo`li'),
+                    field=models.CharField(blank=True, max_length=500, verbose_name='URL yöli'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
@@ -118,12 +118,12 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='severity',
-                    field=models.CharField(choices=[('low', 'Past'), ('medium', "O'rta"), ('high', 'Yuqori'), ('critical', 'Kritik')], db_index=True, default='medium', max_length=10, verbose_name='Xavf darajasi'),
+                    field=models.CharField(choices=[('low', 'Past'), ('medium', "Örta"), ('high', 'Yuqori'), ('critical', 'Kritik')], db_index=True, default='medium', max_length=10, verbose_name='Xavf darajasi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
                     name='user',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='security_events', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi'),
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='security_events', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',

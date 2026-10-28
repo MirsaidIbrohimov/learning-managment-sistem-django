@@ -144,13 +144,13 @@
         <div class="sub">Kurs statistikasi — umumiy va guruh kesimida</div>
       </div>
       <div class="cs-hero-tools">
-        <button class="cs-btn" id="csRefresh"><i class="bi bi-arrow-clockwise"></i> Yangilash</button>
+        <button class="cs-btn" id="csRefresh"><i class="bi bi-arrow-clockwise"></i> Yangilaş</button>
         <span class="cs-updated"><i class="bi bi-clock"></i> <span id="csUpdated">{{ stats_data.generated_at }}</span></span>
       </div>
     </div>
 
-    {# ── Guruh filtri: Umumiy + barcha guruhlar (o'z guruhi standart) ── #}
-    <div class="cs-gfilter" aria-label="Guruh tanlash">
+    {# ── Guruh filtri: Umumiy + barça guruhlar (öz guruhi standart) ── #}
+    <div class="cs-gfilter" aria-label="Guruh tanlaş">
       <a href="?group=" class="cs-gchip{% if not stats_data.selected_group %} active{% endif %}"><i class="bi bi-globe2"></i> Umumiy</a>
       {% for g in stats_data.groups %}
       <a href="?group={{ g.id }}" class="cs-gchip{% if stats_data.selected_group and stats_data.selected_group.id == g.id %} active{% endif %}">
@@ -163,34 +163,34 @@
   </div>
 
   <!-- Overall (course-wide) KPIs -->
-  <div class="cs-slabel"><i class="bi bi-globe2"></i> Umumiy — butun kurs bo'yicha</div>
+  <div class="cs-slabel"><i class="bi bi-globe2"></i> Umumiy — butun kurs böyiça</div>
   <div class="cs-kpis">
-    <div class="cs-kpi"><div class="ic ic-blue"><i class="bi bi-people-fill"></i></div><div class="val">{{ overview.total_students }}</div><div class="lbl">O'quvchilar</div></div>
-    <div class="cs-kpi"><div class="ic ic-amber"><i class="bi bi-journal-check"></i></div><div class="val">{{ overview.avg_test_score }}<small>%</small></div><div class="lbl">O'rtacha test bali</div></div>
-    <div class="cs-kpi"><div class="ic ic-green"><i class="bi bi-check2-circle"></i></div><div class="val">{{ overview.pass_rate }}<small>%</small></div><div class="lbl">Testdan o'tish</div></div>
-    <div class="cs-kpi"><div class="ic ic-red"><i class="bi bi-pencil-square"></i></div><div class="val">{{ overview.avg_hw_grade }}<small>/10</small></div><div class="lbl">O'rtacha vazifa baho</div></div>
+    <div class="cs-kpi"><div class="ic ic-blue"><i class="bi bi-people-fill"></i></div><div class="val">{{ overview.total_students }}</div><div class="lbl">Öquvçilar</div></div>
+    <div class="cs-kpi"><div class="ic ic-amber"><i class="bi bi-journal-check"></i></div><div class="val">{{ overview.avg_test_score }}<small>%</small></div><div class="lbl">Örtaça test bali</div></div>
+    <div class="cs-kpi"><div class="ic ic-green"><i class="bi bi-check2-circle"></i></div><div class="val">{{ overview.pass_rate }}<small>%</small></div><div class="lbl">Testdan ötiş</div></div>
+    <div class="cs-kpi"><div class="ic ic-red"><i class="bi bi-pencil-square"></i></div><div class="val">{{ overview.avg_hw_grade }}<small>/10</small></div><div class="lbl">Örtaça vazifa baho</div></div>
     <div class="cs-kpi"><div class="ic ic-cyan"><i class="bi bi-collection-play"></i></div><div class="val">{{ overview.total_videos }}</div><div class="lbl">Video darslar</div></div>
     <div class="cs-kpi"><div class="ic ic-violet"><i class="bi bi-mortarboard-fill"></i></div><div class="val">{{ overview.total_lessons }}</div><div class="lbl">Jami darslar</div></div>
   </div>
 
   <!-- Scope (selected group / all) summary -->
-  <div class="cs-slabel"><i class="bi bi-diagram-3"></i> <span id="csScopeLabel">{% if stats_data.selected_group %}Guruh: {{ stats_data.selected_group.name }}{% else %}Reyting doirasi — barcha{% endif %}</span></div>
+  <div class="cs-slabel"><i class="bi bi-diagram-3"></i> <span id="csScopeLabel">{% if stats_data.selected_group %}Guruh: {{ stats_data.selected_group.name }}{% else %}Reyting doirasi — barça{% endif %}</span></div>
   <div class="cs-scope" id="csScope">
     <div class="who">
-      <div class="t"><i class="bi bi-people"></i> <span id="csScopeName">{% if stats_data.selected_group %}{{ stats_data.selected_group.name }}{% else %}Barcha o'quvchilar{% endif %}</span></div>
-      <div class="d" id="csScopeDesc">{% if stats_data.selected_group %}Shu guruhga biriktirilgan o'quvchilar{% else %}Kursga yozilgan barcha o'quvchilar{% endif %}</div>
+      <div class="t"><i class="bi bi-people"></i> <span id="csScopeName">{% if stats_data.selected_group %}{{ stats_data.selected_group.name }}{% else %}Barça öquvçilar{% endif %}</span></div>
+      <div class="d" id="csScopeDesc">{% if stats_data.selected_group %}Şu guruhga biriktirilgan öquvçilar{% else %}Kursga yozilgan barça öquvçilar{% endif %}</div>
     </div>
-    <div class="m"><div class="v" id="csScStudents">{{ stats_data.group_overview.students }}</div><div class="k">O'quvchi</div></div>
-    <div class="m"><div class="v" id="csScBall">{{ stats_data.group_overview.avg_score }}</div><div class="k">O'rtacha ball</div></div>
-    <div class="m"><div class="v" id="csScTest">{{ stats_data.group_overview.avg_test }}%</div><div class="k">O'rtacha test</div></div>
-    <div class="m"><div class="v" id="csScPass">{{ stats_data.group_overview.pass_rate }}%</div><div class="k">O'tish darajasi</div></div>
+    <div class="m"><div class="v" id="csScStudents">{{ stats_data.group_overview.students }}</div><div class="k">Öquvçi</div></div>
+    <div class="m"><div class="v" id="csScBall">{{ stats_data.group_overview.avg_score }}</div><div class="k">Örtaça ball</div></div>
+    <div class="m"><div class="v" id="csScTest">{{ stats_data.group_overview.avg_test }}%</div><div class="k">Örtaça test</div></div>
+    <div class="m"><div class="v" id="csScPass">{{ stats_data.group_overview.pass_rate }}%</div><div class="k">Ötiş darajasi</div></div>
   </div>
 
   <!-- Charts -->
   <div class="cs-slabel"><i class="bi bi-graph-up"></i> Tahlil</div>
   <div class="cs-charts">
     <div class="cs-panel">
-      <div class="cs-panel-h"><i class="bi bi-trophy-fill"></i> Top o'quvchilar (umumiy ball)</div>
+      <div class="cs-panel-h"><i class="bi bi-trophy-fill"></i> Top öquvçilar (umumiy ball)</div>
       <div class="cs-chart-box"><canvas id="csTopChart"></canvas></div>
     </div>
     <div class="cs-panel">
@@ -200,31 +200,31 @@
   </div>
 
   <!-- Leaderboard -->
-  <div class="cs-slabel"><i class="bi bi-list-ol"></i> O'quvchilar reytingi</div>
+  <div class="cs-slabel"><i class="bi bi-list-ol"></i> Öquvçilar reytingi</div>
   <div class="cs-panel">
     <div class="cs-lead-h">
       <div class="t"><i class="bi bi-trophy text-warning"></i> Reyting <span id="csCount" style="color:var(--cs-muted);font-weight:600;">· {{ stats_data.students|length }} ta</span></div>
-      <input type="text" class="cs-search" id="csSearch" placeholder="O'quvchi qidirish..." autocomplete="off">
+      <input type="text" class="cs-search" id="csSearch" placeholder="Öquvçi qidiriş..." autocomplete="off">
     </div>
     <div class="cs-chips" id="csChips">
-      <button class="cs-chip active" data-filter="all">Barchasi</button>
+      <button class="cs-chip active" data-filter="all">Barçasi</button>
       <button class="cs-chip" data-filter="high"><i class="bi bi-circle-fill" style="color:#16a34a;font-size:.5rem;"></i> Faol (≥70%)</button>
-      <button class="cs-chip" data-filter="medium"><i class="bi bi-circle-fill" style="color:#d97706;font-size:.5rem;"></i> O'rtacha (40–69%)</button>
+      <button class="cs-chip" data-filter="medium"><i class="bi bi-circle-fill" style="color:#d97706;font-size:.5rem;"></i> Örtaça (40–69%)</button>
       <button class="cs-chip" data-filter="low"><i class="bi bi-circle-fill" style="color:#dc2626;font-size:.5rem;"></i> Past (&lt;40%)</button>
     </div>
-    <div class="cs-hint"><i class="bi bi-info-circle"></i> Umumiy ball = test o'rtacha bali va vazifa o'rtacha bahosining o'rtachasi (0–100). Progress = bajarilgan darslar ulushi.</div>
+    <div class="cs-hint"><i class="bi bi-info-circle"></i> Umumiy ball = test örtaça bali va vazifa örtaça bahosining örtaçasi (0–100). Progress = bajarilgan darslar uluşi.</div>
 
     <div class="cs-table-wrap cs-desktop">
       <table class="cs-table">
         <thead>
           <tr>
             <th data-sort="rank">#</th>
-            <th data-sort="name">O'quvchi</th>
+            <th data-sort="name">Öquvçi</th>
             <th data-sort="total_score" class="sorted">Umumiy ball<span class="so">▼</span></th>
             <th data-sort="test_avg" class="cs-num">Test %</th>
-            <th data-sort="test_count" class="cs-num">Urinish</th>
+            <th data-sort="test_count" class="cs-num">Uriniş</th>
             <th data-sort="hw_avg" class="cs-num">Vazifa</th>
-            <th data-sort="hw_count" class="cs-num">Topsh.</th>
+            <th data-sort="hw_count" class="cs-num">Topş.</th>
             <th data-sort="videos_watched" class="cs-num">Video</th>
             <th data-sort="progress">Progress</th>
             <th data-sort="coins" class="cs-num">Coin</th>
@@ -245,7 +245,7 @@
             <td class="cs-num cs-coin"><i class="bi bi-coin"></i> {{ s.coins }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="10" class="cs-empty"><i class="bi bi-inbox" style="font-size:1.6rem;display:block;margin-bottom:6px;opacity:.5"></i>O'quvchi topilmadi</td></tr>
+          <tr><td colspan="10" class="cs-empty"><i class="bi bi-inbox" style="font-size:1.6rem;display:block;margin-bottom:6px;opacity:.5"></i>Öquvçi topilmadi</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -258,13 +258,13 @@
           <div class="c"><div class="k">Test</div><div class="v">{{ s.test_avg }}%</div></div>
           <div class="c"><div class="k">Vazifa</div><div class="v">{{ s.hw_avg }}/10</div></div>
           <div class="c"><div class="k">Progress</div><div class="v">{{ s.progress }}%</div></div>
-          <div class="c"><div class="k">Urinish</div><div class="v">{{ s.test_count }}</div></div>
+          <div class="c"><div class="k">Uriniş</div><div class="v">{{ s.test_count }}</div></div>
           <div class="c"><div class="k">Video</div><div class="v">{{ s.videos_watched }}</div></div>
           <div class="c"><div class="k">Coin</div><div class="v">{{ s.coins }}</div></div>
         </div>
       </div>
       {% empty %}
-      <div class="cs-empty">O'quvchi topilmadi</div>
+      <div class="cs-empty">Öquvçi topilmadi</div>
       {% endfor %}
     </div>
   </div>
@@ -300,9 +300,9 @@
   function renderScope(){
     var go = state.data.group_overview || {students:0,avg_score:0,avg_test:0,pass_rate:0};
     var sg = state.data.selected_group;
-    $('csScopeName').textContent = sg ? sg.name : "Barcha o'quvchilar";
-    $('csScopeDesc').textContent = sg ? "Shu guruhga biriktirilgan o'quvchilar" : "Kursga yozilgan barcha o'quvchilar";
-    $('csScopeLabel').textContent = sg ? ('Guruh: ' + sg.name) : 'Reyting doirasi — barcha';
+    $('csScopeName').textContent = sg ? sg.name : "Barça öquvçilar";
+    $('csScopeDesc').textContent = sg ? "Şu guruhga biriktirilgan öquvçilar" : "Kursga yozilgan barça öquvçilar";
+    $('csScopeLabel').textContent = sg ? ('Guruh: ' + sg.name) : 'Reyting doirasi — barça';
     $('csScStudents').textContent = go.students;
     $('csScBall').textContent = go.avg_score;
     $('csScTest').textContent = go.avg_test + '%';
@@ -357,7 +357,7 @@
         +'<div class="c"><div class="k">Test</div><div class="v">'+s.test_avg+'%</div></div>'
         +'<div class="c"><div class="k">Vazifa</div><div class="v">'+s.hw_avg+'/10</div></div>'
         +'<div class="c"><div class="k">Progress</div><div class="v">'+s.progress+'%</div></div>'
-        +'<div class="c"><div class="k">Urinish</div><div class="v">'+s.test_count+'</div></div>'
+        +'<div class="c"><div class="k">Uriniş</div><div class="v">'+s.test_count+'</div></div>'
         +'<div class="c"><div class="k">Video</div><div class="v">'+s.videos_watched+'</div></div>'
         +'<div class="c"><div class="k">Coin</div><div class="v">'+s.coins+'</div></div>'
         +'</div></div>';
@@ -379,7 +379,7 @@
     var tc=$('csTopChart'), dc=$('csDistChart');
     if(tc) topChart = new Chart(tc,{type:'bar',data:{labels:labels,datasets:[{data:vals,backgroundColor:'#6366f1',borderRadius:6,maxBarThickness:34}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:txt,font:{size:10}},grid:{display:false}},y:{beginAtZero:true,max:100,ticks:{color:txt},grid:{color:grid}}}}});
-    if(dc) distChart = new Chart(dc,{type:'doughnut',data:{labels:['Faol (≥70%)','O\'rtacha (40–69%)','Past (<40%)'],datasets:[{data:[d.high,d.medium,d.low],backgroundColor:['#16a34a','#d97706','#dc2626'],borderWidth:0}]},
+    if(dc) distChart = new Chart(dc,{type:'doughnut',data:{labels:['Faol (≥70%)','Örtaça (40–69%)','Past (<40%)'],datasets:[{data:[d.high,d.medium,d.low],backgroundColor:['#16a34a','#d97706','#dc2626'],borderWidth:0}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{color:txt,font:{size:11},padding:12,usePointStyle:true}}}}});
   }
 
@@ -387,7 +387,7 @@
 
   // ── Live fetch (group change / refresh) ──
   function fetchData(){
-    // Guruhni doim aniq yuboramiz: bo'sh = "Barcha guruhlar" (butun kurs).
+    // Guruhni doim aniq yuboramiz: böş = "Barça guruhlar" (butun kurs).
     var url = API + '?group=' + encodeURIComponent(state.group || '');
     $('csRefresh').classList.add('disabled');
     fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}}).then(function(r){return r.json();}).then(function(j){
@@ -397,8 +397,8 @@
     try{ var u=new URL(window.location); if(state.group)u.searchParams.set('group',state.group); else u.searchParams.delete('group'); history.replaceState(null,'',u); }catch(e){}
   }
 
-  // ── Events ── (guruh tanlash select'ning inline onchange'i orqali sahifani
-  // to'g'ridan-to'g'ri qayta yuklaydi — hech qanday fetch'ga bog'liq emas)
+  // ── Events ── (guruh tanlaş select'ning inline onchange'i orqali sahifani
+  // töğridan-töğri qayta yuklaydi — heç qanday fetch'ga boğliq emas)
   $('csRefresh').addEventListener('click', function(){ window.location.reload(); });
   $('csSearch').addEventListener('input', function(){ state.query=this.value.trim().toLowerCase(); render(); });
   $('csChips').addEventListener('click', function(e){
@@ -417,8 +417,8 @@
     });
   });
 
-  // Qatorlar/ko'rsatkichlar server tomonda tayyor keladi; JS faqat grafiklar va
-  // qidiruv/saralash/filtrni boyitadi. Shu sabab guruh saralashi JS'siz ham ishlaydi.
+  // Qatorlar/körsatkichlar server tomonda tayyor keladi; JS faqat grafiklar va
+  // qidiruv/saralash/filtrni boyitadi. Şu sabab guruh saralaşi JS'siz ham işlaydi.
   renderCharts();
 })();
 </script>

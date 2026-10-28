@@ -1,10 +1,10 @@
 <script>
-/* Mavzu: akkauntdagi tanlov (nav sozlamalari) + qurilmadagi localStorage. Birinchi chizishdan oldin. */
+/* Mavzu: akkauntdagi tanlov (nav sozlamalari) + qurilmadagi localStorage. Birinçi çizişdan oldin. */
 try{(function(){
   var d=document.documentElement,ls=localStorage,srv='{% if user.is_authenticated %}{{ nav_prefs.theme }}{% endif %}';
   var loc=ls.getItem('theme'),mode=ls.getItem('themeMode'),m;
   if(!srv){m=mode==='system'?'system':(loc||'light');}
-  else if(mode&&mode!=='system'&&loc&&loc!==mode&&srv===mode){m=loc;window.__itcThemePush=loc;} /* boshqa panelda almashtirilgan */
+  else if(mode&&mode!=='system'&&loc&&loc!==mode&&srv===mode){m=loc;window.__itcThemePush=loc;} /* boşqa panelda almaştirilgan */
   else{m=srv;}
   var t=m==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):m;
   d.setAttribute('data-bs-theme',t);ls.setItem('theme',t);ls.setItem('themeMode',m);

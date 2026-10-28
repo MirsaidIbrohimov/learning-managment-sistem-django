@@ -13,16 +13,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='competition',
             name='coin_1st',
-            field=models.PositiveIntegerField(default=0, verbose_name="1-o'rin uchun coin"),
+            field=models.PositiveIntegerField(default=0, verbose_name="1-örin uçun coin"),
         ),
         migrations.AddField(
             model_name='competition',
             name='coin_2nd',
-            field=models.PositiveIntegerField(default=0, verbose_name="2-o'rin uchun coin"),
+            field=models.PositiveIntegerField(default=0, verbose_name="2-örin uçun coin"),
         ),
         migrations.AddField(
             model_name='competition',
             name='coin_3rd',
-            field=models.PositiveIntegerField(default=0, verbose_name="3-o'rin uchun coin"),
+            field=models.PositiveIntegerField(default=0, verbose_name="3-örin uçun coin"),
         ),
     ]

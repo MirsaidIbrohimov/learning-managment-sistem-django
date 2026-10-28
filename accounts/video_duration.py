@@ -1,9 +1,9 @@
-"""Video davomiyligini SERVER tomonda aniqlash (anti-cheat asosi).
+"""Video davomiyligini SERVER tomonda aniqlaş (anti-cheat asosi).
 
-Ko'rish talabi (`VideoProgress.required_seconds`) davomiylikdan hisoblanadi.
-Agar davomiylik mijozdan olinsa, o'quvchi konsoldan `duration_seconds: 10`
-yuborib talabni bir soniyaga tushirib, videoni bir zumda "ko'rilgan" qilib
-qo'ya olardi. Shuning uchun davomiylikni server o'zi YouTube/Vimeo'dan oladi va
+Köriş talabi (`VideoProgress.required_seconds`) davomiylikdan hisoblanadi.
+Agar davomiylik mijozdan olinsa, öquvçi konsoldan `duration_seconds: 10`
+yuborib talabni bir soniyaga tuşirib, videoni bir zumda "körilgan" qilib
+qöya olardi. Şuning uçun davomiylikni server özi YouTube/Vimeo'dan oladi va
 DB'da qulflaydi — mijoz bu qiymatga ta'sir qila olmaydi.
 """
 
@@ -17,8 +17,8 @@ from django.db import close_old_connections
 from django.db.models import Q
 from django.utils import timezone
 
-FETCH_TIMEOUT = 6          # soniya — so'rov yo'lida turgani uchun qisqa
-RETRY_AFTER   = timedelta(minutes=10)   # muvaffaqiyatsiz urinishni takrorlash oralig'i
+FETCH_TIMEOUT = 6          # soniya — sörov yölida turgani uçun qisqa
+RETRY_AFTER   = timedelta(minutes=10)   # muvaffaqiyatsiz urinişni takrorlaş oraliği
 MIN_PLAUSIBLE = 5          # bundan qisqa qiymat xato deb hisoblanadi
 MAX_PLAUSIBLE = 24 * 3600
 
@@ -27,14 +27,14 @@ _UA = (
     '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 )
 
-# YouTube sahifasidagi davomiylik: ytInitialPlayerResponse ichida keladi.
+# YouTube sahifasidagi davomiylik: ytInitialPlayerResponse içida keladi.
 _YT_PATTERNS = (
     re.compile(r'"lengthSeconds"\s*:\s*"?(\d+)"?'),
     re.compile(r'"approxDurationMs"\s*:\s*"(\d+)"'),
 )
 
-# Pleerning ochiq (kalitsiz emas, lekin hammaga ma'lum) InnerTube kaliti — brauzer
-# ham xuddi shu so'rovni yuboradi.
+# Pleerning oçiq (kalitsiz emas, lekin hammaga ma'lum) InnerTube kaliti — brauzer
+# ham xuddi şu sörovni yuboradi.
 _INNERTUBE_KEY = 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
 _INNERTUBE_CLIENT = {'clientName': 'WEB', 'clientVersion': '2.20240401.00.00', 'hl': 'en'}
 
@@ -58,9 +58,9 @@ def _parse_iso_duration(text):
 def _youtube_api_duration(video_id):
     """Asosiy manba: YouTube Data API v3 (`videos.list`).
 
-    Kalit faqat kvotani belgilaydi — egalikni emas, shuning uchun YouTube'dagi
-    har qanday ochiq video o'qiladi. Har bir video uchun natija DB'da
-    qulflanadi, ya'ni amalda video soniga teng so'rov ketadi (kvota: 1 birlik).
+    Kalit faqat kvotani belgilaydi — egalikni emas, şuning uçun YouTube'dagi
+    har qanday oçiq video öqiladi. Har bir video uçun natija DB'da
+    qulflanadi, ya'ni amalda video soniga teng sörov ketadi (kvota: 1 birlik).
     """
     api_key = getattr(settings, 'YOUTUBE_API_KEY', '')
     if not api_key:
@@ -78,12 +78,12 @@ def _youtube_api_duration(video_id):
 
 
 def _youtube_innertube_duration(video_id):
-    """Zaxira: YouTube pleer API'si (kalitsiz, lekin ko'p so'rovda bloklanadi).
+    """Zaxira: YouTube pleer API'si (kalitsiz, lekin köp sörovda bloklanadi).
 
-    `watch` sahifasini o'qishdan ishonchliroq (429/captcha bermaydi) va
-    playabilityStatus "UNPLAYABLE" bo'lsa ham `videoDetails.lengthSeconds`
-    keladi. Lekin server IP'si bir necha so'rovdan keyin "LOGIN_REQUIRED"
-    olishi mumkin — shuning uchun asosiy manba emas.
+    `watch` sahifasini öqişdan işonçliroq (429/captcha bermaydi) va
+    playabilityStatus "UNPLAYABLE" bölsa ham `videoDetails.lengthSeconds`
+    keladi. Lekin server IP'si bir neça sörovdan keyin "LOGIN_REQUIRED"
+    olişi mumkin — şuning uçun asosiy manba emas.
     """
     response = requests.post(
         'https://www.youtube.com/youtubei/v1/player',
@@ -98,7 +98,7 @@ def _youtube_innertube_duration(video_id):
 
 
 def _youtube_page_duration(video_id):
-    """Oxirgi zaxira: `watch` sahifasidan o'qish (server IP'da 429 ehtimoli yuqori)."""
+    """Oxirgi zaxira: `watch` sahifasidan öqiş (server IP'da 429 ehtimoli yuqori)."""
     response = requests.get(
         f'https://www.youtube.com/watch?v={video_id}',
         headers={'User-Agent': _UA, 'Accept-Language': 'en-US,en;q=0.9'},
@@ -127,8 +127,8 @@ def _vimeo_oembed_duration(video):
 
 
 def _vimeo_config_duration(video):
-    """Zaxira yo'l: oembed faqat ochiq videolarni biladi, pleer config esa
-    embed qilinadigan (shu jumladan ro'yxatda ko'rinmaydigan) videolarni ham."""
+    """Zaxira yöl: oembed faqat oçiq videolarni biladi, pleer config esa
+    embed qilinadigan (şu jumladan röyxatda körinmaydigan) videolarni ham."""
     video_id = video.get_video_id()
     private_hash = video.get_vimeo_hash()
     params = {'h': private_hash} if private_hash else None
@@ -143,7 +143,7 @@ def _vimeo_config_duration(video):
 
 
 def _fetch_duration(video):
-    """Manbalarni navbat bilan sinaydi; birinchi ishonchli natijani qaytaradi."""
+    """Manbalarni navbat bilan sinaydi; birinçi işonçli natijani qaytaradi."""
     video_id = video.get_video_id()
     if not video_id:
         return 0
@@ -165,7 +165,7 @@ def _fetch_duration(video):
 
 
 def _claim_duration_check(video):
-    """Tekshiruvni bitta workerga atomik biriktiradi; vaqtni yoki None qaytaradi."""
+    """Tekşiruvni bitta workerga atomik biriktiradi; vaqtni yoki None qaytaradi."""
     from .models import VideoLesson
 
     now = timezone.now()
@@ -189,8 +189,8 @@ def _save_duration_result(video, seconds, checked_at):
     if seconds:
         fields['verified_duration_seconds'] = seconds
         # `duration` (daqiqa) coin miqdori, statistika va eski sahifalarda
-        # ishlatiladi. Qo'lda kiritilgan eski qiymat haqiqiy provider
-        # davomiyligidan farq qilishi mumkin, shuning uchun uni ham yangilaymiz.
+        # işlatiladi. Qölda kiritilgan eski qiymat haqiqiy provider
+        # davomiyligidan farq qilişi mumkin, şuning uçun uni ham yangilaymiz.
         fields['duration'] = max(1, round(seconds / 60))
 
     VideoLesson.objects.filter(pk=video.pk).update(**fields)
@@ -199,14 +199,14 @@ def _save_duration_result(video, seconds, checked_at):
 
 
 def resolve_verified_duration(video):
-    """Davomiylikni hozir aniqlaydi; oddiy HTTP request ichida chaqirmang.
+    """Davomiylikni hozir aniqlaydi; oddiy HTTP request içida çaqirmang.
 
-    Muvaffaqiyatli natija DB'da qulflanadi, shuning uchun tashqi so'rov har bir
-    video uchun amalda bir marta ketadi. Xatolikda `duration_checked_at` yoziladi
-    va `RETRY_AFTER` o'tmaguncha qayta urinilmaydi (har heartbeat'da YouTube'ga
-    chiqib so'rovni sekinlashtirmaslik uchun).
+    Muvaffaqiyatli natija DB'da qulflanadi, şuning uçun taşqi sörov har bir
+    video uçun amalda bir marta ketadi. Xatolikda `duration_checked_at` yoziladi
+    va `RETRY_AFTER` ötmagunça qayta urinilmaydi (har heartbeat'da YouTube'ga
+    çiqib sörovni sekinlaştirmaslik uçun).
 
-    DIQQAT: tashqi HTTP so'rovi bor — DB tranzaksiyasi ichida chaqirmang.
+    DIQQAT: taşqi HTTP sörovi bor — DB tranzaksiyasi içida çaqirmang.
     """
     if video.verified_duration_seconds:
         return video.verified_duration_seconds
@@ -221,7 +221,7 @@ def resolve_verified_duration(video):
 
 
 def schedule_verified_duration(video):
-    """Tashqi davomiylik tekshiruvini requestni bloklamasdan bir marta boshlaydi."""
+    """Taşqi davomiylik tekşiruvini requestni bloklamasdan bir marta boşlaydi."""
     if video.verified_duration_seconds:
         return False
 

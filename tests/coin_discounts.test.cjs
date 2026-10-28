@@ -7,7 +7,7 @@ test('admin preview explains rate changes and holiday savings before saving', ()
   const element = value => ({value, textContent:'', dataset:{}, listeners:{},
     addEventListener(name, fn){this.listeners[name] = fn;},
     dispatchEvent(event){this.listeners[event.type]?.();}});
-  const fields = {name:element('Navro‘z'),theme:element('navruz'),discount_type:element('percentage'),
+  const fields = {name:element('Navröz'),theme:element('navruz'),discount_type:element('percentage'),
     value:element('20'),min_coins:element('10000')};
   const ids = Object.fromEntries(['id_som_per_coin','cd-campaign-form','cd-saved-rate','cd-rate-example',
     'cd-preview','cd-preview-name','cd-preview-min','cd-preview-value','cd-preview-old','cd-preview-pay',
@@ -35,5 +35,5 @@ test('admin preview explains rate changes and holiday savings before saving', ()
   assert.equal(ids['cd-preview'].dataset.theme,'newyear');
   assert.equal(icon.textContent,'🎄');
   assert.match(ids['cd-preview-pay'].textContent,/95\s000/);
-  assert.equal(ids['cd-value-unit'].textContent,'(so‘m)');
+  assert.equal(ids['cd-value-unit'].textContent,'(söm)');
 });

@@ -20,7 +20,7 @@ def deadline(value):
             result = timezone.make_aware(result, timezone.get_default_timezone())
         return result
     except (TypeError, ValueError, OverflowError):
-        raise TezCheckError('To‘lov havolasining muddati noto‘g‘ri qaytdi. Qayta urinib ko‘ring.') from None
+        raise TezCheckError('Tölov havolasining muddati notöğri qaytdi. Qayta urinib köring.') from None
 
 
 def checkout_expired(order, bill=None):
@@ -34,14 +34,14 @@ def checkout_expired(order, bill=None):
 
 def validate_bill(order, data):
     if not isinstance(data, dict):
-        raise TezCheckError('To‘lov holatini hozir tekshirib bo‘lmadi. Qayta urinib ko‘ring.')
+        raise TezCheckError('Tölov holatini hozir tekşirib bölmadi. Qayta urinib köring.')
     bill = data.get('bill') or {}
     payment = data.get('payment') or {}
     if not isinstance(bill, dict) or not isinstance(payment, dict):
-        raise TezCheckError('To‘lov holatini hozir tekshirib bo‘lmadi. Qayta urinib ko‘ring.')
+        raise TezCheckError('Tölov holatini hozir tekşirib bölmadi. Qayta urinib köring.')
     if (bill.get('external_reference') != order.external_reference
             or (bill.get('id') is not None and str(bill['id']) != order.bill_id)):
-        raise TezCheckError('To‘lov hisob raqami mos emas. Administratorga murojaat qiling.')
+        raise TezCheckError('Tölov hisob raqami mos emas. Administratorga murojaat qiling.')
     return bill, payment
 
 
@@ -63,7 +63,7 @@ def retire_checkout(order):
         return False
     type(order).objects.filter(pk=order.pk, status__in=['pending', 'expired', 'failed', 'cancelled'],
                                paid_at__isnull=True, coin_transaction__isnull=True).update(
-        status='expired', last_error='Eski havola o‘rniga yangi to‘lov havolasi tayyorlanmoqda.',
+        status='expired', last_error='Eski havola örniga yangi tölov havolasi tayyorlanmoqda.',
         updated_at=timezone.now())
     order.refresh_from_db()
     return order.status == 'expired'

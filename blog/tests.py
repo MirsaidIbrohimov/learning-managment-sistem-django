@@ -21,7 +21,7 @@ class CommentFormTests(TestCase):
     def test_rejects_random_letter_comments(self):
         invalid_comments = (
             'fdvjhbf sdfjvhfdsjv',
-            'sh sj ai dk dl dc edf',
+            'ş sj ai dk dl dc edf',
             'aaaa bbbb cccc',
         )
 
@@ -82,4 +82,4 @@ class PostDetailCommentTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(PostComment.objects.exists())
-        self.assertContains(response, "kamida ikki tushunarli so&#x27;z", html=False)
+        self.assertContains(response, "kamida ikki tuşunarli söz", html=False)

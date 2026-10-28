@@ -1,17 +1,17 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Savollarni boshqarish - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Savollarni boshqarish{% endblock %}
+{% block title %}Savollarni boşqariş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Savollarni boşqariş{% endblock %}
 
 {% block teacher_content %}
 <div class="legacy-quiz-banner" style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-left:4px solid #10b981;padding:1rem 1.25rem;margin-bottom:1.25rem;border-radius:12px;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
     <i class="bi bi-stars" style="color:#10b981;font-size:1.4rem;"></i>
     <div style="flex:1;min-width:200px;">
         <strong style="color:#065f46;">Yangi versiya mavjud!</strong>
-        <span style="color:#047857;font-size:.92rem;">Yangilangan savollar bazasi va test boshqaruvi tayyor.</span>
+        <span style="color:#047857;font-size:.92rem;">Yangilangan savollar bazasi va test boşqaruvi tayyor.</span>
     </div>
     <a href="{% url 'quizui:quiz_list' %}" style="background:#10b981;color:#fff;padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem;white-space:nowrap;">
-        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga o'tish
+        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga ötiş
     </a>
 </div>
 <style>
@@ -60,7 +60,7 @@
 
 <div class="t-mq-page">
     <a href="{% url 'teacher:courses' %}" class="t-mq-back">
-        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytiş
     </a>
 
     <div class="t-mq-header">
@@ -72,21 +72,21 @@
             </button>
             {% else %}
             <button type="button" class="t-btn" style="background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);" onclick="document.getElementById('aiTestModal').style.display='flex'">
-                <i class="bi bi-robot"></i> AI orqali yaratish
+                <i class="bi bi-robot"></i> AI orqali yaratiş
             </button>
             {% endif %}
             <a href="{% url 'teacher:import_questions' test.pk %}" class="t-btn t-btn-outline" style="border-color:#0d6efd;color:#0d6efd;">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import
             </a>
             <a href="{% url 'teacher:add_question' test.pk %}" class="t-btn t-btn-primary">
-                <i class="bi bi-plus-lg"></i> Savol qo'shish
+                <i class="bi bi-plus-lg"></i> Savol qöşiş
             </a>
         </div>
     </div>
 
     <div class="t-mq-info">
         <span><i class="bi bi-clock"></i> {{ test.time_limit }} daqiqa</span>
-        <span><i class="bi bi-bar-chart"></i> O'tish bali: {{ test.passing_score }}%</span>
+        <span><i class="bi bi-bar-chart"></i> Ötiş bali: {{ test.passing_score }}%</span>
         <span><i class="bi bi-list-check"></i> {{ questions|length }} ta savol</span>
         {% if test.question_count > 0 %}
         <span><i class="bi bi-shuffle"></i> {{ test.question_count }} ta olinadi</span>
@@ -112,10 +112,10 @@
             {% endfor %}
         </ul>
         <div class="t-question-actions">
-            <form method="POST" action="{% url 'teacher:delete_question' q.pk %}" onsubmit="return confirm('Savolni o\'chirmoqchimisiz?')">
+            <form method="POST" action="{% url 'teacher:delete_question' q.pk %}" onsubmit="return confirm('Savolni öçirmoqçimisiz?')">
                 {% csrf_token %}
                 <button type="submit" class="t-cert-action-btn danger" style="padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid rgba(239,68,68,0.3);background:transparent;color:#ef4444;cursor:pointer;">
-                    <i class="bi bi-trash3"></i> O'chirish
+                    <i class="bi bi-trash3"></i> Öçiriş
                 </button>
             </form>
         </div>
@@ -126,8 +126,8 @@
         <div class="t-card-body">
             <div class="t-empty">
                 <div class="t-empty-icon"><i class="bi bi-question-circle"></i></div>
-                <h3>Savollar yo'q</h3>
-                <p>Bu testda hali savollar mavjud emas. Yuqoridagi tugma orqali qo'shing.</p>
+                <h3>Savollar yöq</h3>
+                <p>Bu testda hali savollar mavjud emas. Yuqoridagi tugma orqali qöşing.</p>
             </div>
         </div>
     </div>
@@ -142,7 +142,7 @@
                 <i class="bi bi-robot"></i>
             </div>
             <div>
-                <h3 style="margin:0;font-size:1.15rem;font-weight:800;">AI orqali test yaratish</h3>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;">AI orqali test yaratiş</h3>
                 <p style="margin:0;font-size:0.8rem;color:var(--bs-secondary-color);">Savollar soni kiriting va AI yaratadi</p>
             </div>
         </div>
@@ -155,17 +155,17 @@
         <div style="background:var(--bs-tertiary-bg);border-radius:12px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--bs-secondary-color);line-height:1.5;">
             <i class="bi bi-info-circle" style="color:#007aff;"></i>
             <strong>{{ test.lesson.title }}</strong> mavzusiga mos savollar yaratiladi.
-            {% if test.lesson.section %}Bo'lim: <strong>{{ test.lesson.section.title }}</strong>{% endif %}
+            {% if test.lesson.section %}Bölim: <strong>{{ test.lesson.section.title }}</strong>{% endif %}
         </div>
 
         <div id="aiTestError" style="display:none;background:rgba(239,68,68,0.1);color:#ef4444;padding:0.75rem 1rem;border-radius:12px;font-size:0.85rem;margin-bottom:1rem;font-weight:600;"></div>
 
         <div style="display:flex;gap:0.75rem;">
             <button type="button" onclick="document.getElementById('aiTestModal').style.display='none'" style="flex:1;padding:0.75rem;border-radius:14px;border:1px solid var(--bs-border-color);background:transparent;color:var(--bs-body-color);font-weight:700;font-size:0.9rem;cursor:pointer;">
-                Bekor qilish
+                Bekor qiliş
             </button>
             <button type="button" id="aiTestSubmitBtn" onclick="generateAiTest()" style="flex:2;padding:0.75rem;border-radius:14px;border:none;background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);">
-                <i class="bi bi-stars"></i> Yaratish
+                <i class="bi bi-stars"></i> Yaratiş
             </button>
         </div>
     </div>
@@ -208,14 +208,14 @@ function generateAiTest() {
             errorDiv.textContent = data.error || 'Xatolik yuz berdi';
             errorDiv.style.display = 'block';
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-stars"></i> Yaratish';
+            btn.innerHTML = '<i class="bi bi-stars"></i> Yaratiş';
         }
     })
     .catch(() => {
-        errorDiv.textContent = 'Tarmoq xatoligi. Qayta urinib ko\'ring.';
+        errorDiv.textContent = 'Tarmoq xatoligi. Qayta urinib köring.';
         errorDiv.style.display = 'block';
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-stars"></i> Yaratish';
+        btn.innerHTML = '<i class="bi bi-stars"></i> Yaratiş';
     });
 }
 
@@ -224,7 +224,7 @@ document.getElementById('aiTestModal').addEventListener('click', function(e) {
 });
 
 function showAiBlockedNotice(customMsg) {
-    const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.";
+    const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.";
     let backdrop = document.getElementById('aiBlockedBackdrop');
     if (!backdrop) {
         backdrop = document.createElement('div');
@@ -238,7 +238,7 @@ function showAiBlockedNotice(customMsg) {
                 <h3 style="margin:0 0 .5rem;font-size:1.2rem;font-weight:800;color:var(--bs-body-color,#111);">AI funksiyasi bloklangan</h3>
                 <p id="aiBlockedMsg" style="margin:0 0 1.25rem;font-size:.92rem;color:var(--bs-secondary-color,#666);line-height:1.5;"></p>
                 <button type="button" onclick="document.getElementById('aiBlockedBackdrop').remove()" style="padding:.7rem 1.5rem;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);">
-                    Tushunarli
+                    Tuşunarli
                 </button>
             </div>`;
         document.body.appendChild(backdrop);

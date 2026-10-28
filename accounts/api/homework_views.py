@@ -5,8 +5,8 @@ Endpoints (all require login):
   GET  /api/hw/<lesson_pk>/          → homework detail + current user's submission
   POST /api/hw/<lesson_pk>/submit/   → first submit OR resubmit (creates new submission)
   POST /api/hw/<lesson_pk>/edit/     → edit within 1-hour window (multipart)
-  GET  /api/hw/<lesson_pk>/messages/ → chat messages for current submission
-  POST /api/hw/<lesson_pk>/messages/ → send chat message
+  GET  /api/hw/<lesson_pk>/messages/ → çat messages for current submission
+  POST /api/hw/<lesson_pk>/messages/ → send çat message
   GET  /api/hw/<lesson_pk>/history/  → all submissions by current student (version history)
 
 Teacher-only:
@@ -98,14 +98,14 @@ def rate_limited(tag: str):
         @wraps(fn)
         def wrapper(request, *args, **kwargs):
             if not _rate_ok(request, tag):
-                return _err("So'rovlar juda tez yuborilmoqda. Biroz kutib turing.", 429)
+                return _err("Sörovlar juda tez yuborilmoqda. Biroz kutib turing.", 429)
             return fn(request, *args, **kwargs)
         return wrapper
     return deco
 
 
 # ── File validation ────────────────────────────────────────────────────────────
-# `.php` ATAYLAB yo'q — `accounts.security.DANGEROUS_EXTENSIONS` izohiga qarang.
+# `.php` ATAYLAB yöq — `accounts.security.DANGEROUS_EXTENSIONS` izohiga qarang.
 ALLOWED_EXTENSIONS = {
     '.jpg', '.jpeg', '.png', '.gif', '.webp',
     '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
@@ -143,15 +143,15 @@ def _validate_file(uploaded_file, extra_exts=None):
 
     raw_name = uploaded_file.name or ''
     if '\x00' in raw_name:
-        return False, "Fayl nomi xavfli belgilar o'z ichiga olgan"
+        return False, "Fayl nomi xavfli belgilar öz içiga olgan"
 
     if os.path.basename(raw_name).startswith('.'):
-        return False, "Nuqta bilan boshlanadigan fayl nomlari ruxsat etilmagan"
+        return False, "Nuqta bilan boşlanadigan fayl nomlari ruxsat etilmagan"
 
     # `shell.php.jpg` va `shell.php.jpg.txt` — zanjirdagi HAR BIR kengaytma.
     for chain_ext in _extension_chain(raw_name):
         if chain_ext in DANGEROUS_EXTENSIONS:
-            return False, f"Yashirin xavfli kengaytma: {chain_ext}"
+            return False, f"Yaşirin xavfli kengaytma: {chain_ext}"
 
     ext = os.path.splitext(raw_name)[1].lower()
     if ext in DANGEROUS_EXTENSIONS:
@@ -161,9 +161,9 @@ def _validate_file(uploaded_file, extra_exts=None):
     if ext not in allowed:
         return False, f"Ruxsat etilmagan fayl turi: {ext}"
 
-    # Rasm kengaytmasi bo'lsa, baytlari ham rasm bo'lishi shart. Eski tekshiruv
-    # `mimetypes.guess_type()` ni ishlatardi — u ham kengaytmadan kelib chiqadi,
-    # ya'ni hech narsani tekshirmasdi.
+    # Rasm kengaytmasi bölsa, baytlari ham rasm bölişi şart. Eski tekşiruv
+    # `mimetypes.guess_type()` ni işlatardi — u ham kengaytmadan kelib çiqadi,
+    # ya'ni heç narsani tekşirmasdi.
     if ext in IMAGE_EXTENSIONS and not _image_bytes_are_real(uploaded_file):
         return False, "Fayl haqiqiy rasm emas"
 
@@ -172,14 +172,14 @@ def _validate_file(uploaded_file, extra_exts=None):
 
 # ── Text sanitizer ─────────────────────────────────────────────────────────────
 def _sanitize_html(text: str) -> str:
-    """Rich-editor matnini tozalaydi (oq ro'yxatli parser, accounts.security)."""
+    """Rich-editor matnini tozalaydi (oq röyxatli parser, accounts.security)."""
     from accounts.security import sanitize_html
     return sanitize_html(text)
 
 
 # ── Submission serializer ──────────────────────────────────────────────────────
 def _homework_max_score(_hw: Homework) -> int:
-    """Uy vazifasi bahosi doim 10 ballik tizimda ko'rsatiladi."""
+    """Uy vazifasi bahosi doim 10 ballik tizimda körsatiladi."""
     return HOMEWORK_MAX_SCORE
 
 
@@ -291,7 +291,7 @@ def _serialize_homework(hw: Homework, user) -> dict:
     )
     return {
         "id":               hw.pk,
-        # Mijoz tomonida `innerHTML` ga tushadi — shu sababli tozalab yuboriladi.
+        # Mijoz tomonida `innerHTML` ga tuşadi — şu sababli tozalab yuboriladi.
         "description":      _sanitize_html(hw.description),
         "due_date":         hw.due_date.strftime("%d.%m.%Y %H:%M") if hw.due_date else None,
         "max_score":        _homework_max_score(hw),
@@ -360,7 +360,7 @@ def hw_detail(request, lesson_pk):
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     hw = get_object_or_404(Homework, lesson=lesson)
 
@@ -399,9 +399,9 @@ def hw_submit(request, lesson_pk):
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
     if is_teacher or is_admin:
-        return _err("O'qituvchi vazifa topa olmaydi", 403)
+        return _err("Öqituvçi vazifa topa olmaydi", 403)
 
     hw = get_object_or_404(Homework, lesson=lesson)
 
@@ -413,11 +413,11 @@ def hw_submit(request, lesson_pk):
     # Deadline blocks only the first submission. A student must still be able
     # to send corrections requested by the teacher after the original due date.
     if not is_resubmission and hw.is_deadline_passed and not hw.allow_late:
-        return _err("Topshirish muddati tugagan va kech topshirishga ruxsat yo'q.")
+        return _err("Topşiriş muddati tugagan va keç topşirişga ruxsat yöq.")
 
     submission_type = request.POST.get('submission_type', 'file')
     if submission_type not in ('file', 'text'):
-        return _err("Topshirish turi noto'g'ri")
+        return _err("Topşiriş turi notöğri")
     if hw.file_only or hw.handwritten_only:
         submission_type = 'file'
     uploaded = None
@@ -448,7 +448,7 @@ def hw_submit(request, lesson_pk):
     else:
         raw_text = request.POST.get('text_content', 'HTML CSS JavaScript loyiha' if 'code_project' in request.POST else '').strip()
         if not raw_text:
-            return _err("Matn kiritishingiz kerak")
+            return _err("Matn kiritişingiz kerak")
         if len(raw_text) < 10:
             return _err("Matn juda qisqa (kamida 10 belgi)")
         if len(raw_text) > 200_000:
@@ -496,7 +496,7 @@ def hw_submit(request, lesson_pk):
     if is_resubmission:
         request.user.remove_coins(
             resubmit_penalty,
-            f"Uyga vazifa qayta topshirish: {hw.lesson.title}",
+            f"Uyga vazifa qayta topşiriş: {hw.lesson.title}",
         )
 
     # Notify only after the submission transaction has committed. Starting
@@ -525,9 +525,9 @@ def hw_submit(request, lesson_pk):
     return _ok(
         {"submission": _serialize_submission(sub, request)},
         message=(
-            f"Vazifa qayta topshirildi. {resubmit_penalty} coin jarima yechildi!"
+            f"Vazifa qayta topşirildi. {resubmit_penalty} coin jarima yeçildi!"
             if is_resubmission
-            else "Vazifa muvaffaqiyatli yuborildi!" + (" (Kech topshirildi)" if sub.is_late else "")
+            else "Vazifa muvaffaqiyatli yuborildi!" + (" (Keç topşirildi)" if sub.is_late else "")
         ),
     )
 
@@ -543,22 +543,22 @@ def hw_edit(request, lesson_pk):
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
     if is_teacher or is_admin:
-        return _err("O'qituvchi tahrirlayolmaydi", 403)
+        return _err("Öqituvçi tahrirlayolmaydi", 403)
 
     hw  = get_object_or_404(Homework, lesson=lesson)
     sub = _get_submission_or_none(hw, request.user)
     if not sub:
-        return _err("Topshirilgan vazifa topilmadi")
+        return _err("Topşirilgan vazifa topilmadi")
     if not sub.can_edit:
-        return _err("Tahrirlash muddati tugagan (1 soat)")
+        return _err("Tahrirlaş muddati tugagan (1 soat)")
 
     submission_type = request.POST.get('submission_type', sub.submission_type)
     if submission_type not in ('file', 'text'):
-        return _err("Topshirish turi noto'g'ri")
+        return _err("Topşiriş turi notöğri")
     if (hw.file_only or hw.handwritten_only) and submission_type != 'file':
-        return _err("Bu vazifa uchun fayl yuborishingiz kerak")
+        return _err("Bu vazifa uçun fayl yuborişingiz kerak")
 
     if submission_type == 'file':
         uploaded = request.FILES.get('file')
@@ -578,7 +578,7 @@ def hw_edit(request, lesson_pk):
     else:
         raw_text = request.POST.get('text_content', 'HTML CSS JavaScript loyiha' if 'code_project' in request.POST else '').strip()
         if not raw_text:
-            return _err("Matn kiritishingiz kerak")
+            return _err("Matn kiritişingiz kerak")
         if len(raw_text) > 200_000:
             return _err("Matn juda uzun")
         try:
@@ -591,7 +591,7 @@ def hw_edit(request, lesson_pk):
 
     return _ok(
         {"submission": _serialize_submission(sub, request)},
-        message="Topshiriq muvaffaqiyatli tahrirlandi!"
+        message="Topşiriq muvaffaqiyatli tahrirlandi!"
     )
 
 
@@ -605,7 +605,7 @@ def hw_history(request, lesson_pk):
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     hw = get_object_or_404(Homework, lesson=lesson)
     sub = _get_submission_or_none(hw, request.user)
@@ -627,11 +627,11 @@ def hw_history(request, lesson_pk):
 def hw_messages_list(request, lesson_pk):
     """
     GET /api/hw/<lesson_pk>/messages/
-    Returns chat messages for the current user's latest submission.
+    Returns çat messages for the current user's latest submission.
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     hw  = get_object_or_404(Homework, lesson=lesson)
     sub = _get_submission_or_none(hw, request.user)
@@ -651,11 +651,11 @@ def hw_messages_list(request, lesson_pk):
 def hw_messages_send(request, lesson_pk):
     """
     POST /api/hw/<lesson_pk>/messages/
-    Send a chat message (text and/or file) on the current submission.
+    Send a çat message (text and/or file) on the current submission.
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
 
     hw  = get_object_or_404(Homework, lesson=lesson)
     sub = _get_submission_or_none(hw, request.user)
@@ -667,13 +667,13 @@ def hw_messages_send(request, lesson_pk):
             sub = get_object_or_404(HomeworkSubmission, pk=sub_pk, homework=hw)
 
     if not sub:
-        return _err("Topshirilgan vazifa topilmadi")
+        return _err("Topşirilgan vazifa topilmadi")
 
     text     = request.POST.get('message', '').strip()
     msg_file = request.FILES.get('file')
 
     if not text and not msg_file:
-        return _err("Xabar yoki fayl yuborishingiz kerak")
+        return _err("Xabar yoki fayl yuborişingiz kerak")
 
     text = _sanitize_html(text) if text else ''
 
@@ -707,9 +707,9 @@ def hw_teacher_submissions(request, lesson_pk):
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
-        return _err("Ruxsat yo'q", 403)
+        return _err("Ruxsat yöq", 403)
     if not (is_teacher or is_admin):
-        return _err("Faqat o'qituvchi yoki admin", 403)
+        return _err("Faqat öqituvçi yoki admin", 403)
 
     hw   = get_object_or_404(Homework, lesson=lesson)
     qs   = HomeworkSubmission.objects.filter(homework=hw).select_related('student')
@@ -770,7 +770,7 @@ def hw_grade(request, sub_pk):
     is_teacher = profession.teachers.filter(pk=request.user.pk).exists()
     is_admin   = getattr(request.user, 'is_admin', False) or request.user.is_staff
     if not (is_teacher or is_admin):
-        return _err("Faqat o'qituvchi yoki admin baholaydi", 403)
+        return _err("Faqat öqituvçi yoki admin baholaydi", 403)
 
     # Parse body
     if request.content_type and 'application/json' in request.content_type:
@@ -790,14 +790,14 @@ def hw_grade(request, sub_pk):
         try:
             grade = int(grade)
         except (TypeError, ValueError):
-            return _err("Baho raqam bo'lishi kerak")
+            return _err("Baho raqam bölişi kerak")
         max_score = _homework_max_score(sub.homework)
         if not (0 <= grade <= max_score):
-            return _err(f"Baho 0–{max_score} orasida bo'lishi kerak")
+            return _err(f"Baho 0–{max_score} orasida bölişi kerak")
 
     allowed_statuses = {'reviewing', 'revision', 'accepted', 'graded'}
     if status not in allowed_statuses:
-        return _err(f"Noto'g'ri status: {status}")
+        return _err(f"Notöğri status: {status}")
 
     sub.grade      = grade
     sub.feedback   = _sanitize_html(feedback) if feedback else ''
@@ -806,7 +806,7 @@ def hw_grade(request, sub_pk):
     sub.graded_at  = timezone.now()
     sub.save(update_fields=['grade', 'feedback', 'status', 'graded_by', 'graded_at'])
 
-    # Award coins on graded/accepted (faqat birinchi baholashda: revision_count == 0)
+    # Award coins on graded/accepted (faqat birinçi baholaşda: revision_count == 0)
     if status in ('graded', 'accepted') and not sub.coin_awarded and sub.revision_count == 0 and grade is not None:
         coin_amount = sub.calculate_coin_reward(grade)
         try:
@@ -819,5 +819,5 @@ def hw_grade(request, sub_pk):
 
     return _ok(
         {"submission": _serialize_submission(sub, request)},
-        message="Baho qo'yildi!"
+        message="Baho qöyildi!"
     )

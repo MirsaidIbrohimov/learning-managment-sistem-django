@@ -424,7 +424,7 @@
             <h1 class="sg-title">Guruhlar & Dars jadvali</h1>
             <div class="sg-title-sub">
                 <i class="bi bi-info-circle me-1"></i>
-                Guruh yaratish, dars kunlarini belgilash va o'quvchilarni biriktirish
+                Guruh yaratiş, dars kunlarini belgilaş va öquvçilarni biriktiriş
             </div>
         </div>
     </div>
@@ -440,7 +440,7 @@
             </a>
         </div>
         <a href="{% url study_group_create_url %}" class="sg-btn sg-btn-primary">
-            <i class="bi bi-plus-circle-fill"></i> Guruh yaratish
+            <i class="bi bi-plus-circle-fill"></i> Guruh yaratiş
         </a>
     </div>
 </div>
@@ -465,7 +465,7 @@
         <div class="sg-stat-icon p3"><i class="bi bi-mortarboard-fill"></i></div>
         <div class="sg-stat-info">
             <div class="n">{{ teachers|length }}</div>
-            <div class="l">O'qituvchilar</div>
+            <div class="l">Öqituvçilar</div>
         </div>
     </div>
     <div class="sg-stat-pill" style="animation-delay:0.2s;">
@@ -482,22 +482,22 @@
     <form method="GET">
         <input type="hidden" name="view" value="{{ view_mode }}">
         <div>
-            <label><i class="bi bi-search"></i> Qidirish</label>
+            <label><i class="bi bi-search"></i> Qidiriş</label>
             <input type="text" name="q" class="form-control" placeholder="Guruh yoki kurs nomi..." value="{{ q }}">
         </div>
         <div>
             <label><i class="bi bi-briefcase"></i> Kurs</label>
             <select name="profession" class="form-select">
-                <option value="">Barchasi</option>
+                <option value="">Barçasi</option>
                 {% for p in professions %}
                 <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div>
-            <label><i class="bi bi-person-workspace"></i> O'qituvchi</label>
+            <label><i class="bi bi-person-workspace"></i> Öqituvçi</label>
             <select name="teacher" class="form-select">
-                <option value="">Barchasi</option>
+                <option value="">Barçasi</option>
                 {% for t in teachers %}
                 <option value="{{ t.pk }}" {% if selected_teacher == t.pk|stringformat:"i" %}selected{% endif %}>{{ t.first_name }} {{ t.last_name }}</option>
                 {% endfor %}
@@ -506,7 +506,7 @@
         <div>
             <label><i class="bi bi-calendar-day"></i> Kun</label>
             <select name="day" class="form-select">
-                <option value="">Barcha kunlar</option>
+                <option value="">Barça kunlar</option>
                 {% for d_num, d_name in days_of_week %}
                 <option value="{{ d_num }}" {% if selected_day == d_num|stringformat:"i" %}selected{% endif %}>{{ d_name }}</option>
                 {% endfor %}
@@ -516,7 +516,7 @@
             <button type="submit" class="sg-btn sg-btn-primary">
                 <i class="bi bi-funnel-fill"></i> Filter
             </button>
-            <a href="{% url study_groups_url %}" class="sg-btn sg-btn-outline" title="Tozalash">
+            <a href="{% url study_groups_url %}" class="sg-btn sg-btn-outline" title="Tozalaş">
                 <i class="bi bi-x-circle"></i>
             </a>
         </div>
@@ -553,14 +553,14 @@
                         </div>
                         {% endif %}
                         <div class="sg-lesson-meta">
-                            <i class="bi bi-people"></i>{{ g.students_count }} o'quvchi
+                            <i class="bi bi-people"></i>{{ g.students_count }} öquvçi
                         </div>
                     </a>
                     {% endfor %}
                 {% else %}
                     <div class="sg-day-empty">
                         <i class="bi bi-calendar2-x"></i>
-                        <div>Dars yo'q</div>
+                        <div>Dars yöq</div>
                     </div>
                 {% endif %}
             </div>
@@ -595,14 +595,14 @@
                         <i class="bi bi-person-workspace"></i>
                         <div>
                             <div style="font-weight:600;">{{ g.teacher.first_name }} {{ g.teacher.last_name }}</div>
-                            <small style="color:#6c757d;">O'qituvchi</small>
+                            <small style="color:#6c757d;">Öqituvçi</small>
                         </div>
                     </div>
                     {% else %}
                     <div class="sg-card-row">
                         <i class="bi bi-person-x"></i>
                         <div>
-                            <div style="color:#6c757d;font-style:italic;">O'qituvchi biriktirilmagan</div>
+                            <div style="color:#6c757d;font-style:italic;">Öqituvçi biriktirilmagan</div>
                         </div>
                     </div>
                     {% endif %}
@@ -618,12 +618,12 @@
                         </div>
                         <div class="sg-days">
                             {% with days_list=g.get_days_list %}
-                            <span class="sg-day-badge {% if 1 in days_list %}active{% endif %}" title="Dushanba">Du</span>
-                            <span class="sg-day-badge {% if 2 in days_list %}active{% endif %}" title="Seshanba">Se</span>
-                            <span class="sg-day-badge {% if 3 in days_list %}active{% endif %}" title="Chorshanba">Ch</span>
-                            <span class="sg-day-badge {% if 4 in days_list %}active{% endif %}" title="Payshanba">Pa</span>
+                            <span class="sg-day-badge {% if 1 in days_list %}active{% endif %}" title="Duşanba">Du</span>
+                            <span class="sg-day-badge {% if 2 in days_list %}active{% endif %}" title="Seşanba">Se</span>
+                            <span class="sg-day-badge {% if 3 in days_list %}active{% endif %}" title="Çorşanba">Ç</span>
+                            <span class="sg-day-badge {% if 4 in days_list %}active{% endif %}" title="Payşanba">Pa</span>
                             <span class="sg-day-badge {% if 5 in days_list %}active{% endif %}" title="Juma">Ju</span>
-                            <span class="sg-day-badge {% if 6 in days_list %}active{% endif %}" title="Shanba">Sh</span>
+                            <span class="sg-day-badge {% if 6 in days_list %}active{% endif %}" title="Şanba">Ş</span>
                             {% endwith %}
                         </div>
                     </div>
@@ -642,13 +642,13 @@
                             <div class="av av-more">+{{ g.students.count|add:-4 }}</div>
                             {% endif %}
                         </div>
-                        <span>{{ g.students.count }} o'quvchi</span>
+                        <span>{{ g.students.count }} öquvçi</span>
                     </div>
                     <div class="sg-card-actions">
-                        <a href="{% url study_group_edit_url g.pk %}" class="sg-action-btn edit" title="Tahrirlash">
+                        <a href="{% url study_group_edit_url g.pk %}" class="sg-action-btn edit" title="Tahrirlaş">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="{% url study_group_delete_url g.pk %}" class="sg-action-btn delete" title="O'chirish">
+                        <a href="{% url study_group_delete_url g.pk %}" class="sg-action-btn delete" title="Öçiriş">
                             <i class="bi bi-trash"></i>
                         </a>
                     </div>
@@ -660,10 +660,10 @@
 {% else %}
     <div class="sg-empty">
         <div class="sg-empty-icon"><i class="bi bi-calendar-x"></i></div>
-        <h5>Hozircha guruh yo'q</h5>
-        <p>Birinchi guruhingizni yaratish uchun quyidagi tugmani bosing.</p>
+        <h5>Hozirça guruh yöq</h5>
+        <p>Birinçi guruhingizni yaratiş uçun quyidagi tugmani bosing.</p>
         <a href="{% url study_group_create_url %}" class="sg-btn sg-btn-primary">
-            <i class="bi bi-plus-circle-fill"></i> Guruh yaratish
+            <i class="bi bi-plus-circle-fill"></i> Guruh yaratiş
         </a>
     </div>
 {% endif %}

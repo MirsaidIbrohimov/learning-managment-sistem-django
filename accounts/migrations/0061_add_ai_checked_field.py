@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homeworksubmission',
             name='ai_checked',
-            field=models.BooleanField(default=False, verbose_name='AI tekshirdi'),
+            field=models.BooleanField(default=False, verbose_name='AI tekşirdi'),
         ),
     ]

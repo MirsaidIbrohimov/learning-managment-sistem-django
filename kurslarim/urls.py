@@ -22,7 +22,7 @@ urlpatterns = [
     path('video-quiz/<int:video_id>/', views.video_quiz_list, name='video_quiz_list'),
     path('video-quiz/submit/', views.video_quiz_submit, name='video_quiz_submit'),
 
-    # Uyga vazifa API — mavjud funksiyalar, kurs tekshiruvi bilan o'ralgan.
+    # Uyga vazifa API — mavjud funksiyalar, kurs tekşiruvi bilan öralgan.
     path('api/hw/', views.api_root, name='hw_root'),
     path('api/hw/<int:lesson_pk>/', portal_lesson_api(hw_api.hw_detail), name='hw_detail'),
     path('api/hw/<int:lesson_pk>/submit/', portal_lesson_api(hw_api.hw_submit), name='hw_submit'),

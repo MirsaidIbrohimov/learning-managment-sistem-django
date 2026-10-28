@@ -1,20 +1,20 @@
-"""AI Chat Tahlilchi — admin paneldagi "Shaxsiy chatlar" sahifasi uchun
+"""AI Çat Tahlilçi — admin paneldagi "Şaxsiy çatlar" sahifasi uçun
 sun'iy intellekt tahlil dvijoki.
 
-Ikki rejimda ishlaydi:
+Ikki rejimda işlaydi:
 
-1. **OpenAI agent rejimi** (OPENAI_API_KEY sozlangan bo'lsa):
-   GPT modeli function-calling orqali quyidagi vositalarni o'zi tanlab
-   chaqiradi: foydalanuvchi qidirish, suhbatdoshtlar ro'yxati, xabarlar
-   bo'yicha qidiruv, suhbat tarkibini o'qish. Javob o'zbek tilida,
-   chat havolalari (markdown linklar) bilan qaytariladi.
+1. **OpenAI agent rejimi** (OPENAI_API_KEY sozlangan bölsa):
+   GPT modeli function-calling orqali quyidagi vositalarni özi tanlab
+   çaqiradi: foydalanuvçi qidiriş, suhbatdoştlar röyxati, xabarlar
+   böyiça qidiruv, suhbat tarkibini öqiş. Javob özbek tilida,
+   çat havolalari (markdown linklar) bilan qaytariladi.
 
-2. **Offline fallback rejimi** (API kalit yo'q bo'lsa):
-   Eng ko'p so'raladigan savol turlarini ("X kimlar bilan yozishdi bugun?",
-   "... mavzusida kimlar gaplashibdi?") oddiy qoidalar asosida tahlil qiladi.
+2. **Offline fallback rejimi** (API kalit yöq bölsa):
+   Eng köp söraladigan savol turlarini ("X kimlar bilan yozişdi bugun?",
+   "... mavzusida kimlar gaplaşibdi?") oddiy qoidalar asosida tahlil qiladi.
 
-Maxfiylik: admin / yordamchi-admin rollaridagi foydalanuvchilarning xabarlari
-tahlilga HECH QACHON kiritilmaydi (queryset darajasida chiqarib tashlanadi) —
+Maxfiylik: admin / yordamchi-admin rollaridagi foydalanuvçilarning xabarlari
+tahlilga HEÇ QAÇON kiritilmaydi (queryset darajasida çiqarib taşlanadi) —
 bu monitoring sahifasining umumiy qoidasi bilan bir xil.
 """
 import json
@@ -26,42 +26,44 @@ from django.db.models import Q, Count, Max, F, Case, When, IntegerField
 from django.urls import reverse
 from django.utils import timezone
 
+from .alphabet import to_new_alphabet
+
 # ---------------------------------------------------------------------------
 #  Konfiguratsiya
 # ---------------------------------------------------------------------------
 AI_MODEL = "gpt-4o-mini"
 AI_MAX_TOKENS = 1600
 AI_TEMPERATURE = 0.2
-AGENT_MAX_STEPS = 6          # agent eng ko'pi bilan shuncha tool-chaqiruv qiladi
+AGENT_MAX_STEPS = 6          # agent eng köpi bilan şunça tool-chaqiruv qiladi
 MAX_MSGS_PER_TOOL = 30       # bitta tool javobidagi maksimal xabarlar soni
-MSG_PREVIEW_CHARS = 220      # bitta xabarning maksimal uzunligi (qisqartirish)
+MSG_PREVIEW_CHARS = 220      # bitta xabarning maksimal uzunligi (qisqartiriş)
 MAX_SEARCH_RESULTS = 40
 
 _PRIVATE_ROLES = ('admin', 'assistant_admin')
 
 _ROLE_LABELS = {
-    'student': "O'quvchi",
-    'teacher': "O'qituvchi",
+    'student': "Öquvçi",
+    'teacher': "Öqituvçi",
     'admin': 'Admin',
-    'assistant_admin': 'Yordamchi admin',
+    'assistant_admin': 'Yordamçi admin',
 }
 
 
 # ---------------------------------------------------------------------------
-#  Umumiy yordamchilar
+#  Umumiy yordamçilar
 # ---------------------------------------------------------------------------
 def _models():
-    """Circular import'dan qochish uchun kechiktirilgan import."""
+    """Circular import'dan qoçiş uçun keçiktirilgan import."""
     from .models import CustomUser, DirectMessage
     return CustomUser, DirectMessage
 
 
 def _base_qs():
-    """Tahlil uchun ruxsat etilgan shaxsiy xabarlar.
+    """Tahlil uçun ruxsat etilgan şaxsiy xabarlar.
 
-    Adminlar chiqarib tashlanadi (maxfiylik). Foydalanuvchi O'CHIRGAN xabarlar
+    Adminlar çiqarib taşlanadi (maxfiylik). Foydalanuvçi ÖÇIRGAN xabarlar
     esa kiritiladi — investigatsiya maqsadida, ammo har doim 🗑 belgisi bilan
-    ko'rsatiladi (AI javobda ham buni qayd etishi kerak)."""
+    körsatiladi (AI javobda ham buni qayd etişi kerak)."""
     _, DirectMessage = _models()
     return (
         DirectMessage.objects
@@ -88,7 +90,7 @@ def _pair_order(a, b):
 
 
 def _parse_date(value):
-    """'YYYY-MM-DD' matnini date'ga o'tkazadi; xato bo'lsa None."""
+    """'YYYY-MM-DD' matnini date'ga ötkazadi; xato bölsa None."""
     if not value or not isinstance(value, str):
         return None
     try:
@@ -98,7 +100,7 @@ def _parse_date(value):
 
 
 def _period_filter(qs, date_from, date_to):
-    """Queryset'ni [date_from, date_to] kun oralig'i bo'yicha cheklaydi."""
+    """Queryset'ni [date_from, date_to] kun oraliği böyiça çeklaydi."""
     if date_from:
         start = timezone.make_aware(datetime.combine(date_from, dt_time.min))
         qs = qs.filter(created_at__gte=start)
@@ -118,7 +120,7 @@ def _clip(text):
 
 
 def _find_users(query, limit=6):
-    """Ism/familiya/username bo'yicha foydalanuvchi qidirish (adminlarsiz)."""
+    """Ism/familiya/username böyiça foydalanuvçi qidiriş (adminlarsiz)."""
     CustomUser, _ = _models()
     query = (query or '').strip()
     if not query:
@@ -144,7 +146,7 @@ def _find_users(query, limit=6):
 def tool_find_users(query):
     users = _find_users(query)
     if not users:
-        return json.dumps({'found': [], 'note': 'Bunday foydalanuvchi topilmadi.'},
+        return json.dumps({'found': [], 'note': 'Bunday foydalanuvçi topilmadi.'},
                           ensure_ascii=False), []
     data = [{
         'user_id': u.pk,
@@ -156,12 +158,12 @@ def tool_find_users(query):
 
 
 def tool_get_user_partners(user_id, date_from=None, date_to=None):
-    """Berilgan foydalanuvchi ko'rsatilgan davrda kimlar bilan yozishgani."""
+    """Berilgan foydalanuvçi körsatilgan davrda kimlar bilan yozişgani."""
     CustomUser, _ = _models()
     try:
         user = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
 
     d_from, d_to = _parse_date(date_from), _parse_date(date_to)
     qs = _base_qs().filter(Q(sender=user) | Q(recipient=user))
@@ -177,7 +179,7 @@ def tool_get_user_partners(user_id, date_from=None, date_to=None):
         if p['last_at'] is None or row['created_at'] > p['last_at']:
             p['last_at'] = row['created_at']
         if len(p['samples']) < 3 and row['message']:
-            prefix = "🗑 [o'chirilgan] " if row['is_deleted'] else ''
+            prefix = "🗑 [öchirilgan] " if row['is_deleted'] else ''
             p['samples'].append(prefix + _clip(row['message'])[:120])
 
     if not partners:
@@ -186,7 +188,7 @@ def tool_get_user_partners(user_id, date_from=None, date_to=None):
             'user': _user_label(user),
             'period': period,
             'partners': [],
-            'note': f'{user.full_name or user.username} {period} hech kim bilan yozishmagan.',
+            'note': f'{user.full_name or user.username} {period} heç kim bilan yozişmagan.',
         }, ensure_ascii=False), []
 
     users_by_id = CustomUser.objects.in_bulk(partners.keys())
@@ -218,10 +220,10 @@ def tool_get_user_partners(user_id, date_from=None, date_to=None):
 
 
 def tool_search_messages(keyword, date_from=None, date_to=None, user_id=None, limit=MAX_SEARCH_RESULTS):
-    """Barcha shaxsiy xabarlarda kalit so'z (yoki so'zlar) bo'yicha qidiruv."""
+    """Barça şaxsiy xabarlarda kalit söz (yoki sözlar) böyiça qidiruv."""
     keyword = (keyword or '').strip()
     if not keyword:
-        return json.dumps({'error': "Kalit so'z kiritilmagan."}, ensure_ascii=False), []
+        return json.dumps({'error': "Kalit söz kiritilmagan."}, ensure_ascii=False), []
 
     d_from, d_to = _parse_date(date_from), _parse_date(date_to)
     qs = _base_qs()
@@ -246,7 +248,7 @@ def tool_search_messages(keyword, date_from=None, date_to=None, user_id=None, li
         return json.dumps({
             'keyword': keyword, 'matches': [],
             'period': _period_label(d_from, d_to),
-            'note': f'"{keyword}" bo\'yicha {_period_label(d_from, d_to)} hech narsa topilmadi.',
+            'note': f'"{keyword}" böyiça {_period_label(d_from, d_to)} heç narsa topilmadi.',
         }, ensure_ascii=False), []
 
     matches, links, seen_pairs = [], [], set()
@@ -260,7 +262,7 @@ def tool_search_messages(keyword, date_from=None, date_to=None, user_id=None, li
         matches.append({
             'from': (m.sender.full_name or m.sender.username),
             'to': (m.recipient.full_name or m.recipient.username),
-            'text': ("🗑 [o'chirilgan xabar] " if m.is_deleted else '') + _clip(m.message),
+            'text': ("🗑 [öchirilgan xabar] " if m.is_deleted else '') + _clip(m.message),
             'deleted': m.is_deleted,
             'at': timezone.localtime(m.created_at).strftime('%d.%m.%Y %H:%M'),
             'chat_url': url,
@@ -275,15 +277,15 @@ def tool_search_messages(keyword, date_from=None, date_to=None, user_id=None, li
 
 
 def tool_get_conversation(user1_id, user2_id, date_from=None, date_to=None, limit=MAX_MSGS_PER_TOOL):
-    """Ikki foydalanuvchi orasidagi suhbat mazmunini o'qish."""
+    """Ikki foydalanuvçi orasidagi suhbat mazmunini öqiş."""
     CustomUser, _ = _models()
     try:
         u1 = CustomUser.objects.get(pk=int(user1_id))
         u2 = CustomUser.objects.get(pk=int(user2_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     if u1.role in _PRIVATE_ROLES or u2.role in _PRIVATE_ROLES:
-        return json.dumps({'error': 'Bu suhbat maxfiy (admin ishtirokida).'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Bu suhbat maxfiy (admin iştirokida).'}, ensure_ascii=False), []
 
     d_from, d_to = _parse_date(date_from), _parse_date(date_to)
     qs = _base_qs().filter(Q(sender=u1, recipient=u2) | Q(sender=u2, recipient=u1))
@@ -304,7 +306,7 @@ def tool_get_conversation(user1_id, user2_id, date_from=None, date_to=None, limi
 
     msgs = [{
         'from': (m.sender.full_name or m.sender.username),
-        'text': ("🗑 [o'chirilgan xabar] " if m.is_deleted else '') + _clip(m.message),
+        'text': ("🗑 [öchirilgan xabar] " if m.is_deleted else '') + _clip(m.message),
         'deleted': m.is_deleted,
         'edited': m.is_edited,
         'at': timezone.localtime(m.created_at).strftime('%d.%m.%Y %H:%M'),
@@ -320,7 +322,7 @@ def tool_get_conversation(user1_id, user2_id, date_from=None, date_to=None, limi
 
 
 def tool_get_top_conversations(date_from=None, date_to=None, limit=10):
-    """Eng faol suhbatlar reytingi (ko'rsatilgan davr uchun)."""
+    """Eng faol suhbatlar reytingi (körsatilgan davr uçun)."""
     d_from, d_to = _parse_date(date_from), _parse_date(date_to)
     qs = _period_filter(_base_qs(), d_from, d_to)
 
@@ -359,7 +361,7 @@ def tool_get_top_conversations(date_from=None, date_to=None, limit=10):
 
     if not items:
         return json.dumps({'period': _period_label(d_from, d_to), 'top': [],
-                           'note': f"{_period_label(d_from, d_to)} suhbatlar yo'q."},
+                           'note': f"{_period_label(d_from, d_to)} suhbatlar yöq."},
                           ensure_ascii=False), []
     return json.dumps({'period': _period_label(d_from, d_to), 'top': items}, ensure_ascii=False), links
 
@@ -370,15 +372,15 @@ def _period_label(d_from, d_to):
         if d_from == today:
             return 'bugun'
         if d_from == today - timedelta(days=1):
-            return 'kecha'
+            return 'keça'
         return d_from.strftime('%d.%m.%Y') + ' kuni'
     if d_from and d_to:
-        return f"{d_from.strftime('%d.%m.%Y')}—{d_to.strftime('%d.%m.%Y')} oralig'ida"
+        return f"{d_from.strftime('%d.%m.%Y')}—{d_to.strftime('%d.%m.%Y')} oraliğida"
     if d_from:
-        return f"{d_from.strftime('%d.%m.%Y')} dan boshlab"
+        return f"{d_from.strftime('%d.%m.%Y')} dan boşlab"
     if d_to:
-        return f"{d_to.strftime('%d.%m.%Y')} gacha"
-    return 'barcha vaqt'
+        return f"{d_to.strftime('%d.%m.%Y')} gaça"
+    return 'barça vaqt'
 
 
 TOOLS = {
@@ -386,8 +388,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "find_users",
-            "description": "Ism, familiya yoki username bo'yicha foydalanuvchi qidiradi. "
-                           "Savoldagi ismni user_id'ga aylantirish uchun avval shuni chaqiring.",
+            "description": "Ism, familiya yoki username böyiça foydalanuvçi qidiradi. "
+                           "Savoldagi ismni user_id'ga aylantiriş uçun avval şuni çaqiring.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -401,8 +403,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_user_partners",
-            "description": "Foydalanuvchi ko'rsatilgan davrda kimlar bilan yozishganini, "
-                           "har biri bilan nechta xabar almashganini qaytaradi.",
+            "description": "Foydalanuvçi körsatilgan davrda kimlar bilan yozişganini, "
+                           "har biri bilan neçta xabar almaşganini qaytaradi.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -418,16 +420,16 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "search_messages",
-            "description": "Barcha shaxsiy xabarlarda kalit so'z/mavzu bo'yicha qidiradi va "
-                           "topilgan xabarlar + chat havolalarini qaytaradi. "
-                           "Mavzu bo'yicha savollar uchun (masalan 'sevgi haqida kimlar gaplashibdi?').",
+            "description": "Barça şaxsiy xabarlarda kalit söz/mavzu böyiça qidiradi va "
+                           "topilgan xabarlar + çat havolalarini qaytaradi. "
+                           "Mavzu böyiça savollar uçun (masalan 'sevgi haqida kimlar gaplaşibdi?').",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "keyword": {"type": "string", "description": "Qidiriladigan so'z yoki ibora"},
+                    "keyword": {"type": "string", "description": "Qidiriladigan söz yoki ibora"},
                     "date_from": {"type": "string", "description": "YYYY-MM-DD (ixtiyoriy)"},
                     "date_to": {"type": "string", "description": "YYYY-MM-DD (ixtiyoriy)"},
-                    "user_id": {"type": "integer", "description": "Faqat shu foydalanuvchi xabarlarida (ixtiyoriy)"},
+                    "user_id": {"type": "integer", "description": "Faqat şu foydalanuvçi xabarlarida (ixtiyoriy)"},
                 },
                 "required": ["keyword"],
             },
@@ -437,8 +439,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_conversation",
-            "description": "Ikki foydalanuvchi orasidagi suhbat mazmunini o'qiydi — "
-                           "'ular nima haqida gaplashgan?' kabi savollar uchun.",
+            "description": "Ikki foydalanuvçi orasidagi suhbat mazmunini öqiydi — "
+                           "'ular nima haqida gaplaşgan?' kabi savollar uçun.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -456,14 +458,14 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_top_conversations",
-            "description": "Eng faol suhbatlar reytingini qaytaradi (davr bo'yicha filtr mumkin). "
-                           "'Bugun eng faol chatlar qaysi?' kabi savollar uchun.",
+            "description": "Eng faol suhbatlar reytingini qaytaradi (davr böyiça filtr mumkin). "
+                           "'Bugun eng faol çatlar qaysi?' kabi savollar uçun.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "date_from": {"type": "string", "description": "YYYY-MM-DD (ixtiyoriy)"},
                     "date_to": {"type": "string", "description": "YYYY-MM-DD (ixtiyoriy)"},
-                    "limit": {"type": "integer", "description": "Nechta natija (max 20)"},
+                    "limit": {"type": "integer", "description": "Neçta natija (max 20)"},
                 },
             },
         },
@@ -472,20 +474,20 @@ TOOLS = {
 
 
 def _dispatch_tool(name, args):
-    """Tool chaqiruvini xavfsiz bajaradi; (json_matn, havolalar) qaytaradi."""
+    """Tool çaqiruvini xavfsiz bajaradi; (json_matn, havolalar) qaytaradi."""
     entry = TOOLS.get(name)
     if not entry:
         return json.dumps({'error': f"Noma'lum vosita: {name}"}, ensure_ascii=False), []
     func = entry[0]
     try:
         return func(**args)
-    except Exception as e:  # tool xatosi agent'ni to'xtatmasligi kerak
+    except Exception as e:  # tool xatosi agent'ni töxtatmasligi kerak
         # Xato matni OpenAI ga qaytib yuboriladi — DB jadval/ustun nomlari va
-        # qator ma'lumotlari uchinchi tomonga chiqib ketmasin. To'liq izoh
+        # qator ma'lumotlari uçinçi tomonga çiqib ketmasin. Töliq izoh
         # server jurnalida qoladi.
         from .security import safe_error
         return json.dumps(
-            {'error': safe_error(e, f'chat_ai_tool:{name}', 'Ichki xatolik')},
+            {'error': safe_error(e, f'chat_ai_tool:{name}', 'Içki xatolik')},
             ensure_ascii=False,
         ), []
 
@@ -501,38 +503,38 @@ def _get_client():
         from openai import OpenAI
         return OpenAI(api_key=api_key.strip(), timeout=60)
     except Exception as e:
-        print(f"Chat AI: OpenAI client yaratib bo'lmadi: {e}")
+        print(f"Çat AI: OpenAI client yaratib bölmadi: {e}")
         return None
 
 
 def _system_prompt():
     now = timezone.localtime()
-    weekdays = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
-    return f"""Siz LMS admin panelining "AI Chat Tahlilchi" modulisiz. Vazifangiz — admin savollariga
-shaxsiy chatlar (DirectMessage) bazasiga tayangan holda, ANIQ va DALILLI javob berish.
-Har doim O'ZBEK tilida javob bering.
+    weekdays = ['Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba', 'Yakşanba']
+    return f"""Siz LMS admin panelining "AI Çat Tahlilçi" modulisiz. Vazifangiz — admin savollariga
+şaxsiy çatlar (DirectMessage) bazasiga tayangan holda, ANIQ va DALILLI javob beriş.
+Har doim ÖZBEK tilida javob bering.
 
 BUGUN: {now.strftime('%Y-%m-%d')} ({weekdays[now.weekday()]}), soat {now.strftime('%H:%M')}.
-"bugun" = {now.strftime('%Y-%m-%d')}, "kecha" = {(now - timedelta(days=1)).strftime('%Y-%m-%d')}.
+"bugun" = {now.strftime('%Y-%m-%d')}, "keça" = {(now - timedelta(days=1)).strftime('%Y-%m-%d')}.
 
 QOIDALAR:
-1. FAQAT vositalar (tools) qaytargan ma'lumotlarga tayanib javob bering. O'zingiz foydalanuvchi,
-   xabar yoki sana O'YLAB CHIQARMANG.
-2. Savoldagi ism uchun avval find_users chaqiring. Bir nechta mos foydalanuvchi chiqsa,
-   eng aniq mosini tanlang yoki admindan aniqlashtirish so'rang.
+1. FAQAT vositalar (tools) qaytargan ma'lumotlarga tayanib javob bering. Özingiz foydalanuvçi,
+   xabar yoki sana ÖYLAB ÇIQARMANG.
+2. Savoldagi ism uçun avval find_users çaqiring. Bir neçta mos foydalanuvçi çiqsa,
+   eng aniq mosini tanlang yoki admindan aniqlaştiriş sörang.
 3. Javobda topilgan suhbatlarga albatta havola bering. Havolalarni FAQAT vositalar qaytargan
-   chat_url qiymatidan oling va markdown ko'rinishida yozing:
+   chat_url qiymatidan oling va markdown körinişida yozing:
    [Ism1 ↔ Ism2](chat_url)
-4. Javob tuzilishi:
-   - Avval 1-2 gaplik xulosa (kim, kim bilan, qachon, nechta xabar).
-   - Keyin kerak bo'lsa qisqa ro'yxat yoki iqtiboslar (2-3 ta yetarli).
-   - Oxirida "Suhbatni ochish:" qismida tegishli havola(lar).
-5. Xabar matnlarini to'liq ko'paytirmang — qisqa iqtibos keltiring. Shaxsiy ma'lumotlarni
+4. Javob tuzilişi:
+   - Avval 1-2 gaplik xulosa (kim, kim bilan, qaçon, neçta xabar).
+   - Keyin kerak bölsa qisqa röyxat yoki iqtiboslar (2-3 ta yetarli).
+   - Oxirida "Suhbatni oçiş:" qismida tegişli havola(lar).
+5. Xabar matnlarini töliq köpaytirmang — qisqa iqtibos keltiring. Şaxsiy ma'lumotlarni
    (telefon, parol kabi) qayta yozmang, faqat mavjudligini ayting.
-6. 🗑 yoki "[o'chirilgan]" belgisi — foydalanuvchi xabarni O'CHIRGAN, lekin u admin
-   monitoringida saqlanadi. Bunday xabarni zikr qilganda o'chirilganini albatta ayting.
-7. Hech narsa topilmasa, buni ochiq ayting va boshqa davr/kalit so'z taklif qiling.
-8. Qisqa, rasmiy-do'stona ohang. Admin investigatsiya qilyapti — faktlar muhim.
+6. 🗑 yoki "[öchirilgan]" belgisi — foydalanuvçi xabarni ÖÇIRGAN, lekin u admin
+   monitoringida saqlanadi. Bunday xabarni zikr qilganda öçirilganini albatta ayting.
+7. Heç narsa topilmasa, buni oçiq ayting va boşqa davr/kalit söz taklif qiling.
+8. Qisqa, rasmiy-döstona ohang. Admin investigatsiya qilyapti — faktlar muhim.
 """
 
 
@@ -540,7 +542,7 @@ def _run_openai_agent(client, question, history=None):
     """Function-calling agent sikli. Natija: {'answer', 'links', 'mode', 'tools_used'}."""
     messages = [{"role": "system", "content": _system_prompt()}]
 
-    # Oldingi savol-javoblar (kontekst) — oxirgi 4 ta burilish
+    # Oldingi savol-javoblar (kontekst) — oxirgi 4 ta buriliş
     for item in (history or [])[-4:]:
         q = (item.get('q') or '').strip()
         a = (item.get('a') or '').strip()
@@ -565,12 +567,12 @@ def _run_openai_agent(client, question, history=None):
                 max_tokens=AI_MAX_TOKENS,
             )
         except Exception as e:
-            # OpenAI SDK xatoligi so'rov URL i, model va tashkilot ID sini
-            # o'z ichiga oladi — brauzerga chiqarilmasin.
+            # OpenAI SDK xatoligi sörov URL i, model va taşkilot ID sini
+            # öz içiga oladi — brauzerga çiqarilmasin.
             from .security import safe_error
             return {
                 'answer': "⚠️ " + safe_error(
-                    e, 'chat_ai_openai', "AI xizmatiga ulanishda xatolik. Keyinroq urinib ko'ring.",
+                    e, 'chat_ai_openai', "AI xizmatiga ulanişda xatolik. Keyinroq urinib köring.",
                 ),
                 'links': [], 'mode': 'openai', 'tools_used': tools_used, 'ok': False,
             }
@@ -605,7 +607,7 @@ def _run_openai_agent(client, question, history=None):
         }
 
     return {
-        'answer': "⚠️ Agent juda ko'p qadam bajardi — savolni soddaroq qilib qayta yozing.",
+        'answer': "⚠️ Agent juda köp qadam bajardi — savolni soddaroq qilib qayta yozing.",
         'links': _dedupe_links(links), 'mode': 'openai', 'tools_used': tools_used, 'ok': False,
     }
 
@@ -621,54 +623,54 @@ def _dedupe_links(links):
 
 
 # ---------------------------------------------------------------------------
-#  Offline fallback (API kalit bo'lmasa) — oddiy qoidaviy tahlilchi
+#  Offline fallback (API kalit bölmasa) — oddiy qoidaviy tahlilçi
 # ---------------------------------------------------------------------------
 _QUESTION_WORDS = {
     'kimlar', 'kim', 'kimning', 'kimga', 'kimdan', 'bilan', 'nima', 'nimalar',
     'nimalarni', 'nimani', 'haqida', 'haqidagi', 'mavzu', 'mavzusida', 'mavzuda',
-    'mavzusidagi', "to'g'risida", "to'g'risidagi", 'gaplashibdi', 'gaplashgan',
-    'gaplashganmi', 'yozishdi', 'yozishgan', 'yozishganmi', 'yozishyapti',
-    'yozishmalar', 'yozishma', 'yozgan', 'yozgandir', 'suhbatlashdi', 'suhbat',
-    'suhbatlar', 'suhbatdosh', 'chatda', 'chat', 'chatlar', 'xabar', 'xabarlar',
-    'bugun', 'kecha', 'qachon', 'qayerda', 'bormi', "bo'ldi", "bo'ldimi",
-    "bo'lgan", "bo'lganmi", "so'z", "so'zi", "so'zida", 'mavjudmi', 'mavjud',
-    'deb', 'qanday', 'qaysi', 'qandaydir', 'iltimos', 'ayting', 'aytingchi',
-    'koring', "ko'ring", "ko'rib", "ko'rsating", 'chiqib', 'chiqarib', 'toping',
-    'topib', 'shu', 'ushbu', 'shunda', 'shunday', 'men', 'menga', 'sorayman',
-    "so'rayman", "so'rasiz", 'nechta', 'nechchi', 'qancha', 'barcha', 'hamma',
-    'hammasi', 'eng', 'faol', 'orqali', 'uchun', 'haqidagi', 'bor', "yo'q",
-    "yo'qmi", 'emas', 'edi', 'ekan', 'kan', 'mikan', 'mikin', 'chunki',
+    'mavzusidagi', "töğrisida", "töğrisidagi", 'gaplaşibdi', 'gaplaşgan',
+    'gaplaşganmi', 'yozişdi', 'yozişgan', 'yozişganmi', 'yozişyapti',
+    'yozişmalar', 'yozişma', 'yozgan', 'yozgandir', 'suhbatlaşdi', 'suhbat',
+    'suhbatlar', 'suhbatdoş', 'çatda', 'çat', 'çatlar', 'xabar', 'xabarlar',
+    'bugun', 'keça', 'qaçon', 'qayerda', 'bormi', "böldi", "böldimi",
+    "bölgan", "bölganmi", "söz", "sözi", "sözida", 'mavjudmi', 'mavjud',
+    'deb', 'qanday', 'qaysi', 'qandaydir', 'iltimos', 'ayting', 'aytingçi',
+    'koring', "köring", "körib", "körsating", 'çiqib', 'çiqarib', 'toping',
+    'topib', 'şu', 'uşbu', 'şunda', 'şunday', 'men', 'menga', 'sorayman',
+    "sörayman", "sörasiz", 'neçta', 'neççi', 'qança', 'barça', 'hamma',
+    'hammasi', 'eng', 'faol', 'orqali', 'uçun', 'haqidagi', 'bor', "yöq",
+    "yöqmi", 'emas', 'edi', 'ekan', 'kan', 'mikan', 'mikin', 'chunki',
 }
 
 
 def _fallback_period(q):
     today = timezone.localdate()
-    if 'kecha' in q:
+    if 'keça' in q:
         return today - timedelta(days=1), today - timedelta(days=1)
     if 'bugun' in q or 'hozir' in q:
         return today, today
     if 'hafta' in q:
         return today - timedelta(days=7), today
-    if 'oyda' in q or 'shu oy' in q or "bir oy" in q:
+    if 'oyda' in q or 'şu oy' in q or "bir oy" in q:
         return today - timedelta(days=30), today
     return None, None
 
 
 def _fallback_keywords(question):
     tokens = re.findall(r"[A-Za-zÀ-ž0-9'ʼ’\-]+", question.lower())
-    words = [t for t in tokens if len(t) >= 3 and t not in _QUESTION_WORDS]
+    words = [t for t in tokens if len(t) >= 3 and to_new_alphabet(t) not in _QUESTION_WORDS]
     return words
 
 
 def _run_fallback(question):
-    q = question.lower()
+    q = to_new_alphabet(question.lower())
     d_from, d_to = _fallback_period(q)
     users = _find_users(question)
     links = []
 
-    # 1) "X kimlar bilan yozishdi?" naqshi
-    if users and any(w in q for w in ('kimlar bilan', 'kim bilan', 'yozishdi', 'yozishgan',
-                                      'suhbatlashdi', 'gaplashdi', 'yozishyapti')):
+    # 1) "X kimlar bilan yozişdi?" naqşi
+    if users and any(w in q for w in ('kimlar bilan', 'kim bilan', 'yozişdi', 'yozişgan',
+                                      'suhbatlaşdi', 'gaplaşdi', 'yozişyapti')):
         result_json, links = tool_get_user_partners(
             users[0].pk,
             d_from.isoformat() if d_from else None,
@@ -677,22 +679,22 @@ def _run_fallback(question):
         data = json.loads(result_json)
         partners = data.get('partners', [])
         period = data.get('period', '')
-        period_in = 'jami' if period == 'barcha vaqt' else period
+        period_in = 'jami' if period == 'barça vaqt' else period
         uname = users[0].full_name or users[0].username
         if not partners:
-            answer = (f"**{uname}** {period_in} hech kim bilan shaxsiy yozishma qilmagan.\n\n"
-                      f"Boshqa davrni sinab ko'ring (masalan: *{uname} shu hafta kimlar bilan yozishdi?*).")
+            answer = (f"**{uname}** {period_in} heç kim bilan şaxsiy yozişma qilmagan.\n\n"
+                      f"Boşqa davrni sinab köring (masalan: *{uname} şu hafta kimlar bilan yozişdi?*).")
         else:
-            lines = [f"**{uname}** {period_in} **{len(partners)}** kishi bilan yozishgan:\n"]
+            lines = [f"**{uname}** {period_in} **{len(partners)}** kişi bilan yozişgan:\n"]
             for p in partners:
                 lines.append(f"- [{p['partner']}]({p['chat_url']}) — **{p['messages']}** ta xabar "
                              f"(oxirgisi: {p['last_message_at']})")
-            lines.append("\nSuhbatni ochish uchun yuqoridagi havolani bosing.")
+            lines.append("\nSuhbatni oçiş uçun yuqoridagi havolani bosing.")
             answer = '\n'.join(lines)
         return {'answer': answer, 'links': _dedupe_links(links), 'mode': 'fallback',
                 'tools_used': ['get_user_partners'], 'ok': True}
 
-    # 2) "X nima haqida gaplashgan?" — o'sha odamning suhbatlari + namuna xabarlar
+    # 2) "X nima haqida gaplaşgan?" — öşa odamning suhbatlari + namuna xabarlar
     if users and ('nima' in q or 'mavzu' in q or 'haqida' in q):
         result_json, links = tool_get_user_partners(
             users[0].pk,
@@ -715,7 +717,7 @@ def _run_fallback(question):
         return {'answer': answer, 'links': _dedupe_links(links), 'mode': 'fallback',
                 'tools_used': ['get_user_partners'], 'ok': True}
 
-    # 3) "Eng faol suhbatlar" naqshi
+    # 3) "Eng faol suhbatlar" naqşi
     if ('eng' in q and 'faol' in q) or 'reyting' in q or 'top' in q:
         result_json, links = tool_get_top_conversations(
             d_from.isoformat() if d_from else None,
@@ -734,7 +736,7 @@ def _run_fallback(question):
         return {'answer': answer, 'links': _dedupe_links(links), 'mode': 'fallback',
                 'tools_used': ['get_top_conversations'], 'ok': True}
 
-    # 4) Kalit so'z bo'yicha qidiruv: "sevgi mavzusida kimlar gaplashibdi?"
+    # 4) Kalit söz böyiça qidiruv: "sevgi mavzusida kimlar gaplaşibdi?"
     keywords = _fallback_keywords(question)
     if keywords:
         keyword = ' '.join(keywords[:4])
@@ -746,16 +748,16 @@ def _run_fallback(question):
         data = json.loads(result_json)
         matches = data.get('matches', [])
         if not matches:
-            answer = (f"**\"{keyword}\"** bo'yicha {data.get('period', '')} hech qanday xabar topilmadi.\n\n"
-                      f"Boshqa kalit so'z yoki davr bilan urinib ko'ring.")
+            answer = (f"**\"{keyword}\"** böyiça {data.get('period', '')} heç qanday xabar topilmadi.\n\n"
+                      f"Boşqa kalit söz yoki davr bilan urinib köring.")
         else:
-            # juftliklar bo'yicha guruhlash
+            # juftliklar böyiça guruhlaş
             by_pair = {}
             for m in matches:
                 key = m['chat_url']
                 by_pair.setdefault(key, {'label': f"{m['from']} ↔ {m['to']}", 'texts': []})
                 by_pair[key]['texts'].append(f"> {m['from']}: {m['text']}  *( {m['at']} )*")
-            lines = [f"**\"{keyword}\"** mavzusida **{len(by_pair)}** ta suhbatda yozishma topildi:\n"]
+            lines = [f"**\"{keyword}\"** mavzusida **{len(by_pair)}** ta suhbatda yozişma topildi:\n"]
             for url, grp in by_pair.items():
                 lines.append(f"**[{grp['label']}]({url})**")
                 lines.extend(grp['texts'][:3])
@@ -764,7 +766,7 @@ def _run_fallback(question):
         return {'answer': answer, 'links': _dedupe_links(links), 'mode': 'fallback',
                 'tools_used': ['search_messages'], 'ok': True}
 
-    # 5) Faqat davr so'ralgan ("kecha nima bo'lgan?") — o'sha davr faolligi
+    # 5) Faqat davr söralgan ("keça nima bölgan?") — öşa davr faolligi
     if d_from or d_to:
         result_json, links = tool_get_top_conversations(
             d_from.isoformat() if d_from else None,
@@ -774,30 +776,30 @@ def _run_fallback(question):
         top = data.get('top', [])
         period = data.get('period', '')
         if not top:
-            answer = f"**{period.capitalize()}** hech qanday yozishma bo'lmagan."
+            answer = f"**{period.capitalize()}** heç qanday yozişma bölmagan."
         else:
-            lines = [f"**{period.capitalize()} yozishmalar faolligi:**\n"]
+            lines = [f"**{period.capitalize()} yozişmalar faolligi:**\n"]
             for t in top:
                 lines.append(f"- [{t['pair']}]({t['chat_url']}) — **{t['messages']}** ta xabar "
                              f"(oxirgisi: {t['last_message_at']})")
-            lines.append("\nMavzuni bilish uchun masalan: *sevgi haqida kimlar gaplashibdi?* deb so'rang.")
+            lines.append("\nMavzuni biliş uçun masalan: *sevgi haqida kimlar gaplaşibdi?* deb sörang.")
             answer = '\n'.join(lines)
         return {'answer': answer, 'links': _dedupe_links(links), 'mode': 'fallback',
                 'tools_used': ['get_top_conversations'], 'ok': True}
 
     # 6) Umumiy yordam
     answer = (
-        "Savolingizni tushunmadim. Quyidagicha so'rang:\n"
-        "- *Axmat kimlar bilan yozishdi bugun?*\n"
-        "- *Sevgi mavzusida kimlar gaplashibdi?*\n"
+        "Savolingizni tuşunmadim. Quyidagiça sörang:\n"
+        "- *Axmat kimlar bilan yozişdi bugun?*\n"
+        "- *Sevgi mavzusida kimlar gaplaşibdi?*\n"
         "- *Bugun eng faol suhbatlar qaysi?*\n"
-        "- *Madina nima haqida gaplashgan shu hafta?*"
+        "- *Madina nima haqida gaplaşgan şu hafta?*"
     )
     return {'answer': answer, 'links': [], 'mode': 'fallback', 'tools_used': [], 'ok': True}
 
 
 # ---------------------------------------------------------------------------
-#  Kirish nuqtasi
+#  Kiriş nuqtasi
 # ---------------------------------------------------------------------------
 def analyze_chats(question, history=None):
     """Admin savoliga javob qaytaradi.
@@ -807,7 +809,7 @@ def analyze_chats(question, history=None):
     """
     question = (question or '').strip()
     if not question:
-        return {'answer': "Savol bo'sh.", 'links': [], 'mode': 'none', 'tools_used': [], 'ok': False}
+        return {'answer': "Savol böş.", 'links': [], 'mode': 'none', 'tools_used': [], 'ok': False}
 
     client = _get_client()
     if client:
@@ -816,5 +818,5 @@ def analyze_chats(question, history=None):
 
 
 def ai_available():
-    """OpenAI kaliti sozlanganmi — UI'da badge ko'rsatish uchun."""
+    """OpenAI kaliti sozlanganmi — UI'da badge körsatiş uçun."""
     return bool((getattr(settings, 'OPENAI_API_KEY', '') or '').strip())

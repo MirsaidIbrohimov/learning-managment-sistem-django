@@ -2,7 +2,7 @@ from django.db import migrations, models
 
 
 def add_streak_columns(apps, schema_editor):
-    """streak ustunlarini faqat mavjud bo'lmasa qo'shadi (xavfsiz, takror-bardosh)."""
+    """streak ustunlarini faqat mavjud bölmasa qöşadi (xavfsiz, takror-bardosh)."""
     conn = schema_editor.connection
     table = 'accounts_customuser'
     with conn.cursor() as cursor:

@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Xabar yuborish - Telegram{% endblock %}
-{% block topbar_title %}Telegram xabar yuborish{% endblock %}
+{% block title %}Xabar yuboriş - Telegram{% endblock %}
+{% block topbar_title %}Telegram xabar yuboriş{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -127,9 +127,9 @@
 
 <div class="bc-header">
     <i class="bi bi-send-fill"></i>
-    <h4>Xabar yuborish</h4>
+    <h4>Xabar yuboriş</h4>
 </div>
-<p class="bc-sub">Telegram orqali foydalanuvchilarga yoki guruhga xabar yuboring</p>
+<p class="bc-sub">Telegram orqali foydalanuvçilarga yoki guruhga xabar yuboring</p>
 
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
@@ -137,25 +137,25 @@
     <div class="bc-card">
         <h5><i class="bi bi-megaphone me-2"></i>Yangi xabar</h5>
 
-        <!-- Qabul qiluvchi turi -->
+        <!-- Qabul qiluvçi turi -->
         <div class="bc-form-group">
-            <label><i class="bi bi-people me-1"></i>Qabul qiluvchilar</label>
+            <label><i class="bi bi-people me-1"></i>Qabul qiluvçilar</label>
             <select name="recipient_type" id="recipientType" onchange="toggleUserSelect()">
-                <option value="all">📢 Barcha ulangan foydalanuvchilar</option>
-                <option value="students">🎓 Faqat o'quvchilar</option>
-                <option value="teachers">👨‍🏫 Faqat o'qituvchilar</option>
-                <option value="group">👥 Guruhga yuborish</option>
-                <option value="individual">👤 Tanlangan foydalanuvchilar</option>
+                <option value="all">📢 Barça ulangan foydalanuvçilar</option>
+                <option value="students">🎓 Faqat öquvçilar</option>
+                <option value="teachers">👨‍🏫 Faqat öqituvçilar</option>
+                <option value="group">👥 Guruhga yuboriş</option>
+                <option value="individual">👤 Tanlangan foydalanuvçilar</option>
             </select>
         </div>
 
         <!-- Individual user selection -->
         <div class="bc-form-group" id="userSelectGroup" style="display:none;">
-            <label><i class="bi bi-person-check me-1"></i>Foydalanuvchilarni tanlang</label>
-            <input type="text" class="bc-search-users" id="userSearch" placeholder="🔍 Qidirish..." oninput="filterUsers()">
+            <label><i class="bi bi-person-check me-1"></i>Foydalanuvçilarni tanlang</label>
+            <input type="text" class="bc-search-users" id="userSearch" placeholder="🔍 Qidiriş..." oninput="filterUsers()">
             <div class="bc-select-actions">
-                <button type="button" onclick="selectAll()">✅ Hammasini belgilash</button>
-                <button type="button" onclick="deselectAll()">❌ Barchasini olib tashlash</button>
+                <button type="button" onclick="selectAll()">✅ Hammasini belgilaş</button>
+                <button type="button" onclick="deselectAll()">❌ Barçasini olib taşlaş</button>
             </div>
             <div class="bc-users-select" id="usersList">
                 {% for u in linked_users %}
@@ -182,9 +182,9 @@
         <!-- Xabar matni -->
         <div class="bc-form-group">
             <label><i class="bi bi-chat-text me-1"></i>Xabar matni</label>
-            <textarea name="text" id="msgText" placeholder="Xabar matnini kiriting...&#10;&#10;HTML teglar: &lt;b&gt;qalin&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt;, &lt;a href='url'&gt;havola&lt;/a&gt;&#10;&#10;Havolani shunchaki yozsangiz ham ishlaydi: https://example.com"></textarea>
+            <textarea name="text" id="msgText" placeholder="Xabar matnini kiriting...&#10;&#10;HTML teglar: &lt;b&gt;qalin&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt;, &lt;a href='url'&gt;havola&lt;/a&gt;&#10;&#10;Havolani şunçaki yozsangiz ham işlaydi: https://example.com"></textarea>
             <div class="bc-hint">
-                💡 HTML formatlarni qo'llab-quvvatlaydi: <code>&lt;b&gt;qalin&lt;/b&gt;</code>,
+                💡 HTML formatlarni qöllab-quvvatlaydi: <code>&lt;b&gt;qalin&lt;/b&gt;</code>,
                 <code>&lt;i&gt;kursiv&lt;/i&gt;</code>,
                 <code>&lt;a href="url"&gt;havola&lt;/a&gt;</code>,
                 <code>&lt;code&gt;kod&lt;/code&gt;</code>.
@@ -201,7 +201,7 @@
 
         <!-- Image preview -->
         <div class="bc-preview" id="imagePreview">
-            <div style="font-size:0.85rem; color:var(--bs-secondary-color);">📷 Rasm ko'rinishi:</div>
+            <div style="font-size:0.85rem; color:var(--bs-secondary-color);">📷 Rasm körinişi:</div>
             <img id="previewImg" src="" alt="preview">
         </div>
     </div>
@@ -210,7 +210,7 @@
     <div class="d-flex gap-3 align-items-center flex-wrap">
         <button type="submit" class="bc-btn-send">
             <i class="bi bi-send-fill"></i>
-            Yuborish
+            Yuboriş
         </button>
         <a href="{% url 'telegram_bot:admin_telegram' %}" class="bc-btn-back">
             <i class="bi bi-arrow-left"></i>

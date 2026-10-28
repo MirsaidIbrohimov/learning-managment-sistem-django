@@ -1,8 +1,8 @@
 {% comment %}
-  Tashqi hisobni ulash — animatsiyali ko'rsatma oynasi (Google yoki Facebook).
+  Taşqi hisobni ulaş — animatsiyali körsatma oynasi (Google yoki Facebook).
   Parametrlar: p ('google'|'facebook'), pname, sym, other_sym, other_name, connect_name.
-  JS oynani <body> ga ko'chiradi (stacking context sababli), shuning uchun ranglari
-  social-connect.css dagi .sc-ov o'zgaruvchilaridan olinadi.
+  JS oynani <body> ga köçiradi (stacking context sababli), şuning uçun ranglari
+  social-connect.css dagi .sc-ov özgaruvçilaridan olinadi.
 {% endcomment %}
 {% with em=user.email|default:"sizning@gmail.com" nm=user.get_full_name|default:user.username ini=user.first_name|default:user.username|slice:":1"|upper %}
 <div class="sc-ov is-{{ p }}" id="scOverlay-{{ p }}" role="dialog" aria-modal="true" aria-labelledby="scTitle-{{ p }}" hidden
@@ -22,19 +22,19 @@
      data-busy="Google ochilmoqda…"
      {% endif %}>
   <div class="sc-box">
-    <button type="button" class="sc-x" data-sc-close aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+    <button type="button" class="sc-x" data-sc-close aria-label="Yopiş"><i class="bi bi-x-lg"></i></button>
     <span class="sc-hico" aria-hidden="true"><svg><use href="#{{ sym }}"/></svg></span>
-    <h3 id="scTitle-{{ p }}">{{ pname }} hisobni ulash</h3>
+    <h3 id="scTitle-{{ p }}">{{ pname }} hisobni ulaş</h3>
     <p class="sc-lead">4 ta oson qadam — atigi 20 soniya</p>
 
     <ol class="sc-steps" aria-label="Qadamlar">
-      <li data-i="0"><span><b>1</b><i class="bi bi-check-lg"></i></span>Ulash</li>
+      <li data-i="0"><span><b>1</b><i class="bi bi-check-lg"></i></span>Ulaş</li>
       <li data-i="1"><span><b>2</b><i class="bi bi-check-lg"></i></span>Hisob</li>
       <li data-i="2"><span><b>3</b><i class="bi bi-check-lg"></i></span>Ruxsat</li>
       <li data-i="3"><span><b>4</b><i class="bi bi-check-lg"></i></span>Tayyor</li>
     </ol>
 
-    <!-- Mini brauzer: sayt ↔ xizmat sahifalari, kursor avtomatik bosib chiqadi -->
+    <!-- Mini brauzer: sayt ↔ xizmat sahifalari, kursor avtomatik bosib çiqadi -->
     <div class="sc-screen" aria-hidden="true">
       <div class="sc-bar">
         <span class="sc-dots"><i></i><i></i><i></i></span>
@@ -51,8 +51,8 @@
             <div class="sc-mrow sc-grow">
               <span class="sc-mlogo"><svg><use href="#{{ sym }}"/></svg></span>
               <span class="sc-mtxt"><b>{{ pname }}</b><small class="sc-off">Ulanmagan</small><small class="sc-on"><i class="bi bi-check-circle-fill"></i> Ulangan · {% if p == 'facebook' %}{{ nm }}{% else %}{{ em }}{% endif %}</small></span>
-              <span class="sc-mbtn sc-t-connect"><i class="bi bi-link-45deg"></i> Ulash</span>
-              <span class="sc-mbtn ghost sc-t-un">Uzish</span>
+              <span class="sc-mbtn sc-t-connect"><i class="bi bi-link-45deg"></i> Ulaş</span>
+              <span class="sc-mbtn ghost sc-t-un">Uziş</span>
             </div>
             <div class="sc-mrow dim">
               <span class="sc-mlogo"><svg><use href="#{{ other_sym }}"/></svg></span>
@@ -62,55 +62,55 @@
           <div class="sc-toast"><i class="bi bi-check-circle-fill"></i> {{ pname }} hisobi muvaffaqiyatli ulandi</div>
           <div class="sc-confetti"></div>
         </div>
-        <!-- Xizmat sahifasi: hisob tanlash va ruxsat -->
+        <!-- Xizmat sahifasi: hisob tanlaş va ruxsat -->
         <div class="sc-page sc-google">
           <div class="sc-gprog"></div>
-          <div class="sc-ghead"><svg><use href="#{{ sym }}"/></svg> {{ pname }} bilan kirish</div>
+          <div class="sc-ghead"><svg><use href="#{{ sym }}"/></svg> {{ pname }} bilan kiriş</div>
           {% if p == 'facebook' %}
           <div class="sc-gview sc-gv-choose">
             <h4>{{ nm }} sifatida davom etasizmi?</h4>
-            <p><b>IT Creative</b> Facebook hisobingiz orqali kirishni so‘ramoqda</p>
+            <p><b>IT Creative</b> Facebook hisobingiz orqali kirişni söramoqda</p>
             <div class="sc-gacc sc-t-acc sc-fbcont">
               <span class="sc-gav">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>
-              <span><b>{{ nm }} sifatida davom etish</b><small>Facebook hisobingiz</small></span>
+              <span><b>{{ nm }} sifatida davom etiş</b><small>Facebook hisobingiz</small></span>
             </div>
             <div class="sc-gacc">
               <span class="sc-gav alt"><i class="bi bi-arrow-left-right"></i></span>
-              <span><b>Boshqa hisobga o‘tish</b></span>
+              <span><b>Boşqa hisobga ötiş</b></span>
             </div>
           </div>
           <div class="sc-gview sc-gv-consent">
             <h4>IT Creative quyidagilarni oladi</h4>
             <span class="sc-chip"><span class="sc-gav xs">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>{{ nm }}</span>
-            <p>Facebook IT Creative bilan ulashadi:</p>
+            <p>Facebook IT Creative bilan ulaşadi:</p>
             <ul>
               <li><i class="bi bi-person"></i> Ism va profil rasmi</li>
-              <li><i class="bi bi-envelope"></i> Email manzil (bo‘lsa)</li>
+              <li><i class="bi bi-envelope"></i> Email manzil (bölsa)</li>
             </ul>
-            <div class="sc-gbtns"><span class="sc-gtext">Bekor qilish</span><span class="sc-gbtn sc-t-allow">Davom etish</span></div>
+            <div class="sc-gbtns"><span class="sc-gtext">Bekor qiliş</span><span class="sc-gbtn sc-t-allow">Davom etiş</span></div>
           </div>
           {% else %}
           <div class="sc-gview sc-gv-choose">
             <h4>Hisobni tanlang</h4>
-            <p><b>IT Creative</b> saytiga o‘tish uchun</p>
+            <p><b>IT Creative</b> saytiga ötiş uçun</p>
             <div class="sc-gacc sc-t-acc">
               <span class="sc-gav">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>
               <span><b>{{ nm }}</b><small>{{ em }}</small></span>
             </div>
             <div class="sc-gacc">
               <span class="sc-gav alt"><i class="bi bi-person-circle"></i></span>
-              <span><b>Boshqa hisobdan foydalanish</b></span>
+              <span><b>Boşqa hisobdan foydalaniş</b></span>
             </div>
           </div>
           <div class="sc-gview sc-gv-consent">
-            <h4>IT Creative saytiga kirish</h4>
+            <h4>IT Creative saytiga kiriş</h4>
             <span class="sc-chip"><span class="sc-gav xs">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>{{ em }}</span>
-            <p>Google IT Creative bilan quyidagilarni ulashadi:</p>
+            <p>Google IT Creative bilan quyidagilarni ulaşadi:</p>
             <ul>
               <li><i class="bi bi-person"></i> Ism va profil rasmi</li>
               <li><i class="bi bi-envelope"></i> Email manzil</li>
             </ul>
-            <div class="sc-gbtns"><span class="sc-gtext">Bekor qilish</span><span class="sc-gbtn sc-t-allow">Davom etish</span></div>
+            <div class="sc-gbtns"><span class="sc-gtext">Bekor qiliş</span><span class="sc-gbtn sc-t-allow">Davom etiş</span></div>
           </div>
           {% endif %}
         </div>
@@ -120,8 +120,8 @@
 
     <p class="sc-cap" aria-live="polite"></p>
 
-    <a class="sc-go" href="{% url connect_name %}"><svg aria-hidden="true"><use href="#{{ sym }}"/></svg><span class="sc-spin" aria-hidden="true"></span><span class="sc-go-t">{{ pname }} bilan ulash</span></a>
-    <small class="sc-note"><i class="bi bi-shield-lock"></i> Parolingiz bizga ko‘rinmaydi — {{ pname }} faqat ism{% if p == 'facebook' %}, rasm{% endif %} va emailingizni tasdiqlaydi.</small>
+    <a class="sc-go" href="{% url connect_name %}"><svg aria-hidden="true"><use href="#{{ sym }}"/></svg><span class="sc-spin" aria-hidden="true"></span><span class="sc-go-t">{{ pname }} bilan ulaş</span></a>
+    <small class="sc-note"><i class="bi bi-shield-lock"></i> Parolingiz bizga körinmaydi — {{ pname }} faqat ism{% if p == 'facebook' %}, rasm{% endif %} va emailingizni tasdiqlaydi.</small>
   </div>
 </div>
 {% endwith %}

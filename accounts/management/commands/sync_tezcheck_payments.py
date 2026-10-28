@@ -13,7 +13,7 @@ from accounts.tezcheck_views import _apply_successful_payment
 
 
 class Command(BaseCommand):
-    help = 'Kutilayotgan Tezcheck va inPAY to‘lovlarini API bilan solishtiradi.'
+    help = 'Kutilayotgan Tezcheck va inPAY tölovlarini API bilan soliştiradi.'
 
     def handle(self, *args, **options):
         gateways = []
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                     continue
                 if bill.get('external_reference') != locked.external_reference:
                     locked.status = TezCheckPaymentOrder.STATUS_REVIEW
-                    locked.last_error = 'To‘lov tizimidagi tashqi raqam LMS buyurtmasiga mos emas.'
+                    locked.last_error = 'Tölov tizimidagi taşqi raqam LMS buyurtmasiga mos emas.'
                     locked.save(update_fields=['status', 'last_error', 'updated_at'])
                     errors += 1
                 elif bill.get('paid') is True and payment.get('state') == 'succeeded':
@@ -83,5 +83,5 @@ class Command(BaseCommand):
                     expired += 1
 
         self.stdout.write(self.style.SUCCESS(
-            f'Tekshirildi: {checked}; tasdiqlandi: {confirmed}; muddati tugadi: {expired}; muammo: {errors}.'
+            f'Tekşirildi: {checked}; tasdiqlandi: {confirmed}; muddati tugadi: {expired}; muammo: {errors}.'
         ))

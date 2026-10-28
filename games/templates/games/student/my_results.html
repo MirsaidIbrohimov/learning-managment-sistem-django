@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Natijalarim | O'yinlar{% endblock %}
+{% block title %}Natijalarim | Öyinlar{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -352,12 +352,12 @@
 <div class="container py-4">
     <div class="results-hero">
         <a href="{% url 'games:games_list' %}" class="back-link">
-            <i class="bi bi-arrow-left"></i> O'yinlar
+            <i class="bi bi-arrow-left"></i> Öyinlar
         </a>
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h2 class="mb-0"><i class="bi bi-bar-chart-line"></i> Natijalarim</h2>
             <a href="{% url 'games:my_results_pdf' %}?game={{ game_filter|default:'' }}&mode={{ mode_filter|default:'' }}" class="btn-pdf-student">
-                <i class="bi bi-file-earmark-pdf"></i> PDF yuklab olish
+                <i class="bi bi-file-earmark-pdf"></i> PDF yuklab oliş
             </a>
         </div>
     </div>
@@ -366,9 +366,9 @@
     <div class="filter-card">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-4 col-6">
-                <label class="form-label fw-bold small">O'yin</label>
+                <label class="form-label fw-bold small">Öyin</label>
                 <select name="game" class="form-select form-select-sm">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     {% for g in games %}
                     <option value="{{ g.pk }}" {% if game_filter == g.pk|stringformat:"d" %}selected{% endif %}>{{ g.title }}</option>
                     {% endfor %}
@@ -377,7 +377,7 @@
             <div class="col-md-4 col-6">
                 <label class="form-label fw-bold small">Rejim</label>
                 <select name="mode" class="form-select form-select-sm">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     {% for value, label in result_modes %}
                     <option value="{{ value }}" {% if mode_filter == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
@@ -385,7 +385,7 @@
             </div>
             <div class="col-md-4 col-12">
                 <button type="submit" class="btn btn-sm btn-filter w-100">
-                    <i class="bi bi-filter"></i> Filtrlash
+                    <i class="bi bi-filter"></i> Filtrlaş
                 </button>
             </div>
         </form>
@@ -398,7 +398,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>O'yin</th>
+                        <th>Öyin</th>
                         <th>Rejim</th>
                         <th>Natija</th>
                         <th>Batafsil</th>
@@ -414,7 +414,7 @@
                         <td><strong>{{ attempt.game.title }}</strong></td>
                         <td>{% include 'games/student/_result_mode_badge.html' %}</td>
                         {% if attempt.result_type == 'word_builder' %}
-                        <td>{{ attempt.found_count }} so'z</td>
+                        <td>{{ attempt.found_count }} söz</td>
                         <td>—</td>
                         <td class="score-cell">{{ attempt.total_score }}</td>
                         {% else %}
@@ -430,7 +430,7 @@
                         <td colspan="8">
                             <div class="empty-results">
                                 <i class="bi bi-emoji-smile"></i>
-                                <p class="mt-2">Hali natijalar yo'q</p>
+                                <p class="mt-2">Hali natijalar yöq</p>
                             </div>
                         </td>
                     </tr>
@@ -452,7 +452,7 @@
                 {% if attempt.result_type == 'word_builder' %}
                 <div class="stat-item">
                     <div class="val">{{ attempt.found_count }}</div>
-                    <div class="lbl">So'zlar</div>
+                    <div class="lbl">Sözlar</div>
                 </div>
                 <div class="stat-item">
                     <div class="val" style="color: var(--g-primary);">{{ attempt.total_score }}</div>
@@ -481,7 +481,7 @@
         {% empty %}
         <div class="empty-results">
             <i class="bi bi-emoji-smile"></i>
-            <p class="text-muted mt-2">Hali natijalar yo'q</p>
+            <p class="text-muted mt-2">Hali natijalar yöq</p>
         </div>
         {% endfor %}
     </div>

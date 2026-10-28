@@ -14,7 +14,7 @@
     <span class="su-head-logo"><i class="bi bi-compass"></i></span>
     <div class="su-head-main">
       <h1>Startuplar</h1>
-      <p>{{ page_obj.paginator.count }} ta faol startup. Yoqganiga jamoa aʻzosi boʻlib qoʻshilishingiz mumkin.</p>
+      <p>{{ page_obj.paginator.count }} ta faol startup. Yoqganiga jamoa aʻzosi bölib qöşilişingiz mumkin.</p>
     </div>
     <div class="su-head-actions">
       <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:top' %}">
@@ -30,18 +30,18 @@
     <div class="input-group input-group-sm" style="max-width:340px">
       <span class="input-group-text"><i class="bi bi-search"></i></span>
       <input class="form-control" type="search" name="q" value="{{ q }}"
-             placeholder="Startup nomi yoki tavsifi…" aria-label="Qidirish">
+             placeholder="Startup nomi yoki tavsifi…" aria-label="Qidiriş">
     </div>
     <select class="form-select form-select-sm" name="category" style="max-width:200px"
             aria-label="Kategoriya" onchange="this.form.submit()">
-      <option value="">Barcha kategoriyalar</option>
+      <option value="">Barça kategoriyalar</option>
       {% for value, label in category_choices %}
         <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
-    <button class="btn btn-sm btn-primary" type="submit">Qidirish</button>
+    <button class="btn btn-sm btn-primary" type="submit">Qidiriş</button>
     {% if q or category %}
-      <a class="su-chip" href="{% url 'startup:explore' %}">Tozalash</a>
+      <a class="su-chip" href="{% url 'startup:explore' %}">Tozalaş</a>
     {% endif %}
   </form>
 

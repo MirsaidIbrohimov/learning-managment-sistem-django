@@ -1,11 +1,11 @@
 """Lightweight RAG for the AI assistant.
 
 Course material (lesson text) is indexed into ``KnowledgeChunk`` rows with an
-embedding (see the ``build_ai_knowledge`` management command). At chat time we
+embedding (see the ``build_ai_knowledge`` management command). At çat time we
 embed the user's question, find the most similar chunks by cosine similarity,
 and inject them into the prompt so answers are grounded in the platform's own
 lessons. Everything degrades gracefully: no API key or empty index -> no RAG,
-and the chat keeps working normally.
+and the çat keeps working normally.
 """
 import json
 import math

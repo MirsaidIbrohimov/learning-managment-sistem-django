@@ -91,8 +91,8 @@ class EmailLoginTests(TestCase):
         response = self.client.post(reverse('login'), {'login_mode': 'email', 'email_action': 'send', 'email': self.user.email})
         self.assertContains(response, 'name="email_code"')
         self.assertFalse(response.context['form'].is_bound)
-        self.assertNotContains(response, "Username noto'g'ri yoki mavjud emas")
-        self.assertNotContains(response, "Parol noto'g'ri kiritildi!")
+        self.assertNotContains(response, "Username notöğri yoki mavjud emas")
+        self.assertNotContains(response, "Parol notöğri kiritildi!")
         self.assertContains(response, 'class="btn btn-main"')
         code = re.search(r'kodi: ([A-Z0-9]{6})', mail.outbox[-1].body)[1]
         response = self.client.post(reverse('login'), {'login_mode': 'email', 'email_action': 'verify', 'email_code': code})
@@ -105,5 +105,5 @@ class EmailLoginTests(TestCase):
             'login_mode': 'email', 'email_action': 'verify', 'email_code': 'BAD123',
         })
         self.assertFalse(response.context['form'].is_bound)
-        self.assertNotContains(response, "Username noto'g'ri yoki mavjud emas")
-        self.assertNotContains(response, "Parol noto'g'ri kiritildi!")
+        self.assertNotContains(response, "Username notöğri yoki mavjud emas")
+        self.assertNotContains(response, "Parol notöğri kiritildi!")

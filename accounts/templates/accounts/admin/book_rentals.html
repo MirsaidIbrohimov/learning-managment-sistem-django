@@ -553,14 +553,14 @@
     <div class="br-header">
         <div class="br-header-left">
             <h1><i class="bi bi-arrow-left-right"></i> Kitob ijaralari</h1>
-            <div class="br-header-sub">Berilgan va qaytarilgan kitoblar boshqaruvi</div>
+            <div class="br-header-sub">Berilgan va qaytarilgan kitoblar boşqaruvi</div>
         </div>
         <div class="br-header-actions">
             <a href="{% url 'admin_books' %}" class="br-btn br-btn-outline">
                 <i class="bi bi-book"></i> Kitoblar
             </a>
             <a href="{% url 'admin_give_book' %}" class="br-btn br-btn-primary">
-                <i class="bi bi-plus-lg"></i> Kitob berish
+                <i class="bi bi-plus-lg"></i> Kitob beriş
             </a>
         </div>
     </div>
@@ -575,7 +575,7 @@
         <div class="br-stat-card">
             <div class="br-stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
             <div class="br-stat-val">{{ stats.overdue }}</div>
-            <div class="br-stat-label">Muddati o'tgan</div>
+            <div class="br-stat-label">Muddati ötgan</div>
         </div>
         <div class="br-stat-card">
             <div class="br-stat-icon success"><i class="bi bi-check-circle"></i></div>
@@ -591,25 +591,25 @@
             {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
             <div class="br-filter-row">
                 <div class="br-filter-group" style="flex:2;">
-                    <label><i class="bi bi-search"></i> Qidirish</label>
-                    <input type="text" name="search" placeholder="Kitob nomi yoki o'quvchi..." value="{{ search }}">
+                    <label><i class="bi bi-search"></i> Qidiriş</label>
+                    <input type="text" name="search" placeholder="Kitob nomi yoki öquvçi..." value="{{ search }}">
                 </div>
                 <div class="br-filter-group" style="flex:1;">
                     <label><i class="bi bi-funnel"></i> Holat</label>
                     <select name="status">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
                         <option value="returned" {% if status == 'returned' %}selected{% endif %}>Qaytarilgan</option>
-                        <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati o'tgan</option>
+                        <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati ötgan</option>
                     </select>
                 </div>
                 <div style="display:flex; gap:0.5rem; align-items:flex-end;">
                     <button type="submit" class="br-filter-btn">
-                        <i class="bi bi-filter"></i> Filtrlash
+                        <i class="bi bi-filter"></i> Filtrlaş
                     </button>
                     {% if search or status %}
                     <a href="{% url 'admin_book_rentals' %}" class="br-filter-reset">
-                        <i class="bi bi-x-lg"></i> Tozalash
+                        <i class="bi bi-x-lg"></i> Tozalaş
                     </a>
                     {% endif %}
                 </div>
@@ -619,7 +619,7 @@
 
     <!-- Sort Bar -->
     <div class="br-sort-bar">
-        <span class="br-sort-label"><i class="bi bi-sort-down"></i> Saralash:</span>
+        <span class="br-sort-label"><i class="bi bi-sort-down"></i> Saralaş:</span>
         {% with base_params=search|yesno:","|add:"" %}
         <a href="?sort=newest{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
            class="br-sort-btn {% if sort == 'newest' or not sort %}active{% endif %}">
@@ -635,15 +635,15 @@
         </a>
         <a href="?sort=student{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
            class="br-sort-btn {% if sort == 'student' %}active{% endif %}">
-            <i class="bi bi-person"></i> O'quvchi
+            <i class="bi bi-person"></i> Öquvçi
         </a>
         <a href="?sort=return{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
            class="br-sort-btn {% if sort == 'return' %}active{% endif %}">
-            <i class="bi bi-calendar-event"></i> Qaytarish ↑
+            <i class="bi bi-calendar-event"></i> Qaytariş ↑
         </a>
         <a href="?sort=-return{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
            class="br-sort-btn {% if sort == '-return' %}active{% endif %}">
-            <i class="bi bi-calendar-event"></i> Qaytarish ↓
+            <i class="bi bi-calendar-event"></i> Qaytariş ↓
         </a>
         {% endwith %}
     </div>
@@ -658,9 +658,9 @@
                     <thead>
                         <tr>
                             <th>Kitob</th>
-                            <th>O'quvchi</th>
+                            <th>Öquvçi</th>
                             <th>Berilgan sana</th>
-                            <th>Qaytarish sanasi</th>
+                            <th>Qaytariş sanasi</th>
                             <th>Holat</th>
                             <th style="text-align:right;">Amal</th>
                         </tr>
@@ -713,7 +713,7 @@
                                 {% if rental.status == 'active' %}
                                     {% if rental.days_until_return < 0 %}
                                     <span class="br-badge br-badge-overdue" style="margin-top:0.25rem;">
-                                        <i class="bi bi-exclamation-circle"></i> {{ rental.days_until_return|abs_value }} kun kechikdi
+                                        <i class="bi bi-exclamation-circle"></i> {{ rental.days_until_return|abs_value }} kun keçikdi
                                     </span>
                                     {% elif rental.days_until_return == 0 %}
                                     <span class="br-badge br-badge-warn" style="margin-top:0.25rem;">
@@ -735,7 +735,7 @@
                                     {{ rental.actual_return_date|date:"d.m.Y" }}
                                 </div>
                                 {% else %}
-                                <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati o'tgan</span>
+                                <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati ötgan</span>
                                 {% endif %}
                             </td>
                             <td style="text-align:right;">
@@ -779,7 +779,7 @@
                     {% elif rental.status == 'returned' %}
                     <span class="br-badge br-badge-returned"><i class="bi bi-check-circle"></i> Qaytarilgan</span>
                     {% else %}
-                    <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati o'tgan</span>
+                    <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati ötgan</span>
                     {% endif %}
                 </div>
 
@@ -798,7 +798,7 @@
                     <span><i class="bi bi-calendar-check"></i> {{ rental.return_date|date:"d.m.Y" }}</span>
                     {% if rental.status == 'active' %}
                         {% if rental.days_until_return < 0 %}
-                        <span class="br-badge br-badge-overdue">{{ rental.days_until_return|abs_value }} kun kechikdi</span>
+                        <span class="br-badge br-badge-overdue">{{ rental.days_until_return|abs_value }} kun keçikdi</span>
                         {% elif rental.days_until_return == 0 %}
                         <span class="br-badge br-badge-warn">Bugun!</span>
                         {% elif rental.days_until_return <= 3 %}
@@ -831,14 +831,14 @@
         <div class="br-empty">
             <i class="bi bi-arrow-left-right"></i>
             <h5>Ijaralar topilmadi</h5>
-            <p>{% if search or status %}Qidiruv natijasi bo'sh. Filtrlarni o'zgartiring.{% else %}Hali kitob berilmagan.{% endif %}</p>
+            <p>{% if search or status %}Qidiruv natijasi böş. Filtrlarni özgartiring.{% else %}Hali kitob berilmagan.{% endif %}</p>
             {% if search or status %}
             <a href="{% url 'admin_book_rentals' %}" class="br-btn br-btn-outline">
-                <i class="bi bi-x-lg"></i> Filtrlarni tozalash
+                <i class="bi bi-x-lg"></i> Filtrlarni tozalaş
             </a>
             {% else %}
             <a href="{% url 'admin_give_book' %}" class="br-btn br-btn-primary">
-                <i class="bi bi-plus-lg"></i> Kitob berish
+                <i class="bi bi-plus-lg"></i> Kitob beriş
             </a>
             {% endif %}
         </div>

@@ -1,20 +1,20 @@
 """
-TeacherVideoIncome jadvalidagi dublikat yozuvlarni tozalash.
+TeacherVideoIncome jadvalidagi dublikat yozuvlarni tozalaş.
 
 Sabab: Eski kod bazasi (yoki 0002_teacher_income_per_video migratsiyasi hali
-qo'llanmagan holat) har quiz uchun alohida 3000 so'm yozib qo'ygan. Natija:
-ustoz bitta videoga 5 ta savol qo'shgan bo'lsa 5 × 3000 = 15 000 so'm yozilgan
-va statistikada shu miqdor ko'rinadi.
+qöllanmagan holat) har quiz uçun alohida 3000 söm yozib qöygan. Natija:
+ustoz bitta videoga 5 ta savol qöşgan bölsa 5 × 3000 = 15 000 söm yozilgan
+va statistikada şu miqdor körinadi.
 
-Yangi qoida: har (teacher, video) juftligi uchun BIR MARTA 3000 so'm.
+Yangi qoida: har (teacher, video) juftligi uçun BIR MARTA 3000 söm.
 
-Bu command har juftlik uchun eng eski (yoki eng yangi — tanlashimizga qarab)
-yozuvni saqlab, qolgan dublikatlarni o'chiradi.
+Bu command har juftlik uçun eng eski (yoki eng yangi — tanlaşimizga qarab)
+yozuvni saqlab, qolgan dublikatlarni öçiradi.
 
-Foydalanish:
+Foydalaniş:
     python manage.py dedupe_teacher_video_income --dry-run     # preview
-    python manage.py dedupe_teacher_video_income               # tozalash
-    python manage.py dedupe_teacher_video_income --keep last   # eng yangini saqlash
+    python manage.py dedupe_teacher_video_income               # tozalaş
+    python manage.py dedupe_teacher_video_income --keep last   # eng yangini saqlaş
 """
 from collections import defaultdict
 
@@ -31,18 +31,18 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             '--dry-run', action='store_true',
-            help="DB'ga tegmaydi — faqat topilganlarni ko'rsatadi.",
+            help="DB'ga tegmaydi — faqat topilganlarni körsatadi.",
         )
         parser.add_argument(
             '--keep', choices=['first', 'last'], default='first',
-            help="Har juftlik uchun qaysi yozuvni saqlash: eng eski (first, default) yoki yangi (last).",
+            help="Har juftlik uçun qaysi yozuvni saqlaş: eng eski (first, default) yoki yangi (last).",
         )
 
     def handle(self, *args, **opts):
         dry_run = opts['dry_run']
         keep = opts['keep']
 
-        # (teacher, video) bo'yicha 2+ yozuvi bo'lgan juftliklar.
+        # (teacher, video) böyiça 2+ yozuvi bölgan juftliklar.
         dupes = (
             TeacherVideoIncome.objects
             .exclude(video__isnull=True)
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             .order_by('-n')
         )
 
-        # `video=NULL` bo'lgan yozuvlar (eski, per-quiz) uchun alohida:
+        # `video=NULL` bölgan yozuvlar (eski, per-quiz) uçun alohida:
         legacy_null_video = TeacherVideoIncome.objects.filter(video__isnull=True)
         legacy_count = legacy_null_video.count()
 
@@ -69,14 +69,14 @@ class Command(BaseCommand):
             ))
         if legacy_count:
             self.stdout.write(self.style.WARNING(
-                f"⚠️  {legacy_count} ta 'video=NULL' bo'lgan eski yozuv topildi "
-                f"(per-quiz eski model). Ular o'chiriladi."
+                f"⚠️  {legacy_count} ta 'video=NULL' bölgan eski yozuv topildi "
+                f"(per-quiz eski model). Ular öçiriladi."
             ))
 
         total_deleted = 0
         total_amount_removed = 0
 
-        # ── 1) Dublikatlarni bittalab tozalash ──────────────────────────
+        # ── 1) Dublikatlarni bittalab tozalaş ──────────────────────────
         order = 'created_at' if keep == 'first' else '-created_at'
         for row in dupes:
             qs = TeacherVideoIncome.objects.filter(
@@ -92,8 +92,8 @@ class Command(BaseCommand):
 
             self.stdout.write(
                 f"  teacher={row['teacher_id']} video={row['video_id']}: "
-                f"{len(entries)} yozuv → 1 saqlanadi (#{keeper.id}, {keeper.amount} so'm), "
-                f"{len(losers)} o'chiriladi (–{amount_removed} so'm)"
+                f"{len(entries)} yozuv → 1 saqlanadi (#{keeper.id}, {keeper.amount} söm), "
+                f"{len(losers)} öçiriladi (–{amount_removed} söm)"
             )
             if not dry_run:
                 with transaction.atomic():
@@ -105,7 +105,7 @@ class Command(BaseCommand):
         if legacy_count:
             legacy_sum = sum(legacy_null_video.values_list('amount', flat=True))
             self.stdout.write(
-                f"  video=NULL: {legacy_count} yozuv o'chiriladi (–{legacy_sum} so'm)"
+                f"  video=NULL: {legacy_count} yozuv öçiriladi (–{legacy_sum} söm)"
             )
             total_deleted += legacy_count
             total_amount_removed += legacy_sum
@@ -115,16 +115,16 @@ class Command(BaseCommand):
         self.stdout.write("")
         if dry_run:
             self.stdout.write(self.style.NOTICE(
-                f"DRY-RUN: {total_deleted} yozuv (–{total_amount_removed} so'm) "
-                f"o'chirilishi kerak edi. Yozish uchun --dry-run olib tashlang."
+                f"DRY-RUN: {total_deleted} yozuv (–{total_amount_removed} söm) "
+                f"öçirilişi kerak edi. Yoziş uçun --dry-run olib taşlang."
             ))
         else:
             self.stdout.write(self.style.SUCCESS(
-                f"✅ {total_deleted} yozuv o'chirildi. "
-                f"Jadvaldan jami –{total_amount_removed} so'm olib tashlandi."
+                f"✅ {total_deleted} yozuv öçirildi. "
+                f"Jadvaldan jami –{total_amount_removed} söm olib taşlandi."
             ))
 
 
-# Bu fayl: eski per-quiz yozuvlar va bir juftlik uchun ikki-uchtadan yozilgan
+# Bu fayl: eski per-quiz yozuvlar va bir juftlik uçun ikki-uchtadan yozilgan
 # TeacherVideoIncome dublikatlarini bir marta tozalab beradi. Idempotent —
-# qayta ishlatilganda toza jadvalda hech nima o'zgarmaydi.
+# qayta işlatilganda toza jadvalda heç nima özgarmaydi.

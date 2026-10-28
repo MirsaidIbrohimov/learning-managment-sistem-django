@@ -1,30 +1,30 @@
 /* ====================================================================
    IT CREATIVE — DESIGN SYSTEM  ("Clean Academic")
    --------------------------------------------------------------------
-   Yagona vizual tizim: rang, shrift, oraliq, radius, soya, harakat.
+   Yagona vizual tizim: rang, şrift, oraliq, radius, soya, harakat.
    Qanday ulanadi: Bootstrap CSS'dan KEYIN, sahifaga xos {% block extra_css %}
-   dan OLDIN. Shunda Bootstrap komponentlari tizimga bo'ysunadi, sahifa
-   uslublari esa kerak bo'lsa ustun turaveradi.
+   dan OLDIN. Şunda Bootstrap komponentlari tizimga böysunadi, sahifa
+   uslublari esa kerak bölsa ustun turaveradi.
 
    Tamoyillar:
-   1. Bitta asosiy rang (indigo) — harakat va faol holat uchun.
-   2. Tekis yuzalar, nozik chegara, yengil soya. Glass/gradient — faqat aksent.
+   1. Bitta asosiy rang (indigo) — harakat va faol holat uçun.
+   2. Tekis yuzalar, nozik çegara, yengil soya. Glass/gradient — faqat aksent.
    3. Matn kontrasti WCAG AA (4.5:1) dan past emas — light va dark rejimda.
    4. Telefonda har bir bosiladigan element kamida 44×44px.
-   5. Klaviatura fokusi doim ko'rinadi; "reduce motion" hurmat qilinadi.
+   5. Klaviatura fokusi doim körinadi; "reduce motion" hurmat qilinadi.
    ==================================================================== */
 
 /* ------------------------------------------------------------------
    1. TOKENLAR — rejimdan mustaqil
    ------------------------------------------------------------------ */
 :root {
-    /* Shrift */
+    /* Şrift */
     --ds-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     --ds-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
 
-    /* Tipografik shkala (1.125 — "major second"), rem = 16px */
+    /* Tipografik şkala (1.125 — "major second"), rem = 16px */
     --ds-text-xs: 0.75rem;    /* 12 — yorliq, badge */
-    --ds-text-sm: 0.875rem;   /* 14 — yordamchi matn, jadval */
+    --ds-text-sm: 0.875rem;   /* 14 — yordamçi matn, jadval */
     --ds-text-md: 1rem;       /* 16 — asosiy matn */
     --ds-text-lg: 1.125rem;   /* 18 — lid */
     --ds-text-xl: 1.25rem;    /* 20 — h5/h4 */
@@ -41,7 +41,7 @@
     --ds-weight-semibold: 600;
     --ds-weight-bold: 700;
 
-    /* Oraliq shkalasi — 4px asos */
+    /* Oraliq şkalasi — 4px asos */
     --ds-space-1: 0.25rem;  /* 4 */
     --ds-space-2: 0.5rem;   /* 8 */
     --ds-space-3: 0.75rem;  /* 12 */
@@ -53,12 +53,12 @@
 
     /* Radius */
     --ds-radius-sm: 8px;    /* input, tugma, badge */
-    --ds-radius-md: 12px;   /* kartochka ichidagi bloklar, dropdown */
-    --ds-radius-lg: 16px;   /* kartochka, modal */
+    --ds-radius-md: 12px;   /* kartoçka içidagi bloklar, dropdown */
+    --ds-radius-lg: 16px;   /* kartoçka, modal */
     --ds-radius-xl: 24px;   /* hero bloklar */
     --ds-radius-pill: 999px;
 
-    /* O'lchamlar */
+    /* Ölçamlar */
     --ds-control-sm: 2rem;      /* 32 */
     --ds-control-md: 2.5rem;    /* 40 */
     --ds-control-lg: 3rem;      /* 48 */
@@ -97,14 +97,14 @@
     --ds-on-primary: #ffffff;
 
     --ds-bg: #f6f7fb;               /* sahifa foni */
-    --ds-surface: #ffffff;          /* kartochka */
-    --ds-surface-2: #f1f3f9;        /* ichki blok, hover */
+    --ds-surface: #ffffff;          /* kartoçka */
+    --ds-surface-2: #f1f3f9;        /* içki blok, hover */
     --ds-surface-3: #e7eaf3;        /* tanlangan, disabled */
     --ds-border: #e2e6ef;
     --ds-border-strong: #c9cfdc;
 
     --ds-text: #111827;             /* gray-900 */
-    --ds-text-2: #374151;           /* gray-700 — ikkilamchi */
+    --ds-text-2: #374151;           /* gray-700 — ikkilamçi */
     --ds-text-muted: #5b6474;       /* 4.8:1 oq fonda; 4.5:1 surface-2 da */
     --ds-text-disabled: #9aa3b2;
 
@@ -162,7 +162,7 @@
 }
 
 /* ------------------------------------------------------------------
-   4. BOOTSTRAP O'ZGARUVCHILARINI TIZIMGA BOG'LASH
+   4. BOOTSTRAP ÖZGARUVÇILARINI TIZIMGA BOĞLAŞ
    ------------------------------------------------------------------ */
 :root,
 [data-bs-theme="light"],
@@ -201,7 +201,7 @@
     --bs-tertiary-bg: var(--ds-surface-2);
     --bs-border-color: var(--ds-border);
     --bs-border-color-translucent: var(--ds-border);
-    --bs-heading-color: inherit; /* to'q fondagi oq sarlavhalar buzilmasin */
+    --bs-heading-color: inherit; /* töq fondagi oq sarlavhalar buzilmasin */
 
     --bs-link-color: var(--ds-primary);
     --bs-link-color-rgb: var(--ds-primary-rgb);
@@ -224,11 +224,11 @@
 }
 
 /* ------------------------------------------------------------------
-   5. ESKI O'ZGARUVCHILARNI TIZIMGA YO'NALTIRISH
-   Loyihadagi turli CSS fayllar o'z nomlaridan foydalanadi
+   5. ESKI ÖZGARUVÇILARNI TIZIMGA YÖNALTIRIŞ
+   Loyihadagi turli CSS fayllar öz nomlaridan foydalanadi
    (--bg, --card, --text-color, --card-bg, --border-color ...).
-   Ularni bitta manbaga bog'lab, yuzlab shablonni qayta yozmasdan
-   bir xil ko'rinishga keltiramiz.
+   Ularni bitta manbaga boğlab, yuzlab şablonni qayta yozmasdan
+   bir xil körinişga keltiramiz.
    ------------------------------------------------------------------ */
 :root,
 [data-bs-theme="light"],
@@ -262,8 +262,8 @@
     --shadow-lg: var(--ds-shadow-lg);
     --card-border: var(--ds-border);
 }
-/* Eski CSS'larda --primary ko'pincha qattiq oq fon ustida ishlatiladi —
-   qorong'i rejimda ham avvalgi (#6366f1) qiymat saqlanadi, och tusga o'tmaydi. */
+/* Eski CSS'larda --primary köpinça qattiq oq fon ustida işlatiladi —
+   qoronği rejimda ham avvalgi (#6366f1) qiymat saqlanadi, oç tusga ötmaydi. */
 [data-bs-theme="dark"] {
     --primary: #6366f1;
     --primary-dark: #4f46e5;
@@ -278,7 +278,7 @@
 html {
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
-    scroll-padding-top: 80px; /* sticky navbar ostida yashirinmasin */
+    scroll-padding-top: 80px; /* sticky navbar ostida yaşirinmasin */
 }
 
 body {
@@ -314,7 +314,7 @@ code, kbd, pre, samp { font-family: var(--ds-font-mono); }
 img, video, iframe { max-width: 100%; }
 
 a { text-underline-offset: .18em; }
-/* Matn ichidagi havolalar rang bilangina ajralmasin (WCAG 1.4.1) */
+/* Matn içidagi havolalar rang bilangina ajralmasin (WCAG 1.4.1) */
 p a:not([class]),
 li a:not([class]),
 td a:not([class]) { text-decoration: underline; text-decoration-thickness: 1px; }
@@ -327,7 +327,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
    7. ACCESSIBILITY — fokus, skip-link, harakat
    ------------------------------------------------------------------ */
 
-/* Klaviatura fokusi: sichqoncha bosilganda emas, Tab bilan kelganda */
+/* Klaviatura fokusi: siçqonça bosilganda emas, Tab bilan kelganda */
 :focus { outline: none; }
 :focus-visible {
     outline: 2px solid var(--ds-primary);
@@ -347,11 +347,11 @@ hr { border-color: var(--ds-border); opacity: 1; }
     box-shadow: none;
 }
 
-/* Dasturiy fokus nishonlari (skip-link -> main, dialog paneli) ramkasiz */
+/* Dasturiy fokus nişonlari (skip-link -> main, dialog paneli) ramkasiz */
 [tabindex="-1"]:focus,
 [tabindex="-1"]:focus-visible { outline: none; }
 
-/* "Asosiy tarkibga o'tish" havolasi */
+/* "Asosiy tarkibga ötiş" havolasi */
 .ds-skip-link {
     position: fixed;
     top: var(--ds-space-2);
@@ -370,7 +370,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
 .ds-skip-link:focus,
 .ds-skip-link:focus-visible { transform: translateY(0); outline: 3px solid var(--ds-on-primary); outline-offset: -5px; }
 
-/* Ekran o'quvchilar uchun yashirin matn */
+/* Ekran öquvçilar uçun yaşirin matn */
 .ds-sr-only {
     position: absolute !important;
     width: 1px !important; height: 1px !important;
@@ -379,7 +379,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
     white-space: nowrap !important; border: 0 !important;
 }
 
-/* Harakatni kamaytirish so'ralganda — animatsiyalarni o'chirish */
+/* Harakatni kamaytiriş söralganda — animatsiyalarni öçiriş */
 @media (prefers-reduced-motion: reduce) {
     html:focus-within { scroll-behavior: auto; }
     *, *::before, *::after {
@@ -397,7 +397,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
 }
 
 /* ------------------------------------------------------------------
-   8. TUGMALAR — bitta shakl, 5 variant, 3 o'lcham
+   8. TUGMALAR — bitta şakl, 5 variant, 3 ölçam
    ------------------------------------------------------------------ */
 .btn {
     --bs-btn-padding-x: var(--ds-space-4);
@@ -435,7 +435,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
     min-height: var(--ds-control-lg);
 }
 .btn .bi { font-size: 1.05em; line-height: 1; }
-/* Bootstrap ikon oralig'i (me-1/me-2) gap bilan takrorlanmasin */
+/* Bootstrap ikon oraliği (me-1/me-2) gap bilan takrorlanmasin */
 .btn > .bi.me-1, .btn > .bi.me-2, .btn > .bi.me-3 { margin-right: 0 !important; }
 .btn > .bi.ms-1, .btn > .bi.ms-2, .btn > .bi.ms-3 { margin-left: 0 !important; }
 
@@ -454,7 +454,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
     --bs-btn-disabled-bg: var(--ds-primary);
     --bs-btn-disabled-border-color: var(--ds-primary);
 }
-/* Secondary — ikkilamchi harakat */
+/* Secondary — ikkilamçi harakat */
 .btn-secondary, .btn-light {
     --bs-btn-color: var(--ds-text);
     --bs-btn-bg: var(--ds-surface);
@@ -493,7 +493,7 @@ hr { border-color: var(--ds-border); opacity: 1; }
     --bs-btn-disabled-color: var(--ds-text-disabled);
     --bs-btn-disabled-border-color: var(--ds-border);
 }
-/* Semantik — faqat ma'noga mos joyda (tasdiq, ogohlantirish, o'chirish) */
+/* Semantik — faqat ma'noga mos joyda (tasdiq, ogohlantiriş, öçiriş) */
 .btn-success {
     --bs-btn-color: #fff; --bs-btn-bg: #047857; --bs-btn-border-color: #047857;
     --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #065f46; --bs-btn-hover-border-color: #065f46;
@@ -597,7 +597,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 }
 
 /* ------------------------------------------------------------------
-   10. KARTOCHKA, RO'YXAT, JADVAL
+   10. KARTOÇKA, RÖYXAT, JADVAL
    ------------------------------------------------------------------ */
 .card {
     --bs-card-bg: var(--ds-surface);
@@ -672,7 +672,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
     --bs-badge-border-radius: var(--ds-radius-pill);
     letter-spacing: .01em;
 }
-/* AA kontrast: to'q fonli badge'lar oq matn bilan */
+/* AA kontrast: töq fonli badge'lar oq matn bilan */
 .badge.bg-primary, .badge.text-bg-primary { background-color: #4f46e5 !important; color: #fff !important; }
 .badge.bg-success, .badge.text-bg-success { background-color: #047857 !important; color: #fff !important; }
 .badge.bg-danger,  .badge.text-bg-danger  { background-color: #dc2626 !important; color: #fff !important; }
@@ -693,7 +693,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 .alert-warning { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-warning-soft); --bs-alert-border-color: var(--ds-warning); --bs-alert-link-color: var(--ds-warning); }
 .alert-danger, .alert-error { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-danger-soft); --bs-alert-border-color: var(--ds-danger); --bs-alert-link-color: var(--ds-danger); }
 .alert-secondary, .alert-light, .alert-dark { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-surface-2); --bs-alert-border-color: var(--ds-border-strong); }
-/* Bootstrap .alert-* rangli border-left'ni bir tomonga to'playmiz */
+/* Bootstrap .alert-* rangli border-left'ni bir tomonga töplaymiz */
 .alert-primary, .alert-info, .alert-success, .alert-warning, .alert-danger, .alert-error,
 .alert-secondary, .alert-light, .alert-dark { border-color: var(--ds-border); border-left-color: var(--bs-alert-border-color); }
 
@@ -799,7 +799,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 }
 .modal-title { font-weight: var(--ds-weight-bold); font-size: var(--ds-text-lg); }
 .modal-backdrop { --bs-backdrop-bg: #000; --bs-backdrop-opacity: .55; }
-/* Telefonda modal pastdan chiqadigan varaqqa aylanadi — bosh barmoq bilan oson */
+/* Telefonda modal pastdan çiqadigan varaqqa aylanadi — boş barmoq bilan oson */
 @media (max-width: 575.98px) {
     .modal:not(.ds-modal-center) .modal-dialog:not(.modal-dialog-centered):not(.modal-fullscreen) {
         margin: 0;
@@ -842,7 +842,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 .tooltip { --bs-tooltip-bg: #111827; --bs-tooltip-color: #fff; --bs-tooltip-border-radius: var(--ds-radius-sm); --bs-tooltip-font-size: var(--ds-text-xs); }
 
 /* ------------------------------------------------------------------
-   14. MATN YORDAMCHILARI (kontrastni to'g'rilash)
+   14. MATN YORDAMÇILARI (kontrastni töğrilaş)
    ------------------------------------------------------------------ */
 .text-muted, .text-secondary { color: var(--ds-text-muted) !important; }
 .text-body-secondary { color: var(--ds-text-muted) !important; }
@@ -855,7 +855,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 .link-primary { color: var(--ds-primary) !important; }
 
 /* ------------------------------------------------------------------
-   15. TIZIM KOMPONENTLARI (yangi sahifalar uchun "ds-" prefiksi)
+   15. TIZIM KOMPONENTLARI (yangi sahifalar uçun "ds-" prefiksi)
    ------------------------------------------------------------------ */
 .ds-container { width: 100%; max-width: var(--ds-container-max); margin-inline: auto; padding-inline: var(--ds-space-4); }
 @media (min-width: 768px) { .ds-container { padding-inline: var(--ds-space-5); } }
@@ -898,7 +898,7 @@ textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal);
 }
 
 @media (max-width: 767.98px) {
-    /* iOS Safari 16px dan kichik inputda sahifani kattalashtiradi */
+    /* iOS Safari 16px dan kiçik inputda sahifani kattalaştiradi */
     .form-control, .form-select, .form-control-sm, .form-select-sm,
     input[type="text"], input[type="email"], input[type="password"], input[type="number"],
     input[type="tel"], input[type="search"], input[type="url"], input[type="date"], textarea, select {

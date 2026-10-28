@@ -20,7 +20,7 @@ def seed_xo_game(apps, schema_editor):
         slug='xo',
         defaults={
             'title': 'X va O',
-            'description': "Klassik X va O (Tic-Tac-Toe) o'yini. AI bilan yoki LMS o'quvchilari bilan o'ynang.",
+            'description': "Klassik X va O (Tic-Tac-Toe) öyini. AI bilan yoki LMS öquvçilari bilan öynang.",
             'game_type': 'external',
             'icon': 'bi-grid-3x3',
             'is_active': True,

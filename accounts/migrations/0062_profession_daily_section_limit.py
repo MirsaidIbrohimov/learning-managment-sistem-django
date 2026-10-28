@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profession',
             name='daily_section_limit',
-            field=models.BooleanField(default=True, verbose_name="Kunlik bo'lim cheklovi (bir kunda 1 bo'lim)"),
+            field=models.BooleanField(default=True, verbose_name="Kunlik bölim çeklovi (bir kunda 1 bölim)"),
         ),
     ]

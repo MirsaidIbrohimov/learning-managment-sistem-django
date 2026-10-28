@@ -1,5 +1,5 @@
 {% load parent_tags payment_tags %}
-{# Balansni to'ldirish formasi + rag'bat paneli. Kontekst: selected_child, payment, presets, can_pay_online #}
+{# Balansni töldiriş formasi + rağbat paneli. Kontekst: selected_child, payment, presets, can_pay_online #}
 <style>
     .pay-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
     .pay-preset { cursor: pointer; margin: 0; position: relative; }
@@ -25,14 +25,14 @@
     .pay-benefits b { display: block; font-size: .9rem; }
     @media (max-width: 640px) { .pay-presets { grid-template-columns: 1fr 1fr; } }
 </style>
-<!-- ═════ Balansni to'ldirish ═════ -->
+<!-- ═════ Balansni töldiriş ═════ -->
 <section id="tolash" class="pp-grid side pp-mb" style="scroll-margin-top:90px;" data-tour="pay">
     <div class="pp-card" data-reveal>
-        <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-credit-card-2-front-fill"></i></span><h3>{{ selected_child.first_name }} balansini to‘ldirish</h3></div>
+        <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-credit-card-2-front-fill"></i></span><h3>{{ selected_child.first_name }} balansini töldiriş</h3></div>
         {% if payment.balance.is_contract %}
-            <p class="pp-muted" style="margin:0;">{{ selected_child.first_name }} shartnoma asosida o‘qiydi — to‘lov bo‘yicha o‘quv markazi bilan bog‘laning.</p>
+            <p class="pp-muted" style="margin:0;">{{ selected_child.first_name }} şartnoma asosida öqiydi — tölov böyiça öquv markazi bilan boğlaning.</p>
         {% elif not can_pay_online %}
-            <p class="pp-muted" style="margin:0;"><i class="bi bi-info-circle"></i> Onlayn to‘lov hozircha sozlanmoqda. To‘lovni o‘quv markazida amalga oshirishingiz mumkin.</p>
+            <p class="pp-muted" style="margin:0;"><i class="bi bi-info-circle"></i> Onlayn tölov hozirça sozlanmoqda. Tölovni öquv markazida amalga oşirişingiz mumkin.</p>
         {% else %}
         <form method="post" action="{% url 'parent_payment_checkout' %}" data-loading id="payForm">
             {% csrf_token %}
@@ -44,7 +44,7 @@
                     <input type="radio" name="amount" value="{{ p.amount }}" {% if forloop.first %}checked{% endif %}>
                     <span class="face">
                         <b>{{ p.months }} oy</b>
-                        <span>{{ p.amount|money }} so‘m</span>
+                        <span>{{ p.amount|money }} söm</span>
                         {% if p.months == 3 %}<em>Ommabop</em>{% elif p.months == 6 %}<em>Xotirjam yarim yil</em>{% endif %}
                     </span>
                 </label>
@@ -52,13 +52,13 @@
             </div>
             {% endif %}
             <div class="pp-field" style="margin-top:12px;">
-                <label for="payCustom">Yoki o‘zingiz summa kiriting (so‘m)</label>
+                <label for="payCustom">Yoki özingiz summa kiriting (söm)</label>
                 <input id="payCustom" class="pp-input" inputmode="numeric" placeholder="Masalan: 500 000" autocomplete="off">
                 <small class="pp-dim" id="payHint" style="font-size:.76rem;"></small>
             </div>
             {% payment_method_cards %}
-            <button type="submit" class="pp-btn pri block" style="height:52px;font-size:1rem;"><i class="bi bi-lock-fill"></i> <span id="payBtnText">To‘lash</span></button>
-            <p class="pp-dim" style="font-size:.76rem;margin:10px 0 0;text-align:center;"><i class="bi bi-shield-check" style="color:var(--pp-ok)"></i> To‘lov bank sahifasida xavfsiz amalga oshiriladi. Pul to‘g‘ridan-to‘g‘ri {{ selected_child.first_name }} hisobiga tushadi.</p>
+            <button type="submit" class="pp-btn pri block" style="height:52px;font-size:1rem;"><i class="bi bi-lock-fill"></i> <span id="payBtnText">Tölaş</span></button>
+            <p class="pp-dim" style="font-size:.76rem;margin:10px 0 0;text-align:center;"><i class="bi bi-shield-check" style="color:var(--pp-ok)"></i> Tölov bank sahifasida xavfsiz amalga oşiriladi. Pul töğridan-töğri {{ selected_child.first_name }} hisobiga tuşadi.</p>
         </form>
         {% endif %}
     </div>
@@ -66,19 +66,19 @@
     <div class="pay-why" data-reveal>
         <div class="pay-quote">
             <i class="bi bi-quote"></i>
-            <p data-quotes='["Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir so‘m ertangi kasbga aylanadi.", "Siz to‘lagan har bir oy — farzandingiz yozgan yangi kod, o‘qigan yangi kitob, ochgan yangi imkoniyat.", "Farzandingiz ota-onasi uning kelajagiga ishonishini his qilsa, o‘qishga ishtiyoqi ikki barobar ortadi.", "Eng yaxshi investitsiya — farzandingizning bilimiga qilingan investitsiya. U hech qachon qadrsizlanmaydi."]'>Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir so‘m ertangi kasbga aylanadi.</p>
+            <p data-quotes='["Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir so‘m ertangi kasbga aylanadi.", "Siz to‘lagan har bir oy — farzandingiz yozgan yangi kod, o‘qigan yangi kitob, ochgan yangi imkoniyat.", "Farzandingiz ota-onasi uning kelajagiga ishonishini his qilsa, o‘qishga ishtiyoqi ikki barobar ortadi.", "Eng yaxshi investitsiya — farzandingizning bilimiga qilingan investitsiya. U hech qachon qadrsizlanmaydi."]'>Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir söm ertangi kasbga aylanadi.</p>
         </div>
         <div class="pay-benefits">
-            <div><i class="bi bi-lightning-charge-fill"></i><span><b>Darslar to‘xtamaydi</b>To‘lov o‘z vaqtida bo‘lsa, {{ selected_child.first_name }} bir kun ham darsdan qolmaydi — hisob bloklanmaydi.</span></div>
-            <div><i class="bi bi-cup-hot-fill"></i><span><b>Xotirjamlik</b>Bir necha oyga oldindan to‘ldirsangiz, har oy eslab yurishingiz shart emas — oylik avtomatik yechiladi.</span></div>
-            <div><i class="bi bi-heart-fill"></i><span><b>Farzandga ishonch</b>Barqaror o‘qish — barqaror natija. Uzilishsiz o‘qigan bolalar kursni ancha yaxshi o‘zlashtiradi.</span></div>
-            <div><i class="bi bi-phone-fill"></i><span><b>Uydan turib, 1 daqiqada</b>Click, Payme yoki bank kartasi orqali — navbatsiz va qog‘ozsiz.</span></div>
+            <div><i class="bi bi-lightning-charge-fill"></i><span><b>Darslar töxtamaydi</b>Tölov öz vaqtida bölsa, {{ selected_child.first_name }} bir kun ham darsdan qolmaydi — hisob bloklanmaydi.</span></div>
+            <div><i class="bi bi-cup-hot-fill"></i><span><b>Xotirjamlik</b>Bir neça oyga oldindan töldirsangiz, har oy eslab yurişingiz şart emas — oylik avtomatik yeçiladi.</span></div>
+            <div><i class="bi bi-heart-fill"></i><span><b>Farzandga işonç</b>Barqaror öqiş — barqaror natija. Uzilişsiz öqigan bolalar kursni ança yaxşi özlaştiradi.</span></div>
+            <div><i class="bi bi-phone-fill"></i><span><b>Uydan turib, 1 daqiqada</b>Click, Payme yoki bank kartasi orqali — navbatsiz va qoğozsiz.</span></div>
         </div>
     </div>
 </section>
 <script>
 (function () {
-    /* Iqtiboslar almashib turadi */
+    /* Iqtiboslar almaşib turadi */
     var q = document.querySelector('.pay-quote p');
     if (q) {
         var list = JSON.parse(q.dataset.quotes), i = 0;
@@ -88,7 +88,7 @@
             setTimeout(function () { i = (i + 1) % list.length; q.textContent = list[i]; q.classList.remove('out'); }, 500);
         }, 6500);
     }
-    /* Summa: tayyor variant yoki o'z summasi; tugmada summa ko'rinadi */
+    /* Summa: tayyor variant yoki öz summasi; tugmada summa körinadi */
     var form = document.getElementById('payForm');
     if (!form) return;
     var custom = document.getElementById('payCustom'), btn = document.getElementById('payBtnText'), hint = document.getElementById('payHint');
@@ -102,9 +102,9 @@
     }
     function update() {
         var n = current();
-        btn.textContent = n ? fmt(n) + ' so‘m to‘lash' : 'To‘lash';
+        btn.textContent = n ? fmt(n) + ' söm tölaş' : 'Tölaş';
         if (custom.value) {
-            hint.textContent = n < 1000 ? 'Kamida 1 000 so‘m' : (fee ? '≈ ' + (n / fee).toFixed(1).replace('.0', '') + ' oylik to‘lov' : '');
+            hint.textContent = n < 1000 ? 'Kamida 1 000 söm' : (fee ? '≈ ' + (n / fee).toFixed(1).replace('.0', '') + ' oylik tölov' : '');
         } else hint.textContent = '';
     }
     custom.addEventListener('input', function () {

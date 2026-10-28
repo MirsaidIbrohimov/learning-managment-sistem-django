@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollment_requests', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Kursga yozilish so'rovi",
-                'verbose_name_plural': "Kursga yozilish so'rovlari",
+                'verbose_name': "Kursga yoziliş sörovi",
+                'verbose_name_plural': "Kursga yoziliş sörovlari",
                 'ordering': ['-created_at'],
                 'unique_together': {('user', 'profession')},
             },

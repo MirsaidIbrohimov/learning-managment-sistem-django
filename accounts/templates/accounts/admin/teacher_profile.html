@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}{{ teacher.full_name }} - O'qituvchi profili{% endblock %}
-{% block topbar_title %}O'qituvchi profili{% endblock %}
+{% block title %}{{ teacher.full_name }} - Öqituvçi profili{% endblock %}
+{% block topbar_title %}Öqituvçi profili{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -508,7 +508,7 @@
 {% block admin_content %}
 
 <a href="{% url 'admin_teachers' %}" class="tp-back anim-fade-left">
-    <i class="bi bi-arrow-left"></i> O'qituvchilarga qaytish
+    <i class="bi bi-arrow-left"></i> Öqituvçilarga qaytiş
 </a>
 
 <!-- Hero Section -->
@@ -528,7 +528,7 @@
         <div class="tp-info">
             <h2 class="tp-name">{{ teacher.full_name }}</h2>
             <div class="tp-role">
-                <i class="bi bi-mortarboard-fill"></i> O'qituvchi
+                <i class="bi bi-mortarboard-fill"></i> Öqituvçi
             </div>
             {% if teacher.bio %}
             <p class="tp-bio">{{ teacher.bio }}</p>
@@ -551,7 +551,7 @@
             <i class="bi bi-people-fill"></i>
         </div>
         <div class="tp-stat-num">{{ total_students }}</div>
-        <div class="tp-stat-label">O'quvchilar</div>
+        <div class="tp-stat-label">Öquvçilar</div>
     </div>
     <div class="tp-stat anim-scale delay-4">
         <div class="tp-stat-icon" style="background: var(--tp-warning-light); color: var(--tp-warning);">
@@ -569,7 +569,7 @@
     <div class="tp-section anim-fade-left delay-3">
         <div class="tp-section-title">
             <i style="background: var(--tp-accent-light); color: var(--tp-accent);"><i class="bi bi-person-lines-fill"></i></i>
-            Shaxsiy ma'lumotlar
+            Şaxsiy ma'lumotlar
         </div>
 
         <div class="tp-detail-row">
@@ -577,7 +577,7 @@
                 <i class="bi bi-person-fill"></i>
             </div>
             <div>
-                <div class="tp-detail-label">To'liq ism</div>
+                <div class="tp-detail-label">Töliq ism</div>
                 <div class="tp-detail-value">{{ teacher.full_name }}</div>
             </div>
         </div>
@@ -608,7 +608,7 @@
                 <i class="bi bi-cake2-fill"></i>
             </div>
             <div>
-                <div class="tp-detail-label">Tug'ilgan kun</div>
+                <div class="tp-detail-label">Tuğilgan kun</div>
                 <div class="tp-detail-value">{{ teacher.birth_date|date:"d-M, Y" }}</div>
             </div>
         </div>
@@ -631,7 +631,7 @@
                 <i class="bi bi-calendar-check-fill"></i>
             </div>
             <div>
-                <div class="tp-detail-label">Qo'shilgan sana</div>
+                <div class="tp-detail-label">Qöşilgan sana</div>
                 <div class="tp-detail-value">{{ teacher.date_joined|date:"d-M, Y" }}</div>
             </div>
         </div>
@@ -666,7 +666,7 @@
                 <div class="tp-course-body">
                     <div class="tp-course-name">{{ item.profession.name }}</div>
                     <div class="tp-course-students">
-                        <i class="bi bi-people-fill"></i> {{ item.student_count }} o'quvchi
+                        <i class="bi bi-people-fill"></i> {{ item.student_count }} öquvçi
                     </div>
                 </div>
             </div>
@@ -675,7 +675,7 @@
         {% else %}
         <div class="tp-empty">
             <i class="bi bi-journal-x d-block"></i>
-            <span>Hozircha kurs biriktirilmagan</span>
+            <span>Hozirça kurs biriktirilmagan</span>
         </div>
         {% endif %}
     </div>
@@ -708,7 +708,7 @@
             {% endif %}
             {% if cert.file %}
             <a href="{{ cert.file.url }}" target="_blank" class="tp-cert-link">
-                <i class="bi bi-eye"></i> Ko'rish
+                <i class="bi bi-eye"></i> Köriş
             </a>
             {% endif %}
         </div>
@@ -717,7 +717,7 @@
     {% else %}
     <div class="tp-empty">
         <i class="bi bi-award d-block"></i>
-        <span>Hozircha sertifikatlar mavjud emas</span>
+        <span>Hozirça sertifikatlar mavjud emas</span>
     </div>
     {% endif %}
 </div>

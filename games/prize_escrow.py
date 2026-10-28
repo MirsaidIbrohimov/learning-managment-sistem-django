@@ -1,18 +1,18 @@
-"""Musobaqa sovrin fondi: bron qilish, to'lash va qaytarish.
+"""Musobaqa sovrin fondi: bron qiliş, tölaş va qaytariş.
 
 Ikki xil manba bor:
   * 'system'  — admin musobaqasi: sovrin tizim tomonidan beriladi (coin yaratiladi).
-  * 'teacher' — ustoz musobaqasi: sovrin ustozning o'z coinlaridan to'lanadi.
+  * 'teacher' — ustoz musobaqasi: sovrin ustozning öz coinlaridan tölanadi.
 
-Ustoz musobaqasida coin hech qachon "yo'qdan" paydo bo'lmaydi:
-  1) yaratishda butun fond (1+2+3-o'rin) ustoz hisobidan yechib olinadi va
-     `Competition.prize_reserved` da ushlab turiladi;
-  2) musobaqa tugaganda g'oliblarga shu fonddan to'lanadi;
-  3) to'lanmay qolgan qism (ishtirokchi yetmagan, o'rin bo'sh) ustozga qaytadi;
-  4) musobaqa o'chirilsa — bron to'liq qaytariladi.
+Ustoz musobaqasida coin heç qaçon "yöqdan" paydo bölmaydi:
+  1) yaratişda butun fond (1+2+3-örin) ustoz hisobidan yeçib olinadi va
+     `Competition.prize_reserved` da uşlab turiladi;
+  2) musobaqa tugaganda ğoliblarga şu fonddan tölanadi;
+  3) tölanmay qolgan qism (iştirokçi yetmagan, örin böş) ustozga qaytadi;
+  4) musobaqa öçirilsa — bron töliq qaytariladi.
 
-Barcha o'zgarishlar shartli UPDATE bilan bajariladi (compare-and-swap), shuning
-uchun parallel so'rovlar bir xil coinni ikki marta sarflay/qaytara olmaydi.
+Barça özgarişlar şartli UPDATE bilan bajariladi (compare-and-swap), şuning
+uçun parallel sörovlar bir xil coinni ikki marta sarflay/qaytara olmaydi.
 """
 from django.db import transaction
 from django.db.models import F
@@ -21,11 +21,11 @@ from django.dispatch import receiver
 
 from .models import Competition
 
-PLACE_NAMES = ("1-o'rin 🥇", "2-o'rin 🥈", "3-o'rin 🥉")
+PLACE_NAMES = ("1-örin 🥇", "2-örin 🥈", "3-örin 🥉")
 
 
 class EscrowError(Exception):
-    """Foydalanuvchiga ko'rsatiladigan xato (masalan, balans yetarli emas)."""
+    """Foydalanuvçiga körsatiladigan xato (masalan, balans yetarli emas)."""
 
 
 def _prizes(competition):
@@ -34,7 +34,7 @@ def _prizes(competition):
 
 @transaction.atomic
 def reserve(competition, funder, amount):
-    """Yangi ustoz musobaqasi uchun fondni ustoz hisobidan bron qilish."""
+    """Yangi ustoz musobaqasi uçun fondni ustoz hisobidan bron qiliş."""
     if amount <= 0:
         return
     if not funder.try_spend_coins(amount, f"Musobaqa sovrin fondi (bron): {competition.title}"):
@@ -52,27 +52,27 @@ def reserve(competition, funder, amount):
 
 @transaction.atomic
 def adjust(competition, funder, new_total):
-    """Sovrinlar o'zgarganda bronni yangi fondga moslash.
+    """Sovrinlar özgarganda bronni yangi fondga moslaş.
 
-    Oshsa — farq ustozdan qo'shimcha yechiladi; kamaysa — farq qaytariladi.
+    Oşsa — farq ustozdan qöşimça yeçiladi; kamaysa — farq qaytariladi.
     """
     current = competition.prize_reserved
     delta = new_total - current
     if delta == 0:
         return
     if delta > 0:
-        if not funder.try_spend_coins(delta, f"Musobaqa sovrin fondi (qo'shimcha bron): {competition.title}"):
+        if not funder.try_spend_coins(delta, f"Musobaqa sovrin fondi (qöşimça bron): {competition.title}"):
             raise EscrowError(
-                f"Balansingiz yetarli emas: qo'shimcha {delta} coin kerak, "
+                f"Balansingiz yetarli emas: qöşimça {delta} coin kerak, "
                 f"hisobingizda {funder.coins} coin."
             )
     updated = Competition.objects.filter(
         pk=competition.pk, prize_reserved=current, coins_awarded=False,
     ).update(prize_reserved=new_total)
     if not updated:
-        # Bron shu orada o'zgargan (parallel so'rov yoki hisob-kitob) — tranzaksiya
-        # bekor bo'ladi va yechilgan coin ham qaytadi.
-        raise EscrowError("Sovrin fondi shu orada o'zgardi. Sahifani yangilab, qayta urinib ko'ring.")
+        # Bron şu orada özgargan (parallel sörov yoki hisob-kitob) — tranzaksiya
+        # bekor böladi va yeçilgan coin ham qaytadi.
+        raise EscrowError("Sovrin fondi şu orada özgardi. Sahifani yangilab, qayta urinib köring.")
     if delta < 0:
         funder.add_coins(-delta, f"Musobaqa sovrin fondi kamaytirildi: {competition.title}")
     competition.prize_reserved = new_total
@@ -80,7 +80,7 @@ def adjust(competition, funder, new_total):
 
 @transaction.atomic
 def refund(competition, reason=None):
-    """Bron qilingan fondni to'liq ustozga qaytarish. Qaytarilgan miqdorni beradi."""
+    """Bron qilingan fondni töliq ustozga qaytariş. Qaytarilgan miqdorni beradi."""
     amount = Competition.objects.filter(pk=competition.pk).values_list('prize_reserved', flat=True).first() or 0
     if amount <= 0:
         return 0
@@ -96,9 +96,9 @@ def refund(competition, reason=None):
 
 
 def pay_winners(competition, top_attempts):
-    """G'oliblarga to'lash. Chaqiruvchi tranzaksiya ichida bo'lishi shart.
+    """Ğoliblarga tölaş. Çaqiruvçi tranzaksiya içida bölişi şart.
 
-    Qaytaradi: [(attempt, place_index, amount), ...] — faqat haqiqatan to'langanlar.
+    Qaytaradi: [(attempt, place_index, amount), ...] — faqat haqiqatan tölanganlar.
     """
     teacher_funded = competition.is_teacher_funded
     if teacher_funded:
@@ -111,11 +111,11 @@ def pay_winners(competition, top_attempts):
         if teacher_funded:
             amount = min(amount, budget)
         user = attempt.user
-        # Kursni tugatgan o'quvchiga coin qo'shilmaydi (add_coins jim o'tkazib
-        # yuboradi) — bunday o'rin to'lanmagan hisoblanadi va fondda qoladi.
+        # Kursni tugatgan öquvçiga coin qöşilmaydi (add_coins jim ötkazib
+        # yuboradi) — bunday örin tölanmagan hisoblanadi va fondda qoladi.
         if amount <= 0 or user.is_finished:
             continue
-        user.add_coins(amount, f"Musobaqa g'olibi: {competition.title} ({PLACE_NAMES[idx]})")
+        user.add_coins(amount, f"Musobaqa ğolibi: {competition.title} ({PLACE_NAMES[idx]})")
         paid.append((attempt, idx, amount))
         if teacher_funded:
             budget -= amount
@@ -124,12 +124,12 @@ def pay_winners(competition, top_attempts):
         Competition.objects.filter(pk=competition.pk).update(prize_reserved=budget)
         competition.prize_reserved = budget
         if budget > 0:
-            refund(competition, f"Musobaqa sovrin fondining ishlatilmagan qismi: {competition.title}")
+            refund(competition, f"Musobaqa sovrin fondining işlatilmagan qismi: {competition.title}")
     return paid
 
 
 def notify_winners(competition, winners):
-    """Sayt ichidagi xabar + Telegram. Tranzaksiyadan tashqarida chaqiriladi."""
+    """Sayt içidagi xabar + Telegram. Tranzaksiyadan taşqarida çaqiriladi."""
     from accounts.models import Message
     from telegram_bot.utils import notify_user, notify_group
 
@@ -140,8 +140,8 @@ def notify_winners(competition, winners):
         Message.objects.create(
             title=f"🏆 Tabriklaymiz! {place}",
             content=(
-                f"Siz \"{competition.title}\" musobaqasida {place} ni egallashga muvaffaq bo'ldingiz! "
-                f"Sizga {amount} coin mukofot berildi. Zo'r natija! 🎉"
+                f"Siz \"{competition.title}\" musobaqasida {place} ni egallaşga muvaffaq böldingiz! "
+                f"Sizga {amount} coin mukofot berildi. Zör natija! 🎉"
             ),
             message_type='achievement',
             recipient=user,
@@ -150,9 +150,9 @@ def notify_winners(competition, winners):
             notify_user(
                 user.telegram_id,
                 f"🏆 <b>Tabriklaymiz!</b>\n\n"
-                f"Siz <b>\"{competition.title}\"</b> musobaqasida <b>{place}</b> ni egallashga muvaffaq bo'ldingiz!\n\n"
+                f"Siz <b>\"{competition.title}\"</b> musobaqasida <b>{place}</b> ni egallaşga muvaffaq böldingiz!\n\n"
                 f"🪙 Mukofot: <b>+{amount} coin</b>\n\n"
-                f"🎉 Zo'r natija! Davom eting!"
+                f"🎉 Zör natija! Davom eting!"
             )
         score = attempt.total_score if is_word else attempt.score
         lines.append(f"{place} — <b>{user.full_name}</b> ({score} ball, +{amount} coin)")
@@ -160,15 +160,15 @@ def notify_winners(competition, winners):
     notify_group(
         f"🏆 <b>Musobaqa natijalari!</b>\n\n"
         f"🎮 <b>{competition.title}</b>\n"
-        f"📋 O'yin: {competition.game.title}\n\n"
+        f"📋 Öyin: {competition.game.title}\n\n"
         + "\n".join(lines) +
-        f"\n\n🎉 G'oliblarni tabriklaymiz!"
+        f"\n\n🎉 Ğoliblarni tabriklaymiz!"
     )
 
 
 @receiver(pre_delete, sender=Competition, dispatch_uid='games_refund_prize_on_delete')
 def _refund_on_delete(sender, instance, **kwargs):
-    """Qaysi yo'l bilan o'chirilmasin (admin, ustoz, o'yin bilan kaskad) —
+    """Qaysi yöl bilan öçirilmasin (admin, ustoz, öyin bilan kaskad) —
     hisob-kitob qilinmagan bron ustozga qaytadi."""
     if instance.prize_reserved and not instance.coins_awarded:
-        refund(instance, f"Musobaqa o'chirildi, sovrin fondi qaytarildi: {instance.title}")
+        refund(instance, f"Musobaqa öçirildi, sovrin fondi qaytarildi: {instance.title}")

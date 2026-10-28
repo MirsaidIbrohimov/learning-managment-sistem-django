@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
-{% block title %}O'qituvchi sertifikatlari - Admin Panel{% endblock %}
-{% block topbar_title %}O'qituvchi sertifikatlari{% endblock %}
+{% block title %}Öqituvçi sertifikatlari - Admin Panel{% endblock %}
+{% block topbar_title %}Öqituvçi sertifikatlari{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -80,13 +80,13 @@
 
 <div class="tc-page">
     <div class="tc-header">
-        <h1><i class="bi bi-award-fill"></i> O'qituvchi sertifikatlari</h1>
-        <a href="{% url 'admin_teacher_certificate_add' %}" class="tc-add-btn"><i class="bi bi-plus-lg"></i> Sertifikat qo'shish</a>
+        <h1><i class="bi bi-award-fill"></i> Öqituvçi sertifikatlari</h1>
+        <a href="{% url 'admin_teacher_certificate_add' %}" class="tc-add-btn"><i class="bi bi-plus-lg"></i> Sertifikat qöşiş</a>
     </div>
 
     <form method="GET" class="tc-filter">
         <select name="teacher" class="tc-filter-sel" onchange="this.form.submit()">
-            <option value="">Barcha o'qituvchilar</option>
+            <option value="">Barça öqituvçilar</option>
             {% for t in teachers %}<option value="{{ t.pk }}" {% if teacher_id == t.pk|stringformat:"d" %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
         </select>
     </form>
@@ -97,8 +97,8 @@
         <div class="tc-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
             <div class="tc-preview">
                 <i class="bi bi-award-fill"></i>
-                <a href="{{ cert.file.url }}" target="_blank" class="tc-preview-link"><i class="bi bi-eye me-2"></i> Ko'rish</a>
-                {% if not cert.is_visible %}<div class="tc-hidden-badge"><i class="bi bi-eye-slash"></i> Yashirin</div>{% endif %}
+                <a href="{{ cert.file.url }}" target="_blank" class="tc-preview-link"><i class="bi bi-eye me-2"></i> Köriş</a>
+                {% if not cert.is_visible %}<div class="tc-hidden-badge"><i class="bi bi-eye-slash"></i> Yaşirin</div>{% endif %}
             </div>
             <div class="tc-body">
                 <div class="tc-teacher-row">
@@ -110,10 +110,10 @@
                 {% if cert.issued_date %}<div class="tc-date"><i class="bi bi-calendar3 me-1"></i> {{ cert.issued_date|date:"d.m.Y" }}</div>{% endif %}
             </div>
             <div class="tc-actions">
-                <a href="{{ cert.file.url }}" target="_blank" class="tc-act-btn"><i class="bi bi-download"></i> Yuklab olish</a>
-                <form method="POST" action="{% url 'admin_teacher_certificate_delete' cert.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirmoqchimisiz?')">
+                <a href="{{ cert.file.url }}" target="_blank" class="tc-act-btn"><i class="bi bi-download"></i> Yuklab oliş</a>
+                <form method="POST" action="{% url 'admin_teacher_certificate_delete' cert.pk %}" style="display:inline;" onsubmit="return confirm('Öçirmoqçimisiz?')">
                     {% csrf_token %}
-                    <button type="submit" class="tc-act-btn tc-act-del"><i class="bi bi-trash3"></i> O'chirish</button>
+                    <button type="submit" class="tc-act-btn tc-act-del"><i class="bi bi-trash3"></i> Öçiriş</button>
                 </form>
             </div>
         </div>

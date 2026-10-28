@@ -13,7 +13,7 @@ class ArizaPageTests(TestCase):
         self.assertIn('name="csrfmiddlewaretoken"', html)
         for field in ('first_name', 'last_name', 'phone', 'course_interest'):
             self.assertIn(f'name="{field}"', html)
-        for text in ('Oyligi <i>past</i> ish?', 'bitta yechim bor.', "yo'qotilgan pul", "Junior'dan"):
+        for text in ('Oyligi <i>past</i> iş?', 'bitta yeçim bor.', "yöqotilgan pul", "Junior'dan"):
             self.assertIn(text, html)
 
     def test_post_creates_application_and_shows_success(self):

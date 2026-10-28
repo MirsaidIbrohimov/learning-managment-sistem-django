@@ -3,9 +3,9 @@ from accounts.views import send_book_reminders
 
 
 class Command(BaseCommand):
-    help = 'Kitob qaytarish eslatmalarini yuborish (3 kun oldin va bugun)'
+    help = 'Kitob qaytariş eslatmalarini yuboriş (3 kun oldin va bugun)'
 
     def handle(self, *args, **kwargs):
-        self.stdout.write('Kitob qaytarish eslatmalari yuborilmoqda...')
+        self.stdout.write('Kitob qaytariş eslatmalari yuborilmoqda...')
         send_book_reminders()
         self.stdout.write(self.style.SUCCESS('Eslatmalar muvaffaqiyatli yuborildi!'))

@@ -5,7 +5,7 @@
 
 {% block parent_content %}
 {% if request.GET.saved %}<div class="pp-form-ok"><i class="bi bi-check-circle-fill"></i> Profil ma’lumotlari saqlandi.</div>{% endif %}
-{% if request.GET.password %}<div class="pp-form-ok"><i class="bi bi-shield-check"></i> Parol muvaffaqiyatli o‘zgartirildi.</div>{% endif %}
+{% if request.GET.password %}<div class="pp-form-ok"><i class="bi bi-shield-check"></i> Parol muvaffaqiyatli özgartirildi.</div>{% endif %}
 
 <section class="pp-hero pp-mb">
     <div class="pp-hero-row">
@@ -20,7 +20,7 @@
             </div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <a class="pp-btn" href="{% url 'parent_profile_edit' %}"><i class="bi bi-pencil"></i> Tahrirlash</a>
+            <a class="pp-btn" href="{% url 'parent_profile_edit' %}"><i class="bi bi-pencil"></i> Tahrirlaş</a>
             <a class="pp-btn" href="{% url 'parent_change_password' %}"><i class="bi bi-key"></i> Parol</a>
         </div>
     </div>
@@ -30,9 +30,9 @@
     <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-people-fill"></i></span></div>
         <div class="num"><span data-count="{{ children|length }}">0</span></div><div class="lbl">Biriktirilgan farzandlar</div></div>
     <div class="pp-card pp-kpi tone-cy" data-reveal><div class="top"><span class="ic"><i class="bi bi-box-arrow-in-right"></i></span></div>
-        <div class="num" style="font-size:1.15rem;">{{ parent.last_login|date:"d.m.Y H:i"|default:"—" }}</div><div class="lbl">Oxirgi kirish</div></div>
+        <div class="num" style="font-size:1.15rem;">{{ parent.last_login|date:"d.m.Y H:i"|default:"—" }}</div><div class="lbl">Oxirgi kiriş</div></div>
     <div class="pp-card pp-kpi tone-vio" data-reveal><div class="top"><span class="ic"><i class="bi bi-calendar-heart"></i></span></div>
-        <div class="num" style="font-size:1.15rem;">{{ parent.created_at|date:"d.m.Y" }}</div><div class="lbl">Ro‘yxatdan o‘tgan</div></div>
+        <div class="num" style="font-size:1.15rem;">{{ parent.created_at|date:"d.m.Y" }}</div><div class="lbl">Röyxatdan ötgan</div></div>
 </section>
 
 <section class="pp-card" data-reveal>

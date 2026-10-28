@@ -2,7 +2,7 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}{{ student.full_name }} | O'quvchi Profili{% endblock %}
+{% block title %}{{ student.full_name }} | Öquvçi Profili{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -547,7 +547,7 @@
     <!-- Back Button -->
     <div class="mb-4">
         <button onclick="history.back()" class="btn vp-btn-back rounded-pill px-4 shadow-sm">
-            <i class="bi bi-arrow-left me-2"></i> Ortga qaytish
+            <i class="bi bi-arrow-left me-2"></i> Ortga qaytiş
         </button>
     </div>
 
@@ -574,17 +574,17 @@
 
                 {% if student.pk != request.user.pk %}
                 <a href="{% url 'direct_chat' student.pk %}" class="btn rounded-pill px-4 mb-3 fw-bold text-white shadow-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none;">
-                    <i class="bi bi-chat-dots-fill me-1"></i> Xabar yozish
+                    <i class="bi bi-chat-dots-fill me-1"></i> Xabar yoziş
                 </a>
                 {% endif %}
 
                 {% if student.is_premium %}
                     <div class="vp-premium-badge mb-3">
-                        <i class="bi bi-patch-check-fill"></i> Premium O'quvchi
+                        <i class="bi bi-patch-check-fill"></i> Premium Öquvçi
                     </div><br>
                 {% else %}
                     <div class="badge bg-primary rounded-pill px-3 py-2 mb-3">
-                        O'quvchi
+                        Öquvçi
                     </div><br>
                 {% endif %}
 
@@ -616,7 +616,7 @@
                     </div>
                     <div class="vp-stat-box st-green">
                         <div class="vp-stat-num">{{ total_earned_coins }}</div>
-                        <div class="vp-stat-label">Yig'ilgan</div>
+                        <div class="vp-stat-label">Yiğilgan</div>
                     </div>
                     <div class="vp-stat-box st-red">
                         <div class="vp-stat-num">{{ total_spent_coins }}</div>
@@ -635,7 +635,7 @@
                     </div>
                     <div class="vp-stat-box st-green">
                         <div class="vp-stat-num">{{ avg_test_score }}%</div>
-                        <div class="vp-stat-label">O'rt. Natija</div>
+                        <div class="vp-stat-label">Ört. Natija</div>
                     </div>
                     <div class="vp-stat-box">
                         <div class="vp-stat-num">{{ total_homeworks_submitted }}</div>
@@ -654,7 +654,7 @@
             
             <!-- Personal Information -->
             <div class="vp-card p-4" style="animation-delay: 0.4s;">
-                <h4 class="vp-title"><i class="bi bi-person-vcard"></i> Shaxsiy Ma'lumotlar</h4>
+                <h4 class="vp-title"><i class="bi bi-person-vcard"></i> Şaxsiy Ma'lumotlar</h4>
                 
                 <div class="vp-info-list mt-3">
                     <div class="row g-3">
@@ -671,7 +671,7 @@
                             <div class="vp-info-item">
                                 <div class="vp-info-icon"><i class="bi bi-envelope-fill"></i></div>
                                 <div class="vp-info-content">
-                                    <h6>Elektron Pochta</h6>
+                                    <h6>Elektron Poçta</h6>
                                     <p>{% if student.email %}{{ student.email }}{% else %}Kiritilmagan{% endif %}</p>
                                 </div>
                             </div>
@@ -680,7 +680,7 @@
                             <div class="vp-info-item">
                                 <div class="vp-info-icon"><i class="bi bi-calendar-heart-fill"></i></div>
                                 <div class="vp-info-content">
-                                    <h6>Tug'ilgan Sana</h6>
+                                    <h6>Tuğilgan Sana</h6>
                                     <p>{% if student.birth_date %}{{ student.birth_date|date:"d M, Y" }}{% else %}Kiritilmagan{% endif %}</p>
                                 </div>
                             </div>
@@ -689,7 +689,7 @@
                             <div class="vp-info-item">
                                 <div class="vp-info-icon"><i class="bi bi-door-open-fill"></i></div>
                                 <div class="vp-info-content">
-                                    <h6>Safimizga qo'shilgan vaqt</h6>
+                                    <h6>Safimizga qöşilgan vaqt</h6>
                                     <p>{{ student.date_joined|date:"d M, Y" }}</p>
                                 </div>
                             </div>
@@ -708,7 +708,7 @@
                             <div class="vp-info-item" style="background: rgba(14,165,233,0.05); border: 1px dashed rgba(14,165,233,0.3);">
                                 <div class="vp-info-icon" style="color:var(--vp-accent)"><i class="bi bi-clock-history"></i></div>
                                 <div class="vp-info-content">
-                                    <h6>Platformada o'tkazgan jami vaqti</h6>
+                                    <h6>Platformada ötkazgan jami vaqti</h6>
                                     <p class="fw-bold" style="color:var(--vp-accent)">{{ student.total_online_time }} daqiqa</p>
                                 </div>
                             </div>
@@ -717,7 +717,7 @@
                         {% if student.bio %}
                         <div class="col-md-12 mt-2">
                             <div class="p-3 vp-bio-box rounded-4">
-                                <h6 class="text-muted fw-bold mb-2" style="font-size:0.85rem;"><i class="bi bi-quote me-1"></i>O'zi haqida:</h6>
+                                <h6 class="text-muted fw-bold mb-2" style="font-size:0.85rem;"><i class="bi bi-quote me-1"></i>Özi haqida:</h6>
                                 <p class="mb-0 vp-bio-text">{{ student.bio }}</p>
                             </div>
                         </div>
@@ -731,7 +731,7 @@
             <div class="vp-card p-4" style="animation-delay: 0.5s;">
                 <h4 class="vp-title">
                     <i class="bi bi-journal-check" style="color:#22c55e; background:rgba(34,197,94,0.1)"></i> 
-                    O'qiyotgan Kurslari
+                    Öqiyotgan Kurslari
                     <span class="badge bg-success ms-auto rounded-pill">{{ all_enrollments|length }} ta</span>
                 </h4>
                 <div class="vp-mini-grid mt-3">
@@ -804,11 +804,11 @@
                             <div class="vp-mini-icon vp-code-icon"><i class="bi bi-file-code"></i></div>
                             <div class="vp-mini-info flex-grow-1">
                                 <h4>{{ deploy.title }}</h4>
-                                <p><i class="bi bi-eye me-1"></i> {{ deploy.views_count }} marta ko'rilgan</p>
+                                <p><i class="bi bi-eye me-1"></i> {{ deploy.views_count }} marta körilgan</p>
                             </div>
                         </div>
                         <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-primary rounded-pill w-100 fw-bold" style="background:var(--vp-primary); border:none;">
-                            Loyihani ko'rish <i class="bi bi-box-arrow-up-right ms-2"></i>
+                            Loyihani köriş <i class="bi bi-box-arrow-up-right ms-2"></i>
                         </a>
                     </div>
                     {% endfor %}

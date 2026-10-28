@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% block title %}Tomosha: {{ match.game.title }}{% endblock %}
+{% block title %}Tomoşa: {{ match.game.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -40,7 +40,7 @@
 .sp-pl.active-turn .sp-avatar.b { box-shadow: 0 0 0 3px #6366f1; animation: avatarPulse 1.5s ease-in-out infinite; }
 @keyframes avatarPulse { 0%,100%{box-shadow:0 0 0 3px #6366f1} 50%{box-shadow:0 0 0 6px rgba(99,102,241,.3)} }
 
-/* ===== BOARD (shashka — CSS rendered) ===== */
+/* ===== BOARD (şaşka — CSS rendered) ===== */
 .sp-board-wrap { position: relative; animation: boardFadeIn 0.8s ease-out 0.3s both; }
 @keyframes boardFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 .sp-board {
@@ -60,7 +60,7 @@
 .sp-cell.last-move-from { background: rgba(255,255,100,.35) !important; }
 .sp-cell.last-move-to   { background: rgba(255,255,100,.55) !important; }
 
-/* Shashka pieces */
+/* Şaşka pieces */
 .sp-piece {
     width: 72%; height: 72%; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -151,7 +151,7 @@
     <!-- Header -->
     <div class="sp-header">
         <a href="{% url 'games:live_games' %}" class="sp-back">
-            <i class="bi bi-arrow-left"></i> Jonli o'yinlar
+            <i class="bi bi-arrow-left"></i> Jonli öyinlar
         </a>
         <h1 class="sp-title">{{ match.game.title }}</h1>
         <span id="sp-status-badge" class="sp-live-badge">
@@ -164,7 +164,7 @@
         {% endif %}
         {% if is_player %}
         <a href="{% url 'games:game_launch' match.game.slug %}" style="color:var(--primary,#6366f1);font-size:.85rem;text-decoration:none;margin-left:auto;">
-            <i class="bi bi-joystick"></i> O'yinga qaytish
+            <i class="bi bi-joystick"></i> Öyinga qaytiş
         </a>
         {% endif %}
     </div>
@@ -194,7 +194,7 @@
         </div>
         {% else %}
         <div class="sp-pl black-side" id="sp-black-side">
-            <div><div class="sp-pl-name" style="color:var(--text-muted);">Raqib yo'q</div></div>
+            <div><div class="sp-pl-name" style="color:var(--text-muted);">Raqib yöq</div></div>
             <div class="sp-avatar b" style="opacity:.4;">?</div>
         </div>
         {% endif %}
@@ -218,9 +218,9 @@
         <div class="sp-panel">
             <!-- Status card -->
             <div class="sp-card">
-                <div class="sp-card-title">O'yin holati</div>
+                <div class="sp-card-title">Öyin holati</div>
                 <div class="sp-stat-row">
-                    <span>Yurishlar</span>
+                    <span>Yurişlar</span>
                     <span class="sp-stat-val" id="sp-move-count">{{ match.move_count }}</span>
                 </div>
                 <div class="sp-stat-row">
@@ -235,22 +235,22 @@
                 </div>
                 <div class="sp-stat-row" style="border-bottom:none;margin-top:.5rem;">
                     <span class="sp-viewers"><span class="sp-poll-dot" id="sp-poll-dot"></span> Yangilanmoqda</span>
-                    <a href="{% url 'games:live_games' %}" class="sp-back" style="font-size:.78rem;">↩ Barcha o'yinlar</a>
+                    <a href="{% url 'games:live_games' %}" class="sp-back" style="font-size:.78rem;">↩ Barça öyinlar</a>
                 </div>
             </div>
 
             <!-- Move log -->
             <div class="sp-card">
-                <div class="sp-card-title">Yurishlar</div>
+                <div class="sp-card-title">Yurişlar</div>
                 <div id="sp-move-log">
-                    <div style="color:var(--text-muted);font-size:.8rem;">Yurishlar yuklanmoqda...</div>
+                    <div style="color:var(--text-muted);font-size:.8rem;">Yurişlar yuklanmoqda...</div>
                 </div>
             </div>
 
             <!-- Spectators list -->
             <div class="sp-card">
                 <div class="sp-card-title" style="display:flex;align-items:center;gap:.5rem;">
-                    <i class="bi bi-eye"></i> Tomoshabinlar
+                    <i class="bi bi-eye"></i> Tomoşabinlar
                     <span class="sp-spectator-badge" id="sp-spectator-count">{{ match.spectator_count }}</span>
                 </div>
                 <div id="sp-spectators-list" class="sp-spectators-scroll">
@@ -262,7 +262,7 @@
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div style="color:var(--text-muted);font-size:.82rem;padding:.5rem 0;">Hozircha tomoshabinlar yo'q</div>
+                        <div style="color:var(--text-muted);font-size:.82rem;padding:.5rem 0;">Hozirça tomoşabinlar yöq</div>
                     {% endif %}
                 </div>
             </div>
@@ -367,7 +367,7 @@ function renderBoard(board, lastMove) {
                     span.textContent = CHESS_UNICODE[piece.color][piece.type] || '?';
                     cell.appendChild(span);
                 } else {
-                    // Shashka
+                    // Şaşka
                     const p = document.createElement('div');
                     p.className = 'sp-piece ' + piece.color;
                     if (piece.king) p.textContent = '★';
@@ -399,13 +399,13 @@ function updatePlayers(data) {
 function updateStatus(data) {
     const el = document.getElementById('sp-game-status');
     if (el) {
-        const map = { active: 'Faol', ended: 'Tugadi', abandoned: 'Tashlab ketildi', waiting: 'Kutilmoqda' };
+        const map = { active: 'Faol', ended: 'Tugadi', abandoned: 'Taşlab ketildi', waiting: 'Kutilmoqda' };
         el.textContent = map[data.status] || data.status;
     }
     const badge = document.getElementById('sp-status-badge');
     if (badge && data.status !== 'active') {
         badge.className = 'sp-ended-badge';
-        badge.textContent = data.status === 'ended' ? 'Tugadi' : 'Tashlab ketildi';
+        badge.textContent = data.status === 'ended' ? 'Tugadi' : 'Taşlab ketildi';
     }
 }
 
@@ -440,18 +440,18 @@ function showResult(data) {
     if (data.winner === 'draw') {
         icon.textContent  = '🤝';
         title.textContent = 'Durang!';
-        sub.textContent   = 'Ikki o\'yinchi kelishdi';
+        sub.textContent   = 'Ikki öyinçi kelişdi';
     } else if (data.winner === 'white') {
         icon.textContent  = '🏆';
-        title.textContent = 'Oq g\'olib!';
+        title.textContent = 'Oq ğolib!';
         sub.textContent   = (data.white_player?.name || 'Oq') + ' yutdi';
     } else if (data.winner === 'black') {
         icon.textContent  = '🏆';
-        title.textContent = 'Qora g\'olib!';
+        title.textContent = 'Qora ğolib!';
         sub.textContent   = (data.black_player?.name || 'Qora') + ' yutdi';
     } else {
         icon.textContent  = '🏁';
-        title.textContent = 'O\'yin tugadi';
+        title.textContent = 'Öyin tugadi';
         sub.textContent   = '';
     }
     overlay.classList.add('show');
@@ -467,7 +467,7 @@ function updateSpectators(data) {
     countEl.textContent = data.spectator_count || 0;
 
     if (!data.spectators || data.spectators.length === 0) {
-        listEl.innerHTML = '<div style="color:var(--text-muted);font-size:.82rem;padding:.5rem 0;">Hozircha tomoshabinlar yo\'q</div>';
+        listEl.innerHTML = '<div style="color:var(--text-muted);font-size:.82rem;padding:.5rem 0;">Hozirça tomoşabinlar yöq</div>';
         return;
     }
 

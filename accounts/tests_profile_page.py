@@ -9,7 +9,7 @@ from accounts.models import CustomUser, UserSession
 
 
 class ProfilePageRolesTests(TestCase):
-    """Profil sahifasi har bir rol uchun o'z bo'limlari bilan ochilishi kerak."""
+    """Profil sahifasi har bir rol uçun öz bölimlari bilan oçilişi kerak."""
 
     def open_profile(self, role, **extra):
         cache.clear()
@@ -30,7 +30,7 @@ class ProfilePageRolesTests(TestCase):
         self.assertContains(response, 'id="courses"')
         self.assertContains(response, 'id="certificates"')
         self.assertContains(response, 'id="sidNumber"')
-        self.assertContains(response, 'O‘quv yo‘lingiz shu yerdan boshlanadi')
+        self.assertContains(response, 'Öquv yölingiz şu yerdan boşlanadi')
 
     def test_teacher_sees_workspace(self):
         response = self.open_profile('teacher')
@@ -44,7 +44,7 @@ class ProfilePageRolesTests(TestCase):
 
 
 class HomeAndNavbarRolesTests(TestCase):
-    """Bosh sahifa va yangi yon panel navbar har bir rol uchun ochilishi kerak."""
+    """Boş sahifa va yangi yon panel navbar har bir rol uçun oçilişi kerak."""
 
     def open_home(self, role, **extra):
         cache.clear()
@@ -57,7 +57,7 @@ class HomeAndNavbarRolesTests(TestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        # Navbar: yon panel, bildirishnomalar (notify.js id'lari), Ctrl+K va mobil dock
+        # Navbar: yon panel, bildirişnomalar (notify.js id'lari), Ctrl+K va mobil dock
         for marker in ('id="nrRail"', 'id="mainNavbar"', 'id="nbBellBtn"', 'id="nbBellList"',
                        'id="themeToggleTop"', 'id="nrCmd"', 'nr-dock', 'id="nbMobilePanel"'):
             self.assertIn(marker, html)

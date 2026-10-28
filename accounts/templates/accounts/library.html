@@ -425,7 +425,7 @@
   <!-- Tabs -->
   <div class="lib-tabs" role="tablist">
     <button class="lib-tab active" data-tab="books" onclick="switchTab('books')">
-      <i class="bi bi-grid-3x3-gap"></i> Barcha kitoblar
+      <i class="bi bi-grid-3x3-gap"></i> Barça kitoblar
     </button>
     <button class="lib-tab" data-tab="requests" onclick="switchTab('requests')">
       <i class="bi bi-send"></i> Arizalarim
@@ -612,7 +612,7 @@ function bookCardHtml(b, i, isDup) {
 function renderBooks(books) {
   const grid = document.getElementById('booksGrid');
   if (!books.length) {
-    grid.innerHTML = '<div class="lib-empty"><i class="bi bi-search"></i><h5>Kitob topilmadi</h5><p>Boshqa kalit so\'z bilan sinab ko\'ring.</p></div>';
+    grid.innerHTML = '<div class="lib-empty"><i class="bi bi-search"></i><h5>Kitob topilmadi</h5><p>Boşqa kalit söz bilan sinab köring.</p></div>';
     return;
   }
 
@@ -632,7 +632,7 @@ function renderBooks(books) {
   if (hasDups) {
     html += `<div class="lib-dup-banner">
       <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;flex-shrink:0"></i>
-      <span>Ba'zi kitoblar kutubxonada bir necha marta qo'shilgan. Takroriy yozuvlar qizil ramka bilan ajratib ko'rsatilgan.</span>
+      <span>Ba'zi kitoblar kutubxonada bir neça marta qöşilgan. Takroriy yozuvlar qizil ramka bilan ajratib körsatilgan.</span>
     </div>`;
   }
 
@@ -649,7 +649,7 @@ function renderBooks(books) {
       html += `<div class="lib-dup-group">
         <div class="lib-dup-header">
           <i class="bi bi-exclamation-triangle-fill"></i>
-          ${group.length} ta o'xshash yozuv: "${esc(group[0].title)}" — ${esc(group[0].author)}
+          ${group.length} ta öxşaş yozuv: "${esc(group[0].title)}" — ${esc(group[0].author)}
         </div>
         <div class="lib-dup-body">
           <div class="lib-grid">`;
@@ -711,8 +711,8 @@ function renderModal(b) {
         <i class="bi bi-book-half"></i>
         <span>
           ${overdue
-            ? `Bu kitobni ${Math.abs(daysLeft)} kun oldin qaytarishingiz kerak edi! Iltimos, kutubxonaga toping.`
-            : `Bu kitob sizda ijarada. Qaytarish sanasi: ${myRental.return_date} (${daysLeft} kun qoldi)`}
+            ? `Bu kitobni ${Math.abs(daysLeft)} kun oldin qaytarişingiz kerak edi! Iltimos, kutubxonaga toping.`
+            : `Bu kitob sizda ijarada. Qaytariş sanasi: ${myRental.return_date} (${daysLeft} kun qoldi)`}
         </span>
       </div>`;
   } else if (myReq) {
@@ -728,19 +728,19 @@ function renderModal(b) {
       <div id="requestForm" class="lib-request-form">
         <div class="lib-alert info" style="margin-bottom:0.75rem">
           <i class="bi bi-info-circle"></i>
-          <span>Ariza bersangiz, admin ko'rib chiqib tasdiqlaydi.</span>
+          <span>Ariza bersangiz, admin körib çiqib tasdiqlaydi.</span>
         </div>
         <label>Izoh (ixtiyoriy)</label>
-        <textarea id="reqMessage" placeholder="Nima uchun bu kitobni o'qimoqchisiz?"></textarea>
+        <textarea id="reqMessage" placeholder="Nima uçun bu kitobni öqimoqçisiz?"></textarea>
         <button class="lib-btn lib-btn-primary mt-2" onclick="submitRequest(${b.id})">
-          <i class="bi bi-send"></i> Ariza berish
+          <i class="bi bi-send"></i> Ariza beriş
         </button>
       </div>`;
   } else {
     actionHtml = `
       <div class="lib-alert danger">
         <i class="bi bi-x-circle"></i>
-        <span>Hozirda barcha nusxalar ijarada. Keyinroq kiring.</span>
+        <span>Hozirda barça nusxalar ijarada. Keyinroq kiring.</span>
       </div>`;
   }
 
@@ -768,7 +768,7 @@ function renderModal(b) {
       <hr style="border-color:var(--lib-border)">
       ${actionHtml}
       ${similar.length ? `
-        <div class="lib-divider mt-3">Shu muallifning boshqa kitoblari</div>
+        <div class="lib-divider mt-3">Şu muallifning boşqa kitoblari</div>
         <div class="lib-similar">
           ${similar.map(s => `
             <div class="lib-similar-card" onclick="closeModal();setTimeout(()=>openBook(${s.id}),150)">
@@ -801,11 +801,11 @@ async function submitRequest(bookId) {
     } else {
       const errMsg = typeof d === 'object' ? Object.values(d).flat().join(' ') : 'Xatolik yuz berdi.';
       alert('❌ ' + errMsg);
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza berish'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza beriş'; }
     }
   } catch {
     alert('❌ Tarmoq xatosi.');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza berish'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza beriş'; }
   }
 }
 
@@ -836,7 +836,7 @@ async function loadRequests() {
 function renderRequests(reqs) {
   const container = document.getElementById('requestsList');
   if (!reqs.length) {
-    container.innerHTML = '<div class="lib-empty"><i class="bi bi-send"></i><h5>Hali ariza yo\'q</h5><p>Kitob tanlang va ariza bering — admin ko\'rib chiqadi.</p></div>';
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-send"></i><h5>Hali ariza yöq</h5><p>Kitob tanlang va ariza bering — admin körib çiqadi.</p></div>';
     return;
   }
 
@@ -868,7 +868,7 @@ function renderRequests(reqs) {
 }
 
 async function cancelRequest(id) {
-  if (!confirm('Arizani bekor qilmoqchimisiz?')) return;
+  if (!confirm('Arizani bekor qilmoqçimisiz?')) return;
   try {
     const r = await apiFetch(API + 'my/requests/' + id + '/cancel/', { method: 'POST' });
     if (r.ok) { loadRequests(); loadStats(); loadBooks(); }
@@ -898,7 +898,7 @@ function renderRentals(d) {
   const returned = d.returned || [];
 
   if (!active.length && !returned.length) {
-    container.innerHTML = '<div class="lib-empty"><i class="bi bi-book-half"></i><h5>Hali ijara yo\'q</h5><p>Ariza berib, admindan kitob ijaraga oling.</p></div>';
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-book-half"></i><h5>Hali ijara yöq</h5><p>Ariza berib, admindan kitob ijaraga oling.</p></div>';
     return;
   }
 
@@ -930,7 +930,7 @@ function rentalCard(rn, i, isReturned = false) {
   if (isReturned) {
     statusBadge = '<span class="lib-request-badge approved"><i class="bi bi-check-circle-fill"></i> Qaytarilgan</span>';
   } else if (overdue) {
-    statusBadge = '<span class="lib-request-badge" style="background:var(--lib-red-soft);color:var(--lib-red)"><i class="bi bi-exclamation-triangle-fill"></i> Kechikkan</span>';
+    statusBadge = '<span class="lib-request-badge" style="background:var(--lib-red-soft);color:var(--lib-red)"><i class="bi bi-exclamation-triangle-fill"></i> Keçikkan</span>';
   } else if (daysLeft <= 3) {
     statusBadge = '<span class="lib-request-badge pending"><i class="bi bi-clock-fill"></i> ' + daysLeft + ' kun qoldi</span>';
   } else {
@@ -961,11 +961,11 @@ function rentalCard(rn, i, isReturned = false) {
                  <div class="lib-date-val">${formatDateShort(rn.actual_return_date)}</div>
                </div>`
             : `<div class="lib-date-chip ${overdue ? 'danger-bg' : ''}">
-                 <div class="lib-date-lbl">Qaytarish</div>
+                 <div class="lib-date-lbl">Qaytariş</div>
                  <div class="lib-date-val ${overdue ? 'danger' : ''}">${formatDateShort(rn.return_date)}</div>
                </div>`}
         </div>
-        ${overdue ? `<div class="lib-alert danger mt-2 mb-0"><i class="bi bi-x-circle-fill"></i> ${Math.abs(daysLeft)} kun kechikdi — tezroq kutubxonaga qaytaring!</div>` : ''}
+        ${overdue ? `<div class="lib-alert danger mt-2 mb-0"><i class="bi bi-x-circle-fill"></i> ${Math.abs(daysLeft)} kun keçikdi — tezroq kutubxonaga qaytaring!</div>` : ''}
       </div>
     </div>`;
 }

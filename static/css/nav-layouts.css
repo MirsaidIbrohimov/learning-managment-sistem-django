@@ -1,9 +1,9 @@
-/* IT Creative — moslashtiriladigan navigatsiya: 4 rejim + sozlamalar paneli.
-   nav-rail.css'dan keyin yuklanadi. Qoidalar faqat html[data-layout] bo'lganda ishlaydi
-   (base.html, foydalanuvchi tizimga kirgan). Mobil (<992px): rejimdan qat'i nazar dock + yon menyu. */
+/* IT Creative — moslaştiriladigan navigatsiya: 4 rejim + sozlamalar paneli.
+   nav-rail.css'dan keyin yuklanadi. Qoidalar faqat html[data-layout] bölganda işlaydi
+   (base.html, foydalanuvçi tizimga kirgan). Mobil (<992px): rejimdan qat'i nazar dock + yon menyu. */
 :root{--nl-hd:64px;--nl-ease:cubic-bezier(.2,.8,.2,1);--nl-dur:.34s}
 
-/* --nav-offset: yon panel egallagan kenglik. To'liq kenglikdagi (full-bleed) bloklar
+/* --nav-offset: yon panel egallagan kenglik. Töliq kenglikdagi (full-bleed) bloklar
    width:calc(100vw - var(--nav-offset,0px)); margin-left:calc(var(--nav-offset,0px) / 2 - 50vw) bilan panel ostiga kirmaydi. */
 @media (min-width:992px){
   body.has-rail{--nav-offset:calc(var(--nr-w) + var(--nr-gap) * 2)}
@@ -36,7 +36,7 @@
 .nr-apps-tag{flex-shrink:0;padding:3px 8px;border-radius:999px;font-size:10.5px;font-weight:700;color:var(--nr-gold);background:color-mix(in srgb,var(--nr-gold) 14%,transparent)}
 .nr-apps-dl{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;color:var(--nr-acc);background:color-mix(in srgb,var(--nr-acc) 11%,transparent)}
 .nr-social .nr-apps-dl i{width:auto;height:auto;font-size:14px;color:inherit;background:none}
-/* Telefon: menyu ekran bo'ylab, header ostida (dropdown chap chetga chiqib ketmasin) */
+/* Telefon: menyu ekran böylab, header ostida (dropdown çap çetga çiqib ketmasin) */
 @media (max-width:991.98px){
   .nr-apps{position:static}
   .nr-apps .nr-apps-pop{position:fixed!important;left:12px!important;right:12px!important;top:calc(64px + env(safe-area-inset-top))!important;width:auto;max-height:calc(100vh - 170px);overflow-y:auto;background:var(--nr-solid);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 24px 60px -20px rgba(15,23,42,.45)}
@@ -47,7 +47,7 @@
 .nr-social a.nr-apps-more{justify-content:space-between;margin-top:4px;padding:9px 10px;border-top:1px solid var(--nr-line);border-radius:0 0 12px 12px;font-size:13px;color:var(--nr-acc)}
 .nr-social a.nr-apps-more i{width:auto;height:auto;color:inherit;background:none;font-size:14px}
 
-/* ═══ Tooltip (yig'ilgan panel ikonkalari) ═══ */
+/* ═══ Tooltip (yiğilgan panel ikonkalari) ═══ */
 .ns-tip{position:fixed;z-index:3000;left:0;top:0;padding:6px 10px;border-radius:9px;background:var(--nr-ink);color:var(--nr-solid);font-size:12.5px;font-weight:600;white-space:nowrap;pointer-events:none;box-shadow:0 10px 24px -10px rgba(0,0,0,.4);animation:nsTipIn .16s var(--nl-ease)}
 @keyframes nsTipIn{from{opacity:0}}
 
@@ -58,10 +58,10 @@
   html:is([data-layout=classic],[data-layout=hybrid]) .nr-collapse{display:grid}
   html:is([data-layout=classic],[data-layout=hybrid]) .nr-rail:is(:hover,:focus-within){width:var(--nl-sb);box-shadow:none}
 
-  /* Yorliqlar: kengaytirilgan Classic/Hybrid — doim ko'rinadi */
+  /* Yorliqlar: kengaytirilgan Classic/Hybrid — doim körinadi */
   html:is([data-layout=classic],[data-layout=hybrid])[data-sb=expanded] .nr-rail .nr-tx,
   html:is([data-layout=classic],[data-layout=hybrid])[data-sb=expanded] .nr-rail .nr-sec{opacity:1}
-  /* Yig'ilgan (har uch yon panel rejimi) — faqat ikonka + tooltip, hover'da kengaymaydi */
+  /* Yiğilgan (har uç yon panel rejimi) — faqat ikonka + tooltip, hover'da kengaymaydi */
   html:is([data-layout=classic],[data-layout=hybrid],[data-layout=compact])[data-sb=collapsed] .nr-rail .nr-tx,
   html:is([data-layout=classic],[data-layout=hybrid],[data-layout=compact])[data-sb=collapsed] .nr-rail .nr-sec{opacity:0;transition-delay:0s}
   html[data-layout=compact][data-sb=collapsed] .nr-rail:is(:hover,:focus-within){width:var(--nr-w);box-shadow:var(--nr-shadow)}
@@ -81,7 +81,7 @@
   html[data-layout=classic] #mainNavbar.nr-top{top:0;margin:0;height:var(--nl-hd);padding:0 16px 0 12px;border-radius:0;border-width:0 0 1px;box-shadow:none;background:color-mix(in srgb,var(--nr-solid) 82%,transparent)}
   html[data-layout=classic] #mainNavbar.nr-top.nav-hidden{transform:translateY(-100%)}
 
-  /* --- 2. Compact Sidebar: nav-rail.css'dagi hozirgi ko'rinish o'zgarishsiz --- */
+  /* --- 2. Compact Sidebar: nav-rail.css'dagi hozirgi köriniş özgarişsiz --- */
 
   /* --- 3. Top Navigation --- */
   html[data-layout=top] .nr-rail{display:none}
@@ -123,7 +123,7 @@
   html[data-layout=top] .nr-coin .v{display:none}
 }
 
-/* Animatsiyalar o'chirilgan — faqat navigatsiya elementlari */
+/* Animatsiyalar öçirilgan — faqat navigatsiya elementlari */
 html[data-motion=off] :is(.nr-rail,.nr-rail *,.nr-top,.nr-top *,.nr-dock,.nr-dock *,.nr-pop,.nr-pop *,.nb-mobile-panel,.nb-mobile-panel *,.ns-panel,.ns-panel *,.ns-scrim,.ns-toast,.ns-tip){transition-duration:.001ms!important;transition-delay:0s!important;animation-duration:.001ms!important}
 
 /* ═══ Sozlamalar paneli ═══ */
@@ -188,7 +188,7 @@ html.ns-open .ns-scrim{opacity:1;visibility:visible;transition:opacity .3s}
 .ns-toast button{border:0;border-radius:9px;padding:6px 10px;background:color-mix(in srgb,var(--nr-solid) 18%,transparent);color:inherit;font-weight:700;cursor:pointer}
 @media (min-width:992px){.ns-toast{bottom:28px}}
 
-/* Mini sxema (rejim kartalari va jonli ko'rinish) */
+/* Mini sxema (rejim kartalari va jonli köriniş) */
 .ns-mini{position:relative;display:block;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:var(--bs-body-bg,#f3f5fa);border:1px solid var(--nr-line);
   --sbL:0%;--sbT:0%;--sbB:0%;--sbW:24%;--sbR:0px;--hdL:24%;--hdT:0%;--hdR:0%;--hdH:14%;--hdRad:0px;--mL:24%;--mT:14%}
 .ns-mini>span{position:absolute;display:block;transition:all .35s var(--nl-ease)}

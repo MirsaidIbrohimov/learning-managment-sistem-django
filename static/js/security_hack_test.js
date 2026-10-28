@@ -8,7 +8,7 @@
 
  🛡️ IT Creative — Xavfsizlik Hujum Simulyatsiyasi
  
- Login sahifasini oching → F12 → Console → shu kodni paste qiling → Enter
+ Login sahifasini oçing → F12 → Console → şu kodni paste qiling → Enter
 
 */
 (async function HackTest(){
@@ -43,7 +43,7 @@ async function post(url,data){
 
 // ═══════════════════════════════════════════════
 console.clear();
-console.log('%c🕵️ HACKER SIMULYATSIYA — Xavfsizlik testi boshlandi...', S.h);
+console.log('%c🕵️ HACKER SIMULYATSIYA — Xavfsizlik testi boşlandi...', S.h);
 console.log('%c  Saytga turli hujumlar yuborilmoqda...\n', S.i);
 // ═══════════════════════════════════════════════
 
@@ -55,32 +55,32 @@ try{
   const r=await fetch('/login/',{credentials:'same-origin'});
   const h={};r.headers.forEach((v,k)=>h[k.toLowerCase()]=v);
 
-  // 500 xato bo'lsa — server xatosi, headerlar sinalmaydi
+  // 500 xato bölsa — server xatosi, headerlar sinalmaydi
   if(r.status===500){
-    wr('Server 500 xato qaytardi — headerlar tekshirilmadi. Serverni tuzating!');
+    wr('Server 500 xato qaytardi — headerlar tekşirilmadi. Serverni tuzating!');
   }
 
-  ok('Clickjacking himoya (X-Frame-Options)',h['x-frame-options']==='DENY'||h['x-frame-options']==='SAMEORIGIN',h['x-frame-options']||'YO\'Q');
+  ok('Clickjacking himoya (X-Frame-Options)',h['x-frame-options']==='DENY'||h['x-frame-options']==='SAMEORIGIN',h['x-frame-options']||'YÖQ');
   const xcto=(h['x-content-type-options']||'').trim();
   ok('MIME sniffing himoya (X-Content-Type-Options)',xcto.includes('nosniff'),xcto||'Header topilmadi');
   if(xcto&&xcto!=='nosniff')wr('X-Content-Type-Options dublikat: "'+xcto+'" — settings.py da SECURE_CONTENT_TYPE_NOSNIFF=False qiling');
-  ok('CSP (Content Security Policy)',!!h['content-security-policy'],'Nginx config ga CSP qo\'shing');
-  ok('Cross-Origin-Opener-Policy',!!h['cross-origin-opener-policy'],h['cross-origin-opener-policy']||'YO\'Q');
-  ok('Cross-Origin-Resource-Policy',!!h['cross-origin-resource-policy'],'Nginx config ga qo\'shing');
-  ok('Permissions-Policy',!!h['permissions-policy'],'Nginx config ga qo\'shing');
-  ok('Referrer-Policy',!!h['referrer-policy'],h['referrer-policy']||'YO\'Q');
+  ok('CSP (Content Security Policy)',!!h['content-security-policy'],'Nginx config ga CSP qöşing');
+  ok('Cross-Origin-Opener-Policy',!!h['cross-origin-opener-policy'],h['cross-origin-opener-policy']||'YÖQ');
+  ok('Cross-Origin-Resource-Policy',!!h['cross-origin-resource-policy'],'Nginx config ga qöşing');
+  ok('Permissions-Policy',!!h['permissions-policy'],'Nginx config ga qöşing');
+  ok('Referrer-Policy',!!h['referrer-policy'],h['referrer-policy']||'YÖQ');
 
   const csp=h['content-security-policy']||'';
   if(csp){
     ok('CSP: frame-ancestors bloklangan',csp.includes("frame-ancestors"));
-    ok('CSP: form-action cheklangan',csp.includes("form-action"));
+    ok('CSP: form-action çeklangan',csp.includes("form-action"));
     ok('CSP: base-uri himoyalangan',csp.includes("base-uri"));
   } else {
-    wr('CSP header yo\'q — CSP testlari o\'tkazib yuborildi');
+    wr('CSP header yöq — CSP testlari ötkazib yuborildi');
   }
 
-  if(csp.includes("'unsafe-eval'"))wr("CSP 'unsafe-eval' ruxsat — kuchsiz nuqta");
-  if(csp.includes("'unsafe-inline'"))wr("CSP 'unsafe-inline' ruxsat — kuchsiz nuqta");
+  if(csp.includes("'unsafe-eval'"))wr("CSP 'unsafe-eval' ruxsat — kuçsiz nuqta");
+  if(csp.includes("'unsafe-inline'"))wr("CSP 'unsafe-inline' ruxsat — kuçsiz nuqta");
 
   const pp=h['permissions-policy']||'';
   ok('Kamera bloklangan',pp.includes('camera=()'));
@@ -88,14 +88,14 @@ try{
   ok('Geolocation bloklangan',pp.includes('geolocation=()'));
   ok('USB bloklangan',pp.includes('usb=()'));
 
-  // X-Powered-By va Server headerlarni shu yerda tekshirish
+  // X-Powered-By va Server headerlarni şu yerda tekşiriş
   const powered=h['x-powered-by']||'';
   const server=h['server']||'';
-  if(powered){wr('X-Powered-By header mavjud: '+powered+' — .htaccess yoki Nginx config tekshiring')}
-  else{ok('X-Powered-By yashirilgan',true)}
-  if(server&&!server.includes('nginx'))wr('Server header oshkor: "'+server+'"');
-  else ok('Server versiyasi yashirilgan',true);
-}catch(e){ok('Headers olish',false,e.message)}
+  if(powered){wr('X-Powered-By header mavjud: '+powered+' — .htaccess yoki Nginx config tekşiring')}
+  else{ok('X-Powered-By yaşirilgan',true)}
+  if(server&&!server.includes('nginx'))wr('Server header oşkor: "'+server+'"');
+  else ok('Server versiyasi yaşirilgan',true);
+}catch(e){ok('Headers oliş',false,e.message)}
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -153,7 +153,7 @@ try{
 }catch(e){}
 
 try{
-  // Boshqa saytdan POST (cross-origin)
+  // Boşqa saytdan POST (cross-origin)
   const r3=await fetch('/login/',{
     method:'POST',
     headers:{'Origin':'http://evil-site.com','Referer':'http://evil-site.com/hack'},
@@ -171,20 +171,20 @@ try{
   const r=await post('/login/',{
     login_mode:'username',login_token:'bot-hack',
     username:'admin',password:'[REDACTED:password]',
-    website_url:'http://spam-bot.ru/hack'  // Bot shu yashirin fieldni to'ldiradi
+    website_url:'http://spam-bot.ru/hack'  // Bot şu yaşirin fieldni töldiradi
   });
   const t=await r.text();
-  // Server honeypotni ushlab, login sahifasini qaytaradi (kirish rad etildi)
-  const caught=r.status===200&&(t.includes('Kirish')||t.includes('kirish')||t.includes('rad etildi'));
-  ok('Honeypot: bot to\'ldirganda login rad etildi',caught);
-  info('Bot yashirin "website_url" fieldni to\'ldirdi → server uni ushladi');
+  // Server honeypotni uşlab, login sahifasini qaytaradi (kiriş rad etildi)
+  const caught=r.status===200&&(t.includes('Kiriş')||t.includes('kiriş')||t.includes('rad etildi'));
+  ok('Honeypot: bot töldirganda login rad etildi',caught);
+  info('Bot yaşirin "website_url" fieldni töldirdi → server uni uşladi');
 }catch(e){ok('Honeypot test',false,e.message)}
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-sec('🔨 HUJUM #5: Brute-force parol topish (12 urinish)');
+sec('🔨 HUJUM #5: Brute-force parol topiş (12 uriniş)');
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-info('⏳ 12 ta noto\'g\'ri parol yuborilmoqda...');
+info('⏳ 12 ta notöğri parol yuborilmoqda...');
 let bruteBlocked=false;
 let bruteAt=0;
 for(let i=1;i<=12;i++){
@@ -197,33 +197,33 @@ for(let i=1;i<=12;i++){
       website_url:''
     });
     const t=await r.text();
-    if(r.status===429||t.includes("urinish")||t.includes("kutib")||t.includes("daqiqa")||t.includes("🔒")||t.includes("bloklandi")){
+    if(r.status===429||t.includes("uriniş")||t.includes("kutib")||t.includes("daqiqa")||t.includes("🔒")||t.includes("bloklandi")){
       bruteBlocked=true;bruteAt=i;break;
     }
   }catch(e){}
   await wait(80);
 }
-ok('Brute-force himoya: hujum to\'xtatildi',bruteBlocked,
-  bruteBlocked?'':'12 ta urinishdan keyin ham bloklanmadi!');
-if(bruteBlocked)info(`Rate limit ${bruteAt}-urinishda ishga tushdi 🛑`);
+ok('Brute-force himoya: hujum töxtatildi',bruteBlocked,
+  bruteBlocked?'':'12 ta urinişdan keyin ham bloklanmadi!');
+if(bruteBlocked)info(`Rate limit ${bruteAt}-urinishda işga tuşdi 🛑`);
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-sec('🍪 HUJUM #6: Cookie o\'g\'irlash sinovi');
+sec('🍪 HUJUM #6: Cookie öğirlaş sinovi');
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const sessionCookie=document.cookie.match(/sessionid=([^;]+)/);
-ok('Session cookie JS dan yashirin (HttpOnly)',!sessionCookie,
-  'sessionid JS dan o\'qilmoqda! HttpOnly o\'rnatilmagan');
+ok('Session cookie JS dan yaşirin (HttpOnly)',!sessionCookie,
+  'sessionid JS dan öqilmoqda! HttpOnly örnatilmagan');
 
 // Cookie scope
 const allCookies=document.cookie;
-info('JS dan ko\'rinadigan cookielar: '+(allCookies||'(hech biri — xavfsiz!)'));
+info('JS dan körinadigan cookielar: '+(allCookies||'(heç biri — xavfsiz!)'));
 
-// XSS orqali cookie o'g'irlash simulyatsiyasi
+// XSS orqali cookie öğirlaş simulyatsiyasi
 try{
   const stolen=document.cookie;
-  ok('XSS cookie o\'g\'irlash himoya',!stolen.includes('sessionid'),
-    'Session cookie XSS bilan o\'g\'irlanishi mumkin!');
+  ok('XSS cookie öğirlaş himoya',!stolen.includes('sessionid'),
+    'Session cookie XSS bilan öğirlanişi mumkin!');
 }catch(e){}
 
 
@@ -243,7 +243,7 @@ try{
   }catch(e){blocked=true;}
   iframe.remove();
   ok('Sahifa iframe da yuklanmaydi (Clickjacking himoya)',blocked,
-    'Sayt iframe ichida ko\'rsatilmoqda — clickjacking xavfi!');
+    'Sayt iframe içida körsatilmoqda — clickjacking xavfi!');
 }catch(e){wr('Clickjacking test: '+e.message)}
 
 
@@ -255,7 +255,7 @@ const dangerPaths=[
   {path:'/.git/config',desc:'Git konfiguratsiya'},
   {path:'/db.sqlite3',desc:'Butun database!'},
   {path:'/config/settings.py',desc:'Django settings'},
-  {path:'/manage.py',desc:'Django boshqaruv'},
+  {path:'/manage.py',desc:'Django boşqaruv'},
   {path:'/../../etc/passwd',desc:'Server fayllar'},
   {path:'/static/../../config/settings.py',desc:'Static traversal'},
   {path:'/media/../../db.sqlite3',desc:'Media traversal'},
@@ -264,7 +264,7 @@ for(const d of dangerPaths){
   try{
     const r=await fetch(d.path,{redirect:'manual'});
     const safe=r.status===404||r.status===403||r.status===400||r.status===301||r.status===302||r.status===500||r.status===0||r.type==='opaqueredirect';
-    ok(`${d.desc} (${d.path}) himoyalangan`,safe,`Status ${r.status} — fayl ochiq!`);
+    ok(`${d.desc} (${d.path}) himoyalangan`,safe,`Status ${r.status} — fayl oçiq!`);
   }catch(e){ok(`${d.desc} himoyalangan`,true)}
   await wait(30);
 }
@@ -291,14 +291,14 @@ for(const sql of sqlPayloads){
                !t.includes('sqlite3')&&!t.includes('syntax error')&&
                !t.includes('SQL');
     ok('SQL injection bloklandi: '+sql.substring(0,25)+'...',safe,
-      'SQL xatosi ko\'rsatildi — injection ishlashi mumkin!');
+      'SQL xatosi körsatildi — injection işlaşi mumkin!');
   }catch(e){}
   await wait(50);
 }
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-sec('🔐 HUJUM #10: Autentifikatsiyasiz kirish');
+sec('🔐 HUJUM #10: Autentifikatsiyasiz kiriş');
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const protectedPages=[
   {url:'/dashboard/',name:'Admin Dashboard'},
@@ -306,18 +306,18 @@ const protectedPages=[
   {url:'/messages/',name:'Xabarlar'},
   {url:'/leaderboard/',name:'Reyting'},
   {url:'/my-homeworks/',name:'Vazifalar'},
-  {url:'/dashboard/users/',name:'Foydalanuvchilar ro\'yxati'},
-  {url:'/dashboard/payments/',name:'To\'lovlar'},
+  {url:'/dashboard/users/',name:'Foydalanuvçilar röyxati'},
+  {url:'/dashboard/payments/',name:'Tölovlar'},
   {url:'/api/v1/profile/',name:'API Profile'},
 ];
 for(const pg of protectedPages){
   try{
     const r=await fetch(pg.url,{credentials:'omit',redirect:'follow'});
-    // Agar redirect bo'lsa login sahifasiga yuboriladi
+    // Agar redirect bölsa login sahifasiga yuboriladi
     const isLoginPage=r.url.includes('/login')||r.redirected;
     const blocked=r.status===401||r.status===403||isLoginPage;
     ok(`${pg.name} himoyalangan`,blocked,
-      `Status ${r.status} — loginsiz kirish mumkin!`);
+      `Status ${r.status} — loginsiz kiriş mumkin!`);
   }catch(e){ok(`${pg.name} himoyalangan`,true)}
   await wait(30);
 }
@@ -333,33 +333,33 @@ try{
   const leaks=t.includes('Traceback')||t.includes('INSTALLED_APPS')||
               t.includes('SECRET_KEY')||t.includes('settings.py')||
               t.includes('django.db')||t.includes('DATABASES');
-  ok('404 sahifada maxfiy ma\'lumotlar yo\'q',!leaks,
-    'DEBUG=True — server konfiguratsiyasi oshkor!');
+  ok('404 sahifada maxfiy ma\'lumotlar yöq',!leaks,
+    'DEBUG=True — server konfiguratsiyasi oşkor!');
 }catch(e){}
 
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-sec('🧬 HUJUM #12: DOM manipulation — form buzish');
+sec('🧬 HUJUM #12: DOM manipulation — form buziş');
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// Form action ni o'zgartirish
+// Form action ni özgartiriş
 try{
   const forms=document.querySelectorAll('form');
   const originalActions=[];
   forms.forEach(f=>originalActions.push(f.action));
   
-  // Hujumchi form action ni o'z serveriga yo'naltirmoqchi
+  // Hujumçi form action ni öz serveriga yönaltirmoqçi
   const testForm=forms[0];
   if(testForm){
     const origAction=testForm.action;
     testForm.action='http://evil-hacker.com/steal-credentials';
     
-    // CSP form-action: 'self' buni bloklashi kerak
-    ok('Form action DOM orqali o\'zgartirilishi mumkin (CSP form-action himoya qiladi)',
+    // CSP form-action: 'self' buni bloklaşi kerak
+    ok('Form action DOM orqali özgartirilişi mumkin (CSP form-action himoya qiladi)',
       true);
-    info('CSP form-action: \'self\' — brauzer boshqa domenga yuborishni bloklaydi');
+    info('CSP form-action: \'self\' — brauzer boşqa domenga yuborişni bloklaydi');
     
-    // Asl holatga qaytarish
+    // Asl holatga qaytariş
     testForm.action=origAction;
   }
 }catch(e){}
@@ -368,7 +368,7 @@ try{
 try{
   const honeypot=document.getElementById('website_url_1');
   if(honeypot){
-    ok('Honeypot field mavjud va yashirin',
+    ok('Honeypot field mavjud va yaşirin',
       honeypot.closest('.hp')?.getAttribute('aria-hidden')==='true');
   }
 }catch(e){}
@@ -394,7 +394,7 @@ console.log('%c'+`
 ║                                                  ║
 ║   ✅ Himoyalangan:      ${String(P).padStart(2)}                       ║
 ║   ❌ Zaif nuqtalar:     ${String(F).padStart(2)}                       ║
-║   ⚠️  Ogohlantirishlar:  ${String(W).padStart(2)}                       ║
+║   ⚠️  Ogohlantirişlar:  ${String(W).padStart(2)}                       ║
 ║                                                  ║
 ║   📊 Ball: ${score}%  |  Baho: ${grade}                      ║
 ║                                                  ║
@@ -402,17 +402,17 @@ console.log('%c'+`
 `,`color:${gColor};font-size:13px;font-family:monospace;background:#0a0e17;padding:8px;border-radius:8px`);
 
 if(F>0){
-  console.log('%c\n🔧 ZAIF NUQTALAR (tuzatish kerak):','color:#ef4444;font-weight:bold;font-size:14px');
+  console.log('%c\n🔧 ZAIF NUQTALAR (tuzatiş kerak):','color:#ef4444;font-weight:bold;font-size:14px');
   R.filter(r=>r.t==='f').forEach((r,i)=>{
     console.log(`%c  ${i+1}. ${r.m}`+(r.d?' — '+r.d:''),'color:#ef4444;font-size:12px');
   });
 }
 
 if(F===0){
-  console.log('%c\n  🎉 Tabriklaymiz! Sayt barcha hujumlarga bardosh berdi!','color:#22c55e;font-weight:bold;font-size:14px');
+  console.log('%c\n  🎉 Tabriklaymiz! Sayt barça hujumlarga bardoş berdi!','color:#22c55e;font-weight:bold;font-size:14px');
   console.log('%c  Hacker sizning saytingizni buzolmadi 💪\n','color:#22c55e;font-size:12px');
 }
 
-console.log('%c\n  📝 12 ta hujum turi sinab ko\'rildi: Headers, XSS, CSRF, Honeypot,\n     Brute-force, Cookie, Clickjacking, Path Traversal, SQL Injection,\n     Auth bypass, Info Disclosure, DOM manipulation\n','color:#64748b;font-size:11px');
+console.log('%c\n  📝 12 ta hujum turi sinab körildi: Headers, XSS, CSRF, Honeypot,\n     Brute-force, Cookie, Clickjacking, Path Traversal, SQL Injection,\n     Auth bypass, Info Disclosure, DOM manipulation\n','color:#64748b;font-size:11px');
 
 })();

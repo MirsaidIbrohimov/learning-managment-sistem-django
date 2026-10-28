@@ -18,7 +18,7 @@ MSI = b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1' + b'\x00' * 2048
 
 
 class AppReleasesTests(TestCase):
-    """Ilovalar boshqaruvi: admin yuklash/tahrirlash/almashtirish/yashirish/o'chirish, foydalanuvchi yuklab olishi va navbar."""
+    """Ilovalar boşqaruvi: admin yuklash/tahrirlash/almashtirish/yashirish/öchirish, foydalanuvçi yuklab olişi va navbar."""
 
     def setUp(self):
         cache.clear()
@@ -66,7 +66,7 @@ class AppReleasesTests(TestCase):
         self.assertEqual(self.client.get(reverse('admin_app_release_toggle', args=[pk])).status_code, 405)
         self.assertEqual(self.client.get(reverse('admin_app_release_delete', args=[pk])).status_code, 405)
 
-    # ── Yuklash va tekshiruv ──
+    # ── Yuklaş va tekşiruv ──
     def test_upload_valid_apk(self):
         admin = self.login('admin')
         self.assertRedirects(self.upload(), reverse('admin_app_releases'), fetch_redirect_response=False)
@@ -86,10 +86,10 @@ class AppReleasesTests(TestCase):
     def test_invalid_files_rejected(self):
         self.login('admin')
         cases = [
-            ('android', EXE, 'setup.exe'),          # noto'g'ri kengaytma
-            ('android', EXE, 'fake.apk'),           # kengaytma to'g'ri, imzo yo'q
+            ('android', EXE, 'setup.exe'),          # notöğri kengaytma
+            ('android', EXE, 'fake.apk'),           # kengaytma töğri, imzo yöq
             ('windows', APK, 'fake.exe'),
-            ('windows', b'MZ', 'tiny.exe'),         # bo'sh/buzilgan
+            ('windows', b'MZ', 'tiny.exe'),         # bösh/buzilgan
             ('android', APK, 'app.apk.php'),
         ]
         for platform, content, name in cases:
@@ -105,7 +105,7 @@ class AppReleasesTests(TestCase):
         self.upload(version='1.1.0')
         self.assertEqual(list(AppRelease.objects.filter(is_published=True).values_list('version', flat=True)), ['1.1.0'])
 
-    # ── Tahrirlash / almashtirish / yashirish / o'chirish ──
+    # ── Tahrirlaş / almaştiriş / yaşiriş / öçiriş ──
     def test_edit_and_replace_file(self):
         self.login('admin')
         self.upload()
@@ -114,7 +114,7 @@ class AppReleasesTests(TestCase):
         old_name = rel.file.name
         new_apk = APK + b'new'
         response = self.client.post(reverse('admin_app_release_edit', args=[rel.pk]), {
-            'version': '1.0.1', 'title': 'ITC Academy', 'min_os': 'Android 8+', 'notes': 'Tuzatishlar',
+            'version': '1.0.1', 'title': 'ITC Academy', 'min_os': 'Android 8+', 'notes': 'Tuzatişlar',
             'is_published': 'on', 'platform': 'windows', 'file': SimpleUploadedFile('new.apk', new_apk)})
         self.assertRedirects(response, reverse('admin_app_releases'), fetch_redirect_response=False)
         rel.refresh_from_db()
@@ -142,7 +142,7 @@ class AppReleasesTests(TestCase):
         self.assertFalse(AppRelease.objects.exists())
         self.assertFalse(rel.file.storage.exists(name))
 
-    # ── Foydalanuvchi: yuklab olish va navbar ──
+    # ── Foydalanuvçi: yuklab oliş va navbar ──
     def test_download(self):
         self.login('admin')
         self.upload()
@@ -161,7 +161,7 @@ class AppReleasesTests(TestCase):
         self.login('admin')
         self.upload(is_published='')
         rel = AppRelease.objects.get()
-        self.assertEqual(self.client.get(reverse('app_release_download', args=[rel.pk])).status_code, 200)  # admin tekshira oladi
+        self.assertEqual(self.client.get(reverse('app_release_download', args=[rel.pk])).status_code, 200)  # admin tekşira oladi
         student = Client()
         self.login('student', student)
         self.assertEqual(student.get(reverse('app_release_download', args=[rel.pk])).status_code, 404)
@@ -170,7 +170,7 @@ class AppReleasesTests(TestCase):
         student = Client()
         self.login('student', student)
         html = student.get(reverse('home')).content.decode()
-        # Hali ilova yo'q: ikonka bor, barcha platformalar "Tez kunda"
+        # Hali ilova yöq: ikonka bor, barça platformalar "Tez kunda"
         self.assertIn('nr-apps-pop', html)
         self.assertEqual(html.count('class="nr-apps-soon"'), 5)
         for label in ('Android', 'Windows', 'iOS', 'macOS', 'Linux'):
@@ -184,8 +184,8 @@ class AppReleasesTests(TestCase):
             self.assertIn(reverse('app_release_download', args=[rel.pk]), html)
         page = student.get(reverse('apps_page'))
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'Yuklab olish', count=2)
-        self.assertContains(page, 'ap-btn ap-btn-soon', count=3)  # sahifa kartalari (navbar menyusidan tashqari)
+        self.assertContains(page, 'Yuklab oliş', count=2)
+        self.assertContains(page, 'ap-btn ap-btn-soon', count=3)  # sahifa kartalari (navbar menyusidan taşqari)
 
     def test_other_platform_formats(self):
         self.login('admin')

@@ -1,4 +1,4 @@
-"""Tab'larni bosib tekshirish (vaqtinchalik skript)."""
+"""Tab'larni bosib tekşiriş (vaqtinçalik skript)."""
 import base64
 import json
 import time
@@ -82,7 +82,7 @@ box = chrome.eval("""(() => {
                            width: r.width, height: Math.min(r.height, 2600)});
 })()""")
 chrome.shot('sa_shot_profile_tab.tmp.png', clip=json.loads(box))
-print('profil bo\'limi balandligi:', json.loads(box)['height'])
+print('profil bölimi balandligi:', json.loads(box)['height'])
 
 # Detail: yutuqlar taxtasi va vazifalar tab'i
 chrome.goto(BASE + '/dashboard/startups/it-shaharcha-ks2602/')

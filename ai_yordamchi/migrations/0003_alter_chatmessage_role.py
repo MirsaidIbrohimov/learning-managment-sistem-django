@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='chatmessage',
             name='role',
-            field=models.CharField(choices=[('user', 'Foydalanuvchi'), ('assistant', 'Creative AI')], max_length=20),
+            field=models.CharField(choices=[('user', 'Foydalanuvçi'), ('assistant', 'Creative AI')], max_length=20),
         ),
     ]

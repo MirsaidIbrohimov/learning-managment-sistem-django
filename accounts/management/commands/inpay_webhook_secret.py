@@ -6,7 +6,7 @@ from accounts.tezcheck import TezCheckError
 
 class Command(BaseCommand):
     help = ("inPAY kassasining webhook imzo sirini (whsec_…) oladi. Natijani .env faylidagi "
-            "INPAY_WEBHOOK_SECRET ga yozing. Faqat sk_live_ kalit bilan va oq ro'yxatdagi IP'dan ishlaydi.")
+            "INPAY_WEBHOOK_SECRET ga yozing. Faqat sk_live_ kalit bilan va oq röyxatdagi IP'dan işlaydi.")
 
     def handle(self, *args, **options):
         if not inpay.configured():

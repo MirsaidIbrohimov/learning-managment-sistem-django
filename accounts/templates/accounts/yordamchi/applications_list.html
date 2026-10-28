@@ -66,7 +66,7 @@
 <div class="ya-stats">
     <div class="ya-stat"><div class="ic total"><i class="bi bi-file-earmark-text"></i></div><div><div class="num">{{ total_all|default:"0" }}</div><div class="lbl">Jami</div></div></div>
     <div class="ya-stat"><div class="ic new"><i class="bi bi-bell"></i></div><div><div class="num">{{ total_new|default:"0" }}</div><div class="lbl">Yangi</div></div></div>
-    <div class="ya-stat"><div class="ic contacted"><i class="bi bi-telephone"></i></div><div><div class="num">{{ total_contacted|default:"0" }}</div><div class="lbl">Bog'lanildi</div></div></div>
+    <div class="ya-stat"><div class="ic contacted"><i class="bi bi-telephone"></i></div><div><div class="num">{{ total_contacted|default:"0" }}</div><div class="lbl">Boğlanildi</div></div></div>
     <div class="ya-stat"><div class="ic enrolled"><i class="bi bi-check-circle"></i></div><div><div class="num">{{ total_enrolled|default:"0" }}</div><div class="lbl">Yozildi</div></div></div>
     <div class="ya-stat"><div class="ic rejected"><i class="bi bi-x-circle"></i></div><div><div class="num">{{ total_rejected|default:"0" }}</div><div class="lbl">Rad etildi</div></div></div>
 </div>
@@ -77,9 +77,9 @@
             <input type="hidden" name="type" value="{{ app_type }}">
             <input type="text" name="q" value="{{ q|default:'' }}" class="form-control form-control-sm" style="max-width:240px;" placeholder="Qidiruv...">
             <select name="status" class="form-select form-select-sm" style="max-width:180px;">
-                <option value="">— Barchasi —</option>
+                <option value="">— Barçasi —</option>
                 <option value="new" {% if status == 'new' %}selected{% endif %}>Yangi</option>
-                <option value="contacted" {% if status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                <option value="contacted" {% if status == 'contacted' %}selected{% endif %}>Boğlanildi</option>
                 <option value="enrolled" {% if status == 'enrolled' %}selected{% endif %}>Yozildi</option>
                 <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rad etildi</option>
             </select>
@@ -97,13 +97,13 @@
                         <th>Telefon</th>
                         {% if app_type == 'shaharcha' %}
                         <th>Maktab</th>
-                        <th>Yoshi</th>
+                        <th>Yoşi</th>
                         <th>Mahalla</th>
                         {% else %}
-                        <th>Qiziqish</th>
+                        <th>Qiziqiş</th>
                         {% endif %}
                         <th>Holat</th>
-                        <th>Kim bog'landi</th>
+                        <th>Kim boğlandi</th>
                         <th>Sana</th>
                         {% if can_edit %}<th>Amal</th>{% endif %}
                     </tr>
@@ -134,9 +134,9 @@
                             {% if a.handled_by %}
                             <div class="ya-handled">
                                 <div class="who"><i class="bi bi-person-check text-success me-1"></i>{{ a.handled_by.get_full_name|default:a.handled_by.username }}</div>
-                                <div class="meta">{% if a.handled_by.is_admin %}Admin{% else %}Yordamchi{% endif %}{% if a.handled_at %} · {{ a.handled_at|date:"d.m.Y H:i" }}{% endif %}</div>
+                                <div class="meta">{% if a.handled_by.is_admin %}Admin{% else %}Yordamçi{% endif %}{% if a.handled_at %} · {{ a.handled_at|date:"d.m.Y H:i" }}{% endif %}</div>
                             </div>
-                            {% else %}<span class="text-muted" style="font-size:.8rem;">Hali yo'q</span>{% endif %}
+                            {% else %}<span class="text-muted" style="font-size:.8rem;">Hali yöq</span>{% endif %}
                         </td>
                         <td style="font-size:.78rem;color:var(--yo-text-muted,#6b7280);">{{ a.created_at|date:"d.m.Y H:i" }}</td>
                         {% if can_edit %}
@@ -145,12 +145,12 @@
                                 {% csrf_token %}
                                 <select name="status" class="form-select form-select-sm">
                                     <option value="new" {% if a.status == 'new' %}selected{% endif %}>Yangi</option>
-                                    <option value="contacted" {% if a.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                                    <option value="contacted" {% if a.status == 'contacted' %}selected{% endif %}>Boğlanildi</option>
                                     <option value="enrolled" {% if a.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
                                     <option value="rejected" {% if a.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
                                 </select>
                                 <textarea name="admin_note" rows="1" class="form-control form-control-sm" placeholder="Izoh...">{{ a.admin_note|default:'' }}</textarea>
-                                <button class="btn btn-success btn-sm"><i class="bi bi-check2"></i> Saqlash</button>
+                                <button class="btn btn-success btn-sm"><i class="bi bi-check2"></i> Saqlaş</button>
                             </form>
                         </td>
                         {% endif %}
@@ -161,7 +161,7 @@
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
         {% else %}
-        <div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Arizalar yo'q</p></div>
+        <div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Arizalar yöq</p></div>
         {% endif %}
     </div>
 </div>

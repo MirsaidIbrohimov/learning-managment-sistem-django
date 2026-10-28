@@ -7,7 +7,7 @@
 <div class="pp-head">
     <div>
         <h1><span class="ic"><i class="bi bi-collection-play-fill"></i></span>Darslar holati</h1>
-        <p>{% if selected_child %}{{ selected_child.full_name }} — har bir bo‘lim va dars bo‘yicha bajarilish holati.{% endif %}</p>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — har bir bölim va dars böyiça bajariliş holati.{% endif %}</p>
     </div>
 </div>
 
@@ -20,7 +20,7 @@
         {% include 'parents/portal/partials/ring.html' with value=k.percent size=86 tone=k.percent|tone %}
         <div style="flex:1;min-width:200px;">
             <h3 style="margin:0;font-size:1.2rem;font-weight:850;">{{ k.profession.name }}</h3>
-            <p class="pp-muted" style="margin:4px 0 0;font-size:.86rem;">{{ k.done }} / {{ k.total }} dars bajarildi · {{ k.sections|length }} bo‘lim</p>
+            <p class="pp-muted" style="margin:4px 0 0;font-size:.86rem;">{{ k.done }} / {{ k.total }} dars bajarildi · {{ k.sections|length }} bölim</p>
         </div>
         <div class="pp-legend">
             <span><i style="background:var(--pp-pri)"></i>Video</span><span><i style="background:var(--pp-cy)"></i>Test</span>
@@ -47,19 +47,19 @@
                 <span class="pp-dim" style="font-size:.78rem;min-width:120px;text-align:right;">{{ it.detail }}</span>
             </div>
             {% empty %}
-            <p class="pp-muted" style="padding:10px 24px;margin:0;font-size:.86rem;">Bu bo‘limda kuzatiladigan dars yo‘q.</p>
+            <p class="pp-muted" style="padding:10px 24px;margin:0;font-size:.86rem;">Bu bölimda kuzatiladigan dars yöq.</p>
             {% endfor %}
         </div></div>
     </div>
     {% empty %}
-    <p class="pp-muted" style="padding:18px 20px;margin:0;">Bu kursda hali bo‘limlar yo‘q.</p>
+    <p class="pp-muted" style="padding:18px 20px;margin:0;">Bu kursda hali bölimlar yöq.</p>
     {% endfor %}
 </section>
 {% empty %}
 <div class="pp-card pp-empty" data-reveal="scale">
     <div class="art"><i class="bi bi-mortarboard"></i></div>
     <h4>Kurslar topilmadi</h4>
-    <p>{{ selected_child.first_name }} hali hech qaysi kursga yozilmagan.</p>
+    <p>{{ selected_child.first_name }} hali heç qaysi kursga yozilmagan.</p>
 </div>
 {% endfor %}
 {% endif %}

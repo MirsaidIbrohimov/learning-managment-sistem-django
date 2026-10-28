@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='test',
             name='question_count',
-            field=models.PositiveIntegerField(default=0, help_text='0 = barcha savollar olinadi', verbose_name='Olinadigan savollar soni'),
+            field=models.PositiveIntegerField(default=0, help_text='0 = barça savollar olinadi', verbose_name='Olinadigan savollar soni'),
         ),
     ]

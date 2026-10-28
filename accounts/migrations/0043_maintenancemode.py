@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('is_active', models.BooleanField(default=False, verbose_name='Texnik xizmat rejimi')),
-                ('message', models.CharField(default="Tizimda texnik ishlar olib borilmoqda. Iltimos, keyinroq urinib ko'ring.", max_length=500, verbose_name='Xabar')),
+                ('message', models.CharField(default="Tizimda texnik işlar olib borilmoqda. Iltimos, keyinroq urinib köring.", max_length=500, verbose_name='Xabar')),
                 ('activated_at', models.DateTimeField(auto_now=True)),
                 ('activated_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL, verbose_name='Kim tomonidan')),
             ],

@@ -20,7 +20,7 @@ const shuffle = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).
 const TYPE_META = {
   quiz:     { name: 'Quick Quiz', icon: 'bi-patch-question-fill', color: '#6366f1', mult: 1.0 },
   dragdrop: { name: 'Drag & Drop', icon: 'bi-grip-vertical', color: '#8b5cf6', mult: 1.2 },
-  error:    { name: 'Xato topish', icon: 'bi-bug-fill', color: '#ef4444', mult: 1.3 },
+  error:    { name: 'Xato topiş', icon: 'bi-bug-fill', color: '#ef4444', mult: 1.3 },
   speed:    { name: 'Speed Challenge', icon: 'bi-stopwatch-fill', color: '#f59e0b', mult: 1.4 },
 };
 const WORLDS = [
@@ -28,66 +28,66 @@ const WORLDS = [
     missions: [
       { id: 'm1', name: 'HTML asoslari', type: 'quiz', xp: 100, questions: [
         { q: 'Sahifaning eng katta sarlavhasi qaysi teg?', opts: ['<h1>', '<head>', '<p>', '<title>'], a: 0 },
-        { q: 'Rasm qo\'yish uchun qaysi teg?', opts: ['<src>', '<img>', '<pic>', '<image>'], a: 1 },
+        { q: 'Rasm qöyiş uçun qaysi teg?', opts: ['<src>', '<img>', '<pic>', '<image>'], a: 1 },
         { q: 'Havola (link) qaysi teg bilan yaratiladi?', opts: ['<link>', '<href>', '<a>', '<url>'], a: 2 },
-        { q: 'Ro\'yxat elementi qaysi teg?', opts: ['<li>', '<ul>', '<item>', '<row>'], a: 0 },
+        { q: 'Röyxat elementi qaysi teg?', opts: ['<li>', '<ul>', '<item>', '<row>'], a: 0 },
       ] },
-      { id: 'm2', name: 'CSS qoidalarini tartiblang', type: 'dragdrop', xp: 130, prompt: 'CSS qoidasini to\'g\'ri tartibda joylashtiring:', answer: ['selector', '{', 'property: value;', '}'] },
+      { id: 'm2', name: 'CSS qoidalarini tartiblang', type: 'dragdrop', xp: 130, prompt: 'CSS qoidasini töğri tartibda joylaştiring:', answer: ['selector', '{', 'property: value;', '}'] },
       { id: 'm3', name: 'Buzilgan HTML', type: 'error', xp: 150, questions: [
-        { q: 'Qaysi qatorda XATO bor?', code: '1) <p>Salom</p>\n2) <img src="a.png">\n3) <h1>Sarlavha<h1>\n4) <a href="#">link</a>', opts: ['1-qator', '2-qator', '3-qator (yopuvchi teg noto\'g\'ri)', '4-qator'], a: 2 },
-        { q: 'Qaysi atribut NOTO\'G\'RI yozilgan?', code: '<a hraf="page.html">Sahifa</a>', opts: ['hraf (href bo\'lishi kerak)', '<a> tegi', 'Yopuvchi teg', 'Matn'], a: 0 },
-        { q: 'JS: xatoni toping', code: 'let x = 5\nconsole.log(y);', opts: ['x e\'lon qilingan', 'y aniqlanmagan', 'console to\'g\'ri', 'log to\'g\'ri'], a: 1 },
+        { q: 'Qaysi qatorda XATO bor?', code: '1) <p>Salom</p>\n2) <img src="a.png">\n3) <h1>Sarlavha<h1>\n4) <a href="#">link</a>', opts: ['1-qator', '2-qator', '3-qator (yopuvçi teg notöğri)', '4-qator'], a: 2 },
+        { q: 'Qaysi atribut NOTÖĞRI yozilgan?', code: '<a hraf="page.html">Sahifa</a>', opts: ['hraf (href bölişi kerak)', '<a> tegi', 'Yopuvçi teg', 'Matn'], a: 0 },
+        { q: 'JS: xatoni toping', code: 'let x = 5\nconsole.log(y);', opts: ['x e\'lon qilingan', 'y aniqlanmagan', 'console töğri', 'log töğri'], a: 1 },
       ] },
       { id: 'm4', name: 'Tezkor kod sinovi', type: 'speed', xp: 180, time: 40, questions: [
-        { q: 'CSS: matn rangini o\'zgartiruvchi xususiyat?', opts: ['color', 'background', 'font', 'text'], a: 0 },
+        { q: 'CSS: matn rangini özgartiruvçi xususiyat?', opts: ['color', 'background', 'font', 'text'], a: 0 },
         { q: 'JS massiv uzunligi?', opts: ['.size', '.length', '.count', '.len'], a: 1 },
         { q: 'Qaysi sikl mavjud?', opts: ['repeat', 'loop', 'for', 'each'], a: 2 },
         { q: 'HTML qatorni buzmaydigan teg?', opts: ['<br>', '<hr>', '<div>', '<span>'], a: 3 },
-        { q: 'CSS: ichki bo\'shliq?', opts: ['padding', 'margin', 'gap', 'space'], a: 0 },
+        { q: 'CSS: içki böşliq?', opts: ['padding', 'margin', 'gap', 'space'], a: 0 },
       ] },
     ] },
   { key: 'sat', name: 'SAT World', emoji: '📘', grad: 'linear-gradient(135deg,#8b5cf6,#ec4899)', desc: 'Vocabulary, synonyms, reading.',
     missions: [
       { id: 'm1', name: 'Vocabulary Battle', type: 'quiz', xp: 100, questions: [
-        { q: '"Abundant" so\'zining ma\'nosi?', opts: ['Ko\'p, mo\'l', 'Kam', 'Qiyin', 'Tez'], a: 0 },
+        { q: '"Abundant" sözining ma\'nosi?', opts: ['Köp, möl', 'Kam', 'Qiyin', 'Tez'], a: 0 },
         { q: '"Benevolent" — ?', opts: ['Yovuz', 'Xayrixoh', 'Tez', 'Katta'], a: 1 },
-        { q: '"Diligent" — ?', opts: ['Dangasa', 'Baxtli', 'Tirishqoq', 'Sokin'], a: 2 },
-        { q: '"Candid" — ?', opts: ['Yashirin', 'Murakkab', 'Yolg\'on', 'Ochiq, samimiy'], a: 3 },
+        { q: '"Diligent" — ?', opts: ['Dangasa', 'Baxtli', 'Tirişqoq', 'Sokin'], a: 2 },
+        { q: '"Candid" — ?', opts: ['Yaşirin', 'Murakkab', 'Yolğon', 'Oçiq, samimiy'], a: 3 },
       ] },
-      { id: 'm2', name: 'Synonym tartibi', type: 'dragdrop', xp: 130, prompt: '"Happy" so\'zining sinonimlarini joylashtiring:', answer: ['joyful', 'cheerful', 'content', 'delighted'] },
+      { id: 'm2', name: 'Synonym tartibi', type: 'dragdrop', xp: 130, prompt: '"Happy" sözining sinonimlarini joylaştiring:', answer: ['joyful', 'cheerful', 'content', 'delighted'] },
       { id: 'm3', name: 'Grammatik xato', type: 'error', xp: 150, questions: [
         { q: 'Qaysi gapda XATO bor?', opts: ['She goes to school.', 'They is happy.', 'I have a book.', 'We play football.'], a: 1 },
         { q: 'Xato qaysi?', opts: ['He don\'t like tea.', 'He likes tea.', 'She reads.', 'It works.'], a: 0 },
-        { q: 'Noto\'g\'ri jumla?', opts: ['There are many cars.', 'There is a car.', 'There is many cars.', 'I am ready.'], a: 2 },
+        { q: 'Notöğri jumla?', opts: ['There are many cars.', 'There is a car.', 'There is many cars.', 'I am ready.'], a: 2 },
       ] },
       { id: 'm4', name: 'Timed Vocabulary', type: 'speed', xp: 180, time: 35, questions: [
         { q: '"Rapid" sinonimi?', opts: ['Fast', 'Slow', 'Big', 'Old'], a: 0 },
         { q: '"Ancient" antonimi?', opts: ['Old', 'Modern', 'Large', 'Tall'], a: 1 },
-        { q: '"Generous" — ?', opts: ['Ziqna', 'Yovuz', 'Saxiy', 'Kuchli'], a: 2 },
+        { q: '"Generous" — ?', opts: ['Ziqna', 'Yovuz', 'Saxiy', 'Kuçli'], a: 2 },
         { q: '"Brief" — ?', opts: ['Uzun', 'Katta', 'Sekin', 'Qisqa'], a: 3 },
-        { q: '"Enormous" — ?', opts: ['Juda katta', 'Kichik', 'O\'rta', 'Bo\'sh'], a: 0 },
+        { q: '"Enormous" — ?', opts: ['Juda katta', 'Kiçik', 'Örta', 'Böş'], a: 0 },
       ] },
     ] },
   { key: 'ielts', name: 'IELTS World', emoji: '🎧', grad: 'linear-gradient(135deg,#06b6d4,#22c55e)', desc: 'Vocabulary, grammar, reading.',
     missions: [
       { id: 'm1', name: 'Vocabulary Mission', type: 'quiz', xp: 100, questions: [
-        { q: '"Significant" ma\'nosi?', opts: ['Muhim', 'Oson', 'Kichik', 'Tez'], a: 0 },
-        { q: '"Acquire" — ?', opts: ['Yo\'qotmoq', 'Egallamoq', 'Sotmoq', 'Buzmoq'], a: 1 },
-        { q: '"Consequence" — ?', opts: ['Sabab', 'Boshlanish', 'Natija', 'Savol'], a: 2 },
-        { q: '"Reluctant" — ?', opts: ['Xohlovchi', 'Tez', 'Baxtli', 'Istamaydigan'], a: 3 },
+        { q: '"Significant" ma\'nosi?', opts: ['Muhim', 'Oson', 'Kiçik', 'Tez'], a: 0 },
+        { q: '"Acquire" — ?', opts: ['Yöqotmoq', 'Egallamoq', 'Sotmoq', 'Buzmoq'], a: 1 },
+        { q: '"Consequence" — ?', opts: ['Sabab', 'Boşlaniş', 'Natija', 'Savol'], a: 2 },
+        { q: '"Reluctant" — ?', opts: ['Xohlovçi', 'Tez', 'Baxtli', 'Istamaydigan'], a: 3 },
       ] },
-      { id: 'm2', name: 'Gap tuzilishi', type: 'dragdrop', xp: 130, prompt: 'So\'zlardan to\'g\'ri gap tuzing:', answer: ['I', 'have', 'lived', 'here', 'for years'] },
+      { id: 'm2', name: 'Gap tuzilişi', type: 'dragdrop', xp: 130, prompt: 'Sözlardan töğri gap tuzing:', answer: ['I', 'have', 'lived', 'here', 'for years'] },
       { id: 'm3', name: 'Grammar correction', type: 'error', xp: 150, questions: [
         { q: 'Xato qaysi gapda?', opts: ['If I were you...', 'She have finished.', 'They had left.', 'We will go.'], a: 1 },
-        { q: 'Noto\'g\'ri?', opts: ['much information', 'many informations', 'some water', 'a few books'], a: 1 },
+        { q: 'Notöğri?', opts: ['much information', 'many informations', 'some water', 'a few books'], a: 1 },
         { q: 'Xato?', opts: ['interested in', 'good at', 'depend of', 'afraid of'], a: 2 },
       ] },
       { id: 'm4', name: 'Listening tezligi', type: 'speed', xp: 180, time: 35, questions: [
-        { q: '"Approximately" — ?', opts: ['Taxminan', 'Aniq', 'Hech qachon', 'Doim'], a: 0 },
-        { q: '"Decline" — ?', opts: ['Oshmoq', 'Pasaymoq', 'To\'xtamoq', 'Boshlanmoq'], a: 1 },
-        { q: '"Sufficient" — ?', opts: ['Kam', 'Ortiqcha', 'Yetarli', 'Bo\'sh'], a: 2 },
-        { q: '"Eventually" — ?', opts: ['Darhol', 'Hech qachon', 'Ba\'zan', 'Oxir-oqibat'], a: 3 },
-        { q: '"Crucial" — ?', opts: ['Hal qiluvchi', 'Oddiy', 'Kichik', 'Oson'], a: 0 },
+        { q: '"Approximately" — ?', opts: ['Taxminan', 'Aniq', 'Heç qaçon', 'Doim'], a: 0 },
+        { q: '"Decline" — ?', opts: ['Oşmoq', 'Pasaymoq', 'Töxtamoq', 'Boşlanmoq'], a: 1 },
+        { q: '"Sufficient" — ?', opts: ['Kam', 'Ortiqça', 'Yetarli', 'Böş'], a: 2 },
+        { q: '"Eventually" — ?', opts: ['Darhol', 'Heç qaçon', 'Ba\'zan', 'Oxir-oqibat'], a: 3 },
+        { q: '"Crucial" — ?', opts: ['Hal qiluvçi', 'Oddiy', 'Kiçik', 'Oson'], a: 0 },
       ] },
     ] },
   { key: 'math', name: 'Mathematics', emoji: '🔢', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)', desc: 'Arifmetika, mantiq va tezlik.',
@@ -98,11 +98,11 @@ const WORLDS = [
         { q: '7² = ?', opts: ['42', '14', '49', '56'], a: 2 },
         { q: '15% × 200 = ?', opts: ['20', '25', '15', '30'], a: 3 },
       ] },
-      { id: 'm2', name: 'O\'sish tartibi', type: 'dragdrop', xp: 130, prompt: 'Sonlarni o\'sish tartibida joylashtiring:', answer: ['3', '7', '12', '21', '45'] },
+      { id: 'm2', name: 'Ösiş tartibi', type: 'dragdrop', xp: 130, prompt: 'Sonlarni ösiş tartibida joylaştiring:', answer: ['3', '7', '12', '21', '45'] },
       { id: 'm3', name: 'Xato tenglama', type: 'error', xp: 150, questions: [
-        { q: 'Qaysi tenglama NOTO\'G\'RI?', opts: ['2+2=4', '5×3=15', '9-4=6', '10÷2=5'], a: 2 },
+        { q: 'Qaysi tenglama NOTÖĞRI?', opts: ['2+2=4', '5×3=15', '9-4=6', '10÷2=5'], a: 2 },
         { q: 'Xato qaysi?', opts: ['6²=36', '√64=8', '3³=27', '4²=18'], a: 3 },
-        { q: 'Noto\'g\'ri?', opts: ['7×7=49', '8×6=46', '9×9=81', '5×5=25'], a: 1 },
+        { q: 'Notöğri?', opts: ['7×7=49', '8×6=46', '9×9=81', '5×5=25'], a: 1 },
       ] },
       { id: 'm4', name: 'Tezkor hisob', type: 'speed', xp: 180, time: 35, questions: [
         { q: '9 + 6 = ?', opts: ['15', '14', '16', '13'], a: 0 },
@@ -117,16 +117,16 @@ const WORLD_BY_KEY = Object.fromEntries(WORLDS.map(w => [w.key, w]));
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────
 const ACHIEVEMENTS = [
-  { code: 'explorer', name: 'Kashshof', desc: 'Birinchi missiyani yakunladingiz', icon: 'bi-compass-fill', color: '#22c55e', cond: c => c.firstEver },
+  { code: 'explorer', name: 'Kaşşof', desc: 'Birinçi missiyani yakunladingiz', icon: 'bi-compass-fill', color: '#22c55e', cond: c => c.firstEver },
   { code: 'perfect_score', name: 'Mukammal', desc: 'Missiyani 100% bajardingiz', icon: 'bi-bullseye', color: '#6366f1', cond: c => c.accuracy >= 100 },
-  { code: 'speed_runner', name: 'Chaqqon', desc: 'Speed missiyasini yutdingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.type === 'speed' && c.accuracy >= 60 },
+  { code: 'speed_runner', name: 'Çaqqon', desc: 'Speed missiyasini yutdingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.type === 'speed' && c.accuracy >= 60 },
   { code: 'html_master', name: 'HTML ustasi', desc: 'Programming olamida 3 missiya', icon: 'bi-code-slash', color: '#06b6d4', cond: c => c.worldDone.programming >= 3 },
-  { code: 'sat_expert', name: 'SAT eksperti', desc: 'SAT olamini boshladingiz', icon: 'bi-book-fill', color: '#8b5cf6', cond: c => (c.worldDone.sat || 0) >= 2 },
-  { code: 'ielts_champ', name: 'IELTS chempioni', desc: 'IELTS olamida 2 missiya', icon: 'bi-translate', color: '#14b8a6', cond: c => (c.worldDone.ielts || 0) >= 2 },
+  { code: 'sat_expert', name: 'SAT eksperti', desc: 'SAT olamini boşladingiz', icon: 'bi-book-fill', color: '#8b5cf6', cond: c => (c.worldDone.sat || 0) >= 2 },
+  { code: 'ielts_champ', name: 'IELTS çempioni', desc: 'IELTS olamida 2 missiya', icon: 'bi-translate', color: '#14b8a6', cond: c => (c.worldDone.ielts || 0) >= 2 },
   { code: 'scholar', name: 'Olim', desc: '8 ta missiya yakunladingiz', icon: 'bi-mortarboard-fill', color: '#a855f7', cond: c => c.totalDone >= 8 },
   { code: 'daily_hero', name: 'Kunlik qahramon', desc: 'Kunlik challenge\'ni bajardingiz', icon: 'bi-calendar-check-fill', color: '#ec4899', cond: c => c.isDaily && c.accuracy >= 50 },
   { code: 'streak_7', name: '7 kun', desc: '7 kun ketma-ket', icon: 'bi-fire', color: '#fb923c', cond: c => (c.profile.streak_days || 0) >= 7 },
-  { code: 'level_5', name: 'Yuksalish', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#eab308', cond: c => (c.profile.level || 1) >= 5 },
+  { code: 'level_5', name: 'Yuksaliş', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#eab308', cond: c => (c.profile.level || 1) >= 5 },
 ];
 const ACH = Object.fromEntries(ACHIEVEMENTS.map(a => [a.code, a]));
 
@@ -199,12 +199,12 @@ function renderWorlds() {
     card.style.setProperty('--w-grad', w.grad);
     card.setAttribute('tabindex', '0'); card.setAttribute('role', 'button');
     card.innerHTML = `
-      ${unlocked ? '' : `<div class="wc-lock"><i class="bi bi-lock-fill"></i> Avval oldingi olamni boshlang</div>`}
+      ${unlocked ? '' : `<div class="wc-lock"><i class="bi bi-lock-fill"></i> Avval oldingi olamni boşlang</div>`}
       <div class="wc-top"><div class="wc-emoji">${w.emoji}</div><div class="wc-pct">${pct}%</div></div>
       <div class="wc-name">${esc(w.name)}</div>
       <div class="wc-desc">${esc(w.desc)}</div>
       <div class="wc-bar"><span style="width:${pct}%"></span></div>
-      <div class="wc-foot"><span class="wc-missions">${done}/${total} missiya</span><span class="wc-enter">Kirish <i class="bi bi-arrow-right"></i></span></div>`;
+      <div class="wc-foot"><span class="wc-missions">${done}/${total} missiya</span><span class="wc-enter">Kiriş <i class="bi bi-arrow-right"></i></span></div>`;
     const open = () => { if (unlocked) openWorld(w.key); else toast('Bu olam hali qulflangan', 'warn', 'bi-lock-fill'); };
     card.onclick = open; card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } };
     grid.appendChild(card);
@@ -259,7 +259,7 @@ function renderStep() {
   $('mt-step').textContent = Math.min(mStep + 1, mTotal);
   $('mt-progress-fill').style.width = (mStep / mTotal * 100) + '%';
   $('mt-feedback').textContent = ''; $('mt-feedback').className = 'mt-feedback';
-  const act = $('mt-action'); act.disabled = true; act.innerHTML = '<i class="bi bi-check-lg"></i> Tekshirish';
+  const act = $('mt-action'); act.disabled = true; act.innerHTML = '<i class="bi bi-check-lg"></i> Tekşiriş';
   const stage = $('mission-stage'); stage.innerHTML = '';
   if (curMission.type === 'dragdrop') return renderDragDrop(stage);
   // quiz / error / speed → question with options
@@ -321,9 +321,9 @@ function checkStep() {
   }
   $('mt-score').textContent = mScore;
   const last = mStep >= mTotal - 1;
-  $('mt-action').innerHTML = last ? '<i class="bi bi-flag-fill"></i> Yakunlash' : '<i class="bi bi-arrow-right"></i> Keyingisi';
+  $('mt-action').innerHTML = last ? '<i class="bi bi-flag-fill"></i> Yakunlaş' : '<i class="bi bi-arrow-right"></i> Keyingisi';
 }
-function feedback(ok) { const f = $('mt-feedback'); f.className = 'mt-feedback ' + (ok ? 'ok' : 'bad'); f.innerHTML = ok ? '<i class="bi bi-check-circle-fill"></i> To\'g\'ri!' : '<i class="bi bi-x-circle-fill"></i> Noto\'g\'ri'; }
+function feedback(ok) { const f = $('mt-feedback'); f.className = 'mt-feedback ' + (ok ? 'ok' : 'bad'); f.innerHTML = ok ? '<i class="bi bi-check-circle-fill"></i> Töğri!' : '<i class="bi bi-x-circle-fill"></i> Notöğri'; }
 function sAfter(ok) { if (ok) sOk(); else sBad(); }
 function nextStep() { mStep++; if (mStep >= mTotal) { finishMission(); return; } renderStep(); }
 
@@ -364,7 +364,7 @@ function awardLocal(score, acc, candidates, levelId, modeName) {
 function showResult(score, acc, xp, coins, newly, leveledUp, newLevel) {
   const won = acc >= 50; const ring = $('result-ring'); ring.className = 'result-ring' + (won ? ' win' : ''); ring.textContent = acc >= 90 ? '🏆' : won ? '🎉' : '💪';
   $('result-stars').textContent = won ? (acc >= 90 ? '⭐⭐⭐' : acc >= 70 ? '⭐⭐' : '⭐') : '';
-  $('result-title').textContent = acc >= 90 ? 'Mukammal!' : won ? 'Ajoyib!' : 'Yana urinib ko\'ring!';
+  $('result-title').textContent = acc >= 90 ? 'Mukammal!' : won ? 'Ajoyib!' : 'Yana urinib köring!';
   $('result-sub').textContent = `${curWorld.name} · ${curMission.name}`;
   $('result-xp').textContent = '+' + xp + ' XP';
   $('rs-correct').textContent = mCorrect + '/' + mTotal; $('rs-acc').textContent = acc + '%'; $('rs-coins').textContent = '+' + coins;
@@ -387,7 +387,7 @@ function startDaily() {
 }
 
 // ─── FX / TOASTS ──────────────────────────────────────────
-function achToast(code) { const a = ACH[code]; if (!a) return; sOk(); const t = create('div', 'toast ach'); t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq ochildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200); }
+function achToast(code) { const a = ACH[code]; if (!a) return; sOk(); const t = create('div', 'toast ach'); t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq oçildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200); }
 function levelUp(n) { $('levelup-num').textContent = n; $('levelup').classList.remove('hidden'); sLevel(); confetti(90); setTimeout(() => $('levelup').classList.add('hidden'), 2500); }
 function toast(msg, kind = 'info', icon = 'bi-info-circle-fill') { const t = create('div', 'toast ' + kind); t.innerHTML = `<i class="bi ${icon}"></i><span>${esc(msg)}</span>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2500); }
 function confetti(count = 60) { const layer = $('confetti'); if (!layer || settings.motion) return; layer.innerHTML = ''; const cols = ['#6366f1', '#8b5cf6', '#a855f7', '#22c55e', '#f59e0b', '#ec4899']; const frag = document.createDocumentFragment(); for (let i = 0; i < count; i++) { const p = create('div', 'confetti-piece'); p.style.left = Math.random() * 100 + 'vw'; p.style.background = cols[i % cols.length]; p.style.animationDuration = (2.3 + Math.random() * 1.8) + 's'; p.style.animationDelay = (Math.random() * .4) + 's'; p.style.width = (6 + Math.random() * 7) + 'px'; p.style.height = (8 + Math.random() * 9) + 'px'; frag.appendChild(p); } layer.appendChild(frag); setTimeout(() => layer.innerHTML = '', 4600); }
@@ -400,10 +400,10 @@ async function renderLeader() {
   const list = $('lb-list'), me = $('lb-me'); list.innerHTML = '<div class="lb-empty">Yuklanmoqda…</div>'; me.textContent = '';
   if (!TOKEN || !API_BASE || !LMS_USER || LMS_USER.id === 0) { list.innerHTML = '<div class="lb-empty">Reyting faqat LMS hisobida mavjud</div>'; return; }
   try { const r = await fetch(URLS.gxLeader, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKEN, game: GAME, limit: 20 }) }); const d = await r.json();
-    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yo\'q — birinchi bo\'ling!</div>'; return; }
+    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yöq — birinçi böling!</div>'; return; }
     list.innerHTML = ''; d.leaderboard.forEach(p => { const row = create('div', 'lb-row' + (p.is_me ? ' me' : '')); row.innerHTML = `<div class="lb-rank">${p.rank <= 3 ? '🏅' : p.rank}</div><div class="lb-ava">${initials(p.name)}</div><div class="lb-name">${esc(p.name)}<div class="lb-lvl">Daraja ${p.level}</div></div><div class="lb-xp">${p.xp} XP</div>`; list.appendChild(row); });
-    if (d.me && d.me.rank) me.textContent = `Sizning o'rningiz: #${d.me.rank} · ${d.me.xp} XP`;
-  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bo\'lmadi</div>'; }
+    if (d.me && d.me.rank) me.textContent = `Sizning örningiz: #${d.me.rank} · ${d.me.xp} XP`;
+  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bölmadi</div>'; }
 }
 function renderStats() {
   const totalMissions = WORLDS.reduce((s, w) => s + w.missions.length, 0);
@@ -412,7 +412,7 @@ function renderStats() {
     { i: 'bi-bar-chart-fill', c: '#6366f1', v: profile.level || 1, l: 'Daraja' },
     { i: 'bi-fire', c: '#fb923c', v: profile.streak_days || 0, l: 'Streak' },
     { i: 'bi-coin', c: '#eab308', v: profile.coins || 0, l: 'Coinlar' },
-    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'O\'ynaldi' },
+    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'Öynaldi' },
     { i: 'bi-trophy-fill', c: '#a855f7', v: (profile.achievements || []).length + '/' + ACHIEVEMENTS.length, l: 'Yutuqlar' },
     { i: 'bi-flag-fill', c: '#06b6d4', v: allDoneIds().length + '/' + totalMissions, l: 'Missiyalar' },
     { i: 'bi-award-fill', c: '#ec4899', v: profile.best_score || 0, l: 'Eng yuqori ball' },

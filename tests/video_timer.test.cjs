@@ -38,6 +38,6 @@ assert.equal(show(36.5), '1:04');
 assert.equal(show(35.8), '1:04');
 assert.equal(show(99.5), '0:01');
 assert.equal(show(100), '0:00');
-assert.equal(context.timerLabel.textContent, 'Tekshirilmoqda');
+assert.equal(context.timerLabel.textContent, 'Tekşirilmoqda');
 assert(context.beats >= 1, 'Finalization beat is requested at the end');
 console.log('PASS: countdown follows real playback, corrects to server, never freezes ahead of it.');

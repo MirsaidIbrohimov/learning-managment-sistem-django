@@ -37,7 +37,7 @@ urlpatterns = [
     # MY StartUp (read-only: leaderboard, progress, tasks, team, metrics, finance)
     path('startup/', include('api.startup.urls')),
 
-    # Yordamchi admin (assistant_admin) boshqaruv API
+    # Yordamçi admin (assistant_admin) boşqaruv API
     path('assistant/', include('api.assistant.urls')),
 
     # Library (kutubxona) — books, rental requests, admin CRUD
@@ -48,11 +48,11 @@ urlpatterns = [
     # in accounts/views.py and teacher/views.py.
     path('quiz/', include('quiz.urls')),
 
-    # External Games (tashqi o'yinlar uchun SSO + result API)
+    # External Games (taşqi öyinlar uçun SSO + result API)
     path('games/external/verify/', games_external_api.verify, name='external_game_verify'),
     path('games/external/result/', games_external_api.submit_result, name='external_game_result'),
 
-    # Multiplayer (Shashka uchun)
+    # Multiplayer (Şaşka uçun)
     path('games/external/mp/find/',   games_external_api.mp_find,   name='external_game_mp_find'),
     path('games/external/mp/state/',  games_external_api.mp_state,  name='external_game_mp_state'),
     path('games/external/mp/ping/',   games_external_api.mp_ping,   name='external_game_mp_ping'),

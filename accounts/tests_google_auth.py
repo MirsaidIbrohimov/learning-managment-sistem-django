@@ -1,4 +1,4 @@
-"""Google hisobni profilga ulash va Google orqali kirish."""
+"""Google hisobni profilga ulaş va Google orqali kiriş."""
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
@@ -112,7 +112,7 @@ class GoogleAuthTests(TestCase):
         admin = CustomUser.objects.create_user(username='boss', password='x', role='admin', phone='+998900000899')
         self.client.force_login(admin)
         resp = self.client.get(reverse('telegram_bot:admin_telegram') + '?tab=google')
-        self.assertContains(resp, 'Ulanishlar')
+        self.assertContains(resp, 'Ulanişlar')
         self.assertContains(resp, 'ali@gmail.com')
         self.client.post(reverse('social_admin_unlink', args=[acc.pk]))
         self.assertFalse(SocialAccount.objects.exists())

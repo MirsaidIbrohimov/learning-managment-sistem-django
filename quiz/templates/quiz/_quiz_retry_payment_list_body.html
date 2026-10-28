@@ -4,7 +4,7 @@
 <style>
 /* ══════════════════════════════════════════════════════════
    QUIZ RETRY PAYMENT LIST — Teacher Panel
-   Chiroyli · Qulay · Karta dizayn
+   Çiroyli · Qulay · Karta dizayn
 ══════════════════════════════════════════════════════════ */
 
 /* ── Page header ── */
@@ -284,8 +284,8 @@
   <div class="qrp-page-title-wrap">
     <div class="qrp-page-icon"><i class="bi bi-credit-card-2-front-fill"></i></div>
     <div>
-      <h1 class="qrp-page-title">Quiz to'lovlari</h1>
-      <p class="qrp-page-sub">Qayta urinish uchun yuborilgan to'lov cheklarini ko'rib chiqing</p>
+      <h1 class="qrp-page-title">Quiz tölovlari</h1>
+      <p class="qrp-page-sub">Qayta uriniş uçun yuborilgan tölov çeklarini körib çiqing</p>
     </div>
   </div>
   <a href="{% url 'quizui:quiz_list' %}" class="qrp-ftab f-all" style="text-decoration:none;">
@@ -299,7 +299,7 @@
     <div class="qrp-stat-icon total"><i class="bi bi-collection-fill"></i></div>
     <div>
       <div class="qrp-stat-val">{{ total_count }}</div>
-      <div class="qrp-stat-lbl">Jami so'rovlar</div>
+      <div class="qrp-stat-lbl">Jami sörovlar</div>
     </div>
   </div>
   <div class="qrp-stat">
@@ -330,8 +330,8 @@
 <div class="qrp-alert-banner">
   <div class="qrp-alert-banner-icon">⚡</div>
   <div class="qrp-alert-banner-text">
-    <strong>{{ pending_count }} ta yangi to'lov</strong> ko'rib chiqilishini kutmoqda!
-    <a href="?status=pending" style="color:#0d6efd;font-weight:700;margin-left:6px;">Ko'rish →</a>
+    <strong>{{ pending_count }} ta yangi tölov</strong> körib çiqilişini kutmoqda!
+    <a href="?status=pending" style="color:#0d6efd;font-weight:700;margin-left:6px;">Köriş →</a>
   </div>
 </div>
 {% endif %}
@@ -349,7 +349,7 @@
     <i class="bi bi-x-circle-fill"></i> Rad etilgan
   </a>
   <a href="?status=" class="qrp-ftab f-all {% if not status_filter %}active{% endif %}" style="text-decoration:none;">
-    <i class="bi bi-list-ul"></i> Barchasi
+    <i class="bi bi-list-ul"></i> Barçasi
   </a>
 </div>
 
@@ -402,7 +402,7 @@
       <div class="qrp-row">
         <div class="qrp-field">
           <span class="qrp-field-label"><i class="bi bi-cash-stack" style="margin-right:4px;"></i>Summa</span>
-          <span class="qrp-field-val" style="color:#0d6efd;font-size:1.05rem;">{{ payment.amount|floatformat:0 }} so'm</span>
+          <span class="qrp-field-val" style="color:#0d6efd;font-size:1.05rem;">{{ payment.amount|floatformat:0 }} söm</span>
         </div>
         <div class="qrp-field">
           <span class="qrp-field-label"><i class="bi bi-calendar3" style="margin-right:4px;"></i>Yuborilgan</span>
@@ -412,10 +412,10 @@
 
       <!-- Receipt thumbnail -->
       <div class="qrp-receipt-wrap" onclick="qrpShowReceipt('{{ payment.receipt_image.url }}')">
-        <img src="{{ payment.receipt_image.url }}" class="qrp-receipt-thumb" alt="Chek">
+        <img src="{{ payment.receipt_image.url }}" class="qrp-receipt-thumb" alt="Çek">
         <div class="qrp-receipt-text">
-          <strong><i class="bi bi-image" style="margin-right:5px;"></i>To'lov cheki</strong>
-          Kattalashtirish uchun bosing
+          <strong><i class="bi bi-image" style="margin-right:5px;"></i>Tölov çeki</strong>
+          Kattalaştiriş uçun bosing
         </div>
         <i class="bi bi-arrows-fullscreen" style="margin-left:auto;font-size:1.1rem;color:#0d6efd;flex-shrink:0;"></i>
       </div>
@@ -424,7 +424,7 @@
       {% if payment.status == 'rejected' and payment.reject_reason %}
       <div class="qrp-reject-reason">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <span><strong>Rad etish sababi:</strong> {{ payment.reject_reason }}</span>
+        <span><strong>Rad etiş sababi:</strong> {{ payment.reject_reason }}</span>
       </div>
       {% endif %}
 
@@ -432,7 +432,7 @@
       {% if payment.reviewed_by %}
       <div class="qrp-reviewed-by">
         <i class="bi bi-person-check"></i>
-        Ko'rib chiqdi: <strong>{{ payment.reviewed_by.full_name }}</strong>
+        Körib çiqdi: <strong>{{ payment.reviewed_by.full_name }}</strong>
         {% if payment.reviewed_at %}&nbsp;·&nbsp;{{ payment.reviewed_at|date:"d.m.Y H:i" }}{% endif %}
       </div>
       {% endif %}
@@ -445,13 +445,13 @@
       <form method="POST" action="{% url 'quizui:quiz_retry_payment_approve' payment.pk %}" style="flex:1">
         {% csrf_token %}
         <button type="submit" class="qrp-btn qrp-btn-approve">
-          <i class="bi bi-check-lg"></i> Tasdiqlash
+          <i class="bi bi-check-lg"></i> Tasdiqlaş
         </button>
       </form>
       <div style="flex:1">
         <button type="button" class="qrp-btn qrp-btn-reject"
                 onclick="qrpOpenReject({{ payment.pk }}, '{{ payment.student.full_name|escapejs }}', '{{ payment.quiz.title|escapejs }}')">
-          <i class="bi bi-x-lg"></i> Rad etish
+          <i class="bi bi-x-lg"></i> Rad etiş
         </button>
       </div>
     </div>
@@ -465,11 +465,11 @@
 <!-- Empty state -->
 <div class="qrp-empty">
   <div class="qrp-empty-icon"><i class="bi bi-inbox"></i></div>
-  <h4>To'lovlar topilmadi</h4>
-  <p>Tanlangan filterga mos to'lov so'rovlari hozircha yo'q.</p>
+  <h4>Tölovlar topilmadi</h4>
+  <p>Tanlangan filterga mos tölov sörovlari hozirça yöq.</p>
   {% if status_filter == 'pending' %}
   <p style="margin-top:10px;font-size:.8rem;color:#10b981;">
-    <i class="bi bi-check-circle-fill" style="margin-right:5px;"></i>Barcha to'lovlar ko'rib chiqilgan!
+    <i class="bi bi-check-circle-fill" style="margin-right:5px;"></i>Barça tölovlar körib çiqilgan!
   </p>
   {% endif %}
 </div>
@@ -478,7 +478,7 @@
 <!-- ─── Receipt lightbox ─── -->
 <div class="qrp-lightbox" id="qrpLightbox" onclick="qrpHideReceipt()">
   <div class="qrp-lightbox-inner" onclick="event.stopPropagation()">
-    <img id="qrpLightboxImg" src="" alt="Chek">
+    <img id="qrpLightboxImg" src="" alt="Çek">
   </div>
   <button class="qrp-lightbox-close" onclick="qrpHideReceipt()"><i class="bi bi-x-lg"></i></button>
 </div>
@@ -487,7 +487,7 @@
 <div class="qrp-modal-overlay" id="qrpRejectModal">
   <div class="qrp-modal">
     <div class="qrp-modal-head">
-      <h5><i class="bi bi-x-octagon-fill"></i> Rad etish</h5>
+      <h5><i class="bi bi-x-octagon-fill"></i> Rad etiş</h5>
       <button class="qrp-modal-close" onclick="qrpCloseReject()"><i class="bi bi-x-lg"></i></button>
     </div>
     <form method="POST" id="qrpRejectForm">
@@ -502,14 +502,14 @@
             <div class="qrp-modal-student-quiz" id="qrpRejectQuizTitle">—</div>
           </div>
         </div>
-        <div class="qrp-modal-label">Rad etish sababi (ixtiyoriy)</div>
+        <div class="qrp-modal-label">Rad etiş sababi (ixtiyoriy)</div>
         <textarea class="qrp-modal-textarea" name="reason" id="qrpRejectReason"
-                  placeholder="Masalan: Chek rasmli emas, yoki summa to'g'ri kelmadi..."></textarea>
+                  placeholder="Masalan: Çek rasmli emas, yoki summa töğri kelmadi..."></textarea>
       </div>
       <div class="qrp-modal-footer">
-        <button type="button" class="qrp-modal-btn-cancel" onclick="qrpCloseReject()">Bekor qilish</button>
+        <button type="button" class="qrp-modal-btn-cancel" onclick="qrpCloseReject()">Bekor qiliş</button>
         <button type="submit" class="qrp-modal-btn-reject">
-          <i class="bi bi-x-circle-fill" style="margin-right:6px;"></i>Rad etish
+          <i class="bi bi-x-circle-fill" style="margin-right:6px;"></i>Rad etiş
         </button>
       </div>
     </form>

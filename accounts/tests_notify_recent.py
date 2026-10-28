@@ -11,7 +11,7 @@ from accounts.models import (
 
 
 class NotifyRecentTests(TestCase):
-    """Qo'ng'iroq paneli: suhbatlar va xabarlardan oxirgi 3 tadan, faqat o'qilmaganlari."""
+    """Qönğiroq paneli: suhbatlar va xabarlardan oxirgi 3 tadan, faqat öqilmaganlari."""
 
     def setUp(self):
         cache.clear()
@@ -33,7 +33,7 @@ class NotifyRecentTests(TestCase):
     def test_only_unread_last_three_of_each(self):
         for i in range(5):
             DirectMessage.objects.create(sender=self.other, recipient=self.user, message=f'dm {i}', is_read=i in (0, 4))
-        GroupChatMessage.objects.create(profession=self.course, sender=self.user, message="o'zim")
+        GroupChatMessage.objects.create(profession=self.course, sender=self.user, message="özim")
         for i in range(5):
             Message.objects.create(recipient=self.user, title=f'Xabar {i}', content='c', is_read=i == 4)
         recent = self.feed()

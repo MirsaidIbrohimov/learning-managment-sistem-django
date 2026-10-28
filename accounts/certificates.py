@@ -1,9 +1,9 @@
 """
-Sertifikatlarni avtomatik berish va PDF generatsiya qilish.
+Sertifikatlarni avtomatik beriş va PDF generatsiya qiliş.
 
 Dizayn: static/certificates/cert_template.png (admin yuborgan dizayn,
-QR kod fonning bir qismi — o'zgartirilmaydi).
-Shriftlar: static/fonts/CertScript.ttf (ism), static/fonts/CertBold.ttf.
+QR kod fonning bir qismi — özgartirilmaydi).
+Şriftlar: static/fonts/CertScript.ttf (ism), static/fonts/CertBold.ttf.
 """
 import html
 import io
@@ -16,11 +16,11 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-# Shablon rasm o'lchami (px) — koordinatalar shu masshtabda
+# Şablon rasm ölçami (px) — koordinatalar şu masştabda
 _TPL_W = 2400.0
 
-# Matn joylashuvlari (shablon px koordinatalarida, yuqoridan pastga)
-# series/date — QR ostidagi chiziqlar markaziga (x≈2080) tekislangan
+# Matn joylaşuvlari (şablon px koordinatalarida, yuqoridan pastga)
+# series/date — QR ostidagi çiziqlar markaziga (x≈2080) tekislangan
 _POS = {
     'name':   {'x': 1190, 'y': 845,  'size': 44, 'max_width': 1500},
     'course': {'x': 1200, 'y': 1063, 'size': 17, 'max_width': 1300},
@@ -47,7 +47,7 @@ def _register_fonts():
 
 
 def _fit_font_size(text, font_name, size, max_width_px, scale):
-    """Matn belgilangan kenglikka sig'magancha shrift o'lchamini kichraytiradi."""
+    """Matn belgilangan kenglikka siğmagança şrift ölçamini kiçraytiradi."""
     from reportlab.pdfbase.pdfmetrics import stringWidth
     max_width_pt = max_width_px * scale
     while size > 8 and stringWidth(text, font_name, size) > max_width_pt:
@@ -77,7 +77,7 @@ def render_design_pdf(design, name, course, series, date_str, title=''):
     """Admin dizayni asosida PDF yaratadi (bytes).
 
     Sahifa kengligi A4 albom kengligiga teng, balandligi — fon rasmi
-    nisbatida. Shuning uchun shrift o'lchamlari standart dizayn bilan bir xil.
+    nisbatida. Şuning uçun şrift ölçamlari standart dizayn bilan bir xil.
     """
     from reportlab.lib.pagesizes import landscape, A4
     from reportlab.lib.utils import ImageReader
@@ -111,7 +111,7 @@ def render_design_pdf(design, name, course, series, date_str, title=''):
         if not f['visible'] or not text:
             continue
         font = font_names.get(f['font'], 'CertBold')
-        # Ism standart dizayndagidek ~62% kenglikka, qolganlari 90% ga sig'sin
+        # Ism standart dizayndagidek ~62% kenglikka, qolganlari 90% ga siğsin
         max_w = page_w * (0.62 if f['key'] == 'name' else 0.9)
         size = _fit_font_size(text, font, f['size'], max_w, 1)
         c.setFont(font, size)
@@ -124,7 +124,7 @@ def render_design_pdf(design, name, course, series, date_str, title=''):
 def generate_certificate_pdf(certificate):
     """Sertifikat PDF faylini yaratadi (bytes qaytaradi).
 
-    Kursga dizayn biriktirilgan bo'lsa — o'sha dizayn, aks holda standart.
+    Kursga dizayn biriktirilgan bölsa — öşa dizayn, aks holda standart.
     """
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import landscape, A4
@@ -153,7 +153,7 @@ def generate_certificate_pdf(certificate):
 
     student_name = certificate.recipient_display
     course_line = f"<< {certificate.profession.name.upper()} >> COURSE"
-    # Sertifikatda BERILGAN SANA ko'rsatiladi
+    # Sertifikatda BERILGAN SANA körsatiladi
     issue_date = (
         certificate.valid_from.strftime('%d.%m.%Y')
         if certificate.valid_from else ''
@@ -193,7 +193,7 @@ def generate_certificate_pdf(certificate):
 
 
 def regenerate_certificate_file(certificate):
-    """Sertifikat ma'lumotlari o'zgarganda PDF faylni qayta yaratadi."""
+    """Sertifikat ma'lumotlari özgarganda PDF faylni qayta yaratadi."""
     try:
         pdf_bytes = generate_certificate_pdf(certificate)
         filename = f"{certificate.certificate_id}.pdf"
@@ -206,19 +206,19 @@ def regenerate_certificate_file(certificate):
         return True
     except Exception:
         logger.exception(
-            "Sertifikat PDF yaratishda xatolik (cert=%s)", certificate.pk
+            "Sertifikat PDF yaratişda xatolik (cert=%s)", certificate.pk
         )
         return False
 
 
 def student_passed_final_test(student, profession):
-    """O'quvchi kursning yakuniy testidan o'tganmi?
+    """Öquvçi kursning yakuniy testidan ötganmi?
 
     Ikki test tizimi qamrab olinadi:
       1. Eski tizim: Test(test_type='final') + TestResult(passed=True)
-      2. Yangi tizim: shu darsga biriktirilgan Quiz + Attempt(passed=True)
+      2. Yangi tizim: şu darsga biriktirilgan Quiz + Attempt(passed=True)
 
-    Kursda yakuniy test bo'lmasa sertifikat olish mumkin emas.
+    Kursda yakuniy test bölmasa sertifikat oliş mumkin emas.
     """
     from accounts.models import Test, TestResult
 
@@ -236,7 +236,7 @@ def student_passed_final_test(student, profession):
     ).exists():
         return True
 
-    # 2) Yakuniy test darsi yangi Quiz tizimiga ko'chirilgan bo'lishi mumkin
+    # 2) Yakuniy test darsi yangi Quiz tizimiga köçirilgan bölişi mumkin
     try:
         from quiz.models import Attempt
         final_lesson_ids = list(final_tests.values_list('lesson_id', flat=True))
@@ -250,7 +250,7 @@ def student_passed_final_test(student, profession):
 
 
 def _notify_certificate_telegram(certificate):
-    """Sertifikat egasiga va umumiy Telegram guruhiga tabrik yuborish."""
+    """Sertifikat egasiga va umumiy Telegram guruhiga tabrik yuboriş."""
     from telegram_bot.utils import notify_group, notify_user
 
     student = certificate.student
@@ -265,32 +265,32 @@ def _notify_certificate_telegram(certificate):
             student.telegram_id,
             f"🎓✨ <b>TABRIKLAYMIZ!</b> ✨🎓\n\n"
             f"Hurmatli <b>{student_name}</b>!\n\n"
-            f"Siz <b>“{profession_name}”</b> yo'nalishini muvaffaqiyatli "
-            f"tamomlab, rasmiy sertifikatga ega bo'ldingiz! 🎉\n\n"
+            f"Siz <b>“{profession_name}”</b> yönalişini muvaffaqiyatli "
+            f"tamomlab, rasmiy sertifikatga ega böldingiz! 🎉\n\n"
             f"🪪 Sertifikat ID: <b>{certificate_id}</b>\n"
             f"📅 Berilgan sana: {certificate.valid_from.strftime('%d.%m.%Y')}\n\n"
-            f"🔍 Tekshirish: {verify_url}\n"
-            f"📥 Yuklab olish: {site_url}/certificate/{certificate.pk}/download/\n\n"
+            f"🔍 Tekşiriş: {verify_url}\n"
+            f"📥 Yuklab oliş: {site_url}/certificate/{certificate.pk}/download/\n\n"
             f"🏆 Yangi marralar va ulkan muvaffaqiyatlar tilaymiz!"
         )
 
     notify_group(
         f"🏆🎓 <b>YANGI YUTUQ!</b> 🎓🏆\n\n"
         f"🎉 <b>{student_name}</b> sertifikat bilan taqdirlandi!\n\n"
-        f"📚 Yo'nalish: <b>{profession_name}</b>\n"
+        f"📚 Yönaliş: <b>{profession_name}</b>\n"
         f"🪪 Sertifikat ID: <b>{certificate_id}</b>\n"
         f"📅 Berilgan sana: {certificate.valid_from.strftime('%d.%m.%Y')}\n\n"
-        f"👏 O'quvchimizni ushbu yutug'i bilan chin qalbdan tabriklaymiz!\n"
+        f"👏 Öquvçimizni uşbu yutuği bilan çin qalbdan tabriklaymiz!\n"
         f"🚀 Kelgusi faoliyatida yanada katta zafarlar tilaymiz!\n\n"
-        f"🔍 Sertifikatni tekshirish: {verify_url}"
+        f"🔍 Sertifikatni tekşiriş: {verify_url}"
     )
 
 
 def issue_manual_certificate(profession, issued_by, first_name='', last_name='', student=None):
-    """Admin tomonidan qo'lda sertifikat berish.
+    """Admin tomonidan qölda sertifikat beriş.
 
-    Ism-familiya erkin kiritiladi YOKI platformadagi o'quvchi tanlanadi.
-    Yakuniy test talab qilinmaydi — admin o'zi mas'ul.
+    Ism-familiya erkin kiritiladi YOKI platformadagi öquvçi tanlanadi.
+    Yakuniy test talab qilinmaydi — admin özi mas'ul.
 
     Returns: (certificate | None, error_message | None)
     """
@@ -302,13 +302,13 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
         cfg = None
     if not cfg or not cfg.series_code.strip():
         return None, (
-            f"\"{profession.name}\" kursi uchun seriya kodi sozlanmagan. "
-            f"Avval Sozlamalar bo'limida seriyani kiriting."
+            f"\"{profession.name}\" kursi uçun seriya kodi sozlanmagan. "
+            f"Avval Sozlamalar bölimida seriyani kiriting."
         )
 
     recipient_name = f"{first_name.strip()} {last_name.strip()}".strip()
     if student is None and not recipient_name:
-        return None, "Ism-familiya kiriting yoki o'quvchini tanlang."
+        return None, "Ism-familiya kiriting yoki öquvçini tanlang."
 
     if student is not None:
         existing = Certificate.objects.filter(
@@ -316,8 +316,8 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
         ).first()
         if existing:
             return None, (
-                f"{student.get_full_name() or student.username} ga bu kurs uchun "
-                f"allaqachon sertifikat berilgan ({existing.certificate_id})."
+                f"{student.get_full_name() or student.username} ga bu kurs uçun "
+                f"allaqaçon sertifikat berilgan ({existing.certificate_id})."
             )
 
     today = timezone.localdate()
@@ -335,14 +335,14 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
         valid_from=today,
         valid_until=valid_until,
         issued_by=issued_by,
-        description="Administrator tomonidan qo'lda berildi.",
+        description="Administrator tomonidan qölda berildi.",
     )
     cert.save()
 
     if not regenerate_certificate_file(cert):
-        return cert, "Sertifikat yaratildi, lekin PDF faylda xatolik — qayta yaratib ko'ring."
+        return cert, "Sertifikat yaratildi, lekin PDF faylda xatolik — qayta yaratib köring."
 
-    # Platformadagi o'quvchi bo'lsa — xabar yuborish
+    # Platformadagi öquvçi bölsa — xabar yuboriş
     if student is not None:
         try:
             Message.objects.create(
@@ -351,36 +351,36 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
                 title="🎓 Sizga sertifikat berildi!",
                 content=(
                     f"Hurmatli {student.get_full_name() or student.username}!\n\n"
-                    f"🎓 \"{profession.name}\" kursi bo'yicha sizga sertifikat berildi.\n\n"
+                    f"🎓 \"{profession.name}\" kursi böyiça sizga sertifikat berildi.\n\n"
                     f"🏅 Seriya: {cert.certificate_id}\n"
-                    f"⏳ Amal qilish muddati: {cert.valid_until.strftime('%d.%m.%Y')}\n\n"
-                    f"📜 Kurs sahifasidan yuklab olishingiz mumkin."
+                    f"⏳ Amal qiliş muddati: {cert.valid_until.strftime('%d.%m.%Y')}\n\n"
+                    f"📜 Kurs sahifasidan yuklab olişingiz mumkin."
                 ),
                 message_type='achievement',
             )
         except Exception:
             logger.exception("Manual cert xabari xatosi (cert=%s)", cert.pk)
 
-    # Platformadagi o'quvchiga shaxsiy xabar; har qanday holatda guruhga e'lon.
+    # Platformadagi öquvçiga şaxsiy xabar; har qanday holatda guruhga e'lon.
     _notify_certificate_telegram(cert)
 
     return cert, None
 
 
 def issue_course_certificate(student, profession, issued_by=None):
-    """Yakuniy testdan o'tgan o'quvchiga sertifikatni avtomatik berish."""
+    """Yakuniy testdan ötgan öquvçiga sertifikatni avtomatik beriş."""
     from accounts.models import Certificate, CertificateSettings, Message
 
     # 1) Kursda sertifikat yoqilganmi
     if not getattr(profession, 'has_certificate', False):
-        return None, "Bu kurs uchun sertifikat joriy qilinmagan."
+        return None, "Bu kurs uçun sertifikat joriy qilinmagan."
 
-    # 2) Sertifikatli kursda yakuniy test bo'lishi majburiy
+    # 2) Sertifikatli kursda yakuniy test bölişi majburiy
     from accounts.models import Test
     if not Test.objects.filter(
         lesson__profession=profession, test_type='final'
     ).exists():
-        return None, "Sertifikat olish uchun kursda yakuniy test bo'lishi kerak."
+        return None, "Sertifikat oliş uçun kursda yakuniy test bölişi kerak."
 
     # 3) Seriya sozlanganmi
     try:
@@ -389,22 +389,22 @@ def issue_course_certificate(student, profession, issued_by=None):
         cfg = None
     if not cfg or not cfg.series_code.strip():
         return None, (
-            "Bu kurs uchun sertifikat seriyasi hali sozlanmagan. "
+            "Bu kurs uçun sertifikat seriyasi hali sozlanmagan. "
             "Administratorga murojaat qiling."
         )
 
-    # 4) Allaqachon berilganmi
+    # 4) Allaqaçon berilganmi
     existing = Certificate.objects.filter(
         student=student, profession=profession
     ).first()
     if existing:
         return existing, None
 
-    # 5) Yakuniy testdan o'tganmi
+    # 5) Yakuniy testdan ötganmi
     if not student_passed_final_test(student, profession):
-        return None, "Sertifikat olish uchun avval yakuniy testdan o'ting."
+        return None, "Sertifikat oliş uçun avval yakuniy testdan öting."
 
-    # 6) Yaratish
+    # 6) Yaratiş
     today = timezone.localdate()
     try:
         valid_until = today.replace(year=today.year + cfg.validity_years)
@@ -418,7 +418,7 @@ def issue_course_certificate(student, profession, issued_by=None):
         valid_from=today,
         valid_until=valid_until,
         issued_by=issued_by,
-        description=f"{profession.name} kursi yakuniy testidan muvaffaqiyatli o'tgani uchun avtomatik berildi.",
+        description=f"{profession.name} kursi yakuniy testidan muvaffaqiyatli ötgani uçun avtomatik berildi.",
     )
     cert.save()
     regenerate_certificate_file(cert)
@@ -432,19 +432,19 @@ def issue_course_certificate(student, profession, issued_by=None):
             content=(
                 f"Hurmatli {student.get_full_name() or student.username}!\n\n"
                 f"🎓 \"{profession.name}\" kursini muvaffaqiyatli tugatganingiz "
-                f"uchun sizga SERTIFIKAT berildi!\n\n"
+                f"uçun sizga SERTIFIKAT berildi!\n\n"
                 f"📋 Ma'lumotlar:\n"
                 f"   🏅 Seriya: {cert.certificate_id}\n"
                 f"   📅 Berilgan sana: {cert.valid_from.strftime('%d.%m.%Y')}\n"
-                f"   ⏳ Amal qilish muddati: {cert.valid_until.strftime('%d.%m.%Y')}\n\n"
+                f"   ⏳ Amal qiliş muddati: {cert.valid_until.strftime('%d.%m.%Y')}\n\n"
                 f"📜 Sertifikatingizni kurs sahifasidan yoki profilingizdagi "
-                f"\"Sertifikatlarim\" bo'limidan yuklab olishingiz mumkin.\n\n"
+                f"\"Sertifikatlarim\" bölimidan yuklab olişingiz mumkin.\n\n"
                 f"💜 Hurmat bilan,\nIT Creative jamoasi"
             ),
             message_type='achievement',
         )
     except Exception:
-        logger.exception("Sertifikat chat xabari xatosi (cert=%s)", cert.pk)
+        logger.exception("Sertifikat çat xabari xatosi (cert=%s)", cert.pk)
 
     _notify_certificate_telegram(cert)
 

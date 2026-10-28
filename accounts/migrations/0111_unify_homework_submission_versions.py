@@ -74,12 +74,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homeworkrevision',
             name='feedback',
-            field=models.TextField(blank=True, default='', verbose_name="O'sha paytdagi izoh"),
+            field=models.TextField(blank=True, default='', verbose_name="Öşa paytdagi izoh"),
         ),
         migrations.AddField(
             model_name='homeworkrevision',
             name='grade',
-            field=models.IntegerField(blank=True, null=True, verbose_name="O'sha paytdagi baho"),
+            field=models.IntegerField(blank=True, null=True, verbose_name="Öşa paytdagi baho"),
         ),
         migrations.AddField(
             model_name='homeworkrevision',
@@ -87,14 +87,14 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[
                     ('pending', 'Kutilmoqda'),
-                    ('reviewing', "Ko'rib chiqilmoqda"),
-                    ('revision', 'Qayta ishlash kerak'),
+                    ('reviewing', "Körib çiqilmoqda"),
+                    ('revision', 'Qayta işlaş kerak'),
                     ('accepted', 'Qabul qilindi'),
                     ('graded', 'Baholangan'),
                 ],
                 default='pending',
                 max_length=20,
-                verbose_name="O'sha paytdagi holat",
+                verbose_name="Öşa paytdagi holat",
             ),
         ),
         migrations.AddField(
@@ -104,7 +104,7 @@ class Migration(migrations.Migration):
                 choices=[('file', 'Fayl'), ('text', 'Matn')],
                 default='file',
                 max_length=10,
-                verbose_name='Topshirish turi',
+                verbose_name='Topşiriş turi',
             ),
         ),
         migrations.AddField(

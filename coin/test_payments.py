@@ -182,7 +182,7 @@ class CoinPaymentTests(PaymentFixtures, TestCase):
         from coin.views import market_list
         Product.objects.create(name='Test product', coin_price=50, stock=3, image='test.jpg')
         response = market_list(self.request())
-        self.assertContains(response, 'Tanga sotib olish')
+        self.assertContains(response, 'Tanga sotib oliş')
         self.assertContains(response, 'ct-form')
         self.assertContains(response, 'mk-grid')
         self.assertEqual(Product.objects.get().stock, 3)

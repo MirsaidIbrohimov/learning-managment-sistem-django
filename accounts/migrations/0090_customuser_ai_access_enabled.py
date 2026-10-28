@@ -2,7 +2,7 @@ from django.db import migrations, models
 
 
 def add_ai_access_column(apps, schema_editor):
-    """ai_access_enabled ustunini faqat mavjud bo'lmasa qo'shadi (xavfsiz, takror-bardosh)."""
+    """ai_access_enabled ustunini faqat mavjud bölmasa qöşadi (xavfsiz, takror-bardosh)."""
     conn = schema_editor.connection
     table = 'accounts_customuser'
     with conn.cursor() as cursor:
@@ -31,8 +31,8 @@ class Migration(migrations.Migration):
                     name='ai_access_enabled',
                     field=models.BooleanField(
                         default=True,
-                        help_text="O'qituvchi uchun AI yordamida test/vazifa yaratish va baholash funksiyalariga ruxsat.",
-                        verbose_name="AI funksiyasidan foydalanish ruxsati",
+                        help_text="Öqituvçi uçun AI yordamida test/vazifa yaratiş va baholaş funksiyalariga ruxsat.",
+                        verbose_name="AI funksiyasidan foydalaniş ruxsati",
                     ),
                 ),
             ],

@@ -30,8 +30,8 @@ def create_bill(*, order, return_url):
     url_path = '/bills'
     body = json.dumps({
         'amount_minor': order.amount_minor,
-        'title': (f"Tanga xaridi — {order.coin_quantity if order.coin_quantity is not None else order.amount_som} tanga" if order.purpose == 'coins' else f"Kurs xaridi — {order.course.name if order.course_id else ''} — #{order.student_id}"[:200] if order.purpose == 'course' else f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
-        'description': f"O'quvchi ID: {order.student_id}; LMS buyurtmasi: {order.external_reference}",
+        'title': (f"Tanga xaridi — {order.coin_quantity if order.coin_quantity is not None else order.amount_som} tanga" if order.purpose == 'coins' else f"Kurs xaridi — {order.course.name if order.course_id else ''} — #{order.student_id}"[:200] if order.purpose == 'course' else f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik tölov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
+        'description': f"Öquvçi ID: {order.student_id}; LMS buyurtmasi: {order.external_reference}",
         'external_reference': order.external_reference,
         'return_url': return_url,
     }, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
@@ -57,27 +57,27 @@ def create_bill(*, order, return_url):
         response = requests.post(endpoint, data=body, headers=headers, timeout=(5, 15))
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
-        logger.warning('Tezcheck bill so‘rovi bajarilmadi: %s', type(exc).__name__)
-        raise TezCheckError('Tezcheck bilan bog‘lanib bo‘lmadi. Keyinroq qayta urinib ko‘ring.') from None
+        logger.warning('Tezcheck bill sörovi bajarilmadi: %s', type(exc).__name__)
+        raise TezCheckError('Tezcheck bilan boğlanib bölmadi. Keyinroq qayta urinib köring.') from None
     if not response.ok or not isinstance(payload, dict) or not isinstance(payload.get('data'), dict):
         error = payload.get('error', {}) if isinstance(payload, dict) else {}
         code = error.get('code', 'unknown') if isinstance(error, dict) else 'unknown'
         logger.warning('Tezcheck bill rad etildi: HTTP %s, code=%s', response.status_code, code)
-        raise TezCheckError('Tezcheck hisob yaratishni rad etdi. Sozlamalarni tekshiring yoki administratorga xabar bering.')
+        raise TezCheckError('Tezcheck hisob yaratişni rad etdi. Sozlamalarni tekşiring yoki administratorga xabar bering.')
     data = payload['data']
     bill = data.get('bill') or {}
     payment_url = data.get('payment_url')
     if not bill.get('id') or not payment_url:
-        raise TezCheckError('Tezcheck javobida to‘lov havolasi topilmadi.')
+        raise TezCheckError('Tezcheck javobida tölov havolasi topilmadi.')
     parsed = urlparse(str(payment_url))
     allowed_host = parsed.hostname == 'tezcheck.uz' or bool(
         parsed.hostname and parsed.hostname.endswith('.tezcheck.uz')
     )
     local_test_host = bool(settings.DEBUG and parsed.hostname in ('localhost', '127.0.0.1'))
     if parsed.scheme != 'https' and not local_test_host:
-        raise TezCheckError('Tezcheck to‘lov havolasi xavfsiz HTTPS manzili emas.')
+        raise TezCheckError('Tezcheck tölov havolasi xavfsiz HTTPS manzili emas.')
     if not allowed_host and not local_test_host:
-        raise TezCheckError('Tezcheck javobida kutilmagan to‘lov domeni qaytdi.')
+        raise TezCheckError('Tezcheck javobida kutilmagan tölov domeni qaytdi.')
     return {
         'bill_id': str(bill['id']),
         'bill_reference': str(bill.get('reference') or ''),
@@ -111,11 +111,11 @@ def fetch_bill(bill_id):
     try:
         response = requests.post(endpoint, data=body, headers=headers, timeout=(5, 15))
         if response.status_code in (404, 410):
-            raise TezCheckBillUnavailable('Oldingi to‘lov havolasi endi mavjud emas.')
+            raise TezCheckBillUnavailable('Oldingi tölov havolasi endi mavjud emas.')
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
-        logger.warning('Tezcheck bill holatini olishda xato: %s', type(exc).__name__)
-        raise TezCheckError('Tezcheck holatini olib bo‘lmadi. Keyinroq urinib ko‘ring.') from None
+        logger.warning('Tezcheck bill holatini olişda xato: %s', type(exc).__name__)
+        raise TezCheckError('Tezcheck holatini olib bölmadi. Keyinroq urinib köring.') from None
     if not response.ok or not isinstance(payload, dict) or not isinstance(payload.get('data'), dict):
         raise TezCheckError('Tezcheck bill holatini qaytarmadi.')
     return payload['data']

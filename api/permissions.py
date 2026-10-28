@@ -12,45 +12,45 @@ class IsAdmin(BasePermission):
 
 
 class IsAssistantAdmin(BasePermission):
-    """Faqat yordamchi admin (assistant_admin) ruxsati"""
+    """Faqat yordamçi admin (assistant_admin) ruxsati"""
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'assistant_admin'
 
 
 class IsAdminOrAssistant(BasePermission):
-    """Admin yoki yordamchi admin ruxsati - API orqali boshqarish uchun"""
+    """Admin yoki yordamçi admin ruxsati - API orqali boşqariş uçun"""
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role in ('admin', 'assistant_admin')
 
 
 class HasAssistantPerm(BasePermission):
-    """Foydalanuvchida muayyan granular permission borligini tekshiradi.
+    """Foydalanuvçida muayyan granular permission borligini tekşiradi.
 
-    Foydalanish (DRF view'da):
+    Foydalaniş (DRF view'da):
         permission_classes = [IsAuthenticated, IsNotBlocked, HasAssistantPerm.require('users.view')]
 
-    Yoki view'da `required_perm = 'users.view'` atributini belgilash mumkin
-    va shunda HasAssistantPerm darhol qo'llaniladi.
+    Yoki view'da `required_perm = 'users.view'` atributini belgilaş mumkin
+    va şunda HasAssistantPerm darhol qöllaniladi.
     """
     required_perm: Optional[str] = None
-    message = "Sizda bu amal uchun ruxsat yo'q."
+    message = "Sizda bu amal uçun ruxsat yöq."
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        # Faqat admin yoki assistant_admin foydalanishi mumkin
+        # Faqat admin yoki assistant_admin foydalanişi mumkin
         if request.user.role not in ('admin', 'assistant_admin'):
             return False
-        # Permission kodini olish
+        # Permission kodini oliş
         perm = self.required_perm or getattr(view, 'required_perm', None)
         if perm is None:
-            # Permission kodi belgilanmagan -> faqat admin uchun ochiq
+            # Permission kodi belgilanmagan -> faqat admin uçun oçiq
             return request.user.is_admin
         return request.user.has_assistant_perm(perm)
 
     @classmethod
     def require(cls, perm_code: str):
-        """Permission klassini ma'lum kod bilan dinamik yaratish."""
+        """Permission klassini ma'lum kod bilan dinamik yaratiş."""
         return type(
             f'HasPerm_{perm_code.replace(".", "_")}',
             (cls,),
@@ -69,7 +69,7 @@ class IsStudent(BasePermission):
 
 
 class IsNotBlocked(BasePermission):
-    """Bloklangan foydalanuvchilarni API dan cheklash"""
+    """Bloklangan foydalanuvçilarni API dan çeklaş"""
     message = "Sizning akkauntingiz bloklangan."
 
     def has_permission(self, request, view):
@@ -85,7 +85,7 @@ class IsNotBlocked(BasePermission):
 
 
 class IsProfileCompleted(BasePermission):
-    message = "Profilingizni to'ldiring."
+    message = "Profilingizni töldiring."
 
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
@@ -96,7 +96,7 @@ class IsProfileCompleted(BasePermission):
 
 
 class IsOwnerOrAdmin(BasePermission):
-    """Object-level permission: faqat o'z ma'lumotlari yoki admin"""
+    """Object-level permission: faqat öz ma'lumotlari yoki admin"""
     def has_object_permission(self, request, view, obj):
         if request.user.role in ('admin', 'assistant_admin'):
             return True

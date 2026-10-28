@@ -40,7 +40,7 @@ class PortalTests(TestCase):
         question = Question.objects.create(type=QuestionType.SINGLE_CHOICE, text='2+2=?')
         AnswerOption.objects.create(question=question, text='4', is_correct=True, order=0)
         QuizQuestion.objects.create(quiz=self.quiz, question=question, order=0)
-        self.other_lesson = Lesson.objects.create(profession=self.other, title='Boshqa', lesson_type='homework')
+        self.other_lesson = Lesson.objects.create(profession=self.other, title='Boşqa', lesson_type='homework')
         Homework.objects.create(lesson=self.other_lesson, description='x')
 
         today = timezone.localdate()
@@ -70,7 +70,7 @@ class PortalTests(TestCase):
         body = response.content.decode()
         self.assertIn(reverse('kurslarim:video_beat', args=[self.video.pk]), body)
         self.assertIn('kp-nav', body)  # portal sarlavhasi, asosiy menyu emas
-        # Asosiy tizim sahifalari va API'lari yopiqligicha qoladi.
+        # Asosiy tizim sahifalari va API'lari yopiqligiça qoladi.
         self.assertRedirects(self.client.get(reverse('profession_detail', args=[self.course.pk])),
                              reverse('payment_wall'), fetch_redirect_response=False)
         self.assertEqual(self.client.get(f'/api/hw/{self.homework.pk}/').status_code, 403)

@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Ilovalar boshqaruvi - Admin{% endblock %}
-{% block topbar_title %}Ilovalar boshqaruvi{% endblock %}
+{% block title %}Ilovalar boşqaruvi - Admin{% endblock %}
+{% block topbar_title %}Ilovalar boşqaruvi{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -49,10 +49,10 @@
 <div class="ar-page">
   <div class="ar-head">
     <div>
-      <h1><i class="bi bi-app-indicator me-2"></i>Ilovalar boshqaruvi</h1>
-      <p>Android, Windows, iOS, macOS va Linux o‘rnatuvchilari. Har platformaning eng yangi e’lon qilingan versiyasi foydalanuvchilar navbarida chiqadi; yuklanmagan platforma “Tez kunda” bo‘lib turadi.</p>
+      <h1><i class="bi bi-app-indicator me-2"></i>Ilovalar boşqaruvi</h1>
+      <p>Android, Windows, iOS, macOS va Linux örnatuvçilari. Har platformaning eng yangi e’lon qilingan versiyasi foydalanuvçilar navbarida çiqadi; yuklanmagan platforma “Tez kunda” bölib turadi.</p>
     </div>
-    <a class="btn btn-outline-secondary btn-sm" href="{% url 'apps_page' %}" target="_blank" rel="noopener"><i class="bi bi-eye me-1"></i>Foydalanuvchi sahifasi</a>
+    <a class="btn btn-outline-secondary btn-sm" href="{% url 'apps_page' %}" target="_blank" rel="noopener"><i class="bi bi-eye me-1"></i>Foydalanuvçi sahifasi</a>
   </div>
 
   <div class="ar-stats">
@@ -60,14 +60,14 @@
     <div class="ar-stat"><span class="ic" style="background:color-mix(in srgb,{{ e.color }} 14%,transparent);color:{{ e.color }}"><i class="bi bi-{{ e.icon }}"></i></span>
       <span><b>{% if e.release %}v{{ e.release.version }}{% else %}Tez kunda{% endif %}</b><small>{{ e.label }} · {% if e.release %}navbarda{% else %}hali yuklanmagan{% endif %}</small></span></div>
     {% endfor %}
-    <div class="ar-stat"><span class="ic dl"><i class="bi bi-download"></i></span><span><b>{{ total_downloads }}</b><small>Jami yuklab olishlar</small></span></div>
+    <div class="ar-stat"><span class="ic dl"><i class="bi bi-download"></i></span><span><b>{{ total_downloads }}</b><small>Jami yuklab olişlar</small></span></div>
   </div>
 
-  {# ───── Yuklash / tahrirlash formasi ───── #}
+  {# ───── Yuklaş / tahrirlaş formasi ───── #}
   <div class="ar-card" id="arForm">
     <h2>
-      {% if edit %}<i class="bi bi-pencil-square"></i>Tahrirlash: {{ edit.get_platform_display }} v{{ edit.version }}
-      {% else %}<i class="bi bi-cloud-arrow-up"></i>Yangi versiya yuklash{% endif %}
+      {% if edit %}<i class="bi bi-pencil-square"></i>Tahrirlaş: {{ edit.get_platform_display }} v{{ edit.version }}
+      {% else %}<i class="bi bi-cloud-arrow-up"></i>Yangi versiya yuklaş{% endif %}
     </h2>
     <form method="post" enctype="multipart/form-data" action="{% if edit %}{% url 'admin_app_release_edit' edit.pk %}{% else %}{% url 'admin_app_releases' %}{% endif %}" id="arUpload" novalidate>
       {% csrf_token %}
@@ -78,7 +78,7 @@
             <option value="">— tanlang —</option>
             {% for value, label in platforms %}<option value="{{ value }}" {% if form.platform == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
           </select>
-          {% if edit %}<div class="form-text">Platformani o‘zgartirib bo‘lmaydi.</div>{% endif %}
+          {% if edit %}<div class="form-text">Platformani özgartirib bölmaydi.</div>{% endif %}
         </div>
         <div class="col-md-3">
           <label class="form-label fw-semibold" for="arVersion">Versiya</label>
@@ -97,65 +97,65 @@
           <textarea class="form-control" name="notes" id="arNotes" rows="4" placeholder="Bu versiyada nima yangi?">{{ form.notes|default:'' }}</textarea>
         </div>
         <div class="col-md-5">
-          <label class="form-label fw-semibold">{% if edit %}Faylni almashtirish (ixtiyoriy){% else %}Fayl{% endif %}</label>
+          <label class="form-label fw-semibold">{% if edit %}Faylni almaştiriş (ixtiyoriy){% else %}Fayl{% endif %}</label>
           <label class="ar-drop" id="arDrop">
             <input type="file" name="file" id="arFile" {% if not edit %}required{% endif %}>
             <i class="bi bi-file-earmark-arrow-up"></i>
-            <span class="fname" id="arFileName">{% if edit %}{{ edit.original_name }} ({{ edit.file_size|filesizeformat }}){% else %}Faylni tanlang yoki shu yerga tashlang{% endif %}</span>
-            <small class="d-block mt-1" id="arFileHint">Android: {{ allowed_types.android }} · Windows: {{ allowed_types.windows }} · iOS: {{ allowed_types.ios }} · macOS: {{ allowed_types.macos }} · Linux: {{ allowed_types.linux }} · {{ max_mb }} MB gacha</small>
+            <span class="fname" id="arFileName">{% if edit %}{{ edit.original_name }} ({{ edit.file_size|filesizeformat }}){% else %}Faylni tanlang yoki şu yerga taşlang{% endif %}</span>
+            <small class="d-block mt-1" id="arFileHint">Android: {{ allowed_types.android }} · Windows: {{ allowed_types.windows }} · iOS: {{ allowed_types.ios }} · macOS: {{ allowed_types.macos }} · Linux: {{ allowed_types.linux }} · {{ max_mb }} MB gaça</small>
           </label>
-          {% if edit %}<div class="form-text">Yangi fayl yuklansa eskisi o‘chiriladi va yuklab olishlar hisobi nolga tushadi.</div>{% endif %}
+          {% if edit %}<div class="form-text">Yangi fayl yuklansa eskisi öçiriladi va yuklab olişlar hisobi nolga tuşadi.</div>{% endif %}
         </div>
         <div class="col-12 d-flex flex-wrap align-items-center gap-4">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" name="is_published" id="arPublished" {% if form.is_published|default_if_none:True or not form %}checked{% endif %}>
-            <label class="form-check-label" for="arPublished">E’lon qilish (foydalanuvchilarga ko‘rinadi)</label>
+            <label class="form-check-label" for="arPublished">E’lon qiliş (foydalanuvçilarga körinadi)</label>
           </div>
           {% if not edit %}
           <div class="form-check">
             <input class="form-check-input" type="checkbox" name="hide_previous" id="arHidePrev" checked>
-            <label class="form-check-label" for="arHidePrev">Shu platformaning oldingi versiyalarini yashirish</label>
+            <label class="form-check-label" for="arHidePrev">Şu platformaning oldingi versiyalarini yaşiriş</label>
           </div>
           {% endif %}
           <div class="ms-auto d-flex gap-2">
-            {% if edit %}<a class="btn btn-outline-secondary" href="{% url 'admin_app_releases' %}">Bekor qilish</a>{% endif %}
-            <button class="btn btn-primary" type="submit" id="arSubmit"><i class="bi bi-{% if edit %}check2{% else %}cloud-arrow-up{% endif %} me-1"></i>{% if edit %}Saqlash{% else %}Yuklash{% endif %}</button>
+            {% if edit %}<a class="btn btn-outline-secondary" href="{% url 'admin_app_releases' %}">Bekor qiliş</a>{% endif %}
+            <button class="btn btn-primary" type="submit" id="arSubmit"><i class="bi bi-{% if edit %}check2{% else %}cloud-arrow-up{% endif %} me-1"></i>{% if edit %}Saqlaş{% else %}Yuklaş{% endif %}</button>
           </div>
         </div>
       </div>
     </form>
   </div>
 
-  {# ───── Versiyalar ro'yxati ───── #}
+  {# ───── Versiyalar röyxati ───── #}
   <div class="ar-card">
-    <h2><i class="bi bi-clock-history"></i>Barcha versiyalar</h2>
+    <h2><i class="bi bi-clock-history"></i>Barça versiyalar</h2>
     {% if releases %}
     <div class="table-responsive">
       <table class="table ar-table mb-0">
-        <thead><tr><th>Platforma</th><th>Versiya</th><th>Fayl</th><th>Yuklab olish</th><th>Holat</th><th>Yuklangan</th><th class="text-end">Amallar</th></tr></thead>
+        <thead><tr><th>Platforma</th><th>Versiya</th><th>Fayl</th><th>Yuklab oliş</th><th>Holat</th><th>Yuklangan</th><th class="text-end">Amallar</th></tr></thead>
         <tbody>
         {% for r in releases %}
           <tr class="{% if r.is_current %}ar-current{% endif %}">
             <td><span class="ar-plat"><i class="bi bi-{{ r.meta.icon }}" style="color:{{ r.meta.color }}"></i>{{ r.get_platform_display }}</span></td>
             <td class="ar-wrap"><b>v{{ r.version }}</b> <span class="small text-muted">{{ r.title }}</span>{% if r.notes %}<div class="notes">{{ r.notes|truncatechars:90 }}</div>{% endif %}</td>
             <td class="ar-wrap"><span class="small">{{ r.original_name }}</span><div class="small text-muted">{{ r.file_size|filesizeformat }}{% if r.min_os %} · {{ r.min_os }}{% endif %}</div>
-              <button type="button" class="ar-sha" data-copy="{{ r.sha256 }}" title="SHA-256 nusxasini olish">SHA-256 {{ r.sha256|slice:":12" }}…</button></td>
+              <button type="button" class="ar-sha" data-copy="{{ r.sha256 }}" title="SHA-256 nusxasini oliş">SHA-256 {{ r.sha256|slice:":12" }}…</button></td>
             <td>{{ r.download_count }}</td>
             <td>
               {% if r.is_current %}<span class="badge text-bg-success">Navbarda</span>
               {% elif r.is_published %}<span class="badge text-bg-info">E’lon qilingan</span>
-              {% else %}<span class="badge text-bg-secondary">Yashirin</span>{% endif %}
+              {% else %}<span class="badge text-bg-secondary">Yaşirin</span>{% endif %}
             </td>
             <td class="small">{{ r.created_at|date:"d.m.Y H:i" }}<div class="text-muted">{{ r.uploaded_by.get_full_name|default:r.uploaded_by.username|default:"—" }}</div></td>
             <td>
               <div class="ar-actions justify-content-end">
-                <a class="btn btn-sm btn-outline-secondary" href="{% url 'app_release_download' r.pk %}" title="Yuklab olish"><i class="bi bi-download"></i></a>
-                <a class="btn btn-sm btn-outline-primary" href="{% url 'admin_app_release_edit' r.pk %}#arForm" title="Tahrirlash / faylni almashtirish"><i class="bi bi-pencil"></i></a>
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'app_release_download' r.pk %}" title="Yuklab oliş"><i class="bi bi-download"></i></a>
+                <a class="btn btn-sm btn-outline-primary" href="{% url 'admin_app_release_edit' r.pk %}#arForm" title="Tahrirlaş / faylni almaştiriş"><i class="bi bi-pencil"></i></a>
                 <form method="post" action="{% url 'admin_app_release_toggle' r.pk %}">{% csrf_token %}
-                  <button class="btn btn-sm btn-outline-{% if r.is_published %}warning{% else %}success{% endif %}" title="{% if r.is_published %}Yashirish{% else %}E’lon qilish{% endif %}"><i class="bi bi-{% if r.is_published %}eye-slash{% else %}eye{% endif %}"></i></button>
+                  <button class="btn btn-sm btn-outline-{% if r.is_published %}warning{% else %}success{% endif %}" title="{% if r.is_published %}Yaşiriş{% else %}E’lon qiliş{% endif %}"><i class="bi bi-{% if r.is_published %}eye-slash{% else %}eye{% endif %}"></i></button>
                 </form>
-                <form method="post" action="{% url 'admin_app_release_delete' r.pk %}" data-confirm="{{ r.get_platform_display }} v{{ r.version }} butunlay o‘chirilsinmi? Fayl ham o‘chadi.">{% csrf_token %}
-                  <button class="btn btn-sm btn-outline-danger" title="O‘chirish"><i class="bi bi-trash"></i></button>
+                <form method="post" action="{% url 'admin_app_release_delete' r.pk %}" data-confirm="{{ r.get_platform_display }} v{{ r.version }} butunlay öçirilsinmi? Fayl ham öçadi.">{% csrf_token %}
+                  <button class="btn btn-sm btn-outline-danger" title="Öçiriş"><i class="bi bi-trash"></i></button>
                 </form>
               </div>
             </td>
@@ -165,7 +165,7 @@
       </table>
     </div>
     {% else %}
-    <div class="ar-empty"><i class="bi bi-inbox"></i>Hali ilova yuklanmagan. Yuqoridagi formadan birinchi versiyani yuklang.</div>
+    <div class="ar-empty"><i class="bi bi-inbox"></i>Hali ilova yuklanmagan. Yuqoridagi formadan birinçi versiyani yuklang.</div>
     {% endif %}
   </div>
 </div>
@@ -202,8 +202,8 @@
     if (!p) err = 'Platformani tanlang.';
     else if (!document.getElementById('arVersion').value.trim()) err = 'Versiyani kiriting.';
     else if (!f && !{{ edit|yesno:'true,false' }}) err = 'Faylni tanlang.';
-    else if (f && f.size > MAX) err = 'Fayl juda katta: ' + (f.size / 1048576).toFixed(1) + ' MB. Ruxsat: {{ max_mb }} MB gacha.';
-    else if (f && platformOf(f.name) !== p) err = 'Bu platforma uchun ' + ACCEPT[p] + ' fayl kerak.';
+    else if (f && f.size > MAX) err = 'Fayl juda katta: ' + (f.size / 1048576).toFixed(1) + ' MB. Ruxsat: {{ max_mb }} MB gaça.';
+    else if (f && platformOf(f.name) !== p) err = 'Bu platforma uçun ' + ACCEPT[p] + ' fayl kerak.';
     if (err) { e.preventDefault(); alert(err); }
   });
   document.querySelectorAll('form[data-confirm]').forEach(function (f) {

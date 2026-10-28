@@ -4,13 +4,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ro'yxatdan o'tish | IT Creative Academy</title>
+<title>Röyxatdan ötiş | IT Creative Academy</title>
 <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 {% include 'partials/pwa/_head.html' %}
 <script>
-/* Tema — birinchi chizishdan oldin (saytning umumiy 'theme' kaliti) */
+/* Tema — birinçi çizişdan oldin (saytning umumiy 'theme' kaliti) */
 (function () {
   var t;
   try { t = localStorage.getItem('theme') || localStorage.getItem('itc-theme'); } catch (e) {}
@@ -30,18 +30,18 @@
 <header class="top">
   <div class="box glass"><a class="logo" href="{% url 'home' %}">&lt;<b>it</b>creative /&gt;</a></div>
   <div class="box glass">
-    <nav class="switch" aria-label="Autentifikatsiya"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>Kirish</a><a class="on" href="{% url 'register' %}" aria-current="page">Ro'yxat<span class="long">dan o'tish</span></a></nav>
-    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almashtirish"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
+    <nav class="switch" aria-label="Autentifikatsiya"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>Kiriş</a><a class="on" href="{% url 'register' %}" aria-current="page">Röyxat<span class="long">dan ötiş</span></a></nav>
+    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almaştiriş"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
   </div>
 </header>
 
 {% with pw_err=form.password1.errors|default:form.password2.errors %}
 <main class="auth">
-  <!-- Chap: ro'yxatdan o'tish kartasi -->
+  <!-- Çap: röyxatdan ötiş kartasi -->
   <div class="card-wrap">
     <section class="card glass">
-      <h2 data-in>Hisob yaratish ✨</h2>
-      <p class="sub" data-in>Bilim olish sayohatingizni boshlang.</p>
+      <h2 data-in>Hisob yaratiş ✨</h2>
+      <p class="sub" data-in>Bilim oliş sayohatingizni boşlang.</p>
 
       <div class="steps" data-in>
         <div class="st {% if pw_err %}done{% else %}on{% endif %}" id="s1"><span class="d">{% if pw_err %}<i class="bi bi-check-lg"></i>{% else %}1{% endif %}</span>Ma'lumotlar</div>
@@ -69,54 +69,54 @@
             {% if form.username.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
             <div class="fx{% if form.email.errors %} bad{% endif %}">{{ form.email }}<label for="{{ form.email.id_for_label }}">Email</label><i class="bi bi-envelope"></i></div>
             {% if form.email.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
-            <p class="hint">Emailga tasdiqlash havolasi yuboriladi. Email faqat havolani ochganingizdan keyin hisobga bog‘lanadi.</p>
+            <p class="hint">Emailga tasdiqlaş havolasi yuboriladi. Email faqat havolani oçganingizdan keyin hisobga boğlanadi.</p>
             <div class="fx pre{% if form.phone.errors %} bad{% endif %}"><span class="pre-tag">+998</span>{{ form.phone }}<label for="id_phone">Telefon raqam</label><i class="bi bi-phone"></i></div>
             {% if form.phone.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
-            <div class="fx{% if form.birth_date.errors %} bad{% endif %}">{{ form.birth_date }}<label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label><i class="bi bi-calendar-event"></i></div>
+            <div class="fx{% if form.birth_date.errors %} bad{% endif %}">{{ form.birth_date }}<label for="{{ form.birth_date.id_for_label }}">Tuğilgan kun</label><i class="bi bi-calendar-event"></i></div>
             {% if form.birth_date.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
-            <button type="button" class="btn btn-main" id="next" data-mag>Davom etish <i class="bi bi-arrow-right"></i></button>
+            <button type="button" class="btn btn-main" id="next" data-mag>Davom etiş <i class="bi bi-arrow-right"></i></button>
           </div>
 
           <!-- 2-qadam -->
           <div class="pane {% if pw_err %}on{% endif %}" id="r2">
-            <div class="fx{% if form.password1.errors %} bad{% endif %}">{{ form.password1 }}<label for="{{ form.password1.id_for_label }}">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button></div>
+            <div class="fx{% if form.password1.errors %} bad{% endif %}">{{ form.password1 }}<label for="{{ form.password1.id_for_label }}">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni körsatiş"><i class="bi bi-eye"></i></button></div>
             <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
             {% if form.password1.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
             <div class="meter" id="meter" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-            <div class="meter-t"><span>Parol kuchi</span><b id="meterT">—</b></div>
+            <div class="meter-t"><span>Parol kuçi</span><b id="meterT">—</b></div>
             <ul class="rules" id="rules">
               <li data-r="len"><i class="bi bi-circle"></i>Kamida 10 ta belgi</li>
               <li data-r="up"><i class="bi bi-circle"></i>Katta harf</li>
               <li data-r="num"><i class="bi bi-circle"></i>Raqam</li>
               <li data-r="sym"><i class="bi bi-circle"></i>Maxsus belgi</li>
             </ul>
-            <div class="fx{% if form.password2.errors %} bad{% endif %}">{{ form.password2 }}<label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label><i class="bi bi-shield-check"></i><button type="button" class="eye" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button></div>
+            <div class="fx{% if form.password2.errors %} bad{% endif %}">{{ form.password2 }}<label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label><i class="bi bi-shield-check"></i><button type="button" class="eye" aria-label="Parolni körsatiş"><i class="bi bi-eye"></i></button></div>
             {% if form.password2.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
             <div class="err" id="matchErr" hidden><i class="bi bi-exclamation-circle"></i> Parollar mos emas</div>
             <div class="row-btns">
               <button type="button" class="btn" id="back" data-mag aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
-              <button type="submit" class="btn btn-main" data-mag>Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
+              <button type="submit" class="btn btn-main" data-mag>Röyxatdan ötiş <i class="bi bi-check-lg"></i></button>
             </div>
           </div>
         </div>
       </form>
 
       <div class="foot" data-in>
-        <span>Akkauntingiz bormi? <a class="link" href="{% url 'login' %}" data-wipe>Tizimga kirish →</a></span>
+        <span>Akkauntingiz bormi? <a class="link" href="{% url 'login' %}" data-wipe>Tizimga kiriş →</a></span>
       </div>
     </section>
-    <div class="safe"><i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz shifrlangan holda saqlanadi</div>
+    <div class="safe"><i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz şifrlangan holda saqlanadi</div>
   </div>
 
-  <!-- O'ng: 3D orb sahnasi -->
+  <!-- Öng: 3D orb sahnasi -->
   <section class="stage" data-orb-stage aria-hidden="true">
-    <div class="chip glass c1"><i class="bi bi-mortarboard"></i><span><b>Kasb va kurslar</b><small>IT yo'nalishlari</small></span></div>
-    <div class="chip glass c2"><i class="bi bi-coin"></i><span><b>Coin tizimi</b><small>O'qib sovg'a yuting</small></span></div>
+    <div class="chip glass c1"><i class="bi bi-mortarboard"></i><span><b>Kasb va kurslar</b><small>IT yönalişlari</small></span></div>
+    <div class="chip glass c2"><i class="bi bi-coin"></i><span><b>Coin tizimi</b><small>Öqib sovğa yuting</small></span></div>
     <div class="chip glass c3"><i class="bi bi-award"></i><span><b>Sertifikat</b><small>Kurs oxirida</small></span></div>
     <div class="stage-copy">
       <div class="eyebrow">Yangi hisob</div>
-      <h1><span class="split">Kelajagingizni</span><br><span class="split grad">bugun boshlang.</span></h1>
-      <p>Video darslar, AI yordamchi va coin tizimi sizni kutmoqda.</p>
+      <h1><span class="split">Kelajagingizni</span><br><span class="split grad">bugun boşlang.</span></h1>
+      <p>Video darslar, AI yordamçi va coin tizimi sizni kutmoqda.</p>
     </div>
   </section>
 </main>
@@ -154,23 +154,23 @@
     if (innerWidth < 1020) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  /* 1-qadam: brauzer validatsiyasi (forma novalidate — o'zimiz tekshiramiz) */
+  /* 1-qadam: brauzer validatsiyasi (forma novalidate — özimiz tekşiramiz) */
   function validate(pane) {
     var bad = [].filter.call(pane.querySelectorAll('input[required]'), function (i) { return !i.value.trim() || !i.checkValidity(); });
     pane.querySelectorAll('.fx').forEach(function (f) { f.classList.remove('bad'); });
     bad.forEach(function (i) { i.closest('.fx').classList.add('bad'); });
     if (bad.length) {
       G && G.fromTo(bad.map(function (i) { return i.closest('.fx'); }), { x: -8 }, { x: 0, duration: .5, ease: 'elastic.out(1,.3)' });
-      bad[0].focus(); A.toast("Iltimos, maydonlarni to'g'ri to'ldiring", 'error');
+      bad[0].focus(); A.toast("Iltimos, maydonlarni töğri töldiring", 'error');
     }
     return !bad.length;
   }
   document.getElementById('next').addEventListener('click', function () { if (validate(r1)) go(r1, r2, 1); });
   document.getElementById('back').addEventListener('click', function () { go(r2, r1, -1); });
 
-  /* ── Parol kuchi: chiziqlar, qoidalar va orb rangi ── */
+  /* ── Parol kuçi: çiziqlar, qoidalar va orb rangi ── */
   var bars = document.querySelectorAll('#meter span'), label = document.getElementById('meterT');
-  var LV = [['—', 'var(--line)', null], ['Zaif', 'var(--red)', 0xfb7185], ["O'rtacha", 'var(--gold)', 0xfbbf24], ['Yaxshi', 'var(--acc)', 0x22d3ee], ['Kuchli', 'var(--lime)', 0xa3e635]];
+  var LV = [['—', 'var(--line)', null], ['Zaif', 'var(--red)', 0xfb7185], ["Örtaça", 'var(--gold)', 0xfbbf24], ['Yaxşi', 'var(--acc)', 0x22d3ee], ['Kuçli', 'var(--lime)', 0xa3e635]];
   p1.addEventListener('input', function () {
     var v = p1.value, ok = { len: v.length >= 10, up: /[A-Z]/.test(v), num: /\d/.test(v), sym: /[^A-Za-z0-9]/.test(v) };
     var score = v ? Math.max(1, Object.keys(ok).filter(function (k) { return ok[k]; }).length) : 0;
@@ -187,10 +187,10 @@
   }
   p2.addEventListener('input', checkMatch);
 
-  /* Yuborish: ikkala qadam ham tekshiriladi (auth-motion.js'dagi loading'dan oldin ishlaydi) */
+  /* Yuboriş: ikkala qadam ham tekşiriladi (auth-motion.js'dagi loading'dan oldin işlaydi) */
   form.addEventListener('submit', function (e) {
     if (!validate(r1)) { e.preventDefault(); e.stopImmediatePropagation(); if (r2.classList.contains('on')) go(r2, r1, -1); return; }
-    if (!p1.value || !p2.value || !checkMatch()) { e.preventDefault(); e.stopImmediatePropagation(); (p1.value ? p2 : p1).focus(); A.toast('Parolni tekshiring', 'error'); }
+    if (!p1.value || !p2.value || !checkMatch()) { e.preventDefault(); e.stopImmediatePropagation(); (p1.value ? p2 : p1).focus(); A.toast('Parolni tekşiring', 'error'); }
   }, true);
 
   /* Xabarlar */

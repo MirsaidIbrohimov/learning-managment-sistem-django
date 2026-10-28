@@ -1,7 +1,7 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
 {% load custom_filters %}
-{% block title %}Oylik To'lovlar — Yordamchi Panel{% endblock %}
-{% block page_title %}Oylik To'lovlar{% endblock %}
+{% block title %}Oylik Tölovlar — Yordamçi Panel{% endblock %}
+{% block page_title %}Oylik Tölovlar{% endblock %}
 
 {% block content %}
 <style>
@@ -105,15 +105,15 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
 <!-- Stats -->
 <div class="yp-stats">
   <div class="yp-stat">
-    <span class="yp-stat-label">Jami o'quvchi</span>
+    <span class="yp-stat-label">Jami öquvçi</span>
     <span class="yp-stat-val">{{ total_students }}</span>
   </div>
   <div class="yp-stat">
-    <span class="yp-stat-label">To'langan</span>
+    <span class="yp-stat-label">Tölangan</span>
     <span class="yp-stat-val green">{{ total_paid_count }}</span>
   </div>
   <div class="yp-stat">
-    <span class="yp-stat-label">To'lanmagan</span>
+    <span class="yp-stat-label">Tölanmagan</span>
     <span class="yp-stat-val red">{{ total_unpaid }}</span>
   </div>
   <div class="yp-stat">
@@ -122,15 +122,15 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
   </div>
   <div class="yp-stat">
     <span class="yp-stat-label">Kutilayotgan</span>
-    <span class="yp-stat-val purple">{{ total_expected|space_num }} so'm</span>
+    <span class="yp-stat-val purple">{{ total_expected|space_num }} söm</span>
   </div>
   <div class="yp-stat">
-    <span class="yp-stat-label">Yig'ilgan</span>
-    <span class="yp-stat-val green">{{ total_paid_sum|space_num }} so'm</span>
+    <span class="yp-stat-label">Yiğilgan</span>
+    <span class="yp-stat-val green">{{ total_paid_sum|space_num }} söm</span>
   </div>
   <div class="yp-stat">
     <span class="yp-stat-label">Qarz</span>
-    <span class="yp-stat-val red">{{ total_debt|space_num }} so'm</span>
+    <span class="yp-stat-val red">{{ total_debt|space_num }} söm</span>
   </div>
 </div>
 
@@ -160,16 +160,16 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
     <a href="?month={{ selected_month }}&year={{ selected_year }}"
        class="yp-filter-btn {% if not filter_status %}active{% endif %}">Hammasi</a>
     <a href="?month={{ selected_month }}&year={{ selected_year }}&status=paid"
-       class="yp-filter-btn green {% if filter_status == 'paid' %}active{% endif %}">✓ To'langan</a>
+       class="yp-filter-btn green {% if filter_status == 'paid' %}active{% endif %}">✓ Tölangan</a>
     <a href="?month={{ selected_month }}&year={{ selected_year }}&status=unpaid"
-       class="yp-filter-btn red {% if filter_status == 'unpaid' %}active{% endif %}">✗ To'lanmagan</a>
+       class="yp-filter-btn red {% if filter_status == 'unpaid' %}active{% endif %}">✗ Tölanmagan</a>
     <a href="?month={{ selected_month }}&year={{ selected_year }}&status=blocked"
        class="yp-filter-btn orange {% if filter_status == 'blocked' %}active{% endif %}">🔒 Bloklangan</a>
     <button type="submit" class="yp-filter-btn active" style="background:#10b981;border-color:#10b981;color:#fff;">
       <i class="bi bi-search"></i>
     </button>
     {% if search_query %}
-    <a href="?month={{ selected_month }}&year={{ selected_year }}" class="yp-filter-btn">✕ Tozalash</a>
+    <a href="?month={{ selected_month }}&year={{ selected_year }}" class="yp-filter-btn">✕ Tozalaş</a>
     {% endif %}
   </div>
 </form>
@@ -180,9 +180,9 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
     <thead>
       <tr>
         <th>#</th>
-        <th>O'quvchi</th>
-        <th>Oylik to'lov</th>
-        <th>To'langan</th>
+        <th>Öquvçi</th>
+        <th>Oylik tölov</th>
+        <th>Tölangan</th>
         <th>Holat</th>
         <th>Sana</th>
         <th>Amal</th>
@@ -209,11 +209,11 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
           </div>
         </td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#0d9488;">
-          {% if student.payment_status %}{{ student.payment_status.monthly_fee|space_num }}{% else %}200 000{% endif %} so'm
+          {% if student.payment_status %}{{ student.payment_status.monthly_fee|space_num }}{% else %}200 000{% endif %} söm
         </td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
           {% if student.current_record and student.current_record.is_paid %}
-            <span style="color:#22c55e;">{{ student.current_record.paid_amount|space_num }} so'm</span>
+            <span style="color:#22c55e;">{{ student.current_record.paid_amount|space_num }} söm</span>
           {% else %}
             <span style="color:var(--yo-text-muted);">—</span>
           {% endif %}
@@ -222,9 +222,9 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
           {% if student.is_blocked %}
             <span class="badge-blocked"><i class="bi bi-lock-fill"></i> Bloklangan</span>
           {% elif student.current_record and student.current_record.is_paid %}
-            <span class="badge-paid"><i class="bi bi-check-circle-fill"></i> To'langan</span>
+            <span class="badge-paid"><i class="bi bi-check-circle-fill"></i> Tölangan</span>
           {% else %}
-            <span class="badge-unpaid"><i class="bi bi-x-circle-fill"></i> To'lanmagan</span>
+            <span class="badge-unpaid"><i class="bi bi-x-circle-fill"></i> Tölanmagan</span>
           {% endif %}
         </td>
         <td style="font-size:.78rem;color:var(--yo-text-muted);">
@@ -240,7 +240,7 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
                 <input type="hidden" name="month" value="{{ selected_month }}">
                 <input type="hidden" name="year"  value="{{ selected_year }}">
                 <input type="hidden" name="next"  value="/yordamchi/tolovlar/">
-                <button type="submit" class="yp-btn unpay" onclick="return confirm('To\'lovni bekor qilasizmi?')">
+                <button type="submit" class="yp-btn unpay" onclick="return confirm('Tölovni bekor qilasizmi?')">
                   <i class="bi bi-x"></i> Bekor
                 </button>
               </form>
@@ -251,7 +251,7 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
                 <input type="hidden" name="year"  value="{{ selected_year }}">
                 <input type="hidden" name="next"  value="/yordamchi/tolovlar/">
                 <button type="submit" class="yp-btn pay">
-                  <i class="bi bi-check"></i> To'landi
+                  <i class="bi bi-check"></i> Tölandi
                 </button>
               </form>
             {% endif %}
@@ -261,7 +261,7 @@ table.yp-table tr:hover td { background:rgba(16,185,129,.04); }
     {% empty %}
       <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--yo-text-muted);">
         <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-        O'quvchi topilmadi
+        Öquvçi topilmadi
       </td></tr>
     {% endfor %}
     </tbody>

@@ -29,25 +29,27 @@ import json
 import re
 from typing import Any, Dict, List, Tuple
 
+from accounts.alphabet import to_new_alphabet
+
 
 # ── Header aliases (flexible Uzbek/English column matching) ────────────────────
 
 QUESTION_ALIASES = {'savol', 'savol matni', 'question', 'question_text', 'matn', 'text'}
-EXPLANATION_ALIASES = {'izoh', 'tushuntirish', 'explanation', 'comment'}
-CORRECT_ALIASES = {"to'g'ri javob", 'togri javob', 'to gri javob', 'correct', 'correct_option', 'javob', 'answer'}
+EXPLANATION_ALIASES = {'izoh', 'tuşuntiriş', 'explanation', 'comment'}
+CORRECT_ALIASES = {"töğri javob", 'togri javob', 'to gri javob', 'correct', 'correct_option', 'javob', 'answer'}
 DIFFICULTY_ALIASES = {'qiyinlik', 'difficulty', 'level'}
 TYPE_ALIASES = {'turi', 'tur', 'type', 'savol turi'}
 
 DIFFICULTY_NORMALIZE = {
     'oson': 'easy', 'easy': 'easy', 'engil': 'easy',
-    "o'rta": 'medium', 'orta': 'medium', 'medium': 'medium', 'middle': 'medium', "o'rtacha": 'medium',
+    "örta": 'medium', 'orta': 'medium', 'medium': 'medium', 'middle': 'medium', "örtaça": 'medium',
     'qiyin': 'hard', 'hard': 'hard', 'murakkab': 'hard',
 }
 
 TYPE_NORMALIZE = {
     'single_choice': 'single_choice', 'single': 'single_choice', 'bitta': 'single_choice',
-    'multiple_choice': 'multiple_choice', 'multiple': 'multiple_choice', 'multi': 'multiple_choice', "ko'p": 'multiple_choice',
-    'true_false': 'true_false', 'tf': 'true_false', "to'g'ri/noto'g'ri": 'true_false',
+    'multiple_choice': 'multiple_choice', 'multiple': 'multiple_choice', 'multi': 'multiple_choice', "köp": 'multiple_choice',
+    'true_false': 'true_false', 'tf': 'true_false', "töğri/notöğri": 'true_false',
 }
 
 OPTION_HEADER_RE = re.compile(r'^(variant\s*|option\s*|)([a-z])$', re.IGNORECASE)
@@ -55,7 +57,7 @@ OPTION_HEADER_RE = re.compile(r'^(variant\s*|option\s*|)([a-z])$', re.IGNORECASE
 
 def _norm(s: Any) -> str:
     """Normalise a cell header for fuzzy matching: lowercase + trim."""
-    return str(s or '').strip().lower()
+    return to_new_alphabet(str(s or '').strip().lower())
 
 
 def _detect_columns(headers: List[str]) -> Dict[str, Any]:
@@ -106,20 +108,20 @@ def _validate_row(row: Dict[str, Any]) -> List[str]:
     """Return a list of human-readable errors for a single parsed row."""
     errors: List[str] = []
     if not row.get('text'):
-        errors.append("Savol matni bo'sh.")
+        errors.append("Savol matni böş.")
     options = row.get('options') or []
     non_empty = [o for o in options if (o.get('text') or '').strip()]
     if len(non_empty) < 2:
         errors.append("Kamida 2 ta javob varianti kerak.")
     correct = [o for o in non_empty if o.get('is_correct')]
     if not correct:
-        errors.append("Hech qaysi variant to'g'ri deb belgilanmagan.")
+        errors.append("Heç qaysi variant töğri deb belgilanmagan.")
     qtype = row.get('type', 'single_choice')
     if qtype == 'single_choice' and len(correct) > 1:
-        errors.append("Bitta-tanlov uchun bittadan ortiq to'g'ri variant belgilangan.")
+        errors.append("Bitta-tanlov uçun bittadan ortiq töğri variant belgilangan.")
     if qtype == 'multiple_choice' and len(correct) < 2 and len(non_empty) >= 2:
         # not strictly an error, but worth flagging
-        errors.append("Ko'p-tanlov turi tanlangan, lekin faqat bitta to'g'ri variant bor.")
+        errors.append("Köp-tanlov turi tanlangan, lekin faqat bitta töğri variant bor.")
     # duplicate options
     seen = set()
     for o in non_empty:
@@ -181,17 +183,17 @@ def parse_xlsx(file_obj) -> Tuple[List[Dict[str, Any]], List[str]]:
     try:
         import openpyxl
     except ImportError:
-        return [], ["openpyxl o'rnatilmagan."]
+        return [], ["openpyxl örnatilmagan."]
     try:
         wb = openpyxl.load_workbook(file_obj, data_only=True, read_only=True)
     except Exception as e:
-        return [], [f"Fayl o'qib bo'lmadi: {e}"]
+        return [], [f"Fayl öqib bölmadi: {e}"]
     ws = wb.active
     rows_iter = ws.iter_rows(values_only=True)
     try:
         headers_raw = next(rows_iter)
     except StopIteration:
-        return [], ["Fayl bo'sh."]
+        return [], ["Fayl böş."]
     headers = [str(h) if h is not None else '' for h in headers_raw]
     col_map = _detect_columns(headers)
 
@@ -223,7 +225,7 @@ def parse_csv(file_obj) -> Tuple[List[Dict[str, Any]], List[str]]:
         else:
             text = raw_bytes
     except Exception as e:
-        return [], [f"Fayl o'qib bo'lmadi: {e}"]
+        return [], [f"Fayl öqib bölmadi: {e}"]
 
     sample = text[:4096]
     try:
@@ -237,7 +239,7 @@ def parse_csv(file_obj) -> Tuple[List[Dict[str, Any]], List[str]]:
     try:
         headers = next(reader)
     except StopIteration:
-        return [], ["Fayl bo'sh."]
+        return [], ["Fayl böş."]
     col_map = _detect_columns(headers)
 
     fatal = _check_column_map(col_map, headers)
@@ -273,10 +275,10 @@ def parse_json(file_obj) -> Tuple[List[Dict[str, Any]], List[str]]:
     elif isinstance(data, list):
         items = data
     else:
-        return [], ["Yuqori darajada 'questions' kaliti yoki ro'yxat bo'lishi kerak."]
+        return [], ["Yuqori darajada 'questions' kaliti yoki röyxat bölişi kerak."]
 
     if not isinstance(items, list):
-        return [], ["'questions' ro'yxat bo'lishi kerak."]
+        return [], ["'questions' röyxat bölişi kerak."]
 
     rows = []
     for idx, item in enumerate(items, start=1):
@@ -322,7 +324,7 @@ def _check_column_map(col_map: Dict[str, Any], headers: List[str]) -> List[str]:
     if col_map['question'] is None:
         missing.append("'Savol' (yoki 'Question') ustuni")
     if col_map['correct'] is None:
-        missing.append("'To'g'ri javob' (yoki 'Correct') ustuni")
+        missing.append("'Töğri javob' (yoki 'Correct') ustuni")
     if len(col_map['options']) < 2:
         missing.append("Kamida 2 ta variant ustuni (Variant A, Variant B)")
     if missing:
@@ -330,7 +332,7 @@ def _check_column_map(col_map: Dict[str, Any], headers: List[str]) -> List[str]:
         return [
             "Quyidagi majburiy ustun(lar) topilmadi: " + '; '.join(missing) + '.',
             f"Topilgan ustunlar: {detected or '(bo''sh)'}.",
-            "Iltimos, namuna fayldagi sarlavhalar bilan solishtirib ko'ring.",
+            "Iltimos, namuna fayldagi sarlavhalar bilan soliştirib köring.",
         ]
     return []
 
@@ -344,4 +346,4 @@ def parse_file(file_obj, filename: str) -> Tuple[List[Dict[str, Any]], List[str]
         return parse_csv(file_obj)
     if name.endswith('.json'):
         return parse_json(file_obj)
-    return [], [f"Format qo'llab-quvvatlanmaydi: .xlsx, .csv yoki .json yuklang."]
+    return [], [f"Format qöllab-quvvatlanmaydi: .xlsx, .csv yoki .json yuklang."]

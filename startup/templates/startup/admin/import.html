@@ -16,11 +16,11 @@
         <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
             <div>
                 <h1><i class="bi bi-upload"></i> Excel'dan import</h1>
-                <p>O'quvchilar g'oyalarini <code style="color:#fff">.xlsx</code> fayldan bir vaqtda yuklang.</p>
+                <p>Öquvçilar ğoyalarini <code style="color:#fff">.xlsx</code> fayldan bir vaqtda yuklang.</p>
             </div>
             <div class="sa-hero-actions">
                 <a href="{% url 'startup_admin:startup_import_template' %}" class="sa-hero-btn"><i class="bi bi-file-earmark-arrow-down"></i> Namuna fayl</a>
-                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Ro'yxat</a>
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Röyxat</a>
             </div>
         </div>
 
@@ -37,17 +37,17 @@
                 <div class="sa-field">
                     <label for="sa-mode">Rejim</label>
                     <select id="sa-mode" name="mode" class="sa-input">
-                        <option value="create" {% if mode == 'create' %}selected{% endif %}>Yaratish — yangi startup ochish</option>
-                        <option value="update" {% if mode == 'update' %}selected{% endif %}>Yangilash — mavjud faol startupni to'ldirish</option>
+                        <option value="create" {% if mode == 'create' %}selected{% endif %}>Yaratiş — yangi startup oçiş</option>
+                        <option value="update" {% if mode == 'update' %}selected{% endif %}>Yangilaş — mavjud faol startupni töldiriş</option>
                     </select>
                 </div>
 
                 <label class="sa-check">
                     <input type="checkbox" name="dry_run" {% if dry_run %}checked{% endif %}>
-                    <span>Faqat tekshirish (bazaga yozilmaydi)</span>
+                    <span>Faqat tekşiriş (bazaga yozilmaydi)</span>
                 </label>
 
-                <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-play-fill"></i> Boshlash</button>
+                <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-play-fill"></i> Boşlaş</button>
             </form>
 
             <div class="sa-card sa-card-pad">
@@ -56,21 +56,21 @@
                     <p class="mb-2">Majburiy ustunlar: <code>Egasi (username)</code>,
                        <code>Startup nomi</code>, <code>Qisqa tavsif</code>.</p>
                     <ul class="mb-2 ps-3">
-                        <li>Egasi — LMS'dagi mavjud <b>o'quvchi</b> username'i bo'lishi shart.</li>
-                        <li>Ustun sarlavhalari o'zbekcha yoki inglizcha kalit bo'lishi mumkin —
-                            shuning uchun eksport faylini to'g'ridan-to'g'ri qaytib import qilish mumkin.</li>
-                        <li><b>Yaratish</b> rejimida o'quvchida faol startup bo'lsa qator o'tkazib yuboriladi
-                            (1 o'quvchi = 1 faol startup).</li>
-                        <li><b>Yangilash</b> rejimida o'quvchining faol startupi maydonlari to'ldiriladi.</li>
+                        <li>Egasi — LMS'dagi mavjud <b>öquvçi</b> username'i bölişi şart.</li>
+                        <li>Ustun sarlavhalari özbekça yoki inglizça kalit bölişi mumkin —
+                            şuning uçun eksport faylini töğridan-töğri qaytib import qiliş mumkin.</li>
+                        <li><b>Yaratiş</b> rejimida öquvçida faol startup bölsa qator ötkazib yuboriladi
+                            (1 öquvçi = 1 faol startup).</li>
+                        <li><b>Yangilaş</b> rejimida öquvçining faol startupi maydonlari töldiriladi.</li>
                         <li>Hisoblanadigan maydonlar import qilinmaydi:
-                            <code>slug</code>, <code>progress</code>, <code>bosqich</code>,
+                            <code>slug</code>, <code>progress</code>, <code>bosqiç</code>,
                             <code>XP</code>, <code>logo</code>, <code>yaratilgan sana</code>.</li>
                         <li>Har bir yangi startupga roadmap, pitch deck va +100 XP avtomatik beriladi;
-                            ommaviy importda o'quvchiga bildirishnoma yuborilmaydi.</li>
+                            ommaviy importda öquvçiga bildirişnoma yuborilmaydi.</li>
                         <li>Butun import bitta tranzaksiyada — yarim yozilgan holat qolmaydi.</li>
                     </ul>
-                    <p class="mb-0">Avval <b>«Faqat tekshirish»</b> bilan yuklab, natijani ko'rib
-                       oling — shundan keyin haqiqiy importni ishga tushiring.</p>
+                    <p class="mb-0">Avval <b>«Faqat tekşiriş»</b> bilan yuklab, natijani körib
+                       oling — şundan keyin haqiqiy importni işga tuşiring.</p>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@
         <div class="sa-card sa-card-pad">
             <h2 class="sa-section-title">
                 <i class="bi bi-list-ul"></i> Natija
-                {% if dry_run %}<span class="sa-badge sa-badge-paused">tekshiruv — yozilmadi</span>{% endif %}
+                {% if dry_run %}<span class="sa-badge sa-badge-paused">tekşiruv — yozilmadi</span>{% endif %}
             </h2>
             <div class="sa-table-wrap">
                 <div class="table-responsive">
@@ -93,7 +93,7 @@
                                 <td>
                                     {% if row.action == 'created' %}<span class="sa-row-created"><i class="bi bi-plus-circle"></i> Yaratildi</span>
                                     {% elif row.action == 'updated' %}<span class="sa-row-updated"><i class="bi bi-arrow-repeat"></i> Yangilandi</span>
-                                    {% elif row.action == 'skipped' %}<span class="sa-row-skipped"><i class="bi bi-skip-forward"></i> O'tkazildi</span>
+                                    {% elif row.action == 'skipped' %}<span class="sa-row-skipped"><i class="bi bi-skip-forward"></i> Ötkazildi</span>
                                     {% else %}<span class="sa-row-error"><i class="bi bi-x-circle"></i> Xato</span>{% endif %}
                                 </td>
                                 <td class="sa-hint">{{ row.message }}</td>

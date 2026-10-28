@@ -1,13 +1,13 @@
-"""Bosh sahifadagi "Bilasizmi?" savollari.
+"""Boş sahifadagi "Bilasizmi?" savollari.
 
-Savollarni OpenAI to'plam qilib yaratadi va ``CuriosityQuestion`` jadvaliga
-saqlanadi; bosh sahifa API'ni kutmaydi. To'plam haftasiga bir marta fonda
+Savollarni OpenAI töplam qilib yaratadi va ``CuriosityQuestion`` jadvaliga
+saqlanadi; boş sahifa API'ni kutmaydi. Töplam haftasiga bir marta fonda
 yangilanadi (yoki: ``python manage.py generate_curiosity_questions``).
-Kalit yo'q yoki xato bo'lsa — quyidagi zaxira ro'yxat ishlaydi.
+Kalit yöq yoki xato bölsa — quyidagi zaxira röyxat işlaydi.
 
-Savol har soatda va har yangi kirishda (last_login o'zgarganda) almashadi.
-Tugma bosilganda savol AI yordamchiga yuboriladi va javobni AI beradi;
-bu xabar uchun tanga yechilmaydi (faqat sahifada ko'rsatilgan savol uchun).
+Savol har soatda va har yangi kirişda (last_login özgarganda) almaşadi.
+Tugma bosilganda savol AI yordamçiga yuboriladi va javobni AI beradi;
+bu xabar uçun tanga yeçilmaydi (faqat sahifada körsatilgan savol uçun).
 """
 import hashlib
 import json
@@ -24,94 +24,94 @@ from django.utils import timezone
 logger = logging.getLogger(__name__)
 
 SESSION_KEY = 'home_curiosity_question'
-OPENAI_MODEL = 'gpt-4o'   # haftasiga bitta to'plam; settings.CURIOSITY_OPENAI_MODEL bilan almashtirsa bo'ladi
+OPENAI_MODEL = 'gpt-4o'   # haftasiga bitta töplam; settings.CURIOSITY_OPENAI_MODEL bilan almaştirsa böladi
 BATCH_SIZE = 24
-POOL_SIZE = 72            # tanlov eng yangi shuncha savoldan
-REFRESH_HOURS = 24 * 7   # har hafta yangi to'plam
+POOL_SIZE = 72            # tanlov eng yangi şunça savoldan
+REFRESH_HOURS = 24 * 7   # har hafta yangi töplam
 POOL_CACHE_KEY = 'curiosity:pool:v2'
 LOCK_KEY = 'curiosity:generating'
 
 # kod: (nom, bootstrap icon)
 CATEGORIES = {
     'history': ('Texnologiya tarixi', 'bi-hourglass-split'),
-    'programming': ('Dasturlash', 'bi-code-slash'),
+    'programming': ('Dasturlaş', 'bi-code-slash'),
     'internet': ('Internet', 'bi-globe2'),
     'security': ('Kiberxavfsizlik', 'bi-shield-lock'),
     'ai': ('Sun’iy intellekt', 'bi-cpu'),
     'hardware': ('Texnika', 'bi-motherboard'),
     'science': ('Fan', 'bi-lightbulb'),
-    'people': ('Shaxslar', 'bi-person-badge'),
+    'people': ('Şaxslar', 'bi-person-badge'),
 }
 
-# Zaxira ro'yxat (OpenAI ishlamaganda). Birinchi savol testlarda ishlatiladi.
+# Zaxira röyxat (OpenAI işlamaganda). Birinçi savol testlarda işlatiladi.
 QUESTIONS = [
-    ('people', 'Steve Jobs qachon tug‘ilgan va Apple’ni qanday garajda boshlagan, bilasizmi?'),
-    ('history', 'Dunyodagi birinchi kompyuter dasturchisi kim bo‘lgan, bilasizmi?'),
-    ('programming', 'Python dasturlash tili nega aynan «Python» deb nomlangan, bilasizmi?'),
-    ('internet', 'Birinchi veb-sayt qachon va kim tomonidan yaratilgan, bilasizmi?'),
-    ('programming', 'Dasturdagi xatoni nega «bug» (hasharot) deb atashadi, bilasizmi?'),
-    ('internet', 'Google nomi qaysi matematik so‘zdan kelib chiqqan, bilasizmi?'),
-    ('history', 'Birinchi mobil telefon qo‘ng‘irog‘i qachon qilingan, bilasizmi?'),
-    ('ai', '«Robot» so‘zi qaysi tildan va qachon paydo bo‘lgan, bilasizmi?'),
-    ('history', 'Dunyodagi birinchi kompyuter o‘yini qaysi bo‘lgan, bilasizmi?'),
-    ('internet', 'Birinchi elektron xat (email) kim tomonidan yuborilgan, bilasizmi?'),
-    ('ai', 'Sun’iy intellekt atamasi birinchi marta qachon ishlatilgan, bilasizmi?'),
-    ('programming', 'Java dasturlash tili nega qahva bilan bog‘liq nomga ega, bilasizmi?'),
-    ('hardware', 'Kompyuter sichqonchasini kim ixtiro qilgan, bilasizmi?'),
-    ('hardware', 'Bir bayt nechta bitdan iborat va nima uchun aynan shuncha, bilasizmi?'),
-    ('people', 'Bill Gates Microsoft’ni necha yoshida asos solgan, bilasizmi?'),
-    ('hardware', 'Oyga uchgan «Apollo 11» kemasining kompyuteri qanchalik kuchli bo‘lgan, bilasizmi?'),
-    ('security', 'Eng ko‘p ishlatiladigan zaif parol qaysi ekanini bilasizmi?'),
-    ('internet', 'Internet orqali bir soniyada qancha ma’lumot almashinadi, bilasizmi?'),
-    ('hardware', 'Klaviaturadagi harflar nega alifbo tartibida joylashmagan, bilasizmi?'),
+    ('people', 'Steve Jobs qaçon tuğilgan va Apple’ni qanday garajda boşlagan, bilasizmi?'),
+    ('history', 'Dunyodagi birinçi kompyuter dasturçisi kim bölgan, bilasizmi?'),
+    ('programming', 'Python dasturlaş tili nega aynan «Python» deb nomlangan, bilasizmi?'),
+    ('internet', 'Birinçi veb-sayt qaçon va kim tomonidan yaratilgan, bilasizmi?'),
+    ('programming', 'Dasturdagi xatoni nega «bug» (haşarot) deb ataşadi, bilasizmi?'),
+    ('internet', 'Google nomi qaysi matematik sözdan kelib çiqqan, bilasizmi?'),
+    ('history', 'Birinçi mobil telefon qönğiroği qaçon qilingan, bilasizmi?'),
+    ('ai', '«Robot» sözi qaysi tildan va qaçon paydo bölgan, bilasizmi?'),
+    ('history', 'Dunyodagi birinçi kompyuter öyini qaysi bölgan, bilasizmi?'),
+    ('internet', 'Birinçi elektron xat (email) kim tomonidan yuborilgan, bilasizmi?'),
+    ('ai', 'Sun’iy intellekt atamasi birinçi marta qaçon işlatilgan, bilasizmi?'),
+    ('programming', 'Java dasturlaş tili nega qahva bilan boğliq nomga ega, bilasizmi?'),
+    ('hardware', 'Kompyuter siçqonçasini kim ixtiro qilgan, bilasizmi?'),
+    ('hardware', 'Bir bayt neçta bitdan iborat va nima uçun aynan şunça, bilasizmi?'),
+    ('people', 'Bill Gates Microsoft’ni neça yoşida asos solgan, bilasizmi?'),
+    ('hardware', 'Oyga uçgan «Apollo 11» kemasining kompyuteri qançalik kuçli bölgan, bilasizmi?'),
+    ('security', 'Eng köp işlatiladigan zaif parol qaysi ekanini bilasizmi?'),
+    ('internet', 'Internet orqali bir soniyada qança ma’lumot almaşinadi, bilasizmi?'),
+    ('hardware', 'Klaviaturadagi harflar nega alifbo tartibida joylaşmagan, bilasizmi?'),
     ('programming', 'Linux operatsion tizimining ramzi nega pingvin, bilasizmi?'),
-    ('internet', 'Internetga yuklangan birinchi surat nima bo‘lgan, bilasizmi?'),
-    ('science', 'MP3 formati qanday qilib musiqa hajmini 10 barobar kichraytiradi, bilasizmi?'),
-    ('people', 'Al-Xorazmiy nomidan qaysi zamonaviy IT atamasi kelib chiqqan, bilasizmi?'),
-    ('science', 'Ulug‘bek rasadxonasi yulduzlarni qanchalik aniq hisoblagan, bilasizmi?'),
-    ('hardware', 'Smartfon batareyasini 100% gacha quvvatlash zararlimi, bilasizmi?'),
+    ('internet', 'Internetga yuklangan birinçi surat nima bölgan, bilasizmi?'),
+    ('science', 'MP3 formati qanday qilib musiqa hajmini 10 barobar kiçraytiradi, bilasizmi?'),
+    ('people', 'Al-Xorazmiy nomidan qaysi zamonaviy IT atamasi kelib çiqqan, bilasizmi?'),
+    ('science', 'Uluğbek rasadxonasi yulduzlarni qançalik aniq hisoblagan, bilasizmi?'),
+    ('hardware', 'Smartfon batareyasini 100% gaça quvvatlaş zararlimi, bilasizmi?'),
     ('internet', 'Wi-Fi qisqartmasi aslida nimani anglatadi, bilasizmi?'),
-    ('people', 'Elon Musk birinchi dasturini necha yoshida sotgan, bilasizmi?'),
-    ('history', 'Tetris o‘yinini kim va qaysi mamlakatda yaratgan, bilasizmi?'),
-    ('internet', 'Wikipedia’da nechta tilda maqolalar bor, bilasizmi?'),
+    ('people', 'Elon Musk birinçi dasturini neça yoşida sotgan, bilasizmi?'),
+    ('history', 'Tetris öyinini kim va qaysi mamlakatda yaratgan, bilasizmi?'),
+    ('internet', 'Wikipedia’da neçta tilda maqolalar bor, bilasizmi?'),
     ('science', 'Kvant kompyuter oddiy kompyuterdan nimasi bilan farq qiladi, bilasizmi?'),
-    ('science', 'GPS joylashuvni qanday qilib metrgacha aniqlaydi, bilasizmi?'),
-    ('science', 'Ekrandagi har bir rang qanday qilib 3 ta rangdan hosil bo‘ladi, bilasizmi?'),
-    ('ai', 'Dunyodagi birinchi dasturlashtiriladigan robot qachon ishga tushgan, bilasizmi?'),
-    ('internet', 'YouTube’ga yuklangan birinchi video nima haqida bo‘lgan, bilasizmi?'),
-    ('hardware', 'Kompyuterlar nega faqat 0 va 1 bilan ishlaydi, bilasizmi?'),
-    ('science', 'Dark mode (qorong‘i rejim) ko‘zga haqiqatan foydalimi, bilasizmi?'),
+    ('science', 'GPS joylaşuvni qanday qilib metrgaça aniqlaydi, bilasizmi?'),
+    ('science', 'Ekrandagi har bir rang qanday qilib 3 ta rangdan hosil böladi, bilasizmi?'),
+    ('ai', 'Dunyodagi birinçi dasturlaştiriladigan robot qaçon işga tuşgan, bilasizmi?'),
+    ('internet', 'YouTube’ga yuklangan birinçi video nima haqida bölgan, bilasizmi?'),
+    ('hardware', 'Kompyuterlar nega faqat 0 va 1 bilan işlaydi, bilasizmi?'),
+    ('science', 'Dark mode (qoronği rejim) közga haqiqatan foydalimi, bilasizmi?'),
 ]
 
-PROMPT = """Siz IT o'quv markazi (ITC Academy) o'quvchilari uchun "Bilasizmi?" ruknini tayyorlovchi muharrirsiz.
+PROMPT = """Siz IT öquv markazi (ITC Academy) öquvçilari uçun "Bilasizmi?" ruknini tayyorlovçi muharrirsiz.
 {count} ta yangi savol yozing.
 
 Talablar:
-- Adabiy o'zbek tilida, lotin yozuvida, grammatik jihatdan benuqson.
-- Mavzular (category): history — texnologiya tarixi, programming — dasturlash, internet, security — kiberxavfsizlik,
-  ai — sun'iy intellekt, hardware — texnika, science — fan, people — mashhur shaxslar. Mavzularni teng taqsimlang.
-- Har bir savolning javobi bitta aniq, tekshirsa bo'ladigan fakt bo'lsin (yil, ism, raqam, nom yoki sabab).
+- Adabiy özbek tilida, lotin yozuvida, grammatik jihatdan benuqson.
+- Mavzular (category): history — texnologiya tarixi, programming — dasturlaş, internet, security — kiberxavfsizlik,
+  ai — sun'iy intellekt, hardware — texnika, science — fan, people — maşhur şaxslar. Mavzularni teng taqsimlang.
+- Har bir savolning javobi bitta aniq, tekşirsa böladigan fakt bölsin (yil, ism, raqam, nom yoki sabab).
   Mavhum, umumiy yoki bahsli savollar ("qanday tadqiqotlar olib borilmoqda", "nima farqi bor") yozmang.
-- Qiziqish uyg'otadigan, kam ma'lum faktlarni tanlang; jiddiy, ilmiy-ommabop ohang.
-- Emoji, undov belgisi, hazil ishlatmang.
+- Qiziqiş uyğotadigan, kam ma'lum faktlarni tanlang; jiddiy, ilmiy-ommabop ohang.
+- Emoji, undov belgisi, hazil işlatmang.
 - Har bir savol bitta gap, 50–150 belgi, ", bilasizmi?" bilan tugasin.
 - Savollar bir-birini va quyidagi mavjud savollarni takrorlamasin.
 
-Yaxshi namunalar:
-- "Birinchi kompyuter «bug»i 1947-yilda aynan qanday hasharot bo‘lib chiqqan, bilasizmi?" (javob: kuya)
-- "Python tili nomini qaysi britaniyalik komediya shousidan olgan, bilasizmi?" (javob: Monty Python's Flying Circus)
+Yaxşi namunalar:
+- "Birinçi kompyuter «bug»i 1947-yilda aynan qanday haşarot bölib çiqqan, bilasizmi?" (javob: kuya)
+- "Python tili nomini qaysi britaniyalik komediya şousidan olgan, bilasizmi?" (javob: Monty Python's Flying Circus)
 
 Mavjud savollar:
 {existing}
 
 Faqat JSON qaytaring:
-{{"questions": [{{"category": "<{categories}>", "text": "<savol>", "answer": "<qisqa javob, 3–10 so'z>"}}]}}"""
+{{"questions": [{{"category": "<{categories}>", "text": "<savol>", "answer": "<qisqa javob, 3–10 söz>"}}]}}"""
 
 _EMOJI_RE = re.compile('[\u200d\ufe0e\ufe0f\u20e3]')  # ZWJ, variation selector, keycap
 
 
 def clean_text(text):
-    """Emoji va boshqaruv belgilarini olib tashlaydi, tutuq belgilari va bo'shliqlarni tekislaydi."""
+    """Emoji va boşqaruv belgilarini olib taşlaydi, tutuq belgilari va böşliqlarni tekislaydi."""
     text = str(text or '').replace('`', "'").replace('ʻ', "'").replace('ʼ', "'")
     text = ''.join(ch for ch in text if unicodedata.category(ch) not in ('So', 'Sk', 'Cs', 'Co', 'Cc'))
     text = re.sub(r"([oOgG])'", r'\1‘', text)    # o' g' -> o‘ g‘
@@ -139,7 +139,7 @@ def _as_dict(category, text):
 
 
 def pick_question(user, now=None):
-    """Foydalanuvchi uchun joriy savol: soat yoki kirish o'zgarsa — boshqa savol."""
+    """Foydalanuvçi uçun joriy savol: soat yoki kiriş özgarsa — boşqa savol."""
     now = now or timezone.now()
     hour = timezone.localtime(now).strftime('%Y%m%d%H')
     login = user.last_login.isoformat() if getattr(user, 'last_login', None) else ''
@@ -192,10 +192,10 @@ def generate_batch(count=BATCH_SIZE, client=None):
 
 
 def refresh_if_stale():
-    """Oxirgi to'plam eskirgan bo'lsa — fonda yangisini yaratadi (sahifani kutdirmaydi)."""
+    """Oxirgi töplam eskirgan bölsa — fonda yangisini yaratadi (sahifani kutdirmaydi)."""
     if getattr(settings, 'RUNNING_TESTS', False) or not (getattr(settings, 'OPENAI_API_KEY', '') or '').strip():
         return
-    if not cache.add(LOCK_KEY, 1, 3600):    # soatiga ko'pi bilan bir urinish
+    if not cache.add(LOCK_KEY, 1, 3600):    # soatiga köpi bilan bir uriniş
         return
     from .models import CuriosityQuestion
     latest = CuriosityQuestion.objects.values_list('created_at', flat=True).first()
@@ -215,12 +215,12 @@ def refresh_if_stale():
 
 
 def remember(request, question):
-    """Shu savol AI chatda tangasiz javob olishi uchun sessiyada eslab qolinadi."""
+    """Şu savol AI çatda tangasiz javob olişi uçun sessiyada eslab qolinadi."""
     request.session[SESSION_KEY] = question['text']
 
 
 def is_free_question(request, content):
-    """Xabar aynan sahifada ko'rsatilgan savolmi (tanga yechilmaydi)."""
+    """Xabar aynan sahifada körsatilgan savolmi (tanga yeçilmaydi)."""
     expected = request.session.get(SESSION_KEY)
     return bool(expected) and content.strip() == expected
 

@@ -1,38 +1,38 @@
-# Django tezligi: stagingda tekshirish va bosqichma-bosqich yoqish
+# Django tezligi: stagingda tekşiriş va bosqichma-bosqich yoqiş
 
-Bu fayllar loyiha ichida tayyorlandi; productionga ulanilmadi, Redis o‘rnatilmadi,
+Bu fayllar loyiha içida tayyorlandi; productionga ulanilmadi, Redis örnatilmadi,
 Nginx/Apache qayta yuklanmadi va yuklama testi yuborilmadi. Avval staging.
-Asl DB SQLite bo‘lib qoladi, backup ham uni qo‘llaydi. 100+ MB DB hajmi
-o‘zi RPS sababini aniqlamaydi: query, write lock, process quota va queue muhim.
+Asl DB SQLite bölib qoladi, backup ham uni qöllaydi. 100+ MB DB hajmi
+özi RPS sababini aniqlamaydi: query, write lock, process quota va queue muhim.
 
-## Nima o‘zgardi
+## Nima özgardi
 
-- `config/settings.py`: DEBUG endi `.env`dan, default False. Redis default o‘chiq;
+- `config/settings.py`: DEBUG endi `.env`dan, default False. Redis default öçiq;
   DB session mavjud, istalsa Redis `cached_db` yoqiladi. `settings/production.py`
-  mavjud sozlamalarni import qiladi, DEBUG=True bo‘lsa ishga tushishni rad etadi.
-- Landing HTML umumiy cache qilinmaydi: unda CSRF forma, shaxsiy kabinet va
+  mavjud sozlamalarni import qiladi, DEBUG=True bölsa işga tuşişni rad etadi.
+- Landing HTML umumiy cache qilinmaydi: unda CSRF forma, şaxsiy kabinet va
   session bor. Faqat ommaviy kurslar/postlar/statistika 60 soniyaga cache qilinadi.
-  Yangilanish/bloklash shu TTLgacha kech ko‘rinishi mumkin. `LANDING_CACHE_SECONDS=0`
-  buni o‘chiradi; TTLni o‘zgartirganda eski kalitni o‘chirish yoki muddati tugashini kutish kerak.
-- Blog sahifasida author join va like/comment count aggregation qo‘shildi;
+  Yangilanish/bloklash şu TTLgacha keç körinişi mumkin. `LANDING_CACHE_SECONDS=0`
+  buni öçiradi; TTLni özgartirganda eski kalitni öçiriş yoki muddati tugaşini kutiş kerak.
+- Blog sahifasida author join va like/comment count aggregation qöşildi;
   izohlar user bilan bitta queryda keladi. Dashboard kurs ustozlari batch
-  prefetch qilinadi; har enrollment uchun `.first()` querysi olib tashlandi.
-- `cache_page` faqat `robots.txt` va `sitemap.xml`ga qo‘yildi. Shaxsiy kabinet,
-  login, ariza, to‘lov, API va CSRF sahifalarini umumiy cache qilish mumkin emas.
-- Redis default cache rate limit uchun ham ishlatiladi: xatolar jim yashirilmaydi.
-  Redis ishlamasa shu cachega bog‘liq requestlar 500 berishi mumkin; tez rollback bor.
-  Sessiya `cached_db` bo‘lgani uchun DBda saqlanadi, Redis tozalansa login yo‘qolmaydi.
-- Passenger jarayonlari ko‘payganda eski AI/email background threadlar ham
-  takrorlanishini hisobga olib, ularni tashqi yagona cron workerga ko‘chirish
-  flaglari qo‘shildi. Default eski behavior saqlanadi.
+  prefetch qilinadi; har enrollment uçun `.first()` querysi olib taşlandi.
+- `cache_page` faqat `robots.txt` va `sitemap.xml`ga qöyildi. Şaxsiy kabinet,
+  login, ariza, tölov, API va CSRF sahifalarini umumiy cache qiliş mumkin emas.
+- Redis default cache rate limit uçun ham işlatiladi: xatolar jim yaşirilmaydi.
+  Redis işlamasa şu cachega boğliq requestlar 500 berişi mumkin; tez rollback bor.
+  Sessiya `cached_db` bölgani uçun DBda saqlanadi, Redis tozalansa login yöqolmaydi.
+- Passenger jarayonlari köpayganda eski AI/email background threadlar ham
+  takrorlanişini hisobga olib, ularni taşqi yagona cron workerga köçiriş
+  flaglari qöşildi. Default eski behavior saqlanadi.
 
 ## 0. Baseline va quota
 
-Staging URLni ishlating. 17 ms ping ICMP vaqti, TTFB esa DNS/TCP/TLS, queue,
-Python va DBni ham o‘z ichiga oladi. 50 ms tashqi TTFB yoki 50–200 RPS
-kafolatlanmaydi. `EXPIRED` TTL tugab upstreamdan yangilashni anglatadi;
-o‘zi konfiguratsiya xatosi emas. Private request uchun `BYPASS` to‘g‘ri natija.
-50 ta request / 78 s o‘lchovi faqat haqiqiy concurrency, statuslar va aynan bir
+Staging URLni işlating. 17 ms ping ICMP vaqti, TTFB esa DNS/TCP/TLS, queue,
+Python va DBni ham öz içiga oladi. 50 ms taşqi TTFB yoki 50–200 RPS
+kafolatlanmaydi. `EXPIRED` TTL tugab upstreamdan yangilaşni anglatadi;
+özi konfiguratsiya xatosi emas. Private request uçun `BYPASS` töğri natija.
+50 ta request / 78 s ölçovi faqat haqiqiy concurrency, statuslar va aynan bir
 endpoint bilan taqqoslansa foydali; redirect/login HTMLni muvaffaqiyat deb sanamang.
 
 ```bash
@@ -47,19 +47,19 @@ curl -sS -o /dev/null -w 'status=%{http_code} connect=%{time_connect}s tls=%{tim
 ```
 
 Benchmark redirectni kuzatmaydi, faqat 2xxni successful RPSga sanaydi. Header
-vaqti to‘liq header olinishigacha, aniq birinchi bayt emas; aniq TTFB uchun curl.
-Har request yangi connection ochadi, shuning uchun natijani keep-alive test bilan
-aralashtirmang. Uy/bosh sahifa, blog, ommaviy cache HIT, login qilingan sahifa
-uchun alohida natija yozing. Dastlab 1 va 5 concurrency, keyin 10/25/50.
-Backup/cron va boshqa yuklamalar vaqtini, CPU, account LVE/process/IO quota,
+vaqti töliq header olinişigaça, aniq birinçi bayt emas; aniq TTFB uçun curl.
+Har request yangi connection oçadi, şuning uçun natijani keep-alive test bilan
+aralaştirmang. Uy/bosh sahifa, blog, ommaviy cache HIT, login qilingan sahifa
+uçun alohida natija yozing. Dastlab 1 va 5 concurrency, keyin 10/25/50.
+Backup/cron va boşqa yuklamalar vaqtini, CPU, account LVE/process/IO quota,
 Passenger queue, request statuslari va cache statuslarini ham yozing.
-377 GiB RAM butun serverga tegishli; cPanel hisobiga berilgan resurs bundan kam bo‘lishi mumkin.
+377 GiB RAM butun serverga tegişli; cPanel hisobiga berilgan resurs bundan kam bölişi mumkin.
 
 ## 1. Release va test
 
-Oldingi release/commitni alohida saqlang. Haqiqiy `.env`ni repositoryga qo‘shmang.
+Oldingi release/commitni alohida saqlang. Haqiqiy `.env`ni repositoryga qöşmang.
 Stagingda `.env`ga `DEBUG=False`, amaldagi `DJANGO_SECRET_KEY`, staging host/origin
-qiymatlarini administrator kiritsin; production sirlarini test logiga chiqarmang.
+qiymatlarini administrator kiritsin; production sirlarini test logiga çiqarmang.
 Oldingi DEBUG qotirilgan edi: endi bu flag haqiqatan HTTPS/cookie sozlamalariga ta’sir qiladi.
 
 ```bash
@@ -70,32 +70,32 @@ python manage.py check --deploy --settings=settings.production
 python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests telegram_bot.test_startup --verbosity 2
 ```
 
-Test runner alohida test DB yaratishi kerak; staging DB foydalanuvchisi ruxsatlarini
-tekshiring. Unit testlarda cache alohida LocMem, production Redis tozalanmaydi.
-`manage.py test` production `.env`da Redis yoqilgan bo‘lsa ham uni ishlatmaydi;
-haqiqiy Redis integratsiyasini alohida `check_performance_cache` bilan tekshiring.
-Test/backup/cache-diagnostika buyruqlari bot webhook/pollingni boshlamaydi.
+Test runner alohida test DB yaratişi kerak; staging DB foydalanuvçisi ruxsatlarini
+tekşiring. Unit testlarda cache alohida LocMem, production Redis tozalanmaydi.
+`manage.py test` production `.env`da Redis yoqilgan bölsa ham uni işlatmaydi;
+haqiqiy Redis integratsiyasini alohida `check_performance_cache` bilan tekşiring.
+Test/backup/cache-diagnostika buyruqlari bot webhook/pollingni boşlamaydi.
 `robots_txt` cache testi xato bersa `config/views.py`ning ham yangi `cache_page`
-dekoratorlari bilan serverga ko‘chganini tekshiring; faqat test faylini ko‘chirish yetmaydi.
-Bu muhitda Python virtualenv yo‘llari buzilganligi sabab testlar bajarilmadi;
-Nginx/Apache binary ham mavjud emas. Yuqoridagi staging tekshiruvlari majburiy.
+dekoratorlari bilan serverga köçganini tekşiring; faqat test faylini köçiriş yetmaydi.
+Bu muhitda Python virtualenv yöllari buzilganligi sabab testlar bajarilmadi;
+Nginx/Apache binary ham mavjud emas. Yuqoridagi staging tekşiruvlari majburiy.
 
-WSGI va manage.py odatdagidek `config.settings` bilan ham ishlaydi. Ixtiyoriy
-qat’iy production entry uchun cPanel Python App environment orqali
-`DJANGO_SETTINGS_MODULE=settings.production` qo‘ying. `.env`ga shu modul nomini
-yozishning o‘zi yetarli emas: WSGI settings modulini `.env` yuklanishidan oldin
-tanlashi mumkin. Existing `passenger_wsgi.py`, `.htaccess`, host va DB yo‘llari saqlandi.
-Kod/query o‘zgarishidan keyin baseline buyruqlarni takrorlab `queries-*.json`ga yozing.
+WSGI va manage.py odatdagidek `config.settings` bilan ham işlaydi. Ixtiyoriy
+qat’iy production entry uçun cPanel Python App environment orqali
+`DJANGO_SETTINGS_MODULE=settings.production` qöying. `.env`ga şu modul nomini
+yozişning özi yetarli emas: WSGI settings modulini `.env` yuklanişidan oldin
+tanlaşi mumkin. Existing `passenger_wsgi.py`, `.htaccess`, host va DB yöllari saqlandi.
+Kod/query özgarişidan keyin baseline buyruqlarni takrorlab `queries-*.json`ga yozing.
 
-Rollback: oldingi kod release va requirements lock/snapshotga qayting, shu venv
-dependencylarini tiklang va cPanel Python App orqali restart qiling. Hech qanday
-DB migration qo‘shilmadi, schema/data rollback kerak emas. DEBUGni productionda
-Truega qaytarish tezlik rollback usuli emas.
+Rollback: oldingi kod release va requirements lock/snapshotga qayting, şu venv
+dependencylarini tiklang va cPanel Python App orqali restart qiling. Heç qanday
+DB migration qöşilmadi, schema/data rollback kerak emas. DEBUGni productionda
+Truega qaytariş tezlik rollback usuli emas.
 
 ## 2. Redis (hosting administrator yoki alohida staging Ubuntu)
 
-Shared cPanel terminalida `sudo` bo‘lmasligi mumkin: Redis endpoint/ACLni hosting
-administratoridan oling. Quyidagi buyruqlar **faqat boshqariladigan staging VMda**:
+Shared cPanel terminalida `sudo` bölmasligi mumkin: Redis endpoint/ACLni hosting
+administratoridan oling. Quyidagi buyruqlar **faqat boşqariladigan staging VMda**:
 
 ```bash
 sudo apt-get update
@@ -104,13 +104,13 @@ sudo systemctl status redis-server
 ```
 
 `config/redis.conf.example`ni mavjud dedicated Redis konfiguratsiyasi bilan
-birlashtiring. Avval konfiguratsiya backupini oling; umumiy Redis fayli ustidan
+birlaştiring. Avval konfiguratsiya backupini oling; umumiy Redis fayli ustidan
 yozmang. Loopback bind/protected-mode, 128 MB maxmemory, noeviction namunasi
-berilgan. Multi-tenant cPanelda ACL yoki private Unix socket shart; localhostning
-o‘zi boshqa hosting userlardan himoya qilmaydi. Maxmemory barcha Redis DBlar
-orasida umumiy: `/1` va `/2` alohida memory quota emas. Redis to‘lsa noeviction
-yozishni rad etadi; memory/error monitoring va rollback kerak.
-Redis restart faqat shu instancega ta’sir qilishini tekshirgach administrator bajarsin.
+berilgan. Multi-tenant cPanelda ACL yoki private Unix socket şart; localhostning
+özi boşqa hosting userlardan himoya qilmaydi. Maxmemory barça Redis DBlar
+orasida umumiy: `/1` va `/2` alohida memory quota emas. Redis tölsa noeviction
+yozişni rad etadi; memory/error monitoring va rollback kerak.
+Redis restart faqat şu instancega ta’sir qilişini tekşirgaç administrator bajarsin.
 
 Staging `.env`da mavjud sirlarni saqlagan holda:
 
@@ -123,8 +123,8 @@ CACHE_KEY_PREFIX=lms-staging-release1
 LANDING_CACHE_SECONDS=60
 ```
 
-ACL/password bo‘lsa haqiqiy URLni faqat private `.env`ga yozing (URL encodingni
-hisobga oling). Staging/prod turli dedicated Redis namespace/ACL ishlatsin.
+ACL/password bölsa haqiqiy URLni faqat private `.env`ga yozing (URL encodingni
+hisobga oling). Staging/prod turli dedicated Redis namespace/ACL işlatsin.
 
 ```bash
 python manage.py check_performance_cache
@@ -132,23 +132,23 @@ python manage.py check --settings=settings.production
 # Keyin cPanel Python App restart va baseline benchmarklarni takrorlang.
 ```
 
-Endi `REDIS_SESSIONS_ENABLED=true` bilan yana restart qiling. Staging foydalanuvchi
-bilan login/logout, ikkita browserdagi alohida account, CSRF POST, parol tiklash va
-sessiya amal qilishini tekshiring. Django session migratsiyasi allaqachon mavjud
-bo‘lishi kerak. Cache qayta to‘lishi/birinchi requestlar warmup vaqtini alohida o‘lchang.
-Key prefixni almashtirish rate limit hisoblagichlarini ham yangidan boshlaydi;
-productionda har o‘lchov uchun prefixni almashtirmang yoki cache.clear/FLUSHDB qilmang.
+Endi `REDIS_SESSIONS_ENABLED=true` bilan yana restart qiling. Staging foydalanuvçi
+bilan login/logout, ikkita browserdagi alohida account, CSRF POST, parol tiklaş va
+sessiya amal qilişini tekşiring. Django session migratsiyasi allaqaçon mavjud
+bölişi kerak. Cache qayta tölishi/birinchi requestlar warmup vaqtini alohida ölçang.
+Key prefixni almaştiriş rate limit hisoblagiçlarini ham yangidan boşlaydi;
+productionda har ölçov uçun prefixni almaştirmang yoki cache.clear/FLUSHDB qilmang.
 
-Rollback: avval `REDIS_SESSIONS_ENABLED=false`, zarur bo‘lsa
+Rollback: avval `REDIS_SESSIONS_ENABLED=false`, zarur bölsa
 `USE_REDIS_CACHE=false` va app restart. DB sessionlar saqlanadi. Existing Redisni
-tozalash/to‘xtatish shart emas. Redisdan LocMemga qaytish rate limitni yana
-process-local qiladi; bu avvalgi holat, doimiy ko‘p-process yechim sifatida qoldirmang.
+tozalash/töxtatish şart emas. Redisdan LocMemga qaytiş rate limitni yana
+process-local qiladi; bu avvalgi holat, doimiy köp-process yeçim sifatida qoldirmang.
 
 ## 3. Nginx/Engintron cache
 
-Bu repo ichidagi `.htaccess` Apache Passenger borligini ko‘rsatadi; demak eng
+Bu repo içidagi `.htaccess` Apache Passenger borligini körsatadi; demak eng
 ehtimoliy topology Nginx/Engintron -> Apache -> Passenger. Administrator real
-upstream, TLS termination va include contextni tekshirsin:
+upstream, TLS termination va include contextni tekşirsin:
 
 ```bash
 sudo nginx -t
@@ -157,7 +157,7 @@ sudo apachectl -t
 sudo passenger-status
 ```
 
-`nginx -T` dumpini yopiq saqlang, ommaviy chatga yubormang. **Har qanday Nginx
+`nginx -T` dumpini yopiq saqlang, ommaviy çatga yubormang. **Har qanday Nginx
 tahriridan oldin** haqiqiy fayl va persistent custom include fayllarining backupi:
 
 ```bash
@@ -170,20 +170,20 @@ sudo cp -a /ACTUAL/PASSENGER_INCLUDE.conf "/root/lms-passenger-before-$stamp.con
 Repo template fayllarini avtomatik copy qilib butun nginx.conf/vhost ustidan
 yozmang. Engintron/cPanel regeneratsiyasidan saqlanadigan custom include orqali:
 
-| Fayl | Context va qo‘llanish |
+| Fayl | Context va qöllaniş |
 |---|---|
 | `config/nginx/site.conf` | `http {}`: cache zone va bypass maplar |
 | `config/nginx/public-locations.conf` | Mavjud sayt `server {}`: faqat robots/sitemap |
-| `config/nginx/private-location-cache.conf` | Mavjud dynamic/private proxy location ichida cache off |
+| `config/nginx/private-location-cache.conf` | Mavjud dynamic/private proxy location içida cache off |
 
-`127.0.0.1:8080` namunaviy Apache upstream, ko‘r-ko‘rona ishlatmang. Mavjud
-security headerlar, TLS va proxy ishonch sozlamalarini saqlang. Nginxning ko‘p
-versiyalarida location ichidagi `add_header` yuqoridan meros olingan security
-headerlarni almashtiradi: shu locationlarga mavjud security include'ni qayta qo‘shing.
-Cache katalogini haqiqiy Nginx worker user uchun yarating; disk quota va 64 MB
+`127.0.0.1:8080` namunaviy Apache upstream, kör-körona işlatmang. Mavjud
+security headerlar, TLS va proxy işonç sozlamalarini saqlang. Nginxning köp
+versiyalarida location içidagi `add_header` yuqoridan meros olingan security
+headerlarni almaştiradi: şu locationlarga mavjud security include'ni qayta qöşing.
+Cache katalogini haqiqiy Nginx worker user uçun yarating; disk quota va 64 MB
 cache limiti ham umumiy disk hisobiga kiradi. Oldingi Engintron umumiy GET cache
-qoidalarini **barcha boshqa dynamic locationlarda** o‘chiring/bypass qiling;
-faqat yangi robots location qo‘shish eski private cache muammosini hal qilmaydi.
+qoidalarini **barça boşqa dynamic locationlarda** öchiring/bypass qiling;
+faqat yangi robots location qöşiş eski private cache muammosini hal qilmaydi.
 
 ```bash
 sudo nginx -t
@@ -199,53 +199,53 @@ curl -sS -D - -o /dev/null https://STAGING_DOMAIN/login/
 ```
 
 Robots cookie/query/authsiz takrorlanganda MISS -> HIT kutiladi (oldindan warm
-bo‘lsa birinchi ham HIT); cookie/auth/query bilan BYPASS. Uy/login/private sahifalar
-BYPASS bo‘lishi kerak. `Set-Cookie`, `Cache-Control: private/no-store`, `Vary`ni
-e’tiborsiz qoldiradigan `proxy_ignore_headers` qo‘shmang. Logged-in ikki account
-orasida shaxsiy ma’lumot almashmasligini browserda ham tekshiring. 5 daqiqadan
-keyingi EXPIRED oddiy TTL yangilanishidir. Home uchun Nginx HIT bu o‘zgarishda
+bölsa birinçi ham HIT); cookie/auth/query bilan BYPASS. Uy/login/private sahifalar
+BYPASS bölişi kerak. `Set-Cookie`, `Cache-Control: private/no-store`, `Vary`ni
+e’tiborsiz qoldiradigan `proxy_ignore_headers` qöşmang. Logged-in ikki account
+orasida şaxsiy ma’lumot almaşmasligini browserda ham tekşiring. 5 daqiqadan
+keyingi EXPIRED oddiy TTL yangilanişidir. Home uçun Nginx HIT bu özgarişda
 maqsad emas, uning public data cache'i DB yukini kamaytiradi.
 
-Rollback: faqat o‘zgartirilgan config/custom includelarni backupdan qaytaring;
-butun `/etc/nginx` arxivini boshqa administrator o‘zgarishlari ustidan ochmang.
-`nginx -t` muvaffaqiyatli bo‘lgach reload. Private sahifalarni cache qilgan eski
-configga qaytmang; xavfsiz vaqtinchalik variant dynamic cache'ni o‘chirib turish.
+Rollback: faqat özgartirilgan config/custom includelarni backupdan qaytaring;
+butun `/etc/nginx` arxivini boşqa administrator özgarişlari ustidan oçmang.
+`nginx -t` muvaffaqiyatli bölgaç reload. Private sahifalarni cache qilgan eski
+configga qaytmang; xavfsiz vaqtinçalik variant dynamic cache'ni öçirib turiş.
 
 ## 4. Passenger concurrency va background workerlar
 
-Server RAMiga qarab yuzlab process qo‘ymang. `passenger-status`, account
+Server RAMiga qarab yuzlab process qöymang. `passenger-status`, account
 CPU/process/RSS limitlari va queue orqali 2 -> 4 jarayonni stagingda sinang.
-4 process template xolos: amaldagi pool 6 yoki undan katta bo‘lsa bu raqam uni
-oshirmaydi. Har ilova ulushini va global pool boshqa saytlarga ta’sirini hisoblang.
-`passenger_max_requests=1000` memory recycling uchun, throughput kafolati emas.
-Har recycle cold start keltiradi; memory leak bo‘lmasa 0 bilan ham solishtiring.
+4 process template xolos: amaldagi pool 6 yoki undan katta bölsa bu raqam uni
+oşirmaydi. Har ilova uluşini va global pool boşqa saytlarga ta’sirini hisoblang.
+`passenger_max_requests=1000` memory recycling uçun, throughput kafolati emas.
+Har recycle cold start keltiradi; memory leak bölmasa 0 bilan ham soliştiring.
 
-Oldingi startup har processda template scan va AI/email thread ishga tushiradi.
-Avval **stagingda** alohida yagona cron workerlarni rejalashtiring (yo‘llar stagingga
-moslansin, `flock` mavjud bo‘lsin; loglarga 600 huquq/logrotate):
+Oldingi startup har processda template scan va AI/email thread işga tuşiradi.
+Avval **stagingda** alohida yagona cron workerlarni rejalaştiring (yöllar stagingga
+moslansin, `flock` mavjud bölsin; loglarga 600 huquq/logrotate):
 
 ```cron
 * * * * * cd /home/itcacade/lmsv1 && /usr/bin/flock -n /home/itcacade/lms-email.lock /home/itcacade/virtualenv/lmsv1/3.10/bin/python manage.py send_email_notifications >> /home/itcacade/lms-email.log 2>&1
 */5 * * * * cd /home/itcacade/lmsv1 && /usr/bin/flock -n /home/itcacade/lms-ai.lock /home/itcacade/virtualenv/lmsv1/3.10/bin/python manage.py check_ai_homework >> /home/itcacade/lms-ai.log 2>&1
 ```
 
-Commandlarni bir marta stagingda qo‘lda sinang; AI tashqi API xarajati va test
-email yuborilishi mumkin, staging recipient/API hisoblarini ishlating. So‘ng:
+Commandlarni bir marta stagingda qölda sinang; AI taşqi API xarajati va test
+email yuborilişi mumkin, staging recipient/API hisoblarini işlating. Söng:
 
 ```dotenv
 RUN_INPROCESS_WORKERS=false
 RUN_STARTUP_TEMPLATE_REPAIR=false
 ```
 
-Encodingni release vaqtida tekshiring; kerak bo‘lsa mavjud `fix_encoding` commandni
-stagingda qo‘lda ishlating. Web-processlar qayta ishga tushgach cronlar yagona
-worker bo‘lib qolganini va email/AI ishlashini tekshiring. Deploy o'tishidagi
-birinchi worker ishga tushishini nazorat qiling.
+Encodingni release vaqtida tekşiring; kerak bölsa mavjud `fix_encoding` commandni
+stagingda qölda işlating. Web-processlar qayta işga tuşgaç cronlar yagona
+worker bölib qolganini va email/AI işlaşini tekşiring. Deploy ötişidagi
+birinçi worker işga tuşişini nazorat qiling.
 
-Apache Passenger uchun `config/passenger.conf` (global va VirtualHost qismlari
-alohida), Nginx ichida haqiqiy Passenger module bo‘lsa **faqat alternativ**
-`config/passenger-nginx.conf` ishlatiladi. Nginx proxyga Passenger directive
-qo‘yish mod_passenger workerlarini boshqarmaydi. .htaccessga global pool yozmang.
+Apache Passenger uçun `config/passenger.conf` (global va VirtualHost qismlari
+alohida), Nginx içida haqiqiy Passenger module bölsa **faqat alternativ**
+`config/passenger-nginx.conf` işlatiladi. Nginx proxyga Passenger directive
+qöyiş mod_passenger workerlarini boşqarmaydi. .htaccessga global pool yozmang.
 
 ```bash
 sudo apachectl -t
@@ -255,18 +255,18 @@ python scripts/benchmark_http.py https://STAGING_DOMAIN/ --requests 50 --concurr
 python scripts/benchmark_http.py https://STAGING_DOMAIN/ --requests 50 --concurrency 50 > passenger-home-c50.json
 ```
 
-SQLite `database is locked`, disk IO, queue yoki 5xx ortsa processlarni ko‘paytirishni
-to‘xtating, oldingi poolga qayting. SQLite WAL rejimi yoki DB migratsiyasi avtomatik
-qo‘shilmadi. Backupni 02:00 da qoldiring, load testni backup bilan bir vaqtda qilmang.
+SQLite `database is locked`, disk IO, queue yoki 5xx ortsa processlarni köpaytirişni
+töxtating, oldingi poolga qayting. SQLite WAL rejimi yoki DB migratsiyasi avtomatik
+qöşilmadi. Backupni 02:00 da qoldiring, load testni backup bilan bir vaqtda qilmang.
 
 Rollback: oldingi pool/min/max-requests qiymatlarini config backupdan tiklang,
-syntax check va administrator restart. Cron worker yo‘lidan qaytish kerak bo‘lsa,
-avval shu yangi cronlarni o‘chirib faol ishlar tugashini kuting, keyin
+syntax check va administrator restart. Cron worker yölidan qaytiş kerak bölsa,
+avval şu yangi cronlarni öçirib faol işlar tugaşini kuting, keyin
 `RUN_INPROCESS_WORKERS=true` va restart; ikki turini birga qoldirmang.
 
 ## 5. Query profiling va qabul mezoni
 
-Private, tashqi tarmoqdan yopiq stagingda:
+Private, taşqi tarmoqdan yopiq stagingda:
 
 ```bash
 python -m pip install -r requirements-dev.txt
@@ -274,20 +274,20 @@ python -m pip install -r requirements-dev.txt
 DEBUG=True DJANGO_SETTINGS_MODULE=settings.staging_debug python manage.py runserver 127.0.0.1:8000 --noreload
 ```
 
-SSH tunnel orqali localhostda oching. Toolbar SQL panelida endpointlar bo‘yicha
+SSH tunnel orqali localhostda oçing. Toolbar SQL panelida endpointlar böyiça
 query count, takroriy query va vaqtni yozing. Productionda toolbar/DEBUG yoqilmang.
-Toolbar profiling bilan olingan latencyni release benchmarkga aralashtirmang.
-Real sekin SQLni `QuerySet.explain()` orqali stagingda tekshiring; dalilsiz indeks
-yoki butun bazaga prefetch qo‘shmang.
+Toolbar profiling bilan olingan latencyni release benchmarkga aralaştirmang.
+Real sekin SQLni `QuerySet.explain()` orqali stagingda tekşiring; dalilsiz indeks
+yoki butun bazaga prefetch qöşmang.
 
-Har bosqichdan keyin bir xil URL, bir xil request/concurrency, warmup, mijoz
-joylashuvi va statuslar bilan JSON natijalarni taqqoslang. 2xx successful RPS,
+Har bosqiçdan keyin bir xil URL, bir xil request/concurrency, warmup, mijoz
+joylaşuvi va statuslar bilan JSON natijalarni taqqoslang. 2xx successful RPS,
 p50/p95 header latency, curl TTFB, 5xx/timeout, CPU/RSS/IO va Passenger queue
-qayd etilsin. Cached public endpointdagi RPS authenticated Django RPS o‘rnini bosmaydi.
-Stagingda barcha funksional testlar o‘tsa, cross-user cache yo‘q bo‘lsa va xatolar
-ko‘paymasdan o‘lchangan yaxshilanish bo‘lsa release ko‘rib chiqiladi. Hozircha
-50 ms yoki 50–200 RPS erishildi degan da’vo yo‘q; natijaga qarab keyingi
-bottleneck optimallashtiriladi, productionda cheksiz load test qilinmaydi.
+qayd etilsin. Cached public endpointdagi RPS authenticated Django RPS örnini bosmaydi.
+Stagingda barça funksional testlar ötsa, cross-user cache yöq bölsa va xatolar
+köpaymasdan ölçangan yaxşilaniş bölsa release körib çiqiladi. Hozirça
+50 ms yoki 50–200 RPS erişildi degan da’vo yöq; natijaga qarab keyingi
+bottleneck optimallaştiriladi, productionda çeksiz load test qilinmaydi.
 
 Manbalar: [Django sessions](https://docs.djangoproject.com/en/5.1/topics/http/sessions/),
 [django-redis](https://github.com/jazzband/django-redis),

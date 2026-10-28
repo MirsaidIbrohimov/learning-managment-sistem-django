@@ -93,7 +93,7 @@ class EmailPasswordRecoveryTests(TestCase):
         path = re.search(r'https://lms.example.com(/password-reset/open/[^\s]+/)', mail.outbox[0].body).group(1)
         CustomUser.objects.filter(pk=self.user.pk).update(is_blocked=True)
         self.assertIsNone(authenticate(username=self.user.username, password=pending))
-        self.assertContains(self.client.get(path), 'Havola ishlamaydi')
+        self.assertContains(self.client.get(path), 'Havola işlamaydi')
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('Old-password-123'))
 
@@ -147,8 +147,8 @@ class EmailPasswordRecoveryTests(TestCase):
         wrong = self.submit(email='attacker@example.com')
         missing = self.submit(username='does-not-exist')
         self.assertEqual(wrong.status_code, missing.status_code)
-        self.assertContains(wrong, 'Bu username ushbu emailga bog‘lanmagan.')
-        self.assertContains(missing, 'Bu username ushbu emailga bog‘lanmagan.')
+        self.assertContains(wrong, 'Bu username uşbu emailga boğlanmagan.')
+        self.assertContains(missing, 'Bu username uşbu emailga boğlanmagan.')
         self.assertEqual(len(mail.outbox), 0)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('Old-password-123'))
@@ -157,7 +157,7 @@ class EmailPasswordRecoveryTests(TestCase):
         pending = PasswordResetRequest.objects.create(user=self.user, new_password='old-request-hash')
         with patch('accounts.password_recovery.EmailMultiAlternatives.send', side_effect=SMTPException('failed')):
             response = self.submit()
-        self.assertContains(response, 'Emailni yuborib bo‘lmadi.')
+        self.assertContains(response, 'Emailni yuborib bölmadi.')
         self.user.refresh_from_db()
         pending.refresh_from_db()
         self.assertTrue(self.user.check_password('Old-password-123'))
@@ -206,7 +206,7 @@ class EmailPasswordRecoveryTests(TestCase):
             self.assertNotContains(self.submit(email='wrong@example.com'), 'name="captcha_answer"')
         self.assertContains(self.submit(email='wrong@example.com'), 'name="captcha_answer"')
         response = self.submit()
-        self.assertContains(response, 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+        self.assertContains(response, 'Rasmdagi CAPTCHA kodini töğri kiriting.')
         self.assertEqual(len(mail.outbox), 0)
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('Old-password-123'))
@@ -223,9 +223,9 @@ class EmailPasswordRecoveryTests(TestCase):
         self.require_captcha()
         self.captcha_image()
         first = self.submit(email='wrong@example.com', captcha_answer='AAAAAA')
-        self.assertContains(first, 'Bu username ushbu emailga bog‘lanmagan.')
+        self.assertContains(first, 'Bu username uşbu emailga boğlanmagan.')
         second = self.submit(captcha_answer='AAAAAA')
-        self.assertContains(second, 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+        self.assertContains(second, 'Rasmdagi CAPTCHA kodini töğri kiriting.')
         self.assertEqual(len(mail.outbox), 0)
 
     def test_expired_and_wrong_captcha_do_not_send_email(self):
@@ -234,15 +234,15 @@ class EmailPasswordRecoveryTests(TestCase):
         session = self.client.session
         session['password_recovery_captcha']['created'] = time.time() - 301
         session.save()
-        self.assertContains(self.submit(captcha_answer='AAAAAA'), 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+        self.assertContains(self.submit(captcha_answer='AAAAAA'), 'Rasmdagi CAPTCHA kodini töğri kiriting.')
         self.captcha_image()
-        self.assertContains(self.submit(captcha_answer='BBBBBB'), 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+        self.assertContains(self.submit(captcha_answer='BBBBBB'), 'Rasmdagi CAPTCHA kodini töğri kiriting.')
         self.assertEqual(len(mail.outbox), 0)
 
     def test_new_session_does_not_bypass_ip_captcha_gate(self):
         self.require_captcha()
         response = Client().post(self.url, {'username': self.user.username, 'email': self.user.email})
-        self.assertContains(response, 'Rasmdagi CAPTCHA kodini to‘g‘ri kiriting.')
+        self.assertContains(response, 'Rasmdagi CAPTCHA kodini töğri kiriting.')
         self.assertEqual(len(mail.outbox), 0)
 
     def test_page_uses_auth_design_and_confirmation_has_no_password(self):
@@ -251,7 +251,7 @@ class EmailPasswordRecoveryTests(TestCase):
         self.assertContains(response, 'name="email"')
         self.assertNotContains(response, 'name="new_password1"')
         self.assertIn('no-store', response.headers['Cache-Control'])
-        self.assertContains(self.client.get(self.url + '?sent=1'), 'Emailingizni tekshiring')
+        self.assertContains(self.client.get(self.url + '?sent=1'), 'Emailingizni tekşiring')
         self.assertContains(self.client.get(self.url + '?sent=1'), 'Spam')
 
     def test_csrf_is_required(self):

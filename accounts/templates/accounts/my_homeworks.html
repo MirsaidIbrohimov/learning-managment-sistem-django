@@ -4,7 +4,7 @@
 
 {% block content %}
 <style>
-/* ==================== O'ZGARUVCHILAR ==================== */
+/* ==================== ÖZGARUVÇILAR ==================== */
 :root {
     --talaba-kok: #3b82f6;
     --talaba-yashil: #10b981;
@@ -242,7 +242,7 @@
     }
 }
 
-/* ==================== VAZIFALAR RO'YXATI ==================== */
+/* ==================== VAZIFALAR RÖYXATI ==================== */
 .talaba-vazifalar-karta {
     background: var(--talaba-karta);
     border: 2px solid var(--talaba-chegara);
@@ -585,7 +585,7 @@
     }
 }
 
-/* ==================== BO'SH HOLAT ==================== */
+/* ==================== BÖŞ HOLAT ==================== */
 .talaba-bosh-holat {
     text-align: center;
     padding: 5rem 2rem;
@@ -665,7 +665,7 @@
         </h4>
         <a href="{% url 'profile' %}" class="talaba-qaytish-tugma">
             <i class="bi bi-arrow-left"></i>
-            <span>Profilga qaytish</span>
+            <span>Profilga qaytiş</span>
         </a>
     </div>
     
@@ -681,15 +681,15 @@
         </div>
         <div class="talaba-stat-quti qirmizi">
             <div class="talaba-stat-raqam">{{ stats.revision }}</div>
-            <div class="talaba-stat-yorliq">Qayta ishlash</div>
+            <div class="talaba-stat-yorliq">Qayta işlaş</div>
         </div>
         <div class="talaba-stat-quti yashil">
             <div class="talaba-stat-raqam">{{ stats.avg_grade|floatformat:0 }}%</div>
-            <div class="talaba-stat-yorliq">O'rtacha baho</div>
+            <div class="talaba-stat-yorliq">Örtaça baho</div>
         </div>
     </div>
     
-    <!-- Vazifalar Ro'yxati -->
+    <!-- Vazifalar Röyxati -->
     <div class="talaba-vazifalar-karta">
         {% if submissions %}
             {% for sub in submissions %}
@@ -737,9 +737,9 @@
                         {% if sub.status == 'pending' %}
                             Kutilmoqda
                         {% elif sub.status == 'reviewing' %}
-                            Ko'rilmoqda
+                            Körilmoqda
                         {% elif sub.status == 'revision' %}
-                            Qayta ishlash!
+                            Qayta işlaş!
                         {% elif sub.status == 'accepted' %}
                             Qabul qilindi
                         {% elif sub.status == 'graded' %}
@@ -748,14 +748,14 @@
                     </span>
                     {% if sub.is_late %}
                     <span class="talaba-kech-belgi">
-                        <i class="bi bi-clock-history"></i> KECH
+                        <i class="bi bi-clock-history"></i> KEÇ
                     </span>
                     {% endif %}
                 </div>
                 
                 <a href="{% url 'homework_chat' sub.pk %}" class="talaba-chat-tugma">
                     <i class="bi bi-chat-dots"></i>
-                    Ko'rish
+                    Köriş
                 </a>
 
                 {% if sub.feedback or sub.status == 'revision' %}
@@ -763,7 +763,7 @@
                     {% if sub.feedback %}
                     <div class="talaba-izoh-quti">
                         <div class="talaba-izoh-sarlavha">
-                            <i class="bi bi-chat-quote-fill"></i> O'qituvchi izohi
+                            <i class="bi bi-chat-quote-fill"></i> Öqituvçi izohi
                             {% if sub.graded_by %}<span class="talaba-izoh-muallif">— {{ sub.graded_by.full_name }}</span>{% endif %}
                         </div>
                         <p class="talaba-izoh-matn">{{ sub.feedback }}</p>
@@ -772,7 +772,7 @@
                     {% if sub.status == 'revision' %}
                     <div class="talaba-qayta-eslatma">
                         <i class="bi bi-info-circle-fill"></i>
-                        <span>Qayta topshirish uchun <a href="{% url 'homework_chat' sub.pk %}">"Ko'rish" sahifasiga o'ting</a> — u yerda tuzatilgan javobingizni yuborasiz.</span>
+                        <span>Qayta topşiriş uçun <a href="{% url 'homework_chat' sub.pk %}">"Köriş" sahifasiga öting</a> — u yerda tuzatilgan javobingizni yuborasiz.</span>
                     </div>
                     {% endif %}
                 </div>
@@ -784,7 +784,7 @@
                 <div class="talaba-bosh-icon">
                     <i class="bi bi-inbox"></i>
                 </div>
-                <p class="talaba-bosh-matn">Siz hali vazifa topshirmagansiz</p>
+                <p class="talaba-bosh-matn">Siz hali vazifa topşirmagansiz</p>
             </div>
         {% endif %}
     </div>

@@ -10,10 +10,10 @@ from django.views.decorators.cache import cache_control, cache_page
 
 BASE_DIR = Path(settings.BASE_DIR)
 
-# Fayllardagi to'ldiruvchi domen so'rov kelgan haqiqiy domenga almashtiriladi,
-# shunda itc-academy.uz va itcreative.uz uchun bitta fayl yetadi. `get_host()`
-# ALLOWED_HOSTS ga qarab tekshirilgandan keyin qaytadi, shuning uchun Host
-# sarlavhasi orqali begona domen kiritib bo'lmaydi.
+# Fayllardagi töldiruvçi domen sörov kelgan haqiqiy domenga almaştiriladi,
+# şunda itc-academy.uz va itcreative.uz uçun bitta fayl yetadi. `get_host()`
+# ALLOWED_HOSTS ga qarab tekşirilgandan keyin qaytadi, şuning uçun Host
+# sarlavhasi orqali begona domen kiritib bölmaydi.
 _DOMAIN_PLACEHOLDER = 'itc-academy.uz'
 
 
@@ -54,7 +54,7 @@ def sitemap_xml(request):
         url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
         ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, path.lstrip('/'))
 
-    # Sotuvdagi kurslarning ochiq sahifalari — Google to'g'ridan-to'g'ri xaridga olib keladi.
+    # Sotuvdagi kurslarning oçiq sahifalari — Google töğridan-töğri xaridga olib keladi.
     from accounts.public_courses import sale_courses
 
     for course in sale_courses().only('pk', 'name', 'photo', 'created_at').iterator():
@@ -94,17 +94,17 @@ def security_txt(request):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# MEDIA: yuklangan fayllarni xavfsiz uzatish
+# MEDIA: yuklangan fayllarni xavfsiz uzatiş
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Brauzerda `inline` ochilishi xavfsiz turlar. Ro'yxatda yo'q hamma narsa
+# Brauzerda `inline` oçilişi xavfsiz turlar. Röyxatda yöq hamma narsa
 # `attachment` sifatida ketadi.
 #
 # NEGA: `media/` bizning origin'imizdan (`/media/...`) beriladi. Django'ning
-# `serve` ko'rinishi Content-Type ni kengaytmadan chiqaradi, ya'ni yuklangan
-# `.html` fayl `text/html` bo'lib, `.svg` esa `image/svg+xml` bo'lib ochilardi.
-# Ikkalasi ham skript bajaradi va bizning sessiya cookie'imizga to'liq kirish
-# oladi — ya'ni har qanday uy vazifasi yuklovchi saqlangan XSS qilishi mumkin edi.
+# `serve` körinişi Content-Type ni kengaytmadan çiqaradi, ya'ni yuklangan
+# `.html` fayl `text/html` bölib, `.svg` esa `image/svg+xml` bölib oçilardi.
+# Ikkalasi ham skript bajaradi va bizning sessiya cookie'imizga töliq kiriş
+# oladi — ya'ni har qanday uy vazifasi yuklovçi saqlangan XSS qilişi mumkin edi.
 _INLINE_SAFE_TYPES = (
     'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif',
     'image/bmp', 'image/x-icon', 'image/vnd.microsoft.icon',
@@ -115,12 +115,12 @@ _INLINE_SAFE_TYPES = (
 
 
 def _serve_media_bytes_path(path):
-    """Kirillcha (UTF-8) nomli mavjud fayllar uchun zaxira.
+    """Kirillça (UTF-8) nomli mavjud fayllar uçun zaxira.
 
-    Ba'zi hosting serverlarida Python fayl tizimi kodlashi UTF-8 emas — u holda
-    "Снимок_экрана.png" kabi fayl diskda bor bo'lsa ham `serve` uni topa olmay
-    404 beradi. Yo'lni UTF-8 baytlariga o'girib qidirish kodlash sozlamasiga
-    bog'liq emas. Faqat MEDIA_ROOT ichidagi oddiy fayllar beriladi.
+    Ba'zi hosting serverlarida Python fayl tizimi kodlaşi UTF-8 emas — u holda
+    "Снимок_экрана.png" kabi fayl diskda bor bölsa ham `serve` uni topa olmay
+    404 beradi. Yölni UTF-8 baytlariga ögirib qidiriş kodlaş sozlamasiga
+    boğliq emas. Faqat MEDIA_ROOT içidagi oddiy fayllar beriladi.
     """
     import mimetypes
 
@@ -139,7 +139,7 @@ def _serve_media_bytes_path(path):
 
 
 def serve_media(request, path):
-    """`/media/` fayllarini uzatadi, xavfli turlarni ochilishga qo'ymaydi."""
+    """`/media/` fayllarini uzatadi, xavfli turlarni oçilişga qöymaydi."""
     from django.http import Http404
     from django.views.static import serve as static_serve
 
@@ -153,13 +153,13 @@ def serve_media(request, path):
     content_type = (response.get('Content-Type') or '').split(';')[0].strip().lower()
     if content_type not in _INLINE_SAFE_TYPES:
         filename = Path(path).name or 'file'
-        # `filename` foydalanuvchi kiritgan matn — header'ga qo'yishdan oldin
-        # qo'shtirnoq va yangi qatorlar olib tashlanadi (header injection).
+        # `filename` foydalanuvçi kiritgan matn — header'ga qöyişdan oldin
+        # qöştirnoq va yangi qatorlar olib taşlanadi (header injection).
         filename = filename.replace('"', '').replace('\\', '')
         filename = ''.join(ch for ch in filename if ch.isprintable())
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         # Rasm deb yuborilgan HTML ni brauzer "aqlli" tarzda qayta talqin
-        # qilmasligi uchun.
+        # qilmasligi uçun.
         response['Content-Type'] = 'application/octet-stream'
 
     response['X-Content-Type-Options'] = 'nosniff'

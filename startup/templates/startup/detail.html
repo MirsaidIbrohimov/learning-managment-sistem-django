@@ -34,7 +34,7 @@
       {% endif %}
       {% if can_edit %}
         <a class="btn btn-sm btn-primary" href="{% url 'startup:edit' startup.slug %}">
-          <i class="bi bi-pencil"></i> Tahrirlash
+          <i class="bi bi-pencil"></i> Tahrirlaş
         </a>
       {% endif %}
     </div>
@@ -48,7 +48,7 @@
         <h2 class="su-card-title"><i class="bi bi-graph-up-arrow"></i> Progress</h2>
         {% include 'startup/_progress.html' with progress=startup.progress %}
         <p class="su-note" style="margin-top:10px">
-          {{ startup.progress }}% bajarildi · {{ startup.stage_index }}/10 bosqich
+          {{ startup.progress }}% bajarildi · {{ startup.stage_index }}/10 bosqiç
           {% if task_stats %} · {{ task_stats.done }}/{{ task_stats.total }} vazifa{% endif %}
         </p>
       </div>
@@ -62,17 +62,17 @@
 
       {% if startup.problem or startup.solution or startup.target_audience or startup.business_model or startup.competitors %}
       <div class="su-card">
-        <h2 class="su-card-title"><i class="bi bi-lightbulb"></i> Gʻoya</h2>
+        <h2 class="su-card-title"><i class="bi bi-lightbulb"></i> Ğoya</h2>
         {% if startup.problem %}<p><b>Muammo:</b><br>{{ startup.problem|linebreaksbr }}</p>{% endif %}
-        {% if startup.solution %}<p><b>Yechim:</b><br>{{ startup.solution|linebreaksbr }}</p>{% endif %}
+        {% if startup.solution %}<p><b>Yeçim:</b><br>{{ startup.solution|linebreaksbr }}</p>{% endif %}
         {% if startup.target_audience %}<p><b>Maqsadli auditoriya:</b><br>{{ startup.target_audience|linebreaksbr }}</p>{% endif %}
         {% if startup.business_model %}<p><b>Biznes model:</b><br>{{ startup.business_model|linebreaksbr }}</p>{% endif %}
-        {% if startup.competitors %}<p style="margin-bottom:0"><b>Raqobatchilar:</b><br>{{ startup.competitors|linebreaksbr }}</p>{% endif %}
+        {% if startup.competitors %}<p style="margin-bottom:0"><b>Raqobatçilar:</b><br>{{ startup.competitors|linebreaksbr }}</p>{% endif %}
       </div>
       {% endif %}
 
       <div class="su-card">
-        <h2 class="su-card-title"><i class="bi bi-signpost-split"></i> Bosqichlar</h2>
+        <h2 class="su-card-title"><i class="bi bi-signpost-split"></i> Bosqiçlar</h2>
         {% for stage in stages %}
           <div class="su-stage {% if stage.is_completed %}done{% elif stage.key == startup.current_stage %}current{% endif %}">
             <span class="su-stage-dot">
@@ -81,7 +81,7 @@
             <div class="su-stage-body">
               <h3>{{ stage.title }}</h3>
               <span class="su-stage-meta">
-                {% if stage.is_completed %}Yakunlangan{% elif stage.key == startup.current_stage %}Joriy bosqich{% else %}Kutilmoqda{% endif %}
+                {% if stage.is_completed %}Yakunlangan{% elif stage.key == startup.current_stage %}Joriy bosqiç{% else %}Kutilmoqda{% endif %}
               </span>
             </div>
           </div>
@@ -109,11 +109,11 @@
           <form method="post" action="{% url 'startup:team_join' startup.slug %}" style="margin-top:12px">
             {% csrf_token %}
             <button class="btn btn-sm btn-primary w-100" type="submit">
-              <i class="bi bi-person-plus"></i> Jamoaga qoʻshilish
+              <i class="bi bi-person-plus"></i> Jamoaga qöşiliş
             </button>
           </form>
         {% elif membership and membership.status == 'pending' %}
-          <p class="su-note" style="margin-top:12px"><i class="bi bi-hourglass"></i> Soʻrovingiz koʻrib chiqilmoqda.</p>
+          <p class="su-note" style="margin-top:12px"><i class="bi bi-hourglass"></i> Sörovingiz körib çiqilmoqda.</p>
         {% endif %}
       </div>
 
@@ -165,9 +165,9 @@
           <a class="su-count" href="{% url 'startup:finance' startup.slug %}">Batafsil →</a>
         </h2>
         <p class="su-note">
-          Daromad: <b style="color:var(--success)">{{ finance.revenue }}</b> soʻm<br>
-          Xarajat: <b style="color:var(--danger)">{{ finance.expense }}</b> soʻm<br>
-          Foyda: <b>{{ finance.profit }}</b> soʻm
+          Daromad: <b style="color:var(--success)">{{ finance.revenue }}</b> söm<br>
+          Xarajat: <b style="color:var(--danger)">{{ finance.expense }}</b> söm<br>
+          Foyda: <b>{{ finance.profit }}</b> söm
         </p>
       </div>
       {% endif %}
@@ -178,7 +178,7 @@
         <h2 class="su-card-title"><i class="bi bi-chat-square-text"></i> Mentor fikri</h2>
         {% include 'startup/_form.html' with form=feedback_form %}
         <div style="margin-top:14px">
-          <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-send"></i> Yuborish</button>
+          <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-send"></i> Yuboriş</button>
         </div>
       </form>
       {% endif %}

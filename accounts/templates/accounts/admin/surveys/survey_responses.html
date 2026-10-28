@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Javoblar - {{ survey.title }}{% endblock %}
-{% block topbar_title %}So'rovnomalar{% endblock %}
+{% block topbar_title %}Sörovnomalar{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/survey.css' %}">
@@ -24,7 +24,7 @@
             </div>
         </div>
         <a href="{% url 'admin_survey_responses_excel' survey.pk %}" class="sv-btn sv-btn-success sv-btn-lg">
-            <i class="bi bi-file-earmark-arrow-down"></i> Excel yuklab olish
+            <i class="bi bi-file-earmark-arrow-down"></i> Excel yuklab oliş
         </a>
     </div>
 
@@ -43,7 +43,7 @@
             <div>
                 <div class="sv-stat-num">{{ percent }}%</div>
                 <div class="sv-stat-label">
-                    {% if target %}Mo'ljal: {{ target }} foydalanuvchi{% else %}Mo'ljal auditoriya yo'q{% endif %}
+                    {% if target %}Möljal: {{ target }} foydalanuvçi{% else %}Möljal auditoriya yöq{% endif %}
                 </div>
             </div>
         </div>
@@ -78,7 +78,7 @@
                         <div class="sv-agg-sub">
                             <span class="sv-badge">{{ s.question.get_question_type_display }}</span>
                             <span><b>{{ s.answered }}</b> javob berdi</span>
-                            {% if s.skipped %}<span>{{ s.skipped }} ta bo'sh</span>{% endif %}
+                            {% if s.skipped %}<span>{{ s.skipped }} ta böş</span>{% endif %}
                         </div>
                     </div>
                 </div>
@@ -87,7 +87,7 @@
                     <div class="sv-rate-summary">
                         <div>
                             <div class="sv-rate-avg">{{ s.average }}</div>
-                            <div class="sv-rate-note">5 balldan o'rtacha</div>
+                            <div class="sv-rate-note">5 balldan örtaça</div>
                         </div>
                         <div>
                             <div class="sv-rate-stars">
@@ -126,7 +126,7 @@
                     {% if s.type == 'checkbox' %}
                     <div class="sv-note">
                         <i class="bi bi-info-circle"></i>
-                        <span>Ko'p tanlash savoli — bitta kishi bir nechta variant belgilagani uchun foizlar yig'indisi 100%dan oshishi mumkin.</span>
+                        <span>Köp tanlaş savoli — bitta kişi bir neçta variant belgilagani uçun foizlar yiğindisi 100%dan oşişi mumkin.</span>
                     </div>
                     {% endif %}
 
@@ -136,7 +136,7 @@
                         <div class="sv-quote">{{ quote }}</div>
                         {% endfor %}
                         {% if s.more %}
-                        <div class="sv-quote-more">va yana {{ s.more }} ta javob — to'liq ro'yxat "Alohida javoblar" bo'limida yoki Excel faylda.</div>
+                        <div class="sv-quote-more">va yana {{ s.more }} ta javob — töliq röyxat "Alohida javoblar" bölimida yoki Excel faylda.</div>
                         {% endif %}
                     </div>
 
@@ -153,7 +153,7 @@
         <div class="sv-toolbar">
             <div class="sv-search">
                 <i class="bi bi-search"></i>
-                <input type="search" id="svRespSearch" placeholder="Ism yoki username bo'yicha qidirish..." autocomplete="off">
+                <input type="search" id="svRespSearch" placeholder="Ism yoki username böyiça qidiriş..." autocomplete="off">
             </div>
             <span class="sv-panel-hint" id="svRespCount">{{ response_count }} ta javob</span>
         </div>
@@ -193,19 +193,19 @@
 
         <div class="sv-no-result" id="svRespEmpty">
             <i class="bi bi-search" style="font-size:1.6rem; display:block; margin-bottom:0.6rem; opacity:.4;"></i>
-            Bu nom bo'yicha javob topilmadi.
+            Bu nom böyiça javob topilmadi.
         </div>
     </div>
 
     {% else %}
     <div class="sv-empty">
         <div class="sv-empty-icon"><i class="bi bi-inbox"></i></div>
-        <h5>Hali javoblar yo'q</h5>
-        <p>Foydalanuvchilar so'rovnomani to'ldirgach, javoblar va jamlanma statistika shu yerda paydo bo'ladi.</p>
+        <h5>Hali javoblar yöq</h5>
+        <p>Foydalanuvçilar sörovnomani töldirgaç, javoblar va jamlanma statistika şu yerda paydo böladi.</p>
         {% if not survey.is_active %}
         <div class="sv-note" style="max-width:34rem; margin:1.25rem auto 0; text-align:left;">
             <i class="bi bi-exclamation-triangle"></i>
-            <span>Diqqat: bu so'rovnoma hozir <b>nofaol</b> — foydalanuvchilarga ko'rinmaydi.</span>
+            <span>Diqqat: bu sörovnoma hozir <b>nofaol</b> — foydalanuvçilarga körinmaydi.</span>
         </div>
         {% endif %}
     </div>

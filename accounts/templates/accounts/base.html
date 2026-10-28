@@ -9,18 +9,18 @@
     <title>{% block title %}IT Creative Academy — Zomin, Jizzax IT kurslari{% endblock %}</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="{% block meta_description %}IT Creative Academy — Zomin, Jizzaxdagi dasturlash va IT kasblari markazi. Python, web dasturlash, frontend, backend, dizayn va sun’iy intellektni amaliy o‘rganing.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}IT Creative Academy — Zomin, Jizzaxdagi dasturlaş va IT kasblari markazi. Python, web dasturlaş, frontend, backend, dizayn va sun’iy intellektni amaliy örganing.{% endblock %}">
     <meta name="author" content="{% block meta_author %}IT Creative Academy{% endblock %}">
     <meta name="robots" content="{% block meta_robots %}noindex, follow{% endblock %}">
     <meta name="language" content="Uzbek">
     <meta name="geo.region" content="UZ-JI">
-    <meta name="geo.placename" content="Zomin, Jizzax, O'zbekiston">
+    <meta name="geo.placename" content="Zomin, Jizzax, Özbekiston">
     <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:title" content="{% block og_title %}IT Creative Academy — Zomin, Jizzax IT kurslari{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Zomin va Jizzaxda dasturlash, web texnologiyalari va sun’iy intellekt bo‘yicha amaliy IT ta’lim.{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Zomin va Jizzaxda dasturlaş, web texnologiyalari va sun’iy intellekt böyiça amaliy IT ta’lim.{% endblock %}">
     <meta property="og:site_name" content="IT Creative Academy">
     <meta property="og:url" content="{% block og_url %}https://itc-academy.uz{{ request.path }}{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://itc-academy.uz/static/images/logo.png{% endblock %}">
@@ -29,7 +29,7 @@
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{% block twitter_title %}IT Creative Academy — Zomin IT kurslari{% endblock %}">
-    <meta name="twitter:description" content="{% block twitter_description %}Zomin va Jizzaxda dasturlash hamda zamonaviy IT kasblarini amaliy o‘rganing.{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Zomin va Jizzaxda dasturlaş hamda zamonaviy IT kasblarini amaliy örganing.{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}https://itc-academy.uz/static/images/logo.png{% endblock %}">
     
     <!-- Additional SEO -->
@@ -52,7 +52,7 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Shaffof oyna navbar + bildirishnoma tizimi (Bootstrap'dan keyin — ustun bo'lishi kerak) -->
+    <!-- Şaffof oyna navbar + bildirişnoma tizimi (Bootstrap'dan keyin — ustun bölişi kerak) -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
     <link rel="stylesheet" href="{% static 'css/notify.css' %}?v=unread4">
     <link rel="stylesheet" href="{% static 'css/nav-rail.css' %}?v=4">
@@ -68,7 +68,7 @@
 </head>
 
 <body{% if request.user.is_authenticated and request.user.is_premium %} class="is-premium"{% endif %}>
-<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
 <!-- 📡 Offline Overlay -->
 <div class="offline-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineSubtitle">
     <div class="offline-card">
@@ -76,13 +76,13 @@
             <div class="offline-ring"></div>
             <i class="bi bi-wifi-off offline-icon"></i>
         </div>
-        <h2 class="offline-title" id="offlineTitle">Internet aloqasi yo'q</h2>
-        <p class="offline-subtitle" id="offlineSubtitle">Tarmoq bilan aloqa uzildi yoki juda past. Iltimos, internetni tekshiring.</p>
+        <h2 class="offline-title" id="offlineTitle">Internet aloqasi yöq</h2>
+        <p class="offline-subtitle" id="offlineSubtitle">Tarmoq bilan aloqa uzildi yoki juda past. Iltimos, internetni tekşiring.</p>
         <div class="offline-status" id="offlineStatus" role="status" aria-live="polite">
             <span class="offline-dot"></span> Kutilmoqda...
         </div>
         <button type="button" class="offline-btn" onclick="checkConnection()">
-            <i class="bi bi-arrow-clockwise me-2"></i>Qayta urinish
+            <i class="bi bi-arrow-clockwise me-2"></i>Qayta uriniş
         </button>
     </div>
 </div>
@@ -254,17 +254,17 @@
     window.checkConnection = function() {
         const btn = document.querySelector('.offline-btn');
         btn.classList.add('loading');
-        btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Tekshirilmoqda...';
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Tekşirilmoqda...';
 
         fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
             .then(() => { hideOffline(); })
             .catch(() => {
                 status.className = 'offline-status';
-                status.innerHTML = '<span class="offline-dot"></span> Hali ham aloqa yo\'q';
+                status.innerHTML = '<span class="offline-dot"></span> Hali ham aloqa yöq';
             })
             .finally(() => {
                 btn.classList.remove('loading');
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Qayta urinish';
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Qayta uriniş';
             });
     };
 })();
@@ -378,7 +378,7 @@
 @keyframes ldr-halo { 0%,100% { opacity:.75; transform: scale(1); } 50% { opacity:1; transform: scale(1.07); } }
 .orb-ldr { position: relative; width: 100%; height: 100%; display: block; }
 
-/* Yorug'lik yuguradigan so'z belgisi */
+/* Yoruğlik yuguradigan söz belgisi */
 .ldr-word {
     font-weight: 800; font-size: 1.02rem; letter-spacing: -.2px;
     background: linear-gradient(100deg, var(--ldr-fg) 32%, var(--ldr-b) 50%, var(--ldr-fg) 68%);
@@ -401,7 +401,7 @@
     75%  { content: '...'; }
 }
 
-/* Ingichka indeterminate progress */
+/* Ingiçka indeterminate progress */
 .ldr-bar {
     width: 196px; height: 4px; border-radius: 99px; overflow: hidden;
     background: var(--ldr-line);
@@ -431,7 +431,7 @@
   <div class="ldr-box">
     <div class="ldr-core" aria-hidden="true"><canvas class="orb-ldr"></canvas></div>
     <div class="ldr-word">IT Creative Zomin</div>
-    <div class="ldr-status" id="ldrStatus" role="status">Bilim tarmog‘iga ulanmoqda</div>
+    <div class="ldr-status" id="ldrStatus" role="status">Bilim tarmoğiga ulanmoqda</div>
     <div class="ldr-bar"><i></i></div>
   </div>
 </div>
@@ -439,9 +439,9 @@
 <script>
 (function(){
   var msgs = [
-    'Bilim tarmog‘iga ulanmoqda',
+    'Bilim tarmoğiga ulanmoqda',
     'Darslar tayyorlanmoqda',
-    'AI yordamchi ishga tushmoqda',
+    'AI yordamçi işga tuşmoqda',
     'Yutuqlar sinxronlanmoqda'
   ];
   var st = document.getElementById('ldrStatus'), mi = 0, timer = 0;
@@ -458,7 +458,7 @@
   }
   if(document.readyState === 'complete'){ hideLoader(); }
   else { window.addEventListener('load', hideLoader); }
-  // Fallback: 4 soniyadan keyin majburan yashirin
+  // Fallback: 4 soniyadan keyin majburan yaşirin
   setTimeout(hideLoader, 4000);
 })();
 </script>
@@ -470,7 +470,7 @@
             <h2 class="mt-3">Tabriklaymiz!</h2>
             <p class="muted fs-5 mb-3" id="coinMessage">Siz 1 coin oldingiz!</p>
             <button class="btn btn-warning btn-lg" onclick="hideCoinCelebration()">
-                <i class="bi bi-check-lg me-2"></i>Davom etish
+                <i class="bi bi-check-lg me-2"></i>Davom etiş
             </button>
         </div>
     </div>
@@ -480,11 +480,11 @@
     {% if user.is_authenticated %}
     <!-- ═══ Yon panel (desktop) ═══ -->
     <aside class="nr-rail nr-glass" id="nrRail" aria-label="Asosiy navigatsiya">
-      <a class="nr-brand" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><b class="nr-tx">IT <span>Creative</span></b></a>
+      <a class="nr-brand" href="{% url 'home' %}" aria-label="IT Creative — boş sahifa"><img src="{% static 'img/logo.png' %}" alt=""><b class="nr-tx">IT <span>Creative</span></b></a>
       <div class="nr-scroll">
         <div class="nr-sec">MENYU</div>
         <nav class="nr-nav" data-cmd-group="SAHIFALAR">
-          <a class="nr-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Bosh sahifa"><i class="bi bi-house"></i><span class="nr-tx">Bosh sahifa</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Boş sahifa"><i class="bi bi-house"></i><span class="nr-tx">Boş sahifa</span></a>
           <a class="nr-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}" title="Kurslar" data-tour="courses"><i class="bi bi-book"></i><span class="nr-tx">Kurslar</span></a>
           {% if user.role != 'admin' and user.role != 'assistant_admin' %}
           <a class="nr-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" title="Dars jadvalim" data-tour="schedule"><i class="bi bi-calendar2-week"></i><span class="nr-tx">Dars jadvalim</span></a>
@@ -496,16 +496,16 @@
           <a class="nr-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}" title="Yordam" data-tour="help"><i class="bi bi-question-circle"></i><span class="nr-tx">Yordam</span></a>
         </nav>
         {% if user.is_admin or user.is_teacher or user.is_assistant_admin %}
-        <div class="nr-sec">BOSHQARUV</div>
+        <div class="nr-sec">BOŞQARUV</div>
         <nav class="nr-nav" data-cmd-group="BOSHQARUV">
           {% if user.is_admin %}
-          <a class="nr-link" href="{% url 'admin_dashboard' %}" title="Panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Boshqaruv paneli</span></a>
+          <a class="nr-link" href="{% url 'admin_dashboard' %}" title="Panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Boşqaruv paneli</span></a>
           {% endif %}
           {% if user.is_teacher %}
-          <a class="nr-link" href="{% url 'teacher:dashboard' %}" title="O'qituvchi paneli"><i class="bi bi-mortarboard"></i><span class="nr-tx">O'qituvchi paneli</span></a>
+          <a class="nr-link" href="{% url 'teacher:dashboard' %}" title="Öqituvçi paneli"><i class="bi bi-mortarboard"></i><span class="nr-tx">Öqituvçi paneli</span></a>
           {% endif %}
           {% if user.is_assistant_admin %}
-          <a class="nr-link" href="{% url 'yordamchi_dashboard' %}" title="Yordamchi panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Yordamchi panel</span></a>
+          <a class="nr-link" href="{% url 'yordamchi_dashboard' %}" title="Yordamçi panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Yordamçi panel</span></a>
           {% endif %}
           {% if user.is_teacher or user.is_admin %}
           <a class="nr-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}" title="Vazifalar"><i class="bi bi-file-check"></i><span class="nr-tx">Vazifalar</span></a>
@@ -515,19 +515,19 @@
       </div>
       <nav class="nr-nav nr-bottom">
         <a class="nr-link {% if request.resolver_match.url_name == 'site_settings' %}active{% endif %}" href="{% url 'site_settings' %}" title="Sozlamalar"><i class="bi bi-gear"></i><span class="nr-tx">Sozlamalar</span></a>
-        <a class="nr-link danger" href="{% url 'logout' %}" title="Chiqish"><i class="bi bi-box-arrow-right"></i><span class="nr-tx">Chiqish</span></a>
+        <a class="nr-link danger" href="{% url 'logout' %}" title="Çiqiş"><i class="bi bi-box-arrow-right"></i><span class="nr-tx">Çiqiş</span></a>
       </nav>
     </aside>
     <script>document.body.classList.add('has-rail');</script>
 
     <!-- ═══ Yuqori panel ═══ -->
     <nav class="nr-top nr-glass" id="mainNavbar" aria-label="Yuqori panel">
-      <button type="button" class="nr-ib nr-collapse" id="nrCollapse" aria-controls="nrRail" aria-expanded="{% if nav_prefs.sidebar == 'collapsed' %}false{% else %}true{% endif %}" aria-label="Yon panelni yig‘ish yoki kengaytirish" data-nav-tip="Yon panel (Ctrl+B)"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
-      <a class="nr-mlogo" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><span>IT <b>Creative</b></span></a>
+      <button type="button" class="nr-ib nr-collapse" id="nrCollapse" aria-controls="nrRail" aria-expanded="{% if nav_prefs.sidebar == 'collapsed' %}false{% else %}true{% endif %}" aria-label="Yon panelni yiğiş yoki kengaytiriş" data-nav-tip="Yon panel (Ctrl+B)"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
+      <a class="nr-mlogo" href="{% url 'home' %}" aria-label="IT Creative — boş sahifa"><img src="{% static 'img/logo.png' %}" alt=""><span>IT <b>Creative</b></span></a>
       <div class="nr-crumb"><i class="bi bi-house"></i><span>IT Creative</span><span>/</span><b id="nrCrumb">{% block nav_title %}{% endblock %}</b></div>
       {% include 'partials/nav/_top_links.html' %}
 
-      <button type="button" class="nr-search nr-hide-xs" data-nr-cmd title="Qidirish (Ctrl+K)" aria-label="Qidirish"><i class="bi bi-search"></i><span>Sahifa, kurs yoki bo‘lim qidirish...</span><kbd>Ctrl K</kbd></button>
+      <button type="button" class="nr-search nr-hide-xs" data-nr-cmd title="Qidiriş (Ctrl+K)" aria-label="Qidiriş"><i class="bi bi-search"></i><span>Sahifa, kurs yoki bölim qidiriş...</span><kbd>Ctrl K</kbd></button>
 
       <div class="nr-acts">
         <!-- Ijtimoiy tarmoqlar -->
@@ -540,7 +540,7 @@
           </div>
         </div>
 
-        <!-- Ilovalar (Android / Windows) — admin panel: Ilovalar boshqaruvi -->
+        <!-- Ilovalar (Android / Windows) — admin panel: Ilovalar boşqaruvi -->
         {% include 'partials/nav/_apps_menu.html' %}
 
         <!-- Coin -->
@@ -551,20 +551,20 @@
         <button type="button" class="nr-ib nr-navset d-none d-lg-grid" data-nav-settings data-nav-tip="Navigatsiya sozlamalari" aria-label="Navigatsiya sozlamalari" aria-controls="nsPanel"><i class="bi bi-sliders" aria-hidden="true"></i></button>
 
         <!-- Mavzu -->
-        <button type="button" class="nr-ib nb-theme-top" id="themeToggleTop" aria-label="Qorong‘i rejimni yoqish" aria-pressed="false"><i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i></button>
+        <button type="button" class="nr-ib nb-theme-top" id="themeToggleTop" aria-label="Qoronği rejimni yoqiş" aria-pressed="false"><i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i></button>
 
-        <!-- Bildirishnomalar (notify.js shu id'lar bilan ishlaydi) -->
+        <!-- Bildirişnomalar (notify.js şu id'lar bilan işlaydi) -->
         <div class="dropdown">
-          <button type="button" class="nr-ib nbell-btn" id="nbBellBtn" data-tour="bell" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
+          <button type="button" class="nr-ib nbell-btn" id="nbBellBtn" data-tour="bell" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Bildirişnomalar" aria-label="Bildirişnomalar">
             <i class="bi bi-bell"></i>
             <span class="nb-badge" id="nbBellBadge" style="display:none;"></span>
           </button>
           <div class="dropdown-menu dropdown-menu-end nr-pop nbell-panel">
             <div class="nbell-head">
-              <span class="nbell-title">Bildirishnomalar</span>
+              <span class="nbell-title">Bildirişnomalar</span>
               <span class="nbell-count" id="nbBellCount" style="display:none;">0</span>
-              <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barchasini o'qilgan deb belgilash"><i class="bi bi-check2-all"></i><span>Barchasini o'qilgan</span></button>
-              <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz" aria-label="Bildirishnoma ovozi"><i class="bi bi-volume-up-fill"></i></button>
+              <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barçasini öqilgan deb belgilaş"><i class="bi bi-check2-all"></i><span>Barçasini öqilgan</span></button>
+              <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz" aria-label="Bildirişnoma ovozi"><i class="bi bi-volume-up-fill"></i></button>
             </div>
             <div class="nbell-list" id="nbBellList" aria-live="polite"><div class="nbell-loading" aria-label="Yuklanmoqda"><i></i><i></i><i></i></div></div>
             <div class="nbell-foot">
@@ -583,22 +583,22 @@
             <div class="nr-me">
               <span class="nr-av">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span></span>
               <div><b>{{ user.get_full_name|default:user.username }}</b><small>@{{ user.username }}</small><br>
-                <span class="nr-role">{% if user.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin{% elif user.role == 'teacher' %}<i class="bi bi-mortarboard"></i> Ustoz{% elif user.role == 'assistant_admin' %}<i class="bi bi-person-gear"></i> Yordamchi{% else %}<i class="bi bi-code-slash"></i> O'quvchi{% endif %}{% if user.is_premium %} · <span style="color:var(--nr-gold)">Premium</span>{% endif %}</span></div>
+                <span class="nr-role">{% if user.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin{% elif user.role == 'teacher' %}<i class="bi bi-mortarboard"></i> Ustoz{% elif user.role == 'assistant_admin' %}<i class="bi bi-person-gear"></i> Yordamçi{% else %}<i class="bi bi-code-slash"></i> Öquvçi{% endif %}{% if user.is_premium %} · <span style="color:var(--nr-gold)">Premium</span>{% endif %}</span></div>
             </div>
             <div class="nr-cols">
-              <div data-cmd-group="O‘QISH"><h6>O‘QISH</h6>
+              <div data-cmd-group="O‘QISH"><h6>ÖQIŞ</h6>
                 <a class="nr-mi" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-check"></i>Vazifalarim</a>
                 <a class="nr-mi" href="{% url 'video_quiz:student_history' %}"><i class="bi bi-play-circle"></i>Video test tarixi</a>
                 <a class="nr-mi" href="{% url 'student_library' %}"><i class="bi bi-book-half"></i>Kutubxona</a>
-                <a class="nr-mi" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check"></i>Sertifikat tekshirish</a>
+                <a class="nr-mi" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check"></i>Sertifikat tekşiriş</a>
                 <a class="nr-mi" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot"></i>AI suhbat</a>
               </div>
-              <div data-cmd-group="COIN VA O‘YIN"><h6>COIN VA O‘YIN</h6>
+              <div data-cmd-group="COIN VA O‘YIN"><h6>COIN VA ÖYIN</h6>
                 <a class="nr-mi" href="{% url 'coin:coin_history' %}" data-cmd-label="Coin tarixi"><i class="bi bi-clock-history"></i>Coin tarixi<span class="nr-tag">{{ user.coins|default:0 }}</span></a>
-                <a class="nr-mi" href="{% url 'coin:coin_transfer' %}"><i class="bi bi-send"></i>Coin o'tkazma</a>
+                <a class="nr-mi" href="{% url 'coin:coin_transfer' %}"><i class="bi bi-send"></i>Coin ötkazma</a>
                 <a class="nr-mi" href="{% url 'coin:my_purchases' %}"><i class="bi bi-bag-check"></i>Mening xaridlarim</a>
-                <a class="nr-mi" href="{% url 'games:games_list' %}"><i class="bi bi-controller"></i>O'yinlar</a>
-                <a class="nr-mi" href="{% url 'games:live_games' %}"><i class="bi bi-broadcast"></i>Jonli o'yinlar</a>
+                <a class="nr-mi" href="{% url 'games:games_list' %}"><i class="bi bi-controller"></i>Öyinlar</a>
+                <a class="nr-mi" href="{% url 'games:live_games' %}"><i class="bi bi-broadcast"></i>Jonli öyinlar</a>
               </div>
               <div data-cmd-group="HISOB"><h6>HISOB</h6>
                 <a class="nr-mi" href="{% url 'messages' %}" data-cmd-label="Xabarlar"><i class="bi bi-envelope"></i>Xabarlar{% if unread_messages_count|default:0|add:0 > 0 %}<span class="nr-tag red">{{ unread_messages_count }}</span>{% endif %}</a>
@@ -609,16 +609,16 @@
             </div>
             {% if user.is_teacher or user.is_admin or user.is_assistant_admin %}
             <div class="nr-panels">
-              {% if user.is_teacher %}<a href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard"></i> O'qituvchi paneli</a>{% endif %}
+              {% if user.is_teacher %}<a href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard"></i> Öqituvçi paneli</a>{% endif %}
               {% if user.is_admin %}<a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Panel</a>{% endif %}
-              {% if user.is_assistant_admin %}<a href="{% url 'yordamchi_dashboard' %}"><i class="bi bi-speedometer2"></i> Yordamchi panel</a>{% endif %}
+              {% if user.is_assistant_admin %}<a href="{% url 'yordamchi_dashboard' %}"><i class="bi bi-speedometer2"></i> Yordamçi panel</a>{% endif %}
             </div>
             {% endif %}
             <div class="nr-foot" data-cmd-group="HISOB">
               <a href="{% url 'profile' %}" data-cmd-label="Profil"><i class="bi bi-person"></i> Profil</a>
-              {% if user.is_learner %}<a href="{% url 'home' %}?tour=1" data-cmd-label="Qo'llanma"><i class="bi bi-signpost-split"></i> Qo'llanma</a>{% endif %}
+              {% if user.is_learner %}<a href="{% url 'home' %}?tour=1" data-cmd-label="Qo'llanma"><i class="bi bi-signpost-split"></i> Qöllanma</a>{% endif %}
               <a href="{% url 'site_settings' %}" data-cmd-label="Sozlamalar"><i class="bi bi-gear"></i> Sozlamalar</a>
-              <a href="{% url 'logout' %}" class="out" data-cmd-label="Chiqish"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+              <a href="{% url 'logout' %}" class="out" data-cmd-label="Chiqish"><i class="bi bi-box-arrow-right"></i> Çiqiş</a>
             </div>
           </div>
         </div>
@@ -628,8 +628,8 @@
           {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
         </a>
 
-        <!-- Mobil panelni ochuvchi (dock'dagi "Menyu" shuni bosadi) -->
-        <button type="button" class="nb-hamburger" id="nbHamburger" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="nbMobilePanel" hidden><span></span><span></span><span></span></button>
+        <!-- Mobil panelni oçuvçi (dock'dagi "Menyu" şuni bosadi) -->
+        <button type="button" class="nb-hamburger" id="nbHamburger" aria-label="Menyuni oçiş" aria-expanded="false" aria-controls="nbMobilePanel" hidden><span></span><span></span><span></span></button>
       </div>
     </nav>
 
@@ -637,7 +637,7 @@
     <nav class="nr-dock nr-glass" aria-label="Mobil navigatsiya">
       <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}"><i class="bi bi-house{% if request.resolver_match.url_name == 'home' %}-fill{% endif %}"></i>Asosiy</a>
       <a href="{% url 'professions' %}" class="{% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" data-tour="courses"><i class="bi bi-book"></i>Kurslar</a>
-      <button type="button" class="fab" data-nr-cmd aria-label="Qidirish"><i class="bi bi-search"></i></button>
+      <button type="button" class="fab" data-nr-cmd aria-label="Qidiriş"><i class="bi bi-search"></i></button>
       <a href="{% url 'chat_inbox' %}" class="{% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" data-tour="chat"><i class="bi bi-chat-dots"></i>Suhbat</a>
       <button type="button" id="nrDockMenu" data-tour="profile" aria-controls="nbMobilePanel"><i class="bi bi-grid"></i>Menyu</button>
     </nav>
@@ -645,9 +645,9 @@
     <!-- ═══ Ctrl+K qidiruv oynasi ═══ -->
     <div class="nr-cmd" id="nrCmd" role="dialog" aria-modal="true" aria-label="Tezkor qidiruv" data-search-url="{% url 'global_search' %}">
       <div class="box">
-        <div class="in"><i class="bi bi-search"></i><input id="nrCmdIn" type="text" placeholder="Sahifa, bo‘lim yoki amalni qidiring..." autocomplete="off" aria-label="Qidiruv"><kbd>Esc</kbd></div>
+        <div class="in"><i class="bi bi-search"></i><input id="nrCmdIn" type="text" placeholder="Sahifa, bölim yoki amalni qidiring..." autocomplete="off" aria-label="Qidiruv"><kbd>Esc</kbd></div>
         <div class="res" id="nrCmdRes"></div>
-        <div class="foot"><span><kbd>↑</kbd> <kbd>↓</kbd> tanlash</span><span><kbd>Enter</kbd> ochish</span><span><kbd>Esc</kbd> yopish</span></div>
+        <div class="foot"><span><kbd>↑</kbd> <kbd>↓</kbd> tanlaş</span><span><kbd>Enter</kbd> oçiş</span><span><kbd>Esc</kbd> yopiş</span></div>
       </div>
     </div>
 
@@ -662,7 +662,7 @@
           <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
           <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
         </div>
-        <button type="button" class="nb-mobile-close" id="nbMobileClose" aria-label="Menyuni yopish"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        <button type="button" class="nb-mobile-close" id="nbMobileClose" aria-label="Menyuni yopiş"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
       </div>
       <div class="nb-mobile-user">
         {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-mobile-user-avatar" alt="">
@@ -685,7 +685,7 @@
           <i class="bi bi-envelope-fill"></i>Xabarlar
           {% if unread_messages_count|default:0|add:0 > 0 %}<span class="nb-mobile-count">{{ unread_messages_count }}</span>{% endif %}
         </a>
-        <a class="nb-mobile-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house-fill"></i>Bosh sahifa</a>
+        <a class="nb-mobile-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house-fill"></i>Boş sahifa</a>
         <a class="nb-mobile-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}"><i class="bi bi-book-fill"></i>Kurslar</a>
         {% if user.is_authenticated and user.role != 'admin' and user.role != 'assistant_admin' %}
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}"><i class="bi bi-calendar2-week-fill"></i>Dars jadvalim</a>
@@ -704,7 +704,7 @@
       </nav>
       <div class="nb-mobile-footer">
         <a class="nb-mobile-logout" href="{% url 'logout' %}">
-          <i class="bi bi-box-arrow-right"></i> Chiqish
+          <i class="bi bi-box-arrow-right"></i> Çiqiş
         </a>
       </div>
     </div>
@@ -770,7 +770,7 @@
             if (e.key === 'Escape' && panel && panel.classList.contains('show')) closeMobile();
         });
 
-        // === Faol sahifani ekran o'quvchilarga bildirish ===
+        // === Faol sahifani ekran öquvçilarga bildiriş ===
         document.querySelectorAll('.nr-link.active, .nr-dock a.active, .nb-mobile-link.active').forEach(function(a){
             a.setAttribute('aria-current', 'page');
         });
@@ -1125,7 +1125,7 @@
         </div>
         <div class="offcanvas-header py-2">
             <span></span>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Yopish"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Yopiş"></button>
         </div>
         <div class="offcanvas-body">
             <!-- User Card -->
@@ -1139,7 +1139,7 @@
                     <div class="fw-bold" style="font-size:1.05rem;" id="mobileProfileLabel">{{ user.get_full_name|default:user.username }}</div>
                     {% if user.email %}<div class="text-muted" style="font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;">{{ user.email }}</div>{% endif %}
                     <span class="role-badge role-{{ user.role }} mt-1 d-inline-block" style="font-size:.7rem;">
-                        {% if user.role == 'admin' %}👑 Admin{% elif user.role == 'teacher' %}📚 Ustoz{% else %}🎓 O'quvchi{% endif %}
+                        {% if user.role == 'admin' %}👑 Admin{% elif user.role == 'teacher' %}📚 Ustoz{% else %}🎓 Öquvçi{% endif %}
                     </span>
                 </div>
             </div>
@@ -1153,7 +1153,7 @@
                 {% if user.is_learner %}
                 <a href="{% url 'home' %}?tour=1" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-signpost-split"></i></div>
-                    <span>Qo'llanma</span>
+                    <span>Qöllanma</span>
                 </a>
                 {% endif %}
                 <a href="{% url 'coin:coin_history' %}" class="mob-menu-item">
@@ -1162,7 +1162,7 @@
                 </a>
                 <a href="{% url 'coin:coin_transfer' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-send-fill"></i></div>
-                    <span>O'tkazma</span>
+                    <span>Ötkazma</span>
                 </a>
                 <a href="{% url 'video_quiz:student_history' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-play-circle-fill"></i></div>
@@ -1187,7 +1187,7 @@
                 </a>
                 <a href="{% url 'games:games_list' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-controller"></i></div>
-                    <span>O'yinlar</span>
+                    <span>Öyinlar</span>
                 </a>
                 <a href="{% url 'my_homework_list' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-journal-check"></i></div>
@@ -1207,7 +1207,7 @@
                 </a>
                 <button type="button" class="mob-menu-item border-0" data-nav-settings data-bs-dismiss="offcanvas" aria-controls="nsPanel">
                     <div class="mob-menu-icon mob-icon-cyan"><i class="bi bi-sliders"></i></div>
-                    <span>Ko‘rinish</span>
+                    <span>Köriniş</span>
                 </button>
                 <a href="{% url 'apps_page' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-green"><i class="bi bi-phone"></i></div>
@@ -1216,7 +1216,7 @@
                 {% if user.is_teacher %}
                 <a href="{% url 'teacher:dashboard' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-green"><i class="bi bi-mortarboard-fill"></i></div>
-                    <span>O'qituvchi</span>
+                    <span>Öqituvçi</span>
                 </a>
                 {% endif %}
                 {% if user.is_admin %}
@@ -1228,7 +1228,7 @@
                 {% if user.is_assistant_admin %}
                 <a href="{% url 'yordamchi_dashboard' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-speedometer2"></i></div>
-                    <span>Yordamchi panel</span>
+                    <span>Yordamçi panel</span>
                 </a>
                 {% endif %}
             </div>
@@ -1254,7 +1254,7 @@
 
             <!-- Logout -->
             <a href="{% url 'logout' %}" class="mob-logout-btn">
-                <i class="bi bi-box-arrow-right"></i>Chiqish
+                <i class="bi bi-box-arrow-right"></i>Çiqiş
             </a>
         </div>
     </div>
@@ -1269,7 +1269,7 @@
                     <i class="bi bi-globe2"></i>
                 </div>
                 <h6 class="fw-bold mb-1" style="color:var(--text);">Bizni kuzating!</h6>
-                <small class="text-muted">Ijtimoiy tarmoqlarda biz bilan bo'ling</small>
+                <small class="text-muted">Ijtimoiy tarmoqlarda biz bilan böling</small>
             </div>
             <div class="d-flex flex-column gap-2">
                 <a href="https://t.me/IT_Creative" target="_blank" class="social-link-item telegram-item">
@@ -1310,7 +1310,7 @@
         var minH = 180, maxH = window.innerHeight * 0.9;
         var SAVED_KEY = 'mobMenuHeight';
 
-        // Saqlangan o'lchamni yuklash
+        // Saqlangan ölçamni yuklaş
         var saved = localStorage.getItem(SAVED_KEY);
         if (saved) {
             menu.style.height = Math.min(parseInt(saved), maxH) + 'px';
@@ -1372,7 +1372,7 @@
     }
     </script>
 
-    <!-- (pastki navbar olib tashlandi) -->
+    <!-- (pastki navbar olib taşlandi) -->
 
 
     {% endif %}
@@ -1388,24 +1388,24 @@
                     <div>
                         <div class="fw-bold" style="color:var(--bs-heading-color, #0f172a);font-size:0.92rem;">
                             {% if student_payment_reminder.is_enough %}
-                                To'lov eslatmasi · Balansingizda mablag' yetarli
+                                Tölov eslatmasi · Balansingizda mablag' yetarli
                             {% else %}
-                                ⚠️ Oylik to'lov muddati yaqinlashmoqda!
+                                ⚠️ Oylik tölov muddati yaqinlaşmoqda!
                             {% endif %}
                         </div>
                         <div class="small" style="color:var(--bs-body-color, #334155);opacity:.9;margin-top:2px;">
                             {% if student_payment_reminder.days_left < 0 %}
-                                To'lov muddati <b>{{ student_payment_reminder.days_left|stringformat:"d"|slice:"1:" }} kun o'tdi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                                Tölov muddati <b>{{ student_payment_reminder.days_left|stringformat:"d"|slice:"1:" }} kun ötdi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
                             {% elif student_payment_reminder.days_left == 0 %}
-                                Bugun to'lovning <b>so'nggi kuni!</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                                Bugun tölovning <b>sönggi kuni!</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
                             {% else %}
-                                To'lov sanasiga <b>{{ student_payment_reminder.days_left }} kun qoldi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                                Tölov sanasiga <b>{{ student_payment_reminder.days_left }} kun qoldi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
                             {% endif %}
-                            Joriy balans: <b>{{ student_payment_reminder.balance|floatformat:0 }} so'm</b>
+                            Joriy balans: <b>{{ student_payment_reminder.balance|floatformat:0 }} söm</b>
                             {% if not student_payment_reminder.is_enough %}
-                                · Yana <b class="text-danger">{{ student_payment_reminder.needed|floatformat:0 }} so'm</b> kerak.
+                                · Yana <b class="text-danger">{{ student_payment_reminder.needed|floatformat:0 }} söm</b> kerak.
                             {% else %}
-                                · Mablag' o'z vaqtida avtomatik yechiladi.
+                                · Mablag' öz vaqtida avtomatik yeçiladi.
                             {% endif %}
                         </div>
                     </div>
@@ -1413,22 +1413,22 @@
                 <div class="d-flex align-items-center gap-2 ms-auto">
                     {% if not student_payment_reminder.is_enough %}
                     <a href="{% url 'payment_wall' %}" class="btn btn-sm fw-bold px-3 py-2 rounded-3 text-white" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);box-shadow:0 4px 12px rgba(37,99,235,.25);white-space:nowrap;">
-                        <i class="bi bi-credit-card me-1"></i>To'lov qilish
+                        <i class="bi bi-credit-card me-1"></i>Tölov qiliş
                     </a>
                     {% endif %}
-                    <button type="button" class="btn-close" aria-label="Eslatmani yopish" onclick="document.getElementById('studentPayBannerWrap').style.display='none';"></button>
+                    <button type="button" class="btn-close" aria-label="Eslatmani yopiş" onclick="document.getElementById('studentPayBannerWrap').style.display='none';"></button>
                 </div>
             </div>
         </div>
         {% endif %}
         {% if request.user.is_authenticated and request.user.pending_email %}
         <div class="alert alert-warning" role="status">
-            <strong>Email hali bog‘lanmagan:</strong> {{ request.user.pending_email }}.
-            Emailga yuborilgan havolani ochib tasdiqlang.
+            <strong>Email hali boğlanmagan:</strong> {{ request.user.pending_email }}.
+            Emailga yuborilgan havolani oçib tasdiqlang.
             <form method="post" action="{% url 'resend_email_verification' %}" class="mt-2">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-primary">Tasdiqlash havolasini qayta yuborish</button>
-                <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-secondary">Emailni o‘zgartirish</a>
+                <button type="submit" class="btn btn-sm btn-outline-primary">Tasdiqlaş havolasini qayta yuboriş</button>
+                <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-secondary">Emailni özgartiriş</a>
             </form>
         </div>
         {% endif %}
@@ -1472,7 +1472,7 @@
               <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt=""></span>
               <span class="sf-brand-tx">IT Creative</span>
             </div>
-            <div class="sf-desc">Zamonaviy bilim maskani — kod yoz, o'rgan va kelajagingni qur. Har bir dars seni maqsadingga yaqinlashtiradi.</div>
+            <div class="sf-desc">Zamonaviy bilim maskani — kod yoz, örgan va kelajagingni qur. Har bir dars seni maqsadingga yaqinlaştiradi.</div>
             <div class="sf-social">
               <a href="https://t.me/IT_Creative" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram (yangi oynada)"><i class="bi bi-telegram" aria-hidden="true"></i></a>
               <a href="https://www.instagram.com/husanbek_coder?dlrf=MWlwcnAzMTJzaXk4aA%3D%3D&utm_source=qr" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram (yangi oynada)"><i class="bi bi-instagram" aria-hidden="true"></i></a>
@@ -1488,8 +1488,8 @@
           </div>
           <div class="sf-col">
             <h2 class="sf-h">Imkoniyatlar</h2>
-            <a href="{% url 'ai_yordamchi:chat_home' %}">AI Chat</a>
-            <a href="{% url 'games:games_list' %}">O'yinlar</a>
+            <a href="{% url 'ai_yordamchi:chat_home' %}">AI Çat</a>
+            <a href="{% url 'games:games_list' %}">Öyinlar</a>
             <a href="{% url 'global_search' %}">Qidiruv</a>
           </div>
           <div class="sf-col">
@@ -1501,7 +1501,7 @@
           </div>
         </div>
         <div class="sf-bottom">
-          <div>&copy; <span id="sfYear">2026</span> IT Creative Zomin. Barcha huquqlar himoyalangan.</div>
+          <div>&copy; <span id="sfYear">2026</span> IT Creative Zomin. Barça huquqlar himoyalangan.</div>
           <div class="made">Mehr bilan yaratildi <i class="bi bi-heart-fill"></i> IT Creative</div>
         </div>
       </div>
@@ -1528,7 +1528,7 @@
                 const b = document.getElementById(id);
                 if (!b) return;
                 b.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
-                b.setAttribute('aria-label', theme === 'dark' ? 'Yorug‘ rejimni yoqish' : 'Qorong‘i rejimni yoqish');
+                b.setAttribute('aria-label', theme === 'dark' ? 'Yorug‘ rejimni yoqiş' : 'Qoronği rejimni yoqiş');
             });
             const meta = document.querySelector('meta[name="theme-color"]');
             if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1020' : '#4f46e5');
@@ -1645,10 +1645,10 @@
     <script>
     (function() {
         const holidays = [
-            { month: 1, day: 14, name: "Vatan himoyachilari kuni", icon: "bi-shield-check", message: "Barcha o'g'il bollarni Vatan himoyachilari bayram bilan tabriklaymiz! 🎖️" },
-            { month: 3, day: 8, name: "Xalqaro xotin-qizlar bayrami", icon: "bi-flower1", message: "Barcha ayol va qizlarni  8-Mart bayrami bilan tabriklaymiz! 💐" },
-            { month: 3, day: 21, name: "Navro'z bayrami", icon: "bi-sun", message: "Navro'z bayrami muborak bo'lsin! 🌸" },
-            { month: 10, day: 1, name: "Ustoz va murabbiylar kuni", icon: "bi-person-workspace", message: "Barcha ustozlarni kasbiy bayrami bilan tabriklaymiz! 📚" },
+            { month: 1, day: 14, name: "Vatan himoyaçilari kuni", icon: "bi-shield-check", message: "Barça öğil bollarni Vatan himoyaçilari bayram bilan tabriklaymiz! 🎖️" },
+            { month: 3, day: 8, name: "Xalqaro xotin-qizlar bayrami", icon: "bi-flower1", message: "Barça ayol va qizlarni  8-Mart bayrami bilan tabriklaymiz! 💐" },
+            { month: 3, day: 21, name: "Navröz bayrami", icon: "bi-sun", message: "Navröz bayrami muborak bölsin! 🌸" },
+            { month: 10, day: 1, name: "Ustoz va murabbiylar kuni", icon: "bi-person-workspace", message: "Barça ustozlarni kasbiy bayrami bilan tabriklaymiz! 📚" },
             { month: 12, day: 31, name: "Yangi yil", icon: "bi-stars", message: "Yangi yilingiz bilan! Baxt va omad tilaymiz! 🎄" },
             { month: 1, day: 1, name: "Yangi yil", icon: "bi-stars", message: "Yangi yilingiz muborak! 🎉" },
         ];
@@ -1673,9 +1673,9 @@
         const text1 = document.getElementById('announcementText');
         const text2 = document.getElementById('announcementText2');
 
-        // Bayram bo'lmasa e'lon paneli ko'rsatilmaydi. (Ilgari bu yerda
-        // "Sayt sinov rejimida ishlamoqda" yozuvi turib, saytni ishonchsiz
-        // ko'rsatar va uni sinov muhiti sifatida oshkor qilardi.)
+        // Bayram bölmasa e'lon paneli körsatilmaydi. (Ilgari bu yerda
+        // "Sayt sinov rejimida işlamoqda" yozuvi turib, saytni işonçsiz
+        // körsatar va uni sinov muhiti sifatida oşkor qilardi.)
         if (!message) {
             if (bar) bar.style.display = 'none';
             return;
@@ -1698,7 +1698,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--border);">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title"><i class="bi bi-question-circle text-primary me-2"></i>Yordam so'rash</h5>
+                    <h5 class="modal-title"><i class="bi bi-question-circle text-primary me-2"></i>Yordam söraş</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form id="helpForm" enctype="multipart/form-data">
@@ -1717,14 +1717,14 @@
                         <div class="mb-3">
                             <label class="form-label">Rasm (ixtiyoriy)</label>
                             <input type="file" class="form-control" name="image" id="helpImage" accept="image/*">
-                            <div class="form-text">Xatolik skrinshotini yuklashingiz mumkin</div>
+                            <div class="form-text">Xatolik skrinşotini yuklaşingiz mumkin</div>
                         </div>
                         <div id="helpAlert" class="alert d-none"></div>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qiliş</button>
                         <button type="submit" class="btn btn-primary" id="helpSubmitBtn">
-                            <i class="bi bi-send me-1"></i>Yuborish
+                            <i class="bi bi-send me-1"></i>Yuboriş
                         </button>
                     </div>
                 </form>
@@ -1782,7 +1782,7 @@
         })
         .finally(() => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-send me-1"></i>Yuborish';
+            btn.innerHTML = '<i class="bi bi-send me-1"></i>Yuboriş';
         });
     });
     </script>
@@ -1793,14 +1793,14 @@
 (function(){
     var T = {
         uz: {
-            'nav.home': 'Bosh sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
+            'nav.home': 'Boş sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
             'nav.posts': 'Postlar', 'nav.market': 'Market',
             'nav.help': 'Yordam', 'nav.tasks': 'Vazifalar', 'nav.balance': 'Balans',
             'menu.profile': 'Profil', 'menu.messages': 'Xabarlar', 'menu.ai_chat': 'AI suhbat',
-            'menu.games': "O'yinlar", 'menu.my_homework': 'Vazifalarim',
+            'menu.games': "Öyinlar", 'menu.my_homework': 'Vazifalarim',
             'menu.my_books': 'Ijaradagi kitoblarim', 'menu.devices': 'Qurilmalar',
-            'menu.settings': 'Sozlamalar', 'menu.teacher_panel': "O'qituvchi paneli",
-            'menu.admin_panel': 'Panel', 'menu.logout': 'Chiqish',
+            'menu.settings': 'Sozlamalar', 'menu.teacher_panel': "Öqituvçi paneli",
+            'menu.admin_panel': 'Panel', 'menu.logout': 'Çiqiş',
         },
         ru: {
             'nav.home': 'Главная', 'nav.courses': 'Курсы', 'nav.rating': 'Рейтинг',
@@ -1816,7 +1816,7 @@
             'nav.home': 'Home', 'nav.courses': 'Courses', 'nav.rating': 'Rating',
             'nav.posts': 'Posts', 'nav.market': 'Market',
             'nav.help': 'Help', 'nav.tasks': 'Tasks', 'nav.balance': 'Balance',
-            'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Chat',
+            'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Çat',
             'menu.games': 'Games', 'menu.my_homework': 'My Homework',
             'menu.my_books': 'Rented Books', 'menu.devices': 'Devices',
             'menu.settings': 'Settings', 'menu.teacher_panel': 'Teacher Panel',
@@ -1850,7 +1850,7 @@
 {% include 'partials/nav/_nav_config.html' %}
 {% block extra_js %}{% endblock %}
 
-    <!-- Global Toast bildirishnomalar — barcha sahifalarda mavjud.
+    <!-- Global Toast bildirişnomalar — barça sahifalarda mavjud.
          CSS: static/css/notify.css | JS: static/js/notify.js -->
     <div class="ios-notif-wrap" id="iosNotifWrap">
         {% for message in messages %}
@@ -1869,7 +1869,7 @@
                 </div>
                 <div class="ios-notif-msg">{{ message }}</div>
             </div>
-            <button class="ios-notif-close" type="button" aria-label="Yopish"><i class="bi bi-x"></i></button>
+            <button class="ios-notif-close" type="button" aria-label="Yopiş"><i class="bi bi-x"></i></button>
         </div>
         {% endfor %}
     </div>
@@ -2089,7 +2089,7 @@
     </style>
 
     <script>
-    // Session flagini tozalash (faqat bir marta ko'rsatish)
+    // Session flagini tozalaş (faqat bir marta körsatiş)
     fetch('{% url "clear_premium_ad" %}', {
         method: 'POST',
         headers: {'X-CSRFToken': '{{ csrf_token }}'}

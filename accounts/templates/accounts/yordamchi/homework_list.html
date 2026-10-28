@@ -1,34 +1,34 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
 {% block title %}Vazifalar{% endblock %}
-{% block page_title %}Vazifa topshiruvlari ({{ total_count }}){% endblock %}
+{% block page_title %}Vazifa topşiruvlari ({{ total_count }}){% endblock %}
 
 {% block content %}
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
         <form method="get" class="d-flex gap-2 flex-wrap">
             <select name="profession" class="form-select form-select-sm" style="max-width:200px;">
-                <option value="">— Barcha yo'nalishlar —</option>
+                <option value="">— Barça yönalişlar —</option>
                 {% for p in professions %}
                 <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
                 {% endfor %}
             </select>
             <select name="group" class="form-select form-select-sm" style="max-width:230px;">
-                <option value="">— Barcha guruhlar —</option>
+                <option value="">— Barça guruhlar —</option>
                 {% for g in groups %}
                 <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>{{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}</option>
                 {% endfor %}
             </select>
             <select name="status" class="form-select form-select-sm" style="max-width:200px;">
-                <option value="">— Barcha holatlar —</option>
+                <option value="">— Barça holatlar —</option>
                 <option value="pending" {% if status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
-                <option value="reviewing" {% if status == 'reviewing' %}selected{% endif %}>Ko'rib chiqilmoqda</option>
-                <option value="revision" {% if status == 'revision' %}selected{% endif %}>Qayta ishlash</option>
+                <option value="reviewing" {% if status == 'reviewing' %}selected{% endif %}>Körib çiqilmoqda</option>
+                <option value="revision" {% if status == 'revision' %}selected{% endif %}>Qayta işlaş</option>
                 <option value="accepted" {% if status == 'accepted' %}selected{% endif %}>Qabul qilingan</option>
                 <option value="graded" {% if status == 'graded' %}selected{% endif %}>Baholangan</option>
             </select>
-            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i> Filtrlash</button>
+            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i> Filtrlaş</button>
             {% if status or profession_filter or group_filter %}
-            <a href="{% url 'yordamchi_homework' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Tozalash</a>
+            <a href="{% url 'yordamchi_homework' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Tozalaş</a>
             {% endif %}
         </form>
     </div>
@@ -37,7 +37,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead style="background:rgba(245,158,11,0.06);">
-                    <tr><th>#</th><th>O'quvchi</th><th>Guruh</th><th>Vazifa</th><th>Yo'nalish</th><th>O'qituvchi</th><th>Holat</th><th>Baho</th><th>Sana</th></tr>
+                    <tr><th>#</th><th>Öquvçi</th><th>Guruh</th><th>Vazifa</th><th>Yönaliş</th><th>Öqituvçi</th><th>Holat</th><th>Baho</th><th>Sana</th></tr>
                 </thead>
                 <tbody>
                 {% for s in submissions %}
@@ -51,7 +51,7 @@
                         <td>
                             {% for g in s.student_groups %}
                             {% with c=g.color|default:'#6366f1' %}
-                            <span class="badge" style="background:{{ c }}1a;color:{{ c }};border:1px solid {{ c }}45;font-weight:600;"{% if g.teacher %} title="Guruh o'qituvchisi: {{ g.teacher.full_name }}"{% endif %}>
+                            <span class="badge" style="background:{{ c }}1a;color:{{ c }};border:1px solid {{ c }}45;font-weight:600;"{% if g.teacher %} title="Guruh öqituvçisi: {{ g.teacher.full_name }}"{% endif %}>
                                 <i class="bi bi-people-fill"></i> {{ g.name }}
                             </span>
                             {% endwith %}
@@ -67,7 +67,7 @@
                             </span>
                             {% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
-                        <td style="font-size:.82rem;color:#374151;" title="Shu kurs (yo'nalish) o'qituvchilari">
+                        <td style="font-size:.82rem;color:#374151;" title="Şu kurs (yönaliş) öqituvçilari">
                             {% if s.course_teachers %}{{ s.course_teachers|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}
                         </td>
                         <td><span class="badge bg-secondary">{{ s.get_status_display }}</span></td>
@@ -79,7 +79,7 @@
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Topshiruvlar yo'q</p></div>{% endif %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Topşiruvlar yöq</p></div>{% endif %}
     </div>
 </div>
 {% endblock %}

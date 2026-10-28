@@ -1,7 +1,7 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
 {% load custom_filters %}
-{% block title %}Balans Boshqaruvi — Yordamchi Panel{% endblock %}
-{% block page_title %}Balans Boshqaruvi{% endblock %}
+{% block title %}Balans Boşqaruvi — Yordamçi Panel{% endblock %}
+{% block page_title %}Balans Boşqaruvi{% endblock %}
 
 {% block content %}
 <style>
@@ -231,29 +231,29 @@
         <div class="bm-stat c-indigo">
             <div class="bm-si c-indigo"><i class="bi bi-wallet2"></i></div>
             <div class="bm-sn">{{ total_balance|space_num }}</div>
-            <div class="bm-sl">Oddiy o'quvchilar balansi (so'm)</div>
+            <div class="bm-sl">Oddiy öquvçilar balansi (söm)</div>
         </div>
         <div class="bm-stat c-green">
             <div class="bm-si c-green"><i class="bi bi-plus-circle"></i></div>
             <div class="bm-sn">{{ topup_today|space_num }}</div>
-            <div class="bm-sl">Bugun qo'shildi (so'm)</div>
+            <div class="bm-sl">Bugun qöşildi (söm)</div>
         </div>
         <div class="bm-stat c-red">
             <div class="bm-si c-red"><i class="bi bi-lock-fill"></i></div>
             <div class="bm-sn">{{ blocked_count }}</div>
-            <div class="bm-sl">Bloklangan o'quvchilar</div>
+            <div class="bm-sl">Bloklangan öquvçilar</div>
         </div>
         <div class="bm-stat" style="border-top-color:#f59e0b;">
             <div class="bm-si" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="bi bi-file-earmark-text"></i></div>
             <div class="bm-sn">{{ total_contract_sum|space_num }}</div>
-            <div class="bm-sl">Shartnomalar summasi ({{ contract_count }} ta)</div>
+            <div class="bm-sl">Şartnomalar summasi ({{ contract_count }} ta)</div>
         </div>
     </div>
 
     <!-- Table card -->
     <div class="bm-card">
         <div class="bm-card-head">
-            <div class="bm-card-title"><i class="bi bi-people-fill"></i> {% if view == 'contract' %}Shartnoma rejimidagi o'quvchilar{% else %}O'quvchilar balansi{% endif %}</div>
+            <div class="bm-card-title"><i class="bi bi-people-fill"></i> {% if view == 'contract' %}Şartnoma rejimidagi öquvçilar{% else %}Öquvçilar balansi{% endif %}</div>
             <form class="bm-search" method="get" action="">
                 <i class="bi bi-search"></i>
                 <input type="hidden" name="view" value="{{ view }}">
@@ -269,16 +269,16 @@
                     <i class="bi bi-people"></i> Hammasi
                 </a>
                 <a href="?view=active&filter=no_date{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'no_date' %}active{% endif %}">
-                    <i class="bi bi-calendar-x"></i> To'lov kuni yo'q <span class="bm-fcount">{{ no_date_count }}</span>
+                    <i class="bi bi-calendar-x"></i> Tölov kuni yöq <span class="bm-fcount">{{ no_date_count }}</span>
                 </a>
                 <a href="?view=active&filter=soon{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'soon' %}active{% endif %}">
-                    <i class="bi bi-alarm"></i> Yaqinlashgan / o'tgan <span class="bm-fcount">{{ soon_count }}</span>
+                    <i class="bi bi-alarm"></i> Yaqinlaşgan / ötgan <span class="bm-fcount">{{ soon_count }}</span>
                 </a>
                 <a href="?view=active&filter=blocked{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'blocked' %}active{% endif %}">
                     <i class="bi bi-lock"></i> Bloklangan <span class="bm-fcount">{{ blocked_count }}</span>
                 </a>
                 <a href="?view=contract{% if search %}&q={{ search }}{% endif %}" class="bm-fchip contract {% if view == 'contract' %}active{% endif %}">
-                    <i class="bi bi-file-earmark-text"></i> Shartnoma <span class="bm-fcount">{{ contract_count }}</span>
+                    <i class="bi bi-file-earmark-text"></i> Şartnoma <span class="bm-fcount">{{ contract_count }}</span>
                 </a>
             </div>
         </div>
@@ -287,10 +287,10 @@
             <table class="bm-tbl">
                 <thead>
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Balans</th>
-                        <th>Oylik to'lov</th>
-                        <th>Keyingi to'lov</th>
+                        <th>Oylik tölov</th>
+                        <th>Keyingi tölov</th>
                         <th>Status</th>
                         <th style="text-align:right;">Amallar</th>
                     </tr>
@@ -320,41 +320,41 @@
                             {% if student.student_balance %}
                             <span class="bm-balance {% if student.student_balance.amount == 0 %}zero{% elif student.student_balance.amount < student.payment_status.monthly_fee %}low{% else %}ok{% endif %}"
                                   id="bal-{{ student.pk }}">
-                                {{ student.student_balance.amount|space_num }} so'm
+                                {{ student.student_balance.amount|space_num }} söm
                             </span>
                             {% else %}
-                            <span class="bm-balance zero">0 so'm</span>
+                            <span class="bm-balance zero">0 söm</span>
                             {% endif %}
                         </td>
                         <td style="color:var(--yo-text-muted);" id="fee-cell-{{ student.pk }}">
                             <span id="fee-{{ student.pk }}">
                                 {% if student.student_balance.is_contract %}
                                     <span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;font-size:.78rem;font-weight:700;">
-                                        <i class="bi bi-file-earmark-text"></i> {{ student.student_balance.contract_name|default:"Shartnoma" }}
+                                        <i class="bi bi-file-earmark-text"></i> {{ student.student_balance.contract_name|default:"Şartnoma" }}
                                     </span>
                                     {% if student.student_balance.contract_amount %}
                                         <div style="font-size:.75rem;color:#10b981;font-weight:700;margin-top:2px;">
-                                            +{{ student.student_balance.contract_amount|space_num }} so'm
+                                            +{{ student.student_balance.contract_amount|space_num }} söm
                                         </div>
                                     {% endif %}
                                 {% elif student.payment_status %}
-                                    {{ student.payment_status.monthly_fee|space_num }} so'm
+                                    {{ student.payment_status.monthly_fee|space_num }} söm
                                 {% else %}
-                                    200 000 so'm
+                                    200 000 söm
                                 {% endif %}
                             </span>
-                            <button class="bm-fee-btn ms-1" title="To'lov sozla"
+                            <button class="bm-fee-btn ms-1" title="Tölov sozla"
                                 onclick="openFeeModal({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }}, '{% if student.student_balance.next_payment_date %}{{ student.student_balance.next_payment_date|date:"Y-m-d" }}{% endif %}', {% if student.student_balance.is_contract %}true{% else %}false{% endif %}, '{{ student.student_balance.contract_name|default:""|escapejs }}', {{ student.student_balance.contract_amount|default:0 }})">
                                 <i class="bi bi-pencil-fill"></i>
                             </button>
                         </td>
                         <td style="font-size:.78rem;color:var(--yo-text-muted);" id="date-{{ student.pk }}">
                             {% if student.student_balance.is_contract %}
-                                <span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#fbbf24;">Shartnoma (Avto-blok yo'q)</span>
+                                <span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#fbbf24;">Şartnoma (Avto-blok yöq)</span>
                             {% elif student.student_balance.next_payment_date %}
                                 {{ student.student_balance.next_payment_date|date:"d.m.Y" }}
-                                {% if student.pay_state == 'overdue' %}<span class="bm-pay-badge overdue">Muddati o'tgan</span>
-                                {% elif student.pay_state == 'soon' %}<span class="bm-pay-badge soon">Yaqinlashgan</span>{% endif %}
+                                {% if student.pay_state == 'overdue' %}<span class="bm-pay-badge overdue">Muddati ötgan</span>
+                                {% elif student.pay_state == 'soon' %}<span class="bm-pay-badge soon">Yaqinlaşgan</span>{% endif %}
                             {% else %}
                                 <span class="bm-pay-badge nodate">Belgilanmagan</span>
                             {% endif %}
@@ -371,7 +371,7 @@
                                     <i class="bi bi-clock-history"></i>
                                 </button>
                                 <button class="bm-topup-btn" onclick="openTopup({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }})">
-                                    <i class="bi bi-plus-lg"></i> Balans qo'sh
+                                    <i class="bi bi-plus-lg"></i> Balans qöş
                                 </button>
                             </div>
                         </td>
@@ -379,7 +379,7 @@
                     {% empty %}
                     <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--yo-text-muted);">
                         <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
-                        O'quvchilar topilmadi
+                        Öquvçilar topilmadi
                     </td></tr>
                     {% endfor %}
                 </tbody>
@@ -391,7 +391,7 @@
     {% if recent_topups %}
     <div class="bm-card">
         <div class="bm-card-head">
-            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans o'zgarishlari</div>
+            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans özgarişlari</div>
         </div>
         {% for t in recent_topups %}
         <div class="bm-topup-row">
@@ -403,7 +403,7 @@
                     {% if t.ip_address %} · IP: {{ t.ip_address }}{% endif %}
                 </div>
             </div>
-            <div class="bm-topup-amt" {% if t.operation == 'deduct' %}style="color:#ef4444;"{% endif %}>{% if t.operation == 'deduct' %}−{% else %}+{% endif %}{{ t.amount|space_num }} so'm</div>
+            <div class="bm-topup-amt" {% if t.operation == 'deduct' %}style="color:#ef4444;"{% endif %}>{% if t.operation == 'deduct' %}−{% else %}+{% endif %}{{ t.amount|space_num }} söm</div>
             <div class="bm-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
         </div>
         {% endfor %}
@@ -415,11 +415,11 @@
 <!-- ====== TOP-UP MODAL ====== -->
 <div class="bm-modal-backdrop" id="topupModal">
     <div class="bm-modal">
-        <h4><i class="bi bi-wallet-fill text-success me-2"></i>Balans qo'shish</h4>
-        <p class="bm-modal-sub" id="topupStudentName">O'quvchi</p>
+        <h4><i class="bi bi-wallet-fill text-success me-2"></i>Balans qöşiş</h4>
+        <p class="bm-modal-sub" id="topupStudentName">Öquvçi</p>
         <form id="topupForm">
             {% csrf_token %}
-            <label>Miqdor (so'm)</label>
+            <label>Miqdor (söm)</label>
             <div class="bm-presets">
                 <button type="button" class="bm-preset" onclick="setAmount(100000)">100 000</button>
                 <button type="button" class="bm-preset" onclick="setAmount(200000)">200 000</button>
@@ -429,11 +429,11 @@
             </div>
             <input type="number" id="topupAmount" name="amount" placeholder="Miqdorni kiriting..." min="1000" max="50000000">
             <label>Izoh (ixtiyoriy)</label>
-            <textarea id="topupNote" name="note" placeholder="Masalan: Naqd to'lov, bank o'tkazmasi..."></textarea>
+            <textarea id="topupNote" name="note" placeholder="Masalan: Naqd tölov, bank ötkazmasi..."></textarea>
             <div class="bm-modal-actions">
                 <button type="button" class="bm-btn-cancel" onclick="closeTopup()">Bekor</button>
                 <button type="submit" class="bm-btn-confirm" id="topupSubmitBtn">
-                    <i class="bi bi-check-lg me-1"></i>Qo'shish
+                    <i class="bi bi-check-lg me-1"></i>Qöşiş
                 </button>
             </div>
         </form>
@@ -444,7 +444,7 @@
 <div class="bm-modal-backdrop" id="histModal">
     <div class="bm-modal" style="max-width:540px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
-            <h4><i class="bi bi-clock-history me-2" style="color:#10b981;"></i>To'lov tarixi</h4>
+            <h4><i class="bi bi-clock-history me-2" style="color:#10b981;"></i>Tölov tarixi</h4>
             <button class="bm-btn-cancel" style="padding:.35rem .75rem;" onclick="closeHistory()">✕</button>
         </div>
         <p class="bm-modal-sub" id="histStudentName"></p>
@@ -454,22 +454,22 @@
                 <div style="font-weight:800;color:#6ee7b7;" id="histBalanceAmt">—</div>
             </div>
             <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:.6rem .8rem;font-size:.8rem;">
-                <div style="color:#64748b;margin-bottom:2px;">Oylik to'lov</div>
+                <div style="color:#64748b;margin-bottom:2px;">Oylik tölov</div>
                 <div style="font-weight:800;color:#fbbf24;" id="histMonthlyFee">—</div>
             </div>
             <div style="background:rgba(20,184,166,.07);border:1px solid rgba(20,184,166,.15);border-radius:10px;padding:.6rem .8rem;font-size:.8rem;">
-                <div style="color:#64748b;margin-bottom:2px;">Keyingi to'lov</div>
+                <div style="color:#64748b;margin-bottom:2px;">Keyingi tölov</div>
                 <div style="font-weight:800;color:#2dd4bf;" id="histNextDate">—</div>
             </div>
         </div>
         <div style="display:flex;gap:4px;margin-bottom:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px;">
             <button id="tabBtnTopup" onclick="switchHistTab('topup')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:rgba(16,185,129,.9);color:#fff;">
-                <i class="bi bi-arrow-left-right me-1"></i>Balans o'zgarishlari
+                <i class="bi bi-arrow-left-right me-1"></i>Balans özgarişlari
             </button>
             <button id="tabBtnMonthly" onclick="switchHistTab('monthly')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#64748b;">
-                <i class="bi bi-calendar3 me-1"></i>Oylik to'lovlar
+                <i class="bi bi-calendar3 me-1"></i>Oylik tölovlar
             </button>
         </div>
         <div id="histTabTopup" style="max-height:300px;overflow-y:auto;">
@@ -485,10 +485,10 @@
 <div class="bm-modal-backdrop" id="feeModal">
     <div class="bm-modal" style="max-width:460px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
-            <h4><i class="bi bi-sliders me-2" style="color:#10b981;"></i>To'lov sozlash</h4>
+            <h4><i class="bi bi-sliders me-2" style="color:#10b981;"></i>Tölov sozlaş</h4>
             <button class="bm-btn-cancel" style="padding:.35rem .75rem;" onclick="closeFeeModal()">✕</button>
         </div>
-        <p class="bm-modal-sub" id="feeStudentName">O'quvchi</p>
+        <p class="bm-modal-sub" id="feeStudentName">Öquvçi</p>
         <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(0,0,0,.15);border-radius:10px;padding:4px;">
             <button class="fee-tab active" data-mode="amount" onclick="toggleFeeMode('amount')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;">
@@ -496,14 +496,14 @@
             </button>
             <button class="fee-tab" data-mode="contract" onclick="toggleFeeMode('contract')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;">
-                <i class="bi bi-file-earmark-text me-1"></i>Shartnoma
+                <i class="bi bi-file-earmark-text me-1"></i>Şartnoma
             </button>
         </div>
         <form id="feeForm">
             {% csrf_token %}
             <input type="hidden" id="feeModeInput" name="mode" value="amount">
             <div id="feeModeAmount">
-                <label>Oylik to'lov summasi (so'm)</label>
+                <label>Oylik tölov summasi (söm)</label>
                 <input type="number" id="feeInput" name="fee" placeholder="Masalan: 400000" min="0">
                 <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;">
                     <button type="button" onclick="setFeePreset(200000)" style="padding:.3rem .65rem;border:2px solid rgba(16,185,129,.3);border-radius:8px;background:rgba(16,185,129,.08);color:#6ee7b7;font-size:.78rem;font-weight:700;cursor:pointer;">200 000</button>
@@ -515,34 +515,34 @@
             <div id="feeModeContract" style="display:none;">
                 <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:.85rem;margin-bottom:12px;font-size:.84rem;color:#fbbf24;">
                     <i class="bi bi-shield-check me-1"></i>
-                    <strong>Shartnoma rejimi:</strong> O'quvchidan oylik to'lov olinmaydi va tizim uni <strong>avtomatik bloklamaydi</strong>.
+                    <strong>Şartnoma rejimi:</strong> Öquvçidan oylik tölov olinmaydi va tizim uni <strong>avtomatik bloklamaydi</strong>.
                 </div>
                 <div style="margin-bottom:10px;">
-                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Shartnoma nomi</label>
-                    <input type="text" id="contractNameInput" name="contract_name" placeholder="Masalan: PQ-9 shartnoma, Grant..."
+                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Şartnoma nomi</label>
+                    <input type="text" id="contractNameInput" name="contract_name" placeholder="Masalan: PQ-9 şartnoma, Grant..."
                            style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;outline:none;">
                 </div>
                 <div style="margin-bottom:6px;">
-                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Shartnomadan keladigan summa (so'm)</label>
+                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Şartnomadan keladigan summa (söm)</label>
                     <input type="number" id="contractAmountInput" name="contract_amount" placeholder="Masalan: 3500000" min="0"
                            style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;outline:none;">
                     <div style="font-size:.74rem;color:var(--yo-text-muted);margin-top:3px;">
-                        * Ushbu summa Balans Boshqaruvi statistikasida shartnomalardan umumiy tushum sifatida hisoblanadi.
+                        * Uşbu summa Balans Boşqaruvi statistikasida şartnomalardan umumiy tuşum sifatida hisoblanadi.
                     </div>
                 </div>
             </div>
             <div id="feeDateSection">
-                <label style="margin-top:4px;">Keyingi to'lov sanasi (ixtiyoriy)</label>
+                <label style="margin-top:4px;">Keyingi tölov sanasi (ixtiyoriy)</label>
                 <input type="date" id="feeDateInput" name="next_payment_date"
                     style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;transition:.2s;outline:none;">
                 <div style="font-size:.74rem;color:var(--yo-text-muted);margin-top:3px;">
-                    Bo'sh qoldirsangiz, hozirgi sana o'zgarmaydi
+                    Böş qoldirsangiz, hozirgi sana özgarmaydi
                 </div>
             </div>
             <div class="bm-modal-actions" style="margin-top:14px;">
                 <button type="button" class="bm-btn-cancel" onclick="closeFeeModal()">Bekor</button>
                 <button type="submit" class="bm-btn-confirm" id="feeSubmitBtn">
-                    <i class="bi bi-check-lg me-1"></i>Saqlash
+                    <i class="bi bi-check-lg me-1"></i>Saqlaş
                 </button>
             </div>
         </form>
@@ -556,10 +556,10 @@
 </div>
 
 <script>
-/* UI TUZATISH: position:fixed modallar yordamchi panelidagi backdrop-filter /
-   transform / overflow'li ota-elementga "qamalib" qolib, qalamcha bosilganda
-   noto'g'ri joyda chiqadi (UI buziladi). Modallarni <body> ga ko'chiramiz — shunda
-   ular butun ekranga to'g'ri markazlashadi. */
+/* UI TUZATIŞ: position:fixed modallar yordamçi panelidagi backdrop-filter /
+   transform / overflow'li ota-elementga "qamalib" qolib, qalamça bosilganda
+   notöğri joyda çiqadi (UI buziladi). Modallarni <body> ga köçiramiz — şunda
+   ular butun ekranga töğri markazlaşadi. */
 document.addEventListener('DOMContentLoaded', function () {
     ['feeModal', 'topupModal', 'histModal'].forEach(function (id) {
         var el = document.getElementById(id);
@@ -612,7 +612,7 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
         if (data.success) {
             const balEl = document.getElementById('bal-' + currentStudentId);
             if (balEl) {
-                balEl.textContent = fmtNum(data.new_balance) + ' so\'m';
+                balEl.textContent = fmtNum(data.new_balance) + ' söm';
                 balEl.className = 'bm-balance ' + (data.new_balance === 0 ? 'zero' : 'ok');
             }
             if (data.auto_unblocked) {
@@ -623,7 +623,7 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
                 }
             }
             closeTopup();
-            showToast('success', `✅ ${data.student_name} ga +${data.amount_fmt} so'm qo'shildi` + (data.auto_unblocked ? ' va unblock bo\'ldi!' : '.'));
+            showToast('success', `✅ ${data.student_name} ga +${data.amount_fmt} söm qöşildi` + (data.auto_unblocked ? ' va unblock böldi!' : '.'));
             if (data.premium_bonus_coins) showToast('success', `💎 Premium bonus: +${data.premium_bonus_coins.toLocaleString('ru-RU')} tanga`);
         } else {
             showToast('error', data.error || 'Xatolik yuz berdi');
@@ -632,7 +632,7 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
         showToast('error', 'Tarmoq xatosi');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Qo\'shish';
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Qöşiş';
     }
 });
 
@@ -663,11 +663,11 @@ async function showHistory(id, name) {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
         const data = await res.json();
-        document.getElementById('histBalanceAmt').textContent = data.balance_fmt + ' so\'m';
-        document.getElementById('histMonthlyFee').textContent = data.is_contract ? 'Shartnoma' : data.monthly_fee_fmt + ' so\'m';
+        document.getElementById('histBalanceAmt').textContent = data.balance_fmt + ' söm';
+        document.getElementById('histMonthlyFee').textContent = data.is_contract ? 'Şartnoma' : data.monthly_fee_fmt + ' söm';
         document.getElementById('histNextDate').textContent   = data.next_payment_date || '—';
         if (!data.topups.length) {
-            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-inbox"></i><br>Hali balans o\'zgarishi yo\'q</div>';
+            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-inbox"></i><br>Hali balans özgarişi yöq</div>';
         } else {
             document.getElementById('histTabTopup').innerHTML = data.topups.map(t => `
                 <div class="bm-hist-item">
@@ -675,12 +675,12 @@ async function showHistory(id, name) {
                         <div style="font-weight:600;">${t.operation_display} · ${t.added_by}</div>
                         <div style="font-size:.74rem;opacity:.6;">${t.date}${t.note ? ' · ' + t.note : ''}</div>
                     </div>
-                    <div class="bm-hist-amt" style="color:${t.operation === 'deduct' ? '#ef4444' : '#22c55e'};">${t.operation === 'deduct' ? '−' : '+'}${t.amount_fmt} so'm</div>
+                    <div class="bm-hist-amt" style="color:${t.operation === 'deduct' ? '#ef4444' : '#22c55e'};">${t.operation === 'deduct' ? '−' : '+'}${t.amount_fmt} söm</div>
                 </div>
             `).join('');
         }
         if (!data.payment_records.length) {
-            document.getElementById('histTabMonthly').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-calendar-x"></i><br>Oylik to\'lov yozuvlari yo\'q</div>';
+            document.getElementById('histTabMonthly').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-calendar-x"></i><br>Oylik tölov yozuvlari yöq</div>';
         } else {
             document.getElementById('histTabMonthly').innerHTML = data.payment_records.map(r => `
                 <div class="bm-hist-item" style="align-items:center;">
@@ -692,11 +692,11 @@ async function showHistory(id, name) {
                         </div>
                         <div>
                             <div style="font-weight:700;">${r.month_name} ${r.year}</div>
-                            <div style="font-size:.74rem;opacity:.6;">${r.is_paid ? 'To\'langan' : 'To\'lanmagan'}</div>
+                            <div style="font-size:.74rem;opacity:.6;">${r.is_paid ? 'Tölangan' : 'Tölanmagan'}</div>
                         </div>
                     </div>
                     <div style="font-weight:700;white-space:nowrap;color:${r.is_paid ? '#4ade80' : '#f87171'};">
-                        ${r.is_paid ? '' : '−'}${r.amount_fmt} so'm
+                        ${r.is_paid ? '' : '−'}${r.amount_fmt} söm
                     </div>
                 </div>
             `).join('');
@@ -786,19 +786,19 @@ document.getElementById('feeForm').addEventListener('submit', async function(e) 
             const dateEl = document.getElementById('date-' + feeStudentId);
             if (data.mode === 'contract') {
                 if (feeEl) {
-                    const cName = data.contract_name || 'Shartnoma';
-                    const cAmtHtml = data.contract_amount > 0 ? `<div style="font-size:.75rem;color:#10b981;font-weight:700;margin-top:2px;">+${data.contract_amount_fmt} so'm</div>` : '';
+                    const cName = data.contract_name || 'Şartnoma';
+                    const cAmtHtml = data.contract_amount > 0 ? `<div style="font-size:.75rem;color:#10b981;font-weight:700;margin-top:2px;">+${data.contract_amount_fmt} söm</div>` : '';
                     feeEl.innerHTML = `<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;font-size:.78rem;font-weight:700;"><i class="bi bi-file-earmark-text"></i> ${cName}</span>${cAmtHtml}`;
                 }
                 if (dateEl) {
-                    dateEl.innerHTML = '<span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#f59e0b;">Shartnoma (Avto-blok yo\'q)</span>';
+                    dateEl.innerHTML = '<span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#f59e0b;">Şartnoma (Avto-blok yöq)</span>';
                 }
-                showToast('success', `✅ Shartnoma rejimi belgilandi: ${data.contract_name || 'Shartnoma'}` + (data.contract_amount > 0 ? ` (${data.contract_amount_fmt} so'm)` : ''));
+                showToast('success', `✅ Şartnoma rejimi belgilandi: ${data.contract_name || 'Şartnoma'}` + (data.contract_amount > 0 ? ` (${data.contract_amount_fmt} söm)` : ''));
             } else {
-                if (feeEl)  feeEl.textContent = fmtNum(data.fee) + ' so\'m';
+                if (feeEl)  feeEl.textContent = fmtNum(data.fee) + ' söm';
                 if (dateEl && data.next_payment_date) dateEl.textContent = data.next_payment_date;
-                let msg = `✅ Oylik to'lov ${fmtNum(data.fee)} so'm qilib belgilandi`;
-                if (data.next_payment_date) msg += ` · Keyingi to'lov: ${data.next_payment_date}`;
+                let msg = `✅ Oylik tölov ${fmtNum(data.fee)} söm qilib belgilandi`;
+                if (data.next_payment_date) msg += ` · Keyingi tölov: ${data.next_payment_date}`;
                 showToast('success', msg);
             }
         } else {
@@ -808,7 +808,7 @@ document.getElementById('feeForm').addEventListener('submit', async function(e) 
         showToast('error', 'Tarmoq xatosi');
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Saqlash';
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Saqlaş';
     }
 });
 </script>

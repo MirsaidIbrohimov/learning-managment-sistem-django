@@ -12,6 +12,7 @@ from accounts.models import (
 )
 from .models import TeacherCertificate, TeacherSalary
 from coin.models import ActivityLog
+from accounts.alphabet import to_new_alphabet
 from accounts.views import send_course_notification
 from django.core.cache import cache
 from ai_yordamchi import jobs as ai_jobs
@@ -23,7 +24,7 @@ def teacher_required(view_func):
         if not request.user.is_authenticated:
             return redirect('login')
         if request.user.role not in ('teacher', 'admin'):
-            messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q.")
+            messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq.")
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -31,13 +32,13 @@ def teacher_required(view_func):
 
 AI_BLOCKED_MESSAGE = (
     "AI funksiyasi sizga admin tomonidan bloklangan. "
-    "Bu funksiyadan foydalanish uchun admin bilan bog'laning."
+    "Bu funksiyadan foydalaniş uçun admin bilan boğlaning."
 )
 
 
 def _teacher_ai_blocked(user):
-    """Admin tomonidan bu o'qituvchiga AI bloklanganmi?
-    Admin va yordamchi adminlar uchun har doim ruxsat beriladi."""
+    """Admin tomonidan bu öqituvçiga AI bloklanganmi?
+    Admin va yordamçi adminlar uçun har doim ruxsat beriladi."""
     if not user or not user.is_authenticated:
         return True
     if user.role in ('admin', 'assistant_admin'):
@@ -51,8 +52,8 @@ def teacher_dashboard(request):
     professions = user.teaching_professions.all()
     prof_ids = list(professions.values_list('pk', flat=True))
 
-    # Aniq hisob: takrorlanmas o'quvchilar soni (bir o'quvchi bir necha kursda
-    # bo'lsa ham bir marta sanaladi)
+    # Aniq hisob: takrorlanmas öquvçilar soni (bir öquvçi bir neça kursda
+    # bölsa ham bir marta sanaladi)
     from accounts.models import CourseEnrollment
     total_students = CourseEnrollment.objects.filter(
         profession_id__in=prof_ids, user__role='student'
@@ -99,20 +100,20 @@ def teacher_dashboard(request):
     today = timezone.localdate()
     now = timezone.now()
 
-    # O'rtacha baho (baholangan vazifalar bo'yicha)
+    # Örtaça baho (baholangan vazifalar böyiça)
     avg_grade = hw_qs.filter(
         status__in=['graded', 'accepted'], grade__isnull=False
     ).aggregate(a=Avg('grade'))['a'] or 0
     avg_grade = round(avg_grade, 1)
 
-    # Testdan o'tish darajasi (%)
+    # Testdan ötiş darajasi (%)
     passed_tests = tr_qs.filter(passed=True).count()
     pass_rate = round(passed_tests / total_test_results * 100) if total_test_results else 0
 
-    # O'rtacha test bali
+    # Örtaça test bali
     avg_test_score = round(tr_qs.aggregate(a=Avg('score'))['a'] or 0, 1)
 
-    # Bu hafta vs o'tgan hafta topshiriqlar (o'sish %)
+    # Bu hafta vs ötgan hafta topşiriqlar (ösiş %)
     week_start = now - timedelta(days=7)
     prev_week_start = now - timedelta(days=14)
     this_week = hw_qs.filter(submitted_at__gte=week_start).count()
@@ -124,7 +125,7 @@ def teacher_dashboard(request):
     else:
         week_change = 100 if this_week else 0
 
-    # O'rtacha tekshirish tezligi (soat): graded_at - submitted_at
+    # Örtaça tekşiriş tezligi (soat): graded_at - submitted_at
     avg_check_hours = None
     try:
         checked = hw_qs.filter(
@@ -139,7 +140,7 @@ def teacher_dashboard(request):
     except Exception:
         avg_check_hours = None
 
-    # 14 kunlik faollik grafigi (topshiriqlar + test natijalari)
+    # 14 kunlik faollik grafigi (topşiriqlar + test natijalari)
     hw_daily = dict(
         hw_qs.filter(submitted_at__date__gte=today - timedelta(days=13))
         .values_list('submitted_at__date').annotate(c=Count('id'))
@@ -161,7 +162,7 @@ def teacher_dashboard(request):
     for day in activity_days:
         day['pct'] = max(4, round(day['total'] / _max_day * 100)) if day['total'] else 4
 
-    # Kurslar bo'yicha batafsil jadval (bitta so'rovlar to'plami bilan)
+    # Kurslar böyiça batafsil jadval (bitta sörovlar töplami bilan)
     course_rows = []
     if prof_ids:
         students_map = dict(
@@ -238,7 +239,7 @@ def teacher_dashboard(request):
 
 @teacher_required
 def teacher_export(request):
-    """O'qituvchi ma'lumotlarini Excel (.xlsx) ko'rinishida yuklab olish.
+    """Öqituvçi ma'lumotlarini Excel (.xlsx) körinişida yuklab oliş.
 
     ?type=students | test_results | homeworks
     """
@@ -267,7 +268,7 @@ def teacher_export(request):
             cell.alignment = Alignment(horizontal='center')
 
     if export_type == 'students':
-        ws.title = "O'quvchilarim"
+        ws.title = "Öquvçilarim"
         _write_header(['#', 'Ism', 'Familiya', 'Telefon', 'Kurs', 'Yozilgan sana', 'Coinlar'])
         rows = CourseEnrollment.objects.filter(
             profession_id__in=prof_ids, user__role='student'
@@ -282,7 +283,7 @@ def teacher_export(request):
         filename = 'oquvchilarim'
     elif export_type == 'test_results':
         ws.title = "Test natijalari"
-        _write_header(['#', "O'quvchi", 'Kurs', 'Dars', 'Ball (%)', "To'g'ri javoblar", "O'tdi", 'Sana'])
+        _write_header(['#', "Öquvçi", 'Kurs', 'Dars', 'Ball (%)', "Töğri javoblar", "Ötdi", 'Sana'])
         rows = TestResult.objects.filter(
             test__lesson__profession_id__in=prof_ids
         ).select_related('student', 'test__lesson__profession').order_by('-completed_at')[:5000]
@@ -291,13 +292,13 @@ def teacher_export(request):
                 i, r.student.get_full_name() or r.student.username,
                 r.test.lesson.profession.name, r.test.lesson.title,
                 r.score, f"{r.correct_answers}/{r.total_questions}",
-                'Ha' if r.passed else "Yo'q",
+                'Ha' if r.passed else "Yöq",
                 r.completed_at.strftime('%d.%m.%Y %H:%M'),
             ])
         filename = 'test_natijalari'
     else:
         ws.title = "Vazifalar"
-        _write_header(['#', "O'quvchi", 'Kurs', 'Dars', 'Holat', 'Baho', 'Topshirilgan', 'Tekshirilgan'])
+        _write_header(['#', "Öquvçi", 'Kurs', 'Dars', 'Holat', 'Baho', 'Topşirilgan', 'Tekşirilgan'])
         rows = HomeworkSubmission.objects.filter(
             homework__lesson__profession_id__in=prof_ids
         ).select_related('student', 'homework__lesson__profession').order_by('-submitted_at')[:5000]
@@ -311,7 +312,7 @@ def teacher_export(request):
             ])
         filename = 'vazifalar'
 
-    # Ustun kengliklarini moslash
+    # Ustun kengliklarini moslaş
     for col in ws.columns:
         width = max((len(str(c.value)) for c in col if c.value is not None), default=8)
         ws.column_dimensions[col[0].column_letter].width = min(40, max(10, width + 2))
@@ -327,7 +328,7 @@ def teacher_export(request):
 
 @teacher_required
 def teacher_my_students(request):
-    """O'qituvchining o'quvchilari ro'yxati va natijalari"""
+    """Öqituvçining öquvçilari röyxati va natijalari"""
     from accounts.models import (
         CustomUser, CourseEnrollment, VideoProgress, VideoLesson
     )
@@ -347,7 +348,7 @@ def teacher_my_students(request):
         except (ValueError, TypeError):
             pass
 
-    # Barcha o'quvchilar
+    # Barça öquvçilar
     enrollments = CourseEnrollment.objects.filter(
         profession__in=filtered_professions,
         user__role='student'
@@ -413,7 +414,7 @@ def teacher_my_students(request):
         done_tasks = unique_hw_done + unique_test_done + watched_videos
         progress_pct = round((done_tasks / total_tasks * 100) if total_tasks > 0 else 0)
 
-        # Status aniqlash
+        # Status aniqlaş
         now = timezone.now()
         if student.last_activity and (now - student.last_activity).days <= 3:
             status = 'faol'
@@ -443,7 +444,7 @@ def teacher_my_students(request):
             'is_premium': student.is_premium,
         })
 
-    # Sortlash
+    # Sortlaş
     if filter_sort == 'progress':
         students_data.sort(key=lambda x: x['progress_pct'], reverse=True)
     elif filter_sort == 'hw_avg':
@@ -485,7 +486,7 @@ def teacher_statistics(request):
     # ===== FILTERS =====
     filter_profession = request.GET.get('profession', '')
     filter_status = request.GET.get('status', '')  # faol, sust, xavfli
-    filter_homework = request.GET.get('homework', '')  # topshirgan, topshirmagan
+    filter_homework = request.GET.get('homework', '')  # topşirgan, topşirmagan
     
     filtered_professions = professions
     if filter_profession:
@@ -502,18 +503,18 @@ def teacher_statistics(request):
     
     students = CustomUser.objects.filter(id__in=student_ids).select_related('profession')
     
-    # ===== 1. UMUMIY KO'RSATKICHLAR =====
+    # ===== 1. UMUMIY KÖRSATKIÇLAR =====
     total_students = students.count()
     
-    # Faol o'quvchilar (oxirgi 7 kunda kirgan)
+    # Faol öquvçilar (oxirgi 7 kunda kirgan)
     week_ago = now - timedelta(days=7)
     active_students = students.filter(last_activity__gte=week_ago).count()
     
-    # Barcha vazifalar
+    # Barça vazifalar
     all_homeworks = Homework.objects.filter(lesson__profession__in=filtered_professions)
     total_homeworks_count = all_homeworks.count()
     
-    # Vazifa topshirganlar (kamida 1 ta vazifa topshirgan)
+    # Vazifa topşirganlar (kamida 1 ta vazifa topşirgan)
     students_with_submissions = HomeworkSubmission.objects.filter(
         homework__lesson__profession__in=filtered_professions,
         student__in=students
@@ -521,7 +522,7 @@ def teacher_statistics(request):
     
     students_without_submissions = total_students - students_with_submissions
     
-    # O'rtacha ball (graded submissions)
+    # Örtaça ball (graded submissions)
     avg_grade_data = HomeworkSubmission.objects.filter(
         homework__lesson__profession__in=filtered_professions,
         status='graded',
@@ -534,12 +535,12 @@ def teacher_statistics(request):
     max_possible = avg_grade_data['max_possible'] or 10
     avg_grade_percent = round((avg_grade / max_possible * 100) if max_possible > 0 else 0)
     
-    # Test o'rtacha natija
+    # Test örtaça natija
     test_avg = TestResult.objects.filter(
         test__lesson__profession__in=filtered_professions
     ).aggregate(avg=Avg('score'))['avg'] or 0
     
-    # Test o'tish foizi
+    # Test ötiş foizi
     total_test_results = TestResult.objects.filter(
         test__lesson__profession__in=filtered_professions
     )
@@ -554,7 +555,7 @@ def teacher_statistics(request):
     # Faollik foizi (oxirgi 7 kun)
     activity_percent = round((active_students / total_students * 100) if total_students > 0 else 0)
     
-    # ===== 2. O'QUVCHI BO'YICHA JADVAL =====
+    # ===== 2. ÖQUVÇI BÖYIÇA JADVAL =====
     students_data = []
     for student in students:
         # Enrolled professions
@@ -563,7 +564,7 @@ def teacher_statistics(request):
         )
         prof_names = ', '.join([p.name for p in enrolled_profs])
         
-        # Ko'rilgan darslar
+        # Körilgan darslar
         watched_lessons = VideoProgress.objects.filter(
             user=student,
             video__lesson__profession__in=filtered_professions,
@@ -581,7 +582,7 @@ def teacher_statistics(request):
         )
         done_homeworks = student_submissions.count()
         
-        # Topshirmagan vazifalari
+        # Topşirmagan vazifalari
         submitted_hw_ids = student_submissions.values_list('homework_id', flat=True)
         not_done = all_homeworks.exclude(id__in=submitted_hw_ids).count()
         
@@ -723,7 +724,7 @@ def teacher_statistics(request):
                 'wrong_percent': wrong_pct,
             })
         
-        # Eng yaxshi / past natijalar
+        # Eng yaxşi / past natijalar
         best_result = results.order_by('-score').first()
         worst_result = results.order_by('score').first()
         
@@ -737,7 +738,7 @@ def teacher_statistics(request):
             'worst_result': worst_result,
         })
     
-    # ===== 5. DAVOMAT VA KIRISH FAOLLIGI =====
+    # ===== 5. DAVOMAT VA KIRIŞ FAOLLIGI =====
     today_login = students.filter(last_activity__date=today).count()
     three_days_ago = today - timedelta(days=3)
     week_ago_date = today - timedelta(days=7)
@@ -765,7 +766,7 @@ def teacher_statistics(request):
             'count': count,
         })
     
-    # ===== 6. DARS KO'RISH STATISTIKASI =====
+    # ===== 6. DARS KÖRIŞ STATISTIKASI =====
     video_lessons = VideoLesson.objects.filter(
         lesson__profession__in=filtered_professions
     ).select_related('lesson', 'lesson__profession')
@@ -784,7 +785,7 @@ def teacher_statistics(request):
     # Sort by watch_percent to find most/least watched
     lessons_data.sort(key=lambda x: x['watch_percent'], reverse=True)
     
-    # ===== 7. OGOHLANTIRISHLAR =====
+    # ===== 7. OGOHLANTIRIŞLAR =====
     alerts = []
     
     # Uzoq vaqtdan beri kirmaganlar
@@ -796,19 +797,19 @@ def teacher_statistics(request):
         alerts.append({
             'type': 'danger',
             'icon': 'bi-exclamation-triangle-fill',
-            'text': f"{inactive_count} ta o'quvchi 7 kundan beri kirmagan",
+            'text': f"{inactive_count} ta öquvçi 7 kundan beri kirmagan",
         })
     
-    # Vazifa topshirmaganlar
+    # Vazifa topşirmaganlar
     pending_hw_students = total_students - students_with_submissions
     if pending_hw_students > 0 and total_homeworks_count > 0:
         alerts.append({
             'type': 'warning',
             'icon': 'bi-journal-x',
-            'text': f"{pending_hw_students} ta o'quvchi hech qanday vazifa topshirmagan",
+            'text': f"{pending_hw_students} ta öquvçi heç qanday vazifa topşirmagan",
         })
     
-    # Tekshirilmagan vazifalar
+    # Tekşirilmagan vazifalar
     unchecked_total = HomeworkSubmission.objects.filter(
         homework__lesson__profession__in=filtered_professions,
         status='pending'
@@ -817,7 +818,7 @@ def teacher_statistics(request):
         alerts.append({
             'type': 'info',
             'icon': 'bi-hourglass-split',
-            'text': f"{unchecked_total} ta vazifa hali tekshirilmagan",
+            'text': f"{unchecked_total} ta vazifa hali tekşirilmagan",
         })
     
     # Past test natijalar
@@ -829,22 +830,22 @@ def teacher_statistics(request):
         alerts.append({
             'type': 'danger',
             'icon': 'bi-graph-down-arrow',
-            'text': f"{low_test_students} ta o'quvchining test natijasi 40% dan past",
+            'text': f"{low_test_students} ta öquvçining test natijasi 40% dan past",
         })
     
-    # Xavfli o'quvchilar soni
+    # Xavfli öquvçilar soni
     xavfli_count = len([s for s in students_data if s['status'] == 'xavfli'])
     if xavfli_count > 0:
         alerts.append({
             'type': 'danger',
             'icon': 'bi-person-exclamation',
-            'text': f"{xavfli_count} ta o'quvchi xavfli holatda",
+            'text': f"{xavfli_count} ta öquvçi xavfli holatda",
         })
     
     # ===== CHART DATA =====
     import json
     
-    # Vazifa topshirish chart
+    # Vazifa topşiriş chart
     hw_chart_labels = [h['homework'].lesson.title[:25] for h in homeworks_data[:10]]
     hw_chart_submitted = [h['submitted'] for h in homeworks_data[:10]]
     hw_chart_not = [h['not_submitted'] for h in homeworks_data[:10]]
@@ -933,7 +934,7 @@ def teacher_edit_course(request, pk):
     professions = request.user.teaching_professions.all()
     profession = get_object_or_404(Profession, pk=pk)
     if profession not in professions:
-        messages.error(request, "Sizda bu kursni tahrirlash huquqi yo'q.")
+        messages.error(request, "Sizda bu kursni tahrirlaş huquqi yöq.")
         return redirect('teacher:courses')
 
     if request.method == 'POST':
@@ -942,7 +943,7 @@ def teacher_edit_course(request, pk):
         photo = request.FILES.get('photo')
 
         if not name:
-            messages.error(request, "Kurs nomi bo'sh bo'lishi mumkin emas.")
+            messages.error(request, "Kurs nomi böş bölişi mumkin emas.")
             return redirect('teacher:courses')
 
         profession.name = name
@@ -1032,7 +1033,7 @@ def teacher_homeworks(request):
 
 
 def _run_teacher_ai_grade(submission_pk, grader_pk):
-    """Ustoz "AI bilan baholash" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) ishlaydi."""
+    """Ustoz "AI bilan baholaş" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) işlaydi."""
     from accounts.views import (
         _read_submission_content, _get_ai_grade,
         _check_ai_generated, _check_similarity_with_others
@@ -1048,32 +1049,32 @@ def _run_teacher_ai_grade(submission_pk, grader_pk):
 
         hw = submission.homework
         
-        # 1. AI plagiat tekshiruvi
+        # 1. AI plagiat tekşiruvi
         ai_check = _check_ai_generated(
             hw.description, student_answer,
             student=submission.student,
             current_submission_pk=submission.pk
         )
         ai_warning = ""
-        # Ustoz uchun ham ehtiyotkor: faqat 85%+ ishonchda ogohlantirish ko'rsatiladi
-        # (past ishonchli belgilar ko'p false-positive beradi va ustozni chalg'itadi).
+        # Ustoz uçun ham ehtiyotkor: faqat 85%+ işonçda ogohlantiriş körsatiladi
+        # (past işonçli belgilar köp false-positive beradi va ustozni çalğitadi).
         if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 85:
             ai_warning = (
-                f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
-                f"(ishonch: {ai_check['confidence']}%).\n"
+                f"\n\n🔍 AI tekşiruvi: Javobda suniy intellekt belgilari aniqlandi "
+                f"(işonç: {ai_check['confidence']}%).\n"
                 f"📋 Sabab: {ai_check['reason']}"
             )
 
-        # 2. O'xshashlik tekshirish — faqat 90%+ o'xshashlikda ustozga ogohlantirish
+        # 2. Öxşaşlik tekşiriş — faqat 90%+ öxşaşlikda ustozga ogohlantiriş
         similarity_result = _check_similarity_with_others(hw, submission, student_answer)
         if similarity_result and similarity_result['is_plagiat'] and similarity_result['similarity'] >= 90:
             ai_warning += (
-                f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
-                f"{similarity_result['similarity']}% o'xshash.\n"
+                f"\n\n🔄 Öxşaşlik: {similarity_result['similar_to']} bilan "
+                f"{similarity_result['similarity']}% öxşaş.\n"
                 f"📋 {similarity_result['reason']}"
             )
         
-        # 3. Baholash
+        # 3. Baholaş
         ai_result = _get_ai_grade(hw.description, student_answer)
         if not ai_result:
             return
@@ -1089,7 +1090,7 @@ def _run_teacher_ai_grade(submission_pk, grader_pk):
         submission.graded_at = timezone.now()
         submission.save()
         
-        # AI baholashda coin berish (faqat birinchi baholashda: revision_count == 0)
+        # AI baholaşda coin beriş (faqat birinçi baholaşda: revision_count == 0)
         if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
             coin_amount = submission.calculate_coin_reward()
             submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
@@ -1123,12 +1124,12 @@ def teacher_grade_homework(request, pk):
                 return redirect('teacher:grade_homework', pk=pk)
             from accounts.views import _read_submission_content
             if not _read_submission_content(submission):
-                messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
+                messages.error(request, "AI bu fayl formatini tekşira olmaydi (faqat matn va kod fayllari).")
                 return redirect('teacher:grade_homework', pk=pk)
-            # AI tekshiruvi (3 ta so'rov) so'rov ichida emas, fonda bajariladi.
+            # AI tekşiruvi (3 ta sörov) sörov içida emas, fonda bajariladi.
             if cache.add(f'ai-grade-hw:{submission.pk}', 1, 600):
                 ai_jobs.submit(_run_teacher_ai_grade, submission.pk, request.user.pk)
-            messages.info(request, "🤖 AI tekshiruvi boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
+            messages.info(request, "🤖 AI tekşiruvi boşlandi. Natija 1 daqiqa içida çiqadi — sahifani yangilang.")
             return redirect('teacher:homeworks')
         
         grade = request.POST.get('grade')
@@ -1145,7 +1146,7 @@ def teacher_grade_homework(request, pk):
             messages.error(request, "Iltimos, baho kiriting.")
             return redirect('teacher:grade_homework', pk=pk)
         if grade_val is not None and not (1 <= grade_val <= 10):
-            messages.error(request, "Baho 1 dan 10 gacha bo'lishi kerak.")
+            messages.error(request, "Baho 1 dan 10 gaça bölişi kerak.")
             return redirect('teacher:grade_homework', pk=pk)
         
         submission.grade = grade_val
@@ -1157,7 +1158,7 @@ def teacher_grade_homework(request, pk):
             submission.feedback_file = feedback_file
         submission.save()
         
-        # Coin berish (faqat birinchi baholashda: revision_count == 0)
+        # Coin beriş (faqat birinçi baholaşda: revision_count == 0)
         if status == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
             coin_amount = submission.calculate_coin_reward(grade_val)
             submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
@@ -1229,10 +1230,10 @@ def teacher_add_test(request, pk):
         send_course_notification(
             profession=profession,
             title=f"📋 Yangi test: {title}",
-            content=f"'{profession.name}' kursiga yangi test qo'shildi:\n\n📚 {title}\n\nTestni yechish uchun kursga kiring!",
+            content=f"'{profession.name}' kursiga yangi test qöşildi:\n\n📚 {title}\n\nTestni yeçiş uçun kursga kiring!",
             sender=request.user
         )
-        messages.success(request, f"'{title}' testi yaratildi! Endi savollar qo'shing.")
+        messages.success(request, f"'{title}' testi yaratildi! Endi savollar qöşing.")
         return redirect('teacher:manage_questions', pk=test.pk)
     
     return render(request, 'teacher/add_test.html', {'profession': profession})
@@ -1285,7 +1286,7 @@ def teacher_add_question(request, pk):
                     is_correct=is_correct,
                 )
         
-        messages.success(request, "Savol qo'shildi!")
+        messages.success(request, "Savol qöşildi!")
         return redirect('teacher:manage_questions', pk=pk)
     
     return render(request, 'teacher/add_question.html', {'test': test})
@@ -1299,7 +1300,7 @@ def teacher_delete_question(request, pk):
     
     if request.method == 'POST':
         question.delete()
-        messages.success(request, "Savol o'chirildi!")
+        messages.success(request, "Savol öçirildi!")
     
     return redirect('teacher:manage_questions', pk=test_pk)
 
@@ -1338,7 +1339,7 @@ def teacher_certificate_toggle(request, pk):
     if request.method == 'POST':
         cert.is_visible = not cert.is_visible
         cert.save()
-        status = "ko'rinadigan" if cert.is_visible else "yashirin"
+        status = "körinadigan" if cert.is_visible else "yaşirin"
         messages.success(request, f"Sertifikat {status} qilindi!")
     return redirect('teacher:certificates')
 
@@ -1348,7 +1349,7 @@ def teacher_certificate_delete(request, pk):
     cert = get_object_or_404(TeacherCertificate, pk=pk, teacher=request.user)
     if request.method == 'POST':
         cert.delete()
-        messages.success(request, "Sertifikat o'chirildi!")
+        messages.success(request, "Sertifikat öçirildi!")
     return redirect('teacher:certificates')
 
 
@@ -1370,15 +1371,15 @@ def teacher_import_questions(request, pk):
             try:
                 import openpyxl
             except ImportError:
-                errors.append("openpyxl kutubxonasi o'rnatilmagan.")
+                errors.append("openpyxl kutubxonasi örnatilmagan.")
 
             if not errors:
                 try:
                     wb = openpyxl.load_workbook(file, read_only=True)
                     ws = wb.active
-                    headers = [str(cell.value or '').strip().lower() for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+                    headers = [to_new_alphabet(str(cell.value or '').strip().lower()) for cell in next(ws.iter_rows(min_row=1, max_row=1))]
 
-                    required_cols = {'savol': None, 'a': None, 'b': None, 'c': None, "to'g'ri javob": None}
+                    required_cols = {'savol': None, 'a': None, 'b': None, 'c': None, "töğri javob": None}
                     explanation_col = None
 
                     for i, h in enumerate(headers):
@@ -1390,9 +1391,9 @@ def teacher_import_questions(request, pk):
                             required_cols['b'] = i
                         elif h in ('c', 'option_c', 'variant_c', 'javob_c', '3-javob'):
                             required_cols['c'] = i
-                        elif h in ("to'g'ri javob", 'correct_option', 'correct', 'javob', "to'g'ri"):
-                            required_cols["to'g'ri javob"] = i
-                        elif h in ('izoh', 'explanation', 'tushuntirish'):
+                        elif h in ("töğri javob", 'correct_option', 'correct', 'javob', "töğri"):
+                            required_cols["töğri javob"] = i
+                        elif h in ('izoh', 'explanation', 'tuşuntiriş'):
                             explanation_col = i
 
                     missing = [k for k, v in required_cols.items() if v is None]
@@ -1414,7 +1415,7 @@ def teacher_import_questions(request, pk):
                             opt_a = str(row[required_cols['a']] or '').strip()
                             opt_b = str(row[required_cols['b']] or '').strip()
                             opt_c = str(row[required_cols['c']] or '').strip()
-                            correct = str(row[required_cols["to'g'ri javob"]] or '').strip().upper()
+                            correct = str(row[required_cols["töğri javob"]] or '').strip().upper()
                             explanation = ''
                             if explanation_col is not None:
                                 explanation = str(row[explanation_col] or '').strip()
@@ -1423,12 +1424,12 @@ def teacher_import_questions(request, pk):
                                 continue
 
                             row_errors = []
-                            if not q_text: row_errors.append("savol bo'sh")
-                            if not opt_a: row_errors.append("A varianti bo'sh")
-                            if not opt_b: row_errors.append("B varianti bo'sh")
-                            if not opt_c: row_errors.append("C varianti bo'sh")
+                            if not q_text: row_errors.append("savol böş")
+                            if not opt_a: row_errors.append("A varianti böş")
+                            if not opt_b: row_errors.append("B varianti böş")
+                            if not opt_c: row_errors.append("C varianti böş")
                             if correct not in ('A', 'B', 'C'):
-                                row_errors.append(f"to'g'ri javob '{correct}' noto'g'ri (faqat A/B/C)")
+                                row_errors.append(f"töğri javob '{correct}' notöğri (faqat A/B/C)")
 
                             if row_errors:
                                 errors.append(f"Qator {row_num}: {', '.join(row_errors)}")
@@ -1440,7 +1441,7 @@ def teacher_import_questions(request, pk):
                                 })
 
                         if not questions_data and not errors:
-                            errors.append("Excelda hech qanday savol topilmadi.")
+                            errors.append("Excelda heç qanday savol topilmadi.")
 
                         if not errors:
                             existing_texts = set(
@@ -1473,13 +1474,13 @@ def teacher_import_questions(request, pk):
                             success_count = len(unique_data)
                             msg = f"{success_count} ta savol muvaffaqiyatli import qilindi!"
                             if skipped:
-                                msg += f" ({skipped} ta takroriy savol o'tkazib yuborildi)"
+                                msg += f" ({skipped} ta takroriy savol ötkazib yuborildi)"
                             messages.success(request, msg)
                             return redirect('teacher:manage_questions', pk=test.pk)
 
                     wb.close()
                 except Exception as e:
-                    errors.append(f"Faylni o'qishda xatolik: {str(e)}")
+                    errors.append(f"Faylni öqişda xatolik: {str(e)}")
 
     return render(request, 'teacher/import_questions.html', {
         'test': test, 'errors': errors, 'success_count': success_count,
@@ -1489,7 +1490,7 @@ def teacher_import_questions(request, pk):
 @teacher_required
 @ai_offload
 def teacher_generate_ai_test(request, pk):
-    """AI orqali test savollari yaratish"""
+    """AI orqali test savollari yaratiş"""
     if _teacher_ai_blocked(request.user):
         return JsonResponse({
             'error': AI_BLOCKED_MESSAGE,
@@ -1535,7 +1536,7 @@ def teacher_generate_ai_test(request, pk):
         
         prompt_context = f"Kurs: {profession_name}"
         if section_name:
-            prompt_context += f"\nBo'lim: {section_name}"
+            prompt_context += f"\nBölim: {section_name}"
         prompt_context += f"\nDars: {lesson_title}"
         
         response = client.chat.completions.create(
@@ -1544,14 +1545,14 @@ def teacher_generate_ai_test(request, pk):
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. Senden test savollari yaratish so'raladi. "
-                        "O'zbek tilida yoz. Faqat JSON formatda javob qaytar, boshqa hech narsa yozma.\n\n"
-                        "Har bir savol uchun 3 ta variant (A, B, C) bo'lsin.\n"
-                        "To'g'ri javob faqat A, B yoki C bo'lsin.\n"
-                        "Savollar real amaliy bo'lsin, kodli misollar ham bo'lishi mumkin.\n"
-                        "Javoblar bir-biriga yaqin va chalg'ituvchi bo'lsin, LEKIN har bir savolda A, B, C variantlari bir-biridan FARQLI bo'lishi SHART. "
-                        "Hech qachon ikki yoki uch variant bir xil matnli bo'lmasin!\n"
-                        "Izoh 1-2 gap bilan tushuntirsin.\n\n"
+                        "Sen tajribali IT öqituvçisan. Senden test savollari yaratiş söraladi. "
+                        "Özbek tilida yoz. Faqat JSON formatda javob qaytar, boşqa heç narsa yozma.\n\n"
+                        "Har bir savol uçun 3 ta variant (A, B, C) bölsin.\n"
+                        "Töğri javob faqat A, B yoki C bölsin.\n"
+                        "Savollar real amaliy bölsin, kodli misollar ham bölişi mumkin.\n"
+                        "Javoblar bir-biriga yaqin va çalğituvçi bölsin, LEKIN har bir savolda A, B, C variantlari bir-biridan FARQLI bölişi ŞART. "
+                        "Heç qaçon ikki yoki uç variant bir xil matnli bölmasin!\n"
+                        "Izoh 1-2 gap bilan tuşuntirsin.\n\n"
                         "JSON formati:\n"
                         "[\n"
                         "  {\n"
@@ -1563,12 +1564,12 @@ def teacher_generate_ai_test(request, pk):
                         '    "explanation": "Izoh"\n'
                         "  }\n"
                         "]\n\n"
-                        "MUHIM: Faqat JSON array qaytar. Markdown yoki boshqa text qo'shma."
+                        "MUHIM: Faqat JSON array qaytar. Markdown yoki boşqa text qöşma."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha {question_count} ta test savoli yarat."
+                    "content": f"{prompt_context}\n\nŞu mavzu böyiça {question_count} ta test savoli yarat."
                 }
             ],
             max_tokens=4000,
@@ -1586,7 +1587,7 @@ def teacher_generate_ai_test(request, pk):
         questions_data = json.loads(ai_text)
         
         if not isinstance(questions_data, list):
-            return JsonResponse({'error': 'AI noto\'g\'ri format qaytardi'}, status=500)
+            return JsonResponse({'error': 'AI notöğri format qaytardi'}, status=500)
         
         from django.db import transaction
         created_count = 0
@@ -1604,10 +1605,10 @@ def teacher_generate_ai_test(request, pk):
                 if not q_text or not opt_a or not opt_b or not opt_c or correct not in ('A', 'B', 'C'):
                     continue
                 
-                # Dublikat variantlarni tekshirish
+                # Dublikat variantlarni tekşiriş
                 options = [opt_a.lower(), opt_b.lower(), opt_c.lower()]
                 if len(set(options)) < 3:
-                    # Agar variantlar ichida bir xili bo'lsa, bu savolni o'tkazib yuboramiz
+                    # Agar variantlar içida bir xili bölsa, bu savolni ötkazib yuboramiz
                     continue
                 
                 question = TestQuestion.objects.create(
@@ -1630,18 +1631,18 @@ def teacher_generate_ai_test(request, pk):
             'message': f'{created_count} ta savol muvaffaqiyatli yaratildi!'
         })
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
+        return JsonResponse({'error': 'AI javobini öqişda xatolik. Qayta urinib köring.'}, status=500)
     except Exception as e:
         from accounts.security import safe_error
         return JsonResponse(
-            {'error': safe_error(e, 'teacher_ai_questions', "AI xatolik. Qayta urinib ko'ring.")},
+            {'error': safe_error(e, 'teacher_ai_questions', "AI xatolik. Qayta urinib köring.")},
             status=500,
         )
 
 
 @teacher_required
 def teacher_speaking_tasks(request):
-    """Speaking vazifalar ro'yxati"""
+    """Speaking vazifalar röyxati"""
     professions = request.user.teaching_professions.all()
     
     status_filter = request.GET.get('status', '')
@@ -1682,7 +1683,7 @@ def teacher_speaking_tasks(request):
 
 @teacher_required
 def teacher_grade_speaking(request, pk):
-    """Speaking vazifani baholash"""
+    """Speaking vazifani baholaş"""
     professions = request.user.teaching_professions.all()
     submission = get_object_or_404(
         SpeakingSubmission,
@@ -1699,7 +1700,7 @@ def teacher_grade_speaking(request, pk):
                 return redirect('teacher:grade_speaking', pk=pk)
             if cache.add(f'ai-grade-speaking:{submission.pk}', 1, 600):
                 ai_jobs.submit(apply_ai_speaking_grade, submission.pk, request.user.pk)
-            messages.info(request, "🤖 AI baholash boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
+            messages.info(request, "🤖 AI baholaş boşlandi. Natija 1 daqiqa içida çiqadi — sahifani yangilang.")
             return redirect('teacher:speaking_tasks')
         
         grade = request.POST.get('grade')
@@ -1735,7 +1736,7 @@ def teacher_grade_speaking(request, pk):
         
         submission.save()
         
-        # Coin berish
+        # Coin beriş
         if status == 'graded' and not submission.coin_awarded:
             coin_amount = 10
             if grade_val and grade_val >= 9:
@@ -1764,7 +1765,7 @@ def teacher_grade_speaking(request, pk):
 
 @teacher_required
 def teacher_add_speaking(request, pk):
-    """Kursga yangi speaking vazifa qo'shish"""
+    """Kursga yangi speaking vazifa qöşiş"""
     professions = request.user.teaching_professions.all()
     profession = get_object_or_404(Profession, pk=pk, pk__in=professions.values_list('pk', flat=True))
     
@@ -1817,7 +1818,7 @@ def teacher_add_speaking(request, pk):
         send_course_notification(
             profession=profession,
             title=f"🎤 Yangi Speaking vazifa: {title}",
-            content=f"'{profession.name}' kursiga yangi Speaking vazifa qo'shildi:\n\n🎤 {title}\n\nVazifani bajarish uchun kursga kiring!",
+            content=f"'{profession.name}' kursiga yangi Speaking vazifa qöşildi:\n\n🎤 {title}\n\nVazifani bajariş uçun kursga kiring!",
             sender=request.user
         )
         
@@ -1828,7 +1829,7 @@ def teacher_add_speaking(request, pk):
 
 
 def _ai_grade_speaking(submission):
-    """AI yordamida speaking vazifani baholash"""
+    """AI yordamida speaking vazifani baholaş"""
     import json
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -1858,7 +1859,7 @@ def _ai_grade_speaking(submission):
                 {
                     "role": "system",
                     "content": (
-                        "Siz til o'rganish platformasining Speaking baholovchisisiz. O'quvchining gapirishini tekshiring.\n\n"
+                        "Siz til örganiş platformasining Speaking baholovçisisiz. Öquvçining gapirişini tekşiring.\n\n"
                         "Faqat JSON formatda javob bering:\n"
                         '{"grade": <1-10>, "status": "<graded yoki revision>", "feedback": "<izoh>", '
                         '"pronunciation": <1-10>, "fluency": <1-10>, "grammar": <1-10>, "vocabulary": <1-10>}\n\n'
@@ -1866,10 +1867,10 @@ def _ai_grade_speaking(submission):
                         "- grade: Umumiy baho 1-10\n"
                         "- pronunciation: Talaffuz sifati 1-10\n"
                         "- fluency: Ravonlik va tezlik 1-10\n"
-                        "- grammar: Grammatik to'g'rilik 1-10\n"
-                        "- vocabulary: Lug'at boyligi 1-10\n"
-                        "- feedback: O'zbek tilida 3-5 gap bilan batafsil izoh\n"
-                        "- status: Agar juda yomon bo'lsa 'revision', aks holda 'graded'"
+                        "- grammar: Grammatik töğrilik 1-10\n"
+                        "- vocabulary: Luğat boyligi 1-10\n"
+                        "- feedback: Özbek tilida 3-5 gap bilan batafsil izoh\n"
+                        "- status: Agar juda yomon bölsa 'revision', aks holda 'graded'"
                     )
                 },
                 {
@@ -1877,8 +1878,8 @@ def _ai_grade_speaking(submission):
                     "content": (
                         f"Vazifa tavsifi: {task_desc}\n"
                         f"Maqsad daraja: {target_level}\n"
-                        f"Baholash mezonlari: {criteria}\n\n"
-                        f"O'quvchining gapirgani (transkripsiya):\n{transcript}"
+                        f"Baholaş mezonlari: {criteria}\n\n"
+                        f"Öquvçining gapirgani (transkripsiya):\n{transcript}"
                     )
                 }
             ],
@@ -1912,8 +1913,8 @@ def _ai_grade_speaking(submission):
 def apply_ai_speaking_grade(submission_pk, grader_pk=None):
     """Speaking vazifani AI bilan baholab natijani saqlaydi.
 
-    Audio transkripsiya + baholash 20–60 soniya oladi, shuning uchun fon
-    oqimida (ai_yordamchi.jobs.submit) chaqiriladi.
+    Audio transkripsiya + baholaş 20–60 soniya oladi, şuning uçun fon
+    oqimida (ai_yordamchi.jobs.submit) çaqiriladi.
     """
     try:
         submission = SpeakingSubmission.objects.select_related(
@@ -1958,7 +1959,7 @@ def apply_ai_speaking_grade(submission_pk, grader_pk=None):
 
 
 def _transcribe_audio(file_field):
-    """Audio faylni matn (transkripsiya) ga o'girish"""
+    """Audio faylni matn (transkripsiya) ga ögiriş"""
     import os
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -1982,7 +1983,7 @@ def _transcribe_audio(file_field):
 
 @teacher_required
 def teacher_earnings(request):
-    """O'qituvchining video, test, vazifa bo'yicha daromadlari"""
+    """Öqituvçining video, test, vazifa böyiça daromadlari"""
     from datetime import date
     import calendar
 
@@ -1990,26 +1991,26 @@ def teacher_earnings(request):
     professions = user.teaching_professions.all()
     now = timezone.now()
 
-    # O'qituvchining to'langan maoshlari
+    # Öqituvçining tölangan maoşlari
     paid_salaries = TeacherSalary.objects.filter(
         teacher=user,
         is_paid=True
     ).order_by('-year', '-month', '-created_at')
     
-    # To'lanmagan maoshlar
+    # Tölanmagan maoşlar
     unpaid_salaries = TeacherSalary.objects.filter(
         teacher=user,
         is_paid=False
     ).order_by('-year', '-month', '-created_at')
 
-    # Video/test/vazifa narxlari endi har kasb uchun alohida (Profession'da).
+    # Video/test/vazifa narxlari endi har kasb uçun alohida (Profession'da).
     # Video-quiz mukofoti (alohida mexanizm) global qoladi.
-    VIDEO_QUIZ_PRICE = 3000  # har bir video uchun (5+ test qo'shilganda bir marta)
+    VIDEO_QUIZ_PRICE = 3000  # har bir video uçun (5+ test qöşilganda bir marta)
 
     from video_quiz.models import TeacherVideoIncome
     from accounts.earnings import period_summary, profession_rate_rows, uniform_rate
 
-    # Joriy oy va o'tgan oy
+    # Joriy oy va ötgan oy
     current_month_start = date(now.year, now.month, 1)
     if now.month == 1:
         prev_month_start = date(now.year - 1, 12, 1)
@@ -2021,10 +2022,10 @@ def teacher_earnings(request):
         next_month_start = date(now.year, now.month + 1, 1)
 
     def get_month_data(month_start, month_end):
-        """Berilgan oy uchun ma'lumotlarni hisoblash.
+        """Berilgan oy uçun ma'lumotlarni hisoblaş.
 
-        Video/test/vazifa daromadi har kasbning o'z stavkasi bo'yicha
-        (accounts.earnings.period_summary). Har element o'z `rate` qiymati bilan.
+        Video/test/vazifa daromadi har kasbning öz stavkasi böyiça
+        (accounts.earnings.period_summary). Har element öz `rate` qiymati bilan.
         """
         summary = period_summary(
             professions, created_by=user,
@@ -2032,8 +2033,8 @@ def teacher_earnings(request):
         )
         video, test, hw = summary['video'], summary['test'], summary['homework']
 
-        # Video ichidagi testlar daromadi — VIDEO bo'yicha bir martalik
-        # (ustoz bitta videoga 5+ test qo'shganda 3000 so'm, har savolga emas).
+        # Video içidagi testlar daromadi — VIDEO böyiça bir martalik
+        # (ustoz bitta videoga 5+ test qöşganda 3000 söm, har savolga emas).
         # Manba: TeacherVideoIncome (haqiqiy hisoblangan daromad yozuvlari).
         vq_incomes = TeacherVideoIncome.objects.filter(
             teacher=user,
@@ -2075,19 +2076,19 @@ def teacher_earnings(request):
     current_data = get_month_data(current_month_start, next_month_start)
     prev_data = get_month_data(prev_month_start, current_month_start)
 
-    # Farq hisoblash
+    # Farq hisoblaş
     if prev_data['grand_total'] > 0:
         change_pct = round((current_data['grand_total'] - prev_data['grand_total']) / prev_data['grand_total'] * 100)
     else:
         change_pct = 100 if current_data['grand_total'] > 0 else 0
 
-    # To'langan summa
+    # Tölangan summa
     total_paid_amount = paid_salaries.aggregate(total=Sum('amount'))['total'] or 0
     
-    # To'lanmagan summa
+    # Tölanmagan summa
     total_unpaid_amount = unpaid_salaries.aggregate(total=Sum('amount'))['total'] or 0
     
-    # Admin tomonidan yuklangan cheklar
+    # Admin tomonidan yuklangan çeklar
     admin_receipts = TeacherSalary.objects.filter(
         teacher=user,
         receipt__isnull=False
@@ -2101,8 +2102,8 @@ def teacher_earnings(request):
         'current_year': now.year,
         'prev_year': prev_month_start.year,
         'change_pct': change_pct,
-        # Har kasb uchun stavkalar jadvali + "Har biri X so'm" uchun bir xil stavka
-        # (agar barcha kasblarda bir xil bo'lsa; aks holda None -> shablon berkitadi).
+        # Har kasb uçun stavkalar jadvali + "Har biri X söm" uçun bir xil stavka
+        # (agar barça kasblarda bir xil bölsa; aks holda None -> şablon berkitadi).
         'profession_rates': profession_rate_rows(professions),
         'video_rate_display': uniform_rate(professions, 'video'),
         'test_rate_display': uniform_rate(professions, 'test'),
@@ -2119,7 +2120,7 @@ def teacher_earnings(request):
 
 @teacher_required
 def teacher_final_test_payments(request):
-    """O'qituvchi paneli: Yakuniy test to'lovlari"""
+    """Öqituvçi paneli: Yakuniy test tölovlari"""
     professions = request.user.teaching_professions.all()
     
     status_filter = request.GET.get('status', 'pending')
@@ -2144,7 +2145,7 @@ def teacher_final_test_payments(request):
 
 @teacher_required
 def teacher_approve_final_payment(request, pk):
-    """Yakuniy test to'lovini tasdiqlash"""
+    """Yakuniy test tölovini tasdiqlaş"""
     professions = request.user.teaching_professions.all()
     payment = get_object_or_404(
         FinalTestPayment, pk=pk, test__lesson__profession__in=professions
@@ -2155,14 +2156,14 @@ def teacher_approve_final_payment(request, pk):
         payment.reviewed_by = request.user
         payment.reviewed_at = timezone.now()
         payment.save()
-        messages.success(request, f"{payment.student.full_name}ning to'lovi tasdiqlandi!")
+        messages.success(request, f"{payment.student.full_name}ning tölovi tasdiqlandi!")
     
     return redirect('teacher:final_test_payments')
 
 
 @teacher_required
 def teacher_reject_final_payment(request, pk):
-    """Yakuniy test to'lovini rad etish"""
+    """Yakuniy test tölovini rad etiş"""
     professions = request.user.teaching_professions.all()
     payment = get_object_or_404(
         FinalTestPayment, pk=pk, test__lesson__profession__in=professions
@@ -2174,14 +2175,14 @@ def teacher_reject_final_payment(request, pk):
         payment.reviewed_at = timezone.now()
         payment.reject_reason = request.POST.get('reason', '')
         payment.save()
-        messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
+        messages.success(request, f"{payment.student.full_name}ning tölovi rad etildi.")
     
     return redirect('teacher:final_test_payments')
 
 
 @teacher_required
 def teacher_ai_checker(request):
-    """O'qituvchi uchun AI Tekshiruvchi boshqaruvi"""
+    """Öqituvçi uçun AI Tekşiruvçi boşqaruvi"""
     if _teacher_ai_blocked(request.user):
         messages.error(request, AI_BLOCKED_MESSAGE)
         return redirect('teacher:dashboard')
@@ -2216,7 +2217,7 @@ def teacher_ai_checker(request):
     ai_on_sp = speaking_tasks.filter(ai_check=True).count()
     ai_off_sp = total_sp - ai_on_sp
     
-    # Kurslar bo'yicha guruhlab
+    # Kurslar böyiça guruhlab
     from collections import OrderedDict
     hw_by_course = OrderedDict()
     for hw in homeworks:
@@ -2251,7 +2252,7 @@ def teacher_ai_checker(request):
 
 @teacher_required
 def teacher_ai_checker_toggle(request):
-    """O'qituvchi uchun AI tekshiruvchini yoqish/o'chirish (AJAX)"""
+    """Öqituvçi uçun AI tekşiruvçini yoqish/öchirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
 
@@ -2287,33 +2288,33 @@ def teacher_ai_checker_toggle(request):
         
         return JsonResponse({
             'success': True,
-            'message': "Barcha vazifalar AI tekshiruvi {} ({} ta)".format("yoqildi" if new_val else "o'chirildi", hw_updated + sp_updated),
+            'message': "Barça vazifalar AI tekşiruvi {} ({} ta)".format("yoqildi" if new_val else "öçirildi", hw_updated + sp_updated),
             'new_state': new_val,
         })
     
     try:
         task_id = int(task_id)
     except (ValueError, TypeError):
-        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+        return JsonResponse({'error': "Notöğri ID"}, status=400)
     
     if task_type == 'homework':
         obj = get_object_or_404(Homework, pk=task_id, lesson__profession__in=professions)
     elif task_type == 'speaking':
         obj = get_object_or_404(SpeakingTask, pk=task_id, lesson__profession__in=professions)
     else:
-        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
+        return JsonResponse({'error': "Notöğri tur"}, status=400)
     
-    # Admin override tekshiruv
+    # Admin override tekşiruv
     if not obj.lesson.profession.ai_check_enabled:
         return JsonResponse({
             'success': False,
-            'error': "Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan. O'zgartirish mumkin emas.",
+            'error': "Admin bu kurs uçun AI tekşiruvçini öçirib qöygan. Özgartiriş mumkin emas.",
         }, status=403)
     
     obj.ai_check = action == 'on'
     obj.save(update_fields=['ai_check'])
     
-    status_text = "Yoqildi" if obj.ai_check else "O'chirildi"
+    status_text = "Yoqildi" if obj.ai_check else "Öçirildi"
     return JsonResponse({
         'success': True,
         'new_state': obj.ai_check,
@@ -2323,7 +2324,7 @@ def teacher_ai_checker_toggle(request):
 
 @teacher_required
 def teacher_file_only_toggle(request):
-    """O'qituvchi uchun AI faqat fayl tekshiruvini yoqish/o'chirish (AJAX)"""
+    """Öqituvçi uçun AI faqat fayl tekşiruvini yoqish/öchirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
 
@@ -2355,14 +2356,14 @@ def teacher_file_only_toggle(request):
         
         return JsonResponse({
             'success': True,
-            'message': "Barcha vazifalar AI faqat fayl tekshiruvi {} ({} ta)".format("yoqildi" if new_val else "o'chirildi", hw_updated + sp_updated),
+            'message': "Barça vazifalar AI faqat fayl tekşiruvi {} ({} ta)".format("yoqildi" if new_val else "öçirildi", hw_updated + sp_updated),
             'new_state': new_val,
         })
     
     try:
         task_id = int(task_id)
     except (ValueError, TypeError):
-        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+        return JsonResponse({'error': "Notöğri ID"}, status=400)
     
     if task_type == 'homework':
         try:
@@ -2371,21 +2372,21 @@ def teacher_file_only_toggle(request):
             return JsonResponse({'error': "Vazifa topilmadi"}, status=404)
     elif task_type == 'speaking':
         # SpeakingTask doesn't have file_only field, return error
-        return JsonResponse({'error': "Speaking vazifalari uchun faqat fayl rejimi mavjud emas"}, status=400)
+        return JsonResponse({'error': "Speaking vazifalari uçun faqat fayl rejimi mavjud emas"}, status=400)
     else:
-        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
+        return JsonResponse({'error': "Notöğri tur"}, status=400)
     
-    # Admin override tekshiruv
+    # Admin override tekşiruv
     if not obj.lesson.profession.ai_check_enabled:
         return JsonResponse({
             'success': False,
-            'error': "Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan. O'zgartirish mumkin emas.",
+            'error': "Admin bu kurs uçun AI tekşiruvçini öçirib qöygan. Özgartiriş mumkin emas.",
         }, status=403)
     
     obj.file_only = action == 'on'
     obj.save(update_fields=['file_only'])
     
-    status_text = "Yoqildi" if obj.file_only else "O'chirildi"
+    status_text = "Yoqildi" if obj.file_only else "Öçirildi"
     return JsonResponse({
         'success': True,
         'new_state': obj.file_only,
@@ -2395,7 +2396,7 @@ def teacher_file_only_toggle(request):
 
 @teacher_required
 def teacher_group_chats(request):
-    """O'qituvchi biriktirilgan guruhlar chati ro'yxati."""
+    """Öqituvçi biriktirilgan guruhlar çati röyxati."""
     from accounts.models import GroupChatMessage
     from django.db.models import Count as _Count
     professions = request.user.teaching_professions.annotate(
@@ -2407,10 +2408,10 @@ def teacher_group_chats(request):
     })
 
 
-# ============ O'QUVCHILARNI BOSHQARISH (coin, kursga qo'shish/chiqarish) ============
+# ============ ÖQUVÇILARNI BOŞQARIŞ (coin, kursga qöshish/chiqarish) ============
 
 def _teacher_student_in_course(request, student_pk, profession_pk):
-    """O'qituvchining kursi va shu kursdagi o'quvchini qaytaradi (yoki 404)."""
+    """Öqituvçining kursi va şu kursdagi öquvçini qaytaradi (yoki 404)."""
     from accounts.models import CustomUser, CourseEnrollment
 
     profession = get_object_or_404(request.user.teaching_professions.all(), pk=profession_pk or 0)
@@ -2437,7 +2438,7 @@ def _back_to_students(request):
 
 @teacher_required
 def teacher_student_coins(request):
-    """O'quvchiga coin berish (o'qituvchi balansidan) yoki ayirish."""
+    """Öquvçiga coin beriş (öqituvçi balansidan) yoki ayiriş."""
     from accounts.course_membership import give_coins, take_coins
 
     if request.method != 'POST':
@@ -2447,12 +2448,12 @@ def teacher_student_coins(request):
         request, request.POST.get('student'), request.POST.get('profession')
     )
     if student is None:
-        messages.error(request, "Bu o'quvchi sizning kursingizda emas.")
+        messages.error(request, "Bu öquvçi sizning kursingizda emas.")
         return _back_to_students(request)
 
     amount = _parse_amount(request.POST.get('amount'))
     if not amount:
-        messages.error(request, "Coin miqdorini to'g'ri kiriting (1 — 100000).")
+        messages.error(request, "Coin miqdorini töğri kiriting (1 — 100000).")
         return _back_to_students(request)
 
     reason = request.POST.get('reason', '').strip()[:300]
@@ -2466,7 +2467,7 @@ def teacher_student_coins(request):
 
 @teacher_required
 def teacher_add_student(request):
-    """O'quvchini ID / telefon / login bo'yicha topib kursga qo'shish."""
+    """Öquvçini ID / telefon / login böyiça topib kursga qöşiş."""
     from accounts.course_membership import find_student, teacher_add_student as add_student
 
     if request.method != 'POST':
@@ -2477,7 +2478,7 @@ def teacher_add_student(request):
     )
     student = find_student(request.POST.get('query'))
     if student is None:
-        messages.error(request, "O'quvchi topilmadi. ID raqami, telefon yoki loginni tekshiring.")
+        messages.error(request, "Öquvçi topilmadi. ID raqami, telefon yoki loginni tekşiring.")
         return _back_to_students(request)
 
     ok, msg = add_student(request.user, student, profession)
@@ -2487,7 +2488,7 @@ def teacher_add_student(request):
 
 @teacher_required
 def teacher_remove_student(request):
-    """O'quvchini o'qituvchining kursidan chiqarish."""
+    """Öquvçini öqituvçining kursidan çiqariş."""
     from accounts.course_membership import teacher_remove_student as remove_student
 
     if request.method != 'POST':
@@ -2497,7 +2498,7 @@ def teacher_remove_student(request):
         request, request.POST.get('student'), request.POST.get('profession')
     )
     if student is None:
-        messages.error(request, "Bu o'quvchi sizning kursingizda emas.")
+        messages.error(request, "Bu öquvçi sizning kursingizda emas.")
         return _back_to_students(request)
 
     ok, msg = remove_student(request.user, student, profession, request.POST.get('reason', '').strip()[:300])
@@ -2505,11 +2506,11 @@ def teacher_remove_student(request):
     return _back_to_students(request)
 
 
-# ============ KURS SO'ROVLARI (yozilish / chiqish) ============
+# ============ KURS SÖROVLARI (yoziliş / çiqiş) ============
 
 @teacher_required
 def teacher_course_requests(request):
-    """O'qituvchi kurslariga kelgan yozilish va chiqish so'rovlari."""
+    """Öqituvçi kurslariga kelgan yoziliş va çiqiş sörovlari."""
     from accounts.models import CourseEnrollmentRequest, CourseUnenrollRequest
 
     professions = request.user.teaching_professions.all()
@@ -2558,26 +2559,26 @@ def teacher_review_request(request, kind, pk, decision):
         ok_msg = f"{req.user.full_name} '{req.profession.name}' kursiga qabul qilindi."
     elif kind == 'enroll':
         done = cm.reject_enrollment(req, request.user, note)
-        ok_msg = f"{req.user.full_name} so'rovi rad etildi."
+        ok_msg = f"{req.user.full_name} sörovi rad etildi."
     elif decision == 'approve':
         coins = cm.approve_unenroll(req, request.user)
         done = coins is not None
-        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursidan chiqarildi." + (
+        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursidan çiqarildi." + (
             f" ({coins} coin ayirildi)" if coins else ""
         )
     else:
         done = cm.reject_unenroll(req, request.user, note)
-        ok_msg = f"{req.user.full_name} chiqish so'rovi rad etildi."
+        ok_msg = f"{req.user.full_name} çiqiş sörovi rad etildi."
 
     cache.delete(f"teacher_badges_{request.user.pk}")
     if done:
         messages.success(request, ok_msg)
     else:
-        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
     return redirect('teacher:course_requests')
 
 
-# ============ ADMIN: O'QITUVCHI AMALLARI JURNALI ============
+# ============ ADMIN: ÖQITUVÇI AMALLARI JURNALI ============
 
 @login_required
 def admin_teacher_actions(request):
@@ -2586,7 +2587,7 @@ def admin_teacher_actions(request):
     from .models import TeacherStudentAction
 
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     qs = TeacherStudentAction.objects.select_related('actor', 'student', 'profession')

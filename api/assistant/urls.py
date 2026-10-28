@@ -14,7 +14,7 @@ urlpatterns = [
     path('action-logs/', views.ActionLogListView.as_view(), name='action_logs'),
     path('users/<int:pk>/assign-role/', views.user_assign_role, name='user_assign_role'),
 
-    # === O'QUV JARAYONI ===
+    # === ÖQUV JARAYONI ===
     # Vazifalar
     path('homeworks/', views.HomeworkListView.as_view(), name='homeworks'),
     path('homework-submissions/', views.HomeworkSubmissionListView.as_view(), name='homework_submissions'),
@@ -27,15 +27,15 @@ urlpatterns = [
     # Davomat
     path('attendance/', views.AttendanceListCreateView.as_view(), name='attendance'),
     path('attendance/<int:pk>/', views.AttendanceDetailView.as_view(), name='attendance_detail'),
-    # Sertifikatlar (avtomatik beriladi — so'rovlar tizimi olib tashlangan)
+    # Sertifikatlar (avtomatik beriladi — sörovlar tizimi olib taşlangan)
     path('certificates/', views.CertificateListView.as_view(), name='certificates'),
 
-    # === FOYDALANUVCHILAR ===
+    # === FOYDALANUVÇILAR ===
     path('users/', views.UserListView.as_view(), name='users'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
     path('users/<int:pk>/set-password/', views.user_set_password, name='user_set_password'),
     path('users/<int:pk>/toggle-block/', views.user_toggle_block, name='user_toggle_block'),
-    # Parol tiklash
+    # Parol tiklaş
     # Ota-onalar
     path('parents/', views.ParentListCreateView.as_view(), name='parents'),
     path('parents/<int:pk>/', views.ParentDetailView.as_view(), name='parent_detail'),
@@ -43,7 +43,7 @@ urlpatterns = [
     path('parent-messages/<int:pk>/reply/', views.parent_message_reply, name='parent_message_reply'),
     path('parent-password-resets/', views.ParentPasswordResetListView.as_view(), name='parent_password_resets'),
     path('parent-password-resets/<int:pk>/review/', views.parent_password_reset_review, name='parent_password_reset_review'),
-    # So'rovlar
+    # Sörovlar
     path('enrollment-requests/', views.EnrollmentRequestListView.as_view(), name='enrollment_requests'),
     path('enrollment-requests/<int:pk>/review/', views.enrollment_request_review, name='enrollment_request_review'),
     path('unenroll-requests/', views.UnenrollRequestListView.as_view(), name='unenroll_requests'),
@@ -74,7 +74,7 @@ urlpatterns = [
     # Arizalar
     path('applications/', views.CourseApplicationListView.as_view(), name='applications'),
     path('applications/<int:pk>/', views.CourseApplicationDetailView.as_view(), name='application_detail'),
-    # So'rovnomalar
+    # Sörovnomalar
     path('surveys/', views.SurveyFormListCreateView.as_view(), name='surveys'),
     path('surveys/<int:pk>/', views.SurveyFormDetailView.as_view(), name='survey_detail'),
     path('survey-questions/', views.SurveyQuestionListCreateView.as_view(), name='survey_questions'),

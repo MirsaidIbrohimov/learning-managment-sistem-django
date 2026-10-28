@@ -159,7 +159,7 @@ class CoinPricingTests(TestCase):
         context = market_context(self.user)
         context['request'] = request
         html = render_to_string('coin/market/_coin_topup.html', context, request=request)
-        self.assertIn('1 tanga = 2 so‘m', html)
+        self.assertIn('1 tanga = 2 söm', html)
         self.assertIn('&lt;Aksiya&gt;', html)
         self.assertEqual(context['coin_packages'][0]['payable'], 16000)
 
@@ -277,6 +277,6 @@ class CoinPricingTests(TestCase):
                                  min_coins=10000, duration='5', is_active='on'), admin=True))
         campaign = CoinPurchaseDiscount.objects.get()
         self.assertAlmostEqual((campaign.valid_until - before).total_seconds(), 5 * 86400, delta=60)
-        self.assertIn('gacha', Message.objects.get().content)
+        self.assertIn('gaça', Message.objects.get().content)
         for bad in (dict(value=10000, min_coins=10000), dict(value=100, min_coins=500)):
             self.assertFalse(CoinDiscountForm(dict(name='Bad', discount_type='package', **bad)).is_valid())

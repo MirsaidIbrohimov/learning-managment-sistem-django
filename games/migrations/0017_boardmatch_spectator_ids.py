@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='boardmatch',
             name='spectator_ids',
-            field=models.JSONField(blank=True, default=list, verbose_name='Tomoshabinlar ID lari'),
+            field=models.JSONField(blank=True, default=list, verbose_name='Tomoşabinlar ID lari'),
         ),
     ]

@@ -54,7 +54,7 @@ def can_take_quiz(student, quiz):
 
 
 def quiz_prerequisites_met(student, quiz):
-    """Yakuniy quiz uchun kursdagi barcha oldingi darslar bajarilganmi."""
+    """Yakuniy quiz uçun kursdagi barça oldingi darslar bajarilganmi."""
     if not quiz.lesson_id or not quiz.lesson.profession_id:
         return True
 

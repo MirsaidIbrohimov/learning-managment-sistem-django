@@ -7,17 +7,17 @@ from django.db.models import Q
 
 def unread_messages(request):
     """
-    Navbar uchun o'qilmagan xabarlar soni.
+    Navbar uçun öqilmagan xabarlar soni.
     """
 
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
         return {"unread_messages_count": 0}
 
-    # Local import: circular import bo'lmasin
+    # Local import: circular import bölmasin
     from .models import Message
 
-    # Shaxsiy xabarlar soni
+    # Şaxsiy xabarlar soni
     personal_count = Message.objects.filter(is_read=False, recipient=user).count()
 
     # Umumiy xabarlar soni
@@ -83,10 +83,10 @@ def admin_badges(request):
 
 def student_payment_reminder(request):
     """
-    O'quvchi saytga kirganda to'lov sanasi yaqinlashgani haqida ogohlantirish.
-    To'lov sanasiga 3 kun yoki undan kam qolgan (yoki muddati o'tgan) bo'lsa,
-    foydalanuvchiga eslatma ko'rsatish uchun ma'lumot beradi.
-    Shartnomadagi o'quvchilarga ko'rsatilmaydi.
+    Öquvçi saytga kirganda tölov sanasi yaqinlaşgani haqida ogohlantiriş.
+    Tölov sanasiga 3 kun yoki undan kam qolgan (yoki muddati ötgan) bölsa,
+    foydalanuvçiga eslatma körsatiş uçun ma'lumot beradi.
+    Şartnomadagi öquvçilarga körsatilmaydi.
     """
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated or getattr(user, "role", "") != "student":
@@ -102,7 +102,7 @@ def student_payment_reminder(request):
     today = date.today()
     days_left = (bal.next_payment_date - today).days
 
-    # 3 kundan ko'p qolgan bo'lsa eslatma shart emas
+    # 3 kundan köp qolgan bölsa eslatma şart emas
     if days_left > 3:
         return {}
 
@@ -124,7 +124,7 @@ def student_payment_reminder(request):
 
 
 def teacher_badges(request):
-    """O'qituvchi paneli: kurslariga kelgan kutilayotgan so'rovlar soni."""
+    """Öqituvçi paneli: kurslariga kelgan kutilayotgan sörovlar soni."""
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated or getattr(user, "role", None) != "teacher":
         return {}

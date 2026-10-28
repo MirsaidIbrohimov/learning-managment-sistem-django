@@ -8,20 +8,20 @@ class TeacherCertificate(models.Model):
         on_delete=models.CASCADE,
         related_name='teacher_certificates',
         limit_choices_to={'role': 'teacher'},
-        verbose_name="O'qituvchi"
+        verbose_name="Öqituvçi"
     )
     title = models.CharField(max_length=300, verbose_name="Sertifikat nomi")
     file = models.FileField(upload_to='teacher_certificates/', verbose_name="Sertifikat fayli")
     description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
-    is_visible = models.BooleanField(default=True, verbose_name="Ko'rinadi")
+    is_visible = models.BooleanField(default=True, verbose_name="Körinadi")
     issued_date = models.DateField(null=True, blank=True, verbose_name="Berilgan sana")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "O'qituvchi sertifikati"
-        verbose_name_plural = "O'qituvchi sertifikatlari"
+        verbose_name = "Öqituvçi sertifikati"
+        verbose_name_plural = "Öqituvçi sertifikatlari"
 
     def __str__(self):
         return f"{self.teacher.full_name} - {self.title}"
@@ -29,12 +29,12 @@ class TeacherCertificate(models.Model):
 
 class TeacherSalary(models.Model):
     SALARY_TYPES = (
-        ('oylik', 'Oylik maosh'),
+        ('oylik', 'Oylik maoş'),
         ('kpi', 'KPI bonus'),
         ('bayram', 'Bayram puli'),
         ('bonus', 'Bonus'),
         ('jarima', 'Jarima'),
-        ('boshqa', 'Boshqa'),
+        ('boshqa', 'Boşqa'),
     )
 
     MONTH_CHOICES = (
@@ -48,16 +48,16 @@ class TeacherSalary(models.Model):
         on_delete=models.CASCADE,
         related_name='salaries',
         limit_choices_to={'role': 'teacher'},
-        verbose_name="O'qituvchi"
+        verbose_name="Öqituvçi"
     )
     salary_type = models.CharField(max_length=20, choices=SALARY_TYPES, default='oylik', verbose_name="Turi")
-    amount = models.DecimalField(max_digits=15, decimal_places=0, verbose_name="Summa (so'm)")
+    amount = models.DecimalField(max_digits=15, decimal_places=0, verbose_name="Summa (söm)")
     month = models.IntegerField(choices=MONTH_CHOICES, verbose_name="Oy")
     year = models.IntegerField(verbose_name="Yil")
     description = models.CharField(max_length=500, blank=True, verbose_name="Izoh")
     receipt = models.FileField(upload_to='salary_receipts/', null=True, blank=True, verbose_name="Chek/Kvitansiya")
-    is_paid = models.BooleanField(default=False, verbose_name="To'langan")
-    paid_date = models.DateField(null=True, blank=True, verbose_name="To'langan sana")
+    is_paid = models.BooleanField(default=False, verbose_name="Tölangan")
+    paid_date = models.DateField(null=True, blank=True, verbose_name="Tölangan sana")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -70,8 +70,8 @@ class TeacherSalary(models.Model):
 
     class Meta:
         ordering = ['-year', '-month', '-created_at']
-        verbose_name = "O'qituvchi oyligi"
-        verbose_name_plural = "O'qituvchi oyliklari"
+        verbose_name = "Öqituvçi oyligi"
+        verbose_name_plural = "Öqituvçi oyliklari"
 
     def __str__(self):
         return f"{self.teacher.full_name} - {self.get_month_display()} {self.year} - {self.get_salary_type_display()}"
@@ -85,7 +85,7 @@ class TeacherAttendance(models.Model):
     STATUS_CHOICES = (
         ('present', 'Kelgan'),
         ('absent', 'Kelmagan'),
-        ('late', 'Kechikkan'),
+        ('late', 'Keçikkan'),
         ('sick', 'Kasal'),
         ('vacation', 'Ta\'til'),
         ('business', 'Xizmat safari'),
@@ -96,56 +96,56 @@ class TeacherAttendance(models.Model):
         on_delete=models.CASCADE,
         related_name='attendances',
         limit_choices_to={'role': 'teacher'},
-        verbose_name="O'qituvchi"
+        verbose_name="Öqituvçi"
     )
     date = models.DateField(verbose_name="Sana")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='present', verbose_name="Holati")
-    check_in_time = models.TimeField(null=True, blank=True, verbose_name="Kirish vaqti")
-    check_out_time = models.TimeField(null=True, blank=True, verbose_name="Chiqish vaqti")
+    check_in_time = models.TimeField(null=True, blank=True, verbose_name="Kiriş vaqti")
+    check_out_time = models.TimeField(null=True, blank=True, verbose_name="Çiqiş vaqti")
     notes = models.TextField(blank=True, null=True, verbose_name="Izoh")
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='created_attendances',
-        verbose_name="Kim tomonidan qo'shilgan"
+        verbose_name="Kim tomonidan qöşilgan"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-date', '-created_at']
-        unique_together = ['teacher', 'date']  # Bir o'qituvchi bir kunda faqat bitta davomat yozuvi
-        verbose_name = "O'qituvchi davomati"
-        verbose_name_plural = "O'qituvchilar davomati"
+        unique_together = ['teacher', 'date']  # Bir öqituvçi bir kunda faqat bitta davomat yozuvi
+        verbose_name = "Öqituvçi davomati"
+        verbose_name_plural = "Öqituvçilar davomati"
 
     def __str__(self):
         return f"{self.teacher.full_name} - {self.date} - {self.get_status_display()}"
 
 
 class TeacherStudentAction(models.Model):
-    """O'qituvchi (yoki admin) tomonidan o'quvchi ustida bajarilgan amallar jurnali.
+    """Öqituvçi (yoki admin) tomonidan öquvçi ustida bajarilgan amallar jurnali.
 
-    Admin panelda kim, kimga, qaysi kursda nima qilgani ko'rinib turishi uchun.
+    Admin panelda kim, kimga, qaysi kursda nima qilgani körinib turişi uçun.
     """
     ACTION_CHOICES = (
         ('coin_give', "Coin berdi"),
         ('coin_take', "Coin ayirdi"),
-        ('enroll', "Kursga qo'shdi"),
-        ('remove', "Kursdan chiqardi"),
-        ('approve_enroll', "Yozilish so'rovini tasdiqladi"),
-        ('reject_enroll', "Yozilish so'rovini rad etdi"),
-        ('approve_unenroll', "Chiqish so'rovini tasdiqladi"),
-        ('reject_unenroll', "Chiqish so'rovini rad etdi"),
+        ('enroll', "Kursga qöşdi"),
+        ('remove', "Kursdan çiqardi"),
+        ('approve_enroll', "Yoziliş sörovini tasdiqladi"),
+        ('reject_enroll', "Yoziliş sörovini rad etdi"),
+        ('approve_unenroll', "Çiqiş sörovini tasdiqladi"),
+        ('reject_unenroll', "Çiqiş sörovini rad etdi"),
     )
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
-        related_name='teacher_student_actions', verbose_name="Bajaruvchi",
+        related_name='teacher_student_actions', verbose_name="Bajaruvçi",
     )
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='received_teacher_actions', verbose_name="O'quvchi",
+        related_name='received_teacher_actions', verbose_name="Öquvçi",
     )
     profession = models.ForeignKey(
         'accounts.Profession', on_delete=models.SET_NULL, null=True, blank=True,
@@ -158,8 +158,8 @@ class TeacherStudentAction(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "O'qituvchi amali"
-        verbose_name_plural = "O'qituvchi amallari"
+        verbose_name = "Öqituvçi amali"
+        verbose_name_plural = "Öqituvçi amallari"
 
     def __str__(self):
         actor = self.actor.full_name if self.actor else '—'

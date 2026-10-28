@@ -1,6 +1,6 @@
 <script>
-/* Loader uchun "Reactive Orb" — kutubxonasiz 2D canvas (Three.js yuklanishini kutmaydi).
-   Sahifadagi barcha <canvas class="orb-ldr"> larga chiziladi; loader yopilganda to'xtaydi. */
+/* Loader uçun "Reactive Orb" — kutubxonasiz 2D canvas (Three.js yuklanişini kutmaydi).
+   Sahifadagi barça <canvas class="orb-ldr"> larga çiziladi; loader yopilganda töxtaydi. */
 (function () {
   var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var VIO = [124, 58, 237], CYA = [34, 211, 238], PNK = [244, 114, 182];
@@ -19,7 +19,7 @@
       frames++;
       var t = reduce ? 1.2 : (now - t0) / 1000;
       var ay = t * 0.55, ax = Math.sin(t * 0.45) * 0.35, cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
-      var hx = Math.cos(t * 1.3), hy = Math.sin(t * 0.9) * 0.6, hz = Math.sin(t * 1.3);   // pushti "nur" yo'nalishi
+      var hx = Math.cos(t * 1.3), hy = Math.sin(t * 0.9) * 0.6, hz = Math.sin(t * 1.3);   // pushti "nur" yönalişi
       var inEase = Math.min(1, t / 0.6), grow = reduce ? 1 : 1 - Math.pow(1 - inEase, 3);
       for (var i = 0; i < N; i++) {
         var p = P[i], x = p[0] * cy + p[2] * sy, z = -p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx, zz = p[1] * sx + z * cx;
@@ -33,7 +33,7 @@
       for (var j = 0; j < N; j++) {
         var q = buf[j], col = 'rgba(' + (q.c[0] | 0) + ',' + (q.c[1] | 0) + ',' + (q.c[2] | 0) + ',';
         ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, 6.2832); ctx.fillStyle = col + q.al + ')'; ctx.fill();
-        if (q.d > 0.55 && q.r > 1.6) {   // sharsimon ko'rinish uchun yaltiroq nuqta
+        if (q.d > 0.55 && q.r > 1.6) {   // şarsimon köriniş uçun yaltiroq nuqta
           ctx.beginPath(); ctx.arc(q.x - q.r * 0.35, q.y - q.r * 0.35, q.r * 0.38, 0, 6.2832);
           ctx.fillStyle = 'rgba(255,255,255,' + (q.d - 0.5) * 0.9 + ')'; ctx.fill();
         }

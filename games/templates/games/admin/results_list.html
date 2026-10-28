@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load l10n %}
 
-{% block title %}O'yin natijalari | Admin{% endblock %}
+{% block title %}Öyin natijalari | Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -245,9 +245,9 @@
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
-        <h2 class="fw-bold mb-0"><i class="bi bi-bar-chart-line text-primary"></i> O'yin natijalari</h2>
+        <h2 class="fw-bold mb-0"><i class="bi bi-bar-chart-line text-primary"></i> Öyin natijalari</h2>
         <a href="{% url 'games:admin_results_pdf' %}?game={{ game_filter|default:'' }}&competition={{ competition_filter|default:'' }}&user={{ user_filter|default:'' }}" class="btn btn-pdf">
-            <i class="bi bi-file-earmark-pdf"></i> PDF yuklab olish
+            <i class="bi bi-file-earmark-pdf"></i> PDF yuklab oliş
         </a>
     </div>
 
@@ -256,9 +256,9 @@
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-3 col-6">
-                    <label class="form-label fw-bold small">O'yin</label>
+                    <label class="form-label fw-bold small">Öyin</label>
                     <select name="game" class="form-select form-select-sm">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for g in games %}
                         <option value="{{ g.pk }}" {% if game_filter == g.pk|stringformat:"d" %}selected{% endif %}>{{ g.title }}</option>
                         {% endfor %}
@@ -267,16 +267,16 @@
                 <div class="col-md-3 col-6">
                     <label class="form-label fw-bold small">Musobaqa</label>
                     <select name="competition" class="form-select form-select-sm">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for c in competitions %}
                         <option value="{{ c.pk }}" {% if competition_filter == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.title }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-3 col-6">
-                    <label class="form-label fw-bold small">Foydalanuvchi</label>
+                    <label class="form-label fw-bold small">Foydalanuvçi</label>
                     <select name="user" class="form-select form-select-sm">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for u in users %}
                         <option value="{{ u.pk }}" {% if user_filter == u.pk|stringformat:"d" %}selected{% endif %}>{{ u.full_name }}</option>
                         {% endfor %}
@@ -284,7 +284,7 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <button type="submit" class="btn btn-sm btn-filter w-100">
-                        <i class="bi bi-filter"></i> Filtrlash
+                        <i class="bi bi-filter"></i> Filtrlaş
                     </button>
                 </div>
             </form>
@@ -299,11 +299,11 @@
                     <thead>
                         <tr>
                             <th>#</th>
-                            <th>Foydalanuvchi</th>
-                            <th>O'yin</th>
+                            <th>Foydalanuvçi</th>
+                            <th>Öyin</th>
                             <th>Turi</th>
                             <th>Rejim</th>
-                            <th>WPM / So'zlar</th>
+                            <th>WPM / Sözlar</th>
                             <th>Aniqlik</th>
                             <th>Ball</th>
                             <th>Vaqt</th>
@@ -319,7 +319,7 @@
                             <td>{{ attempt.game.title }}</td>
                             <td>
                                 {% if attempt.result_type == 'word_builder' %}
-                                <span class="badge bg-info" style="border-radius: 8px;">So'z yig'ish</span>
+                                <span class="badge bg-info" style="border-radius: 8px;">Söz yiğiş</span>
                                 {% else %}
                                 <span class="badge bg-primary" style="border-radius: 8px;">Typing</span>
                                 {% endif %}
@@ -333,7 +333,7 @@
                             </td>
                             <td>
                                 {% if attempt.result_type == 'word_builder' %}
-                                {{ attempt.found_count }} so'z
+                                {{ attempt.found_count }} söz
                                 {% else %}
                                 {{ attempt.wpm }}
                                 {% endif %}
@@ -352,7 +352,7 @@
                                     <input type="number" name="score" min="0" step="0.01" class="form-control form-control-sm"
                                            value="{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score|unlocalize }}{% else %}{{ attempt.score|unlocalize }}{% endif %}"
                                            aria-label="Ball" required>
-                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlash">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlaş">
                                         <i class="bi bi-check-lg"></i>
                                     </button>
                                 </form>
@@ -360,7 +360,7 @@
                             <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                             <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
                             <td>
-                                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" onsubmit="return confirm('Öçirişni tasdiqlaysizmi?')">
                                     {% csrf_token %}
                                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 2px 8px;">
@@ -398,7 +398,7 @@
             <div class="small text-muted mb-1">
                 <i class="bi bi-controller"></i> {{ attempt.game.title }}
                 {% if attempt.result_type == 'word_builder' %}
-                <span class="badge bg-info" style="border-radius: 6px; font-size: 0.65rem;">So'z yig'ish</span>
+                <span class="badge bg-info" style="border-radius: 6px; font-size: 0.65rem;">Söz yiğiş</span>
                 {% else %}
                 <span class="badge bg-primary" style="border-radius: 6px; font-size: 0.65rem;">Typing</span>
                 {% endif %}
@@ -407,7 +407,7 @@
                 <div class="stat-item">
                     {% if attempt.result_type == 'word_builder' %}
                     <div class="val">{{ attempt.found_count }}</div>
-                    <div class="lbl">So'zlar</div>
+                    <div class="lbl">Sözlar</div>
                     {% else %}
                     <div class="val">{{ attempt.wpm }}</div>
                     <div class="lbl">WPM</div>
@@ -429,7 +429,7 @@
                         <input type="number" name="score" min="0" step="0.01" class="form-control form-control-sm"
                                value="{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score|unlocalize }}{% else %}{{ attempt.score|unlocalize }}{% endif %}"
                                aria-label="Ball" required>
-                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlash">
+                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlaş">
                             <i class="bi bi-check-lg"></i>
                         </button>
                     </form>
@@ -439,7 +439,7 @@
             <div class="card-footer-m">
                 <span><i class="bi bi-clock"></i> {{ attempt.time_spent|floatformat:1 }}s</span>
                 <span>{{ attempt.created_at|date:"d.m.Y H:i" }}</span>
-                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" style="display:inline;" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" style="display:inline;" onsubmit="return confirm('Öçirişni tasdiqlaysizmi?')">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 1px 6px; font-size: 0.75rem;">

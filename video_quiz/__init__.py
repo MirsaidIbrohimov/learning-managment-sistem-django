@@ -1,1 +1,1 @@
-# Interactive Video Mid-Quiz System — video ichida testlar moduli
+# Interactive Video Mid-Quiz System — video içida testlar moduli

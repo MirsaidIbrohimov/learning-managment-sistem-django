@@ -7,8 +7,8 @@ from django.db.models import F
 def seed_last_position(apps, schema_editor):
     """Mavjud yozuvlarda `last_position` ni `max_position` ga tenglaydi.
 
-    Aks holda dars o'rtasida turgan o'quvchining keyingi beat'i 0'dan katta
-    sakrash deb qabul qilinib, videosi boshiga tashlanardi.
+    Aks holda dars örtasida turgan öquvçining keyingi beat'i 0'dan katta
+    sakraş deb qabul qilinib, videosi boşiga taşlanardi.
     """
     apps.get_model('accounts', 'VideoProgress').objects.update(
         last_position=F('max_position')
@@ -35,12 +35,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videoprogress',
             name='next_check_seconds',
-            field=models.FloatField(default=0, verbose_name='Keyingi tekshiruv (tasdiqlangan soniyada)'),
+            field=models.FloatField(default=0, verbose_name='Keyingi tekşiruv (tasdiqlangan soniyada)'),
         ),
         migrations.AddField(
             model_name='videoprogress',
             name='presence_failures',
-            field=models.IntegerField(default=0, verbose_name="O'tkazib yuborilgan tekshiruvlar"),
+            field=models.IntegerField(default=0, verbose_name="Ötkazib yuborilgan tekşiruvlar"),
         ),
         migrations.AddField(
             model_name='videoprogress',
@@ -60,7 +60,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videoprogress',
             name='suspicion_score',
-            field=models.IntegerField(db_index=True, default=0, verbose_name='Shubha bali'),
+            field=models.IntegerField(db_index=True, default=0, verbose_name='Şubha bali'),
         ),
         migrations.RunPython(seed_last_position, migrations.RunPython.noop),
     ]

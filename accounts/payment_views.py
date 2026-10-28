@@ -1,10 +1,10 @@
 """
 Payme Merchant API + Click SHOP API integration.
 
-To'lov oqimi:
-  - Foydalanuvchi Payme yoki Click ilovasida merchant ID + 5 xonali student_id kiritadi
-  - Tizim studentni tekshiradi va to'lovni qayd etadi
-  - To'lov muvaffaqiyatli bo'lgach PaymentRecord'ga yoziladi
+Tölov oqimi:
+  - Foydalanuvçi Payme yoki Click ilovasida merchant ID + 5 xonali student_id kiritadi
+  - Tizim studentni tekşiradi va tölovni qayd etadi
+  - Tölov muvaffaqiyatli bölgaç PaymentRecord'ga yoziladi
 
 Kerakli sozlamalar (settings.py yoki .env):
   PAYME_KEY          = "..."   # Payme kassa secret key
@@ -57,49 +57,49 @@ def _get_student(student_id_str):
 
 def _record_payment(student, amount_som, source, transaction_id):
     """
-    Onlayn to'lovni (Payme/Click) o'quvchining balansiga qo'shadi va oylik
-    to'lovni balansdan yechib akkauntni ochishga uradi.
-    amount_som - to'lov miqdori (so'm).
+    Onlayn tölovni (Payme/Click) öquvçining balansiga qöşadi va oylik
+    tölovni balansdan yeçib akkauntni oçişga uradi.
+    amount_som - tölov miqdori (söm).
     """
     from django.db import transaction
     from .models import StudentBalance, BalanceTopUp
 
-    # Aylanma import - circular importdan saqlanish uchun funksiya ichida
+    # Aylanma import - circular importdan saqlaniş uçun funksiya içida
     try:
         from .views import _auto_deduct_and_unblock
     except Exception:
         _auto_deduct_and_unblock = None
 
     with transaction.atomic():
-        # 1. To'lovni o'quvchining BALANSIGA qo'shamiz
+        # 1. Tölovni öquvçining BALANSIGA qöşamiz
         balance, _ = StudentBalance.objects.select_for_update().get_or_create(user=student)
         balance.amount += amount_som
         balance.save(update_fields=['amount', 'updated_at'])
 
-        # 2. To'ldirish tarixiga yozamiz (onlayn - added_by yo'q)
+        # 2. Töldiriş tarixiga yozamiz (onlayn - added_by yöq)
         BalanceTopUp.objects.create(
             student=student,
             amount=amount_som,
             added_by=None,
-            note=f"Onlayn to'lov ({source}) | tx:{transaction_id}"[:500],
+            note=f"Onlayn tölov ({source}) | tx:{transaction_id}"[:500],
         )
         from .premium_bonus import award_topup_bonus
         award_topup_bonus(student, amount_som, source=source,
                           reference=f'{source.lower()}:{transaction_id}')
 
-        # 3. Oylik to'lovni balansdan yechib, akkauntni ochishga urinamiz.
-        #    Balans yetsa fee yechiladi va unblock bo'ladi; yetmasa pul balansda
-        #    to'planib qoladi, akkaunt bloklangan holatda turaveradi.
+        # 3. Oylik tölovni balansdan yeçib, akkauntni oçişga urinamiz.
+        #    Balans yetsa fee yeçiladi va unblock böladi; yetmasa pul balansda
+        #    töplanib qoladi, akkaunt bloklangan holatda turaveradi.
         balance.refresh_from_db()
         if _auto_deduct_and_unblock is not None:
             if student.is_blocked:
                 _auto_deduct_and_unblock(student)
             elif not balance.is_contract and not balance.next_payment_date:
-                # Birinchi marta to'lov - oylik to'lovni yechib, sanani belgilaymiz
+                # Birinçi marta tölov - oylik tölovni yeçib, sanani belgilaymiz
                 _auto_deduct_and_unblock(student)
 
-    # 4. O'quvchiga Telegram orqali hisob to'ldirilgani haqida xabar yuboramiz.
-    #    Transaksiyadan keyin, eng so'nggi balans bilan (oylik yechilgan bo'lishi mumkin).
+    # 4. Öquvçiga Telegram orqali hisob töldirilgani haqida xabar yuboramiz.
+    #    Transaksiyadan keyin, eng sönggi balans bilan (oylik yeçilgan bölişi mumkin).
     try:
         from telegram_bot.utils import notify_balance_topup
         balance.refresh_from_db()
@@ -130,16 +130,16 @@ PAYME_ERR_ALREADY_DONE      = -31060
 
 def _payme_check_auth(request):
     """
-    Payme so'rovini Basic auth orqali tekshiradi.
+    Payme sörovini Basic auth orqali tekşiradi.
 
-    XAVFSIZLIK: kalit sozlanmagan bo'lsa HAR QANDAY so'rov rad etiladi.
-    Ilgari bo'sh kalit bo'sh parol bilan mos kelib, istalgan odam
-    PerformTransaction chaqirib balansni tekinga to'ldira olardi.
+    XAVFSIZLIK: kalit sozlanmagan bölsa HAR QANDAY sörov rad etiladi.
+    Ilgari böş kalit böş parol bilan mos kelib, istalgan odam
+    PerformTransaction çaqirib balansni tekinga töldira olardi.
     """
     expected_key = (getattr(settings, 'PAYME_KEY', '') or '').strip()
     if not expected_key:
         security_logger.warning(
-            "Payme so'rovi rad etildi: PAYME_KEY sozlanmagan (.env)"
+            "Payme sörovi rad etildi: PAYME_KEY sozlanmagan (.env)"
         )
         return False
 
@@ -154,7 +154,7 @@ def _payme_check_auth(request):
 
     if not key:
         return False
-    # Doimiy vaqtli solishtirish — timing hujumidan himoya
+    # Doimiy vaqtli soliştiriş — timing hujumidan himoya
     return hmac.compare_digest(key, expected_key)
 
 
@@ -179,18 +179,18 @@ def _check_perform(params, rpc_id):
 
     student = _get_student(student_id_str)
     if not student:
-        return _payme_error(PAYME_ERR_USER_NOT_FOUND, "O'quvchi topilmadi", rpc_id)
+        return _payme_error(PAYME_ERR_USER_NOT_FOUND, "Öquvçi topilmadi", rpc_id)
 
-    # Min 10 000 so'm (1 000 000 tiyin), max 10 000 000 so'm
+    # Min 10 000 söm (1 000 000 tiyin), max 10 000 000 söm
     if amount < 1_000_000 or amount > 1_000_000_000:
-        return _payme_error(PAYME_ERR_INVALID_AMOUNT, "Noto'g'ri summa", rpc_id)
+        return _payme_error(PAYME_ERR_INVALID_AMOUNT, "Notöğri summa", rpc_id)
 
     return _payme_result({
         'allow': True,
         'detail': {
             'receipt_type': 0,
             'items': [{
-                'title': "O'quv to'lovi",
+                'title': "Öquv tölovi",
                 'price': amount,
                 'count': 1,
                 'code': '10305001001000000',
@@ -211,10 +211,10 @@ def _create_transaction(params, rpc_id):
 
     student = _get_student(student_id_str)
     if not student:
-        return _payme_error(PAYME_ERR_USER_NOT_FOUND, "O'quvchi topilmadi", rpc_id)
+        return _payme_error(PAYME_ERR_USER_NOT_FOUND, "Öquvçi topilmadi", rpc_id)
 
     if amount < 1_000_000 or amount > 1_000_000_000:
-        return _payme_error(PAYME_ERR_INVALID_AMOUNT, "Noto'g'ri summa", rpc_id)
+        return _payme_error(PAYME_ERR_INVALID_AMOUNT, "Notöğri summa", rpc_id)
 
     # Check if transaction already exists
     tx = PaymeTransaction.objects.filter(payme_id=payme_id).first()
@@ -257,7 +257,7 @@ def _perform_transaction(params, rpc_id):
         }, rpc_id)
 
     if tx.state != PaymeTransaction.STATE_CREATED:
-        return _payme_error(PAYME_ERR_CANNOT_PERFORM, "Tranzaksiyani bajarish mumkin emas", rpc_id)
+        return _payme_error(PAYME_ERR_CANNOT_PERFORM, "Tranzaksiyani bajariş mumkin emas", rpc_id)
 
     now_ms = _now_ms()
     tx.state = PaymeTransaction.STATE_COMPLETED
@@ -266,7 +266,7 @@ def _perform_transaction(params, rpc_id):
 
     # Record the payment
     if tx.student:
-        amount_som = int(tx.amount) // 100  # tiyin → so'm
+        amount_som = int(tx.amount) // 100  # tiyin → söm
         _record_payment(tx.student, amount_som, 'Payme', tx.payme_id)
 
     return _payme_result({
@@ -397,17 +397,17 @@ def _click_sign(click_trans_id, service_id, merchant_trans_id, amount, action, s
 
 def _click_verify(data, default_action):
     """
-    Click so'rovining imzosini tekshiradi.
+    Click sörovining imzosini tekşiradi.
 
-    XAVFSIZLIK: CLICK_SECRET_KEY sozlanmagan bo'lsa so'rov rad etiladi —
-    aks holda imzo bo'sh kalit bilan hisoblanadi va uni istalgan odam
-    o'zi yasab, tekinga balans to'ldira oladi.
+    XAVFSIZLIK: CLICK_SECRET_KEY sozlanmagan bölsa sörov rad etiladi —
+    aks holda imzo böş kalit bilan hisoblanadi va uni istalgan odam
+    özi yasab, tekinga balans töldira oladi.
 
     Returns (ok: bool, error_response: dict | None).
     """
     secret = (getattr(settings, 'CLICK_SECRET_KEY', '') or '').strip()
     if not secret:
-        security_logger.warning("Click so'rovi rad etildi: CLICK_SECRET_KEY sozlanmagan (.env)")
+        security_logger.warning("Click sörovi rad etildi: CLICK_SECRET_KEY sozlanmagan (.env)")
         return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
 
     expected = _click_sign(
@@ -425,10 +425,10 @@ def _click_verify(data, default_action):
         )
         return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
 
-    # service_id ham bizning kassamizga tegishli bo'lishi shart
+    # service_id ham bizning kassamizga tegişli bölişi şart
     expected_service = (getattr(settings, 'CLICK_SERVICE_ID', '') or '').strip()
     if expected_service and str(data.get('service_id', '')).strip() != expected_service:
-        security_logger.warning("Click: noto'g'ri service_id=%s", str(data.get('service_id', ''))[:40])
+        security_logger.warning("Click: notöğri service_id=%s", str(data.get('service_id', ''))[:40])
         return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
 
     return True, None
@@ -456,11 +456,11 @@ def click_prepare(request):
     try:
         click_trans_id_int = int(click_trans_id)
     except (TypeError, ValueError):
-        return JsonResponse({'error': -8, 'error_note': "Noto'g'ri so'rov"})
+        return JsonResponse({'error': -8, 'error_note': "Notöğri sörov"})
 
     student = _get_student(merchant_trans_id)
     if not student:
-        resp = {'error': -5, 'error_note': "O'quvchi topilmadi"}
+        resp = {'error': -5, 'error_note': "Öquvçi topilmadi"}
         return JsonResponse(resp)
 
     # Save prepare record
@@ -507,7 +507,7 @@ def click_complete(request):
     try:
         click_trans_id_int = int(click_trans_id)
     except (TypeError, ValueError):
-        return JsonResponse({'error': -8, 'error_note': "Noto'g'ri so'rov"})
+        return JsonResponse({'error': -8, 'error_note': "Notöğri sörov"})
 
     try:
         tx = ClickTransaction.objects.get(click_trans_id=click_trans_id_int)
@@ -536,11 +536,11 @@ def click_complete(request):
             'error_note': 'Cancelled',
         })
 
-    # Summa prepare bosqichida qayd etilgani bilan bir xil bo'lishi shart
+    # Summa prepare bosqiçida qayd etilgani bilan bir xil bölişi şart
     try:
         amount_som = int(float(amount))
     except (TypeError, ValueError):
-        return JsonResponse({'error': -2, 'error_note': "Noto'g'ri summa"})
+        return JsonResponse({'error': -2, 'error_note': "Notöğri summa"})
 
     try:
         prepared_som = int(float(tx.amount))
@@ -552,7 +552,7 @@ def click_complete(request):
             "Click: summa mos kelmadi (trans_id=%s prepare=%s complete=%s)",
             click_trans_id_int, prepared_som, amount_som,
         )
-        return JsonResponse({'error': -2, 'error_note': "Noto'g'ri summa"})
+        return JsonResponse({'error': -2, 'error_note': "Notöğri summa"})
 
     # Confirm
     if click_paydoc_id:
@@ -569,10 +569,10 @@ def click_complete(request):
         try:
             _record_payment(tx.student, amount_som, 'Click', str(click_trans_id_int))
         except Exception:
-            # Click'ga xato qaytarsak pul ikki marta yechilishi mumkin, shuning
-            # uchun success qaytaramiz — lekin balans to'lmagani jurnalga tushadi.
+            # Click'ga xato qaytarsak pul ikki marta yeçilişi mumkin, şuning
+            # uçun success qaytaramiz — lekin balans tölmagani jurnalga tuşadi.
             security_logger.exception(
-                "Click to'lovi qabul qilindi, lekin balansga yozilmadi (trans_id=%s, summa=%s)",
+                "Click tölovi qabul qilindi, lekin balansga yozilmadi (trans_id=%s, summa=%s)",
                 click_trans_id_int, amount_som,
             )
 

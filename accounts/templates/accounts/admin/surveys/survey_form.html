@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}{% if mode == 'edit' %}Tahrirlash{% else %}Yangi so'rovnoma{% endif %} - Admin{% endblock %}
-{% block topbar_title %}So'rovnomalar{% endblock %}
+{% block title %}{% if mode == 'edit' %}Tahrirlaş{% else %}Yangi sörovnoma{% endif %} - Admin{% endblock %}
+{% block topbar_title %}Sörovnomalar{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/survey.css' %}">
@@ -16,8 +16,8 @@
         <div class="sv-head-main">
             <a href="{% url 'admin_surveys' %}" class="sv-back" title="Orqaga"><i class="bi bi-arrow-left"></i></a>
             <div>
-                <div class="sv-eyebrow">{% if mode == 'edit' %}Tahrirlash{% else %}Yaratish{% endif %}</div>
-                <h1 class="sv-title">{% if mode == 'edit' %}{{ survey.title }}{% else %}Yangi so'rovnoma{% endif %}</h1>
+                <div class="sv-eyebrow">{% if mode == 'edit' %}Tahrirlaş{% else %}Yaratiş{% endif %}</div>
+                <h1 class="sv-title">{% if mode == 'edit' %}{{ survey.title }}{% else %}Yangi sörovnoma{% endif %}</h1>
             </div>
         </div>
     </div>
@@ -34,23 +34,23 @@
                 <label class="sv-label" for="svTitle">Forma nomi <span class="sv-req">*</span></label>
                 <input type="text" id="svTitle" name="title" class="sv-input sv-input-lg" required
                        value="{% if survey %}{{ survey.title }}{% endif %}"
-                       placeholder="Masalan: O'quv sifati bo'yicha so'rovnoma">
+                       placeholder="Masalan: Öquv sifati böyiça sörovnoma">
             </div>
 
             <div class="sv-field">
                 <label class="sv-label" for="svDesc">Tavsif</label>
                 <textarea id="svDesc" name="description" class="sv-textarea"
-                          placeholder="So'rovnoma maqsadi haqida qisqacha yozing — foydalanuvchi shu matnni birinchi ko'radi.">{% if survey %}{{ survey.description|default_if_none:'' }}{% endif %}</textarea>
+                          placeholder="Sörovnoma maqsadi haqida qisqaça yozing — foydalanuvçi şu matnni birinçi köradi.">{% if survey %}{{ survey.description|default_if_none:'' }}{% endif %}</textarea>
             </div>
         </div>
 
         <div class="sv-panel">
             <div class="sv-panel-head">
-                <h2 class="sv-panel-title"><i class="bi bi-sliders2"></i> Ko'rsatish sozlamalari</h2>
+                <h2 class="sv-panel-title"><i class="bi bi-sliders2"></i> Körsatiş sozlamalari</h2>
             </div>
 
             <div class="sv-field">
-                <label class="sv-label">Kimga ko'rsatilsin</label>
+                <label class="sv-label">Kimga körsatilsin</label>
                 <div class="sv-seg" id="svSeg">
                     <label class="sv-seg-item">
                         <input type="radio" name="target_role" value="all"
@@ -60,12 +60,12 @@
                     <label class="sv-seg-item">
                         <input type="radio" name="target_role" value="student"
                                {% if survey and survey.target_role == 'student' %}checked{% endif %}>
-                        <i class="bi bi-mortarboard"></i> O'quvchilarga
+                        <i class="bi bi-mortarboard"></i> Öquvçilarga
                     </label>
                     <label class="sv-seg-item">
                         <input type="radio" name="target_role" value="teacher"
                                {% if survey and survey.target_role == 'teacher' %}checked{% endif %}>
-                        <i class="bi bi-person-video3"></i> O'qituvchilarga
+                        <i class="bi bi-person-video3"></i> Öqituvçilarga
                     </label>
                 </div>
             </div>
@@ -76,15 +76,15 @@
                     <span class="sv-switch-track"></span>
                     <span class="sv-switch-text">
                         <span class="sv-switch-name">Faol</span>
-                        <span class="sv-switch-desc">O'chirilsa, forma hech kimga ko'rinmaydi va javob qabul qilinmaydi.</span>
+                        <span class="sv-switch-desc">Öçirilsa, forma heç kimga körinmaydi va javob qabul qilinmaydi.</span>
                     </span>
                 </label>
                 <label class="sv-switch">
                     <input type="checkbox" name="show_on_login" {% if mode == 'create' or survey.show_on_login %}checked{% endif %}>
                     <span class="sv-switch-track"></span>
                     <span class="sv-switch-text">
-                        <span class="sv-switch-name">Login qilganda ko'rsatish</span>
-                        <span class="sv-switch-desc">Foydalanuvchi tizimga kirgach forma avtomatik ochiladi.</span>
+                        <span class="sv-switch-name">Login qilganda körsatiş</span>
+                        <span class="sv-switch-desc">Foydalanuvçi tizimga kirgaç forma avtomatik oçiladi.</span>
                     </span>
                 </label>
                 <label class="sv-switch">
@@ -92,7 +92,7 @@
                     <span class="sv-switch-track"></span>
                     <span class="sv-switch-text">
                         <span class="sv-switch-name">Majburiy</span>
-                        <span class="sv-switch-desc">"Keyinroq to'ldiraman" havolasi yashiriladi.</span>
+                        <span class="sv-switch-desc">"Keyinroq töldiraman" havolasi yaşiriladi.</span>
                     </span>
                 </label>
             </div>
@@ -113,7 +113,7 @@
                         <div class="sv-q-tools">
                             <button type="button" class="sv-q-tool" data-action="up" title="Yuqoriga"><i class="bi bi-chevron-up"></i></button>
                             <button type="button" class="sv-q-tool" data-action="down" title="Pastga"><i class="bi bi-chevron-down"></i></button>
-                            <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="O'chirish"><i class="bi bi-x-lg"></i></button>
+                            <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="Öçiriş"><i class="bi bi-x-lg"></i></button>
                         </div>
                     </div>
 
@@ -128,12 +128,12 @@
                             <select name="question_type" class="sv-select" data-role="type">
                                 <option value="text" {% if q.question_type == 'text' %}selected{% endif %}>Matn (qisqa)</option>
                                 <option value="textarea" {% if q.question_type == 'textarea' %}selected{% endif %}>Matn (uzun)</option>
-                                <option value="radio" {% if q.question_type == 'radio' %}selected{% endif %}>Bitta tanlash</option>
-                                <option value="checkbox" {% if q.question_type == 'checkbox' %}selected{% endif %}>Ko'p tanlash</option>
-                                <option value="select" {% if q.question_type == 'select' %}selected{% endif %}>Ro'yxatdan tanlash</option>
+                                <option value="radio" {% if q.question_type == 'radio' %}selected{% endif %}>Bitta tanlaş</option>
+                                <option value="checkbox" {% if q.question_type == 'checkbox' %}selected{% endif %}>Köp tanlaş</option>
+                                <option value="select" {% if q.question_type == 'select' %}selected{% endif %}>Röyxatdan tanlaş</option>
                                 <option value="number" {% if q.question_type == 'number' %}selected{% endif %}>Raqam</option>
                                 <option value="date" {% if q.question_type == 'date' %}selected{% endif %}>Sana</option>
-                                <option value="rating" {% if q.question_type == 'rating' %}selected{% endif %}>Baholash (1-5)</option>
+                                <option value="rating" {% if q.question_type == 'rating' %}selected{% endif %}>Baholaş (1-5)</option>
                             </select>
                         </div>
                         <label class="sv-switch sv-switch-sm">
@@ -155,23 +155,23 @@
 
             <div class="sv-empty" id="svQEmpty" style="display:none; padding:2.25rem 1.25rem; box-shadow:none; background:transparent; border-style:dashed;">
                 <div class="sv-empty-icon"><i class="bi bi-patch-question"></i></div>
-                <h5>Savollar hali qo'shilmagan</h5>
-                <p>Pastdagi tugma orqali birinchi savolni qo'shing.</p>
+                <h5>Savollar hali qöşilmagan</h5>
+                <p>Pastdagi tugma orqali birinçi savolni qöşing.</p>
             </div>
 
             <button type="button" class="sv-add" id="svAdd">
-                <i class="bi bi-plus-circle"></i> Savol qo'shish
+                <i class="bi bi-plus-circle"></i> Savol qöşiş
             </button>
         </div>
 
         <div class="sv-actions-bar">
             <button type="submit" class="sv-btn sv-btn-primary sv-btn-lg">
-                <i class="bi bi-check2"></i> {% if mode == 'edit' %}Saqlash{% else %}Yaratish{% endif %}
+                <i class="bi bi-check2"></i> {% if mode == 'edit' %}Saqlaş{% else %}Yaratiş{% endif %}
             </button>
-            <a href="{% url 'admin_surveys' %}" class="sv-btn sv-btn-ghost sv-btn-lg">Bekor qilish</a>
+            <a href="{% url 'admin_surveys' %}" class="sv-btn sv-btn-ghost sv-btn-lg">Bekor qiliş</a>
             <span class="sv-spacer"></span>
             <span class="sv-panel-hint d-none d-md-inline">
-                <i class="bi bi-info-circle"></i> Savollar tartibi shu sahifadagi ketma-ketlik bo'yicha saqlanadi.
+                <i class="bi bi-info-circle"></i> Savollar tartibi şu sahifadagi ketma-ketlik böyiça saqlanadi.
             </span>
         </div>
     </form>
@@ -185,7 +185,7 @@
             <div class="sv-q-tools">
                 <button type="button" class="sv-q-tool" data-action="up" title="Yuqoriga"><i class="bi bi-chevron-up"></i></button>
                 <button type="button" class="sv-q-tool" data-action="down" title="Pastga"><i class="bi bi-chevron-down"></i></button>
-                <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="O'chirish"><i class="bi bi-x-lg"></i></button>
+                <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="Öçiriş"><i class="bi bi-x-lg"></i></button>
             </div>
         </div>
 
@@ -199,12 +199,12 @@
                 <select name="question_type" class="sv-select" data-role="type">
                     <option value="text">Matn (qisqa)</option>
                     <option value="textarea">Matn (uzun)</option>
-                    <option value="radio">Bitta tanlash</option>
-                    <option value="checkbox">Ko'p tanlash</option>
-                    <option value="select">Ro'yxatdan tanlash</option>
+                    <option value="radio">Bitta tanlaş</option>
+                    <option value="checkbox">Köp tanlaş</option>
+                    <option value="select">Röyxatdan tanlaş</option>
                     <option value="number">Raqam</option>
                     <option value="date">Sana</option>
-                    <option value="rating">Baholash (1-5)</option>
+                    <option value="rating">Baholaş (1-5)</option>
                 </select>
             </div>
             <label class="sv-switch sv-switch-sm">
@@ -234,7 +234,7 @@
     const CHOICE_TYPES = ['radio', 'checkbox', 'select'];
 
     // Savol tartibi = DOM tartibi. Backend `question_required` qiymatini
-    // indeks sifatida o'qiydi, shuning uchun har o'zgarishdan keyin qayta raqamlanadi.
+    // indeks sifatida öqiydi, şuning uçun har özgarişdan keyin qayta raqamlanadi.
     function sync() {
         const items = list.querySelectorAll('.sv-q');
         items.forEach(function (item, index) {
@@ -282,7 +282,7 @@
         if (event.target.dataset.role === 'type') toggleChoices(event.target);
     });
 
-    // Segmented control — :has() qo'llab-quvvatlanmasa ham ishlashi uchun
+    // Segmented control — :has() qöllab-quvvatlanmasa ham işlaşi uçun
     const seg = document.getElementById('svSeg');
     function paintSeg() {
         seg.querySelectorAll('.sv-seg-item').forEach(function (item) {

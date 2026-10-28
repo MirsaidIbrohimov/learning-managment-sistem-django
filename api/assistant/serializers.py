@@ -162,7 +162,7 @@ class CertificateSerializer(serializers.ModelSerializer):
         read_only_fields = ['certificate_id', 'issued_at']
 
 
-# ------------------- PAROL TIKLASH -------------------
+# ------------------- PAROL TIKLAŞ -------------------
 
 class PasswordResetRequestSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name', read_only=True)
@@ -223,7 +223,7 @@ class ParentPasswordResetRequestSerializer(serializers.ModelSerializer):
         ]
 
 
-# ------------------- SO'ROVLAR (REQUESTS) -------------------
+# ------------------- SÖROVLAR (REQUESTS) -------------------
 
 class CourseEnrollmentRequestSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source='user.full_name', read_only=True)
@@ -361,7 +361,7 @@ class CourseApplicationSerializer(serializers.ModelSerializer):
         ]
 
 
-# ------------------- SO'ROVNOMALAR -------------------
+# ------------------- SÖROVNOMALAR -------------------
 
 class SurveyQuestionSerializer(serializers.ModelSerializer):
     choices_list = serializers.SerializerMethodField()

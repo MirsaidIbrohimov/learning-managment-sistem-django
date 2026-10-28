@@ -1,8 +1,8 @@
-"""Kunlik AI limitlari: o'chirib bo'lmaydigan hisoblagich.
+"""Kunlik AI limitlari: öçirib bölmaydigan hisoblagiç.
 
-Veb-chat limitni xabar saqlanishidan oldin ``reserve`` bilan atomar band qiladi.
-Boshqa joylar (Telegram bot) yaratgan foydalanuvchi xabarlari signal orqali
-``record`` qilinadi. Hisob Toshkent sanasi bo'yicha 00:00 da yangilanadi.
+Veb-chat limitni xabar saqlanişidan oldin ``reserve`` bilan atomar band qiladi.
+Boşqa joylar (Telegram bot) yaratgan foydalanuvçi xabarlari signal orqali
+``record`` qilinadi. Hisob Toşkent sanasi böyiça 00:00 da yangilanadi.
 """
 from datetime import datetime, time, timedelta
 
@@ -21,7 +21,7 @@ def _usage_row_created(user_id, day=None):
     row = AIDailyUsage.objects.filter(user_id=user_id, date=day).first()
     if row:
         return row, False
-    # Hisoblagich joriy etilgan kuni allaqachon yozilgan xabarlar ham hisobga olinadi.
+    # Hisoblagiç joriy etilgan kuni allaqaçon yozilgan xabarlar ham hisobga olinadi.
     start = timezone.make_aware(datetime.combine(day, time.min))
     today_msgs = ChatMessage.objects.filter(session__user_id=user_id, role='user',
                                             created_at__gte=start, created_at__lt=start + timedelta(days=1))
@@ -41,9 +41,9 @@ def get_generated_count(user):
 
 
 def reserve(user, msg_limit, img_limit, with_image=False):
-    """Limit qolgan bo'lsa bitta xabarni (va rasmni) band qiladi; aks holda False.
+    """Limit qolgan bölsa bitta xabarni (va rasmni) band qiladi; aks holda False.
 
-    Shartli UPDATE bitta SQL amali — parallel so'rovlar limitdan oshira olmaydi.
+    Şartli UPDATE bitta SQL amali — parallel sörovlar limitdan oşira olmaydi.
     """
     row = _usage_row(user.pk)
     filters = {'pk': row.pk, 'messages__lt': msg_limit}
@@ -57,7 +57,7 @@ def reserve(user, msg_limit, img_limit, with_image=False):
 def record(user_id, with_image=False):
     row, created = _usage_row_created(user_id)
     if created:
-        return  # yangi qator saqlangan xabarni sanab bo'ldi
+        return  # yangi qator saqlangan xabarni sanab böldi
     changes = {'messages': F('messages') + 1, 'updated_at': timezone.now()}
     if with_image:
         changes['images'] = F('images') + 1
@@ -65,13 +65,13 @@ def record(user_id, with_image=False):
 
 
 def reserve_generation(user, limit):
-    """Rasm chizish uchun bitta o'rinni atomar band qiladi; limit tugagan bo'lsa False."""
+    """Rasm çiziş uçun bitta örinni atomar band qiladi; limit tugagan bölsa False."""
     row = _usage_row(user.pk)
     return AIDailyUsage.objects.filter(pk=row.pk, generated_images__lt=limit).update(
         generated_images=F('generated_images') + 1, updated_at=timezone.now()) == 1
 
 
 def release_generation(user):
-    """Rasm chizilmay qolganda band qilingan o'rinni qaytaradi."""
+    """Rasm çizilmay qolganda band qilingan örinni qaytaradi."""
     AIDailyUsage.objects.filter(user_id=user.pk, date=timezone.localdate(), generated_images__gt=0).update(
         generated_images=F('generated_images') - 1, updated_at=timezone.now())

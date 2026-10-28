@@ -631,7 +631,7 @@
     <div class="bk-header">
         <div class="bk-header-left">
             <h1><i class="bi bi-book"></i> Kutubxona</h1>
-            <div class="bk-header-sub">Barcha kitoblar ro'yxati va boshqaruvi</div>
+            <div class="bk-header-sub">Barça kitoblar röyxati va boşqaruvi</div>
         </div>
         <div class="bk-header-actions">
             <a href="{% url 'admin_book_rentals' %}" class="bk-btn bk-btn-outline">
@@ -668,16 +668,16 @@
             {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
             <div class="bk-filter-row">
                 <div class="bk-filter-group" style="flex:3;">
-                    <label><i class="bi bi-search"></i> Qidirish</label>
+                    <label><i class="bi bi-search"></i> Qidiriş</label>
                     <input type="text" name="search" placeholder="Kitob nomi yoki muallif..." value="{{ search }}">
                 </div>
                 <div style="display:flex; gap:0.5rem; align-items:flex-end;">
                     <button type="submit" class="bk-filter-btn">
-                        <i class="bi bi-search"></i> Qidirish
+                        <i class="bi bi-search"></i> Qidiriş
                     </button>
                     {% if search %}
                     <a href="{% url 'admin_books' %}{% if sort %}?sort={{ sort }}{% endif %}" class="bk-filter-reset">
-                        <i class="bi bi-x-lg"></i> Tozalash
+                        <i class="bi bi-x-lg"></i> Tozalaş
                     </a>
                     {% endif %}
                 </div>
@@ -687,7 +687,7 @@
 
     <!-- Sort Bar + View Toggle -->
     <div class="bk-sort-bar">
-        <span class="bk-sort-label"><i class="bi bi-sort-down"></i> Saralash:</span>
+        <span class="bk-sort-label"><i class="bi bi-sort-down"></i> Saralaş:</span>
         <a href="?sort=title{% if search %}&search={{ search }}{% endif %}"
            class="bk-sort-btn {% if sort == 'title' or not sort %}active{% endif %}">
             <i class="bi bi-sort-alpha-down"></i> Nomi A-Z
@@ -715,10 +715,10 @@
 
         <!-- View Toggle -->
         <div class="bk-view-toggle">
-            <button class="bk-view-btn active" data-view="grid" title="Kartochka ko'rinishi">
+            <button class="bk-view-btn active" data-view="grid" title="Kartoçka körinişi">
                 <i class="bi bi-grid-3x3-gap"></i>
             </button>
-            <button class="bk-view-btn" data-view="list" title="Ro'yxat ko'rinishi">
+            <button class="bk-view-btn" data-view="list" title="Röyxat körinişi">
                 <i class="bi bi-list-ul"></i>
             </button>
         </div>
@@ -758,10 +758,10 @@
 
                 <div class="bk-card-actions">
                     <a href="{% url 'admin_book_edit' book.pk %}" class="bk-edit-btn">
-                        <i class="bi bi-pencil"></i> Tahrirlash
+                        <i class="bi bi-pencil"></i> Tahrirlaş
                     </a>
                     <form method="post" action="{% url 'admin_book_delete' book.pk %}"
-                          onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')" style="display:contents;">
+                          onsubmit="return confirm('Rostdan öçirmoqçimisiz?')" style="display:contents;">
                         {% csrf_token %}
                         <button type="submit" class="bk-delete-btn">
                             <i class="bi bi-trash"></i>
@@ -796,13 +796,13 @@
                 {% endif %}
             </div>
             <div class="bk-list-actions">
-                <a href="{% url 'admin_book_edit' book.pk %}" class="bk-list-act-btn" title="Tahrirlash">
+                <a href="{% url 'admin_book_edit' book.pk %}" class="bk-list-act-btn" title="Tahrirlaş">
                     <i class="bi bi-pencil"></i>
                 </a>
                 <form method="post" action="{% url 'admin_book_delete' book.pk %}"
-                      onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')" style="display:contents;">
+                      onsubmit="return confirm('Rostdan öçirmoqçimisiz?')" style="display:contents;">
                     {% csrf_token %}
-                    <button type="submit" class="bk-list-act-btn danger" title="O'chirish">
+                    <button type="submit" class="bk-list-act-btn danger" title="Öçiriş">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
@@ -816,14 +816,14 @@
     <div class="bk-empty">
         <i class="bi bi-book"></i>
         <h5>Kitoblar topilmadi</h5>
-        <p>{% if search %}Qidiruv natijasi bo'sh. Boshqa kalit so'z bilan sinab ko'ring.{% else %}Hali kutubxonaga kitob qo'shilmagan.{% endif %}</p>
+        <p>{% if search %}Qidiruv natijasi böş. Boşqa kalit söz bilan sinab köring.{% else %}Hali kutubxonaga kitob qöşilmagan.{% endif %}</p>
         {% if search %}
         <a href="{% url 'admin_books' %}" class="bk-btn bk-btn-outline">
-            <i class="bi bi-x-lg"></i> Qidiruvni tozalash
+            <i class="bi bi-x-lg"></i> Qidiruvni tozalaş
         </a>
         {% else %}
         <a href="{% url 'admin_book_add' %}" class="bk-btn bk-btn-primary">
-            <i class="bi bi-plus-lg"></i> Kitob qo'shish
+            <i class="bi bi-plus-lg"></i> Kitob qöşiş
         </a>
         {% endif %}
     </div>

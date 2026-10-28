@@ -1,4 +1,4 @@
-"""Ustoz musobaqalari (sovrin ustoz hisobidan) va Yozish mashqi 2.0 testlari."""
+"""Ustoz musobaqalari (sovrin ustoz hisobidan) va Yoziş maşqi 2.0 testlari."""
 import itertools
 from datetime import timedelta
 from unittest import mock
@@ -13,7 +13,7 @@ from . import prize_escrow
 from .models import Competition, Game, GameAttempt, Prompt
 
 _phone = itertools.count(500)
-# Test client'da UserSession qatori yo'q — bu middleware'lar login'ga yo'naltiradi.
+# Test client'da UserSession qatori yöq — bu middleware'lar login'ga yönaltiradi.
 SKIP_SESSION_MIDDLEWARE = modify_settings(MIDDLEWARE={'remove': [
     'accounts.middleware.DeviceLimitMiddleware',
     'accounts.middleware.ProfileCompletionMiddleware',
@@ -59,7 +59,7 @@ class TeacherCompetitionTests(TestCase):
     def post_form(self, url=None, **overrides):
         now = timezone.localtime()
         data = {
-            'title': 'Haftalik chempionat', 'game': self.game.pk,
+            'title': 'Haftalik çempionat', 'game': self.game.pk,
             'start_time': (now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
             'end_time': (now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
             'audience_type': 'groups', 'group_ids': [self.group.pk], 'max_attempts': 1,
@@ -105,12 +105,12 @@ class TeacherCompetitionTests(TestCase):
                                                       end_time=timezone.now() - timedelta(minutes=1))
         comp.refresh_from_db()
         comp.award_competition_coins()
-        comp.award_competition_coins()  # takroriy chaqiruv ikki marta to'lamasligi kerak
+        comp.award_competition_coins()  # takroriy çaqiruv ikki marta tölamasligi kerak
         Competition.objects.get(pk=comp.pk).award_competition_coins()
 
         self.assertEqual(coins(self.s1), 500)
         self.assertEqual(coins(self.s2), 300)
-        # 3-o'rin bo'sh — 150 coin ustozga qaytdi: 1000 - 950 + 150
+        # 3-örin böş — 150 coin ustozga qaytdi: 1000 - 950 + 150
         self.assertEqual(coins(self.teacher), 200)
         comp.refresh_from_db()
         self.assertTrue(comp.coins_awarded)
@@ -172,18 +172,18 @@ class TeacherCompetitionTests(TestCase):
     def test_list_page_renders(self, *_):
         self.post_form()
         resp = self.client.get(reverse('games:teacher_competitions'))
-        self.assertContains(resp, 'Haftalik chempionat')
+        self.assertContains(resp, 'Haftalik çempionat')
         self.assertContains(resp, 'Bron: 950')
 
     def test_form_pages_render(self, *_):
         resp = self.client.get(reverse('games:teacher_competition_add'))
         self.assertContains(resp, 'Sovrin kimdan?')
         self.assertContains(resp, 'F-1')
-        self.assertNotContains(resp, 'B-9')  # boshqa ustozning guruhi ko'rinmaydi
+        self.assertNotContains(resp, 'B-9')  # boşqa ustozning guruhi körinmaydi
         self.post_form()
         comp = Competition.objects.get()
         resp = self.client.get(reverse('games:teacher_competition_edit', args=[comp.pk]))
-        self.assertContains(resp, 'value="Haftalik chempionat"')
+        self.assertContains(resp, 'value="Haftalik çempionat"')
 
     def test_system_competition_still_mints_coins(self, *_):
         comp = Competition.objects.create(
@@ -248,9 +248,9 @@ class TypingV2Tests(TestCase):
         self.assertEqual(resp.json()['accuracy'], 100.0)
         attempt = GameAttempt.objects.get()
         self.assertEqual(attempt.competition, comp)
-        self.assertEqual(attempt.accuracy, 100.0)   # key_accuracy yuborilmasa — so'z aniqligi
+        self.assertEqual(attempt.accuracy, 100.0)   # key_accuracy yuborilmasa — söz aniqligi
         self.assertEqual(attempt.ui_version, 'v2')
-        # Natijalarim: 2.0 filtri faqat 2.0 natijalarini ko'rsatadi
+        # Natijalarim: 2.0 filtri faqat 2.0 natijalarini körsatadi
         resp = self.client.get(reverse('games:my_results') + '?mode=v2')
         self.assertEqual(len(resp.context['attempts']), 1)
 
@@ -259,8 +259,8 @@ class TypingV2Tests(TestCase):
 class GamesListTests(TestCase):
     def setUp(self):
         self.student = make_user('oyinchi')
-        self.typing = Game.objects.create(title='Tez yozish', slug='typing', game_type='typing')
-        Game.objects.get_or_create(slug='shashka', defaults={'title': 'Shashka', 'game_type': 'external'})
+        self.typing = Game.objects.create(title='Tez yoziş', slug='typing', game_type='typing')
+        Game.objects.get_or_create(slug='shashka', defaults={'title': 'Şaşka', 'game_type': 'external'})
         Prompt.objects.create(game=self.typing, text='salom dunyo', usage='both')
         self.client.force_login(self.student)
 
@@ -269,8 +269,8 @@ class GamesListTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         v2 = reverse('games:game_play_v2', args=['typing'])
         self.assertContains(resp, f'href="{v2}"', count=2)  # spotlight + grid kartasi
-        self.assertContains(resp, 'Yozish mashqi 2.0')
-        self.assertContains(resp, 'Shashka')
+        self.assertContains(resp, 'Yoziş maşqi 2.0')
+        self.assertContains(resp, 'Şaşka')
 
     def test_competition_links_follow_play_ui(self):
         window = dict(start_time=timezone.now() - timedelta(minutes=5), end_time=timezone.now() + timedelta(hours=1))
@@ -294,11 +294,11 @@ class GamesListTests(TestCase):
 
 @SKIP_SESSION_MIDDLEWARE
 class TypingV2AccuracyTests(TestCase):
-    """2.0: tugmalar aniqligi ballni faqat pasaytira oladi, oshira olmaydi."""
+    """2.0: tugmalar aniqligi ballni faqat pasaytira oladi, oşira olmaydi."""
     def setUp(self):
         self.student = make_user('aniq')
         self.game = Game.objects.create(title='Typing', slug='typing', game_type='typing')
-        self.prompt = Prompt.objects.create(game=self.game, text='bir ikki uch tort', usage='both')
+        self.prompt = Prompt.objects.create(game=self.game, text='bir ikki uç tort', usage='both')
         self.client.force_login(self.student)
 
     def submit(self, typed, key_accuracy, ui='v2'):
@@ -310,10 +310,10 @@ class TypingV2AccuracyTests(TestCase):
                                 HTTP_X_REQUESTED_WITH='XMLHttpRequest').json()
 
     def test_key_accuracy_lowers_score(self):
-        self.assertEqual(self.submit('bir ikki uch tort', 80)['accuracy'], 80.0)
+        self.assertEqual(self.submit('bir ikki uç tort', 80)['accuracy'], 80.0)
 
     def test_fake_high_key_accuracy_does_not_help(self):
-        self.assertEqual(self.submit('bir XATO uch tort', 100)['accuracy'], 75.0)
+        self.assertEqual(self.submit('bir XATO uç tort', 100)['accuracy'], 75.0)
 
     def test_classic_ignores_key_accuracy(self):
-        self.assertEqual(self.submit('bir ikki uch tort', 10, ui='classic')['accuracy'], 100.0)
+        self.assertEqual(self.submit('bir ikki uç tort', 10, ui='classic')['accuracy'], 100.0)

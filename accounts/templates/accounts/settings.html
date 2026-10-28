@@ -446,7 +446,7 @@
         <h2 class="settings-title">
             <i class="bi bi-gear-fill"></i> Sozlamalar
         </h2>
-        <p class="settings-subtitle">Sayt ko'rinishi va effektlarini sozlang</p>
+        <p class="settings-subtitle">Sayt körinişi va effektlarini sozlang</p>
     </div>
 
     <!-- WEATHER EFFECTS -->
@@ -457,7 +457,7 @@
             </div>
             <div class="s-card-info">
                 <h5>Ob-havo effektlari</h5>
-                <p>Sayt fonida ko'rinadigan fasliy effektni tanlang</p>
+                <p>Sayt fonida körinadigan fasliy effektni tanlang</p>
             </div>
         </div>
 
@@ -465,7 +465,7 @@
             <div class="wx-option" data-effect="off">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
                 <i class="bi bi-x-circle weather-emoji"></i>
-                <span class="weather-label">O'chirilgan</span>
+                <span class="weather-label">Öçirilgan</span>
             </div>
             <div class="wx-option" data-effect="auto">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
@@ -480,12 +480,12 @@
             <div class="wx-option" data-effect="spring">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
                 <span class="weather-emoji">🌧️</span>
-                <span class="weather-label">Yomg'ir</span>
+                <span class="weather-label">Yomğir</span>
             </div>
             <div class="wx-option" data-effect="summer">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
                 <span class="weather-emoji">☀️</span>
-                <span class="weather-label">Quyosh</span>
+                <span class="weather-label">Quyoş</span>
             </div>
             <div class="wx-option" data-effect="autumn">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
@@ -521,7 +521,7 @@
                 <div class="theme-preview dark-p">
                     <i class="bi bi-moon-stars-fill"></i>
                 </div>
-                <div class="theme-name">Qorong'u</div>
+                <div class="theme-name">Qoronğu</div>
                 <p class="theme-desc">Tungi rejim</p>
             </div>
         </div>
@@ -534,12 +534,12 @@
                 <i class="bi bi-layout-sidebar-inset"></i>
             </div>
             <div class="s-card-info">
-                <h5>Navigatsiya ko'rinishi</h5>
-                <p>Yon panel, yuqori menyu yoki gibrid ko'rinishni tanlang</p>
+                <h5>Navigatsiya körinişi</h5>
+                <p>Yon panel, yuqori menyu yoki gibrid körinişni tanlang</p>
             </div>
         </div>
         <button type="button" class="settings-back border-0" data-nav-settings aria-controls="nsPanel">
-            <i class="bi bi-sliders"></i> Navigatsiyani sozlash
+            <i class="bi bi-sliders"></i> Navigatsiyani sozlaş
         </button>
     </div>
 
@@ -559,7 +559,7 @@
             <div class="lang-option" data-lang="uz">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
                 <span class="lang-flag">🇺🇿</span>
-                <span class="lang-label">O'zbekcha</span>
+                <span class="lang-label">Özbekça</span>
             </div>
             <div class="lang-option" data-lang="ru">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
@@ -575,14 +575,14 @@
 
         <div class="lang-note">
             <i class="bi bi-info-circle-fill"></i>
-            <span data-i18n="settings.lang_note">Faqat sayt tugmalari va menyu o'zgaradi. Videolar, topshiriqlar va kurs materiallari o'zgarmaydi.</span>
+            <span data-i18n="settings.lang_note">Faqat sayt tugmalari va menyu özgaradi. Videolar, topşiriqlar va kurs materiallari özgarmaydi.</span>
         </div>
     </div>
 
     <!-- BACK -->
     <div class="text-center">
         <a href="{% url 'profile' %}" class="settings-back">
-            <i class="bi bi-arrow-left"></i> <span data-i18n="settings.back">Profilga qaytish</span>
+            <i class="bi bi-arrow-left"></i> <span data-i18n="settings.back">Profilga qaytiş</span>
         </a>
     </div>
 </div>
@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.wx-option').forEach(i => i.classList.remove('active'));
             this.classList.add('active');
             localStorage.setItem('weatherEffect', this.dataset.effect);
-            showToast('Effekt o\'zgartirildi');
+            showToast('Effekt özgartirildi');
             setTimeout(() => location.reload(), 800);
         });
     });
@@ -634,13 +634,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('theme', theme);
             document.dispatchEvent(new CustomEvent('itc:themechange', { detail: theme }));
-            showToast(theme === 'dark' ? 'Qorong\'u rejim yoqildi' : 'Yorug\' rejim yoqildi');
+            showToast(theme === 'dark' ? 'Qoronğu rejim yoqildi' : 'Yorug\' rejim yoqildi');
         });
     });
 
     // LANGUAGE
     var langToasts = {
-        uz: "O'zbekcha tiliga o'tkazildi",
+        uz: "Özbekça tiliga ötkazildi",
         ru: 'Язык изменён на Русский',
         en: 'Language changed to English'
     };
@@ -648,8 +648,8 @@ document.addEventListener('DOMContentLoaded', function() {
         uz: {
             'settings.lang_title': 'Sayt tili',
             'settings.lang_desc': 'Sayt interfeys tilini tanlang',
-            'settings.lang_note': "Faqat sayt tugmalari va menyu o'zgaradi. Videolar, topshiriqlar va kurs materiallari o'zgarmaydi.",
-            'settings.back': 'Profilga qaytish',
+            'settings.lang_note': "Faqat sayt tugmalari va menyu özgaradi. Videolar, topşiriqlar va kurs materiallari özgarmaydi.",
+            'settings.back': 'Profilga qaytiş',
         },
         ru: {
             'settings.lang_title': 'Язык сайта',
@@ -683,7 +683,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var key = el.getAttribute('data-i18n');
                 if (st[key]) el.textContent = st[key];
             });
-            showToast(langToasts[lang] || 'Til o\'zgartirildi');
+            showToast(langToasts[lang] || 'Til özgartirildi');
         });
     });
 });

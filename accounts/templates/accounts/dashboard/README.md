@@ -4,7 +4,7 @@ Reusable, defensively-coded include partials for the premium student dashboard.
 
 ## Setup
 
-Load the stylesheet once in the page (e.g. in `{% block extra_css %}`):
+Load the styleşeet once in the page (e.g. in `{% block extra_css %}`):
 
 ```django
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -48,8 +48,8 @@ StatsCard with gradient icon, value, label.
 Netflix continue-watching style card.
 `course = {id, name, photo, teacher, is_paid, progress?, lesson_count?, reason?, url}`
 - `photo` falsy → gradient + first letter fallback.
-- `progress` present (0–100) → progress bar shown. Button = "Davom etish".
-- Pass `recommend=True` to render as a recommendation (button "Ko'rish", shows `reason`).
+- `progress` present (0–100) → progress bar shown. Button = "Davom etiş".
+- Pass `recommend=True` to render as a recommendation (button "Köriş", shows `reason`).
 ```django
 {% include 'accounts/dashboard/_course_card.html' with course=c %}
 {% include 'accounts/dashboard/_course_card.html' with course=c recommend=True %}
@@ -68,7 +68,7 @@ Daily/weekly mission with progress ring.
 Earned/locked badge tile.
 `badge = {key, title, icon, desc, earned, earned_label}`
 - `earned` falsy → `.is-locked` (greyed + lock overlay).
-- `earned=True` → colored with glow + `earned_label` (default "Qo'lga kiritildi").
+- `earned=True` → colored with glow + `earned_label` (default "Qölga kiritildi").
 ```django
 {% include 'accounts/dashboard/_achievement_card.html' with badge=b %}
 ```

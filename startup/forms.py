@@ -1,6 +1,6 @@
 """Formalar — mass assignment himoyasi: har bir forma `fields` ni aniq
 sanab beradi, `owner`, `status`, `total_xp`, `progress`, `current_stage`
-hech qachon foydalanuvchi kiritishidan olinmaydi.
+heç qaçon foydalanuvçi kiritişidan olinmaydi.
 """
 
 from django import forms
@@ -57,7 +57,7 @@ class StartupForm(forms.ModelForm):
     def clean_name(self):
         name = self.cleaned_data['name'].strip()
         if len(name) < 3:
-            raise forms.ValidationError('Startup nomi kamida 3 belgidan iborat boʻlishi kerak.')
+            raise forms.ValidationError('Startup nomi kamida 3 belgidan iborat bölişi kerak.')
         return name
 
 
@@ -81,8 +81,8 @@ class StartupTaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.startup = startup
         if startup is not None:
-            # Faqat shu startupning bosqichlari va faol a'zolari — boshqa
-            # startup ID'sini POST qilib yuborish imkonsiz.
+            # Faqat şu startupning bosqiçlari va faol a'zolari — boşqa
+            # startup ID'sini POST qilib yuboriş imkonsiz.
             self.fields['stage'].queryset = startup.stages.all()
             self.fields['stage'].required = True
             self.fields['assigned_to'].queryset = get_user_model().objects.filter(
@@ -99,7 +99,7 @@ class SubmissionForm(forms.ModelForm):
         widgets = {
             'description': forms.Textarea(attrs={
                 'class': 'form-control', 'rows': 4,
-                'placeholder': 'Nima qildingiz? Natijani qisqacha yozing.'}),
+                'placeholder': 'Nima qildingiz? Natijani qisqaça yozing.'}),
             'file': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
             'github_url': forms.URLInput(attrs={'class': 'form-control',
@@ -119,15 +119,15 @@ class SubmissionForm(forms.ModelForm):
         ])
         if not has_any:
             raise forms.ValidationError(
-                'Kamida bittasini toʻldiring: izoh, fayl, havola, GitHub yoki demo.')
+                'Kamida bittasini töldiring: izoh, fayl, havola, GitHub yoki demo.')
         return cleaned
 
 
 class InviteForm(forms.Form):
-    """Jamoaga taklif — foydalanuvchi aniq `username` bo'yicha topiladi.
+    """Jamoaga taklif — foydalanuvçi aniq `username` böyiça topiladi.
 
-    Ataylab qidiruv/autocomplete emas: aks holda butun foydalanuvchi bazasini
-    sanab chiqish (enumeration) imkoni paydo bo'ladi.
+    Ataylab qidiruv/autocomplete emas: aks holda butun foydalanuvçi bazasini
+    sanab çiqiş (enumeration) imkoni paydo böladi.
     """
 
     username = forms.CharField(
@@ -146,9 +146,9 @@ class InviteForm(forms.Form):
         username = self.cleaned_data['username'].strip()
         user = get_user_model().objects.filter(username__iexact=username).first()
         if user is None:
-            raise forms.ValidationError('Bunday loginli foydalanuvchi topilmadi.')
+            raise forms.ValidationError('Bunday loginli foydalanuvçi topilmadi.')
         if self.startup is not None and user.id == self.startup.owner_id:
-            raise forms.ValidationError('Startup egasi allaqachon jamoada.')
+            raise forms.ValidationError('Startup egasi allaqaçon jamoada.')
         self.cleaned_data['user'] = user
         return username
 
@@ -160,7 +160,7 @@ class FeedbackForm(forms.ModelForm):
         widgets = {
             'message': forms.Textarea(attrs={
                 'class': 'form-control', 'rows': 3,
-                'placeholder': 'Nima yaxshi, nimani yaxshilash kerak?'}),
+                'placeholder': 'Nima yaxşi, nimani yaxşilaş kerak?'}),
             'rating': forms.Select(
                 choices=[('', 'Baho (ixtiyoriy)')] + [(n, '★' * n) for n in range(1, 6)],
                 attrs={'class': 'form-select'}),
@@ -169,7 +169,7 @@ class FeedbackForm(forms.ModelForm):
     def clean_message(self):
         message = self.cleaned_data['message'].strip()
         if len(message) < 5:
-            raise forms.ValidationError('Fikr kamida 5 belgidan iborat boʻlishi kerak.')
+            raise forms.ValidationError('Fikr kamida 5 belgidan iborat bölişi kerak.')
         return message
 
 
@@ -182,19 +182,19 @@ class FinanceForm(forms.ModelForm):
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'min': 1,
                                                'step': 1, 'placeholder': '0'}),
             'description': forms.TextInput(attrs={'class': 'form-control',
-                                                  'placeholder': 'Nima uchun?'}),
+                                                  'placeholder': 'Nima uçun?'}),
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         }
 
     def clean_amount(self):
         amount = self.cleaned_data['amount']
         if amount <= 0:
-            raise forms.ValidationError('Summa 0 dan katta boʻlishi kerak.')
+            raise forms.ValidationError('Summa 0 dan katta bölişi kerak.')
         return amount
 
 
 class MetricForm(forms.ModelForm):
-    key = forms.ChoiceField(choices=METRIC_KEY_CHOICES, label='Koʻrsatkich',
+    key = forms.ChoiceField(choices=METRIC_KEY_CHOICES, label='Körsatkiç',
                             widget=forms.Select(attrs={'class': 'form-select'}))
 
     class Meta:
@@ -210,7 +210,7 @@ class MetricForm(forms.ModelForm):
     def clean_value(self):
         value = self.cleaned_data['value']
         if value < 0:
-            raise forms.ValidationError('Qiymat manfiy boʻlmasligi kerak.')
+            raise forms.ValidationError('Qiymat manfiy bölmasligi kerak.')
         return value
 
 

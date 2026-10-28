@@ -24,11 +24,11 @@ def login_details(request):
             os_name = name + (' ' + match.group(1).replace('_', '.') if match.lastindex else '')
             break
     if 'iPad' in ua:
-        device, device_type = 'Apple iPad', 'Planshet'
+        device, device_type = 'Apple iPad', 'Planşet'
     elif 'iPhone' in ua:
         device, device_type = 'Apple iPhone', 'Telefon'
     elif 'Android' in ua:
-        device_type = 'Telefon' if 'Mobile' in ua else 'Planshet'
+        device_type = 'Telefon' if 'Mobile' in ua else 'Planşet'
         match = re.search(r'Android[^;)]*;\s*(?:[a-z]{2}(?:[-_][A-Z]{2})?;\s*)?([^;)]+)', ua)
         if match:
             device = re.split(r'\s+Build/', match.group(1))[0].strip() or unknown

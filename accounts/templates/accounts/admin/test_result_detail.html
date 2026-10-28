@@ -119,7 +119,7 @@
         </div>
         <div class="trd-stat">
             <div class="trd-stat-val" style="color:#10b981;">{{ result.correct_answers }}</div>
-            <div class="trd-stat-lbl">To'g'ri</div>
+            <div class="trd-stat-lbl">Töğri</div>
         </div>
         <div class="trd-stat">
             <div class="trd-stat-val" style="color:#ef4444;">{{ result.total_questions|add:"-"|add:result.correct_answers }}</div>
@@ -132,10 +132,10 @@
         <div class="trd-stat">
             {% if result.passed %}
             <div class="trd-stat-val" style="color:#10b981;"><i class="bi bi-check-circle-fill"></i></div>
-            <div class="trd-stat-lbl">O'tdi</div>
+            <div class="trd-stat-lbl">Ötdi</div>
             {% else %}
             <div class="trd-stat-val" style="color:#ef4444;"><i class="bi bi-x-circle-fill"></i></div>
-            <div class="trd-stat-lbl">O'tmadi</div>
+            <div class="trd-stat-lbl">Ötmadi</div>
             {% endif %}
         </div>
         <div class="trd-stat">
@@ -147,7 +147,7 @@
 
 <div class="trd-summary">
     <span class="trd-chip total"><i class="bi bi-list-check"></i> {{ answer_details|length }} savol</span>
-    <span class="trd-chip correct"><i class="bi bi-check-circle-fill"></i> {{ result.correct_answers }} to'g'ri</span>
+    <span class="trd-chip correct"><i class="bi bi-check-circle-fill"></i> {{ result.correct_answers }} töğri</span>
     <span class="trd-chip wrong"><i class="bi bi-x-circle-fill"></i> {{ result.total_questions|add:"-"|add:result.correct_answers }} xato</span>
 </div>
 
@@ -158,7 +158,7 @@
             <div class="trd-q-num {% if ad.is_correct %}correct{% else %}wrong{% endif %}">{{ forloop.counter }}</div>
             <div class="trd-q-text">{{ ad.question.question_text }}</div>
             <span class="trd-q-badge {% if ad.is_correct %}correct{% else %}wrong{% endif %}">
-                {% if ad.is_correct %}<i class="bi bi-check-lg"></i> To'g'ri{% else %}<i class="bi bi-x-lg"></i> Xato{% endif %}
+                {% if ad.is_correct %}<i class="bi bi-check-lg"></i> Töğri{% else %}<i class="bi bi-x-lg"></i> Xato{% endif %}
             </span>
         </div>
         <div class="trd-answers">
@@ -170,7 +170,7 @@
                     {% else %}<i class="bi bi-circle"></i>{% endif %}
                 </div>
                 <span class="trd-ans-text">{{ answer.answer_text }}</span>
-                {% if answer.is_correct %}<small style="color:#10b981;font-weight:600;">To'g'ri javob</small>{% endif %}
+                {% if answer.is_correct %}<small style="color:#10b981;font-weight:600;">Töğri javob</small>{% endif %}
                 {% if ad.selected and answer.pk == ad.selected.pk and not ad.is_correct %}<small style="color:#ef4444;font-weight:600;">Tanlangan</small>{% endif %}
             </div>
             {% endfor %}

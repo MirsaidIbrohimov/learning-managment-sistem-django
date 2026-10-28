@@ -12,7 +12,7 @@ FP = ':'.join(['AB'] * 32)
 
 
 class PwaEndpointsTests(TestCase):
-    """PWA/TWA: manifest, service worker, Digital Asset Links — ommaviy va shaxsiy ma'lumotsiz."""
+    """PWA/TWA: manifest, service worker, Digital Asset Links — ommaviy va şaxsiy ma'lumotsiz."""
 
     def setUp(self):
         cache.clear()
@@ -37,7 +37,7 @@ class PwaEndpointsTests(TestCase):
         self.assertEqual(response['Service-Worker-Allowed'], '/')
         self.assertEqual(response['Cache-Control'], 'no-cache')
         js = response.content.decode()
-        self.assertIn("url.pathname.indexOf('/static/') !== 0", js)  # faqat /static/ keshlanadi
+        self.assertIn("url.pathname.indexOf('/static/') !== 0", js)  # faqat /static/ keşlanadi
         self.assertIn("req.method !== 'GET'", js)
         self.assertTrue(finders.find('pwa/offline.html'))
 
@@ -62,7 +62,7 @@ class PwaEndpointsTests(TestCase):
         self.assertEqual(target['sha256_cert_fingerprints'], [FP])
 
     def test_not_redirected_for_incomplete_student(self):
-        # ProfileCompletionMiddleware boshqa sahifalarni complete_profile ga yo'naltiradi
+        # ProfileCompletionMiddleware boşqa sahifalarni complete_profile ga yönaltiradi
         user = CustomUser.objects.create_user(username='pwa-st', password='x', role='student', phone='+998901112233')
         self.client.force_login(user)
         for path in ('/manifest.webmanifest', '/sw.js'):

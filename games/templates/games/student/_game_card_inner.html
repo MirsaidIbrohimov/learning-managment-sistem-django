@@ -1,4 +1,4 @@
-{# O'yin kartasi. Vars: game, theme, type_label, type_icon #}
+{# Öyin kartasi. Vars: game, theme, type_label, type_icon #}
 <div class="gz-cell" data-name="{{ game.title|lower }}" data-category="{{ type_label }}">
     <article class="gz-card" data-tilt>
         <div class="gz-cover {{ theme }}">
@@ -10,15 +10,15 @@
         <div class="gz-body">
             <h3>{{ game.title }}</h3>
             <div class="gz-pills">{% include 'games/student/_game_meta_pills.html' %}</div>
-            <p>{{ game.description|truncatewords:16|default:"O'yinni boshlang va eng yuqori ballni qo'lga kiriting!" }}</p>
+            <p>{{ game.description|truncatewords:16|default:"Öyinni boşlang va eng yuqori ballni qölga kiriting!" }}</p>
             <div class="gz-actions">
                 {% if game.game_type == 'external' %}
-                <a href="{% url 'games:game_launch' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> O'ynash</a>
+                <a href="{% url 'games:game_launch' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> Öynaş</a>
                 {% elif game.game_type == 'typing' %}
-                <a href="{% url 'games:game_play' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> Klassik mashq</a>
+                <a href="{% url 'games:game_play' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> Klassik maşq</a>
                 <a href="{% url 'games:game_detail' game.slug %}" class="gz-icon" aria-label="{{ game.title }} haqida batafsil"><i class="bi bi-info-lg"></i></a>
                 {% else %}
-                <a href="{% url 'games:game_detail' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> O'ynash</a>
+                <a href="{% url 'games:game_detail' game.slug %}" class="gz-play" data-magnetic><i class="bi bi-play-fill"></i> Öynaş</a>
                 <a href="{% url 'games:game_detail' game.slug %}" class="gz-icon" aria-label="{{ game.title }} haqida batafsil"><i class="bi bi-info-lg"></i></a>
                 {% endif %}
             </div>

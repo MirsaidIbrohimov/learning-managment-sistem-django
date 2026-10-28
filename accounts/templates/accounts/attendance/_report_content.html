@@ -139,11 +139,11 @@
 <div class="ar-header">
     <div>
         <h2><i class="bi bi-file-earmark-bar-graph-fill"></i> {{ group.name }} — davomat hisoboti</h2>
-        <div style="opacity: 0.9;">{{ month_name }} {{ year }} · {{ group.profession.name }} · {{ total_students }} o'quvchi · {{ day_dates|length }} dars kuni</div>
+        <div style="opacity: 0.9;">{{ month_name }} {{ year }} · {{ group.profession.name }} · {{ total_students }} öquvçi · {{ day_dates|length }} dars kuni</div>
     </div>
     {% if user.is_admin_or_assistant %}
     <a href="{% url 'attendance_report_excel' group.pk %}?year={{ year }}&month={{ month }}" class="ar-export-btn">
-        <i class="bi bi-file-earmark-excel-fill"></i> Excel yuklab olish
+        <i class="bi bi-file-earmark-excel-fill"></i> Excel yuklab oliş
     </a>
     {% endif %}
 </div>
@@ -167,7 +167,7 @@
                 {% endfor %}
             </select>
         </div>
-        <button type="submit"><i class="bi bi-funnel-fill"></i> Ko'rish</button>
+        <button type="submit"><i class="bi bi-funnel-fill"></i> Köriş</button>
     </form>
 </div>
 
@@ -178,18 +178,18 @@
         <table class="ar-table">
             <thead>
                 <tr>
-                    <th class="sticky-left">O'quvchi</th>
+                    <th class="sticky-left">Öquvçi</th>
                     {% for d in day_dates %}
                     <th class="ar-date-hd">
                         {{ d|date:"d" }}<br>
                         <span class="wd">
-                            {% if d.isoweekday == 1 %}Du{% elif d.isoweekday == 2 %}Se{% elif d.isoweekday == 3 %}Ch{% elif d.isoweekday == 4 %}Pa{% elif d.isoweekday == 5 %}Ju{% elif d.isoweekday == 6 %}Sh{% endif %}
+                            {% if d.isoweekday == 1 %}Du{% elif d.isoweekday == 2 %}Se{% elif d.isoweekday == 3 %}Ç{% elif d.isoweekday == 4 %}Pa{% elif d.isoweekday == 5 %}Ju{% elif d.isoweekday == 6 %}Ş{% endif %}
                         </span>
                     </th>
                     {% endfor %}
                     <th title="Kelgan">✓</th>
                     <th title="Kelmagan">✗</th>
-                    <th title="Kechikkan">⏰</th>
+                    <th title="Keçikkan">⏰</th>
                     <th title="Ball">Ball</th>
                 </tr>
             </thead>
@@ -241,10 +241,10 @@
     <div class="ar-empty">
         {% if not day_dates %}
         <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
-        <p>Bu oyda dars kuni yo'q</p>
+        <p>Bu oyda dars kuni yöq</p>
         {% else %}
         <i class="bi bi-people" style="font-size: 2rem;"></i>
-        <p>Guruhda o'quvchi yo'q</p>
+        <p>Guruhda öquvçi yöq</p>
         {% endif %}
     </div>
     {% endif %}

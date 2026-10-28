@@ -1,13 +1,13 @@
-"""Jumanji o'yin mantiqi.
+"""Jumanji öyin mantiqi.
 
-View'lardan ataylab ajratilgan: bu yerda HTTP, request yoki template yo'q —
-faqat doska, effektlar, navbat va g'olib qoidalari. Shu tufayli qoidalarni
-test qilish oson va `games/views.py` shishib ketmaydi.
+View'lardan ataylab ajratilgan: bu yerda HTTP, request yoki template yöq —
+faqat doska, effektlar, navbat va ğolib qoidalari. Şu tufayli qoidalarni
+test qiliş oson va `games/views.py` şişib ketmaydi.
 
 Muhim xavfsizlik qoidalari:
-  * zarba (dice) faqat shu yerda tashlanadi — client hech qachon hisoblamaydi;
+  * zarba (dice) faqat şu yerda taşlanadi — client heç qaçon hisoblamaydi;
   * savol taymeri server vaqtiga tayanadi (`JumanjiTurn.question_started_at`);
-  * bir navbatda faqat BITTA katak effekti qo'llanadi (cheksiz zanjir bo'lmasin).
+  * bir navbatda faqat BITTA katak effekti qöllanadi (çeksiz zanjir bölmasin).
 """
 
 import math
@@ -22,42 +22,42 @@ from .models import JumanjiEvent, JumanjiPlayer, JumanjiQuestion, JumanjiTurn
 # Effektlar
 # ============================================================
 
-# `weight` — doskaga tushish ehtimoli. `safe` bu yerda yo'q: effektsiz
+# `weight` — doskaga tuşiş ehtimoli. `safe` bu yerda yöq: effektsiz
 # kataklar layout'ga umuman yozilmaydi.
-# `tone` — UI ranglash va qalqon mantiqi uchun (good/bad/neutral).
-# `icon` — Bootstrap Icons klassi (emoji emas: shrift bo'yicha bir xil ko'rinadi).
+# `tone` — UI ranglaş va qalqon mantiqi uçun (good/bad/neutral).
+# `icon` — Bootstrap Icons klassi (emoji emas: şrift böyiça bir xil körinadi).
 # `short` — katak ustidagi qisqa yozuv, `hint` — legendadagi izoh,
-# `shout` — katakka tushganda ekranga chiqadigan baqiriq.
+# `shout` — katakka tuşganda ekranga çiqadigan baqiriq.
 EFFECT_SPECS = {
     'freeze': {
-        'label': 'Muzlash', 'icon': 'bi-snow', 'tone': 'bad', 'weight': 14,
+        'label': 'Muzlaş', 'icon': 'bi-snow', 'tone': 'bad', 'weight': 14,
         'short': 'Muz', 'shout': 'MUZLADINGIZ!',
-        'hint': "Bir navbat o'tkazib yuboriladi",
+        'hint': "Bir navbat ötkazib yuboriladi",
     },
     'snake': {
         'label': 'Ilon', 'icon': 'bi-rewind-circle-fill', 'tone': 'bad', 'weight': 16,
-        'short': 'Ilon', 'shout': 'ILON CHAQDI!',
-        'hint': "Bir necha katak orqaga sirg'aladi",
+        'short': 'Ilon', 'shout': 'ILON ÇAQDI!',
+        'hint': "Bir neça katak orqaga sirğaladi",
     },
     'ladder': {
         'label': 'Narvon', 'icon': 'bi-fast-forward-circle-fill', 'tone': 'good', 'weight': 16,
-        'short': 'Narvon', 'shout': 'NARVONGA CHIQDINGIZ!',
-        'hint': "Bir necha katak oldinga ko'tariladi",
+        'short': 'Narvon', 'shout': 'NARVONGA ÇIQDINGIZ!',
+        'hint': "Bir neça katak oldinga kötariladi",
     },
     'bonus': {
         'label': 'Bonus zarba', 'icon': 'bi-star-fill', 'tone': 'good', 'weight': 12,
         'short': 'Bonus', 'shout': 'BONUS ZARBA!',
-        'hint': "Savolsiz qo'shimcha tosh tashlanadi",
+        'hint': "Savolsiz qöşimça toş taşlanadi",
     },
     'double': {
-        'label': "Qo'sh zarba", 'icon': 'bi-2-circle-fill', 'tone': 'good', 'weight': 12,
-        'short': 'x2', 'shout': "QO'SH ZARBA!",
-        'hint': 'Keyingi tosh ikki barobar hisoblanadi',
+        'label': "Qöş zarba", 'icon': 'bi-2-circle-fill', 'tone': 'good', 'weight': 12,
+        'short': 'x2', 'shout': "QÖŞ ZARBA!",
+        'hint': 'Keyingi toş ikki barobar hisoblanadi',
     },
     'task': {
-        'label': 'Shart', 'icon': 'bi-lightning-charge-fill', 'tone': 'neutral', 'weight': 14,
-        'short': 'Shart', 'shout': 'SHART KATAGI!',
-        'hint': "Boshqaruvchi shart beradi — bajarsa +2 katak",
+        'label': 'Şart', 'icon': 'bi-lightning-charge-fill', 'tone': 'neutral', 'weight': 14,
+        'short': 'Şart', 'shout': 'ŞART KATAGI!',
+        'hint': "Boşqaruvçi şart beradi — bajarsa +2 katak",
     },
     'shield': {
         'label': 'Qalqon', 'icon': 'bi-shield-fill-check', 'tone': 'good', 'weight': 8,
@@ -67,43 +67,43 @@ EFFECT_SPECS = {
     'swap': {
         'label': 'Bomba', 'icon': 'bi-fire', 'tone': 'neutral', 'weight': 8,
         'short': 'Bomba', 'shout': 'PORTLADINGIZ!',
-        'hint': "Oldinda ketayotgan o'yinchi bilan o'rin almashadi",
+        'hint': "Oldinda ketayotgan öyinçi bilan örin almaşadi",
     },
 }
 
-# Doskaning necha foiz katagida effekt bo'ladi.
+# Doskaning neça foiz katagida effekt böladi.
 EFFECT_DENSITY = 0.40
 
-# Bajarilgan 🃏 shart uchun beriladigan katak.
+# Bajarilgan 🃏 şart uçun beriladigan katak.
 TASK_REWARD_STEPS = 2
 
 MIN_PLAYERS = 2
 MAX_PLAYERS = 24
 
-# Har bir savolga bir xil vaqt — savoldan savolga o'zgarmaydi.
+# Har bir savolga bir xil vaqt — savoldan savolga özgarmaydi.
 QUESTION_SECONDS = 60
 
-# Savol vaqti tugaganini aniqlashda tarmoq kechikishi uchun zaxira.
+# Savol vaqti tugaganini aniqlaşda tarmoq keçikişi uçun zaxira.
 TIMEOUT_GRACE_SECONDS = 3
 
-# Navbatdagi o'yinchi shuncha vaqt ko'rinmasa boshqaruvchiga ogohlantirish.
+# Navbatdagi öyinçi şunça vaqt körinmasa boşqaruvçiga ogohlantiriş.
 OFFLINE_AFTER_SECONDS = 90
 
-# Heartbeat shu oraliqdan tez-tez bazaga yozilmaydi (SQLite qulfini kamaytiradi).
+# Heartbeat şu oraliqdan tez-tez bazaga yozilmaydi (SQLite qulfini kamaytiradi).
 HEARTBEAT_INTERVAL_SECONDS = 25
 
-# Navbat almashgach savol shuncha soniyadan keyin O'ZI ochiladi — boshqaruvchi
-# tugma bosmaydi. Kechikish kerak: o'yinchilar oldingi yurish va katak
-# effektini ko'rib ulgurishsin.
+# Navbat almaşgaç savol şunça soniyadan keyin ÖZI oçiladi — boşqaruvçi
+# tugma bosmaydi. Keçikiş kerak: öyinçilar oldingi yuriş va katak
+# effektini körib ulgurişsin.
 AUTO_OPEN_DELAY_SECONDS = 5
 
-# O'quvchi toshni shuncha vaqt aylantirmasa server o'zi tashlaydi — o'yin
-# ulanish uzilgani yoki chalg'igani sababli qotib qolmaydi.
+# Öquvçi toşni şunça vaqt aylantirmasa server özi taşlaydi — öyin
+# ulaniş uzilgani yoki çalğigani sababli qotib qolmaydi.
 AUTO_ROLL_AFTER_SECONDS = 20
 
 
 def effect_info(code):
-    """Effekt kodidan UI uchun ma'lumot (noma'lum kod ham xavfsiz qaytadi)."""
+    """Effekt kodidan UI uçun ma'lumot (noma'lum kod ham xavfsiz qaytadi)."""
     spec = EFFECT_SPECS.get(code)
     if not spec:
         return {
@@ -126,13 +126,13 @@ def effect_info(code):
 # ============================================================
 
 def build_board(board_size, rng=None):
-    """Doska effektlarini tasodifiy joylashtiradi va layout dict qaytaradi.
+    """Doska effektlarini tasodifiy joylaştiradi va layout dict qaytaradi.
 
-    Adolat uchun cheklovlar:
-      * dastlabki 3 katak har doim toza — o'yin boshida orqaga tushmasin;
-      * FINISH va undan oldingi 2 katakda `snake` yo'q — g'alaba oxirida
-        tasodifan bekor bo'lib qolmasin;
-      * `ladder` FINISH dan oshib ketmaydi (u yerda faqat g'olib bo'linadi).
+    Adolat uçun çeklovlar:
+      * dastlabki 3 katak har doim toza — öyin boşida orqaga tuşmasin;
+      * FINISH va undan oldingi 2 katakda `snake` yöq — ğalaba oxirida
+        tasodifan bekor bölib qolmasin;
+      * `ladder` FINISH dan oşib ketmaydi (u yerda faqat ğolib bölinadi).
     """
     rng = rng or random
     layout = {}
@@ -140,21 +140,21 @@ def build_board(board_size, rng=None):
         return layout
 
     first_cell = 3
-    # FINISH katagining o'zi bo'sh: u yerga yetgan o'yinchi g'olib bo'ladi.
+    # FINISH katagining özi böş: u yerga yetgan öyinçi ğolib böladi.
     candidates = list(range(first_cell, board_size))
     rng.shuffle(candidates)
 
     codes = list(EFFECT_SPECS)
     weights = [EFFECT_SPECS[c]['weight'] for c in codes]
 
-    # O'yin boshlangach BARCHA o'yinchilar har bir effekt turini ko'rsin.
-    # Shuning uchun avval har bir effekt turiga (Muzlash, Ilon, Narvon,
-    # Bonus zarba, Qo'sh zarba, Shart, Qalqon, Bomba) kamida bittadan katak
-    # kafolatlanadi, qolgan kataklar esa tasodifiy effektlar bilan to'ldiriladi.
+    # Öyin boşlangaç BARÇA öyinçilar har bir effekt turini körsin.
+    # Şuning uçun avval har bir effekt turiga (Muzlaş, Ilon, Narvon,
+    # Bonus zarba, Qöş zarba, Şart, Qalqon, Bomba) kamida bittadan katak
+    # kafolatlanadi, qolgan kataklar esa tasodifiy effektlar bilan töldiriladi.
     used_cells = set()
 
     def place(code, cell):
-        """Katakka effekt joylaydi. Joylab bo'lmasa False qaytaradi."""
+        """Katakka effekt joylaydi. Joylab bölmasa False qaytaradi."""
         if cell in used_cells:
             return False
         if code == 'snake' and cell >= board_size - 2:
@@ -163,10 +163,10 @@ def build_board(board_size, rng=None):
             return False
         entry = {'effect': code}
         if code == 'snake':
-            # Orqaga sirg'alish START dan pastga tushmaydi.
+            # Orqaga sirğaliş START dan pastga tuşmaydi.
             entry['steps'] = min(rng.randint(3, 5), cell)
         elif code == 'ladder':
-            # Narvon FINISH ga olib chiqmaydi — g'alaba savol orqali kelsin.
+            # Narvon FINISH ga olib çiqmaydi — ğalaba savol orqali kelsin.
             entry['steps'] = min(rng.randint(3, 5), board_size - 1 - cell)
         layout[str(cell)] = entry
         used_cells.add(cell)
@@ -178,7 +178,7 @@ def build_board(board_size, rng=None):
             if place(code, cell):
                 break
 
-    # 2) Qolgan kataklarni tasodifiy effektlar bilan to'ldiramiz.
+    # 2) Qolgan kataklarni tasodifiy effektlar bilan töldiramiz.
     target = int(len(candidates) * EFFECT_DENSITY)
     free = [c for c in candidates if c not in used_cells]
     for cell in free[:max(0, target - len(used_cells))]:
@@ -188,7 +188,7 @@ def build_board(board_size, rng=None):
 
 
 def board_cells(session):
-    """Template uchun doska kataklari ro'yxati (o'yinchilar biriktirilgan holda)."""
+    """Template uçun doska kataklari röyxati (öyinçilar biriktirilgan holda)."""
     layout = session.board_layout or {}
     by_position = {}
     for player in session.ordered_players():
@@ -202,7 +202,7 @@ def board_cells(session):
         point = points[index]
         code = entry.get('effect')
         steps = entry.get('steps')
-        # Katak raqami yonida turgani uchun qadam soni yo'nalish belgisi bilan
+        # Katak raqami yonida turgani uçun qadam soni yönaliş belgisi bilan
         # yoziladi: "Ilon -4" orqaga, "Narvon +4" oldinga.
         steps_label = None
         if steps:
@@ -222,19 +222,19 @@ def board_cells(session):
 
 
 # ============================================================
-# Ilonsimon yo'l geometriyasi
+# Ilonsimon yöl geometriyasi
 # ============================================================
 
-# Kataklar doska chetidan shuncha foiz ichkarida turadi.
+# Kataklar doska çetidan şunça foiz içkarida turadi.
 TRAIL_MARGIN = 8.0
 
 
 def _row_layout(total):
-    """Katak sonidan qator/ustun o'lchamini tanlaydi.
+    """Katak sonidan qator/ustun ölçamini tanlaydi.
 
-    Doska baland emas, keng bo'lishi kerak: bitta qatorga ko'proq katak
-    sig'sa ekranning gorizontal joyi to'liq ishlatiladi va kataklar yirik
-    ko'rinadi (o'quvchiga uzoqdan ham o'qiladi).
+    Doska baland emas, keng bölişi kerak: bitta qatorga köproq katak
+    siğsa ekranning gorizontal joyi töliq işlatiladi va kataklar yirik
+    körinadi (öquvçiga uzoqdan ham öqiladi).
     """
     per_row = max(6, min(10, math.ceil(math.sqrt(total * 2.1))))
     rows = math.ceil(total / per_row)
@@ -242,10 +242,10 @@ def _row_layout(total):
 
 
 def _trail_metrics(total):
-    """So'qmoq o'lchovlari: qadam, egilish va yuqori chekka.
+    """Söqmoq ölçovlari: qadam, egiliş va yuqori çekka.
 
-    Egilish uchun alohida joy ajratiladi — aks holda birinchi va oxirgi
-    qator doska chetidan chiqib ketadi (kichik doskalarda y manfiy bo'lardi).
+    Egiliş uçun alohida joy ajratiladi — aks holda birinçi va oxirgi
+    qator doska çetidan çiqib ketadi (kiçik doskalarda y manfiy bölardi).
     """
     per_row, rows = _row_layout(total)
 
@@ -258,11 +258,11 @@ def _trail_metrics(total):
 
 
 def trail_points(board_size):
-    """Har bir katakning doskadagi o'rni — foizda (0..100 x, 0..100 y).
+    """Har bir katakning doskadagi örni — foizda (0..100 x, 0..100 y).
 
-    Yo'l ilonsimon: juft qatorlar chapdan o'ngga, toq qatorlar teskari.
-    Har bir qator sinus bo'yicha biroz egiladi — shu tufayli doska
-    to'g'ri chiziqli jadvalga emas, o'rmon so'qmog'iga o'xshaydi.
+    Yöl ilonsimon: juft qatorlar çapdan öngga, toq qatorlar teskari.
+    Har bir qator sinus böyiça biroz egiladi — şu tufayli doska
+    töğri çiziqli jadvalga emas, örmon söqmoğiga öxşaydi.
     """
     total = board_size + 1
     per_row, rows, step_x, step_y, wobble = _trail_metrics(total)
@@ -273,7 +273,7 @@ def trail_points(board_size):
         row, col = divmod(index, per_row)
         if row % 2:
             col = per_row - 1 - col
-        # qator chetlarida egilish nolga teng — yo'l uzluksiz qo'shiladi
+        # qator çetlarida egiliş nolga teng — yöl uzluksiz qöşiladi
         bend = math.sin(math.pi * (col / (per_row - 1))) if per_row > 1 else 0.0
         points.append({
             'i': index,
@@ -284,33 +284,33 @@ def trail_points(board_size):
 
 
 def board_geometry(board_size):
-    """Doska uchun o'lcham, so'qmoq chizig'i va katak diametri."""
+    """Doska uçun ölçam, söqmoq çiziği va katak diametri."""
     total = board_size + 1
     per_row, rows, step_x, step_y, wobble = _trail_metrics(total)
     points = trail_points(board_size)
 
-    # Kataklar orasidagi masofa gorizontal va vertikal bo'yicha teng bo'lishi
-    # uchun konteyner balandligini shu nisbatda beramiz.
+    # Kataklar orasidagi masofa gorizontal va vertikal böyiça teng bölişi
+    # uçun konteyner balandligini şu nisbatda beramiz.
     aspect = step_x / step_y if step_y else 0.62
     aspect = min(1.25, max(0.42, aspect))
 
-    # Katak diametri kenglik foizida o'lchanadi, shuning uchun vertikal
-    # oraliqni ham kenglik birligiga o'tkazib solishtiramiz.
+    # Katak diametri kenglik foizida ölçanadi, şuning uçun vertikal
+    # oraliqni ham kenglik birligiga ötkazib soliştiramiz.
     gap = min(step_x, step_y * aspect) if step_y else step_x
 
     return {
         'points': points,
         'aspect': round(aspect * 100, 2),
-        # Kataklar aylana emas, gorizontal yog'och lavha — kenglik bo'yicha
-        # o'lchanadi (balandligi CSS'da 0.88 nisbatda kesiladi), shu tufayli
-        # yozuvga joy bo'lsin deb aylanadagidan kengroq olinadi.
+        # Kataklar aylana emas, gorizontal yoğoç lavha — kenglik böyiça
+        # ölçanadi (balandligi CSS'da 0.88 nisbatda kesiladi), şu tufayli
+        # yozuvga joy bölsin deb aylanadagidan kengroq olinadi.
         'cell': round(min(gap * 0.82, 15.0), 3),
         'trail': _trail_path(points),
     }
 
 
 def _trail_path(points):
-    """Kataklar orqali o'tuvchi silliq SVG yo'li (kvadratik silliqlash)."""
+    """Kataklar orqali ötuvçi silliq SVG yöli (kvadratik silliqlaş)."""
     if len(points) < 2:
         return ''
     parts = ['M{:.2f} {:.2f}'.format(points[0]['x'], points[0]['y'])]
@@ -326,7 +326,7 @@ def _trail_path(points):
 
 
 def board_links(session):
-    """Ilon va narvonlarni bog'lovchi yoylar uchun (dan, ga, turi)."""
+    """Ilon va narvonlarni boğlovçi yoylar uçun (dan, ga, turi)."""
     links = []
     for cell, entry in (session.board_layout or {}).items():
         effect = entry.get('effect')
@@ -346,12 +346,12 @@ def board_links(session):
 def add_event(session, kind, **payload):
     """Sessiyaga hodisa yozadi, `event_seq` va `state_version` ni saqlaydi.
 
-    Saqlash shu yerda: aks holda faqat `add_event` chaqirgan (lekin sessiyani
+    Saqlaş şu yerda: aks holda faqat `add_event` çaqirgan (lekin sessiyani
     saqlamagan) oqimlarda seq qaytib ketib, hodisalar takrorlanardi.
 
-    `state_version` ham shu yerda oshiriladi — har qanday hodisa (qo'shilish,
-    chiqish, ...) boshqa ekranlarga darhol yetib borishi kerak, aks holda
-    polling `changed: false` olib, sahifani qo'lda yangilash talab qilinadi.
+    `state_version` ham şu yerda oşiriladi — har qanday hodisa (qöşiliş,
+    çiqiş, ...) boşqa ekranlarga darhol yetib borişi kerak, aks holda
+    polling `changed: false` olib, sahifani qölda yangilaş talab qilinadi.
     """
     session.event_seq += 1
     session.bump()
@@ -363,22 +363,22 @@ def add_event(session, kind, **payload):
 
 
 # ============================================================
-# Sessiyani boshlash
+# Sessiyani boşlaş
 # ============================================================
 
 def can_start(session):
-    """(bo'ladimi, sabab) — o'yinni boshlash mumkinmi."""
+    """(böladimi, sabab) — öyinni boşlaş mumkinmi."""
     if session.status != 'lobby':
-        return False, "O'yin allaqachon boshlangan yoki tugagan."
+        return False, "Öyin allaqaçon boşlangan yoki tugagan."
     if session.players.count() < MIN_PLAYERS:
-        return False, f"Kamida {MIN_PLAYERS} ta o'yinchi kerak."
+        return False, f"Kamida {MIN_PLAYERS} ta öyinçi kerak."
     if not session.question_pool:
-        return False, "Bu musobaqa uchun savol topilmadi."
+        return False, "Bu musobaqa uçun savol topilmadi."
     return True, ''
 
 
 def collect_questions(game, profession=None):
-    """O'yin uchun faol savollar (yo'nalish bo'yicha filtrlangan)."""
+    """Öyin uçun faol savollar (yönaliş böyiça filtrlangan)."""
     qs = JumanjiQuestion.objects.filter(game=game, is_active=True)
     if profession is not None:
         qs = qs.filter(profession=profession)
@@ -423,7 +423,7 @@ def start_session(session, rng=None):
 # ============================================================
 
 def open_question(session, controller=None):
-    """Navbatdagi o'yinchi uchun savolni ochadi."""
+    """Navbatdagi öyinçi uçun savolni oçadi."""
     question = session.next_question()
     if question is None:
         return None
@@ -457,17 +457,17 @@ def open_question(session, controller=None):
 
 
 def roll_dice(rng=None):
-    """Nard toshi — 1..6. Faqat serverda."""
+    """Nard toşi — 1..6. Faqat serverda."""
     rng = rng or random
     return rng.randint(1, 6)
 
 
 def judge_turn(session, verdict, controller, rng=None):
-    """Boshqaruvchi bahosini qo'llaydi.
+    """Boşqaruvçi bahosini qöllaydi.
 
-    To'g'ri javobda tosh SHU YERDA tashlanmaydi — navbat `dice` bosqichiga
-    o'tadi va toshni o'quvchining o'zi aylantiradi (`throw_dice`). Noto'g'ri
-    javobda navbat darhol keyingi o'yinchiga o'tadi.
+    Töğri javobda toş ŞU YERDA taşlanmaydi — navbat `dice` bosqiçiga
+    ötadi va toşni öquvçining özi aylantiradi (`throw_dice`). Notöğri
+    javobda navbat darhol keyingi öyinçiga ötadi.
     """
     turn = session.current_turn
     player = turn.player
@@ -497,17 +497,17 @@ def judge_turn(session, verdict, controller, rng=None):
 
 
 def throw_dice(session, rng=None):
-    """Toshni aylantiradi va o'yinchini oldinga suradi.
+    """Toşni aylantiradi va öyinçini oldinga suradi.
 
-    Qiymat FAQAT shu yerda hisoblanadi: client hech qachon o'zi tanlamaydi,
-    aks holda o'quvchi javob paketini o'zgartirib 6 chiqarardi. Tosh
-    aylanishining animatsiyasi hodisadan boshqa ekranlarga ham yetadi.
+    Qiymat FAQAT şu yerda hisoblanadi: client heç qaçon özi tanlamaydi,
+    aks holda öquvçi javob paketini özgartirib 6 çiqarardi. Toş
+    aylanişining animatsiyasi hodisadan boşqa ekranlarga ham yetadi.
     """
     turn = session.current_turn
     player = turn.player
 
     dice = roll_dice(rng) * player.next_multiplier
-    # 🎯 ko'paytiruvchi bir marta ishlaydi
+    # 🎯 köpaytiruvçi bir marta işlaydi
     player.next_multiplier = 1
 
     moved_to = min(player.position + dice, session.board_size)
@@ -532,10 +532,10 @@ def throw_dice(session, rng=None):
 
 
 def apply_cell_effect(session, rng=None):
-    """Joriy navbat o'yinchisiga katak effektini qo'llaydi.
+    """Joriy navbat öyinçisiga katak effektini qöllaydi.
 
-    Bir navbatda faqat bitta effekt — effekt natijasida tushilgan yangi
-    katak effekti QO'LLANMAYDI (cheksiz zanjirning oldini oladi).
+    Bir navbatda faqat bitta effekt — effekt natijasida tuşilgan yangi
+    katak effekti QÖLLANMAYDI (çeksiz zanjirning oldini oladi).
 
     Qaytaradi: effekt dict yoki None.
     """
@@ -583,7 +583,7 @@ def apply_cell_effect(session, rng=None):
     elif code == 'double':
         player.next_multiplier = 2
     elif code == 'bonus':
-        # ⭐ savolsiz qo'shimcha zarba
+        # ⭐ savolsiz qöşimça zarba
         dice = roll_dice(rng)
         player.position = min(session.board_size, player.position + dice)
         outcome['dice'] = dice
@@ -598,7 +598,7 @@ def apply_cell_effect(session, rng=None):
         else:
             outcome['swapped_with'] = None
     elif code == 'task':
-        # boshqaruvchi shart beradi — bajarilishi alohida tasdiqlanadi
+        # boşqaruvçi şart beradi — bajarilişi alohida tasdiqlanadi
         outcome['awaiting_task'] = True
 
     player.save()
@@ -619,7 +619,7 @@ def apply_cell_effect(session, rng=None):
 
 
 def _swap_target(session, player):
-    """💥 uchun: oldinda turgan eng yaqin o'yinchi."""
+    """💥 uçun: oldinda turgan eng yaqin öyinçi."""
     return (
         session.players.exclude(pk=player.pk)
         .filter(position__gt=player.position, finished_at__isnull=True)
@@ -629,7 +629,7 @@ def _swap_target(session, player):
 
 
 def resolve_task(session, completed, controller, note=''):
-    """🃏 shart natijasi: bajarilsa o'yinchi oldinga suriladi."""
+    """🃏 şart natijasi: bajarilsa öyinçi oldinga suriladi."""
     turn = session.current_turn
     player = turn.player
 
@@ -655,11 +655,11 @@ def resolve_task(session, completed, controller, note=''):
 
 
 # ============================================================
-# Navbat almashish va yakun
+# Navbat almaşiş va yakun
 # ============================================================
 
 def check_winner(session):
-    """FINISH ga yetgan o'yinchi bormi — bo'lsa g'olib qilib belgilaydi."""
+    """FINISH ga yetgan öyinçi bormi — bölsa ğolib qilib belgilaydi."""
     finisher = (
         session.players.filter(position__gte=session.board_size, finished_at__isnull=True)
         .order_by('seat_order')
@@ -675,10 +675,10 @@ def check_winner(session):
 
 
 def advance_turn(session):
-    """Navbatni keyingi o'yinchiga uzatadi (❄️ muzlaganlarni o'tkazib).
+    """Navbatni keyingi öyinçiga uzatadi (❄️ muzlaganlarni ötkazib).
 
-    Hamma muzlagan bo'lsa ham cheksiz aylanmaydi: bitta to'liq aylanadan
-    keyin muzlashlar hisoblanib bo'ladi va navbat baribir kimgadir tushadi.
+    Hamma muzlagan bölsa ham çeksiz aylanmaydi: bitta töliq aylanadan
+    keyin muzlaşlar hisoblanib böladi va navbat baribir kimgadir tuşadi.
     """
     players = list(session.ordered_players().filter(finished_at__isnull=True))
     if not players:
@@ -706,7 +706,7 @@ def advance_turn(session):
         session.save()
         return candidate
 
-    # Hamma muzlagan edi — muzlashlar yechildi, birinchisiga navbat.
+    # Hamma muzlagan edi — muzlaşlar yeçildi, birinçisiga navbat.
     session.current_player = players[0]
     session.current_turn = None
     session.enter_phase('waiting_turn')
@@ -717,7 +717,7 @@ def advance_turn(session):
 
 
 def finish_session(session, winner_player=None):
-    """Sessiyani yakunlaydi va o'rinlarni belgilaydi."""
+    """Sessiyani yakunlaydi va örinlarni belgilaydi."""
     if session.status == 'finished':
         return session
 
@@ -746,7 +746,7 @@ def finish_session(session, winner_player=None):
 
 
 def award_coins(session):
-    """G'oliblarga musobaqada belgilangan coinlarni beradi (bir marta)."""
+    """Ğoliblarga musobaqada belgilangan coinlarni beradi (bir marta)."""
     if session.coins_awarded or session.status != 'finished':
         return
 
@@ -755,7 +755,7 @@ def award_coins(session):
 
     competition = session.competition
     coin_map = {1: competition.coin_1st, 2: competition.coin_2nd, 3: competition.coin_3rd}
-    place_names = {1: "1-o'rin 🥇", 2: "2-o'rin 🥈", 3: "3-o'rin 🥉"}
+    place_names = {1: "1-örin 🥇", 2: "2-örin 🥈", 3: "3-örin 🥉"}
 
     for player in session.players.filter(rank__lte=3).select_related('user'):
         amount = coin_map.get(player.rank, 0)
@@ -764,7 +764,7 @@ def award_coins(session):
 
         place = place_names[player.rank]
         user = player.user
-        user.add_coins(amount, f"Jumanji g'olibi: {competition.title} ({place})")
+        user.add_coins(amount, f"Jumanji ğolibi: {competition.title} ({place})")
 
         Message.objects.create(
             title=f"🎲 Jumanji — {place}",
@@ -790,7 +790,7 @@ def award_coins(session):
 
 
 # ============================================================
-# Yordamchilar
+# Yordamçilar
 # ============================================================
 
 def is_timed_out(turn):
@@ -802,7 +802,7 @@ def is_timed_out(turn):
 
 
 def can_control(user):
-    """Kim o'yinni boshqara oladi: admin, yordamchi admin va o'qituvchi."""
+    """Kim öyinni boşqara oladi: admin, yordamçi admin va öqituvçi."""
     return bool(
         user and user.is_authenticated
         and getattr(user, 'role', None) in ('admin', 'assistant_admin', 'teacher')
@@ -810,11 +810,11 @@ def can_control(user):
 
 
 def touch_player(session, user):
-    """Heartbeat — o'quvchi hali sahifada ekanini belgilaydi.
+    """Heartbeat — öquvçi hali sahifada ekanini belgilaydi.
 
-    Har polling'da yozib bo'lmaydi: SQLite yozuv paytida butun bazani
-    qulflaydi, 20 o'yinchi sekundiga 10 marta yozsa o'yin qotib qoladi.
-    Shuning uchun avval o'qiladi va faqat eskirgan bo'lsa yangilanadi.
+    Har polling'da yozib bölmaydi: SQLite yozuv paytida butun bazani
+    qulflaydi, 20 öyinçi sekundiga 10 marta yozsa öyin qotib qoladi.
+    Şuning uçun avval öqiladi va faqat eskirgan bölsa yangilanadi.
     """
     row = (
         JumanjiPlayer.objects

@@ -1,11 +1,11 @@
-"""Kirillcha (non-ASCII) nomli yuklangan fayllarni lotincha nomga o'tkazadi.
+"""Kirillça (non-ASCII) nomli yuklangan fayllarni lotinça nomga ötkazadi.
 
-    python manage.py fix_media_filenames          # faqat ko'rsatadi
+    python manage.py fix_media_filenames          # faqat körsatadi
     python manage.py fix_media_filenames --apply  # qayta nomlaydi va bazani yangilaydi
 
-Barcha modellardagi FileField/ImageField qiymatlari tekshiriladi. Fayl diskda
-topilsa (har qanday kodlashda), ASCII nomga ko'chiriladi va bazadagi yo'l
-yangilanadi. Diskda yo'q fayllar faqat hisobotda ko'rsatiladi.
+Barça modellardagi FileField/ImageField qiymatlari tekşiriladi. Fayl diskda
+topilsa (har qanday kodlaşda), ASCII nomga köçiriladi va bazadagi yöl
+yangilanadi. Diskda yöq fayllar faqat hisobotda körsatiladi.
 """
 import os
 import posixpath
@@ -29,10 +29,10 @@ def _file_fields():
 
 
 class Command(BaseCommand):
-    help = "Kirillcha nomli media fayllarni lotincha nomga o'tkazadi (URL 404 muammosi)."
+    help = "Kirillça nomli media fayllarni lotinça nomga ötkazadi (URL 404 muammosi)."
 
     def add_arguments(self, parser):
-        parser.add_argument('--apply', action='store_true', help="O'zgarishlarni haqiqatan bajarish.")
+        parser.add_argument('--apply', action='store_true', help="Özgarişlarni haqiqatan bajariş.")
 
     def handle(self, *args, apply=False, **options):
         renamed = missing = 0
@@ -48,7 +48,7 @@ class Command(BaseCommand):
                 label = f'{model._meta.label}.{field.name} #{pk}: {name}'
                 if source is None:
                     missing += 1
-                    self.stdout.write(self.style.WARNING(f'[diskda yo\'q] {label}'))
+                    self.stdout.write(self.style.WARNING(f'[diskda yöq] {label}'))
                     continue
                 new_name = default_storage.get_available_name(posixpath.join(directory, new_base))
                 self.stdout.write(f'{label} -> {new_name}')

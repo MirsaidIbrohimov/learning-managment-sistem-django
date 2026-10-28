@@ -11,7 +11,7 @@ UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0 Safari/537.36'
 
 
 class DeviceManagementTest(TestCase):
-    """Qurilma User-Agent + IP bo'yicha aniqlanadi; bir vaqtda faqat 1 ta sessiya onlayn."""
+    """Qurilma User-Agent + IP böyiça aniqlanadi; bir vaqtda faqat 1 ta sessiya onlayn."""
 
     def setUp(self):
         cache.clear()

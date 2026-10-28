@@ -1,6 +1,6 @@
-"""Admin: kurslar uchun sertifikat dizaynlarini boshqarish.
+"""Admin: kurslar uçun sertifikat dizaynlarini boşqariş.
 
-Har bir dizayn — fon rasmi + 4 ta matn maydonining joylashuvi (foizda).
+Har bir dizayn — fon rasmi + 4 ta matn maydonining joylaşuvi (foizda).
 Kursga `CertificateSettings.design` orqali biriktiriladi; biriktirilmagan
 kurs standart dizayndan foydalanadi (accounts/certificates.py).
 """
@@ -42,7 +42,7 @@ def _clamp_int(value, default, lo=6, hi=120):
 
 @login_required
 def admin_certificate_designs(request):
-    """Dizaynlar ro'yxati va yangi dizayn yaratish."""
+    """Dizaynlar röyxati va yangi dizayn yaratiş."""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -58,7 +58,7 @@ def admin_certificate_designs(request):
             messages.error(request, e.messages[0])
             return redirect('admin_certificate_designs')
         design = CertificateDesign.objects.create(name=name, background=bg)
-        messages.success(request, f"\"{design.name}\" dizayni yaratildi — endi matnlarni joylashtiring.")
+        messages.success(request, f"\"{design.name}\" dizayni yaratildi — endi matnlarni joylaştiring.")
         return redirect('admin_certificate_design_edit', pk=design.pk)
 
     designs = CertificateDesign.objects.prefetch_related('course_settings__profession')
@@ -69,7 +69,7 @@ def admin_certificate_designs(request):
 
 @login_required
 def admin_certificate_design_edit(request, pk):
-    """Vizual tahrirlagich: matnlarni sudrab joylashtirish, o'lcham/shrift/rang."""
+    """Vizual tahrirlagiç: matnlarni sudrab joylaştiriş, ölcham/shrift/rang."""
     if not request.user.is_admin:
         return redirect('home')
     design = get_object_or_404(CertificateDesign, pk=pk)
@@ -104,7 +104,7 @@ def admin_certificate_design_edit(request, pk):
             setattr(design, f'{key}_size', _clamp_int(request.POST.get(f'{key}_size'), dsize))
             font = request.POST.get(f'{key}_font', dfont)
             setattr(design, f'{key}_font', font if font in fonts else dfont)
-            if key != 'name':  # ism har doim ko'rinadi
+            if key != 'name':  # ism har doim körinadi
                 setattr(design, f'show_{key}', request.POST.get(f'show_{key}') == '1')
         design.save()
 
@@ -131,7 +131,7 @@ def admin_certificate_design_edit(request, pk):
 
 @login_required
 def admin_certificate_design_preview(request, pk):
-    """Saqlangan dizayn bo'yicha namuna PDF (brauzerda ochiladi)."""
+    """Saqlangan dizayn böyiça namuna PDF (brauzerda oçiladi)."""
     if not request.user.is_admin:
         return redirect('home')
     design = get_object_or_404(CertificateDesign, pk=pk)
@@ -168,7 +168,7 @@ def admin_certificate_design_delete(request, pk):
             pass
     messages.success(
         request,
-        f"\"{name}\" dizayni o'chirildi."
+        f"\"{name}\" dizayni öçirildi."
         + (f" {used} ta kurs standart dizaynga qaytdi." if used else "")
     )
     return redirect('admin_certificate_designs')
@@ -188,7 +188,7 @@ def regenerate_certificates(queryset):
 
 
 def _regenerate_for_design(design):
-    """Shu dizayn biriktirilgan kurslardagi barcha sertifikatlarni qayta yaratadi."""
+    """Şu dizayn biriktirilgan kurslardagi barça sertifikatlarni qayta yaratadi."""
     from .models import Certificate
 
     prof_ids = list(design.course_settings.values_list('profession_id', flat=True))

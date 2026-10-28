@@ -1,9 +1,9 @@
 {% extends study_groups_base %}
 {% load static %}
 
-{% block title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
-{% block page_title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
-{% block topbar_title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
+{% block title %}{% if group %}Guruhni tahrirlaş{% else %}Yangi guruh{% endif %}{% endblock %}
+{% block page_title %}{% if group %}Guruhni tahrirlaş{% else %}Yangi guruh{% endif %}{% endblock %}
+{% block topbar_title %}{% if group %}Guruhni tahrirlaş{% else %}Yangi guruh{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -336,7 +336,7 @@
             <span class="sgf-title-icon">
                 <i class="bi bi-{% if group %}pencil-square{% else %}plus-circle-fill{% endif %}"></i>
             </span>
-            {% if group %}Guruhni tahrirlash{% else %}Yangi guruh yaratish{% endif %}
+            {% if group %}Guruhni tahrirlaş{% else %}Yangi guruh yaratiş{% endif %}
         </h1>
         <a href="{% url study_groups_url %}" class="sgf-back">
             <i class="bi bi-arrow-left"></i> Orqaga
@@ -366,7 +366,7 @@
             </div>
             <div class="sgf-grid" style="margin-top:16px;">
                 <div class="sgf-field">
-                    <label><i class="bi bi-person-workspace"></i> O'qituvchi</label>
+                    <label><i class="bi bi-person-workspace"></i> Öqituvçi</label>
                     <select name="teacher" class="form-select">
                         <option value="">— Tanlanmagan —</option>
                         {% for t in teachers %}
@@ -388,10 +388,10 @@
             <div class="sgf-field">
                 <label><i class="bi bi-calendar-check"></i> Kunlarni tanlang <span class="req">*</span></label>
                 <div class="sgf-quick">
-                    <button type="button" data-days="1,3,5"><i class="bi bi-1-square"></i> Toq kunlar (Du,Ch,Ju)</button>
-                    <button type="button" data-days="2,4,6"><i class="bi bi-2-square"></i> Juft kunlar (Se,Pa,Sh)</button>
+                    <button type="button" data-days="1,3,5"><i class="bi bi-1-square"></i> Toq kunlar (Du,Ç,Ju)</button>
+                    <button type="button" data-days="2,4,6"><i class="bi bi-2-square"></i> Juft kunlar (Se,Pa,Ş)</button>
                     <button type="button" data-days="1,2,3,4,5,6"><i class="bi bi-check-all"></i> Hammasi</button>
-                    <button type="button" data-days=""><i class="bi bi-x-circle"></i> Tozalash</button>
+                    <button type="button" data-days=""><i class="bi bi-x-circle"></i> Tozalaş</button>
                 </div>
                 <div class="sgf-days">
                     {% for d_num, d_name in days_of_week %}
@@ -400,7 +400,7 @@
                                {% if d_num in selected_days %}checked{% endif %}>
                         <span class="sgf-day-label">
                             <span class="short">
-                                {% if d_num == 1 %}Du{% elif d_num == 2 %}Se{% elif d_num == 3 %}Ch{% elif d_num == 4 %}Pa{% elif d_num == 5 %}Ju{% elif d_num == 6 %}Sh{% endif %}
+                                {% if d_num == 1 %}Du{% elif d_num == 2 %}Se{% elif d_num == 3 %}Ç{% elif d_num == 4 %}Pa{% elif d_num == 5 %}Ju{% elif d_num == 6 %}Ş{% endif %}
                             </span>
                             <span class="full">{{ d_name }}</span>
                         </span>
@@ -411,12 +411,12 @@
 
             <div class="sgf-grid-3" style="margin-top:20px;">
                 <div class="sgf-field">
-                    <label><i class="bi bi-clock"></i> Boshlanish vaqti <span class="req">*</span></label>
+                    <label><i class="bi bi-clock"></i> Boşlaniş vaqti <span class="req">*</span></label>
                     <input type="time" name="start_time" class="form-control" required
                            value="{% if group %}{{ group.start_time|time:'H:i' }}{% else %}09:00{% endif %}">
                 </div>
                 <div class="sgf-field">
-                    <label><i class="bi bi-clock-history"></i> Tugash vaqti <span class="req">*</span></label>
+                    <label><i class="bi bi-clock-history"></i> Tugaş vaqti <span class="req">*</span></label>
                     <input type="time" name="end_time" class="form-control" required
                            value="{% if group %}{{ group.end_time|time:'H:i' }}{% else %}11:00{% endif %}">
                 </div>
@@ -427,15 +427,15 @@
             </div>
         </div>
 
-        <!-- O'quvchilar -->
+        <!-- Öquvçilar -->
         <div class="sgf-card">
-            <h6><i class="bi bi-people-fill"></i> O'quvchilar</h6>
+            <h6><i class="bi bi-people-fill"></i> Öquvçilar</h6>
 
             <div class="sgf-students">
                 <input type="text" id="studentSearch" class="sgf-students-search"
-                       placeholder="🔍 O'quvchi ismi bo'yicha qidirish...">
+                       placeholder="🔍 Öquvçi ismi böyiça qidiriş...">
                 <div class="sgf-students-info">
-                    <span>Jami: <strong>{{ students|length }}</strong> o'quvchi mavjud</span>
+                    <span>Jami: <strong>{{ students|length }}</strong> öquvçi mavjud</span>
                     <span>Tanlangan: <span class="sgf-count-badge" id="selectedCount">0</span></span>
                 </div>
                 <div class="sgf-students-list" id="studentsList">
@@ -461,19 +461,19 @@
             </div>
         </div>
 
-        <!-- Qo'shimcha -->
+        <!-- Qöşimça -->
         <div class="sgf-card">
-            <h6><i class="bi bi-card-text"></i> Qo'shimcha</h6>
+            <h6><i class="bi bi-card-text"></i> Qöşimça</h6>
             <div class="sgf-field" style="margin-bottom:14px;">
                 <label><i class="bi bi-chat-square-text"></i> Izoh</label>
-                <textarea name="description" placeholder="Guruh haqida qo'shimcha ma'lumot (ixtiyoriy)">{{ group.description|default:'' }}</textarea>
+                <textarea name="description" placeholder="Guruh haqida qöşimça ma'lumot (ixtiyoriy)">{{ group.description|default:'' }}</textarea>
             </div>
             {% if group %}
             <label class="sgf-toggle">
                 <input type="checkbox" name="is_active" {% if group.is_active %}checked{% endif %}>
                 <div>
                     <div style="font-weight:700;font-size:0.9rem;color:var(--text-color);">Guruh faol</div>
-                    <div style="font-size:0.75rem;color:#6c757d;">Nofaol guruhlar dars jadvalida ko'rinmaydi</div>
+                    <div style="font-size:0.75rem;color:#6c757d;">Nofaol guruhlar dars jadvalida körinmaydi</div>
                 </div>
             </label>
             {% endif %}
@@ -482,10 +482,10 @@
         <!-- Actions -->
         <div class="sgf-actions">
             <a href="{% url study_groups_url %}" class="sgf-btn sgf-btn-cancel">
-                <i class="bi bi-x-circle"></i> Bekor qilish
+                <i class="bi bi-x-circle"></i> Bekor qiliş
             </a>
             <button type="submit" class="sgf-btn sgf-btn-primary">
-                <i class="bi bi-check-circle-fill"></i> {% if group %}Saqlash{% else %}Yaratish{% endif %}
+                <i class="bi bi-check-circle-fill"></i> {% if group %}Saqlaş{% else %}Yaratiş{% endif %}
             </button>
         </div>
     </form>
@@ -552,7 +552,7 @@ document.getElementById('sgfForm').addEventListener('submit', function(e) {
     const end = document.querySelector('input[name="end_time"]').value;
     if (start && end && start >= end) {
         e.preventDefault();
-        alert("Tugash vaqti boshlanish vaqtidan katta bo'lishi kerak!");
+        alert("Tugaş vaqti boşlaniş vaqtidan katta bölişi kerak!");
         return;
     }
 });

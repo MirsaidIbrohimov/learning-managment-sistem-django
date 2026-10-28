@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profession',
             name='ai_check_enabled',
-            field=models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan"),
+            field=models.BooleanField(default=True, verbose_name="AI tekşiruvçi yoqilgan"),
         ),
     ]

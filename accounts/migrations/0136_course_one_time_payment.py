@@ -14,12 +14,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profession',
             name='one_time_payment',
-            field=models.BooleanField(default=False, verbose_name="Bir martalik to'lov"),
+            field=models.BooleanField(default=False, verbose_name="Bir martalik tölov"),
         ),
         migrations.AddField(
             model_name='profession',
             name='one_time_price',
-            field=models.PositiveIntegerField(default=0, verbose_name="Kurs narxi (so'm)"),
+            field=models.PositiveIntegerField(default=0, verbose_name="Kurs narxi (söm)"),
         ),
         migrations.AddField(
             model_name='tezcheckpaymentorder',

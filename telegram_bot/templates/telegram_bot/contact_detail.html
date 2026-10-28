@@ -106,7 +106,7 @@
         <div class="cd-header">
             <h5><i class="bi bi-envelope-open me-2" style="color:#0088cc;"></i>{{ msg.subject }}</h5>
             <span class="cd-status cd-status-{{ msg.status }}">
-                {% if msg.status == 'new' %}🔵 Yangi{% elif msg.status == 'read' %}🟡 O'qildi{% else %}🟢 Javob berildi{% endif %}
+                {% if msg.status == 'new' %}🔵 Yangi{% elif msg.status == 'read' %}🟡 Öqildi{% else %}🟢 Javob berildi{% endif %}
             </span>
         </div>
         <div class="cd-body">
@@ -124,7 +124,7 @@
                     <span>{{ msg.email|default:"-" }}</span>
                 </div>
                 <div class="cd-info-item">
-                    <label><i class="bi bi-link-45deg me-1"></i>Tizim foydalanuvchisi</label>
+                    <label><i class="bi bi-link-45deg me-1"></i>Tizim foydalanuvçisi</label>
                     <span>{% if msg.user %}{{ msg.user.full_name }} (@{{ msg.user.username }}){% else %}-{% endif %}</span>
                 </div>
             </div>
@@ -152,7 +152,7 @@
     </div>
 
     <div class="cd-reply-card">
-        <h6><i class="bi bi-send"></i> Telegram orqali javob yuborish</h6>
+        <h6><i class="bi bi-send"></i> Telegram orqali javob yuboriş</h6>
         {% if msg.user and msg.user.telegram_id %}
         <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;background:rgba(0,136,204,0.08);border:1px solid rgba(0,136,204,0.15);margin-bottom:1rem;font-size:0.82rem;">
             <i class="bi bi-telegram" style="color:#0088cc;font-size:1.1rem;"></i>
@@ -161,14 +161,14 @@
         {% else %}
         <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);margin-bottom:1rem;font-size:0.82rem;color:var(--bs-body-color);">
             <i class="bi bi-exclamation-triangle" style="color:#f59e0b;font-size:1.1rem;"></i>
-            <span>Foydalanuvchining Telegrami ulanmagan — javob faqat saqlanadi</span>
+            <span>Foydalanuvçining Telegrami ulanmagan — javob faqat saqlanadi</span>
         </div>
         {% endif %}
         <form method="POST">
             {% csrf_token %}
             <textarea name="reply" class="cd-reply-textarea" placeholder="Javob yozing...">{{ msg.admin_reply }}</textarea>
             <button type="submit" class="cd-reply-btn">
-                <i class="bi bi-send-fill me-1"></i> Yuborish
+                <i class="bi bi-send-fill me-1"></i> Yuboriş
             </button>
         </form>
     </div>

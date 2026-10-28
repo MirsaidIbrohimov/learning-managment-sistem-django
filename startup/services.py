@@ -1,5 +1,5 @@
-"""Startup biznes logikasi — view'lar yupqa qolishi uchun barcha yozish
-amallari shu modulda.
+"""Startup biznes logikasi — view'lar yupqa qolişi uçun barça yoziş
+amallari şu modulda.
 
 Ikki muhim invariant:
 
@@ -7,7 +7,7 @@ Ikki muhim invariant:
    ustiga tayanadi — bir vazifa ikki marta tasdiqlansa ham XP va LMS coin
    faqat bir marta beriladi.
 2. **Progress hisoblanadi, hard-code qilinmaydi.** `recompute_progress()`
-   bajarilgan vazifa ballarini bosqich vazniga tortib chiqaradi.
+   bajarilgan vazifa ballarini bosqiç vazniga tortib çiqaradi.
 """
 
 from datetime import timedelta
@@ -42,7 +42,7 @@ STAGE_LABELS = dict(STAGE_CHOICES)
 CREATE_STARTUP_XP = 100
 
 
-# ─────────────────────────── Yordamchi ───────────────────────────
+# ─────────────────────────── Yordamçi ───────────────────────────
 
 
 def log_activity(startup, user, action_type, description):
@@ -52,18 +52,18 @@ def log_activity(startup, user, action_type, description):
 
 
 def notify(user, title, content, message_type='system'):
-    """Mavjud LMS bildirishnoma tizimini qayta ishlatadi."""
+    """Mavjud LMS bildirişnoma tizimini qayta işlatadi."""
     if user is not None:
         send_notification(user, title, content, message_type)
 
 
 def notify_admins_telegram(text):
-    """Adminlarga Telegram xabari. Bot sozlanmagan bo'lsa jimgina o'tadi.
+    """Adminlarga Telegram xabari. Bot sozlanmagan bölsa jimgina ötadi.
 
-    Startup oqimlari bot yo'qligi yoki tarmoq xatosi tufayli uzilib qolmasligi
-    kerak — shuning uchun import ham, chaqiruv ham himoyalangan.
-    `notify_admins` fon threadida bazani o'qiydi; test bazasi transaksiyada
-    qulflangani uchun testlarda o'tkazib yuboriladi.
+    Startup oqimlari bot yöqligi yoki tarmoq xatosi tufayli uzilib qolmasligi
+    kerak — şuning uçun import ham, çaqiruv ham himoyalangan.
+    `notify_admins` fon threadida bazani öqiydi; test bazasi transaksiyada
+    qulflangani uçun testlarda ötkazib yuboriladi.
     """
     if getattr(settings, 'RUNNING_TESTS', False):
         return
@@ -81,11 +81,11 @@ def notify_admins_telegram(text):
 
 
 def seed_roadmap(startup):
-    """Global shablondan startupning shaxsiy roadmap'ini nusxalaydi.
+    """Global şablondan startupning şaxsiy roadmap'ini nusxalaydi.
 
-    Shablon bo'sh bo'lsa (`seed_startup_roadmap` ishga tushirilmagan) —
-    `STAGE_CHOICES` dan minimal bosqichlar yaratiladi, shunda startup
-    baribar ishlaydi.
+    Şablon böş bölsa (`seed_startup_roadmap` işga tuşirilmagan) —
+    `STAGE_CHOICES` dan minimal bosqiçlar yaratiladi, şunda startup
+    baribar işlaydi.
     """
     templates = list(StageTemplate.objects.filter(is_active=True)
                      .prefetch_related('task_templates'))
@@ -122,10 +122,10 @@ def seed_roadmap(startup):
 
 
 def recompute_progress(startup):
-    """Progress va joriy bosqichni vazifalardan qayta hisoblaydi.
+    """Progress va joriy bosqiçni vazifalardan qayta hisoblaydi.
 
-    Har bosqich progressi = tasdiqlangan vazifa ballari / bosqichdagi umumiy
-    ball. Umumiy progress bosqich `weight` bo'yicha tortilgan o'rtacha.
+    Har bosqiç progressi = tasdiqlangan vazifa ballari / bosqiçdagi umumiy
+    ball. Umumiy progress bosqiç `weight` böyiça tortilgan örtaça.
     """
     stages = list(startup.stages.all().order_by('order', 'id'))
     if not stages:
@@ -166,7 +166,7 @@ def recompute_progress(startup):
     progress = round(earned_weight / total_weight * 100) if total_weight else 0
     progress = max(0, min(100, progress))
 
-    # Joriy bosqich = eng oldingi yakunlanmagan bosqich (hammasi tugasa — oxirgisi).
+    # Joriy bosqiç = eng oldingi yakunlanmagan bosqiç (hammasi tugasa — oxirgisi).
     current = next((stage.key for stage in stages if not stage.is_completed), stages[-1].key)
     if current not in STAGE_ORDER:
         current = startup.current_stage
@@ -185,10 +185,10 @@ def recompute_progress(startup):
 
 
 def _announce_stage_up(startup, previous_stage, current_stage, progress):
-    """Bosqich oshganda egasiga bildirishnoma, adminlarga Telegram xabari.
+    """Bosqiç oşganda egasiga bildirişnoma, adminlarga Telegram xabari.
 
-    Idempotent: `recompute_progress` eskirgan obyekt bilan qayta chaqirilsa ham
-    bitta o'tish uchun bitta xabar ketadi.
+    Idempotent: `recompute_progress` eskirgan obyekt bilan qayta çaqirilsa ham
+    bitta ötiş uçun bitta xabar ketadi.
     """
     old_label = STAGE_LABELS.get(previous_stage, previous_stage)
     new_label = STAGE_LABELS.get(current_stage, current_stage)
@@ -202,12 +202,12 @@ def _announce_stage_up(startup, previous_stage, current_stage, progress):
         return
 
     def _send():
-        notify(owner, '📈 Yangi bosqich',
-               f'"{startup.name}" startupi "{new_label}" bosqichiga oʻtdi. '
+        notify(owner, '📈 Yangi bosqiç',
+               f'"{startup.name}" startupi "{new_label}" bosqiçiga ötdi. '
                f'Umumiy progress: {progress}%.',
                'achievement')
         notify_admins_telegram(
-            f'📈 Startup bosqichi oshdi: {startup.name}\n'
+            f'📈 Startup bosqiçi oşdi: {startup.name}\n'
             f'{old_label} → {new_label}\n'
             f'Progress: {progress}%\n'
             f'Muallif: {owner.full_name} (@{owner.username})'
@@ -220,9 +220,9 @@ def _announce_stage_up(startup, previous_stage, current_stage, progress):
 
 
 def award_xp(startup, amount, reason, dedupe_key, user=None, description=''):
-    """Startupga XP beradi va (user berilsa) LMS coin qo'shadi.
+    """Startupga XP beradi va (user berilsa) LMS coin qöşadi.
 
-    `dedupe_key` UNIQUE bo'lgani uchun takroriy chaqiruv jimgina `None`
+    `dedupe_key` UNIQUE bölgani uçun takroriy çaqiruv jimgina `None`
     qaytaradi — bu double-award himoyasining yagona nuqtasi.
     """
     if amount <= 0:
@@ -247,16 +247,16 @@ def award_xp(startup, amount, reason, dedupe_key, user=None, description=''):
     return entry
 
 
-# ─────────────────────────── Startup yaratish ───────────────────────────
+# ─────────────────────────── Startup yaratiş ───────────────────────────
 
 
 @transaction.atomic
 def create_startup(owner, form, notify_owner=True):
     """Startup yaratadi: roadmap, founder a'zoligi, pitch deck, +100 XP.
 
-    `notify_owner=False` — ommaviy import uchun: XP va yutuq beriladi, lekin
+    `notify_owner=False` — ommaviy import uçun: XP va yutuq beriladi, lekin
     egasiga xabar va adminlarga Telegram yuborilmaydi (50 qatorli fayl 50 ta
-    bildirishnoma yasamasligi kerak).
+    bildirişnoma yasamasligi kerak).
     """
     startup = form.save(commit=False)
     startup.owner = owner
@@ -289,7 +289,7 @@ def _after_create(startup, owner, notify_owner=True):
         return
     notify(owner, '🚀 Startup yaratildi',
            f'"{startup.name}" startupi muvaffaqiyatli yaratildi. '
-           f'Roadmap tayyor — birinchi vazifadan boshlang!',
+           f'Roadmap tayyor — birinçi vazifadan boşlang!',
            'achievement')
     notify_admins_telegram(
         f'🚀 Yangi startup: {startup.name}\n'
@@ -303,7 +303,7 @@ def _after_create(startup, owner, notify_owner=True):
 
 @transaction.atomic
 def submit_task(task, user, payload):
-    """Vazifa topshirigʻini yaratadi va vazifani SUBMITTED holatiga o'tkazadi."""
+    """Vazifa topşiriğini yaratadi va vazifani SUBMITTED holatiga ötkazadi."""
     submission = StartupTaskSubmission.objects.create(
         task=task,
         submitted_by=user,
@@ -316,7 +316,7 @@ def submit_task(task, user, payload):
     StartupTask.objects.filter(pk=task.pk).update(status='SUBMITTED')
     task.status = 'SUBMITTED'
 
-    log_activity(task.startup, user, 'task_submitted', f'"{task.title}" vazifasi topshirildi')
+    log_activity(task.startup, user, 'task_submitted', f'"{task.title}" vazifasi topşirildi')
 
     startup = task.startup
     recipients = {startup.owner_id: startup.owner}
@@ -326,8 +326,8 @@ def submit_task(task, user, payload):
 
     def _notify_reviewers():
         for recipient in recipients.values():
-            notify(recipient, '📥 Yangi topshiriq',
-                   f'"{startup.name}" — "{task.title}" vazifasi tekshiruvga topshirildi.',
+            notify(recipient, '📥 Yangi topşiriq',
+                   f'"{startup.name}" — "{task.title}" vazifasi tekşiruvga topşirildi.',
                    'reminder')
 
     transaction.on_commit(_notify_reviewers)
@@ -339,7 +339,7 @@ def review_submission(submission, reviewer, action, comment=''):
     """Mentor/admin qarori. `action` ∈ approve | reject | changes.
 
     Approve: vazifa COMPLETED → XP + LMS coin + progress + yutuqlar.
-    Idempotent: allaqachon ko'rilgan topshiriq qayta o'zgartirilmaydi.
+    Idempotent: allaqaçon körilgan topşiriq qayta özgartirilmaydi.
     """
     if submission.status != 'pending':
         return submission
@@ -393,8 +393,8 @@ def review_submission(submission, reviewer, action, comment=''):
                    f'"{task.title}" vazifasi rad etildi. Izoh: {comment or "—"}',
                    'warning')
         else:
-            notify(student, '✏️ Oʻzgartirish soʻraldi',
-                   f'"{task.title}" vazifasiga oʻzgartirish soʻraldi. Izoh: {comment or "—"}',
+            notify(student, '✏️ Özgartiriş söraldi',
+                   f'"{task.title}" vazifasiga özgartiriş söraldi. Izoh: {comment or "—"}',
                    'reminder')
 
     transaction.on_commit(_after_review)
@@ -405,7 +405,7 @@ def review_submission(submission, reviewer, action, comment=''):
 
 
 def request_join(startup, user):
-    """O'quvchi jamoaga qo'shilish so'rovi (`invited_by=None`)."""
+    """Öquvçi jamoaga qöşiliş sörovi (`invited_by=None`)."""
     membership, created = StartupMember.objects.get_or_create(
         startup=startup, user=user,
         defaults={'status': 'pending', 'role': 'member'},
@@ -417,10 +417,10 @@ def request_join(startup, user):
         created = True
 
     if created:
-        log_activity(startup, user, 'join_requested', f'{user} jamoaga soʻrov yubordi')
-        notify(startup.owner, '🙋 Jamoaga soʻrov',
+        log_activity(startup, user, 'join_requested', f'{user} jamoaga sörov yubordi')
+        notify(startup.owner, '🙋 Jamoaga sörov',
                f'{user.get_full_name() or user.username} "{startup.name}" jamoasiga '
-               f'qoʻshilmoqchi.', 'reminder')
+               f'qöşilmoqçi.', 'reminder')
     return membership, created
 
 
@@ -448,17 +448,17 @@ def respond_to_membership(membership, responder, action, role=None):
             membership.role = role
         membership.save(update_fields=['status', 'role'])
         log_activity(startup, responder, 'member_joined',
-                     f'{membership.user} jamoaga qoʻshildi')
+                     f'{membership.user} jamoaga qöşildi')
         notify(membership.user, '✅ Jamoaga qabul qilindingiz',
-               f'Siz "{startup.name}" jamoasiga qoʻshildingiz.', 'achievement')
+               f'Siz "{startup.name}" jamoasiga qöşildingiz.', 'achievement')
         check_achievements(startup)
     elif action == 'reject':
         membership.status = 'rejected'
         membership.save(update_fields=['status'])
         log_activity(startup, responder, 'member_rejected',
-                     f'{membership.user} soʻrovi rad etildi')
-        notify(membership.user, '❌ Soʻrov rad etildi',
-               f'"{startup.name}" jamoasiga qoʻshilish soʻrovi rad etildi.', 'warning')
+                     f'{membership.user} sörovi rad etildi')
+        notify(membership.user, '❌ Sörov rad etildi',
+               f'"{startup.name}" jamoasiga qöşiliş sörovi rad etildi.', 'warning')
     return membership
 
 
@@ -485,7 +485,7 @@ def unlock_achievement(startup, code):
 
 
 def check_achievements(startup):
-    """Barcha yutuq shartlarini tekshiradi (idempotent)."""
+    """Barça yutuq şartlarini tekşiradi (idempotent)."""
     unlocked = set(startup.achievements.values_list('code', flat=True))
 
     def maybe(code, condition):
@@ -545,10 +545,10 @@ def leaderboard_queryset(period='all', profession_id=None):
 
 
 def achievement_board(startup):
-    """Barcha yutuqlar ro'yxati — ochilgani va hali ochilmagani bilan.
+    """Barça yutuqlar röyxati — oçilgani va hali oçilmagani bilan.
 
-    Ta'riflar kodda (`ACHIEVEMENT_DEFS`), holat esa bazada; ikkisini shu yerda
-    birlashtiramiz, shunda shablon lug'atga kalit bo'yicha murojaat qilmaydi.
+    Ta'riflar kodda (`ACHIEVEMENT_DEFS`), holat esa bazada; ikkisini şu yerda
+    birlaştiramiz, şunda şablon luğatga kalit böyiça murojaat qilmaydi.
     """
     unlocked = dict(startup.achievements.values_list('code', 'unlocked_at'))
     return [
@@ -566,7 +566,7 @@ def achievement_board(startup):
 
 
 def dashboard_context(startup, user):
-    """Dashboard uchun bitta joyda yigʻilgan ma'lumot (N+1 dan qochish uchun)."""
+    """Dashboard uçun bitta joyda yiğilgan ma'lumot (N+1 dan qoçiş uçun)."""
     tasks = (StartupTask.objects
              .filter(startup=startup)
              .select_related('stage', 'assigned_to')
@@ -598,11 +598,11 @@ def dashboard_context(startup, user):
 
 
 def student_startup_summary(user):
-    """Admin panelidagi o'quvchi profili uchun startup xulosasi.
+    """Admin panelidagi öquvçi profili uçun startup xulosasi.
 
-    `None` qaytsa — shablon "Startup / Gʻoya" tab'ini umuman chizmaydi.
-    Bu yerda yozish yo'q, faqat o'qish — shuning uchun `admin_user_view`
-    ichidan xavfsiz chaqiriladi.
+    `None` qaytsa — şablon "Startup / Ğoya" tab'ini umuman çizmaydi.
+    Bu yerda yoziş yöq, faqat öqiş — şuning uçun `admin_user_view`
+    içidan xavfsiz çaqiriladi.
     """
     owned = []
     startups = (Startup.objects
@@ -650,12 +650,12 @@ def add_feedback(startup, mentor, message, rating=None, task=None):
     )
     log_activity(startup, mentor, 'feedback_added', 'Mentor fikr bildirdi')
     notify(startup.owner, '💬 Mentor fikri',
-           f'"{startup.name}" uchun mentor fikr bildirdi: {message[:120]}', 'reminder')
+           f'"{startup.name}" uçun mentor fikr bildirdi: {message[:120]}', 'reminder')
     return feedback
 
 
 def mentor_startups(user):
-    """Mentorga biriktirilgan startuplar (admin barchasini koʻradi)."""
+    """Mentorga biriktirilgan startuplar (admin barçasini köradi)."""
     queryset = (Startup.objects
                 .select_related('owner', 'profession')
                 .annotate(
@@ -673,7 +673,7 @@ def mentor_startups(user):
 
 
 def pending_submissions_for(user, limit=20):
-    """Mentor tekshirishi kerak bo'lgan topshiriqlar."""
+    """Mentor tekşirişi kerak bölgan topşiriqlar."""
     queryset = (StartupTaskSubmission.objects
                 .filter(status='pending')
                 .select_related('task', 'task__startup', 'task__stage', 'submitted_by')
@@ -694,7 +694,7 @@ def add_finance_entry(startup, user, form):
     entry.save()
 
     log_activity(startup, user, f'finance_{entry.type.lower()}',
-                 f'{entry.get_type_display()}: {entry.amount} soʻm')
+                 f'{entry.get_type_display()}: {entry.amount} söm')
     if entry.type == 'REVENUE':
         check_achievements(startup)
     return entry
@@ -710,7 +710,7 @@ def add_metric_entry(startup, user, form):
 
 
 def metric_series(startup, limit=30):
-    """Har bir ko'rsatkich uchun oxirgi qiymatlar (Chart.js uchun tayyor)."""
+    """Har bir körsatkiç uçun oxirgi qiymatlar (Chart.js uçun tayyor)."""
     rows = (startup.metrics
             .order_by('key', 'date')
             .values('key', 'date', 'value'))

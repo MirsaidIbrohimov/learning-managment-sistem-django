@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Kurs so'rovlari - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Kurs so'rovlari{% endblock %}
+{% block title %}Kurs sörovlari - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Kurs sörovlari{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -50,23 +50,23 @@
 {% block teacher_content %}
 <div class="cr-page">
     <div class="cr-header">
-        <h1><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kurs so'rovlari</h1>
+        <h1><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kurs sörovlari</h1>
         <div class="cr-tabs">
             <a href="?status=pending" class="cr-tab {% if status == 'pending' %}active{% endif %}">Kutilmoqda</a>
             <a href="?status=approved" class="cr-tab {% if status == 'approved' %}active{% endif %}">Tasdiqlangan</a>
             <a href="?status=rejected" class="cr-tab {% if status == 'rejected' %}active{% endif %}">Rad etilgan</a>
-            <a href="?status=all" class="cr-tab {% if status == 'all' %}active{% endif %}">Barchasi</a>
+            <a href="?status=all" class="cr-tab {% if status == 'all' %}active{% endif %}">Barçasi</a>
         </div>
     </div>
 
     <p class="text-muted small mb-3">
-        <i class="bi bi-info-circle"></i> Sizga biriktirilgan kurslarga kelgan so'rovlar. Siz yoki admin tasdiqlashi mumkin —
-        kim tasdiqlagani admin panelda ko'rinadi. Yangi so'rovlar haqida Telegram bot orqali xabar olasiz.
+        <i class="bi bi-info-circle"></i> Sizga biriktirilgan kurslarga kelgan sörovlar. Siz yoki admin tasdiqlaşi mumkin —
+        kim tasdiqlagani admin panelda körinadi. Yangi sörovlar haqida Telegram bot orqali xabar olasiz.
     </p>
 
-    <!-- Kursga yozilish -->
+    <!-- Kursga yoziliş -->
     <div class="cr-section">
-        <h2><i class="bi bi-box-arrow-in-right text-primary"></i> Kursga yozilish so'rovlari
+        <h2><i class="bi bi-box-arrow-in-right text-primary"></i> Kursga yoziliş sörovlari
             {% if enroll_pending %}<span class="cr-count">{{ enroll_pending }} ta kutilmoqda</span>{% endif %}
         </h2>
         {% if enroll_requests %}
@@ -76,13 +76,13 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="cr-empty">So'rovlar yo'q</div>
+        <div class="cr-empty">Sörovlar yöq</div>
         {% endif %}
     </div>
 
-    <!-- Kursdan chiqish -->
+    <!-- Kursdan çiqiş -->
     <div class="cr-section">
-        <h2><i class="bi bi-box-arrow-right text-danger"></i> Kursdan chiqish so'rovlari
+        <h2><i class="bi bi-box-arrow-right text-danger"></i> Kursdan çiqiş sörovlari
             {% if unenroll_pending %}<span class="cr-count">{{ unenroll_pending }} ta kutilmoqda</span>{% endif %}
         </h2>
         {% if unenroll_requests %}
@@ -92,7 +92,7 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="cr-empty">So'rovlar yo'q</div>
+        <div class="cr-empty">Sörovlar yöq</div>
         {% endif %}
     </div>
 </div>

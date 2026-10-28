@@ -23,10 +23,10 @@ class Migration(migrations.Migration):
                 ('subject', models.CharField(max_length=300, verbose_name='Mavzu')),
                 ('message', models.TextField(verbose_name='Xabar matni')),
                 ('image', models.ImageField(blank=True, null=True, upload_to='contact_messages/', verbose_name='Rasm')),
-                ('status', models.CharField(choices=[('new', 'Yangi'), ('read', "O'qildi"), ('replied', 'Javob berildi')], default='new', max_length=10, verbose_name='Holat')),
+                ('status', models.CharField(choices=[('new', 'Yangi'), ('read', "Öqildi"), ('replied', 'Javob berildi')], default='new', max_length=10, verbose_name='Holat')),
                 ('admin_reply', models.TextField(blank=True, verbose_name='Admin javobi')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_messages', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi')),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contact_messages', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi')),
             ],
             options={
                 'verbose_name': 'Aloqa xabari',

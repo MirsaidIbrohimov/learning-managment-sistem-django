@@ -15,12 +15,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homework',
             name='allow_late',
-            field=models.BooleanField(default=True, verbose_name='Kech topshirishga ruxsat'),
+            field=models.BooleanField(default=True, verbose_name='Keç topşirişga ruxsat'),
         ),
         migrations.AddField(
             model_name='homework',
             name='late_penalty',
-            field=models.IntegerField(default=10, verbose_name='Kechikish jarimasi (%)'),
+            field=models.IntegerField(default=10, verbose_name='Keçikiş jarimasi (%)'),
         ),
         migrations.AddField(
             model_name='homework',
@@ -35,12 +35,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homeworksubmission',
             name='is_late',
-            field=models.BooleanField(default=False, verbose_name='Kech topshirilgan'),
+            field=models.BooleanField(default=False, verbose_name='Keç topşirilgan'),
         ),
         migrations.AddField(
             model_name='homeworksubmission',
             name='revision_count',
-            field=models.IntegerField(default=0, verbose_name='Qayta topshirish soni'),
+            field=models.IntegerField(default=0, verbose_name='Qayta topşiriş soni'),
         ),
         migrations.AddField(
             model_name='homeworksubmission',
@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='homeworksubmission',
             name='status',
-            field=models.CharField(choices=[('pending', 'Kutilmoqda'), ('reviewing', "Ko'rib chiqilmoqda"), ('revision', 'Qayta ishlash kerak'), ('accepted', 'Qabul qilindi'), ('graded', 'Baholangan')], default='pending', max_length=20),
+            field=models.CharField(choices=[('pending', 'Kutilmoqda'), ('reviewing', "Körib çiqilmoqda"), ('revision', 'Qayta işlaş kerak'), ('accepted', 'Qabul qilindi'), ('graded', 'Baholangan')], default='pending', max_length=20),
         ),
         migrations.CreateModel(
             name='HomeworkMessage',

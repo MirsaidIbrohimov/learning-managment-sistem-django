@@ -4,7 +4,7 @@ import unicodedata
 
 
 class Command(BaseCommand):
-    help = "O'quvchilarning ism va familiyalaridan stiker va emojilarni tozalash"
+    help = "Öquvçilarning ism va familiyalaridan stiker va emojilarni tozalaş"
 
     def handle(self, *args, **options):
         users = CustomUser.objects.all()
@@ -24,7 +24,7 @@ class Command(BaseCommand):
                 )
                 cleaned_count += 1
         
-        self.stdout.write(self.style.SUCCESS(f"\nJami {cleaned_count} ta foydalanuvchi tozalandi."))
+        self.stdout.write(self.style.SUCCESS(f"\nJami {cleaned_count} ta foydalanuvçi tozalandi."))
     
     @staticmethod
     def _clean_name(name):

@@ -1,4 +1,4 @@
-/* IT Creative — auth sahifalari uchun umumiy motion va UI. GSAP kerak. */
+/* IT Creative — auth sahifalari uçun umumiy motion va UI. GSAP kerak. */
 (function () {
   const root = document.documentElement;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -26,7 +26,7 @@
       el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); gsap.to(el, { x: (e.clientX - r.left - r.width / 2) * .2, y: (e.clientY - r.top - r.height / 2) * .3, duration: .4 }); });
       el.addEventListener('pointerleave', () => gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.4)' }));
     });
-    // Karta sichqonchaga qarab biroz egiladi, chiplar parallaks
+    // Karta siçqonçaga qarab biroz egiladi, çiplar parallaks
     const card = document.querySelector('.card');
     addEventListener('pointermove', e => {
       const nx = e.clientX / innerWidth - .5, ny = e.clientY / innerHeight - .5;
@@ -37,7 +37,7 @@
     });
   }
 
-  /* ── Yuqoridagi Kirish / Ro'yxatdan o'tish pill ── */
+  /* ── Yuqoridagi Kiriş / Röyxatdan ötiş pill ── */
   function movePill(wrap, btn, instant) {
     const pill = wrap.querySelector('.pill'); if (!pill || !btn) return;
     gsap.to(pill, { left: btn.offsetLeft, width: btn.offsetWidth, duration: instant ? 0 : .55, ease: 'expo.out' });
@@ -45,7 +45,7 @@
   const sw = document.querySelector('.switch');
   if (sw) { requestAnimationFrame(() => movePill(sw, sw.querySelector('a.on'), true)); }
 
-  /* ── Sahifa o'tishi (doira bilan yopilib-ochiladi) ── */
+  /* ── Sahifa ötişi (doira bilan yopilib-ochiladi) ── */
   const wipe = document.getElementById('wipe');
   if (sessionStorage.getItem('itc-wipe')) {
     sessionStorage.removeItem('itc-wipe');
@@ -80,7 +80,7 @@
     }));
   });
 
-  /* ── Maydonlar: parol ko'zi, Caps Lock, orb reaksiyalari ── */
+  /* ── Maydonlar: parol közi, Caps Lock, orb reaksiyalari ── */
   document.querySelectorAll('.eye').forEach(b => b.addEventListener('click', () => {
     const inp = b.parentElement.querySelector('input'); const show = inp.type === 'password';
     inp.type = show ? 'text' : 'password'; b.innerHTML = `<i class="bi bi-eye${show ? '-slash' : ''}"></i>`;
@@ -116,18 +116,18 @@
     gsap.timeline().from(t, { y: 40, opacity: 0, duration: .5, ease: 'back.out(2)' }).to(t, { y: 20, opacity: 0, duration: .4, delay: 2.6, onComplete: () => t.remove() });
   };
 
-  /* ── Prototip: forma yuborilmaydi, faqat animatsiya ko'rsatiladi ── */
+  /* ── Prototip: forma yuborilmaydi, faqat animatsiya körsatiladi ── */
   window.fakeSubmit = function (form, okText) {
     form.addEventListener('submit', e => {
       e.preventDefault();
       const btn = form.querySelector('[type=submit]'), html = btn.innerHTML;
-      btn.classList.add('loading'); btn.innerHTML = '<span class="spin"></span> Tekshirilmoqda...';
+      btn.classList.add('loading'); btn.innerHTML = '<span class="spin"></span> Tekşirilmoqda...';
       Orb().burst();
       setTimeout(() => { btn.classList.remove('loading'); btn.innerHTML = html; authToast(okText || 'Prototip: forma serverga yuborilmadi', 'stars'); }, 1300);
     });
   };
 
-  /* ── Kirish animatsiyasi ── */
+  /* ── Kiriş animatsiyasi ── */
   document.querySelectorAll('.split').forEach(s => {
     s.innerHTML = s.textContent.trim().split(' ').map(w => `<span class="w">${[...w].map(c => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
   });
@@ -139,7 +139,7 @@
       .from('.stage h1 .ch', { yPercent: 115, rotateX: -80, opacity: 0, duration: 1, stagger: .02, ease: 'expo.out' }, '-=1.1')
       .from('.stage .eyebrow, .stage p', { y: 20, opacity: 0, duration: .8, stagger: .1, ease: 'expo.out' }, '-=.8')
       .from('.chip', { scale: 0, opacity: 0, duration: .9, stagger: .12, ease: 'back.out(2.2)' }, '-=.7');
-    // yPercent — parallaks (x/y) bilan to'qnashmasligi uchun
+    // yPercent — parallaks (x/y) bilan töqnaşmasligi uçun
     gsap.to('.chip', { yPercent: 18, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: .5 } });
   }
 })();

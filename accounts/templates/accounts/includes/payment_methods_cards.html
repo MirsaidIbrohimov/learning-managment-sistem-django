@@ -1,10 +1,10 @@
 {% load static %}
-{# Brendli to'lov usuli tanlovi (oylik to'lov, kurs, imtihon). Market o'z payment_methods.html dizaynida qoladi. #}
+{# Brendli tölov usuli tanlovi (oylik tölov, kurs, imtihon). Market öz payment_methods.html dizaynida qoladi. #}
 {% if payment_methods %}
 <fieldset class="pmc">
   <legend class="pmc-head">
-    <span class="pmc-title"><i class="bi bi-wallet2" aria-hidden="true"></i> To‘lov usulini tanlang</span>
-    <span class="pmc-safe"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Xavfsiz to‘lov</span>
+    <span class="pmc-title"><i class="bi bi-wallet2" aria-hidden="true"></i> Tölov usulini tanlang</span>
+    <span class="pmc-safe"><i class="bi bi-shield-lock-fill" aria-hidden="true"></i> Xavfsiz tölov</span>
   </legend>
   <div class="pmc-grid">
     {% for m in payment_methods %}
@@ -74,12 +74,12 @@
       status.style.setProperty('--pmc-on', e.target.closest('.pmc-item').style.getPropertyValue('--c'));
       status.innerHTML = '<i class="bi bi-check-circle-fill" aria-hidden="true"></i> ';
       var text = document.createElement('span');
-      text.textContent = e.target.dataset.label + ' orqali to‘laysiz';
+      text.textContent = e.target.dataset.label + ' orqali tölaysiz';
       status.append(text);
     });
   });
 })();
 </script>
 {% else %}
-<p class="pmc-off" role="status">Onlayn to‘lov hozircha sozlanmoqda. Administratorga murojaat qiling.</p>
+<p class="pmc-off" role="status">Onlayn tölov hozirça sozlanmoqda. Administratorga murojaat qiling.</p>
 {% endif %}

@@ -1,5 +1,5 @@
 /* =============================================================
- * Xotira O'yini — Premium memory-training game (app.js)
+ * Xotira Öyini — Premium memory-training game (app.js)
  * Modes · themes · XP/level/streak/achievements · LMS backend
  * ============================================================= */
 'use strict';
@@ -26,39 +26,39 @@ const THEMES = {
   food:     { name: 'Mevalar', emoji: '🍎', items: ['🍎','🍊','🍋','🍇','🍓','🍑','🍒','🥭','🍍','🥥','🍌','🍉','🥝','🍅','🥕','🌽','🥦','🍆','🫐','🥑','🍐','🍈','🫒','🧅'] },
   flags:    { name: 'Bayroqlar', emoji: '🚩', items: ['🇺🇿','🇺🇸','🇬🇧','🇫🇷','🇩🇪','🇯🇵','🇨🇳','🇰🇷','🇮🇹','🇪🇸','🇷🇺','🇹🇷','🇧🇷','🇨🇦','🇮🇳','🇦🇪','🇸🇦','🇪🇬','🇦🇺','🇲🇽','🇳🇱','🇸🇪','🇨🇭','🇵🇱'] },
   html:     { name: 'HTML teglar', emoji: '🏷️', word: true, items: [['<h1>','📰'],['<p>','📝'],['<img>','🖼️'],['<a>','🔗'],['<ul>','📋'],['<button>','🔘'],['<form>','📨'],['<table>','▦'],['<video>','🎬'],['<input>','⌨️'],['<nav>','🧭'],['<div>','📦']] },
-  css:      { name: 'CSS tushunchalar', emoji: '🎨', word: true, items: [['color','🎨'],['margin','↔️'],['padding','🧱'],['flex','📐'],['grid','▦'],['border','🟦'],['shadow','🌑'],['radius','⬭'],['hover','🖱️'],['animation','🎞️'],['font','🔤'],['z-index','🗂️']] },
+  css:      { name: 'CSS tuşunçalar', emoji: '🎨', word: true, items: [['color','🎨'],['margin','↔️'],['padding','🧱'],['flex','📐'],['grid','▦'],['border','🟦'],['shadow','🌑'],['radius','⬭'],['hover','🖱️'],['animation','🎞️'],['font','🔤'],['z-index','🗂️']] },
   js:       { name: 'JavaScript', emoji: '⚡', word: true, items: [['array','📚'],['function','⚙️'],['loop','🔁'],['object','📦'],['string','🔤'],['boolean','✅'],['event','⚡'],['promise','🤝'],['class','🏛️'],['number','🔢'],['if/else','🔀'],['JSON','🗃️']] },
   math:     { name: 'Matematika', emoji: '🔢', word: true, items: [['2+2','4'],['5×3','15'],['10÷2','5'],['7+8','15'],['9-4','5'],['6×6','36'],['√81','9'],['3²','9'],['12+13','25'],['100÷4','25'],['8×7','56'],['15-9','6']] },
-  countries:{ name: 'Davlatlar', emoji: '🌍', word: true, items: [['O\'zbekiston','🇺🇿'],['Fransiya','🇫🇷'],['Yaponiya','🇯🇵'],['Germaniya','🇩🇪'],['Italiya','🇮🇹'],['Misr','🇪🇬'],['Braziliya','🇧🇷'],['Kanada','🇨🇦'],['Hindiston','🇮🇳'],['Turkiya','🇹🇷'],['Ispaniya','🇪🇸'],['Koreya','🇰🇷']] },
+  countries:{ name: 'Davlatlar', emoji: '🌍', word: true, items: [['Özbekiston','🇺🇿'],['Fransiya','🇫🇷'],['Yaponiya','🇯🇵'],['Germaniya','🇩🇪'],['Italiya','🇮🇹'],['Misr','🇪🇬'],['Braziliya','🇧🇷'],['Kanada','🇨🇦'],['Hindiston','🇮🇳'],['Turkiya','🇹🇷'],['Ispaniya','🇪🇸'],['Koreya','🇰🇷']] },
 };
 const THEME_KEYS = Object.keys(THEMES);
 
 const DIFFS = {
   easy:   { name: 'Oson', sizes: [2, 3, 4] },
-  medium: { name: "O'rta", sizes: [6, 8, 10] },
+  medium: { name: "Örta", sizes: [6, 8, 10] },
   hard:   { name: 'Qiyin', sizes: [12, 15, 18] },
   expert: { name: 'Ekspert', sizes: [24, 30] },
 };
 const MODES = {
   classic:   { name: 'Klassik', mult: 1.0, hint: 'Bemalol rejimda juftliklarni toping.' },
-  speed:     { name: 'Tezlik', mult: 1.4, hint: 'Vaqt ketmoqda! Tez tugatsangiz — qo\'shimcha XP.' },
-  challenge: { name: 'Challenge', mult: 1.5, hint: 'Cheklangan xato! Yuraklaringizni saqlang.' },
-  learning:  { name: "O'quv", mult: 1.2, hint: 'Boshida kartalar ko\'rsatiladi — eslab qoling va o\'rganing.' },
+  speed:     { name: 'Tezlik', mult: 1.4, hint: 'Vaqt ketmoqda! Tez tugatsangiz — qöşimça XP.' },
+  challenge: { name: 'Challenge', mult: 1.5, hint: 'Çeklangan xato! Yuraklaringizni saqlang.' },
+  learning:  { name: "Öquv", mult: 1.2, hint: 'Boşida kartalar körsatiladi — eslab qoling va örganing.' },
   daily:     { name: 'Kunlik', mult: 1.3, hint: 'Har kuni yangi challenge.' },
 };
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────
 const ACHIEVEMENTS = [
-  { code: 'first_win', name: 'Birinchi g\'alaba', desc: 'Birinchi o\'yinni yakunladingiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.firstEver },
+  { code: 'first_win', name: 'Birinçi ğalaba', desc: 'Birinçi öyinni yakunladingiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.firstEver },
   { code: 'perfect_memory', name: 'Mukammal xotira', desc: 'Xatosiz — 100% aniqlik', icon: 'bi-brain', color: '#6366f1', cond: c => c.accuracy >= 100 },
-  { code: 'no_mistake', name: 'Aniq nishon', desc: 'Bironta noto\'g\'ri juft yo\'q', icon: 'bi-bullseye', color: '#06b6d4', cond: c => c.wrong === 0 && c.won },
-  { code: 'combo_master', name: 'Kombo ustasi', desc: '5+ ketma-ket to\'g\'ri juft', icon: 'bi-fire', color: '#f97316', cond: c => c.maxCombo >= 5 },
-  { code: 'speed_master', name: 'Chaqqon', desc: 'Tezlik rejimini yutib oldingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.mode === 'speed' && c.won },
+  { code: 'no_mistake', name: 'Aniq nişon', desc: 'Bironta notöğri juft yöq', icon: 'bi-bullseye', color: '#06b6d4', cond: c => c.wrong === 0 && c.won },
+  { code: 'combo_master', name: 'Kombo ustasi', desc: '5+ ketma-ket töğri juft', icon: 'bi-fire', color: '#f97316', cond: c => c.maxCombo >= 5 },
+  { code: 'speed_master', name: 'Çaqqon', desc: 'Tezlik rejimini yutib oldingiz', icon: 'bi-lightning-charge-fill', color: '#f59e0b', cond: c => c.mode === 'speed' && c.won },
   { code: 'expert_done', name: 'Ekspert', desc: 'Ekspert qiyinlikni yakunladingiz', icon: 'bi-gem', color: '#a855f7', cond: c => c.diff === 'expert' && c.won },
-  { code: 'learner', name: 'Bilimdon', desc: 'O\'quv rejimida o\'rgandingiz', icon: 'bi-mortarboard-fill', color: '#14b8a6', cond: c => c.mode === 'learning' && c.won },
-  { code: 'daily_champ', name: 'Kunlik chempion', desc: 'Kunlik challenge\'ni yakunladingiz', icon: 'bi-calendar-check-fill', color: '#ec4899', cond: c => c.mode === 'daily' && c.won },
-  { code: 'streak_7', name: '7 kun', desc: '7 kun ketma-ket o\'ynadingiz', icon: 'bi-calendar-week-fill', color: '#fb923c', cond: c => (c.profile.streak_days || 0) >= 7 },
-  { code: 'level_5', name: 'Yuksalish', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#eab308', cond: c => (c.profile.level || 1) >= 5 },
+  { code: 'learner', name: 'Bilimdon', desc: 'Öquv rejimida örgandingiz', icon: 'bi-mortarboard-fill', color: '#14b8a6', cond: c => c.mode === 'learning' && c.won },
+  { code: 'daily_champ', name: 'Kunlik çempion', desc: 'Kunlik challenge\'ni yakunladingiz', icon: 'bi-calendar-check-fill', color: '#ec4899', cond: c => c.mode === 'daily' && c.won },
+  { code: 'streak_7', name: '7 kun', desc: '7 kun ketma-ket öynadingiz', icon: 'bi-calendar-week-fill', color: '#fb923c', cond: c => (c.profile.streak_days || 0) >= 7 },
+  { code: 'level_5', name: 'Yuksaliş', desc: '5-darajaga yetdingiz', icon: 'bi-graph-up-arrow', color: '#eab308', cond: c => (c.profile.level || 1) >= 5 },
 ];
 const ACH = Object.fromEntries(ACHIEVEMENTS.map(a => [a.code, a]));
 
@@ -124,7 +124,7 @@ function saveLocal() { try { localStorage.setItem('memory_profile', JSON.stringi
 
 function initials(n) { n = (n || '?').trim(); return n[0] ? n[0].toUpperCase() : '?'; }
 function renderProfile() {
-  const name = LMS_USER ? (LMS_USER.name || LMS_USER.username || 'O\'yinchi') : 'O\'yinchi';
+  const name = LMS_USER ? (LMS_USER.name || LMS_USER.username || 'Öyinçi') : 'Öyinçi';
   $('hero-name').textContent = name; $('hero-avatar').textContent = initials(name);
   $('nav-streak').textContent = profile.streak_days || 0;
   $('nav-coins').textContent = profile.coins || 0;
@@ -136,7 +136,7 @@ function renderProfile() {
 }
 function updateDaily() {
   const t = dailyTheme();
-  $('daily-desc').textContent = `${MODES.daily.name} · ${THEMES[t].name} · O'rta — bonus XP`;
+  $('daily-desc').textContent = `${MODES.daily.name} · ${THEMES[t].name} · Örta — bonus XP`;
 }
 function dailyDate() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 function dailyTheme() { const d = new Date(); return THEME_KEYS[(d.getFullYear() + d.getMonth() * 31 + d.getDate()) % THEME_KEYS.length]; }
@@ -148,7 +148,7 @@ function renderThemeGrid() {
     const t = THEMES[k];
     const c = create('div', 'theme-card' + (k === cfg.theme ? ' active' : ''));
     c.setAttribute('tabindex', '0'); c.setAttribute('role', 'button');
-    c.innerHTML = `<span class="theme-emoji">${t.emoji}</span><div><div class="theme-nm">${esc(t.name)}</div><div class="theme-sub">${t.word ? 'O\'quv' : 'Belgilar'}</div></div>`;
+    c.innerHTML = `<span class="theme-emoji">${t.emoji}</span><div><div class="theme-nm">${esc(t.name)}</div><div class="theme-sub">${t.word ? 'Öquv' : 'Belgilar'}</div></div>`;
     const pick = () => { cfg.theme = k; renderThemeGrid(); };
     c.onclick = pick; c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } };
     g.appendChild(c);
@@ -319,7 +319,7 @@ function showResult(won, score, acc, xp, coins, newly, leveledUp, newLevel) {
   ring.textContent = won ? (acc >= 90 ? '🏆' : '🎉') : '💪';
   const stars = acc >= 90 ? '⭐⭐⭐' : acc >= 60 ? '⭐⭐' : '⭐';
   $('result-stars').textContent = won ? stars : '';
-  $('result-title').textContent = won ? (acc >= 90 ? 'Mukammal!' : 'Ajoyib!') : 'Yana urinib ko\'ring!';
+  $('result-title').textContent = won ? (acc >= 90 ? 'Mukammal!' : 'Ajoyib!') : 'Yana urinib köring!';
   $('result-sub').textContent = `${MODES[cfg.mode].name} · ${THEMES[cfg.theme].name} · ${activePairs * 2} karta`;
   $('result-xp').textContent = '+' + xp + ' XP';
   $('rs-moves').textContent = moves; $('rs-time').textContent = fmt(elapsed); $('rs-acc').textContent = acc + '%';
@@ -333,7 +333,7 @@ async function submitResult(score, acc, t) {
 }
 
 // ─── FX ───────────────────────────────────────────────────
-function achToast(code) { const a = ACH[code]; if (!a) return; sMatch(); const t = create('div', 'toast ach'); t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq ochildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200); }
+function achToast(code) { const a = ACH[code]; if (!a) return; sMatch(); const t = create('div', 'toast ach'); t.innerHTML = `<i class="bi ${a.icon}"></i><div><b>Yutuq oçildi!</b><br><span style="font-size:.78rem;opacity:.85">${esc(a.name)}</span></div>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3200); }
 function levelUp(n) { $('levelup-num').textContent = n; $('levelup').classList.remove('hidden'); sLevel(); confetti(90); setTimeout(() => $('levelup').classList.add('hidden'), 2500); }
 function toast(msg, kind = 'info', icon = 'bi-info-circle-fill') { const t = create('div', 'toast ' + kind); t.innerHTML = `<i class="bi ${icon}"></i><span>${esc(msg)}</span>`; $('toasts').appendChild(t); setTimeout(() => { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2500); }
 function confetti(count = 60) {
@@ -352,11 +352,11 @@ async function renderLeader() {
   if (!TOKEN || !API_BASE || !LMS_USER || LMS_USER.id === 0) { list.innerHTML = '<div class="lb-empty">Reyting faqat LMS hisobida mavjud</div>'; return; }
   try {
     const r = await fetch(URLS.gxLeader, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKEN, game: GAME, limit: 20 }) }); const d = await r.json();
-    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yo\'q — birinchi bo\'ling!</div>'; return; }
+    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { list.innerHTML = '<div class="lb-empty">Hali natijalar yöq — birinçi böling!</div>'; return; }
     list.innerHTML = '';
     d.leaderboard.forEach(p => { const row = create('div', 'lb-row' + (p.is_me ? ' me' : '')); row.innerHTML = `<div class="lb-rank">${p.rank <= 3 ? '🏅' : p.rank}</div><div class="lb-ava">${initials(p.name)}</div><div class="lb-name">${esc(p.name)}<div class="lb-lvl">Daraja ${p.level}</div></div><div class="lb-xp">${p.xp} XP</div>`; list.appendChild(row); });
-    if (d.me && d.me.rank) me.textContent = `Sizning o'rningiz: #${d.me.rank} · ${d.me.xp} XP`;
-  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bo\'lmadi</div>'; }
+    if (d.me && d.me.rank) me.textContent = `Sizning örningiz: #${d.me.rank} · ${d.me.xp} XP`;
+  } catch (e) { list.innerHTML = '<div class="lb-empty">Reytingni yuklab bölmadi</div>'; }
 }
 function renderStats() {
   const totalDone = Object.values(profile.levels_completed || {}).reduce((s, a) => s + a.length, 0);
@@ -365,9 +365,9 @@ function renderStats() {
     { i: 'bi-bar-chart-fill', c: '#6366f1', v: profile.level || 1, l: 'Daraja' },
     { i: 'bi-fire', c: '#fb923c', v: profile.streak_days || 0, l: 'Streak' },
     { i: 'bi-coin', c: '#eab308', v: profile.coins || 0, l: 'Coinlar' },
-    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'O\'ynaldi' },
+    { i: 'bi-controller', c: '#22c55e', v: profile.plays || 0, l: 'Öynaldi' },
     { i: 'bi-trophy-fill', c: '#a855f7', v: (profile.achievements || []).length + '/' + ACHIEVEMENTS.length, l: 'Yutuqlar' },
-    { i: 'bi-grid-3x3-gap-fill', c: '#06b6d4', v: totalDone, l: 'Bosqichlar' },
+    { i: 'bi-grid-3x3-gap-fill', c: '#06b6d4', v: totalDone, l: 'Bosqiçlar' },
     { i: 'bi-award-fill', c: '#ec4899', v: profile.best_score || 0, l: 'Eng yuqori ball' },
   ];
   $('stats-grid').innerHTML = data.map(d => `<div class="stat-card"><div class="sc-ico" style="color:${d.c}"><i class="bi ${d.i}"></i></div><div class="sc-v">${d.v}</div><div class="sc-l">${d.l}</div></div>`).join('');

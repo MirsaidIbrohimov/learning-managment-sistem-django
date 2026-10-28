@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Speaking vazifa qo'shish - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Speaking vazifa qo'shish{% endblock %}
+{% block title %}Speaking vazifa qöşiş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Speaking vazifa qöşiş{% endblock %}
 
 {% block teacher_content %}
 <style>
@@ -93,7 +93,7 @@
 
 <div class="t-add-page">
     <a href="{% url 'teacher:courses' %}" class="t-add-back">
-        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytiş
     </a>
 
     <div class="t-add-card">
@@ -105,11 +105,11 @@
                 {% csrf_token %}
                 <div class="t-add-field">
                     <label>Vazifa nomi *</label>
-                    <input type="text" name="title" class="t-input" placeholder="Masalan: O'zingiz haqingizda gapiring" required>
+                    <input type="text" name="title" class="t-input" placeholder="Masalan: Özingiz haqingizda gapiring" required>
                 </div>
                 <div class="t-add-field">
                     <label>Vazifa tavsifi *</label>
-                    <textarea name="description" class="t-input" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
+                    <textarea name="description" class="t-input" rows="4" placeholder="Öquvçi nima haqida gapirişligi kerak, qanday şaroitda..." required></textarea>
                 </div>
                 <div class="t-add-field">
                     <label>Maqsad daraja</label>
@@ -118,7 +118,7 @@
                             <input type="radio" name="target_level" value="beginner">
                             <div class="t-level-icon" style="background: rgba(13, 110, 253,0.12); color: #0d6efd;"><i class="bi bi-flower1"></i></div>
                             <div class="t-level-info">
-                                <span class="t-level-name">Boshlang'ich</span>
+                                <span class="t-level-name">Boşlanğiç</span>
                                 <span class="t-level-desc">A1 — Beginner</span>
                             </div>
                             <div class="t-level-check"><i class="bi bi-check2"></i></div>
@@ -136,7 +136,7 @@
                             <input type="radio" name="target_level" value="intermediate" checked>
                             <div class="t-level-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;"><i class="bi bi-journal-bookmark-fill"></i></div>
                             <div class="t-level-info">
-                                <span class="t-level-name">O'rta</span>
+                                <span class="t-level-name">Örta</span>
                                 <span class="t-level-desc">B1 — Intermediate</span>
                             </div>
                             <div class="t-level-check"><i class="bi bi-check2"></i></div>
@@ -145,7 +145,7 @@
                             <input type="radio" name="target_level" value="upper_intermediate">
                             <div class="t-level-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;"><i class="bi bi-fire"></i></div>
                             <div class="t-level-info">
-                                <span class="t-level-name">O'rta-yuqori</span>
+                                <span class="t-level-name">Örta-yuqori</span>
                                 <span class="t-level-desc">B2 — Upper Intermediate</span>
                             </div>
                             <div class="t-level-check"><i class="bi bi-check2"></i></div>
@@ -174,7 +174,7 @@
                 </div>
                 <div class="t-add-row">
                     <div class="t-add-field">
-                        <label>Topshirish muddati</label>
+                        <label>Topşiriş muddati</label>
                         <input type="datetime-local" name="due_date" class="t-input">
                     </div>
                     <div class="t-add-field"></div>
@@ -183,29 +183,29 @@
                 <div class="t-add-field">
                     <div class="t-switch">
                         <input type="checkbox" name="ai_check" id="aiCheck" checked>
-                        <label for="aiCheck" class="t-switch-label"><i class="bi bi-robot me-1"></i>AI avtomatik tekshirsin</label>
+                        <label for="aiCheck" class="t-switch-label"><i class="bi bi-robot me-1"></i>AI avtomatik tekşirsin</label>
                     </div>
-                    <div class="t-help">Yoqilsa, o'quvchi topshirganda AI avtomatik tekshiradi va baho beradi</div>
+                    <div class="t-help">Yoqilsa, öquvçi topşirganda AI avtomatik tekşiradi va baho beradi</div>
                 </div>
                 {% else %}
                 <div class="t-add-field">
                     <div class="t-help" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #b91c1c; padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: .5rem;">
                         <i class="bi bi-robot"></i>
-                        <span>AI dan foydalanish administrator tomonidan o'chirib qo'yilgan. Vazifa AI siz yaratiladi.</span>
+                        <span>AI dan foydalaniş administrator tomonidan öçirib qöyilgan. Vazifa AI siz yaratiladi.</span>
                     </div>
                 </div>
                 {% endif %}
                 <div class="t-add-field">
-                    <label>Baholash mezonlari</label>
-                    <textarea name="criteria" class="t-input" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berishi kerak..."></textarea>
+                    <label>Baholaş mezonlari</label>
+                    <textarea name="criteria" class="t-input" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berişi kerak..."></textarea>
                     <div class="t-help">Masalan: Talaffuzga, grammatikaga, ravonlikka e'tibor berilsin</div>
                 </div>
                 <div class="t-add-actions">
                     <a href="{% url 'teacher:courses' %}" class="t-btn t-btn-outline">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </a>
                     <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                        <i class="bi bi-plus-lg"></i> Yaratish
+                        <i class="bi bi-plus-lg"></i> Yaratiş
                     </button>
                 </div>
             </form>

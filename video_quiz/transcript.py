@@ -1,15 +1,15 @@
 """
-YouTube transkriptini olish yordamchisi (youtube-transcript-api v1.x).
+YouTube transkriptini oliş yordamçisi (youtube-transcript-api v1.x).
 
 Bu modul video darsdan (yoki xom YouTube video_id'dan) matnli transkript
-qaytaradi. AI test generatori uni kontekst sifatida ishlatadi.
+qaytaradi. AI test generatori uni kontekst sifatida işlatadi.
 
 Dizayn:
-  * DB'ga hech narsa yozmaydi — faqat tashqi YouTube API'ga so'rov yuboradi.
-  * Har doim (matn, xatolik, snippetlar) uchligini qaytaradi; xatolikda
-    matn bo'sh, snippetlar bo'sh, xatolik esa foydalanuvchiga ko'rsatiladigan
-    o'zbekcha xabar bo'ladi.
-  * Til ustuvorligi: o'zbek → ingliz → rus, topilmasa mavjud har qanday
+  * DB'ga heç narsa yozmaydi — faqat taşqi YouTube API'ga sörov yuboradi.
+  * Har doim (matn, xatolik, snippetlar) uçligini qaytaradi; xatolikda
+    matn böş, snippetlar böş, xatolik esa foydalanuvçiga körsatiladigan
+    özbekça xabar böladi.
+  * Til ustuvorligi: özbek → ingliz → rus, topilmasa mavjud har qanday
     (jumladan avtomatik yaratilgan) transkript olinadi.
 """
 from __future__ import annotations
@@ -23,10 +23,10 @@ PREFERRED_LANGS = ['uz', 'en', 'ru']
 def get_or_fetch_transcript(
     video, *, max_chars: int = 16000, force_refresh: bool = False,
 ) -> Tuple[str, Optional[str], List[dict]]:
-    """Transkriptni DB keshidan oladi, bo'lmasa YouTube'dan olib keshlaydi.
+    """Transkriptni DB keşidan oladi, bölmasa YouTube'dan olib keşlaydi.
 
     (text, error, snippets) qaytaradi — fetch_transcript_text bilan bir xil
-    imzo, shuning uchun chaqiruvchi kod o'zgarmaydi.
+    imzo, şuning uçun çaqiruvçi kod özgarmaydi.
     """
     from .models import VideoTranscript
 
@@ -45,8 +45,8 @@ def get_or_fetch_transcript(
     if error:
         return '', error, []
 
-    # Muvaffaqiyatli natijani keshlaymiz (xatolik keshlanmaydi —
-    # vaqtinchalik IP-blok keyinroq o'tib ketishi mumkin)
+    # Muvaffaqiyatli natijani keşlaymiz (xatolik keşlanmaydi —
+    # vaqtinçalik IP-blok keyinroq ötib ketişi mumkin)
     VideoTranscript.objects.update_or_create(
         video=video,
         defaults={'text': text, 'snippets': snippets},
@@ -55,15 +55,15 @@ def get_or_fetch_transcript(
 
 
 def fetch_transcript_text(video, *, max_chars: int = 16000) -> Tuple[str, Optional[str], List[dict]]:
-    """VideoLesson uchun transkript oladi.
+    """VideoLesson uçun transkript oladi.
 
     (text, error, snippets) qaytaradi. `snippets` — {'text','start','duration'}
-    lug'atlar ro'yxati (xatolikda bo'sh).
+    luğatlar röyxati (xatolikda böş).
     """
     if not video:
         return '', "Video topilmadi.", []
     if not getattr(video, 'is_youtube', False):
-        return '', "Faqat YouTube videolaridan transkript olish mumkin.", []
+        return '', "Faqat YouTube videolaridan transkript oliş mumkin.", []
     video_id = video.get_video_id()
     if not video_id:
         return '', "Video ID aniqlanmadi.", []
@@ -71,11 +71,11 @@ def fetch_transcript_text(video, *, max_chars: int = 16000) -> Tuple[str, Option
 
 
 def fetch_transcript_by_id(video_id: str, *, max_chars: int = 16000) -> Tuple[str, Optional[str], List[dict]]:
-    """Xom YouTube video_id uchun transkript oladi (ko'p bosqichli fallback)."""
+    """Xom YouTube video_id uçun transkript oladi (köp bosqiçli fallback)."""
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
     except ImportError:
-        return '', "`youtube-transcript-api` kutubxonasi o'rnatilmagan.", []
+        return '', "`youtube-transcript-api` kutubxonasi örnatilmagan.", []
 
     api = _build_api(YouTubeTranscriptApi)
     fetched, error = _fetch_with_fallbacks(api, video_id)
@@ -94,20 +94,20 @@ def fetch_transcript_by_id(video_id: str, *, max_chars: int = 16000) -> Tuple[st
         })
 
     full_text = ' '.join(part['text'] for part in snippets)
-    full_text = ' '.join(full_text.split())  # ortiqcha bo'shliqlarni tozalash
+    full_text = ' '.join(full_text.split())  # ortiqça böşliqlarni tozalaş
     if not full_text:
-        return '', "Transkript bo'sh chiqdi.", []
+        return '', "Transkript böş çiqdi.", []
     if len(full_text) > max_chars:
         full_text = full_text[:max_chars]
     return full_text, None, snippets
 
 
 def _build_api(YouTubeTranscriptApi):
-    """API instance — .env dagi ixtiyoriy proxy bilan (YouTube IP blokidan qochish).
+    """API instance — .env dagi ixtiyoriy proxy bilan (YouTube IP blokidan qoçiş).
 
-    Muhitda YT_TRANSCRIPT_PROXY (masalan: http://user:pass@host:port) bo'lsa,
-    so'rovlar shu proxy orqali ketadi. Bu — server IP'si YouTube tomonidan
-    bloklanganda ko'p videolar subtitri olinmasligini bartaraf etadi.
+    Muhitda YT_TRANSCRIPT_PROXY (masalan: http://user:pass@host:port) bölsa,
+    sörovlar şu proxy orqali ketadi. Bu — server IP'si YouTube tomonidan
+    bloklanganda köp videolar subtitri olinmasligini bartaraf etadi.
     """
     import os
     proxy = (os.environ.get('YT_TRANSCRIPT_PROXY') or '').strip()
@@ -123,19 +123,19 @@ def _build_api(YouTubeTranscriptApi):
 
 
 def _fetch_with_fallbacks(api, video_id):
-    """Transkriptni bir necha bosqichda qidiradi. (fetched | None, error) qaytaradi.
+    """Transkriptni bir neça bosqiçda qidiradi. (fetched | None, error) qaytaradi.
 
-    Bosqichlar:
+    Bosqiçlar:
       1) Ustuvor tillar (uz/en/ru) — manual yoki avtomatik;
       2) list() orqali: preferred / generated / manual finder'lar;
       3) mavjud har qanday transkript (odatda avtomatik yaratilgan);
-      4) preferred til bo'lmasa — preferred tilga TARJIMA qilishga urinadi.
+      4) preferred til bölmasa — preferred tilga TARJIMA qilişga urinadi.
     IpBlocked/RequestBlocked'da bir marta qayta uriniladi.
     """
     import time
     last_exc = None
-    for attempt in range(2):  # 1 ta qayta urinish (IP/transient xatolar uchun)
-        # 1) To'g'ridan-to'g'ri ustuvor tillar
+    for attempt in range(2):  # 1 ta qayta uriniş (IP/transient xatolar uçun)
+        # 1) Töğridan-töğri ustuvor tillar
         try:
             return api.fetch(video_id, languages=PREFERRED_LANGS), None
         except Exception as e:
@@ -151,7 +151,7 @@ def _fetch_with_fallbacks(api, video_id):
                 continue
             return None, _friendly_error(e)
 
-        # 2a) preferred / generated / manual finder'lar (versiyaga qarab mavjudi ishlaydi)
+        # 2a) preferred / generated / manual finder'lar (versiyaga qarab mavjudi işlaydi)
         for finder in ('find_transcript', 'find_generated_transcript',
                        'find_manually_created_transcript'):
             fn = getattr(tl, finder, None)
@@ -172,9 +172,9 @@ def _fetch_with_fallbacks(api, video_id):
             any_tr = None
 
         if any_tr is None:
-            return None, "Bu video uchun subtitr (transkript) topilmadi."
+            return None, "Bu video uçun subtitr (transkript) topilmadi."
 
-        # 3) preferred tilda bo'lmasa — tarjima qilishga urinamiz (AI konteksti uchun)
+        # 3) preferred tilda bölmasa — tarjima qilişga urinamiz (AI konteksti uçun)
         try:
             lang_code = getattr(any_tr, 'language_code', '') or ''
             if lang_code not in PREFERRED_LANGS and getattr(any_tr, 'is_translatable', False):
@@ -186,7 +186,7 @@ def _fetch_with_fallbacks(api, video_id):
         except Exception:
             pass
 
-        # 4) tarjima bo'lmasa — asl tilida qaytaramiz
+        # 4) tarjima bölmasa — asl tilida qaytaramiz
         try:
             return any_tr.fetch(), None
         except Exception as e:
@@ -200,20 +200,20 @@ def _fetch_with_fallbacks(api, video_id):
 
 
 def _friendly_error(exc: Exception) -> str:
-    """youtube-transcript-api xatoliklarini o'zbekcha xabarga o'giradi."""
+    """youtube-transcript-api xatoliklarini özbekça xabarga ögiradi."""
     name = type(exc).__name__
     mapping = {
-        'TranscriptsDisabled': "Bu videoda subtitrlar o'chirilgan.",
-        'NoTranscriptFound': "Bu video uchun transkript topilmadi.",
+        'TranscriptsDisabled': "Bu videoda subtitrlar öçirilgan.",
+        'NoTranscriptFound': "Bu video uçun transkript topilmadi.",
         'VideoUnavailable': "Video mavjud emas yoki maxfiy.",
-        'InvalidVideoId': "Video ID noto'g'ri.",
-        'IpBlocked': "YouTube so'rovni blokladi (IP). Keyinroq urinib ko'ring.",
-        'RequestBlocked': "YouTube so'rovni blokladi. Keyinroq urinib ko'ring.",
-        'AgeRestricted': "Video yosh chekloviga ega — transkript olib bo'lmaydi.",
+        'InvalidVideoId': "Video ID notöğri.",
+        'IpBlocked': "YouTube sörovni blokladi (IP). Keyinroq urinib köring.",
+        'RequestBlocked': "YouTube sörovni blokladi. Keyinroq urinib köring.",
+        'AgeRestricted': "Video yoş çekloviga ega — transkript olib bölmaydi.",
     }
-    return mapping.get(name, f"Transkriptni olishda xatolik: {exc}")
+    return mapping.get(name, f"Transkriptni olişda xatolik: {exc}")
 
 
-# Bu fayl: YouTube videodan matnli transkript oluvchi yagona yordamchi.
-# Ham video-quiz (bitta video), ham quiz (bo'lim bo'yicha bir nechta video)
-# generatorlari shu moduldan foydalanadi (DRY).
+# Bu fayl: YouTube videodan matnli transkript oluvçi yagona yordamçi.
+# Ham video-quiz (bitta video), ham quiz (bölim böyiça bir neçta video)
+# generatorlari şu moduldan foydalanadi (DRY).

@@ -1,4 +1,4 @@
-{# Kasblar & Kurslar sahifasi: bir martalik to'lov bilan sotiladigan kurslar (marketing bloki) #}
+{# Kasblar & Kurslar sahifasi: bir martalik tölov bilan sotiladigan kurslar (marketing bloki) #}
 {% load static %}
 <link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 <style>
@@ -84,30 +84,30 @@
     <div class="ks-head">
         <div>
             <span class="ks-pill"><i class="bi bi-fire"></i>Maxsus taklif</span>
-            <h2 class="ks-title" id="ksTitle">Bir marta to'lang — <span>kurs umrbod sizniki</span></h2>
-            <p class="ks-sub">So'rov yuborish va tasdiq kutish shart emas: onlayn to'lov qiling va darhol o'qishni boshlang.</p>
+            <h2 class="ks-title" id="ksTitle">Bir marta tölang — <span>kurs umrbod sizniki</span></h2>
+            <p class="ks-sub">Sörov yuboriş va tasdiq kutiş şart emas: onlayn tölov qiling va darhol öqişni boşlang.</p>
         </div>
         <div class="ks-trust" aria-label="Afzalliklar">
-            <span><i class="bi bi-infinity"></i>Umrbod kirish</span>
-            <span><i class="bi bi-lightning-charge-fill"></i>Darhol ochiladi</span>
-            <span><i class="bi bi-shield-lock-fill"></i>Xavfsiz to'lov</span>
+            <span><i class="bi bi-infinity"></i>Umrbod kiriş</span>
+            <span><i class="bi bi-lightning-charge-fill"></i>Darhol oçiladi</span>
+            <span><i class="bi bi-shield-lock-fill"></i>Xavfsiz tölov</span>
         </div>
     </div>
 
     <div class="ks-grid">
         {% for c in sale_courses %}
         {% if c.pk in purchased_ids %}
-        <a href="{% url 'kurslarim:course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — sizniki, davom ettirish">
+        <a href="{% url 'kurslarim:course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — sizniki, davom ettiriş">
         {% else %}
-        <a href="{% url 'enroll_course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — {{ c.sale.price|floatformat:'0g' }} so'mga sotib olish">
+        <a href="{% url 'enroll_course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — {{ c.sale.price|floatformat:'0g' }} sömga sotib oliş">
         {% endif %}
             <div class="ks-media">
                 {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy">{% endif %}
-                <span class="ks-ribbon">{% if c.sale.has_discount %}CHEGIRMA −{{ c.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
+                <span class="ks-ribbon">{% if c.sale.has_discount %}ÇEGIRMA −{{ c.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
                 {% if c.pk in purchased_ids %}<span class="ks-tag owned"><i class="bi bi-check2-circle me-1"></i>Sizniki</span>
                 {% elif c.student_count >= 10 %}<span class="ks-tag"><i class="bi bi-fire me-1"></i>Ommabop</span>{% endif %}
                 <div class="ks-media-meta">
-                    <span><i class="bi bi-people-fill"></i>{{ c.student_count }} o'quvchi</span>
+                    <span><i class="bi bi-people-fill"></i>{{ c.student_count }} öquvçi</span>
                     {% if c.duration_months %}<span><i class="bi bi-calendar-range"></i>{{ c.duration_months }} oy</span>{% endif %}
                     {% if c.has_certificate %}<span><i class="bi bi-patch-check-fill"></i>Sertifikat</span>{% endif %}
                 </div>
@@ -116,15 +116,15 @@
                 <h3 class="ks-name">{{ c.name }}</h3>
                 <p class="ks-desc">{{ c.description|striptags|truncatewords:22 }}</p>
                 <ul class="ks-perks">
-                    <li><i class="bi bi-check-circle-fill"></i>Barcha video, vazifa va testlar</li>
-                    <li><i class="bi bi-check-circle-fill"></i>Hisob holatidan qat'i nazar ochiq</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Barça video, vazifa va testlar</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Hisob holatidan qat'i nazar oçiq</li>
                 </ul>
                 <div class="ks-foot">
-                    <div class="ks-price">{% if c.sale.has_discount %}<del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ c.sale.price|floatformat:"0g" }}</b><small>so'm · bir martalik</small>{% if c.sale.ends_at %}<span class="sale-timer d-flex" data-sale-ends="{{ c.sale.ends_at|date:'c' }}">{{ c.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
+                    <div class="ks-price">{% if c.sale.has_discount %}<del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ c.sale.price|floatformat:"0g" }}</b><small>söm · bir martalik</small>{% if c.sale.ends_at %}<span class="sale-timer d-flex" data-sale-ends="{{ c.sale.ends_at|date:'c' }}">{{ c.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
                     {% if c.pk in purchased_ids %}
-                    <span class="ks-cta owned"><i class="bi bi-play-fill"></i>Davom ettirish</span>
+                    <span class="ks-cta owned"><i class="bi bi-play-fill"></i>Davom ettiriş</span>
                     {% else %}
-                    <span class="ks-cta"><i class="bi bi-bag-check-fill"></i>Sotib olish</span>
+                    <span class="ks-cta"><i class="bi bi-bag-check-fill"></i>Sotib oliş</span>
                     {% endif %}
                 </div>
             </div>

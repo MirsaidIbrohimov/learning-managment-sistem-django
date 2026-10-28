@@ -5,10 +5,10 @@ from django.db import migrations, models
 
 def hash_pending_plaintext_passwords(apps, schema_editor):
     """
-    `new_password` ilgari OCHIQ MATNDA saqlanardi. Endi u so'rov paytida
-    hashlanadi, tasdiqlovchi esa qiymatni to'g'ridan-to'g'ri `parent.password`
-    ga yozadi. Shu sababli DB da qolgan ochiq matnli qatorlarni ham
-    hashlab qo'yamiz — aks holda tasdiqlashdan keyin ota-ona kira olmasdi.
+    `new_password` ilgari OÇIQ MATNDA saqlanardi. Endi u sörov paytida
+    haşlanadi, tasdiqlovçi esa qiymatni töğridan-töğri `parent.password`
+    ga yozadi. Şu sababli DB da qolgan oçiq matnli qatorlarni ham
+    haşlab qöyamiz — aks holda tasdiqlaşdan keyin ota-ona kira olmasdi.
     """
     from django.contrib.auth.hashers import identify_hasher, make_password
 
@@ -17,7 +17,7 @@ def hash_pending_plaintext_passwords(apps, schema_editor):
         try:
             identify_hasher(row.new_password)
         except Exception:
-            # Tanib bo'lmadi => ochiq matn.
+            # Tanib bölmadi => oçiq matn.
             Model.objects.filter(pk=row.pk).update(
                 new_password=make_password(row.new_password)
             )

@@ -3,10 +3,10 @@
 ## Veb (Django LMS) — deploy qilinmagan
 - PWA: `/manifest.webmanifest`, `/sw.js`, `/.well-known/assetlinks.json` (`config/pwa.py`).
 - Ikonkalar: 192/512 (any + maskable), apple-touch-icon (`static/pwa/icons`).
-- Service worker faqat `/static/` fayllarini keshlaydi; internet yo‘q bo‘lsa ommaviy offline sahifa.
-- Chrome/Edge’da “ITC Academy ilovasini o‘rnatish” taklifi (30 kunga yopiladi; o‘rnatilgan ilova ichida chiqmaydi).
-- `<head>` partial: asosiy sayt, o‘qituvchi, admin, yordamchi, ota-ona panellari, kurslarim, quiz, davomat, login/ro‘yxatdan o‘tish, landing.
-- Middleware: PWA ommaviy yo‘llari profil/to‘lov/texnik xizmat yo‘naltirishlaridan ozod.
+- Service worker faqat `/static/` fayllarini keşlaydi; internet yöq bölsa ommaviy offline sahifa.
+- Chrome/Edge’da “ITC Academy ilovasini örnatiş” taklifi (30 kunga yopiladi; örnatilgan ilova içida çiqmaydi).
+- `<head>` partial: asosiy sayt, öqituvçi, admin, yordamçi, ota-ona panellari, kurslarim, quiz, davomat, login/röyxatdan ötiş, landing.
+- Middleware: PWA ommaviy yöllari profil/tölov/texnik xizmat yönaltirişlaridan ozod.
 
 ## Android 1.0.0 (versionCode 1)
 - Trusted Web Activity (Bubblewrap core 1.27.0, androidbrowserhelper 2.7.4), paket `uz.itcacademy.lms`.
@@ -15,5 +15,5 @@
 
 ## Windows 1.0.0
 - Tauri 2.12.2 + WebView2: `ITC-Academy-Setup.exe` (per-user NSIS, 2.81 MB) va `ITC-Academy.msi` (per-machine, 3.38 MB).
-- LMS va to‘lov domenlari ilova ichida, boshqa havolalar tizim brauzerida; `target=_blank` sahifalar yangi ilova oynasida.
-- Single instance, masshtab tugmalari, oyna sarlavhasi sahifaga moslashadi; masofaviy sahifaga native API ochilmagan.
+- LMS va tölov domenlari ilova içida, boşqa havolalar tizim brauzerida; `target=_blank` sahifalar yangi ilova oynasida.
+- Single instance, masştab tugmalari, oyna sarlavhasi sahifaga moslaşadi; masofaviy sahifaga native API oçilmagan.

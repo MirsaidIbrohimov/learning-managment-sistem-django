@@ -18,7 +18,7 @@ def replace_block(existing, tag, entry):
     begin, end = f'# BEGIN LMS BACKUP {tag}', f'# END LMS BACKUP {tag}'
     lines = existing.splitlines()
     if lines.count(begin) != lines.count(end) or lines.count(begin) > 1:
-        raise CommandError('Oldingi backup cron bloki buzilgan; crontabni qo‘lda tekshiring.')
+        raise CommandError('Oldingi backup cron bloki buzilgan; crontabni qölda tekşiring.')
     if begin in lines:
         start, stop = lines.index(begin), lines.index(end)
         if stop < start:
@@ -27,12 +27,12 @@ def replace_block(existing, tag, entry):
     for line in lines:
         if line.strip() and not line.lstrip().startswith('#') and (
                 'send_backup' in line or 'backup/scheduler.py' in line):
-            raise CommandError('Boshqa backup cron mavjud. Dublikat yaratilmadi; crontab -l bilan tekshiring.')
+            raise CommandError('Boşqa backup cron mavjud. Dublikat yaratilmadi; crontab -l bilan tekşiring.')
     return '\n'.join([*lines, begin, entry, end]) + '\n'
 
 
 class Command(BaseCommand):
-    help = 'Har kuni Django TIME_ZONE bo‘yicha 02:00 backup cronini o‘rnatish (Linux/cPanel).'
+    help = 'Har kuni Django TIME_ZONE böyiça 02:00 backup cronini örnatiş (Linux/cPanel).'
     requires_system_checks = []
 
     def add_arguments(self, parser):
@@ -41,27 +41,27 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not sys.platform.startswith('linux'):
-            raise CommandError('Bu command faqat Linux/cPanel serverda ishlatiladi.')
+            raise CommandError('Bu command faqat Linux/cPanel serverda işlatiladi.')
         binary = shutil.which('crontab')
         if not binary:
-            raise CommandError('crontab topilmadi; hosting administratoridan Cron Jobs xizmatini yoqishni so‘rang.')
+            raise CommandError('crontab topilmadi; hosting administratoridan Cron Jobs xizmatini yoqişni sörang.')
         token = os.getenv('BACKUP_TELEGRAM_BOT_TOKEN', '').strip() or os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
         if not token or not os.getenv('BACKUP_TELEGRAM_CHAT_ID', '').strip():
             raise CommandError('.env da TELEGRAM_BOT_TOKEN va BACKUP_TELEGRAM_CHAT_ID kerak.')
         project = Path(settings.BASE_DIR).resolve()
         root = Path(options['backup_dir']).expanduser()
         if not root.is_absolute():
-            raise CommandError('--backup-dir mutlaq yo‘l bo‘lishi kerak.')
+            raise CommandError('--backup-dir mutlaq yöl bölişi kerak.')
         zone = settings.TIME_ZONE
         try:
             ZoneInfo(zone)
         except ZoneInfoNotFoundError:
-            raise CommandError('TIME_ZONE uchun timezone bazasi topilmadi.') from None
+            raise CommandError('TIME_ZONE uçun timezone bazasi topilmadi.') from None
         argv = [sys.executable, str(project / 'backup' / 'scheduler.py'),
                 '--backup-dir', str(root), '--timezone', zone,
                 '--settings', settings.SETTINGS_MODULE]
         if any('\n' in value or '\r' in value for value in argv):
-            raise CommandError('Cron yo‘llari/sozlamalarida yangi qator bo‘lmasin.')
+            raise CommandError('Cron yöllari/sozlamalarida yangi qator bölmasin.')
         # Cron invokes a small stdlib gate every minute, independent of server TZ.
         # Cron treats percent specially even inside shell quotes.
         entry = '* * * * * ' + shlex.join(argv).replace('%', '\\%') + ' >/dev/null 2>&1'
@@ -72,7 +72,7 @@ class Command(BaseCommand):
             elif current.returncode == 1 and 'no crontab for' in current.stderr.lower():
                 existing = ''
             else:
-                raise CommandError('Mavjud crontab o‘qilmadi; hech narsa o‘zgartirilmadi.')
+                raise CommandError('Mavjud crontab öqilmadi; heç narsa özgartirilmadi.')
             tag = project_tag(project)
             updated = replace_block(existing, tag, entry)
             if options['preview']:
@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 return
             root.mkdir(parents=True, exist_ok=True, mode=0o700)
             if root.is_symlink() or root.stat().st_mode & 0o077:
-                raise CommandError('Backup katalogi symlink bo‘lmasin va chmod 700 bo‘lsin.')
+                raise CommandError('Backup katalogi symlink bölmasin va chmod 700 bölsin.')
             state = Path.home() / '.local' / 'state' / 'lms-backup' / tag
             state.mkdir(parents=True, exist_ok=True, mode=0o700)
             state.chmod(0o700)
@@ -90,12 +90,12 @@ class Command(BaseCommand):
                 output.write(existing)
             written = subprocess.run([binary, '-'], input=updated, capture_output=True, text=True, timeout=15)
             if written.returncode:
-                raise CommandError('Cron o‘rnatilmadi; hosting Cron Jobs ruxsatini tekshiring.')
+                raise CommandError('Cron örnatilmadi; hosting Cron Jobs ruxsatini tekşiring.')
             verified = subprocess.run([binary, '-l'], capture_output=True, text=True, timeout=15)
             if verified.returncode or entry not in verified.stdout.splitlines():
-                raise CommandError('Cron yozildi, ammo qayta tekshirib bo‘lmadi; crontab -l ni tekshiring.')
+                raise CommandError('Cron yozildi, ammo qayta tekşirib bölmadi; crontab -l ni tekşiring.')
         except (OSError, subprocess.TimeoutExpired):
-            raise CommandError('Cron o‘qish/yozish xatosi; crontab -l ni tekshiring.') from None
-        self.stdout.write(self.style.SUCCESS(f'Cron o‘rnatildi: har kuni 02:00 ({zone}).'))
+            raise CommandError('Cron öqish/yozish xatosi; crontab -l ni tekşiring.') from None
+        self.stdout.write(self.style.SUCCESS(f'Cron örnatildi: har kuni 02:00 ({zone}).'))
         self.stdout.write(f'Log: {state / "schedule.log"}')
         self.stdout.write(f'Oldingi crontab nusxasi: {snapshot}')

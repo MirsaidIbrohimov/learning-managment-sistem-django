@@ -1,13 +1,13 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-{% block title %}IT blog: dasturlash va texnologiya maqolalari — IT Creative Academy{% endblock %}
-{% block meta_description %}IT Creative Academy blogida dasturlash, sun’iy intellekt, IT kasblari va texnologiyalar bo‘yicha yangiliklar, amaliy qo‘llanmalar va maslahatlarni o‘qing.{% endblock %}
+{% block title %}IT blog: dasturlaş va texnologiya maqolalari — IT Creative Academy{% endblock %}
+{% block meta_description %}IT Creative Academy blogida dasturlaş, sun’iy intellekt, IT kasblari va texnologiyalar böyiça yangiliklar, amaliy qöllanmalar va maslahatlarni öqing.{% endblock %}
 {% block meta_robots %}{% if search_query or filter_type %}noindex, follow{% else %}index, follow{% endif %}{% endblock %}
-{% block og_title %}IT blog: dasturlash va texnologiya maqolalari — IT Creative Academy{% endblock %}
-{% block og_description %}Dasturlash, sun’iy intellekt, IT kasblari va texnologiyalar bo‘yicha yangiliklar hamda amaliy qo‘llanmalar.{% endblock %}
+{% block og_title %}IT blog: dasturlaş va texnologiya maqolalari — IT Creative Academy{% endblock %}
+{% block og_description %}Dasturlaş, sun’iy intellekt, IT kasblari va texnologiyalar böyiça yangiliklar hamda amaliy qöllanmalar.{% endblock %}
 {% block og_url %}https://itc-academy.uz/blog/{% if posts.number > 1 %}?page={{ posts.number }}{% endif %}{% endblock %}
 {% block twitter_title %}IT blog — IT Creative Academy{% endblock %}
-{% block twitter_description %}Dasturlash va texnologiya bo‘yicha amaliy maqolalar va yangiliklar.{% endblock %}
+{% block twitter_description %}Dasturlaş va texnologiya böyiça amaliy maqolalar va yangiliklar.{% endblock %}
 {% block canonical %}https://itc-academy.uz/blog/{% if posts.number > 1 %}?page={{ posts.number }}{% endif %}{% endblock %}
 
 {% block extra_head %}
@@ -392,10 +392,10 @@
     <div style="position:relative;z-index:2;">
       <div class="bl-hero-badge"><i class="bi bi-journal-richtext"></i> Blog & Postlar</div>
       <h1>IT Dunyosi Yangiliklari</h1>
-      <p>Texnologiya, dasturlash va ta'lim haqidagi eng so'nggi maqolalar</p>
+      <p>Texnologiya, dasturlaş va ta'lim haqidagi eng sönggi maqolalar</p>
       {% if user.is_teacher or user.is_admin %}
       <a href="{% url 'blog:post_create' %}" class="bl-create-btn">
-        <i class="bi bi-plus-lg"></i> Post yaratish
+        <i class="bi bi-plus-lg"></i> Post yaratiş
       </a>
       {% endif %}
     </div>
@@ -408,7 +408,7 @@
       <div class="bl-search-box">
         <i class="bi bi-search"></i>
         <input type="text" name="q" id="blSearchInput"
-               placeholder="Postlarni qidirish..." value="{{ search_query|default:'' }}" autocomplete="off">
+               placeholder="Postlarni qidiriş..." value="{{ search_query|default:'' }}" autocomplete="off">
         {% if search_query %}
         <a href="{% url 'blog:post_list' %}{% if filter_type %}?type={{ filter_type }}{% endif %}" class="bl-search-clear">
           <i class="bi bi-x-lg"></i>
@@ -424,7 +424,7 @@
     <div class="bl-tabs">
       <a href="{% url 'blog:post_list' %}{% if search_query %}?q={{ search_query }}{% endif %}"
          class="bl-tab {% if not filter_type %}active{% endif %}">
-        <i class="bi bi-grid-3x3-gap"></i> Barchasi
+        <i class="bi bi-grid-3x3-gap"></i> Barçasi
         <span class="cnt">{{ posts.paginator.count }}</span>
       </a>
       <a href="{% url 'blog:post_list' %}?type=news{% if search_query %}&q={{ search_query }}{% endif %}"
@@ -445,7 +445,7 @@
       </a>
       <a href="{% url 'blog:post_list' %}?type=other{% if search_query %}&q={{ search_query }}{% endif %}"
          class="bl-tab {% if filter_type == 'other' %}active{% endif %}">
-        <i class="bi bi-three-dots"></i> Boshqa
+        <i class="bi bi-three-dots"></i> Boşqa
       </a>
     </div>
 
@@ -465,7 +465,7 @@
               {% elif post.post_type == 'tutorial' %}<i class="bi bi-book-half"></i> Darslik
               {% elif post.post_type == 'tips' %}<i class="bi bi-lightbulb-fill"></i> Maslahat
               {% elif post.post_type == 'announcement' %}<i class="bi bi-megaphone-fill"></i> E'lon
-              {% else %}<i class="bi bi-three-dots"></i> Boshqa{% endif %}
+              {% else %}<i class="bi bi-three-dots"></i> Boşqa{% endif %}
             </span>
           </div>
           <div class="bl-date-badge"><i class="bi bi-calendar3"></i> {{ post.created_at|date:"d.m.Y" }}</div>
@@ -522,8 +522,8 @@
       <h4 style="color:var(--bl-text);margin-top:1rem;">Postlar topilmadi</h4>
       <p style="color:var(--bl-muted);margin-top:.5rem;">
         {% if search_query or filter_type %}
-        Qidiruv natijasi topilmadi. <a href="{% url 'blog:post_list' %}" style="color:#818cf8;">Barchasini ko'rish</a>
-        {% else %}Hozircha postlar mavjud emas{% endif %}
+        Qidiruv natijasi topilmadi. <a href="{% url 'blog:post_list' %}" style="color:#818cf8;">Barçasini köriş</a>
+        {% else %}Hozirça postlar mavjud emas{% endif %}
       </p>
     </div>
     {% endif %}

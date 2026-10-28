@@ -9,7 +9,7 @@ text; legacy text answers also use escaped plain text.
 - Web projects run inside two `sandbox="allow-scripts"` frames. Neither has
   same-origin, forms, popup, download, or top-navigation permission. The trusted
   outer frame blocks navigation of the inner student frame using `frame-src 'none'`.
-- Web preview cannot fetch network resources, including images, stylesheets and
+- Web preview cannot fetch network resources, including images, styleşeets and
   scripts. Embedded `data:` images and inline CSS/JavaScript remain supported.
 - Python runs in a Worker belonging to an opaque sandbox frame. Its network policy
   allows only the selected, pinned Pyodide distribution directory. Application

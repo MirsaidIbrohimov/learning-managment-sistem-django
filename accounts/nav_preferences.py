@@ -1,4 +1,4 @@
-"""Foydalanuvchi navigatsiya sozlamalari: o'qish, tekshirish va saqlash."""
+"""Foydalanuvçi navigatsiya sozlamalari: öqiş, tekşiriş va saqlaş."""
 from __future__ import annotations
 
 from django.db.utils import OperationalError, ProgrammingError
@@ -19,7 +19,7 @@ def defaults() -> dict:
 
 
 def get_prefs(request) -> dict:
-    """Joriy foydalanuvchi sozlamalari (anonim yoki yozuvsiz bo'lsa — standart). So'rov ichida keshlanadi."""
+    """Joriy foydalanuvçi sozlamalari (anonim yoki yozuvsiz bölsa — standart). Sörov içida keşlanadi."""
     cached = getattr(request, _CACHE_ATTR, None)
     if cached is not None:
         return cached
@@ -29,7 +29,7 @@ def get_prefs(request) -> dict:
         try:
             row = NavigationPreference.objects.filter(user=user).first()
         except (OperationalError, ProgrammingError):
-            # Migratsiya hali qo'llanmagan bo'lsa ham sayt ishlashda davom etadi (standart navbar)
+            # Migratsiya hali qöllanmagan bölsa ham sayt işlaşda davom etadi (standart navbar)
             row = None
         if row is not None:
             prefs = row.as_dict()
@@ -38,7 +38,7 @@ def get_prefs(request) -> dict:
 
 
 def clean(data) -> dict:
-    """Faqat ruxsat etilgan kalit va qiymatlarni qoldiradi; noma'lumlari jimgina tashlanadi."""
+    """Faqat ruxsat etilgan kalit va qiymatlarni qoldiradi; noma'lumlari jimgina taşlanadi."""
     if not isinstance(data, dict):
         return {}
     cleaned = {}

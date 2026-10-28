@@ -17,15 +17,15 @@ class Profession(models.Model):
     description = models.TextField(verbose_name="Kasb haqida")
     is_paid = models.BooleanField(default=True, verbose_name="Pullik kurs")
     is_mandatory = models.BooleanField(default=False, verbose_name="Majburiy kurs")
-    is_blocked = models.BooleanField(default=False, verbose_name="Vaqtincha bloklangan")
+    is_blocked = models.BooleanField(default=False, verbose_name="Vaqtinça bloklangan")
     has_certificate = models.BooleanField(default=True, verbose_name="Sertifikat joriy qilingan")
-    daily_section_limit = models.BooleanField(default=True, verbose_name="Kunlik bo'lim cheklovi (bir kunda 1 bo'lim)")
-    blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
+    daily_section_limit = models.BooleanField(default=True, verbose_name="Kunlik bölim çeklovi (bir kunda 1 bölim)")
+    blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklaş sababi")
     closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
-    ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan")
-    # Bir martalik to'lov: so'rov o'rniga Tezcheck orqali sotib olinadi.
-    one_time_payment = models.BooleanField(default=False, verbose_name="Bir martalik to'lov")
-    one_time_price = models.PositiveIntegerField(default=0, verbose_name="Kurs narxi (so'm)")
+    ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekşiruvçi yoqilgan")
+    # Bir martalik tölov: sörov örniga Tezcheck orqali sotib olinadi.
+    one_time_payment = models.BooleanField(default=False, verbose_name="Bir martalik tölov")
+    one_time_price = models.PositiveIntegerField(default=0, verbose_name="Kurs narxi (söm)")
 
     # ─── Turi / mavzular soni / davomiylik ───
     KIND_CHOICES = (
@@ -36,24 +36,24 @@ class Profession(models.Model):
                             verbose_name="Turi (Kasb / Kurs)")
     topic_count = models.PositiveIntegerField(
         default=0, verbose_name="Mavzular (darslar) soni",
-        help_text="0 = cheksiz. Belgilangan sondan ortiq dars (mavzu) qo'shib bo'lmaydi.")
+        help_text="0 = çeksiz. Belgilangan sondan ortiq dars (mavzu) qöşib bölmaydi.")
     duration_months = models.PositiveIntegerField(
-        null=True, blank=True, verbose_name="O'qish davomiyligi (oy)",
-        help_text="O'qish necha oy davom etadi (masalan: 6).")
+        null=True, blank=True, verbose_name="Öqiş davomiyligi (oy)",
+        help_text="Öqiş neça oy davom etadi (masalan: 6).")
 
-    # ─── Ustoz to'lov stavkalari (har kasb uchun alohida) ───
-    # Ustozning daromadi shu stavkalarga qarab hisoblanadi. Standart qiymatlar
+    # ─── Ustoz tölov stavkalari (har kasb uçun alohida) ───
+    # Ustozning daromadi şu stavkalarga qarab hisoblanadi. Standart qiymatlar
     # avvalgi global narxlar bilan bir xil — mavjud hisob-kitob buzilmaydi.
     price_per_video = models.PositiveIntegerField(
-        default=25000, verbose_name="Video dars uchun to'lov (so'm)")
+        default=25000, verbose_name="Video dars uçun tölov (söm)")
     price_per_test = models.PositiveIntegerField(
-        default=10000, verbose_name="Test uchun to'lov (so'm)")
+        default=10000, verbose_name="Test uçun tölov (söm)")
     price_per_homework = models.PositiveIntegerField(
-        default=10000, verbose_name="Uyga vazifa uchun to'lov (so'm)")
+        default=10000, verbose_name="Uyga vazifa uçun tölov (söm)")
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-    # Dars turi -> stavka maydoni. Faqat to'lanadigan turlar bu yerda.
+    # Dars turi -> stavka maydoni. Faqat tölanadigan turlar bu yerda.
     TEACHER_RATE_FIELDS = {
         'video': 'price_per_video',
         'test': 'price_per_test',
@@ -61,18 +61,18 @@ class Profession(models.Model):
     }
 
     def teacher_rate(self, lesson_type):
-        """Berilgan dars turi uchun ustoz stavkasi (so'm). Noma'lum tur -> 0."""
+        """Berilgan dars turi uçun ustoz stavkasi (söm). Noma'lum tur -> 0."""
         field = self.TEACHER_RATE_FIELDS.get(lesson_type)
         return getattr(self, field) if field else 0
 
     @property
     def is_sold_once(self):
-        """Kurs so'rovsiz, bir martalik to'lov bilan ochiladimi?"""
+        """Kurs sörovsiz, bir martalik tölov bilan oçiladimi?"""
         return bool(self.is_paid and self.one_time_payment and self.one_time_price > 0)
 
     @property
     def sale(self):
-        """Amaldagi narx (chegirma bilan) — ko'rsatish va to'lov uchun bir xil."""
+        """Amaldagi narx (çegirma bilan) — körsatiş va tölov uçun bir xil."""
         if '_sale' not in self.__dict__:
             from .course_pricing import course_price
             self._sale = course_price(self)
@@ -80,20 +80,20 @@ class Profession(models.Model):
 
     @property
     def seo_slug(self):
-        """Ochiq kurs sahifasi URL'i uchun lotincha slug ("Python asoslari" → "python-asoslari")."""
+        """Oçiq kurs sahifasi URL'i uçun lotinça slug ("Python asoslari" → "python-asoslari")."""
         from django.utils.text import slugify
         from .security import ascii_filename
         return slugify(ascii_filename(self.name).replace('_', ' ')) or 'kurs'
 
     @property
     def public_url(self):
-        """Google indekslaydigan ochiq kurs sahifasi (faqat sotuvdagi kurslar)."""
+        """Google indekslaydigan oçiq kurs sahifasi (faqat sotuvdagi kurslar)."""
         from django.urls import reverse
         return reverse('public_course', args=[self.pk, self.seo_slug])
 
     @property
     def is_lesson_limit_reached(self):
-        """Dars (mavzu) limiti to'lganmi? (topic_count > 0 bo'lsa)."""
+        """Dars (mavzu) limiti tölganmi? (topic_count > 0 bölsa)."""
         if not self.topic_count:
             return False
         return self.lessons.count() >= self.topic_count
@@ -115,7 +115,7 @@ class Profession(models.Model):
 
 class Section(models.Model):
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='sections')
-    title = models.CharField(max_length=200, verbose_name="Bo'lim nomi")
+    title = models.CharField(max_length=200, verbose_name="Bölim nomi")
     description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
     order = models.IntegerField(default=0, verbose_name="Tartib")
     is_active = models.BooleanField(default=True)
@@ -123,8 +123,8 @@ class Section(models.Model):
     
     class Meta:
         ordering = ['order', 'created_at']
-        verbose_name = "Bo'lim"
-        verbose_name_plural = "Bo'limlar"
+        verbose_name = "Bölim"
+        verbose_name_plural = "Bölimlar"
     
     def __str__(self):
         return f"{self.profession.name} - {self.title}"
@@ -140,9 +140,9 @@ class CustomUser(AbstractUser):
 
     ROLE_CHOICES = (
         ('admin', 'Admin'),
-        ('assistant_admin', "Yordamchi admin"),
-        ('teacher', "O'qituvchi"),
-        ('student', "O'quvchi"),
+        ('assistant_admin', "Yordamçi admin"),
+        ('teacher', "Öqituvçi"),
+        ('student', "Öquvçi"),
     )
 
     # ─── Unique student ID (5-digit, immutable) ───
@@ -151,7 +151,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
         editable=False,
-        verbose_name="O'quvchi ID raqami",
+        verbose_name="Öquvçi ID raqami",
         db_index=True,
     )
 
@@ -181,31 +181,31 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
         related_name='students',
-        verbose_name="Yo'nalish"
+        verbose_name="Yönaliş"
     )
 
     is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
     ai_access_enabled = models.BooleanField(
         default=True,
-        verbose_name="AI funksiyasidan foydalanish ruxsati",
-        help_text="O'qituvchi uchun AI yordamida test/vazifa yaratish va baholash funksiyalariga ruxsat.",
+        verbose_name="AI funksiyasidan foydalaniş ruxsati",
+        help_text="Öqituvçi uçun AI yordamida test/vazifa yaratiş va baholaş funksiyalariga ruxsat.",
     )
-    is_finished = models.BooleanField(default=False, verbose_name="Kursni tugatgan o'quvchi")
+    is_finished = models.BooleanField(default=False, verbose_name="Kursni tugatgan öquvçi")
     last_activity = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi faollik", db_index=True)
 
-    bio = models.TextField(blank=True, null=True, verbose_name="O'zi haqida")
+    bio = models.TextField(blank=True, null=True, verbose_name="Özi haqida")
     obektivka = models.TextField(blank=True, null=True, verbose_name="Obektivka")
     onboarding_done = models.BooleanField(
-        default=False, verbose_name="Qo'llanmani ko'rgan",
-        help_text="Saytga birinchi kirishdagi o'quvchi qo'llanmasi ko'rsatilganmi.",
+        default=False, verbose_name="Qöllanmani körgan",
+        help_text="Saytga birinçi kirişdagi öquvçi qöllanmasi körsatilganmi.",
     )
 
     # Gamification
     coins = models.IntegerField(default=0, verbose_name="Coinlar")
     total_online_time = models.IntegerField(default=0, verbose_name="Jami online vaqt (daqiqa)")
-    is_premium = models.BooleanField(default=False, verbose_name="Premium foydalanuvchi")
+    is_premium = models.BooleanField(default=False, verbose_name="Premium foydalanuvçi")
     premium_purchased_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium sotib olingan sana")
-    premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium tugash sanasi")
+    premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium tugaş sanasi")
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
     streak_days = models.IntegerField(default=0, verbose_name="Ketma-ket kunlar (streak)")
     last_streak_date = models.DateField(null=True, blank=True, verbose_name="Oxirgi streak sanasi")
@@ -224,8 +224,8 @@ class CustomUser(AbstractUser):
     )
 
     # Documents
-    address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Yashash manzili")
-    birth_date = models.DateField(null=True, blank=True, verbose_name="Tug'ilgan kuni")
+    address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Yaşaş manzili")
+    birth_date = models.DateField(null=True, blank=True, verbose_name="Tuğilgan kuni")
 
     id_card = models.FileField(
         upload_to='documents/id_cards/',
@@ -238,7 +238,7 @@ class CustomUser(AbstractUser):
         upload_to='documents/birth_certificates/',
         blank=True,
         null=True,
-        verbose_name="Tug'ilganlik haqida guvohnoma"
+        verbose_name="Tuğilganlik haqida guvohnoma"
     )
 
     # Student Profile - additional required fields
@@ -249,20 +249,20 @@ class CustomUser(AbstractUser):
     
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True, verbose_name="Jinsi")
     nationality = models.CharField(max_length=100, blank=True, null=True, verbose_name="Millati")
-    father_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Otasining to'liq ismi")
-    mother_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Onasining to'liq ismi")
+    father_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Otasining töliq ismi")
+    mother_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Onasining töliq ismi")
     parent_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Ota-ona telefon raqami")
     school_name = models.CharField(max_length=300, blank=True, null=True, verbose_name="Maktab nomi")
     school_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Maktab raqami")
     passport_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Pasport seriyasi")
     passport_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Pasport raqami")
-    jshshir = models.CharField(max_length=14, blank=True, null=True, verbose_name="JSHSHIR (PINFL)")
+    jshshir = models.CharField(max_length=14, blank=True, null=True, verbose_name="JŞŞIR (PINFL)")
     passport_issued_date = models.DateField(null=True, blank=True, verbose_name="Pasport berilgan sana")
-    # Hujjat turi: pasport (seriya+raqam+JSHSHIR) yoki metrika (seriya+raqam, JSHSHIRsiz).
-    # Metrika seriyasi "I-GZ" ko'rinishida bo'ladi va unda JSHSHIR bo'lmaydi.
+    # Hujjat turi: pasport (seriya+raqam+JŞŞIR) yoki metrika (seriya+raqam, JSHSHIRsiz).
+    # Metrika seriyasi "I-GZ" körinişida böladi va unda JŞŞIR bölmaydi.
     DOCUMENT_TYPE_CHOICES = (
         ('passport', 'Pasport / ID karta'),
-        ('metrka', 'Metrika (tug\'ilganlik guvohnomasi)'),
+        ('metrka', 'Metrika (tuğilganlik guvohnomasi)'),
     )
     document_type = models.CharField(
         max_length=10, choices=DOCUMENT_TYPE_CHOICES, blank=True, null=True,
@@ -279,12 +279,12 @@ class CustomUser(AbstractUser):
     mother_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Onasining telefon raqami")
     father_deceased = models.BooleanField(default=False, verbose_name="Otasi vafot etgan")
     mother_deceased = models.BooleanField(default=False, verbose_name="Onasi vafot etgan")
-    is_profile_completed = models.BooleanField(default=False, verbose_name="Profil to'ldirilgan")
+    is_profile_completed = models.BooleanField(default=False, verbose_name="Profil töldirilgan")
     is_verified = models.BooleanField(default=False, verbose_name="Tasdiqlangan (verified)")
 
     @property
     def age(self):
-        """Tug'ilgan sanadan yosh (to'liq yillar); sana yo'q bo'lsa None."""
+        """Tuğilgan sanadan yoş (töliq yillar); sana yöq bölsa None."""
         if not self.birth_date:
             return None
         today = timezone.localdate()
@@ -300,7 +300,7 @@ class CustomUser(AbstractUser):
         null=True,
         blank=True,
         related_name='users',
-        verbose_name="Yordamchi rol (permission profili)",
+        verbose_name="Yordamçi rol (permission profili)",
     )
 
     @property
@@ -325,7 +325,7 @@ class CustomUser(AbstractUser):
         return False
 
     def get_assistant_permissions(self):
-        """Foydalanuvchi uchun mavjud permission kodlari to'plami."""
+        """Foydalanuvçi uçun mavjud permission kodlari töplami."""
         # Admin -> hammasi
         if self.is_admin:
             from accounts.permissions_registry import all_permission_codes
@@ -335,7 +335,7 @@ class CustomUser(AbstractUser):
         return set()
 
     def has_assistant_perm(self, code: str) -> bool:
-        """Foydalanuvchi berilgan permission kodiga ega ekanligini tekshiradi."""
+        """Foydalanuvçi berilgan permission kodiga ega ekanligini tekşiradi."""
         if self.is_admin:
             return True
         if self.assistant_role:
@@ -352,8 +352,8 @@ class CustomUser(AbstractUser):
 
     @property
     def is_learner(self):
-        """Kursga yozilib o'qiy oladigan rollar. Yordamchi adminlar boshqaruv
-        ishidan tashqari o'quvchi sifatida ham kurs o'tishi mumkin."""
+        """Kursga yozilib öqiy oladigan rollar. Yordamçi adminlar boşqaruv
+        işidan taşqari öquvçi sifatida ham kurs ötişi mumkin."""
         return self.role in ('student', 'assistant_admin')
 
     @property
@@ -364,9 +364,9 @@ class CustomUser(AbstractUser):
 
     def update_streak(self):
         """Kunlik faollik streak'ini yangilaydi.
-        - Bugun allaqachon hisoblangan bo'lsa — o'zgarmaydi.
-        - Kecha kirgan bo'lsa — streak +1.
-        - Birinchi marta yoki tanaffus (1 kundan ko'p) bo'lsa — streak 1 dan boshlanadi.
+        - Bugun allaqaçon hisoblangan bölsa — özgarmaydi.
+        - Keça kirgan bölsa — streak +1.
+        - Birinçi marta yoki tanaffus (1 kundan köp) bölsa — streak 1 dan boşlanadi.
         """
         from datetime import timedelta
         today = timezone.localdate()
@@ -392,10 +392,10 @@ class CustomUser(AbstractUser):
 
     @property
     def has_identity_document(self):
-        """Shaxsni tasdiqlovchi hujjat to'ldirilganmi.
+        """Şaxsni tasdiqlovçi hujjat töldirilganmi.
 
-        Pasport = seriya + raqam + JSHSHIR; Metrika = seriya + raqam (JSHSHIRsiz).
-        Ikkalasidan biri to'liq bo'lsa yetarli.
+        Pasport = seriya + raqam + JŞŞIR; Metrika = seriya + raqam (JSHSHIRsiz).
+        Ikkalasidan biri töliq bölsa yetarli.
         """
         has_passport = bool(self.passport_series and self.passport_number and self.jshshir)
         has_metrka = bool(self.metrka_series and self.metrka_number)
@@ -428,7 +428,7 @@ class CustomUser(AbstractUser):
             self.parent_phone,
             self.school_name, self.school_number, self.address,
         ])
-        # Hujjat: pasport (seriya+raqam+JSHSHIR) YOKI metrika (seriya+raqam)
+        # Hujjat: pasport (seriya+raqam+JŞŞIR) YOKI metrika (seriya+raqam)
         required = required and self.has_identity_document
         if not self.father_deceased:
             required = required and bool(self.father_name)
@@ -444,13 +444,13 @@ class CustomUser(AbstractUser):
         if amount <= 0:
             return
 
-        # Kursni tugatgan (muzlatilgan) o'quvchilarning coinlari ko'paymaydi
+        # Kursni tugatgan (muzlatilgan) öquvçilarning coinlari köpaymaydi
         if self.is_finished:
             return
 
         # `coins = coins + N` SQL darajasida bajariladi. Ilgari Python'da
-        # `self.coins += amount` qilinardi — parallel ikki so'rov bir xil eski
-        # qiymatni o'qib, biri ikkinchisining natijasini yo'q qilardi
+        # `self.coins += amount` qilinardi — parallel ikki sörov bir xil eski
+        # qiymatni öqib, biri ikkinçisining natijasini yöq qilardi
         # (lost update).
         with transaction.atomic():
             type(self).objects.filter(pk=self.pk).update(coins=F('coins') + amount)
@@ -468,13 +468,13 @@ class CustomUser(AbstractUser):
         if amount <= 0:
             return
 
-        # Kursni tugatgan (muzlatilgan) o'quvchilarning coinlari o'zgarmaydi
+        # Kursni tugatgan (muzlatilgan) öquvçilarning coinlari özgarmaydi
         if self.is_finished:
             return
 
-        # Coinlar minusga ham o'tishi mumkin (mavjud xatti-harakat saqlangan) —
-        # shu sababli bu yerda balans tekshirilmaydi. Xarid/sarflash uchun
-        # `try_spend_coins()` dan foydalanish kerak.
+        # Coinlar minusga ham ötişi mumkin (mavjud xatti-harakat saqlangan) —
+        # şu sababli bu yerda balans tekşirilmaydi. Xarid/sarflash uçun
+        # `try_spend_coins()` dan foydalaniş kerak.
         with transaction.atomic():
             type(self).objects.filter(pk=self.pk).update(coins=F('coins') - amount)
             CoinTransaction.objects.create(
@@ -486,11 +486,11 @@ class CustomUser(AbstractUser):
         self.refresh_from_db(fields=['coins'])
 
     def try_spend_coins(self, amount: int, reason: str = '') -> bool:
-        """Balans yetarli bo'lsa yechadi va True qaytaradi, aks holda False.
+        """Balans yetarli bölsa yeçadi va True qaytaradi, aks holda False.
 
-        Yechish bitta shartli UPDATE (`WHERE coins >= amount`) bilan bajariladi.
-        Bu — atomik compare-and-swap: "tekshirdim, keyin yechdim" oralig'i
-        yo'q, shuning uchun bir vaqtda kelgan ikki so'rov bir xil coinni ikki
+        Yeçiş bitta şartli UPDATE (`WHERE coins >= amount`) bilan bajariladi.
+        Bu — atomik compare-and-swap: "tekşirdim, keyin yeçdim" oraliği
+        yöq, şuning uçun bir vaqtda kelgan ikki sörov bir xil coinni ikki
         marta sarflay olmaydi (double-spend).
         """
         from coin.models import CoinTransaction
@@ -549,8 +549,8 @@ class CustomUser(AbstractUser):
     # ---------------- META ----------------
 
     class Meta:
-        verbose_name = "Foydalanuvchi"
-        verbose_name_plural = "Foydalanuvchilar"
+        verbose_name = "Foydalanuvçi"
+        verbose_name_plural = "Foydalanuvçilar"
         indexes = [
             models.Index(fields=['role', 'is_blocked']),
             models.Index(fields=['date_joined']),
@@ -567,8 +567,8 @@ class CourseEnrollment(models.Model):
     enrolled_at = models.DateTimeField(auto_now_add=True)
     daily_limit_override = models.BooleanField(
         null=True, blank=True, default=None,
-        verbose_name="Kunlik cheklov (shaxsiy)",
-        help_text="Bo'sh = kurs sozlamasi; Ha = majburan yoqilgan; Yo'q = majburan o'chirilgan.",
+        verbose_name="Kunlik çeklov (şaxsiy)",
+        help_text="Böş = kurs sozlamasi; Ha = majburan yoqilgan; Yöq = majburan öçirilgan.",
     )
 
     @property
@@ -579,8 +579,8 @@ class CourseEnrollment(models.Model):
 
     class Meta:
         unique_together = ['user', 'profession']
-        verbose_name = "Kursga yozilish"
-        verbose_name_plural = "Kursga yozilishlar"
+        verbose_name = "Kursga yoziliş"
+        verbose_name_plural = "Kursga yozilişlar"
         indexes = [
             models.Index(fields=['enrolled_at']),
         ]
@@ -608,15 +608,15 @@ class CourseEnrollmentRequest(models.Model):
     class Meta:
         unique_together = ['user', 'profession']
         ordering = ['-created_at']
-        verbose_name = "Kursga yozilish so'rovi"
-        verbose_name_plural = "Kursga yozilish so'rovlari"
+        verbose_name = "Kursga yoziliş sörovi"
+        verbose_name_plural = "Kursga yoziliş sörovlari"
     
     def __str__(self):
         return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
 
 
 class CourseUnenrollRequest(models.Model):
-    """Kursdan chiqish so'rovi - admin tasdiqlashi kerak"""
+    """Kursdan çiqiş sörovi - admin tasdiqlaşi kerak"""
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
         ('approved', 'Tasdiqlandi'),
@@ -625,7 +625,7 @@ class CourseUnenrollRequest(models.Model):
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='unenroll_requests')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='unenroll_requests')
-    reason = models.TextField(verbose_name="Chiqish sababi")
+    reason = models.TextField(verbose_name="Çiqiş sababi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     admin_message = models.TextField(blank=True, verbose_name="Admin javobi")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -634,17 +634,17 @@ class CourseUnenrollRequest(models.Model):
     class Meta:
         unique_together = ['user', 'profession']
         ordering = ['-created_at']
-        verbose_name = "Kursdan chiqish so'rovi"
-        verbose_name_plural = "Kursdan chiqish so'rovlari"
+        verbose_name = "Kursdan çiqiş sörovi"
+        verbose_name_plural = "Kursdan çiqiş sörovlari"
 
     def __str__(self):
         return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
 
 
 def daily_limit_active(user, profession):
-    """Shu o'quvchi uchun kunlik cheklov kuchdami.
+    """Şu öquvçi uçun kunlik çeklov kuçdami.
 
-    O'quvchi darajasidagi override kurs sozlamasidan ustun turadi.
+    Öquvçi darajasidagi override kurs sozlamasidan ustun turadi.
     """
     override = CourseEnrollment.objects.filter(
         user=user, profession=profession
@@ -655,16 +655,16 @@ def daily_limit_active(user, profession):
 
 
 class DailySectionAccess(models.Model):
-    """O'quvchi bir kunda faqat bitta bo'limga kirishi mumkin"""
+    """Öquvçi bir kunda faqat bitta bölimga kirişi mumkin"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_section_accesses')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
-    accessed_date = models.DateField(verbose_name="Kirish sanasi")
+    accessed_date = models.DateField(verbose_name="Kiriş sanasi")
 
     class Meta:
         unique_together = ['user', 'profession', 'accessed_date']
-        verbose_name = "Kunlik bo'lim kirish"
-        verbose_name_plural = "Kunlik bo'lim kirishlar"
+        verbose_name = "Kunlik bölim kiriş"
+        verbose_name_plural = "Kunlik bölim kirişlar"
 
     def __str__(self):
         return f"{self.user.full_name} - {self.section.title} ({self.accessed_date})"
@@ -675,12 +675,12 @@ class Lesson(models.Model):
         ('video', 'Video darslik'),
         ('homework', 'Uyga vazifa'),
         ('test', 'Test'),
-        ('dictionary', "Lug'at"),
+        ('dictionary', "Luğat"),
         ('speaking', 'Speaking'),
     )
     
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='lessons')
-    section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True, related_name='lessons', verbose_name="Bo'lim")
+    section = models.ForeignKey(Section, on_delete=models.SET_NULL, null=True, blank=True, related_name='lessons', verbose_name="Bölim")
     title = models.CharField(max_length=300, verbose_name="Dars nomi")
     lesson_type = models.CharField(max_length=20, choices=LESSON_TYPES, verbose_name="Dars turi")
     order = models.IntegerField(default=0, verbose_name="Tartib")
@@ -705,9 +705,9 @@ class VideoLesson(models.Model):
     duration = models.IntegerField(default=0, verbose_name="Davomiyligi (daqiqa)")
 
     # ── Serverda tasdiqlangan davomiylik (anti-cheat) ──
-    # Ko'rish talabini mijozdan kelgan davomiylikka asoslab bo'lmaydi: konsoldan
-    # kichik qiymat yuborib talabni bir soniyaga tushirish mumkin edi. Bu maydonga
-    # FAQAT server o'zi YouTube/Vimeo'dan olgan qiymat yoziladi.
+    # Köriş talabini mijozdan kelgan davomiylikka asoslab bölmaydi: konsoldan
+    # kiçik qiymat yuborib talabni bir soniyaga tuşiriş mumkin edi. Bu maydonga
+    # FAQAT server özi YouTube/Vimeo'dan olgan qiymat yoziladi.
     verified_duration_seconds = models.IntegerField(
         default=0, verbose_name="Tasdiqlangan davomiylik (soniya)"
     )
@@ -715,10 +715,10 @@ class VideoLesson(models.Model):
 
     @property
     def gating_duration_seconds(self):
-        """Ko'rish talabini hisoblash uchun ishonchli davomiylik (0 = noma'lum).
+        """Köriş talabini hisoblaş uçun işonçli davomiylik (0 = noma'lum).
 
-        Faqat server aniqlagan qiymat yoki admin qo'lda kiritgan `duration`
-        ishlatiladi — mijozdan kelgan qiymat hech qachon bu yerga tushmaydi.
+        Faqat server aniqlagan qiymat yoki admin qölda kiritgan `duration`
+        işlatiladi — mijozdan kelgan qiymat heç qaçon bu yerga tuşmaydi.
         """
         if self.verified_duration_seconds:
             return self.verified_duration_seconds
@@ -733,7 +733,7 @@ class VideoLesson(models.Model):
     @property
     def is_vimeo(self):
         # Yangi form faqat bitta provider saqlaydi. Eski yozuvda ikkala maydon
-        # to'lib qolgan bo'lsa, `is_youtube` ishlatadigan YouTube maydoni ustun.
+        # tölib qolgan bölsa, `is_youtube` işlatadigan YouTube maydoni ustun.
         if (self.youtube_url or '').strip():
             return False
         url = (self.video_url or '').strip()
@@ -745,9 +745,9 @@ class VideoLesson(models.Model):
         return bool(url and ('youtube.com' in url or 'youtu.be' in url))
     
     def get_video_id(self):
-        # Har bir provider o'z maydonidan olinadi. Eski yozuvda ikkala maydon
-        # tasodifan to'lib qolgan bo'lsa ham YouTube ID Vimeo URL'dan (yoki
-        # aksincha) ajratilmasin.
+        # Har bir provider öz maydonidan olinadi. Eski yozuvda ikkala maydon
+        # tasodifan tölib qolgan bölsa ham YouTube ID Vimeo URL'dan (yoki
+        # aksinça) ajratilmasin.
         url = (
             (self.video_url or '') if self.is_vimeo
             else (self.youtube_url or self.video_url or '')
@@ -773,7 +773,7 @@ class VideoLesson(models.Model):
         # https://youtube.com/embed/VIDEO_ID
         if 'youtube.com' in url or 'youtu.be' in url:
             import re
-            # Barcha keng tarqalgan YouTube formatlari (video ID — aynan 11 belgi):
+            # Barça keng tarqalgan YouTube formatlari (video ID — aynan 11 belgi):
             # watch?v=, youtu.be/, /embed/, /shorts/, /live/, /v/, m.youtube.com ...
             for pat in (
                 r'[?&]v=([a-zA-Z0-9_-]{11})',
@@ -867,70 +867,70 @@ class VideoProgress(models.Model):
     watched = models.BooleanField(default=False, db_index=True)
     watched_at = models.DateTimeField(null=True, blank=True)
     playback_started_at = models.DateTimeField(
-        null=True, blank=True, verbose_name="Birinchi haqiqiy ijro vaqti"
+        null=True, blank=True, verbose_name="Birinçi haqiqiy ijro vaqti"
     )
     requirement_met_at = models.DateTimeField(
         null=True, blank=True, verbose_name="90% serverda tasdiqlangan vaqt"
     )
     coin_awarded = models.BooleanField(default=False)
 
-    # ── Server tomonlama ko'rish hisobi (anti-cheat) ──
-    # Brauzerdagi timer/tugma holatiga ishonmaymiz: konsoldan o'zgartirib
-    # yuborish mumkin. Shu maydonlar FAQAT server o'z soati bilan tasdiqlagan
-    # vaqtni yig'adi, shuning uchun ularni mijoz oshirib yubora olmaydi.
+    # ── Server tomonlama köriş hisobi (anti-cheat) ──
+    # Brauzerdagi timer/tugma holatiga işonmaymiz: konsoldan özgartirib
+    # yuboriş mumkin. Şu maydonlar FAQAT server öz soati bilan tasdiqlagan
+    # vaqtni yiğadi, şuning uçun ularni mijoz oşirib yubora olmaydi.
     verified_seconds = models.FloatField(
-        default=0, verbose_name="Tasdiqlangan ko'rish vaqti (soniya)"
+        default=0, verbose_name="Tasdiqlangan köriş vaqti (soniya)"
     )
     watched_segments = models.JSONField(
         default=list, blank=True,
-        verbose_name="Tasdiqlangan ko'rilgan segmentlar",
+        verbose_name="Tasdiqlangan körilgan segmentlar",
     )
     max_position = models.FloatField(
-        default=0, verbose_name="Eng uzoq ko'rilgan nuqta (soniya)"
+        default=0, verbose_name="Eng uzoq körilgan nuqta (soniya)"
     )
-    # Oxirgi beat'da xabar qilingan pozitsiya. Sakrash (seek) ANIQLASH shu
-    # qiymatga nisbatan o'lchanadi, `max_position`ga emas. Sabab: kredit biror
-    # sababga ko'ra to'xtatilganda (pauza, fon tab, javob berilmagan test)
-    # `max_position` joyida qoladi — agar sakrash ham shunga qarab o'lchansa,
-    # halol ijro "sakrash" deb qabul qilinib video orqaga tashlanardi.
+    # Oxirgi beat'da xabar qilingan pozitsiya. Sakraş (seek) ANIQLAŞ şu
+    # qiymatga nisbatan ölçanadi, `max_position`ga emas. Sabab: kredit biror
+    # sababga köra töxtatilganda (pauza, fon tab, javob berilmagan test)
+    # `max_position` joyida qoladi — agar sakraş ham şunga qarab ölçansa,
+    # halol ijro "sakraş" deb qabul qilinib video orqaga taşlanardi.
     last_position = models.FloatField(
         default=0, verbose_name="Oxirgi xabar qilingan pozitsiya (soniya)"
     )
     last_beat_at = models.DateTimeField(null=True, blank=True)
-    # Oxirgi marta KREDIT berilgan payt (beat kelgan payt emas). Foydalanuvchining
-    # barcha videolari bo'yicha umumiy kreditni real vaqt bilan cheklash uchun:
-    # bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.
+    # Oxirgi marta KREDIT berilgan payt (beat kelgan payt emas). Foydalanuvçining
+    # barça videolari böyiça umumiy kreditni real vaqt bilan çeklaş uçun:
+    # bir vaqtda bir neça videoga beat yuborib vaqtni köpaytirib bölmaydi.
     last_credit_at = models.DateTimeField(null=True, blank=True)
     required_seconds = models.IntegerField(
         default=0, verbose_name="Talab qilinadigan vaqt (soniya)"
     )
     cheat_attempts = models.IntegerField(
-        default=0, verbose_name="Chetlab o'tish urinishlari"
+        default=0, verbose_name="Çetlab ötiş urinişlari"
     )
 
     # ── Beat butunligi (integrity) ──
-    # Har javobda yangi bir martalik nonce beriladi va keyingi beat aynan shuni
-    # qaytarishi shart. Shu bilan javobni takrorlash (replay) va bir videoga
-    # parallel bir necha oqim yuborish kredit bermaydi.
+    # Har javobda yangi bir martalik nonce beriladi va keyingi beat aynan şuni
+    # qaytarişi şart. Şu bilan javobni takrorlaş (replay) va bir videoga
+    # parallel bir neça oqim yuboriş kredit bermaydi.
     beat_nonce = models.CharField(max_length=32, blank=True, default='')
 
-    # ── Tiriklik tekshiruvi (presence check) ──
-    # Vaqt o'tishining o'zi yetarli emas: skript soxta pozitsiya yuborib fon
-    # tabda kredit yig'ib ketishi mumkin edi. Server tasodifiy vaqtda tugma
-    # bosishni talab qiladi — javob kelmaguncha kredit to'xtaydi (yig'ilgan
-    # vaqt esa hech qachon kamaymaydi).
+    # ── Tiriklik tekşiruvi (presence check) ──
+    # Vaqt ötişining özi yetarli emas: skript soxta pozitsiya yuborib fon
+    # tabda kredit yiğib ketişi mumkin edi. Server tasodifiy vaqtda tugma
+    # bosişni talab qiladi — javob kelmagunça kredit töxtaydi (yiğilgan
+    # vaqt esa heç qaçon kamaymaydi).
     presence_token = models.CharField(max_length=32, blank=True, default='')
     presence_sent_at = models.DateTimeField(null=True, blank=True)
     next_check_seconds = models.FloatField(
-        default=0, verbose_name="Keyingi tekshiruv (tasdiqlangan soniyada)"
+        default=0, verbose_name="Keyingi tekşiruv (tasdiqlangan soniyada)"
     )
     presence_failures = models.IntegerField(
-        default=0, verbose_name="O'tkazib yuborilgan tekshiruvlar"
+        default=0, verbose_name="Ötkazib yuborilgan tekşiruvlar"
     )
     suspicion_score = models.IntegerField(
-        default=0, db_index=True, verbose_name="Shubha bali"
+        default=0, db_index=True, verbose_name="Şubha bali"
     )
-    # Adminga shubha haqida xabar bir marta yuboriladi.
+    # Adminga şubha haqida xabar bir marta yuboriladi.
     suspicion_notified = models.BooleanField(default=False)
 
     class Meta:
@@ -946,8 +946,8 @@ class VideoProgress(models.Model):
             return True
         if not self.required_seconds:
             return False
-        # Beat kreditlari float sifatida yig'iladi; masalan 539.999999999
-        # 540 soniya bo'lishi kerak bo'lgan chegarani tasodifan o'tkazmasin.
+        # Beat kreditlari float sifatida yiğiladi; masalan 539.999999999
+        # 540 soniya bölişi kerak bölgan çegarani tasodifan ötkazmasin.
         return round(float(self.verified_seconds or 0), 1) >= max(1, self.required_seconds - 2)
 
 
@@ -985,22 +985,22 @@ class Homework(models.Model):
     description = models.TextField(verbose_name="Vazifa tavsifi")
     allowed_formats = models.TextField(blank=True, default='', verbose_name="Ruxsat etilgan formatlar", 
                                         help_text="Vergul bilan ajratilgan formatlar, masalan: .zip,.jpg,.png")
-    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topşiriş muddati")
     max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
-    late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
-    allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
-    ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
-    file_only = models.BooleanField(default=False, verbose_name="Faqat fayl qabul qilish")
+    late_penalty = models.IntegerField(default=10, verbose_name="Keçikiş jarimasi (%)")
+    allow_late = models.BooleanField(default=True, verbose_name="Keç topşirişga ruxsat")
+    ai_check = models.BooleanField(default=True, verbose_name="AI tekşirsin")
+    file_only = models.BooleanField(default=False, verbose_name="Faqat fayl qabul qiliş")
     handwritten_only = models.BooleanField(default=False, verbose_name="Faqat yozma (rasm)")
     
     def get_allowed_formats_list(self):
-        """Ruxsat etilgan formatlar ro'yxatini qaytaradi"""
+        """Ruxsat etilgan formatlar röyxatini qaytaradi"""
         if self.allowed_formats:
             return [f.strip().lower() for f in self.allowed_formats.split(',') if f.strip()]
         return []
     
     def is_format_allowed(self, filename):
-        """Fayl formati ruxsat etilganligini tekshiradi"""
+        """Fayl formati ruxsat etilganligini tekşiradi"""
         allowed = self.get_allowed_formats_list()
         if not allowed:
             return True
@@ -1025,8 +1025,8 @@ class HomeworkSubmission(models.Model):
 
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
-        ('reviewing', 'Ko\'rib chiqilmoqda'),
-        ('revision', 'Qayta ishlash kerak'),
+        ('reviewing', 'Körib çiqilmoqda'),
+        ('revision', 'Qayta işlaş kerak'),
         ('accepted', 'Qabul qilindi'),
         ('graded', 'Baholangan'),
     )
@@ -1038,7 +1038,7 @@ class HomeworkSubmission(models.Model):
     
     homework = models.ForeignKey(Homework, on_delete=models.CASCADE, related_name='submissions')
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='homework_submissions')
-    submission_type = models.CharField(max_length=10, choices=SUBMISSION_TYPES, default='file', verbose_name="Topshirish turi")
+    submission_type = models.CharField(max_length=10, choices=SUBMISSION_TYPES, default='file', verbose_name="Topşiriş turi")
     file = models.FileField(upload_to='homework_submissions/', null=True, blank=True)
     text_content = models.TextField(null=True, blank=True, verbose_name="Matn javobi")
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -1050,11 +1050,11 @@ class HomeworkSubmission(models.Model):
     graded_at = models.DateTimeField(null=True, blank=True)
     coin_awarded = models.BooleanField(default=False)
     coins_earned = models.PositiveSmallIntegerField(default=0, verbose_name="Berilgan coin")
-    is_late = models.BooleanField(default=False, verbose_name="Kech topshirilgan")
-    revision_count = models.IntegerField(default=0, verbose_name="Qayta topshirish soni")
+    is_late = models.BooleanField(default=False, verbose_name="Keç topşirilgan")
+    revision_count = models.IntegerField(default=0, verbose_name="Qayta topşiriş soni")
     version = models.IntegerField(default=1, verbose_name="Versiya")
     ai_feedback = models.TextField(null=True, blank=True, verbose_name="AI xulosasi")
-    ai_checked = models.BooleanField(default=False, verbose_name="AI tekshirdi")
+    ai_checked = models.BooleanField(default=False, verbose_name="AI tekşirdi")
     
     class Meta:
         ordering = ['-submitted_at']
@@ -1090,7 +1090,7 @@ class HomeworkSubmission(models.Model):
     
     @property
     def can_edit(self):
-        """Topshiriq yuborilgandan keyin 1 soat ichida tahrirlash mumkin"""
+        """Topşiriq yuborilgandan keyin 1 soat içida tahrirlaş mumkin"""
         if self.status not in ('pending',):
             return False
         from django.utils import timezone
@@ -1099,7 +1099,7 @@ class HomeworkSubmission(models.Model):
 
     @property
     def edit_seconds_left(self):
-        """Tahrirlash uchun qolgan vaqt (soniyalarda)"""
+        """Tahrirlaş uçun qolgan vaqt (soniyalarda)"""
         if not self.can_edit:
             return 0
         from django.utils import timezone
@@ -1114,7 +1114,7 @@ class HomeworkSubmission(models.Model):
         return self.grade
 
     def archive_current_version(self, note=''):
-        """Joriy javob va tekshiruv natijasini qayta topshirish tarixiga saqlaydi."""
+        """Joriy javob va tekşiruv natijasini qayta topşiriş tarixiga saqlaydi."""
         revision = HomeworkRevision.objects.create(
             submission=self,
             file=self.file if self.file else None,
@@ -1155,16 +1155,16 @@ class HomeworkRevision(models.Model):
         max_length=10,
         choices=HomeworkSubmission.SUBMISSION_TYPES,
         default='file',
-        verbose_name="Topshirish turi",
+        verbose_name="Topşiriş turi",
     )
     status = models.CharField(
         max_length=20,
         choices=HomeworkSubmission.STATUS_CHOICES,
         default='pending',
-        verbose_name="O'sha paytdagi holat",
+        verbose_name="Öşa paytdagi holat",
     )
-    grade = models.IntegerField(null=True, blank=True, verbose_name="O'sha paytdagi baho")
-    feedback = models.TextField(blank=True, default='', verbose_name="O'sha paytdagi izoh")
+    grade = models.IntegerField(null=True, blank=True, verbose_name="Öşa paytdagi baho")
+    feedback = models.TextField(blank=True, default='', verbose_name="Öşa paytdagi izoh")
     submitted_at = models.DateTimeField(auto_now_add=True)
     note = models.TextField(blank=True, null=True, verbose_name="Izoh")
     
@@ -1179,18 +1179,18 @@ class Test(models.Model):
     TEST_TYPES = (
         ('lesson', 'Dars yuzasidan'),
         ('midterm', 'Oraliq test'),
-        ('practice', 'Tajriba oshirish'),
+        ('practice', 'Tajriba oşiriş'),
         ('final', 'Yakuniy test'),
     )
     
     lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='test')
     test_type = models.CharField(max_length=20, choices=TEST_TYPES, default='lesson', verbose_name="Test turi")
-    time_limit = models.IntegerField(default=30, verbose_name="Vaqt chegarasi (daqiqa)")
-    passing_score = models.IntegerField(default=60, verbose_name="O'tish bali (%)")
-    allow_retry = models.BooleanField(default=False, verbose_name="Qayta ishlashga ruxsat")
-    shuffle_questions = models.BooleanField(default=False, verbose_name="Savollar tartibini aralashtirish")
-    shuffle_answers = models.BooleanField(default=False, verbose_name="Javoblar tartibini aralashtirish")
-    question_count = models.PositiveIntegerField(default=0, verbose_name="Olinadigan savollar soni", help_text="0 = barcha savollar olinadi")
+    time_limit = models.IntegerField(default=30, verbose_name="Vaqt çegarasi (daqiqa)")
+    passing_score = models.IntegerField(default=60, verbose_name="Ötiş bali (%)")
+    allow_retry = models.BooleanField(default=False, verbose_name="Qayta işlaşga ruxsat")
+    shuffle_questions = models.BooleanField(default=False, verbose_name="Savollar tartibini aralaştiriş")
+    shuffle_answers = models.BooleanField(default=False, verbose_name="Javoblar tartibini aralaştiriş")
+    question_count = models.PositiveIntegerField(default=0, verbose_name="Olinadigan savollar soni", help_text="0 = barça savollar olinadi")
     
     def __str__(self):
         return self.lesson.title
@@ -1200,7 +1200,7 @@ class TestQuestion(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField(verbose_name="Savol matni")
     question_image = models.ImageField(upload_to='test_questions/', blank=True, null=True, verbose_name="Savol rasmi")
-    explanation = models.TextField(blank=True, null=True, verbose_name="Izoh (tushuntirish)")
+    explanation = models.TextField(blank=True, null=True, verbose_name="Izoh (tuşuntiriş)")
     order = models.IntegerField(default=0)
     
     class Meta:
@@ -1213,7 +1213,7 @@ class TestQuestion(models.Model):
 class TestAnswer(models.Model):
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE, related_name='answers')
     answer_text = models.CharField(max_length=500, verbose_name="Javob matni")
-    is_correct = models.BooleanField(default=False, verbose_name="To'g'ri javob")
+    is_correct = models.BooleanField(default=False, verbose_name="Töğri javob")
     
     def __str__(self):
         return self.answer_text
@@ -1241,7 +1241,7 @@ class TestResult(models.Model):
     
     @staticmethod
     def first_attempts():
-        """Har bir talaba uchun har bir testning faqat birinchi natijasini qaytaradi (statistika uchun)"""
+        """Har bir talaba uçun har bir testning faqat birinçi natijasini qaytaradi (statistika uçun)"""
         from django.db.models import Min
         first_ids = TestResult.objects.values('test', 'student').annotate(
             first_id=Min('id')
@@ -1265,18 +1265,18 @@ class FinalTestPayment(models.Model):
     
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='final_test_payments')
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='payments')
-    receipt_image = models.ImageField(upload_to='final_test_receipts/', verbose_name="To'lov cheki")
-    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="To'lov summasi")
+    receipt_image = models.ImageField(upload_to='final_test_receipts/', verbose_name="Tölov çeki")
+    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="Tölov summasi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
-    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_final_payments', verbose_name="Tekshiruvchi")
-    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan sana")
-    reject_reason = models.CharField(max_length=500, blank=True, verbose_name="Rad etish sababi")
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_final_payments', verbose_name="Tekşiruvçi")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekşirilgan sana")
+    reject_reason = models.CharField(max_length=500, blank=True, verbose_name="Rad etiş sababi")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Yakuniy test to'lovi"
-        verbose_name_plural = "Yakuniy test to'lovlari"
+        verbose_name = "Yakuniy test tölovi"
+        verbose_name_plural = "Yakuniy test tölovlari"
     
     def __str__(self):
         return f"{self.student.full_name} - {self.test.lesson.title} ({self.get_status_display()})"
@@ -1293,33 +1293,33 @@ class Dictionary(models.Model):
         return self.words.count()
     
     class Meta:
-        verbose_name = "Lug'at"
-        verbose_name_plural = "Lug'atlar"
+        verbose_name = "Luğat"
+        verbose_name_plural = "Luğatlar"
 
 
 class DictionaryWord(models.Model):
     dictionary = models.ForeignKey(Dictionary, on_delete=models.CASCADE, related_name='words')
-    term = models.CharField(max_length=300, verbose_name="So'z / Atama")
+    term = models.CharField(max_length=300, verbose_name="Söz / Atama")
     translation = models.CharField(max_length=300, verbose_name="Tarjima / Ma'nosi")
     example = models.TextField(blank=True, null=True, verbose_name="Misol")
     order = models.IntegerField(default=0, verbose_name="Tartib")
     
     class Meta:
         ordering = ['order', 'term']
-        verbose_name = "Lug'at so'zi"
-        verbose_name_plural = "Lug'at so'zlari"
+        verbose_name = "Luğat sözi"
+        verbose_name_plural = "Luğat sözlari"
     
     def __str__(self):
         return f"{self.term} — {self.translation}"
 
 
 class SpeakingTask(models.Model):
-    """Speaking vazifasi - til bo'yicha gapirish qobiliyatini baholash"""
+    """Speaking vazifasi - til böyiça gapiriş qobiliyatini baholaş"""
     LEVEL_CHOICES = (
-        ('beginner', 'Boshlang\'ich'),
+        ('beginner', 'Boşlanğiç'),
         ('elementary', 'Elementar'),
-        ('intermediate', 'O\'rta'),
-        ('upper_intermediate', 'O\'rta-yuqori'),
+        ('intermediate', 'Örta'),
+        ('upper_intermediate', 'Örta-yuqori'),
         ('advanced', 'Yuqori'),
     )
     
@@ -1328,9 +1328,9 @@ class SpeakingTask(models.Model):
     target_level = models.CharField(max_length=30, choices=LEVEL_CHOICES, default='beginner', verbose_name="Maqsad daraja")
     max_duration = models.IntegerField(default=120, verbose_name="Maksimal davomiylik (soniya)")
     max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
-    ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
-    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
-    criteria = models.TextField(blank=True, null=True, verbose_name="Baholash mezonlari", help_text="AI yoki ustoz nimaga e'tibor berishi kerak")
+    ai_check = models.BooleanField(default=True, verbose_name="AI tekşirsin")
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topşiriş muddati")
+    criteria = models.TextField(blank=True, null=True, verbose_name="Baholaş mezonlari", help_text="AI yoki ustoz nimaga e'tibor berişi kerak")
     
     class Meta:
         verbose_name = "Speaking vazifa"
@@ -1343,9 +1343,9 @@ class SpeakingTask(models.Model):
 class SpeakingSubmission(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
-        ('reviewing', 'Ko\'rib chiqilmoqda'),
+        ('reviewing', 'Körib çiqilmoqda'),
         ('graded', 'Baholangan'),
-        ('revision', 'Qayta ishlash kerak'),
+        ('revision', 'Qayta işlaş kerak'),
     )
     
     speaking_task = models.ForeignKey(SpeakingTask, on_delete=models.CASCADE, related_name='submissions')
@@ -1361,22 +1361,22 @@ class SpeakingSubmission(models.Model):
     pronunciation_score = models.IntegerField(null=True, blank=True, verbose_name="Talaffuz bali")
     fluency_score = models.IntegerField(null=True, blank=True, verbose_name="Ravonlik bali")
     grammar_score = models.IntegerField(null=True, blank=True, verbose_name="Grammatika bali")
-    vocabulary_score = models.IntegerField(null=True, blank=True, verbose_name="Lug'at bali")
+    vocabulary_score = models.IntegerField(null=True, blank=True, verbose_name="Luğat bali")
     graded_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='graded_speakings')
     graded_at = models.DateTimeField(null=True, blank=True)
     coin_awarded = models.BooleanField(default=False)
     
     class Meta:
         ordering = ['-submitted_at']
-        verbose_name = "Speaking topshiriq"
-        verbose_name_plural = "Speaking topshiriqlar"
+        verbose_name = "Speaking topşiriq"
+        verbose_name_plural = "Speaking topşiriqlar"
     
     def __str__(self):
         return f"{self.student.full_name} - {self.speaking_task.lesson.title}"
 
 
 def completed_course_lesson_ids(user, profession):
-    """Kursdagi bajarilgan video, vazifa, speaking va o'tilgan test IDlari."""
+    """Kursdagi bajarilgan video, vazifa, speaking va ötilgan test IDlari."""
     watched_videos = set(VideoProgress.objects.filter(
         user=user, watched=True, video__lesson__profession=profession,
     ).values_list('video__lesson_id', flat=True))
@@ -1403,7 +1403,7 @@ def completed_course_lesson_ids(user, profession):
 
 
 def final_test_prerequisites_met(user, profession, completed_lesson_ids=None):
-    """Yakuniy testdan boshqa barcha majburiy darslar bajarilganini tekshiradi."""
+    """Yakuniy testdan boşqa barça majburiy darslar bajarilganini tekşiradi."""
     required_ids = set(
         Lesson.objects.filter(profession=profession)
         .exclude(lesson_type='dictionary')
@@ -1425,18 +1425,18 @@ class Certificate(models.Model):
     
     student = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='certificates',
-        null=True, blank=True, verbose_name="O'quvchi (platformada)"
+        null=True, blank=True, verbose_name="Öquvçi (platformada)"
     )
     recipient_name = models.CharField(
         max_length=150, blank=True, default='',
-        verbose_name="Qabul qiluvchi (qo'lda kiritilgan ism)"
+        verbose_name="Qabul qiluvçi (qölda kiritilgan ism)"
     )
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='certificates')
     certificate_id = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Sertifikat ID")
     file = models.FileField(upload_to='certificates/', verbose_name="Sertifikat fayli (PDF)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Holat")
     valid_from = models.DateField(verbose_name="Berilgan sana", null=True, blank=True)
-    valid_until = models.DateField(verbose_name="Amal qilish muddati", null=True, blank=True)
+    valid_until = models.DateField(verbose_name="Amal qiliş muddati", null=True, blank=True)
     description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
     issued_at = models.DateTimeField(auto_now_add=True)
     issued_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='issued_certificates')
@@ -1467,7 +1467,7 @@ class Certificate(models.Model):
 
     @property
     def recipient_display(self):
-        """Sertifikat egasining ismi: qo'lda kiritilgan yoki platformadagi."""
+        """Sertifikat egasining ismi: qölda kiritilgan yoki platformadagi."""
         if self.recipient_name:
             return self.recipient_name
         if self.student:
@@ -1489,7 +1489,7 @@ class Certificate(models.Model):
 
 
 class CertificateRequest(models.Model):
-    """O'quvchi kursni tugatgandan so'ng sertifikat olish uchun so'rov"""
+    """Öquvçi kursni tugatgandan söng sertifikat oliş uçun sörov"""
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
         ('approved', 'Tasdiqlandi'),
@@ -1507,8 +1507,8 @@ class CertificateRequest(models.Model):
     class Meta:
         unique_together = ['student', 'profession']
         ordering = ['-created_at']
-        verbose_name = "Sertifikat so'rovi"
-        verbose_name_plural = "Sertifikat so'rovlari"
+        verbose_name = "Sertifikat sörovi"
+        verbose_name_plural = "Sertifikat sörovlari"
     
     def __str__(self):
         return f"{self.student.full_name} - {self.profession.name} ({self.get_status_display()})"
@@ -1516,14 +1516,14 @@ class CertificateRequest(models.Model):
 
 class Message(models.Model):
     MESSAGE_TYPES = (
-        ('all', 'Barchaga'),
-        ('students', 'O\'quvchilarga'),
-        ('teachers', 'O\'qituvchilarga'),
-        ('personal', 'Shaxsiy'),
+        ('all', 'Barçaga'),
+        ('students', 'Öquvçilarga'),
+        ('teachers', 'Öqituvçilarga'),
+        ('personal', 'Şaxsiy'),
         ('system', 'Tizim xabari'),
-        ('payment', 'To\'lov eslatmasi'),
-        ('motivation', 'Rag\'batlantirish'),
-        ('warning', 'Ogohlantirish'),
+        ('payment', 'Tölov eslatmasi'),
+        ('motivation', 'Rağbatlantiriş'),
+        ('warning', 'Ogohlantiriş'),
         ('achievement', 'Yutuq'),
         ('reminder', 'Eslatma'),
         ('recommendation', 'Tavsiya'),
@@ -1553,30 +1553,30 @@ class Message(models.Model):
 
 class PaymentStatus(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='payment_status')
-    is_paid = models.BooleanField(default=False, verbose_name="To'langan")
-    paid_until = models.DateField(null=True, blank=True, verbose_name="To'lov muddati")
+    is_paid = models.BooleanField(default=False, verbose_name="Tölangan")
+    paid_until = models.DateField(null=True, blank=True, verbose_name="Tölov muddati")
     last_payment_date = models.DateField(null=True, blank=True)
     auto_blocked = models.BooleanField(default=False, verbose_name="Avtomatik bloklangan")
-    monthly_fee = models.DecimalField(max_digits=12, decimal_places=0, default=200000, verbose_name="Oylik to'lov (so'm)")
+    monthly_fee = models.DecimalField(max_digits=12, decimal_places=0, default=200000, verbose_name="Oylik tölov (söm)")
     
     class Meta:
-        verbose_name = "To'lov holati"
-        verbose_name_plural = "To'lov holatlari"
+        verbose_name = "Tölov holati"
+        verbose_name_plural = "Tölov holatlari"
     
     def __str__(self):
-        status = "To'langan" if self.is_paid else "To'lanmagan"
+        status = "Tölangan" if self.is_paid else "Tölanmagan"
         return f"{self.user.full_name} - {status}"
 
 
 class PaymentRecord(models.Model):
-    """Oylik to'lov tarixi"""
+    """Oylik tölov tarixi"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='payment_records')
-    amount = models.DecimalField(max_digits=12, decimal_places=0, verbose_name="To'lov miqdori (so'm)")
+    amount = models.DecimalField(max_digits=12, decimal_places=0, verbose_name="Tölov miqdori (söm)")
     month = models.IntegerField(verbose_name="Oy (1-12)")
     year = models.IntegerField(verbose_name="Yil")
-    is_paid = models.BooleanField(default=False, verbose_name="To'langan")
-    paid_date = models.DateField(null=True, blank=True, verbose_name="To'langan sana")
-    paid_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="To'langan summa")
+    is_paid = models.BooleanField(default=False, verbose_name="Tölangan")
+    paid_date = models.DateField(null=True, blank=True, verbose_name="Tölangan sana")
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="Tölangan summa")
     notes = models.CharField(max_length=500, blank=True, verbose_name="Izoh")
     recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='recorded_payments')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -1585,8 +1585,8 @@ class PaymentRecord(models.Model):
     class Meta:
         unique_together = ['user', 'month', 'year']
         ordering = ['-year', '-month']
-        verbose_name = "To'lov yozuvi"
-        verbose_name_plural = "To'lov yozuvlari"
+        verbose_name = "Tölov yozuvi"
+        verbose_name_plural = "Tölov yozuvlari"
 
     def __str__(self):
         status = "+" if self.is_paid else "-"
@@ -1610,7 +1610,7 @@ class PaymentRecord(models.Model):
 class HelpRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
-        ('in_progress', 'Ko\'rib chiqilmoqda'),
+        ('in_progress', 'Körib çiqilmoqda'),
         ('resolved', 'Hal qilindi'),
         ('closed', 'Yopildi'),
     )
@@ -1625,8 +1625,8 @@ class HelpRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
-        verbose_name = "Yordam so'rovi"
-        verbose_name_plural = "Yordam so'rovlari"
+        verbose_name = "Yordam sörovi"
+        verbose_name_plural = "Yordam sörovlari"
         ordering = ['-created_at']
     
     def __str__(self):
@@ -1641,40 +1641,40 @@ class UserDevice(models.Model):
     browser = models.CharField(max_length=100, blank=True, null=True, verbose_name="Brauzer")
     os = models.CharField(max_length=100, blank=True, null=True, verbose_name="Operatsion tizim")
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP manzil")
-    location = models.CharField(max_length=200, blank=True, null=True, verbose_name="Joylashuv")
-    is_trusted = models.BooleanField(default=False, verbose_name="Ishonchli qurilma")
-    first_login = models.DateTimeField(auto_now_add=True, verbose_name="Birinchi kirish")
-    last_login = models.DateTimeField(auto_now=True, verbose_name="Oxirgi kirish")
+    location = models.CharField(max_length=200, blank=True, null=True, verbose_name="Joylaşuv")
+    is_trusted = models.BooleanField(default=False, verbose_name="Işonçli qurilma")
+    first_login = models.DateTimeField(auto_now_add=True, verbose_name="Birinçi kiriş")
+    last_login = models.DateTimeField(auto_now=True, verbose_name="Oxirgi kiriş")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     
     class Meta:
         unique_together = ['user', 'device_id']
         ordering = ['-last_login']
-        verbose_name = "Foydalanuvchi qurilmasi"
-        verbose_name_plural = "Foydalanuvchi qurilmalari"
+        verbose_name = "Foydalanuvçi qurilmasi"
+        verbose_name_plural = "Foydalanuvçi qurilmalari"
     
     def __str__(self):
         return f"{self.user.username} - {self.device_name}"
 
 
 class NavigationPreference(models.Model):
-    """Foydalanuvchining navigatsiya ko'rinishi — akkauntga bog'langan, har qurilmada tiklanadi."""
+    """Foydalanuvçining navigatsiya körinişi — akkauntga boğlangan, har qurilmada tiklanadi."""
     LAYOUT_CHOICES = [
         ('classic', 'Classic Sidebar'),
         ('compact', 'Compact Sidebar'),
         ('top', 'Top Navigation'),
         ('hybrid', 'Modern Hybrid'),
     ]
-    SIDEBAR_CHOICES = [('expanded', 'Kengaytirilgan'), ('collapsed', "Yig'ilgan")]
-    # '' — foydalanuvchi hali tanlamagan: brauzerdagi (localStorage) mavzu ishlatiladi
-    THEME_CHOICES = [('', 'Tanlanmagan'), ('light', "Yorug'"), ('dark', "Qorong'i"), ('system', 'Tizim')]
+    SIDEBAR_CHOICES = [('expanded', 'Kengaytirilgan'), ('collapsed', "Yiğilgan")]
+    # '' — foydalanuvçi hali tanlamagan: brauzerdagi (localStorage) mavzu işlatiladi
+    THEME_CHOICES = [('', 'Tanlanmagan'), ('light', "Yorug'"), ('dark', "Qoronği"), ('system', 'Tizim')]
 
     user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='nav_preference')
-    layout = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='compact', verbose_name="Navigatsiya ko'rinishi")
+    layout = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='compact', verbose_name="Navigatsiya körinişi")
     sidebar = models.CharField(max_length=10, choices=SIDEBAR_CHOICES, default='expanded', verbose_name="Yon panel holati")
     theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='', blank=True, verbose_name="Mavzu")
     motion = models.BooleanField(default=True, verbose_name="Animatsiyalar")
-    autosave = models.BooleanField(default=True, verbose_name="Avtomatik saqlash")
+    autosave = models.BooleanField(default=True, verbose_name="Avtomatik saqlaş")
     updated_at = models.DateTimeField(auto_now=True)
 
     DEFAULTS = {'layout': 'compact', 'sidebar': 'expanded', 'theme': '', 'motion': True, 'autosave': True}
@@ -1691,7 +1691,7 @@ class NavigationPreference(models.Model):
 
 
 class AppRelease(models.Model):
-    """Admin yuklaydigan Android/Windows ilova versiyasi. Navbarda har platformaning eng yangi e'lon qilingani chiqadi."""
+    """Admin yuklaydigan Android/Windows ilova versiyasi. Navbarda har platformaning eng yangi e'lon qilingani çiqadi."""
     PLATFORM_CHOICES = [('android', 'Android'), ('windows', 'Windows'), ('ios', 'iOS'), ('macos', 'macOS'), ('linux', 'Linux')]
 
     platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES, verbose_name="Platforma")
@@ -1704,7 +1704,7 @@ class AppRelease(models.Model):
     min_os = models.CharField(max_length=60, blank=True, verbose_name="Talab (OS)")
     notes = models.TextField(blank=True, verbose_name="Yangiliklar / izoh")
     is_published = models.BooleanField(default=True, verbose_name="E'lon qilingan")
-    download_count = models.PositiveIntegerField(default=0, verbose_name="Yuklab olishlar")
+    download_count = models.PositiveIntegerField(default=0, verbose_name="Yuklab olişlar")
     uploaded_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1739,15 +1739,15 @@ class UserSession(models.Model):
     device = models.ForeignKey(UserDevice, on_delete=models.CASCADE, related_name='sessions', null=True, blank=True)
     session_key = models.CharField(max_length=255, unique=True, verbose_name="Session kaliti")
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Boshlangan vaqt")
+    started_at = models.DateTimeField(auto_now_add=True, verbose_name="Boşlangan vaqt")
     last_activity = models.DateTimeField(auto_now=True, verbose_name="Oxirgi faollik")
-    expires_at = models.DateTimeField(verbose_name="Tugash vaqti")
+    expires_at = models.DateTimeField(verbose_name="Tugaş vaqti")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     
     class Meta:
         ordering = ['-last_activity']
-        verbose_name = "Foydalanuvchi sessiyasi"
-        verbose_name_plural = "Foydalanuvchi sessiyalari"
+        verbose_name = "Foydalanuvçi sessiyasi"
+        verbose_name_plural = "Foydalanuvçi sessiyalari"
         indexes = [
             models.Index(fields=['user', 'is_active']),
         ]
@@ -1770,11 +1770,11 @@ class CoinPricingSettings(models.Model):
 
 
 class CoinPurchaseDiscount(models.Model):
-    THEME_CHOICES = [('celebration', 'Bayramona'), ('navruz', 'Navro‘z'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')]
+    THEME_CHOICES = [('celebration', 'Bayramona'), ('navruz', 'Navröz'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')]
     name = models.CharField(max_length=120)
     theme = models.CharField(max_length=16, choices=THEME_CHOICES, default='celebration')
-    # package: min_coins tanga = value so'm (ko'proq olinsa shu narx nisbatida).
-    discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "So'm"), ('package', 'Maxsus narx')])
+    # package: min_coins tanga = value söm (köproq olinsa şu narx nisbatida).
+    discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "Söm"), ('package', 'Maxsus narx')])
     value = models.PositiveIntegerField()
     min_coins = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=False)
@@ -1796,21 +1796,21 @@ class Discount(models.Model):
         ('fixed', 'Qat\'iy summa'),
     )
     
-    name = models.CharField(max_length=200, verbose_name="Chegirma nomi")
+    name = models.CharField(max_length=200, verbose_name="Çegirma nomi")
     description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, default='percentage', verbose_name="Chegirma turi")
-    discount_value = models.IntegerField(verbose_name="Chegirma qiymati")
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPES, default='percentage', verbose_name="Çegirma turi")
+    discount_value = models.IntegerField(verbose_name="Çegirma qiymati")
     min_coins_required = models.IntegerField(default=0, verbose_name="Minimal coin talab")
     profession = models.ForeignKey('Profession', on_delete=models.CASCADE, null=True, blank=True, related_name='discounts', verbose_name="Kurs")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
-    valid_from = models.DateTimeField(null=True, blank=True, verbose_name="Boshlanish sanasi")
-    valid_until = models.DateTimeField(null=True, blank=True, verbose_name="Tugash sanasi")
+    valid_from = models.DateTimeField(null=True, blank=True, verbose_name="Boşlaniş sanasi")
+    valid_until = models.DateTimeField(null=True, blank=True, verbose_name="Tugaş sanasi")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Chegirma"
-        verbose_name_plural = "Chegirmalar"
+        verbose_name = "Çegirma"
+        verbose_name_plural = "Çegirmalar"
     
     def __str__(self):
         return self.name
@@ -1843,7 +1843,7 @@ class VerifiedEmailBinding(models.Model):
 
 
 class SocialAccount(models.Model):
-    """Foydalanuvchi profiliga ulangan tashqi hisob (Google, Facebook, Apple ID)."""
+    """Foydalanuvçi profiliga ulangan taşqi hisob (Google, Facebook, Apple ID)."""
     PROVIDER_CHOICES = (
         ('google', 'Google'),
         ('facebook', 'Facebook'),
@@ -1852,12 +1852,12 @@ class SocialAccount(models.Model):
 
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='social_accounts')
     provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, verbose_name="Xizmat")
-    uid = models.CharField(max_length=255, verbose_name="Tashqi ID")
+    uid = models.CharField(max_length=255, verbose_name="Taşqi ID")
     email = models.EmailField(blank=True, verbose_name="Email")
     name = models.CharField(max_length=200, blank=True, verbose_name="Ism")
     picture = models.URLField(max_length=500, blank=True, verbose_name="Rasm")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ulangan vaqt")
-    last_login_at = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kirish")
+    last_login_at = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kiriş")
 
     class Meta:
         verbose_name = "Ulangan hisob"
@@ -1911,8 +1911,8 @@ class PasswordResetRequest(models.Model):
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Parol tiklash so'rovi"
-        verbose_name_plural = "Parol tiklash so'rovlari"
+        verbose_name = "Parol tiklaş sörovi"
+        verbose_name_plural = "Parol tiklaş sörovlari"
     
     def __str__(self):
         return f"{self.user.full_name} - {self.get_status_display()}"
@@ -1928,14 +1928,14 @@ class SystemReport(models.Model):
     
     title = models.CharField(max_length=200, verbose_name="Hisobot nomi")
     report_type = models.CharField(max_length=20, choices=REPORT_TYPES, default='monthly', verbose_name="Hisobot turi")
-    date_from = models.DateField(verbose_name="Boshlanish sanasi")
-    date_to = models.DateField(verbose_name="Tugash sanasi")
+    date_from = models.DateField(verbose_name="Boşlaniş sanasi")
+    date_to = models.DateField(verbose_name="Tugaş sanasi")
     
     # Statistika ma'lumotlari
     total_users = models.IntegerField(default=0)
     total_students = models.IntegerField(default=0)
     total_teachers = models.IntegerField(default=0)
-    new_users = models.IntegerField(default=0, verbose_name="Yangi foydalanuvchilar")
+    new_users = models.IntegerField(default=0, verbose_name="Yangi foydalanuvçilar")
     
     total_courses = models.IntegerField(default=0)
     total_lessons = models.IntegerField(default=0)
@@ -1943,17 +1943,17 @@ class SystemReport(models.Model):
     total_tests = models.IntegerField(default=0)
     total_homeworks = models.IntegerField(default=0)
     
-    new_enrollments = models.IntegerField(default=0, verbose_name="Yangi yozilishlar")
-    test_submissions = models.IntegerField(default=0, verbose_name="Test topshiruvlar")
-    homework_submissions = models.IntegerField(default=0, verbose_name="Vazifa topshiruvlar")
-    video_views = models.IntegerField(default=0, verbose_name="Video ko'rishlar")
+    new_enrollments = models.IntegerField(default=0, verbose_name="Yangi yozilişlar")
+    test_submissions = models.IntegerField(default=0, verbose_name="Test topşiruvlar")
+    homework_submissions = models.IntegerField(default=0, verbose_name="Vazifa topşiruvlar")
+    video_views = models.IntegerField(default=0, verbose_name="Video körişlar")
     
     total_deploys = models.IntegerField(default=0)
     new_deploys = models.IntegerField(default=0, verbose_name="Yangi loyihalar")
     deploy_views = models.IntegerField(default=0)
     
     total_coins = models.IntegerField(default=0)
-    coins_earned = models.IntegerField(default=0, verbose_name="Ishlangan coinlar")
+    coins_earned = models.IntegerField(default=0, verbose_name="Işlangan coinlar")
     coins_spent = models.IntegerField(default=0, verbose_name="Sarflangan coinlar")
     
     total_certificates = models.IntegerField(default=0)
@@ -1978,7 +1978,7 @@ class SystemReport(models.Model):
 
 
 class Parent(models.Model):
-    """Ota-ona modeli - farzandlarini kuzatish uchun"""
+    """Ota-ona modeli - farzandlarini kuzatiş uçun"""
     first_name = models.CharField(max_length=100, verbose_name="Ism")
     last_name = models.CharField(max_length=100, verbose_name="Familiya")
     phone = models.CharField(max_length=20, unique=True, verbose_name="Telefon raqam")
@@ -1994,7 +1994,7 @@ class Parent(models.Model):
     )
     
     is_active = models.BooleanField(default=True, verbose_name="Faol")
-    last_login = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kirish")
+    last_login = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kiriş")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -2025,27 +2025,27 @@ class Parent(models.Model):
 
 
 class ParentMessage(models.Model):
-    """Ota-ona va mentor o'rtasidagi xabarlar.
+    """Ota-ona va mentor örtasidagi xabarlar.
 
     sender_type: 'parent' — ota-ona yozgan (admin javob beradi);
-                 'system' — tizim bildirishnomasi ota-onaga (kitob ijarasi va h.k.).
-    is_read — admin xabarni o'qiganmi; reply_seen_by_parent — ota-ona javobni ko'rganmi.
+                 'system' — tizim bildirişnomasi ota-onaga (kitob ijarasi va h.k.).
+    is_read — admin xabarni öqiganmi; reply_seen_by_parent — ota-ona javobni körganmi.
     """
     SENDER_CHOICES = (
         ('parent', 'Ota-ona'),
-        ('system', 'Tizim bildirishnomasi'),
+        ('system', 'Tizim bildirişnomasi'),
     )
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='messages')
     sender_type = models.CharField(max_length=10, choices=SENDER_CHOICES, default='parent', db_index=True,
-                                   verbose_name="Yuboruvchi")
-    reply_seen_by_parent = models.BooleanField(default=False, verbose_name="Javobni ota-ona ko'rgan")
+                                   verbose_name="Yuboruvçi")
+    reply_seen_by_parent = models.BooleanField(default=False, verbose_name="Javobni ota-ona körgan")
     child = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='parent_messages')
     subject = models.CharField(max_length=200, verbose_name="Mavzu")
     message = models.TextField(verbose_name="Xabar")
     reply = models.TextField(blank=True, null=True, verbose_name="Javob")
     replied_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='parent_replies')
     replied_at = models.DateTimeField(null=True, blank=True)
-    is_read = models.BooleanField(default=False, verbose_name="O'qilgan")
+    is_read = models.BooleanField(default=False, verbose_name="Öqilgan")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -2086,14 +2086,14 @@ class BookRental(models.Model):
     STATUS_CHOICES = (
         ('active', 'Faol'),
         ('returned', 'Qaytarilgan'),
-        ('overdue', 'Muddati o\'tgan'),
+        ('overdue', 'Muddati ötgan'),
     )
     
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='rentals', verbose_name="Kitob")
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='book_rentals', verbose_name="O'quvchi")
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='book_rentals', verbose_name="Öquvçi")
     given_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='books_given', verbose_name="Kim berdi")
     given_date = models.DateField(auto_now_add=True, verbose_name="Berilgan sana")
-    return_date = models.DateField(verbose_name="Qaytarish sanasi")
+    return_date = models.DateField(verbose_name="Qaytariş sanasi")
     actual_return_date = models.DateField(null=True, blank=True, verbose_name="Haqiqiy qaytarilgan sana")
     returned_to = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='books_received', verbose_name="Kim qabul qildi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Holat")
@@ -2127,20 +2127,20 @@ class BookRental(models.Model):
         return delta.days
     
     def mark_returned(self, user):
-        """Kitobni qaytarilgan deb belgilash"""
+        """Kitobni qaytarilgan deb belgilaş"""
         from datetime import date
         self.status = 'returned'
         self.actual_return_date = date.today()
         self.returned_to = user
         self.save()
         
-        # Kitob nusxasini qaytarish
+        # Kitob nusxasini qaytariş
         self.book.available_copies += 1
         self.book.save()
 
 
 class BookRentalRequest(models.Model):
-    """O'quvchining kitob ijaraga olish arizasi"""
+    """Öquvçining kitob ijaraga oliş arizasi"""
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
         ('approved', 'Tasdiqlangan'),
@@ -2149,12 +2149,12 @@ class BookRentalRequest(models.Model):
     )
 
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='rental_requests', verbose_name="Kitob")
-    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='book_rental_requests', verbose_name="O'quvchi")
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='book_rental_requests', verbose_name="Öquvçi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat", db_index=True)
-    message = models.TextField(blank=True, null=True, verbose_name="O'quvchi izohi")
+    message = models.TextField(blank=True, null=True, verbose_name="Öquvçi izohi")
     admin_note = models.TextField(blank=True, null=True, verbose_name="Admin izohi")
-    processed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_book_requests', verbose_name="Kim ko'rib chiqdi")
-    processed_at = models.DateTimeField(null=True, blank=True, verbose_name="Ko'rib chiqilgan vaqt")
+    processed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='processed_book_requests', verbose_name="Kim körib çiqdi")
+    processed_at = models.DateTimeField(null=True, blank=True, verbose_name="Körib çiqilgan vaqt")
     rental = models.OneToOneField(BookRental, on_delete=models.SET_NULL, null=True, blank=True, related_name='request', verbose_name="Yaratilgan ijara")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -2173,7 +2173,7 @@ class BookRentalRequest(models.Model):
 
 
 class ParentPasswordResetRequest(models.Model):
-    """Ota-ona parol tiklash so'rovi"""
+    """Ota-ona parol tiklaş sörovi"""
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
         ('approved', 'Tasdiqlangan'),
@@ -2189,8 +2189,8 @@ class ParentPasswordResetRequest(models.Model):
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Ota-ona parol so'rovi"
-        verbose_name_plural = "Ota-ona parol so'rovlari"
+        verbose_name = "Ota-ona parol sörovi"
+        verbose_name_plural = "Ota-ona parol sörovlari"
     
     def __str__(self):
         return f"{self.parent.full_name} - {self.get_status_display()}"
@@ -2223,9 +2223,9 @@ class PremiumRequest(models.Model):
     
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='premium_requests')
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, verbose_name="Tarif reja")
-    coins_paid = models.PositiveIntegerField(default=0, verbose_name="To'langan coin")
+    coins_paid = models.PositiveIntegerField(default=0, verbose_name="Tölangan coin")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
-    is_extension = models.BooleanField(default=False, verbose_name="Muddatni uzaytirish")
+    is_extension = models.BooleanField(default=False, verbose_name="Muddatni uzaytiriş")
     reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_premium_requests')
     reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -2240,15 +2240,15 @@ class PremiumRequest(models.Model):
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Premium so'rovi"
-        verbose_name_plural = "Premium so'rovlari"
+        verbose_name = "Premium sörovi"
+        verbose_name_plural = "Premium sörovlari"
     
     def __str__(self):
         return f"{self.user.full_name} - {self.get_plan_display()} ({self.get_status_display()})"
 
 
 class BlockedSection(models.Model):
-    """Bloklangan sayt bo'limlari"""
+    """Bloklangan sayt bölimlari"""
     
     SECTION_CHOICES = (
         ('sozlamalar', 'Sozlamalar'),
@@ -2268,11 +2268,11 @@ class BlockedSection(models.Model):
         max_length=50,
         choices=SECTION_CHOICES,
         unique=True,
-        verbose_name="Bo'lim"
+        verbose_name="Bölim"
     )
     is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
-    reason = models.CharField(max_length=500, blank=True, verbose_name="Bloklash sababi")
-    blocked_at = models.DateTimeField(auto_now=True, verbose_name="Bloklash vaqti")
+    reason = models.CharField(max_length=500, blank=True, verbose_name="Bloklaş sababi")
+    blocked_at = models.DateTimeField(auto_now=True, verbose_name="Bloklaş vaqti")
     blocked_by = models.ForeignKey(
         CustomUser,
         on_delete=models.SET_NULL,
@@ -2283,17 +2283,17 @@ class BlockedSection(models.Model):
     )
     
     class Meta:
-        verbose_name = "Bloklangan bo'lim"
-        verbose_name_plural = "Bloklangan bo'limlar"
+        verbose_name = "Bloklangan bölim"
+        verbose_name_plural = "Bloklangan bölimlar"
     
     def __str__(self):
         return f"{self.get_section_display()} - {'Bloklangan' if self.is_blocked else 'Faol'}"
 
 
 class MaintenanceMode(models.Model):
-    """Tizimni texnik xizmat rejimiga o'tkazish"""
+    """Tizimni texnik xizmat rejimiga ötkaziş"""
     is_active = models.BooleanField(default=False, verbose_name="Texnik xizmat rejimi")
-    message = models.CharField(max_length=500, default="Tizimda texnik ishlar olib borilmoqda. Iltimos, keyinroq urinib ko'ring.", verbose_name="Xabar")
+    message = models.CharField(max_length=500, default="Tizimda texnik işlar olib borilmoqda. Iltimos, keyinroq urinib köring.", verbose_name="Xabar")
     activated_at = models.DateTimeField(auto_now=True)
     activated_by = models.ForeignKey(
         CustomUser,
@@ -2307,7 +2307,7 @@ class MaintenanceMode(models.Model):
         verbose_name = "Texnik xizmat rejimi"
 
     def __str__(self):
-        status = "Yoqilgan" if self.is_active else "O'chirilgan"
+        status = "Yoqilgan" if self.is_active else "Öçirilgan"
         return f"Texnik xizmat: {status}"
 
     @staticmethod
@@ -2317,10 +2317,10 @@ class MaintenanceMode(models.Model):
 
 
 class CourseApplication(models.Model):
-    """Kursga yozilish arizasi"""
+    """Kursga yoziliş arizasi"""
     STATUS_CHOICES = (
         ('new', 'Yangi'),
-        ('contacted', 'Bog\'lanildi'),
+        ('contacted', 'Boğlanildi'),
         ('enrolled', 'Yozildi'),
         ('rejected', 'Rad etildi'),
     )
@@ -2330,7 +2330,7 @@ class CourseApplication(models.Model):
     phone = models.CharField(max_length=20, verbose_name="Telefon raqam")
     course_interest = models.CharField(max_length=200, blank=True, verbose_name="Qiziqtirgan kurs")
     school_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Maktab raqami")
-    age = models.IntegerField(blank=True, null=True, verbose_name="Yoshi")
+    age = models.IntegerField(blank=True, null=True, verbose_name="Yoşi")
     neighborhood = models.CharField(max_length=150, blank=True, null=True, verbose_name="Mahalla nomi")
     is_shaharcha = models.BooleanField(default=False, verbose_name="IT Creative arizasimi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Holat")
@@ -2338,9 +2338,9 @@ class CourseApplication(models.Model):
     handled_by = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='handled_applications',
-        verbose_name="Kim bog'landi",
+        verbose_name="Kim boğlandi",
     )
-    handled_at = models.DateTimeField(null=True, blank=True, verbose_name="Bog'langan vaqt")
+    handled_at = models.DateTimeField(null=True, blank=True, verbose_name="Boğlangan vaqt")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -2353,18 +2353,18 @@ class CourseApplication(models.Model):
 
 
 class LoginAttempt(models.Model):
-    """Brute-force himoya uchun login urinishlarini kuzatish (token-based)"""
+    """Brute-force himoya uçun login urinişlarini kuzatiş (token-based)"""
     ip_address = models.GenericIPAddressField(verbose_name="IP manzil", db_index=True)
     username = models.CharField(max_length=150, blank=True, verbose_name="Username")
-    attempted_at = models.DateTimeField(auto_now_add=True, verbose_name="Urinish vaqti")
+    attempted_at = models.DateTimeField(auto_now_add=True, verbose_name="Uriniş vaqti")
     was_successful = models.BooleanField(default=False, verbose_name="Muvaffaqiyatli")
     user_agent = models.TextField(blank=True, verbose_name="User Agent")
     login_token = models.CharField(max_length=64, blank=True, db_index=True, verbose_name="Login token")
     
     class Meta:
         ordering = ['-attempted_at']
-        verbose_name = "Login urinishi"
-        verbose_name_plural = "Login urinishlari"
+        verbose_name = "Login urinişi"
+        verbose_name_plural = "Login urinişlari"
     
     def __str__(self):
         status = "✅" if self.was_successful else "❌"
@@ -2372,7 +2372,7 @@ class LoginAttempt(models.Model):
     
     @staticmethod
     def is_token_blocked(login_token, max_attempts=5, block_duration_minutes=15):
-        """Token bloklangan yoki yo'qligini tekshirish"""
+        """Token bloklangan yoki yöqligini tekşiriş"""
         if not login_token:
             return False
         cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
@@ -2385,7 +2385,7 @@ class LoginAttempt(models.Model):
 
     @staticmethod
     def get_token_remaining_time(login_token, max_attempts=5, block_duration_minutes=15):
-        """Token uchun qolgan bloklash vaqtini qaytarish (sekundlarda)"""
+        """Token uçun qolgan bloklaş vaqtini qaytariş (sekundlarda)"""
         if not login_token:
             return 0
         cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
@@ -2404,24 +2404,24 @@ class LoginAttempt(models.Model):
     
     @staticmethod
     def clear_token_attempts(login_token):
-        """Muvaffaqiyatli logindan keyin token urinishlarni tozalash"""
+        """Muvaffaqiyatli logindan keyin token urinişlarni tozalaş"""
         if login_token:
             LoginAttempt.objects.filter(login_token=login_token, was_successful=False).delete()
 
     @staticmethod
     def generate_token():
-        """Yangi login token yaratish"""
+        """Yangi login token yaratiş"""
         import secrets
         return secrets.token_hex(32)
 
 
 class LoginLocation(models.Model):
-    """Foydalanuvchi roziligi bilan yoziladigan login va joylashuv tarixi."""
+    """Foydalanuvçi roziligi bilan yoziladigan login va joylaşuv tarixi."""
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='login_locations',
-        verbose_name='Foydalanuvchi',
+        verbose_name='Foydalanuvçi',
     )
-    logged_in_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='Kirish vaqti')
+    logged_in_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='Kiriş vaqti')
     latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Kenglik')
     longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Uzunlik')
     address = models.CharField(max_length=255, blank=True, verbose_name='Manzil')
@@ -2430,25 +2430,25 @@ class LoginLocation(models.Model):
 
     class Meta:
         ordering = ['-logged_in_at', '-pk']
-        verbose_name = 'Login joylashuvi'
-        verbose_name_plural = 'Login joylashuvlari'
+        verbose_name = 'Login joylaşuvi'
+        verbose_name_plural = 'Login joylaşuvlari'
 
     def __str__(self):
         return f'{self.user} — {self.address or "Manzil aniqlanmagan"} ({self.logged_in_at:%Y-%m-%d %H:%M})'
 
 
 class DailyLessonAccess(models.Model):
-    """O'quvchi bir kunda faqat bitta yangi darsga kirishi mumkin.
-    Oldin bajarilgan darslarga erkin kirish bor."""
+    """Öquvçi bir kunda faqat bitta yangi darsga kirişi mumkin.
+    Oldin bajarilgan darslarga erkin kiriş bor."""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_lesson_accesses')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
-    accessed_date = models.DateField(verbose_name="Kirish sanasi")
+    accessed_date = models.DateField(verbose_name="Kiriş sanasi")
 
     class Meta:
         unique_together = ['user', 'profession', 'accessed_date']
-        verbose_name = "Kunlik dars kirish"
-        verbose_name_plural = "Kunlik dars kirishlar"
+        verbose_name = "Kunlik dars kiriş"
+        verbose_name_plural = "Kunlik dars kirişlar"
 
     def __str__(self):
         return f"{self.user.first_name} - {self.lesson.title} ({self.accessed_date})"
@@ -2464,8 +2464,8 @@ class StudentCourseToken(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['student', 'profession'], name='unique_student_course_token')
         ]
-        verbose_name = "O'quvchi kurs tokeni"
-        verbose_name_plural = "O'quvchi kurs tokenlari"
+        verbose_name = "Öquvçi kurs tokeni"
+        verbose_name_plural = "Öquvçi kurs tokenlari"
 
     def __str__(self):
         return f"{self.student_id} - {self.profession_id} ({self.token})"
@@ -2486,8 +2486,8 @@ class StudentLessonToken(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['student', 'lesson'], name='unique_student_lesson_token')
         ]
-        verbose_name = "O'quvchi dars tokeni"
-        verbose_name_plural = "O'quvchi dars tokenlari"
+        verbose_name = "Öquvçi dars tokeni"
+        verbose_name_plural = "Öquvçi dars tokenlari"
 
     def __str__(self):
         return f"{self.student_id} - {self.lesson_id} ({self.token})"
@@ -2519,20 +2519,20 @@ class SurveyForm(models.Model):
     title = models.CharField(max_length=300, verbose_name="Forma nomi")
     description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
-    show_on_login = models.BooleanField(default=True, verbose_name="Login qilganda ko'rsatish")
+    show_on_login = models.BooleanField(default=True, verbose_name="Login qilganda körsatiş")
     is_required = models.BooleanField(default=False, verbose_name="Majburiy")
     target_role = models.CharField(
         max_length=20,
-        choices=[('all', 'Hammaga'), ('student', "O'quvchilarga"), ('teacher', "O'qituvchilarga")],
+        choices=[('all', 'Hammaga'), ('student', "Öquvçilarga"), ('teacher', "Öqituvçilarga")],
         default='all',
-        verbose_name="Kimga ko'rsatilsin"
+        verbose_name="Kimga körsatilsin"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "So'rovnoma"
-        verbose_name_plural = "So'rovnomalar"
+        verbose_name = "Sörovnoma"
+        verbose_name_plural = "Sörovnomalar"
         ordering = ['-created_at']
 
     def __str__(self):
@@ -2549,12 +2549,12 @@ class SurveyQuestion(models.Model):
     QUESTION_TYPES = [
         ('text', 'Matn (qisqa)'),
         ('textarea', 'Matn (uzun)'),
-        ('radio', 'Bitta tanlash'),
-        ('checkbox', "Ko'p tanlash"),
-        ('select', 'Ro\'yxatdan tanlash'),
+        ('radio', 'Bitta tanlaş'),
+        ('checkbox', "Köp tanlaş"),
+        ('select', 'Röyxatdan tanlaş'),
         ('number', 'Raqam'),
         ('date', 'Sana'),
-        ('rating', 'Baholash (1-5)'),
+        ('rating', 'Baholaş (1-5)'),
     ]
 
     survey = models.ForeignKey(SurveyForm, on_delete=models.CASCADE, related_name='questions')
@@ -2611,30 +2611,30 @@ class SurveyAnswer(models.Model):
 # ============================================================
 
 class AssistantRole(models.Model):
-    """Yordamchi adminlar uchun permission profili.
+    """Yordamçi adminlar uçun permission profili.
 
-    `permissions` - permission kodlari ro'yxati (JSON list). Masalan:
+    `permissions` - permission kodlari röyxati (JSON list). Masalan:
         ["users.view", "homework.review", ...]
     """
     code = models.SlugField(max_length=64, unique=True, verbose_name="Kod (slug)")
     name = models.CharField(max_length=120, verbose_name="Nomi")
     description = models.TextField(blank=True, default='', verbose_name="Tavsif")
-    permissions = models.JSONField(default=list, verbose_name="Ruxsatlar (kodlar ro'yxati)")
-    is_system = models.BooleanField(default=False, verbose_name="Tizim roli (o'chirib bo'lmaydi)")
+    permissions = models.JSONField(default=list, verbose_name="Ruxsatlar (kodlar röyxati)")
+    is_system = models.BooleanField(default=False, verbose_name="Tizim roli (öçirib bölmaydi)")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Yordamchi rol"
-        verbose_name_plural = "Yordamchi rollar"
+        verbose_name = "Yordamçi rol"
+        verbose_name_plural = "Yordamçi rollar"
         ordering = ['name']
 
     def __str__(self):
         return f"{self.name} ({self.code})"
 
     def get_permissions(self):
-        """Permissionlar ro'yxatini qaytaradi (faqat valid kodlar)."""
+        """Permissionlar röyxatini qaytaradi (faqat valid kodlar)."""
         from accounts.permissions_registry import is_valid_permission
         if not isinstance(self.permissions, list):
             return []
@@ -2648,21 +2648,21 @@ class AssistantRole(models.Model):
 
 
 class AssistantActionLog(models.Model):
-    """Yordamchi adminlar (va admin) tomonidan bajarilgan amallar jurnali."""
+    """Yordamçi adminlar (va admin) tomonidan bajarilgan amallar jurnali."""
     user = models.ForeignKey(
         'CustomUser',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='assistant_action_logs',
-        verbose_name="Foydalanuvchi",
+        verbose_name="Foydalanuvçi",
     )
     action_code = models.CharField(max_length=120, db_index=True, verbose_name="Amal kodi")
     target_type = models.CharField(max_length=80, blank=True, default='', verbose_name="Obyekt turi")
     target_id = models.CharField(max_length=64, blank=True, default='', verbose_name="Obyekt ID")
     description = models.CharField(max_length=500, blank=True, default='', verbose_name="Tavsif")
     ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP manzil")
-    extra = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha")
+    extra = models.JSONField(default=dict, blank=True, verbose_name="Qöşimça")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
@@ -2686,14 +2686,14 @@ class AssistantActionLog(models.Model):
 class PaymeTransaction(models.Model):
     """Payme merchant API tranzaksiyalari"""
 
-    STATE_CREATED   =  1   # Yaratilgan, hali to'lanmagan
-    STATE_COMPLETED =  2   # To'langan (perform qilingan)
+    STATE_CREATED   =  1   # Yaratilgan, hali tölanmagan
+    STATE_COMPLETED =  2   # Tölangan (perform qilingan)
     STATE_CANCELLED = -1   # Bekor qilingan (perform dan oldin)
     STATE_CANCELLED_AFTER_COMPLETE = -2  # Bekor qilingan (perform dan keyin)
 
     STATE_CHOICES = (
         (STATE_CREATED,   "Yaratilgan"),
-        (STATE_COMPLETED, "To'langan"),
+        (STATE_COMPLETED, "Tölangan"),
         (STATE_CANCELLED, "Bekor qilingan"),
         (STATE_CANCELLED_AFTER_COMPLETE, "Qaytarilgan"),
     )
@@ -2701,16 +2701,16 @@ class PaymeTransaction(models.Model):
     payme_id    = models.CharField(max_length=255, unique=True, default='', verbose_name="Payme tranzaksiya ID")
     student     = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='payme_transactions', verbose_name="O'quvchi"
+        related_name='payme_transactions', verbose_name="Öquvçi"
     )
     amount      = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Summa (tiyin)")
     state       = models.IntegerField(choices=STATE_CHOICES, default=STATE_CREATED, verbose_name="Holat")
     # Unix timestamps (milliseconds) — Payme API standart
-    time        = models.BigIntegerField(default=0, verbose_name="Yaratilish vaqti (ms)")
+    time        = models.BigIntegerField(default=0, verbose_name="Yaratiliş vaqti (ms)")
     create_time = models.BigIntegerField(null=True, blank=True, verbose_name="Server create vaqti (ms)")
     perform_time= models.BigIntegerField(null=True, blank=True, verbose_name="Perform vaqti (ms)")
-    cancel_time = models.BigIntegerField(null=True, blank=True, verbose_name="Bekor etish vaqti (ms)")
-    reason      = models.IntegerField(null=True, blank=True, verbose_name="Bekor etish sababi")
+    cancel_time = models.BigIntegerField(null=True, blank=True, verbose_name="Bekor etiş vaqti (ms)")
+    reason      = models.IntegerField(null=True, blank=True, verbose_name="Bekor etiş sababi")
 
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
@@ -2735,10 +2735,10 @@ class ClickTransaction(models.Model):
     click_paydoc_id = models.BigIntegerField(null=True, blank=True, verbose_name="Click paydoc ID")
     student         = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='click_transactions', verbose_name="O'quvchi"
+        related_name='click_transactions', verbose_name="Öquvçi"
     )
     merchant_trans_id = models.CharField(max_length=200, blank=True, verbose_name="Merchant trans ID (student_id)")
-    amount          = models.DecimalField(max_digits=14, decimal_places=2, default=0, verbose_name="Summa (so'm)")
+    amount          = models.DecimalField(max_digits=14, decimal_places=2, default=0, verbose_name="Summa (söm)")
     is_confirmed    = models.BooleanField(default=False, verbose_name="Tasdiqlangan")
     error           = models.IntegerField(default=0, verbose_name="Xato kodi")
     error_note      = models.CharField(max_length=500, blank=True, verbose_name="Xato matni")
@@ -2754,7 +2754,7 @@ class ClickTransaction(models.Model):
 
     def __str__(self):
         student_str = self.student.get_full_name() if self.student else "—"
-        return f"Click #{self.click_trans_id} | {student_str} | {self.amount} so'm"
+        return f"Click #{self.click_trans_id} | {student_str} | {self.amount} söm"
 
 
 
@@ -2763,7 +2763,7 @@ class ClickTransaction(models.Model):
 # ─────────────────────────────────────────────
 
 class TezCheckPaymentOrder(models.Model):
-    """Oylik yoki imtihon to'lovini Tezcheck hisobiga bog'laydi."""
+    """Oylik yoki imtihon tölovini Tezcheck hisobiga boğlaydi."""
     STATUS_PENDING = 'pending'
     STATUS_PAID = 'paid'
     STATUS_FAILED = 'failed'
@@ -2772,20 +2772,20 @@ class TezCheckPaymentOrder(models.Model):
     STATUS_REFUNDED = 'refunded'
     STATUS_REVIEW = 'review'
     STATUS_CHOICES = [
-        (STATUS_PENDING, 'Kutilmoqda'), (STATUS_PAID, "To'langan"),
-        (STATUS_FAILED, 'Amalga oshmadi'), (STATUS_EXPIRED, "Muddati o'tgan"),
+        (STATUS_PENDING, 'Kutilmoqda'), (STATUS_PAID, "Tölangan"),
+        (STATUS_FAILED, 'Amalga oşmadi'), (STATUS_EXPIRED, "Muddati ötgan"),
         (STATUS_CANCELLED, 'Bekor qilingan'), (STATUS_REFUNDED, 'Qaytarilgan'),
-        (STATUS_REVIEW, 'Tekshiruv kerak'),
+        (STATUS_REVIEW, 'Tekşiruv kerak'),
     ]
     GATEWAY_TEZCHECK = 'tezcheck'
     GATEWAY_INPAY = 'inpay'
     GATEWAY_CHOICES = [(GATEWAY_TEZCHECK, 'Tezcheck'), (GATEWAY_INPAY, 'inPAY')]
     student = models.ForeignKey(
         'CustomUser', on_delete=models.PROTECT,
-        related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
+        related_name='tezcheck_payment_orders', verbose_name="Öquvçi",
     )
     gateway = models.CharField(max_length=16, choices=GATEWAY_CHOICES, default=GATEWAY_TEZCHECK, db_index=True,
-                               verbose_name="To'lov tizimi")
+                               verbose_name="Tölov tizimi")
     payment_method = models.CharField(max_length=20, blank=True, verbose_name="Tanlangan usul")
     purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi'), ('course', 'Kurs xaridi')])
     course = models.ForeignKey('Profession', null=True, blank=True, on_delete=models.SET_NULL, related_name='tezcheck_orders')
@@ -2804,7 +2804,7 @@ class TezCheckPaymentOrder(models.Model):
     payment_url = models.URLField(max_length=1000, blank=True)
     amount_minor = models.PositiveBigIntegerField(verbose_name='Summa (tiyin)')
     fee_minor = models.PositiveBigIntegerField(default=0, verbose_name='Komissiya (tiyin)')
-    net_minor = models.PositiveBigIntegerField(default=0, verbose_name='Sof tushum (tiyin)')
+    net_minor = models.PositiveBigIntegerField(default=0, verbose_name='Sof tuşum (tiyin)')
     currency = models.CharField(max_length=3, default='UZS')
     provider_code = models.CharField(max_length=40, blank=True)
     environment = models.CharField(max_length=20, blank=True)
@@ -2819,8 +2819,8 @@ class TezCheckPaymentOrder(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = 'Tezcheck toʻlov buyurtmasi'
-        verbose_name_plural = 'Tezcheck toʻlov buyurtmalari'
+        verbose_name = 'Tezcheck tölov buyurtmasi'
+        verbose_name_plural = 'Tezcheck tölov buyurtmalari'
 
     def __str__(self):
         return f"{self.external_reference} — {self.student} — {self.get_status_display()}"
@@ -2835,7 +2835,7 @@ class TezCheckPaymentOrder(models.Model):
 
 
 class TezCheckWebhookEvent(models.Model):
-    """Webhook takrorlanmasligi va to'lov auditi uchun kiruvchi hodisa."""
+    """Webhook takrorlanmasligi va tölov auditi uçun kiruvçi hodisa."""
     event_id = models.CharField(max_length=100, unique=True)
     event_type = models.CharField(max_length=80, blank=True)
     delivery_id = models.CharField(max_length=100, blank=True)
@@ -2864,7 +2864,7 @@ class TezCheckWebhookEvent(models.Model):
 # ─────────────────────────────────────────────
 
 def _balance_add_one_month(d):
-    """Berilgan sanaga 1 oy qo'shadi (oy oxiri kunlarini hisobga olib)."""
+    """Berilgan sanaga 1 oy qöşadi (oy oxiri kunlarini hisobga olib)."""
     import calendar
     year = d.year + (1 if d.month == 12 else 0)
     month = 1 if d.month == 12 else d.month + 1
@@ -2874,11 +2874,11 @@ def _balance_add_one_month(d):
 
 def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
     """
-    To'lov summasiga qarab to'lov muddatini aqlli (proporsional) hisoblash:
-    - Oylik to'lovga teng yoki undan ortiq bo'lsa: to'liq oylar + qoldiqqa kunlar.
-    - Oylik to'lovdan kam bo'lsa: proporsional kunlar (30 kunlik oy hisobida).
-      Misol: 400 000 so'mlik kursga 200 000 to'lansa -> 15 kun.
-      Misol: 350 000 so'mlik kursga 100 000 to'lansa -> 9 kun.
+    Tölov summasiga qarab tölov muddatini aqlli (proporsional) hisoblaş:
+    - Oylik tölovga teng yoki undan ortiq bölsa: töliq oylar + qoldiqqa kunlar.
+    - Oylik tölovdan kam bölsa: proporsional kunlar (30 kunlik oy hisobida).
+      Misol: 400 000 sömlik kursga 200 000 tölansa -> 15 kun.
+      Misol: 350 000 sömlik kursga 100 000 tölansa -> 9 kun.
     Qaytaradi: (new_date, total_days_added, used_amount, description)
     Agar summa kamida 1 kunga yetmasa: (None, 0, 0, '')
     """
@@ -2907,10 +2907,10 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
     for _ in range(full_months):
         curr_date = _balance_add_one_month(curr_date)
 
-    # Muhim: round() o'rniga int() (butun qism) olinadi!
-    # Masalan: 400 000 oylik to'lovda 1 kunlik qiymat ~13 333 so'm.
-    # Agar 4 000 so'm kiritilsa, 4000 // 13333 = 0 kun bo'ladi, 1 kunga ham yetmagani uchun
-    # hech qanday kun qo'shilmaydi va pul balansda tegilmasdan saqlanadi.
+    # Muhim: round() örniga int() (butun qism) olinadi!
+    # Masalan: 400 000 oylik tölovda 1 kunlik qiymat ~13 333 söm.
+    # Agar 4 000 söm kiritilsa, 4000 // 13333 = 0 kun böladi, 1 kunga ham yetmagani uçun
+    # heç qanday kun qöşilmaydi va pul balansda tegilmasdan saqlanadi.
     extra_days = int((remainder * Decimal('30')) // monthly_fee) if monthly_fee > 0 else 0
     if extra_days > 0:
         curr_date = curr_date + timedelta(days=extra_days)
@@ -2926,7 +2926,7 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
         desc_parts.append(f"{extra_days} kun")
     desc = " + ".join(desc_parts)
 
-    # Hisoblangan kunlar uchun sarflanadigan haqiqiy summa (ortiqcha summa balansda qolishi uchun)
+    # Hisoblangan kunlar uçun sarflanadigan haqiqiy summa (ortiqça summa balansda qolişi uçun)
     actual_used_amount = int(full_months * monthly_fee + (extra_days * day_unit_cost))
     if actual_used_amount > int(amount):
         actual_used_amount = int(amount)
@@ -2936,64 +2936,64 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
 
 class StudentBalance(models.Model):
     """
-    Har bir o'quvchining naqd pul balansi (so'mda).
-    Admin/yordamchi admin tomonidan to'ldiriladi.
-    Oylik to'lov kelganda avtomatik chegiriladi va unblock bo'ladi.
+    Har bir öquvçining naqd pul balansi (sömda).
+    Admin/yordamchi admin tomonidan töldiriladi.
+    Oylik tölov kelganda avtomatik çegiriladi va unblock böladi.
     """
     user = models.OneToOneField(
         'CustomUser', on_delete=models.CASCADE,
         related_name='student_balance',
-        verbose_name="O'quvchi"
+        verbose_name="Öquvçi"
     )
     amount = models.DecimalField(
         max_digits=14, decimal_places=0, default=0,
-        verbose_name="Balans (so'm)"
+        verbose_name="Balans (söm)"
     )
-    # Shartnoma rejimi: True bo'lsa oylik yechilmaydi va o'quvchi avtomatik bloklanmaydi
+    # Şartnoma rejimi: True bölsa oylik yeçilmaydi va öquvçi avtomatik bloklanmaydi
     is_contract = models.BooleanField(
         default=False,
-        verbose_name="Shartnoma rejimi"
+        verbose_name="Şartnoma rejimi"
     )
     contract_name = models.CharField(
         max_length=150, blank=True, default='',
-        verbose_name="Shartnoma nomi (masalan: PQ-9)"
+        verbose_name="Şartnoma nomi (masalan: PQ-9)"
     )
     contract_amount = models.DecimalField(
         max_digits=14, decimal_places=0, default=0,
-        verbose_name="Shartnomadan keladigan summa (so'm)"
+        verbose_name="Şartnomadan keladigan summa (söm)"
     )
-    # Keyingi to'lov sanasi — shu sana kelganda user avtomatik bloklanadi
+    # Keyingi tölov sanasi — şu sana kelganda user avtomatik bloklanadi
     next_payment_date = models.DateField(
         null=True, blank=True,
-        verbose_name="Keyingi to'lov sanasi"
+        verbose_name="Keyingi tölov sanasi"
     )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "O'quvchi balansi"
-        verbose_name_plural = "O'quvchilar balanslari"
+        verbose_name = "Öquvçi balansi"
+        verbose_name_plural = "Öquvçilar balanslari"
 
     def __str__(self):
-        return f"{self.user.full_name} — {self.amount:,.0f} so'm"
+        return f"{self.user.full_name} — {self.amount:,.0f} söm"
 
     def formatted(self):
-        return f"{int(self.amount):,} so'm".replace(",", " ")
+        return f"{int(self.amount):,} söm".replace(",", " ")
 
     def advance_due_payment(self):
         """
-        Keyingi to'lov sanasi kelganda balansdan oylik to'lovni avtomatik
-        yechib, sanani keyingi oyga suradi (avto-uzaytirish). Balans bir necha
-        oyga yetsa, har bir o'tib ketgan oy uchun takrorlanadi.
+        Keyingi tölov sanasi kelganda balansdan oylik tölovni avtomatik
+        yeçib, sanani keyingi oyga suradi (avto-uzaytirish). Balans bir neça
+        oyga yetsa, har bir ötib ketgan oy uçun takrorlanadi.
 
         Qaytaradi:
-            True  → to'lov holati joriy, foydalanuvchini bloklash shart emas.
-            False → balans yetarli emas, foydalanuvchini bloklash kerak.
+            True  → tölov holati joriy, foydalanuvçini bloklaş şart emas.
+            False → balans yetarli emas, foydalanuvçini bloklaş kerak.
         """
         from django.db import transaction
         from django.utils import timezone
 
         today = timezone.now().date()
-        # Shartnoma yoki sana belgilanmagan yoki hali muddat kelmagan → tegmaymiz
+        # Şartnoma yoki sana belgilanmagan yoki hali muddat kelmagan → tegmaymiz
         if self.is_contract or not self.next_payment_date or self.next_payment_date > today:
             return True
 
@@ -3025,11 +3025,11 @@ class StudentBalance(models.Model):
                             'is_paid': True,
                             'paid_date': today,
                             'paid_amount': monthly_fee,
-                            'notes': "Balansdan avtomatik yechildi (avto-uzaytirish)",
+                            'notes': "Balansdan avtomatik yeçildi (avto-uzaytirish)",
                         }
                     )
 
-                # Agar to'liq oyga yetmasa, qoldiq mablag'ga proporsional kunlar qo'shish (masalan 200 000 -> 15 kun)
+                # Agar töliq oyga yetmasa, qoldiq mablağga proporsional kunlar qöşiş (masalan 200 000 -> 15 kun)
                 if bal.next_payment_date and bal.next_payment_date <= today and bal.amount > 0:
                     new_date, added_days, used_amt, desc = calculate_extension_from_amount(
                         bal.amount, monthly_fee, base_date=bal.next_payment_date
@@ -3047,13 +3047,13 @@ class StudentBalance(models.Model):
                                 'is_paid': True,
                                 'paid_date': today,
                                 'paid_amount': used_amt,
-                                'notes': f"Balansdan qisman to'lov ({desc}) avto-uzaytirildi",
+                                'notes': f"Balansdan qisman tölov ({desc}) avto-uzaytirildi",
                             }
                         )
 
                 if charged:
                     bal.save(update_fields=['amount', 'next_payment_date', 'updated_at'])
-                    # Joriy obyektni sinxronlash
+                    # Joriy obyektni sinxronlaş
                     self.amount = bal.amount
                     self.next_payment_date = bal.next_payment_date
                     if ps:
@@ -3063,7 +3063,7 @@ class StudentBalance(models.Model):
                         ps.paid_until = bal.next_payment_date
                         ps.save()
 
-                    # Avto-to'lov haqida adminga va o'quvchiga Telegram bot orqali bildirishnoma
+                    # Avto-tölov haqida adminga va öquvçiga Telegram bot orqali bildirişnoma
                     try:
                         from telegram_bot.utils import notify_admins, notify_user
                         student = bal.user
@@ -3075,54 +3075,54 @@ class StudentBalance(models.Model):
                         rem_fmt = f"{int(bal.amount):,}".replace(",", " ")
 
                         admin_txt = (
-                            "🔄 <b>Balansdan avto-to'lov yechildi!</b>\n\n"
-                            f"👤 O'quvchi: <b>{s_name}</b> (ID: #{sid})\n"
-                            f"💰 Yechilgan summa: <b>{charged_fmt} so'm</b>\n"
-                            f"📅 Keyingi to'lov sanasi: <b>{next_dt_str}</b>\n"
-                            f"💳 Qolgan balans: <b>{rem_fmt} so'm</b>"
+                            "🔄 <b>Balansdan avto-tölov yeçildi!</b>\n\n"
+                            f"👤 Öquvçi: <b>{s_name}</b> (ID: #{sid})\n"
+                            f"💰 Yeçilgan summa: <b>{charged_fmt} söm</b>\n"
+                            f"📅 Keyingi tölov sanasi: <b>{next_dt_str}</b>\n"
+                            f"💳 Qolgan balans: <b>{rem_fmt} söm</b>"
                         )
                         notify_admins(admin_txt)
 
                         if getattr(student, 'telegram_id', None):
                             user_txt = (
-                                "🔄 <b>Oylik to'lov balansingizdan yechildi!</b>\n\n"
-                                f"👤 O'quvchi: <b>{s_name}</b>\n"
-                                f"💰 Yechilgan summa: <b>{charged_fmt} so'm</b>\n"
-                                f"📅 Keyingi to'lov sanangiz: <b>{next_dt_str}</b>\n"
-                                f"💳 Qolgan balansingiz: <b>{rem_fmt} so'm</b>\n\n"
+                                "🔄 <b>Oylik tölov balansingizdan yeçildi!</b>\n\n"
+                                f"👤 Öquvçi: <b>{s_name}</b>\n"
+                                f"💰 Yeçilgan summa: <b>{charged_fmt} söm</b>\n"
+                                f"📅 Keyingi tölov sanangiz: <b>{next_dt_str}</b>\n"
+                                f"💳 Qolgan balansingiz: <b>{rem_fmt} söm</b>\n\n"
                                 "Ta'limingiz muvaffaqiyatli uzaytirildi!"
                             )
                             notify_user(student.telegram_id, user_txt)
                     except Exception:
                         pass
 
-                # Hali ham muddat o'tgan bo'lsa → balans yetmadi → bloklash kerak
+                # Hali ham muddat ötgan bölsa → balans yetmadi → bloklaş kerak
                 if bal.next_payment_date and bal.next_payment_date <= today:
                     return False
                 return True
         except Exception:
-            # Xatolik bo'lsa foydalanuvchini bloklab qo'ymaymiz
+            # Xatolik bölsa foydalanuvçini bloklab qöymaymiz
             return True
 
 
 class BalanceTopUp(models.Model):
     """
-    Balans o'zgarishlari tarixi.
-    Kim, qachon, qancha, kim tomonidan qo'shilgani yoki ayirilgani yoziladi.
+    Balans özgarişlari tarixi.
+    Kim, qaçon, qança, kim tomonidan qöşilgani yoki ayirilgani yoziladi.
     """
     OPERATION_CHOICES = (
-        ('add', "Qo'shish"),
-        ('deduct', 'Ayirish'),
+        ('add', "Qöşiş"),
+        ('deduct', 'Ayiriş'),
     )
 
     student = models.ForeignKey(
         'CustomUser', on_delete=models.CASCADE,
         related_name='balance_topups',
-        verbose_name="O'quvchi"
+        verbose_name="Öquvçi"
     )
     amount = models.DecimalField(
         max_digits=14, decimal_places=0,
-        verbose_name="Miqdor (so'm)"
+        verbose_name="Miqdor (söm)"
     )
     operation = models.CharField(
         max_length=10, choices=OPERATION_CHOICES, default='add',
@@ -3144,57 +3144,57 @@ class BalanceTopUp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Balans o'zgarishi"
-        verbose_name_plural = "Balans o'zgarishlari tarixi"
+        verbose_name = "Balans özgarişi"
+        verbose_name_plural = "Balans özgarişlari tarixi"
         ordering = ['-created_at']
 
     def __str__(self):
         performer = self.added_by.username if self.added_by else 'tizim'
         sign = '-' if self.operation == 'deduct' else '+'
-        return f"{self.student.full_name} {sign}{self.amount:,.0f} so'm ({performer})"
+        return f"{self.student.full_name} {sign}{self.amount:,.0f} söm ({performer})"
 
     def formatted_amount(self):
-        return f"{int(self.amount):,} so'm".replace(",", " ")
+        return f"{int(self.amount):,} söm".replace(",", " ")
 
 
 # ─────────────────────────────────────────────
-#  SIGNAL: Yangi student qo'shilganda avtomatik balans va to'lov holati yaratish
+#  SIGNAL: Yangi student qöşilganda avtomatik balans va tölov holati yaratiş
 # ─────────────────────────────────────────────
 
 
 class SecurityEvent(models.Model):
     SEVERITY_CHOICES = [
         ('low',      'Past'),
-        ('medium',   "O'rta"),
+        ('medium',   "Örta"),
         ('high',     'Yuqori'),
         ('critical', 'Kritik'),
     ]
     EVENT_TYPES = [
-        ('rate_limit_hit',      'Rate limit oshirildi'),
+        ('rate_limit_hit',      'Rate limit oşirildi'),
         ('ip_blocked',          'IP bloklandi'),
-        ('blocked_ip_request',  "Bloklangan IP so'rov yubordi"),
-        ('sqli_attempt',        'SQL Injection urinish'),
-        ('xss_attempt',         'XSS urinish'),
-        ('path_trav',           'Path Traversal urinish'),
-        ('ssti',                'Template Injection urinish'),
-        ('cmd_inject',          'Command Injection urinish'),
-        ('brute_force',         'Brute-force urinish'),
+        ('blocked_ip_request',  "Bloklangan IP sörov yubordi"),
+        ('sqli_attempt',        'SQL Injection uriniş'),
+        ('xss_attempt',         'XSS uriniş'),
+        ('path_trav',           'Path Traversal uriniş'),
+        ('ssti',                'Template Injection uriniş'),
+        ('cmd_inject',          'Command Injection uriniş'),
+        ('brute_force',         'Brute-force uriniş'),
         ('failed_login',        'Muvaffaqiyatsiz login'),
-        ('suspicious_upload',   'Shubhali fayl yuklanishga urinish'),
+        ('suspicious_upload',   'Şubhali fayl yuklanişga uriniş'),
         ('csrf_failure',        'CSRF muvaffaqiyatsiz'),
-        ('permission_denied',   'Ruxsatsiz kirish urinishi'),
+        ('permission_denied',   'Ruxsatsiz kiriş urinişi'),
         ('account_locked',      'Hisob bloklandi'),
-        ('password_changed',    "Parol o'zgartirildi"),
+        ('password_changed',    "Parol özgartirildi"),
         ('profile_updated',     'Profil yangilandi'),
         ('admin_action',        'Admin harakat'),
-        ('other',               'Boshqa'),
+        ('other',               'Boşqa'),
     ]
 
     event_type  = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True, verbose_name='Hodisa turi')
     severity    = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium', db_index=True, verbose_name='Xavf darajasi')
     ip_address  = models.CharField(max_length=45, blank=True, db_index=True, verbose_name='IP manzil')
     detail      = models.TextField(blank=True, verbose_name='Tafsilot')
-    path        = models.CharField(max_length=500, blank=True, verbose_name='URL yo`li')
+    path        = models.CharField(max_length=500, blank=True, verbose_name='URL yöli')
     user_agent  = models.CharField(max_length=512, blank=True, verbose_name='User Agent')
     created_at  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Vaqt')
     resolved    = models.BooleanField(default=False, verbose_name='Hal qilindi')
@@ -3202,7 +3202,7 @@ class SecurityEvent(models.Model):
     user        = models.ForeignKey(
         'accounts.CustomUser', null=True, blank=True,
         on_delete=models.SET_NULL, related_name='security_events',
-        verbose_name='Foydalanuvchi'
+        verbose_name='Foydalanuvçi'
     )
     resolved_by = models.ForeignKey(
         'accounts.CustomUser', null=True, blank=True,
@@ -3220,26 +3220,26 @@ class SecurityEvent(models.Model):
 
 
 # ============================================================
-# CHAT TIZIMI � Guruh (kurs) chati va Shaxsiy (1:1) chat
+# ÇAT TIZIMI � Guruh (kurs) çati va Şaxsiy (1:1) çat
 # ============================================================
 
 class GroupChatMessage(models.Model):
-    """Kurs (guruh) chati xabari. Kursga yozilgan o'quvchilar, biriktirilgan
-    o'qituvchilar va adminlar ko'rishi/yozishi mumkin."""
+    """Kurs (guruh) çati xabari. Kursga yozilgan öquvçilar, biriktirilgan
+    öqituvçilar va adminlar körishi/yozishi mumkin."""
     profession = models.ForeignKey(
         'accounts.Profession', on_delete=models.CASCADE,
         related_name='chat_messages', verbose_name="Guruh (kurs)"
     )
     sender = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='group_chat_messages', verbose_name="Yuboruvchi"
+        related_name='group_chat_messages', verbose_name="Yuboruvçi"
     )
     message = models.TextField(blank=True, verbose_name="Xabar")
     file = models.FileField(upload_to='group_chat/', null=True, blank=True, verbose_name="Fayl")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    is_deleted = models.BooleanField(default=False, verbose_name="O'chirilgan")
+    is_deleted = models.BooleanField(default=False, verbose_name="Öçirilgan")
 
-    # ── Reply / Edit / Forward (Phase 1 chat upgrade) ──
+    # ── Reply / Edit / Forward (Phase 1 çat upgrade) ──
     reply_to = models.ForeignKey(
         'self', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='replies', verbose_name="Javob xabari"
@@ -3248,12 +3248,12 @@ class GroupChatMessage(models.Model):
     edited_at = models.DateTimeField(null=True, blank=True, verbose_name="Tahrirlangan vaqti")
     is_forwarded = models.BooleanField(default=False, verbose_name="Forward qilingan")
     forwarded_sender_name = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvchi (forward)"
+        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvçi (forward)"
     )
 
     class Meta:
-        verbose_name = "Guruh chat xabari"
-        verbose_name_plural = "Guruh chat xabarlari"
+        verbose_name = "Guruh çat xabari"
+        verbose_name_plural = "Guruh çat xabarlari"
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['profession', 'created_at']),
@@ -3264,8 +3264,8 @@ class GroupChatMessage(models.Model):
 
 
 class GroupChatRead(models.Model):
-    """Har bir foydalanuvchi uchun guruhdagi oxirgi o'qilgan vaqt
-    (o'qilmagan xabarlar sonini hisoblash uchun)."""
+    """Har bir foydalanuvçi uçun guruhdagi oxirgi öqilgan vaqt
+    (öqilmagan xabarlar sonini hisoblaş uçun)."""
     profession = models.ForeignKey(
         'accounts.Profession', on_delete=models.CASCADE, related_name='chat_reads'
     )
@@ -3275,8 +3275,8 @@ class GroupChatRead(models.Model):
     last_read_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
-        verbose_name = "Guruh chat o'qilgan holati"
-        verbose_name_plural = "Guruh chat o'qilgan holatlari"
+        verbose_name = "Guruh çat öqilgan holati"
+        verbose_name_plural = "Guruh çat öqilgan holatlari"
         unique_together = ('profession', 'user')
 
     def __str__(self):
@@ -3284,23 +3284,23 @@ class GroupChatRead(models.Model):
 
 
 class DirectMessage(models.Model):
-    """Ikki foydalanuvchi o'rtasidagi shaxsiy (1:1) xabar."""
+    """Ikki foydalanuvçi örtasidagi şaxsiy (1:1) xabar."""
     sender = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='sent_direct_messages', verbose_name="Yuboruvchi"
+        related_name='sent_direct_messages', verbose_name="Yuboruvçi"
     )
     recipient = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='received_direct_messages', verbose_name="Qabul qiluvchi"
+        related_name='received_direct_messages', verbose_name="Qabul qiluvçi"
     )
     message = models.TextField(blank=True, verbose_name="Xabar")
     file = models.FileField(upload_to='direct_chat/', null=True, blank=True, verbose_name="Fayl")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    is_read = models.BooleanField(default=False, verbose_name="O'qilgan")
-    is_deleted = models.BooleanField(default=False, verbose_name="O'chirilgan")
-    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="O'chirilgan vaqti")
+    is_read = models.BooleanField(default=False, verbose_name="Öqilgan")
+    is_deleted = models.BooleanField(default=False, verbose_name="Öçirilgan")
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="Öçirilgan vaqti")
 
-    # ── Delivery / Reply / Edit / Forward (Phase 1 chat upgrade) ──
+    # ── Delivery / Reply / Edit / Forward (Phase 1 çat upgrade) ──
     is_delivered = models.BooleanField(default=False, verbose_name="Yetkazilgan")
     delivered_at = models.DateTimeField(null=True, blank=True, verbose_name="Yetkazilgan vaqti")
     reply_to = models.ForeignKey(
@@ -3311,12 +3311,12 @@ class DirectMessage(models.Model):
     edited_at = models.DateTimeField(null=True, blank=True, verbose_name="Tahrirlangan vaqti")
     is_forwarded = models.BooleanField(default=False, verbose_name="Forward qilingan")
     forwarded_sender_name = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvchi (forward)"
+        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvçi (forward)"
     )
 
     class Meta:
-        verbose_name = "Shaxsiy xabar"
-        verbose_name_plural = "Shaxsiy xabarlar"
+        verbose_name = "Şaxsiy xabar"
+        verbose_name_plural = "Şaxsiy xabarlar"
         ordering = ['created_at']
         indexes = [
             models.Index(fields=['sender', 'recipient', 'created_at']),
@@ -3328,10 +3328,10 @@ class DirectMessage(models.Model):
 
 
 class DirectMessageEditHistory(models.Model):
-    """Shaxsiy xabar tahrir tarixi — har tahrirda ESKI matn shu yerga saqlanadi.
+    """Şaxsiy xabar tahrir tarixi — har tahrirda ESKI matn şu yerga saqlanadi.
 
-    Admin panel (investigatsiya) uchun: foydalanuvchi xabarni tahrirlagach,
-    asl matn yo'qolmaydi. Tahrirlar xronologik tartibda saqlanadi."""
+    Admin panel (investigatsiya) uçun: foydalanuvçi xabarni tahrirlagaç,
+    asl matn yöqolmaydi. Tahrirlar xronologik tartibda saqlanadi."""
     message = models.ForeignKey(
         DirectMessage, on_delete=models.CASCADE,
         related_name='edit_history', verbose_name="Xabar"
@@ -3340,8 +3340,8 @@ class DirectMessageEditHistory(models.Model):
     edited_at = models.DateTimeField(auto_now_add=True, verbose_name="Tahrirlangan vaqti")
 
     class Meta:
-        verbose_name = "Shaxsiy xabar tahrir tarixi"
-        verbose_name_plural = "Shaxsiy xabarlar tahrir tarixi"
+        verbose_name = "Şaxsiy xabar tahrir tarixi"
+        verbose_name_plural = "Şaxsiy xabarlar tahrir tarixi"
         ordering = ['edited_at']
 
     def __str__(self):
@@ -3349,8 +3349,8 @@ class DirectMessageEditHistory(models.Model):
 
 
 class MessageReaction(models.Model):
-    """Xabarga emoji-reaksiya. Bitta foydalanuvchi — bitta xabarga faqat bitta reaksiya
-    (qayta bosilsa eskisi o'chadi/yangisi bilan almashadi)."""
+    """Xabarga emoji-reaksiya. Bitta foydalanuvçi — bitta xabarga faqat bitta reaksiya
+    (qayta bosilsa eskisi öchadi/yangisi bilan almaşadi)."""
     EMOJI_CHOICES = (
         ('👍', '👍'),
         ('❤️', '❤️'),
@@ -3361,7 +3361,7 @@ class MessageReaction(models.Model):
     )
     direct_message = models.ForeignKey(
         'accounts.DirectMessage', on_delete=models.CASCADE, null=True, blank=True,
-        related_name='reactions', verbose_name="Shaxsiy xabar"
+        related_name='reactions', verbose_name="Şaxsiy xabar"
     )
     group_message = models.ForeignKey(
         'accounts.GroupChatMessage', on_delete=models.CASCADE, null=True, blank=True,
@@ -3369,7 +3369,7 @@ class MessageReaction(models.Model):
     )
     user = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='message_reactions', verbose_name="Foydalanuvchi"
+        related_name='message_reactions', verbose_name="Foydalanuvçi"
     )
     emoji = models.CharField(max_length=8, choices=EMOJI_CHOICES, verbose_name="Emoji")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -3393,14 +3393,14 @@ class MessageReaction(models.Model):
 
 
 class ChatPin(models.Model):
-    """Foydalanuvchi tomonidan ro'yxat tepasiga pin qilingan suhbat (shaxsiy yoki guruh)."""
+    """Foydalanuvçi tomonidan röyxat tepasiga pin qilingan suhbat (şaxsiy yoki guruh)."""
     user = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='chat_pins', verbose_name="Foydalanuvchi"
+        related_name='chat_pins', verbose_name="Foydalanuvçi"
     )
     partner = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE, null=True, blank=True,
-        related_name='+', verbose_name="Shaxsiy suhbatdosh"
+        related_name='+', verbose_name="Şaxsiy suhbatdoş"
     )
     profession = models.ForeignKey(
         'accounts.Profession', on_delete=models.CASCADE, null=True, blank=True,
@@ -3428,17 +3428,17 @@ class ChatPin(models.Model):
 
 
 class ChatTypingStatus(models.Model):
-    """Foydalanuvchi hozir shu suhbatda yozayotganini bildiradi.
-    Polling orqali yangilanadi; o'qishda updated_at bo'yicha qisqa TTL (~5s) qo'llaniladi,
-    shu sababli alohida tozalash job kerak emas — qator soni foydalanuvchilar x suhbatlar
-    bilan chegaralangan."""
+    """Foydalanuvçi hozir şu suhbatda yozayotganini bildiradi.
+    Polling orqali yangilanadi; öqişda updated_at böyiça qisqa TTL (~5s) qöllaniladi,
+    şu sababli alohida tozalaş job kerak emas — qator soni foydalanuvçilar x suhbatlar
+    bilan çegaralangan."""
     user = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE,
-        related_name='typing_statuses', verbose_name="Foydalanuvchi"
+        related_name='typing_statuses', verbose_name="Foydalanuvçi"
     )
     partner = models.ForeignKey(
         'accounts.CustomUser', on_delete=models.CASCADE, null=True, blank=True,
-        related_name='+', verbose_name="Shaxsiy suhbatdosh"
+        related_name='+', verbose_name="Şaxsiy suhbatdoş"
     )
     profession = models.ForeignKey(
         'accounts.Profession', on_delete=models.CASCADE, null=True, blank=True,
@@ -3447,8 +3447,8 @@ class ChatTypingStatus(models.Model):
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     class Meta:
-        verbose_name = "Yozish holati"
-        verbose_name_plural = "Yozish holatlari"
+        verbose_name = "Yoziş holati"
+        verbose_name_plural = "Yoziş holatlari"
         constraints = [
             models.CheckConstraint(
                 check=(
@@ -3465,21 +3465,21 @@ class ChatTypingStatus(models.Model):
 
 
 class HomeworkReminder(models.Model):
-    """Tekshirilmagan vazifa bo'yicha avtomatik eslatmalar holati.
+    """Tekşirilmagan vazifa böyiça avtomatik eslatmalar holati.
 
-    Soatlik cron (send_homework_reminders) shu jadval orqali qaysi
-    bildirishnoma yuborilganini kuzatib boradi:
-      - teacher_level: ustozga yuborilgan oxirgi bildirishnoma raqami (1..10)
+    Soatlik cron (send_homework_reminders) şu jadval orqali qaysi
+    bildirişnoma yuborilganini kuzatib boradi:
+      - teacher_level: ustozga yuborilgan oxirgi bildirişnoma raqami (1..10)
       - group_notified_at: guruhga xabar yuborilgan vaqt (bir martalik)
     """
     submission = models.OneToOneField(
         HomeworkSubmission,
         on_delete=models.CASCADE,
         related_name='reminder_state',
-        verbose_name="Vazifa topshirig'i",
+        verbose_name="Vazifa topşiriği",
     )
     teacher_level = models.PositiveSmallIntegerField(
-        default=0, verbose_name="Ustozga yuborilgan bildirishnoma darajasi"
+        default=0, verbose_name="Ustozga yuborilgan bildirişnoma darajasi"
     )
     last_teacher_sent = models.DateTimeField(
         null=True, blank=True, verbose_name="Ustozga oxirgi yuborilgan vaqt"
@@ -3501,22 +3501,22 @@ class HomeworkReminder(models.Model):
 
 
 class CertificateDesign(models.Model):
-    """Admin yuklagan sertifikat dizayni (fon rasmi + matn joylashuvi).
+    """Admin yuklagan sertifikat dizayni (fon rasmi + matn joylaşuvi).
 
     Kursga `CertificateSettings.design` orqali biriktiriladi. Biriktirilmagan
     kurs standart dizayndan (static/certificates/cert_template.png) foydalanadi.
 
-    Koordinatalar — rasm o'lchamiga nisbatan FOIZDA (0–100), matn markazi
-    va tayanch chizig'i shu nuqtaga tushadi. Shrift o'lchami — A4 albom
-    kengligidagi sahifa uchun punktda (standart dizayn bilan bir xil birlik).
+    Koordinatalar — rasm ölçamiga nisbatan FOIZDA (0–100), matn markazi
+    va tayanç çiziği şu nuqtaga tuşadi. Şrift ölçami — A4 albom
+    kengligidagi sahifa uçun punktda (standart dizayn bilan bir xil birlik).
     """
     FONT_CHOICES = (
         ('script', "Yozma (CertScript)"),
         ('bold', "Qalin (CertBold)"),
     )
-    # Matn maydonlari: kalit -> (nom, standart x%, y%, o'lcham, shrift)
+    # Matn maydonlari: kalit -> (nom, standart x%, y%, ölçam, şrift)
     FIELDS = (
-        ('name',   "O'quvchi ismi", 49.6, 49.8, 44, 'script'),
+        ('name',   "Öquvçi ismi", 49.6, 49.8, 44, 'script'),
         ('course', "Kurs nomi",     50.0, 62.6, 17, 'bold'),
         ('series', "Seriya raqami", 86.7, 80.0, 13, 'bold'),
         ('date',   "Berilgan sana", 86.7, 86.5, 13, 'bold'),
@@ -3530,7 +3530,7 @@ class CertificateDesign(models.Model):
     text_color = models.CharField(max_length=7, default='#141720', verbose_name="Matn rangi")
     course_format = models.CharField(
         max_length=120, default='<< {course} >> COURSE', verbose_name="Kurs qatori formati",
-        help_text="{course} — kurs nomi (katta harflarda) bilan almashtiriladi.",
+        help_text="{course} — kurs nomi (katta harflarda) bilan almaştiriladi.",
     )
 
     name_x = models.FloatField(default=49.6)
@@ -3568,7 +3568,7 @@ class CertificateDesign(models.Model):
         return self.name
 
     def field_layout(self):
-        """PDF chizish uchun: [{key, x, y, size, font, visible}, ...]"""
+        """PDF çiziş uçun: [{key, x, y, size, font, visible}, ...]"""
         out = []
         for key, *_ in self.FIELDS:
             out.append({
@@ -3583,11 +3583,11 @@ class CertificateDesign(models.Model):
 
 
 class CertificateSettings(models.Model):
-    """Har bir kurs uchun sertifikat seriyasi va amal qilish muddati sozlamalari.
+    """Har bir kurs uçun sertifikat seriyasi va amal qiliş muddati sozlamalari.
 
     Seriya formati: {series_code}-{YY}{NNN}  (masalan: ZMT-PY-26038)
       YY  — berilgan yilning oxirgi 2 raqami
-      NNN — shu kurs bo'yicha tartib raqami (3 xonali)
+      NNN — şu kurs böyiça tartib raqami (3 xonali)
     """
     profession = models.OneToOneField(
         Profession,
@@ -3600,10 +3600,10 @@ class CertificateSettings(models.Model):
         blank=True,
         default='',
         verbose_name="Seriya kodi",
-        help_text="Masalan: ZMT-PY. Bo'sh bo'lsa avtomatik berish ishlamaydi.",
+        help_text="Masalan: ZMT-PY. Böş bölsa avtomatik beriş işlamaydi.",
     )
     validity_years = models.PositiveSmallIntegerField(
-        default=2, verbose_name="Amal qilish muddati (yil)"
+        default=2, verbose_name="Amal qiliş muddati (yil)"
     )
     next_number = models.PositiveIntegerField(
         default=1, verbose_name="Keyingi tartib raqami"
@@ -3611,7 +3611,7 @@ class CertificateSettings(models.Model):
     design = models.ForeignKey(
         CertificateDesign, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='course_settings', verbose_name="Sertifikat dizayni",
-        help_text="Bo'sh bo'lsa standart dizayn ishlatiladi.",
+        help_text="Böş bölsa standart dizayn işlatiladi.",
     )
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -3623,11 +3623,11 @@ class CertificateSettings(models.Model):
         return f"{self.profession.name}: {self.series_code or '—'} ({self.validity_years} yil)"
 
     def generate_certificate_id(self):
-        """Yangi sertifikat raqamini yaratadi va hisoblagichni oshiradi."""
+        """Yangi sertifikat raqamini yaratadi va hisoblagiçni oşiradi."""
         from django.utils import timezone as _tz
         yy = _tz.localdate().strftime('%y')
         cert_id = f"{self.series_code}-{yy}{self.next_number:03d}"
-        # Takrorlanmasligini kafolatlash
+        # Takrorlanmasligini kafolatlaş
         while Certificate.objects.filter(certificate_id=cert_id).exists():
             self.next_number += 1
             cert_id = f"{self.series_code}-{yy}{self.next_number:03d}"
@@ -3639,24 +3639,24 @@ class CertificateSettings(models.Model):
 # ==================== GURUHLAR & DARS JADVALI ====================
 
 class StudyGroup(models.Model):
-    """Guruh — dars jadvali bilan bog'liq o'quv guruhi.
+    """Guruh — dars jadvali bilan boğliq öquv guruhi.
 
-    Bir guruh bitta kursga (profession) tegishli. Bir yoki bir nechta kunlarda
-    dars bo'ladi (dushanbadan shanbagacha). Har bir kunda boshlanish va tugash
-    vaqti bir xil bo'ladi (guruh darajasida). Guruhga o'quvchilar va bitta
-    o'qituvchi biriktiriladi.
+    Bir guruh bitta kursga (profession) tegişli. Bir yoki bir neçta kunlarda
+    dars böladi (duşanbadan şanbagaça). Har bir kunda boşlaniş va tugaş
+    vaqti bir xil böladi (guruh darajasida). Guruhga öquvçilar va bitta
+    öqituvçi biriktiriladi.
     """
     DAYS_OF_WEEK = (
-        (1, 'Dushanba'),
-        (2, 'Seshanba'),
-        (3, 'Chorshanba'),
-        (4, 'Payshanba'),
+        (1, 'Duşanba'),
+        (2, 'Seşanba'),
+        (3, 'Çorşanba'),
+        (4, 'Payşanba'),
         (5, 'Juma'),
-        (6, 'Shanba'),
+        (6, 'Şanba'),
     )
 
     DAY_SHORT = {
-        1: 'Du', 2: 'Se', 3: 'Ch', 4: 'Pa', 5: 'Ju', 6: 'Sh',
+        1: 'Du', 2: 'Se', 3: 'Ç', 4: 'Pa', 5: 'Ju', 6: 'Ş',
     }
 
     name = models.CharField(max_length=150, verbose_name="Guruh nomi")
@@ -3673,19 +3673,19 @@ class StudyGroup(models.Model):
         blank=True,
         related_name='study_groups_teaching',
         limit_choices_to={'role': 'teacher'},
-        verbose_name="O'qituvchi",
+        verbose_name="Öqituvçi",
     )
-    start_time = models.TimeField(verbose_name="Dars boshlanish vaqti")
-    end_time = models.TimeField(verbose_name="Dars tugash vaqti")
-    # 1-6 kunlar, JSON emas — bit-mask: 1=Du, 2=Se, 4=Ch, 8=Pa, 16=Ju, 32=Sh
+    start_time = models.TimeField(verbose_name="Dars boşlaniş vaqti")
+    end_time = models.TimeField(verbose_name="Dars tugaş vaqti")
+    # 1-6 kunlar, JSON emas — bit-mask: 1=Du, 2=Se, 4=Ç, 8=Pa, 16=Ju, 32=Ş
     days_mask = models.PositiveSmallIntegerField(
         default=0,
         verbose_name="Kunlar (bit-mask)",
-        help_text="Bit-mask: 1=Dushanba, 2=Seshanba, 4=Chorshanba, 8=Payshanba, 16=Juma, 32=Shanba",
+        help_text="Bit-mask: 1=Duşanba, 2=Seşanba, 4=Çorşanba, 8=Payşanba, 16=Juma, 32=Şanba",
     )
     room = models.CharField(
         max_length=100, blank=True, default='', verbose_name="Xona / Joy",
-        help_text="Ixtiyoriy: dars o'tiladigan xona yoki joy",
+        help_text="Ixtiyoriy: dars ötiladigan xona yoki joy",
     )
     color = models.CharField(
         max_length=20, blank=True, default='#6366f1',
@@ -3696,7 +3696,7 @@ class StudyGroup(models.Model):
         blank=True,
         related_name='study_groups',
         limit_choices_to={'role': 'student'},
-        verbose_name="O'quvchilar",
+        verbose_name="Öquvçilar",
     )
     description = models.TextField(blank=True, verbose_name="Izoh")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
@@ -3721,7 +3721,7 @@ class StudyGroup(models.Model):
 
     # --- Days helpers ---
     def get_days_list(self):
-        """Guruh dars kunlarini raqamlar ro'yxati sifatida qaytaradi."""
+        """Guruh dars kunlarini raqamlar röyxati sifatida qaytaradi."""
         result = []
         for day_num, _ in self.DAYS_OF_WEEK:
             if self.days_mask & (1 << (day_num - 1)):
@@ -3729,7 +3729,7 @@ class StudyGroup(models.Model):
         return result
 
     def set_days_list(self, days):
-        """Kunlar ro'yxatidan bit-mask hosil qiladi."""
+        """Kunlar röyxatidan bit-mask hosil qiladi."""
         mask = 0
         for d in days or []:
             try:
@@ -3745,12 +3745,12 @@ class StudyGroup(models.Model):
 
     @property
     def days_display(self):
-        """Qisqa nom bilan ko'rsatish: 'Du, Ch, Ju'"""
+        """Qisqa nom bilan körsatiş: 'Du, Ç, Ju'"""
         return ', '.join(self.DAY_SHORT[d] for d in self.get_days_list())
 
     @property
     def days_full_display(self):
-        """To'liq nom: 'Dushanba, Chorshanba, Juma'"""
+        """Töliq nom: 'Duşanba, Çorşanba, Juma'"""
         names = dict(self.DAYS_OF_WEEK)
         return ', '.join(names[d] for d in self.get_days_list())
 
@@ -3773,15 +3773,15 @@ class StudyGroup(models.Model):
 
 
 class StudentAttendance(models.Model):
-    """Guruh darsiga o'quvchining kelish davomati.
+    """Guruh darsiga öquvçining keliş davomati.
 
-    Har bir o'quvchi bir kunda bir guruh uchun faqat bitta yozuvga ega bo'ladi.
-    Statuslar: kelgan, kelmagan, kechikkan, kasal, sabab bilan.
+    Har bir öquvçi bir kunda bir guruh uçun faqat bitta yozuvga ega böladi.
+    Statuslar: kelgan, kelmagan, keçikkan, kasal, sabab bilan.
     """
     STATUS_CHOICES = (
         ('present', 'Kelgan'),
         ('absent', 'Kelmagan'),
-        ('late', 'Kechikkan'),
+        ('late', 'Keçikkan'),
         ('sick', 'Kasal'),
         ('excused', 'Sabab bilan'),
     )
@@ -3797,7 +3797,7 @@ class StudentAttendance(models.Model):
         on_delete=models.CASCADE,
         related_name='study_attendances',
         limit_choices_to={'role': 'student'},
-        verbose_name="O'quvchi",
+        verbose_name="Öquvçi",
     )
     date = models.DateField(verbose_name="Sana", db_index=True)
     status = models.CharField(
@@ -3818,8 +3818,8 @@ class StudentAttendance(models.Model):
     class Meta:
         ordering = ['-date', 'student__first_name']
         unique_together = ['group', 'student', 'date']
-        verbose_name = "O'quvchi davomati"
-        verbose_name_plural = "O'quvchilar davomati"
+        verbose_name = "Öquvçi davomati"
+        verbose_name_plural = "Öquvçilar davomati"
         indexes = [
             models.Index(fields=['group', 'date']),
             models.Index(fields=['student', 'date']),
@@ -3850,11 +3850,11 @@ class StudentAttendance(models.Model):
 
 
 class StudentDailyVisit(models.Model):
-    """O'quvchi platformaga kirgan kun (har kunga bitta yozuv).
+    """Öquvçi platformaga kirgan kun (har kunga bitta yozuv).
 
     accounts/attendance_auto.record_visit() yozadi: login signali va
     UpdateLastActivityMiddleware'ning kunlik bloki. Ota-ona panelidagi
-    davomat kalendari guruh davomati bo'lmagan kunlarni shundan oladi.
+    davomat kalendari guruh davomati bölmagan kunlarni şundan oladi.
     """
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_visits')
     date = models.DateField(db_index=True)
@@ -3872,7 +3872,7 @@ class StudentDailyVisit(models.Model):
 
 
 class CuriosityQuestion(models.Model):
-    """Bosh sahifadagi "Bilasizmi?" savoli — OpenAI to'plam qilib yaratadi (accounts/curiosity.py)."""
+    """Boş sahifadagi "Bilasizmi?" savoli — OpenAI töplam qilib yaratadi (accounts/curiosity.py)."""
     text = models.CharField(max_length=255, unique=True, verbose_name="Savol")
     category = models.CharField(max_length=20, verbose_name="Mavzu")
     is_active = models.BooleanField(default=True, verbose_name="Faol")

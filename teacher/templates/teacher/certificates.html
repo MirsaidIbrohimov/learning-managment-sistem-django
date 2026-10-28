@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Sertifikatlarim - O'qituvchi paneli{% endblock %}
+{% block title %}Sertifikatlarim - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Sertifikatlarim{% endblock %}
 
 {% block teacher_content %}
@@ -69,10 +69,10 @@
         <div class="t-cert-preview">
             <i class="bi bi-award-fill"></i>
             <a href="{{ cert.file.url }}" target="_blank" class="t-cert-file-link">
-                <i class="bi bi-eye me-2"></i> Ko'rish
+                <i class="bi bi-eye me-2"></i> Köriş
             </a>
             {% if not cert.is_visible %}
-            <div class="t-cert-hidden-badge"><i class="bi bi-eye-slash me-1"></i> Yashirin</div>
+            <div class="t-cert-hidden-badge"><i class="bi bi-eye-slash me-1"></i> Yaşirin</div>
             {% endif %}
         </div>
         <div class="t-cert-body">
@@ -86,19 +86,19 @@
         </div>
         <div class="t-cert-actions">
             <a href="{% url 'teacher:certificate_edit' cert.pk %}" class="t-cert-action-btn">
-                <i class="bi bi-pencil"></i> Tahrirlash
+                <i class="bi bi-pencil"></i> Tahrirlaş
             </a>
             <form method="POST" action="{% url 'teacher:certificate_toggle' cert.pk %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="t-cert-action-btn">
                     <i class="bi bi-{% if cert.is_visible %}eye-slash{% else %}eye{% endif %}"></i>
-                    {% if cert.is_visible %}Yashirish{% else %}Ko'rsatish{% endif %}
+                    {% if cert.is_visible %}Yaşiriş{% else %}Körsatiş{% endif %}
                 </button>
             </form>
-            <form method="POST" action="{% url 'teacher:certificate_delete' cert.pk %}" style="display:inline;" onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')">
+            <form method="POST" action="{% url 'teacher:certificate_delete' cert.pk %}" style="display:inline;" onsubmit="return confirm('Rostdan öçirmoqçimisiz?')">
                 {% csrf_token %}
                 <button type="submit" class="t-cert-action-btn danger">
-                    <i class="bi bi-trash3"></i> O'chirish
+                    <i class="bi bi-trash3"></i> Öçiriş
                 </button>
             </form>
         </div>

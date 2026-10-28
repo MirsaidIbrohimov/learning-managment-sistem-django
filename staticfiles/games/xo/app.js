@@ -1,9 +1,9 @@
 /* =============================================================
- * X va O (Tic-Tac-Toe) — LMS ichidagi o'yin (app.js)
+ * X va O (Tic-Tac-Toe) — LMS içidagi öyin (app.js)
  * -------------------------------------------------------------
  * Rejimlar:
  *   • AI (Easy / Medium / Hard)
- *   • Multiplayer (LMS o'quvchilari bilan, polling-based)
+ *   • Multiplayer (LMS öquvçilari bilan, polling-based)
  * ============================================================= */
 
 // ============== URL PARAMS / CONFIG ==============
@@ -34,7 +34,7 @@ let GX = { xp: 0, level: 1, xp_into_level: 0, xp_for_next: 100, best_score: 0, p
 let GX_MODE = 'ai';   // 'ai' | 'casual' | 'ranked'
 let RANKED  = false;
 let winStreak = 0;
-let lastGx = null;    // oxirgi gx_complete javobi (result ekrani uchun)
+let lastGx = null;    // oxirgi gx_complete javobi (result ekrani uçun)
 
 const RANKS = [
   { name: 'Bronze',      ico: '🥉', min: 0 },
@@ -48,14 +48,14 @@ const RANKS = [
 function rankFor(xp) { let r = RANKS[0]; for (const t of RANKS) if ((xp || 0) >= t.min) r = t; return r; }
 
 const ARENA_ACH = [
-  { code: 'first_victory', name: 'Ilk g\'alaba', desc: 'Birinchi g\'alabangiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.outcome === 'win' && (GX.plays || 0) === 0 },
-  { code: 'win_10', name: '10 g\'alaba', desc: '10 marta yutdingiz', icon: 'bi-trophy-fill', color: '#6366f1', cond: c => c.totalWins >= 10 },
-  { code: 'win_100', name: '100 g\'alaba', desc: '100 marta yutdingiz', icon: 'bi-trophy', color: '#f59e0b', cond: c => c.totalWins >= 100 },
-  { code: 'unstoppable', name: 'To\'xtatib bo\'lmas', desc: '5 marta ketma-ket g\'alaba', icon: 'bi-fire', color: '#fb923c', cond: c => c.winStreak >= 5 },
-  { code: 'beat_impossible', name: 'Yengilmasni yengdi', desc: 'Yengilmas AI ustidan g\'alaba', icon: 'bi-robot', color: '#a855f7', cond: c => c.outcome === 'win' && GX_MODE === 'ai' && DIFFICULTY === 'impossible' },
-  { code: 'ranked_win', name: 'Reyting jangchisi', desc: 'Reytingli o\'yinda g\'alaba', icon: 'bi-shield-fill-check', color: '#06b6d4', cond: c => c.outcome === 'win' && GX_MODE === 'ranked' },
+  { code: 'first_victory', name: 'Ilk ğalaba', desc: 'Birinçi ğalabangiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.outcome === 'win' && (GX.plays || 0) === 0 },
+  { code: 'win_10', name: '10 ğalaba', desc: '10 marta yutdingiz', icon: 'bi-trophy-fill', color: '#6366f1', cond: c => c.totalWins >= 10 },
+  { code: 'win_100', name: '100 ğalaba', desc: '100 marta yutdingiz', icon: 'bi-trophy', color: '#f59e0b', cond: c => c.totalWins >= 100 },
+  { code: 'unstoppable', name: 'Töxtatib bölmas', desc: '5 marta ketma-ket ğalaba', icon: 'bi-fire', color: '#fb923c', cond: c => c.winStreak >= 5 },
+  { code: 'beat_impossible', name: 'Yengilmasni yengdi', desc: 'Yengilmas AI ustidan ğalaba', icon: 'bi-robot', color: '#a855f7', cond: c => c.outcome === 'win' && GX_MODE === 'ai' && DIFFICULTY === 'impossible' },
+  { code: 'ranked_win', name: 'Reyting jangçisi', desc: 'Reytingli öyinda ğalaba', icon: 'bi-shield-fill-check', color: '#06b6d4', cond: c => c.outcome === 'win' && GX_MODE === 'ranked' },
   { code: 'grandmaster', name: 'Grandmaster', desc: 'Grandmaster darajasiga yetdingiz', icon: 'bi-crown', color: '#eab308', cond: c => rankFor(GX.xp).name === 'Grandmaster' },
-  { code: 'champion', name: 'Chempion', desc: '5-darajaga yetdingiz', icon: 'bi-award-fill', color: '#ec4899', cond: c => (GX.level || 1) >= 5 },
+  { code: 'champion', name: 'Çempion', desc: '5-darajaga yetdingiz', icon: 'bi-award-fill', color: '#ec4899', cond: c => (GX.level || 1) >= 5 },
 ];
 const ARENA_ACH_BY = Object.fromEntries(ARENA_ACH.map(a => [a.code, a]));
 function totalWins() { return GX.wins || 0; }
@@ -63,7 +63,7 @@ function totalWins() { return GX.wins || 0; }
 async function gxLoad() {
   if (!TOKEN || !API_BASE || !LMS_USER || LMS_USER.id === 0) { try { const p = JSON.parse(localStorage.getItem('xo_gx') || 'null'); if (p) GX = Object.assign(GX, p); } catch (_) {} return; }
   try { const r = await fetch(URLS.gxProfile, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKEN, game: GAME }) }); const d = await r.json(); if (d.ok && d.profile) GX = Object.assign(GX, d.profile); } catch (_) {}
-  // Lokal g'alabalar hisoblagichini (qurilma bo'yicha) tiklaymiz
+  // Lokal ğalabalar hisoblagiçini (qurilma böyiça) tiklaymiz
   try { const p = JSON.parse(localStorage.getItem('xo_gx') || 'null'); if (p && p.wins) GX.wins = Math.max(GX.wins || 0, p.wins); } catch (_) {}
 }
 function gxSaveLocal() { try { localStorage.setItem('xo_gx', JSON.stringify(GX)); } catch (_) {} }
@@ -85,7 +85,7 @@ async function gxComplete(outcome, score, timeSec) {
   const accuracy = outcome === 'win' ? 100 : outcome === 'draw' ? 50 : 0;
   const ctx = { outcome, score, winStreak, totalWins: totalWins() };
   const candidates = ARENA_ACH.filter(a => { try { return a.cond(ctx); } catch (_) { return false; } }).map(a => a.code);
-  const levelId = '';   // serverda alohida yozuv saqlamaymiz; g'alabalar lokal hisoblanadi
+  const levelId = '';   // serverda alohida yozuv saqlamaymiz; ğalabalar lokal hisoblanadi
   lastGx = null;
   if (TOKEN && API_BASE && LMS_USER && LMS_USER.id !== 0) {
     try {
@@ -122,7 +122,7 @@ function openHub(kind) {
     const data = [
       { i: 'bi-star-fill', c: '#f59e0b', v: GX.xp || 0, l: 'Umumiy XP' },
       { i: 'bi-bar-chart-fill', c: '#7c6fff', v: GX.level || 1, l: 'Daraja' },
-      { i: 'bi-trophy-fill', c: '#22c55e', v: totalWins(), l: 'G\'alabalar' },
+      { i: 'bi-trophy-fill', c: '#22c55e', v: totalWins(), l: 'Ğalabalar' },
       { i: 'bi-fire', c: '#fb923c', v: GX.streak_days || 0, l: 'Streak' },
       { i: 'bi-coin', c: '#eab308', v: GX.coins || 0, l: 'Coinlar' },
       { i: 'bi-shield-fill', c: '#06b6d4', v: rk.ico + ' ' + rk.name, l: 'Rank' },
@@ -139,11 +139,11 @@ async function gxLeaderboard(bodyEl) {
   if (!TOKEN || !API_BASE || !LMS_USER || LMS_USER.id === 0) { bodyEl.innerHTML = '<div class="xm-empty">Reyting faqat LMS hisobida mavjud</div>'; return; }
   try {
     const r = await fetch(URLS.gxLeader, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: TOKEN, game: GAME, limit: 20 }) }); const d = await r.json();
-    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { bodyEl.innerHTML = '<div class="xm-empty">Hali natijalar yo\'q — birinchi bo\'ling!</div>'; return; }
+    if (!d.ok || !d.leaderboard || !d.leaderboard.length) { bodyEl.innerHTML = '<div class="xm-empty">Hali natijalar yöq — birinçi böling!</div>'; return; }
     bodyEl.innerHTML = d.leaderboard.map(p => { const rk = rankFor(p.xp); const ini = (p.name || '?')[0].toUpperCase();
       return `<div class="xm-row${p.is_me ? ' me' : ''}"><div class="xm-rank">${p.rank <= 3 ? '🏅' : p.rank}</div><div class="xm-ava">${ini}</div><div class="xm-nm">${p.name}<div class="xm-sub">${rk.ico} ${rk.name} · Daraja ${p.level}</div></div><div class="xm-xp">${p.xp} XP</div></div>`;
-    }).join('') + (d.me && d.me.rank ? `<div style="text-align:center;color:var(--muted);font-size:.84rem;margin-top:10px">Sizning o'rningiz: #${d.me.rank}</div>` : '');
-  } catch (e) { bodyEl.innerHTML = '<div class="xm-empty">Reytingni yuklab bo\'lmadi</div>'; }
+    }).join('') + (d.me && d.me.rank ? `<div style="text-align:center;color:var(--muted);font-size:.84rem;margin-top:10px">Sizning örningiz: #${d.me.rank}</div>` : '');
+  } catch (e) { bodyEl.innerHTML = '<div class="xm-empty">Reytingni yuklab bölmadi</div>'; }
 }
 
 // ============== THEME ==============
@@ -203,7 +203,7 @@ function toggleMode() {
     const next = document.documentElement.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
     applyMode(next, true);
 }
-// LMS (parent) temasi bilan sinxron — foydalanuvchi qo'lda tanlamagan bo'lsa
+// LMS (parent) temasi bilan sinxron — foydalanuvçi qölda tanlamagan bölsa
 window.addEventListener('message', e => {
     if (e && e.data && e.data.type === 'lms-theme') {
         if (localStorage.getItem(MODE_MANUAL_KEY) !== '1') {
@@ -211,7 +211,7 @@ window.addEventListener('message', e => {
         }
     }
 });
-// Boshlang'ich holatni qo'llaymiz va parentdan temani so'raymiz
+// Boşlanğiç holatni qöllaymiz va parentdan temani söraymiz
 applyMode(resolveMode(), false);
 try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'request-theme' }, '*'); } catch (_) {}
 
@@ -241,7 +241,7 @@ let currentTurn = 'X';   // 'X' | 'O'
 let gameOver    = false;
 let MODE        = 'ai';   // 'ai' | 'mp'
 let DIFFICULTY  = 'medium';
-const DIFF_LABELS = { easy: 'Oson', medium: "O'rta", hard: 'Qiyin', expert: 'Ekspert', impossible: 'Yengilmas' };
+const DIFF_LABELS = { easy: 'Oson', medium: "Örta", hard: 'Qiyin', expert: 'Ekspert', impossible: 'Yengilmas' };
 const diffLabel = () => DIFF_LABELS[DIFFICULTY] || 'Qiyin';
 let MY_SYMBOL   = 'X';    // mp: which symbol this user plays
 
@@ -251,7 +251,7 @@ let MATCH_ID    = null;   // mp match id
 let mpPollTimer = null;
 let mpActive    = false;
 
-// Private room (kod orqali o'ynash)
+// Private room (kod orqali öynaş)
 let ROOM_CODE      = null;
 let roomPollTimer  = null;
 
@@ -357,7 +357,7 @@ function drawWinLine(line, winnerSym) {
     const stack = board.parentElement;
     const sRect = stack.getBoundingClientRect();
 
-    // SVG'ni aynan board ustiga joylashtirish
+    // SVG'ni aynan board ustiga joylaştiriş
     svg.style.left   = (bRect.left - sRect.left) + 'px';
     svg.style.top    = (bRect.top - sRect.top) + 'px';
     svg.style.width  = bRect.width + 'px';
@@ -441,12 +441,12 @@ async function verifyToken() {
         if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
         LMS_USER = data.user || data;
         spinnerEl.classList.add('hidden');
-        statusEl.textContent = `Xush kelibsiz, ${LMS_USER.name}!`;
+        statusEl.textContent = `Xuş kelibsiz, ${LMS_USER.name}!`;
         setTimeout(enterMenu, 700);
     } catch (err) {
         spinnerEl.classList.add('hidden');
         errorEl.classList.remove('hidden');
-        errorEl.textContent = `Ulanish xatosi: ${err.message}`;
+        errorEl.textContent = `Ulaniş xatosi: ${err.message}`;
         statusEl.textContent = 'Xatolik yuz berdi';
         // Still let them play offline
         LMS_USER = { id: 0, name: 'Mehmon', group: '' };
@@ -484,7 +484,7 @@ function enterMenu() {
     initThemePicker();
     setBoardSize(BOARD_SIZE);
     if (LMS_USER) {
-        $('menu-user-name').textContent  = LMS_USER.name || 'O\'yinchi';
+        $('menu-user-name').textContent  = LMS_USER.name || 'Öyinçi';
         $('menu-user-group').textContent = LMS_USER.group || '';
     }
     showScreen('menu');
@@ -682,7 +682,7 @@ function aiMove() {
     if (gameOver || currentTurn !== 'O') return;
     let move;
     switch (DIFFICULTY) {
-        case 'easy':       // tasodifiy — yangi o'yinchi yutishi oson
+        case 'easy':       // tasodifiy — yangi öyinçi yutişi oson
             move = getRandomMove(board); break;
         case 'medium':     // 50% aqlli, 50% tasodifiy
             move = Math.random() < 0.5 ? getSmartMove(board) : getRandomMove(board); break;
@@ -690,7 +690,7 @@ function aiMove() {
             move = getSmartMove(board); break;
         case 'expert':     // 3x3 da deyarli mukammal (minimax), kamdan-kam xato
             move = (BOARD_SIZE === 3 && Math.random() < 0.9) ? getBestMove(board) : getSmartMove(board); break;
-        case 'impossible': // 3x3 da mukammal minimax — yengib bo'lmaydi
+        case 'impossible': // 3x3 da mukammal minimax — yengib bölmaydi
             move = getBestMove(board); break;
         default:
             move = getSmartMove(board);
@@ -716,7 +716,7 @@ function startAIGame() {
     clearWinLine();
     renderBoard();
     renderScores();
-    setStatus("Sizning yurishing (X)", 'x-turn');
+    setStatus("Sizning yurişing (X)", 'x-turn');
     updateActiveCard();
     enableBoard(true);
     showScreen('game');
@@ -751,7 +751,7 @@ function placeMove(idx, isPlayer) {
             const sym = result.winner;
             scores[sym]++;
             const isMyWin = (MODE === 'ai' && sym === 'X') || (MODE === 'mp' && sym === MY_SYMBOL);
-            setStatus(isMyWin ? "🎉 G'alaba!" : (sym === 'X' ? 'X yutdi!' : 'O yutdi!'), sym === 'X' ? 'x-wins' : 'o-wins');
+            setStatus(isMyWin ? "🎉 Ğalaba!" : (sym === 'X' ? 'X yutdi!' : 'O yutdi!'), sym === 'X' ? 'x-wins' : 'o-wins');
             renderScores();
             finishGame(isMyWin ? 'win' : 'loss');
         }
@@ -763,16 +763,16 @@ function placeMove(idx, isPlayer) {
     if (!gameOver) {
         if (MODE === 'ai') {
             if (currentTurn === 'O') {
-                setStatus("AI o'ylayapti...", 'o-turn');
+                setStatus("AI öylayapti...", 'o-turn');
                 enableBoard(false);
                 aiMove();
             } else {
-                setStatus("Sizning yurishing (X)", 'x-turn');
+                setStatus("Sizning yurişing (X)", 'x-turn');
                 enableBoard(true);
             }
         } else {
             const myTurn = currentTurn === MY_SYMBOL;
-            setStatus(myTurn ? "Sizning yurishing" : "Raqib o'ylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
+            setStatus(myTurn ? "Sizning yurişing" : "Raqib öylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
             enableBoard(myTurn);
         }
     }
@@ -818,7 +818,7 @@ async function finishGame(outcome) {
     else                         { playLose(); }
 
     if (MODE === 'ai') await submitResult(outcome, score, timeSec);
-    await gxComplete(outcome, score, timeSec);   // XP / rank / yutuqlar (barcha rejimlar)
+    await gxComplete(outcome, score, timeSec);   // XP / rank / yutuqlar (barça rejimlar)
     setTimeout(() => showResult(outcome, score), 1200);
 }
 
@@ -827,14 +827,14 @@ function levelUpXo(n) { showNotif(`🎉 Yangi daraja: <b>${n}</b>!`, 3000); fire
 
 function showResult(outcome, score) {
     const emojiMap = { win: '🏆', loss: '😔', draw: '🤝' };
-    const titleMap = { win: "G'alaba!", loss: 'Mag\'lubiyat', draw: 'Durang' };
+    const titleMap = { win: "Ğalaba!", loss: 'Mağlubiyat', draw: 'Durang' };
     const clsMap   = { win: 'win',      loss: 'loss',         draw: 'draw'   };
     $('result-emoji').textContent    = emojiMap[outcome];
     $('result-title').textContent    = titleMap[outcome];
     $('result-title').className      = `result-title ${clsMap[outcome]}`;
     $('result-ring').className       = `result-glow-ring ${clsMap[outcome]}`;
     $('result-score').textContent    = score;
-    $('result-sub').textContent      = 'ball qo\'lga kiritildi';
+    $('result-sub').textContent      = 'ball qölga kiritildi';
     $('result-opp').innerHTML        = MODE === 'ai'
         ? `<i class="bi bi-robot"></i> AI &nbsp;·&nbsp; <b>${diffLabel()}</b>`
         : `<i class="bi bi-person"></i> <b>${RANKED ? '🏆 Reytingli' : (MODE === 'mp' ? 'Multiplayer' : 'Raqib')}</b>`;
@@ -856,7 +856,7 @@ function showResult(outcome, score) {
 // ============== MULTIPLAYER ==============
 function startMatchmaking() {
     if (!LMS_USER || LMS_USER.id === 0) {
-        showNotif('<i class="bi bi-exclamation-triangle"></i> Multiplayer uchun LMS hisobi talab qilinadi');
+        showNotif('<i class="bi bi-exclamation-triangle"></i> Multiplayer uçun LMS hisobi talab qilinadi');
         return;
     }
     MODE = 'mp';
@@ -898,7 +898,7 @@ function stopMmWaitUI() {
 
 async function mpFind() {
     if (!TOKEN || !API_BASE) {
-        showNotif('Token kerak — multiplayer ishlamaydi');
+        showNotif('Token kerak — multiplayer işlamaydi');
         stopMmWaitUI();
         enterMenu(); return;
     }
@@ -946,7 +946,7 @@ async function mpPoll() {
         }
         return;
     }
-    // Waiting match bor — raqib qo'shilganini tekshiramiz
+    // Waiting match bor — raqib qöşilganini tekşiramiz
     try {
         const res = await fetch(URLS.mpState, {
             method: 'POST',
@@ -980,9 +980,9 @@ async function startMpGame(data) {
     const oppName = opp?.name || 'Raqib';
 
     $('name-x').textContent  = role === 'white' ? (LMS_USER.name || 'Siz') : oppName;
-    $('meta-x').textContent  = 'X o\'yinchi';
+    $('meta-x').textContent  = 'X öyinçi';
     $('name-o').textContent  = role === 'black' ? (LMS_USER.name || 'Siz') : oppName;
-    $('meta-o').textContent  = 'O o\'yinchi';
+    $('meta-o').textContent  = 'O öyinçi';
     $('btn-resign').style.display = 'inline-flex';
     $('btn-resign').onclick = mpResign;
     $('btn-play-again').onclick = enterMenu;
@@ -1004,7 +1004,7 @@ async function startMpGame(data) {
     applyServerState(data, true);
 
     const myTurn = currentTurn === MY_SYMBOL;
-    setStatus(myTurn ? "Sizning yurishing" : "Raqib o'ylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
+    setStatus(myTurn ? "Sizning yurişing" : "Raqib öylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
     enableBoard(myTurn);
     updateActiveCard();
 
@@ -1065,7 +1065,7 @@ function applyServerState(data, force = false) {
     if (result) return; // ended, handled above
 
     const myTurn = currentTurn === MY_SYMBOL;
-    setStatus(myTurn ? "Sizning yurishing" : "Raqib o'ylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
+    setStatus(myTurn ? "Sizning yurişing" : "Raqib öylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
     enableBoard(myTurn);
 }
 
@@ -1084,7 +1084,7 @@ async function mpSendMove(idx) {
         });
         const data = await res.json();
         if (!data.ok || data.error) {
-            showNotif(`Yurish xatosi: ${data.error}`, 3000);
+            showNotif(`Yuriş xatosi: ${data.error}`, 3000);
             await mpFetchState();
             return;
         }
@@ -1130,18 +1130,18 @@ function stopMp() {
     stopMmWaitUI();
 }
 
-// ============== PRIVATE ROOM (kod orqali do'st bilan o'ynash) ==============
+// ============== PRIVATE ROOM (kod orqali döst bilan öynaş) ==============
 function stopRoomPoll() {
     if (roomPollTimer) { clearTimeout(roomPollTimer); roomPollTimer = null; }
 }
 
 async function createRoom() {
     if (!LMS_USER || LMS_USER.id === 0) {
-        showNotif('<i class="bi bi-exclamation-triangle"></i> Xona uchun LMS hisobi talab qilinadi');
+        showNotif('<i class="bi bi-exclamation-triangle"></i> Xona uçun LMS hisobi talab qilinadi');
         return;
     }
     if (!TOKEN || !API_BASE) {
-        showNotif('Token kerak — xona ishlamaydi');
+        showNotif('Token kerak — xona işlamaydi');
         return;
     }
     MODE = 'mp';
@@ -1230,14 +1230,14 @@ function copyRoomCode() {
             ta.value = ROOM_CODE; ta.style.position = 'fixed'; ta.style.opacity = '0';
             document.body.appendChild(ta); ta.select();
             document.execCommand('copy'); ta.remove(); done();
-        } catch { showNotif('Nusxalab bo\'lmadi — kodni qo\'lda kiriting'); }
+        } catch { showNotif('Nusxalab bölmadi — kodni qölda kiriting'); }
     }
 }
 
 // ---- Join modal ----
 function openJoinModal() {
     if (!LMS_USER || LMS_USER.id === 0) {
-        showNotif('<i class="bi bi-exclamation-triangle"></i> Xonaga kirish uchun LMS hisobi kerak');
+        showNotif('<i class="bi bi-exclamation-triangle"></i> Xonaga kiriş uçun LMS hisobi kerak');
         return;
     }
     const input = $('join-code-input');
@@ -1268,7 +1268,7 @@ async function submitJoin() {
     const input = $('join-code-input');
     const code = (input ? input.value : '').trim().toUpperCase();
     if (code.length < 4) { showJoinError('Kod juda qisqa'); return; }
-    if (!TOKEN || !API_BASE) { showJoinError('Token kerak — xona ishlamaydi'); return; }
+    if (!TOKEN || !API_BASE) { showJoinError('Token kerak — xona işlamaydi'); return; }
     MODE = 'mp';
     const btn = $('join-submit');
     if (btn) btn.disabled = true;
@@ -1279,7 +1279,7 @@ async function submitJoin() {
             body: JSON.stringify({ token: TOKEN, game: GAME, action: 'join', code }),
         });
         const data = await res.json();
-        if (!data.ok || data.error) { showJoinError(data.error || "Qo'shilib bo'lmadi"); return; }
+        if (!data.ok || data.error) { showJoinError(data.error || "Qöşilib bölmadi"); return; }
         closeJoinModal();
         MATCH_ID  = data.match.id;
         ROOM_CODE = data.match.room_code;
@@ -1321,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enterMenu();
     });
 
-    // Raqib topilmasa — AI bilan o'ynashga o'tish
+    // Raqib topilmasa — AI bilan öynaşga ötiş
     $('btn-mm-play-ai').addEventListener('click', () => {
         if (MATCH_ID) {
             fetch(URLS.mpResign, {

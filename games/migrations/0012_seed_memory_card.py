@@ -17,8 +17,8 @@ def seed(apps, schema_editor):
     Game.objects.update_or_create(
         slug='memory-card',
         defaults={
-            'title': 'Xotira O\'yini',
-            'description': "Juft kartalarni toping — xotirangizni mashq qiling! 5 mavzu, 3 qiyinlik darajasi.",
+            'title': 'Xotira Öyini',
+            'description': "Juft kartalarni toping — xotirangizni maşq qiling! 5 mavzu, 3 qiyinlik darajasi.",
             'game_type': 'external',
             'icon': 'bi-grid-1x2-fill',
             'is_active': True,

@@ -1,15 +1,15 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}O'yinlar | LMS{% endblock %}
+{% block title %}Öyinlar | LMS{% endblock %}
 
 {% block extra_css %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ════════════════════════════════════════════════════════════════
-   O'YIN ZALI — motion uslub (Yozish mashqi 2.0 dizayn tizimi bilan bir xil)
+   ÖYIN ZALI — motion uslub (Yoziş maşqi 2.0 dizayn tizimi bilan bir xil)
    Glass panellar · aurora fon · sintveyv pol · 3D tilt · magnit tugmalar.
-   Animatsiyalar GSAP bilan; prefers-reduced-motion'da o'chadi.
+   Animatsiyalar GSAP bilan; prefers-reduced-motion'da öçadi.
    ════════════════════════════════════════════════════════════════ */
 .gz{--bg:#f5f6fb;--panel:rgba(255,255,255,.72);--solid:#fff;--field:rgba(15,23,42,.045);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--pink:#db2777;--gold:#b45309;--lime:#16a34a;--red:#e11d48;--shadow:0 24px 60px -30px rgba(15,23,42,.45);
   position:relative;color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;max-width:1240px;margin:0 auto;padding:22px 16px 70px}
@@ -77,7 +77,7 @@
 .gz-float.coin{border-radius:50%;background:linear-gradient(135deg,#fde68a,#f59e0b)!important;color:#78350f;font:800 30px 'JetBrains Mono',monospace}
 @keyframes gzBob{50%{translate:0 -12px}}
 
-/* ── SPOTLIGHT: Yozish mashqi 2.0 ── */
+/* ── SPOTLIGHT: Yoziş maşqi 2.0 ── */
 .gz-spot{position:relative;margin-top:16px;border-radius:28px;padding:24px;display:grid;grid-template-columns:.95fr 1.05fr;gap:22px;align-items:center;overflow:hidden}
 .gz-spot:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang,0deg),var(--acc),var(--acc2),var(--pink),#f59e0b,var(--acc));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:gzSpin 6s linear infinite;pointer-events:none}
 @property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
@@ -135,7 +135,7 @@
 .gz-cats button.active{color:#fff}
 [data-bs-theme=dark] .gz-cats button.active{color:#05060a}
 
-/* ── O'YIN KARTALARI ── */
+/* ── ÖYIN KARTALARI ── */
 .gz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;perspective:1200px}
 .gz-cell.is-hidden{display:none}
 .gz-card{--rx:0deg;--ry:0deg;--mx:50%;--my:50%;position:relative;height:100%;border-radius:24px;overflow:hidden;background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;transform:rotateX(var(--rx)) rotateY(var(--ry));transform-style:preserve-3d;transition:transform .25s ease,box-shadow .3s,border-color .3s}
@@ -202,18 +202,18 @@
     <!-- ═══════ HERO ═══════ -->
     <header class="gz-hero glass">
         <div style="position:relative">
-            <span class="gz-eyebrow"><span class="gz-dot"></span> PRESS START · O'YINGA TAYYORMISIZ?</span>
-            <h1 class="gz-title" id="gzTitle"><span class="js-split">O'yin</span> <span class="grad js-split">zali</span></h1>
-            <p class="gz-sub">Bilimlaringizni o'yinlarda sinang, musobaqalarda qatnashing va coin yutib oling!</p>
+            <span class="gz-eyebrow"><span class="gz-dot"></span> PRESS START · ÖYINGA TAYYORMISIZ?</span>
+            <h1 class="gz-title" id="gzTitle"><span class="js-split">Öyin</span> <span class="grad js-split">zali</span></h1>
+            <p class="gz-sub">Bilimlaringizni öyinlarda sinang, musobaqalarda qatnaşing va coin yutib oling!</p>
             <div class="gz-stats">
-                <div class="gz-stat"><b data-count="{{ games|length }}">{{ games|length }}</b><small>O'YINLAR</small></div>
+                <div class="gz-stat"><b data-count="{{ games|length }}">{{ games|length }}</b><small>ÖYINLAR</small></div>
                 <div class="gz-stat"><b data-count="{{ active_comp_count }}">{{ active_comp_count }}</b><small>JONLI</small></div>
                 <div class="gz-stat"><b data-count="{{ active_competitions|length }}">{{ active_competitions|length }}</b><small>MUSOBAQA</small></div>
                 <div class="gz-stat"><b data-count="{{ request.user.coins }}" style="color:var(--gold)">{{ request.user.coins }}</b><small>COINLARINGIZ</small></div>
             </div>
             <div class="gz-hero-actions">
-                <a href="{% url 'games:live_games' %}" class="gz-btn hotb" data-magnetic><span class="gz-dot"></span> Jonli o'yinlar</a>
-                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn" data-magnetic><i class="bi bi-car-front-fill"></i> Sheriklar bilan</a>
+                <a href="{% url 'games:live_games' %}" class="gz-btn hotb" data-magnetic><span class="gz-dot"></span> Jonli öyinlar</a>
+                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn" data-magnetic><i class="bi bi-car-front-fill"></i> Şeriklar bilan</a>
                 <a href="{% url 'games:my_results' %}" class="gz-btn ghost" data-magnetic><i class="bi bi-clock-history"></i> Natijalarim</a>
             </div>
         </div>
@@ -226,13 +226,13 @@
         </div>
     </header>
 
-    <!-- ═══════ SPOTLIGHT: Yozish mashqi 2.0 ═══════ -->
+    <!-- ═══════ SPOTLIGHT: Yoziş maşqi 2.0 ═══════ -->
     {% for tg in typing_games %}
     <section class="gz-spot glass js-reveal">
         <div>
             <span class="gz-pill new"><i class="bi bi-stars"></i> YANGI</span>
-            <h3>Yozish mashqi <small>2.0</small></h3>
-            <p>Lenta ko'rinishidagi mashq va mashina poygasi: har bir to'g'ri so'z — nitro 🚀. Musobaqada reytingdagi eng kuchlilar bilan poygaga chiqasiz.</p>
+            <h3>Yoziş maşqi <small>2.0</small></h3>
+            <p>Lenta körinişidagi maşq va maşina poygasi: har bir töğri söz — nitro 🚀. Musobaqada reytingdagi eng kuçlilar bilan poygaga çiqasiz.</p>
             <div class="chips">
                 <span class="gz-pill"><i class="bi bi-speedometer2"></i> WPM</span>
                 <span class="gz-pill"><i class="bi bi-fire"></i> Kombo</span>
@@ -240,8 +240,8 @@
                 <span class="gz-pill"><i class="bi bi-bar-chart-steps"></i> 3 daraja</span>
             </div>
             <div class="acts">
-                <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-btn" data-magnetic><i class="bi bi-lightning-charge-fill"></i> Mashq 2.0</a>
-                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn hotb" data-magnetic><i class="bi bi-car-front-fill"></i> Sheriklar bilan</a>
+                <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-btn" data-magnetic><i class="bi bi-lightning-charge-fill"></i> Maşq 2.0</a>
+                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn hotb" data-magnetic><i class="bi bi-car-front-fill"></i> Şeriklar bilan</a>
                 <a href="{% url 'games:game_play' tg.slug %}" class="gz-btn ghost" data-magnetic><i class="bi bi-window"></i> Klassik</a>
                 <a href="{% url 'games:game_detail' tg.slug %}" class="gz-btn ghost sm" style="height:46px"><i class="bi bi-info-lg"></i></a>
             </div>
@@ -252,7 +252,7 @@
             <div class="lane"><div class="car">{% include 'games/student/_mini_car.html' with c="#a855f7" d="#6b21a8" n="8" %}</div></div>
             <div class="lane"><div class="car">{% include 'games/student/_mini_car.html' with c="#f59e0b" d="#b45309" n="9" %}</div></div>
             <div class="gz-tape"><span class="caret"></span>
-                <div class="rail"><span class="ok">kitob</span><span class="ok">o`qish</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>g`oyalar</span><span>beradi</span><span class="ok">kitob</span><span class="ok">o`qish</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>g`oyalar</span><span>beradi</span></div>
+                <div class="rail"><span class="ok">kitob</span><span class="ok">öqiş</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>ğoyalar</span><span>beradi</span><span class="ok">kitob</span><span class="ok">öqiş</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>ğoyalar</span><span>beradi</span></div>
             </div>
         </div>
     </section>
@@ -289,8 +289,8 @@
                     {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-hourglass-split"></i> Lobby yopiq</span>{% endif %}
                 {% elif comp.status == 'active' %}
                     {% if comp.can_play %}
-                    <a href="{{ comp.play_url }}" class="gz-btn js-competition-start" data-magnetic><i class="bi bi-flag-fill"></i> {% if comp.is_v2 %}Poygada qatnashish{% else %}Qatnashish{% endif %}</a>
-                    {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-check2-circle"></i> Urinishlar tugadi</span>{% endif %}
+                    <a href="{{ comp.play_url }}" class="gz-btn js-competition-start" data-magnetic><i class="bi bi-flag-fill"></i> {% if comp.is_v2 %}Poygada qatnaşiş{% else %}Qatnaşiş{% endif %}</a>
+                    {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-check2-circle"></i> Urinişlar tugadi</span>{% endif %}
                 {% else %}
                     <a href="{{ comp.detail_url }}" class="gz-btn ghost"><i class="bi bi-info-circle"></i> Batafsil</a>
                 {% endif %}
@@ -301,12 +301,12 @@
     </div>
     {% endif %}
 
-    <!-- ═══════ BARCHA O'YINLAR ═══════ -->
-    <div class="gz-sec"><h2><i class="bi bi-joystick" style="background:linear-gradient(135deg,#f59e0b,#db2777)"></i> Barcha o'yinlar</h2><span class="rule"></span></div>
+    <!-- ═══════ BARÇA ÖYINLAR ═══════ -->
+    <div class="gz-sec"><h2><i class="bi bi-joystick" style="background:linear-gradient(135deg,#f59e0b,#db2777)"></i> Barça öyinlar</h2><span class="rule"></span></div>
     {% if games %}
     <div class="gz-tools">
-        <label class="gz-search"><i class="bi bi-search"></i><input type="search" id="gameSearch" placeholder="O'yin qidirish…" autocomplete="off"></label>
-        <div class="gz-cats" id="catFilters"><span class="ind"></span><button class="active" data-cat="all" type="button">Barchasi</button></div>
+        <label class="gz-search"><i class="bi bi-search"></i><input type="search" id="gameSearch" placeholder="Öyin qidiriş…" autocomplete="off"></label>
+        <div class="gz-cats" id="catFilters"><span class="ind"></span><button class="active" data-cat="all" type="button">Barçasi</button></div>
     </div>
 
     <div class="gz-grid" id="gamesGrid">
@@ -333,11 +333,11 @@
                     </div>
                 </div>
                 <div class="gz-body">
-                    <h3>Yozish mashqi 2.0</h3>
+                    <h3>Yoziş maşqi 2.0</h3>
                     <div class="gz-pills"><span class="meta-pill"><i class="bi bi-flag"></i> Poyga</span><span class="meta-pill"><i class="bi bi-fire"></i> Kombo</span><span class="meta-pill"><i class="bi bi-speedometer2"></i> WPM</span></div>
-                    <p>Lenta + mashina poygasi. {{ tg.title }} o'yinining yangi ko'rinishi.</p>
+                    <p>Lenta + maşina poygasi. {{ tg.title }} öyinining yangi körinişi.</p>
                     <div class="gz-actions">
-                        <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-play" data-magnetic><i class="bi bi-lightning-charge-fill"></i> O'ynash</a>
+                        <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-play" data-magnetic><i class="bi bi-lightning-charge-fill"></i> Öynaş</a>
                         <a href="{% url 'games:game_detail' tg.slug %}" class="gz-icon" aria-label="Batafsil"><i class="bi bi-info-lg"></i></a>
                     </div>
                 </div>
@@ -351,13 +351,13 @@
                 <div class="gz-cover" style="background:linear-gradient(140deg,#451a03,#b45309 50%,#db2777)">
                     <span class="gz-dots"></span><span class="gz-orb"></span>
                     <span class="gz-badge"><i class="bi bi-people-fill"></i> Multiplayer</span>
-                    <span class="gz-new">COIN TIKISH</span>
+                    <span class="gz-new">COIN TIKIŞ</span>
                     <div class="gz-art" style="width:150px">{% include 'games/student/_mini_car.html' with c="#f59e0b" d="#b45309" n="1" %}</div>
                 </div>
                 <div class="gz-body">
-                    <h3>Sheriklar bilan poyga</h3>
-                    <div class="gz-pills"><span class="meta-pill"><i class="bi bi-people"></i> 2–5 o'yinchi</span><span class="meta-pill"><i class="bi bi-coin"></i> Coin</span><span class="meta-pill"><i class="bi bi-door-open"></i> Xona</span></div>
-                    <p>Do'stlaringiz bilan xona oching, coin tiking — eng tez yozgan bankni oladi.</p>
+                    <h3>Şeriklar bilan poyga</h3>
+                    <div class="gz-pills"><span class="meta-pill"><i class="bi bi-people"></i> 2–5 öyinçi</span><span class="meta-pill"><i class="bi bi-coin"></i> Coin</span><span class="meta-pill"><i class="bi bi-door-open"></i> Xona</span></div>
+                    <p>Döstlaringiz bilan xona oçing, coin tiking — eng tez yozgan bankni oladi.</p>
                     <div class="gz-actions">
                         <a href="{% url 'games:rooms_lobby' %}" class="gz-play" data-magnetic><i class="bi bi-flag-fill"></i> Xonalar</a>
                     </div>
@@ -368,7 +368,7 @@
 
         {% for game in games %}
         {% if game.slug == 'shashka' %}
-            {% include 'games/student/_game_card_inner.html' with theme="cover-shashka" type_label="Taxta o'yini" type_icon="bi-circle-half" %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-shashka" type_label="Taxta öyini" type_icon="bi-circle-half" %}
         {% elif game.slug == 'shaxmat' %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-shaxmat" type_label="Strategiya" type_icon="bi-trophy" %}
         {% elif game.slug == 'xo' %}
@@ -376,11 +376,11 @@
         {% elif game.slug == 'memory-card' %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-memory" type_label="Xotira" type_icon="bi-grid-1x2-fill" %}
         {% elif game.slug == 'html-builder' %}
-            {% include 'games/student/_game_card_inner.html' with theme="cover-html-builder" type_label="Dasturlash" type_icon="bi-code-slash" %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-html-builder" type_label="Dasturlaş" type_icon="bi-code-slash" %}
         {% elif game.slug == 'bilim-arena' %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-bilim-arena" type_label="Bilim arena" type_icon="bi-globe-americas" %}
         {% elif game.game_type == 'word_builder' %}
-            {% include 'games/student/_game_card_inner.html' with theme="cover-word_builder" type_label="So'z o'yini" type_icon="bi-alphabet" %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-word_builder" type_label="Söz öyini" type_icon="bi-alphabet" %}
         {% elif game.game_type == 'typing' %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-typing" type_label="Tezlik" type_icon="bi-keyboard" %}
         {% elif game.game_type == 'quiz' %}
@@ -392,10 +392,10 @@
         {% endif %}
         {% endfor %}
 
-        <div class="gz-empty" id="noMatch" hidden><i class="bi bi-search"></i>Hech narsa topilmadi — qidiruv yoki kategoriyani o'zgartiring.</div>
+        <div class="gz-empty" id="noMatch" hidden><i class="bi bi-search"></i>Heç narsa topilmadi — qidiruv yoki kategoriyani özgartiring.</div>
     </div>
     {% else %}
-    <div class="gz-empty"><i class="bi bi-controller"></i>Hozircha o'yinlar mavjud emas. Tez orada yangi o'yinlar qo'shiladi!</div>
+    <div class="gz-empty"><i class="bi bi-controller"></i>Hozirça öyinlar mavjud emas. Tez orada yangi öyinlar qöşiladi!</div>
     {% endif %}
 </div>
 {% endblock %}
@@ -437,15 +437,15 @@
             this.dataset.starting = '1';
             this.style.pointerEvents = 'none';
             this.setAttribute('aria-disabled', 'true');
-            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda…';
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Oçilmoqda…';
         });
     });
 
-    /* ── Mini poyga: trek kengligi CSS o'zgaruvchisiga ── */
+    /* ── Mini poyga: trek kengligi CSS özgaruvçisiga ── */
     function sizeMini() { $$('.js-mini').forEach(function (m) { m.style.setProperty('--w', m.clientWidth + 'px'); }); }
     sizeMini(); window.addEventListener('resize', sizeMini);
 
-    /* ── Qidiruv + kategoriya (sirpanuvchi indikator) ── */
+    /* ── Qidiruv + kategoriya (sirpanuvçi indikator) ── */
     var grid = document.getElementById('gamesGrid');
     if (grid) {
         var cells = $$('.gz-cell', grid), input = document.getElementById('gameSearch');
@@ -481,7 +481,7 @@
 
     if (!motion) return;
 
-    /* ── Kirish animatsiyasi: sarlavha harflab, hisoblagichlar ── */
+    /* ── Kiriş animatsiyasi: sarlavha harflab, hisoblagiçlar ── */
     $$('.js-split').forEach(function (el) {
         el.innerHTML = el.textContent.split('').map(function (c) { return '<span class="ch">' + (c === ' ' ? '&nbsp;' : c) + '</span>'; }).join('');
     });
@@ -495,7 +495,7 @@
         G.to(o, { v: to, duration: 1.4, delay: .4, ease: 'power3.out', onUpdate: function () { b.textContent = Math.round(o.v); } });
     });
 
-    /* ── Scroll-reveal: kartalar ketma-ket "uchib" kiradi ── */
+    /* ── Scroll-reveal: kartalar ketma-ket "uçib" kiradi ── */
     var reveal = $$('.js-reveal, .gz-cell');
     G.set(reveal, { y: 40, opacity: 0 });
     var io = new IntersectionObserver(function (entries) {
@@ -506,7 +506,7 @@
 
     if (!fine) return;
 
-    /* ── Hero parallax: sichqonchaga qarab ikonalar suzadi ── */
+    /* ── Hero parallax: siçqonçaga qarab ikonalar suzadi ── */
     var hero = document.querySelector('.gz-hero');
     hero.addEventListener('pointermove', function (e) {
         var r = hero.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;

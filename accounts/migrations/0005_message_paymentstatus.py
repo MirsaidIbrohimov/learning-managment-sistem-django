@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=200, verbose_name='Sarlavha')),
                 ('content', models.TextField(verbose_name='Xabar matni')),
-                ('message_type', models.CharField(choices=[('all', 'Barchaga'), ('students', "O'quvchilarga"), ('teachers', "O'qituvchilarga"), ('personal', 'Shaxsiy'), ('system', 'Tizim xabari'), ('payment', "To'lov eslatmasi")], default='all', max_length=20)),
+                ('message_type', models.CharField(choices=[('all', 'Barçaga'), ('students', "Öquvçilarga"), ('teachers', "Öqituvçilarga"), ('personal', 'Şaxsiy'), ('system', 'Tizim xabari'), ('payment', "Tölov eslatmasi")], default='all', max_length=20)),
                 ('is_read', models.BooleanField(default=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('recipient', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='received_messages', to=settings.AUTH_USER_MODEL)),
@@ -34,15 +34,15 @@ class Migration(migrations.Migration):
             name='PaymentStatus',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_paid', models.BooleanField(default=False, verbose_name="To'langan")),
-                ('paid_until', models.DateField(blank=True, null=True, verbose_name="To'lov muddati")),
+                ('is_paid', models.BooleanField(default=False, verbose_name="Tölangan")),
+                ('paid_until', models.DateField(blank=True, null=True, verbose_name="Tölov muddati")),
                 ('last_payment_date', models.DateField(blank=True, null=True)),
                 ('auto_blocked', models.BooleanField(default=False, verbose_name='Avtomatik bloklangan')),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='payment_status', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "To'lov holati",
-                'verbose_name_plural': "To'lov holatlari",
+                'verbose_name': "Tölov holati",
+                'verbose_name_plural': "Tölov holatlari",
             },
         ),
     ]

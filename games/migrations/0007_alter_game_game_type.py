@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='game',
             name='game_type',
-            field=models.CharField(choices=[('typing', 'Typing Challenge'), ('quiz', 'Quiz'), ('word_builder', 'Word Builder'), ('external', "Tashqi o'yin (External)")], default='typing', max_length=20, verbose_name="O'yin turi"),
+            field=models.CharField(choices=[('typing', 'Typing Challenge'), ('quiz', 'Quiz'), ('word_builder', 'Word Builder'), ('external', "Taşqi öyin (External)")], default='typing', max_length=20, verbose_name="Öyin turi"),
         ),
     ]

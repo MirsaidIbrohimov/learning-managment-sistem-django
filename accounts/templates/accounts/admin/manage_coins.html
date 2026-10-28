@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load custom_filters %}
 
-{% block title %}Coin boshqaruvi - Admin{% endblock %}
+{% block title %}Coin boşqaruvi - Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -137,8 +137,8 @@
 <!-- Header -->
 <div class="mc-header">
     <div>
-        <h2><i class="bi bi-coin"></i> Coin boshqaruvi</h2>
-        <div class="mc-header-sub">O'quvchilarga coin berish, ayirish va boshqarish</div>
+        <h2><i class="bi bi-coin"></i> Coin boşqaruvi</h2>
+        <div class="mc-header-sub">Öquvçilarga coin beriş, ayiriş va boşqariş</div>
     </div>
 </div>
 
@@ -147,7 +147,7 @@
     <div class="mc-stat">
         <div class="mc-stat-icon s-total"><i class="bi bi-people-fill"></i></div>
         <div class="mc-stat-num">{{ stats.total_students }}</div>
-        <div class="mc-stat-label">Jami o'quvchi</div>
+        <div class="mc-stat-label">Jami öquvçi</div>
     </div>
     <div class="mc-stat">
         <div class="mc-stat-icon s-coins"><i class="bi bi-coin"></i></div>
@@ -157,12 +157,12 @@
     <div class="mc-stat">
         <div class="mc-stat-icon s-avg"><i class="bi bi-graph-up"></i></div>
         <div class="mc-stat-num">{{ stats.avg_coins }}</div>
-        <div class="mc-stat-label">O'rtacha coin</div>
+        <div class="mc-stat-label">Örtaça coin</div>
     </div>
     <div class="mc-stat">
         <div class="mc-stat-icon s-top"><i class="bi bi-trophy-fill"></i></div>
         <div class="mc-stat-num">{{ stats.max_coins }}</div>
-        <div class="mc-stat-label">Eng ko'p{% if stats.max_coins_user %} ({{ stats.max_coins_user.first_name }}){% endif %}</div>
+        <div class="mc-stat-label">Eng köp{% if stats.max_coins_user %} ({{ stats.max_coins_user.first_name }}){% endif %}</div>
     </div>
     <div class="mc-stat">
         <div class="mc-stat-icon s-zero"><i class="bi bi-exclamation-triangle"></i></div>
@@ -175,22 +175,22 @@
 <form method="GET" class="mc-filters" id="filterForm">
     <div class="mc-filters-row">
         <div class="mc-filter-group" style="flex:2">
-            <label><i class="bi bi-search me-1"></i>Qidirish</label>
+            <label><i class="bi bi-search me-1"></i>Qidiriş</label>
             <input type="text" name="q" value="{{ search_q }}" placeholder="Ism, username, telefon...">
         </div>
         <div class="mc-filter-group">
             <label><i class="bi bi-book me-1"></i>Kurs</label>
             <select name="course">
-                <option value="">Barcha kurslar</option>
+                <option value="">Barça kurslar</option>
                 {% for c in courses %}
                 <option value="{{ c.pk }}" {% if course_filter == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="mc-filter-group">
-            <label><i class="bi bi-coin me-1"></i>Coin oralig'i</label>
+            <label><i class="bi bi-coin me-1"></i>Coin oraliği</label>
             <select name="coin_range">
-                <option value="">Barchasi</option>
+                <option value="">Barçasi</option>
                 <option value="0" {% if coin_filter == "0" %}selected{% endif %}>0 coin</option>
                 <option value="1-50" {% if coin_filter == "1-50" %}selected{% endif %}>1 - 50</option>
                 <option value="51-200" {% if coin_filter == "51-200" %}selected{% endif %}>51 - 200</option>
@@ -198,10 +198,10 @@
             </select>
         </div>
         <div class="mc-filter-group">
-            <label><i class="bi bi-sort-down me-1"></i>Tartiblash</label>
+            <label><i class="bi bi-sort-down me-1"></i>Tartiblaş</label>
             <select name="sort">
-                <option value="-coins" {% if sort_by == "-coins" %}selected{% endif %}>Coin: ko'pdan kamga</option>
-                <option value="coins" {% if sort_by == "coins" %}selected{% endif %}>Coin: kamdan ko'pga</option>
+                <option value="-coins" {% if sort_by == "-coins" %}selected{% endif %}>Coin: köpdan kamga</option>
+                <option value="coins" {% if sort_by == "coins" %}selected{% endif %}>Coin: kamdan köpga</option>
                 <option value="name" {% if sort_by == "name" %}selected{% endif %}>Ism: A-Z</option>
                 <option value="-name" {% if sort_by == "-name" %}selected{% endif %}>Ism: Z-A</option>
             </select>
@@ -223,10 +223,10 @@
 <!-- User List -->
 <div class="mc-list">
     <div class="mc-list-header">
-        <h5><i class="bi bi-people-fill me-2" style="color:var(--mc-gold)"></i>O'quvchilar <span class="mc-list-count">{{ users.paginator.count }} ta</span></h5>
+        <h5><i class="bi bi-people-fill me-2" style="color:var(--mc-gold)"></i>Öquvçilar <span class="mc-list-count">{{ users.paginator.count }} ta</span></h5>
         <div style="display:flex;align-items:center;gap:.6rem">
             <label style="font-size:.82rem;font-weight:600;color:var(--mc-muted);cursor:pointer">
-                <input type="checkbox" id="selectAll" style="accent-color:var(--mc-gold);margin-right:.3rem"> Barchasini tanlash
+                <input type="checkbox" id="selectAll" style="accent-color:var(--mc-gold);margin-right:.3rem"> Barçasini tanlaş
             </label>
         </div>
     </div>
@@ -250,13 +250,13 @@
             <i class="bi bi-coin"></i> {{ u.coins }}
         </div>
         <div class="mc-user-actions">
-            <button class="mc-action-btn add" onclick="openModal('{{ u.pk }}','{{ u.full_name|escapejs }}',{{ u.coins }},'add')" title="Coin berish">
+            <button class="mc-action-btn add" onclick="openModal('{{ u.pk }}','{{ u.full_name|escapejs }}',{{ u.coins }},'add')" title="Coin beriş">
                 <i class="bi bi-plus-lg"></i>
             </button>
-            <button class="mc-action-btn remove" onclick="openModal('{{ u.pk }}','{{ u.full_name|escapejs }}',{{ u.coins }},'remove')" title="Coin ayirish">
+            <button class="mc-action-btn remove" onclick="openModal('{{ u.pk }}','{{ u.full_name|escapejs }}',{{ u.coins }},'remove')" title="Coin ayiriş">
                 <i class="bi bi-dash-lg"></i>
             </button>
-            <a href="{% url 'admin_user_view' u.pk %}" class="mc-action-btn view" title="Profilni ko'rish">
+            <a href="{% url 'admin_user_view' u.pk %}" class="mc-action-btn view" title="Profilni köriş">
                 <i class="bi bi-person"></i>
             </a>
         </div>
@@ -264,7 +264,7 @@
     {% empty %}
     <div style="text-align:center;padding:3rem;color:var(--mc-muted)">
         <i class="bi bi-search" style="font-size:2.5rem;opacity:.3"></i>
-        <p style="margin-top:.8rem;font-weight:600">O'quvchilar topilmadi</p>
+        <p style="margin-top:.8rem;font-weight:600">Öquvçilar topilmadi</p>
     </div>
     {% endfor %}
 </div>
@@ -296,8 +296,8 @@
         <div id="bulkInputs"></div>
         <input type="number" name="amount" min="1" placeholder="Miqdor" required style="width:90px;padding:.4rem .6rem;border:1.5px solid var(--mc-border);border-radius:.5rem;font-size:.85rem;background:var(--mc-bg);color:var(--mc-text)">
         <input type="text" name="reason" placeholder="Sabab..." style="width:140px;padding:.4rem .6rem;border:1.5px solid var(--mc-border);border-radius:.5rem;font-size:.85rem;background:var(--mc-bg);color:var(--mc-text)">
-        <button type="submit" name="action" value="add" class="mc-filter-btn primary" style="padding:.4rem .8rem"><i class="bi bi-plus-circle"></i> Berish</button>
-        <button type="submit" name="action" value="remove" class="mc-filter-btn secondary" style="padding:.4rem .8rem;background:rgba(239,68,68,.1);color:var(--mc-red);border-color:var(--mc-red)"><i class="bi bi-dash-circle"></i> Ayirish</button>
+        <button type="submit" name="action" value="add" class="mc-filter-btn primary" style="padding:.4rem .8rem"><i class="bi bi-plus-circle"></i> Beriş</button>
+        <button type="submit" name="action" value="remove" class="mc-filter-btn secondary" style="padding:.4rem .8rem;background:rgba(239,68,68,.1);color:var(--mc-red);border-color:var(--mc-red)"><i class="bi bi-dash-circle"></i> Ayiriş</button>
     </form>
 </div>
 
@@ -307,7 +307,7 @@
 <div class="mc-modal-bg" id="coinModal">
     <div class="mc-modal">
         <div class="mc-modal-icon" id="modalIcon"><i class="bi bi-plus-circle"></i></div>
-        <h5 id="modalTitle">Coin berish</h5>
+        <h5 id="modalTitle">Coin beriş</h5>
         <p class="mc-modal-sub" id="modalSub"></p>
         <form method="POST" id="modalForm">
             {% csrf_token %}
@@ -319,11 +319,11 @@
             </div>
             <div class="mc-modal-field">
                 <label>Sabab (ixtiyoriy)</label>
-                <input type="text" name="reason" id="modalReason" placeholder="Masalan: Faollik uchun rag'bat...">
+                <input type="text" name="reason" id="modalReason" placeholder="Masalan: Faollik uçun rağbat...">
             </div>
             <div class="mc-modal-btns">
-                <button type="button" class="mc-modal-btn cancel" onclick="closeModal()">Bekor qilish</button>
-                <button type="submit" class="mc-modal-btn" id="modalSubmit">Tasdiqlash</button>
+                <button type="button" class="mc-modal-btn cancel" onclick="closeModal()">Bekor qiliş</button>
+                <button type="submit" class="mc-modal-btn" id="modalSubmit">Tasdiqlaş</button>
             </div>
         </form>
     </div>
@@ -345,17 +345,17 @@ function openModal(userId, userName, userCoins, action) {
     if (action === 'add') {
         icon.className = 'mc-modal-icon add-icon';
         icon.innerHTML = '<i class="bi bi-plus-circle-fill"></i>';
-        title.textContent = 'Coin berish';
-        sub.innerHTML = '<strong>' + userName + '</strong>ga coin berish <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
+        title.textContent = 'Coin beriş';
+        sub.innerHTML = '<strong>' + userName + '</strong>ga coin beriş <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
         btn.className = 'mc-modal-btn confirm-add';
-        btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Berish';
+        btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Beriş';
     } else {
         icon.className = 'mc-modal-icon remove-icon';
         icon.innerHTML = '<i class="bi bi-dash-circle-fill"></i>';
-        title.textContent = 'Coin ayirish';
-        sub.innerHTML = '<strong>' + userName + '</strong>dan coin ayirish <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
+        title.textContent = 'Coin ayiriş';
+        sub.innerHTML = '<strong>' + userName + '</strong>dan coin ayiriş <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
         btn.className = 'mc-modal-btn confirm-remove';
-        btn.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Ayirish';
+        btn.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Ayiriş';
     }
     
     document.getElementById('coinModal').classList.add('show');

@@ -1,8 +1,8 @@
-"""Ustoz musobaqalari: ustoz o'z guruhlari uchun yozish musobaqasini yoqadi.
+"""Ustoz musobaqalari: ustoz öz guruhlari uçun yoziş musobaqasini yoqadi.
 
-Sovrin fondi ustozning o'z coin hisobidan bron qilinadi (qarang: prize_escrow).
-Ustoz faqat o'zi yaratgan musobaqalarni ko'radi va boshqaradi, auditoriya esa
-faqat o'z guruhlari / shu guruhlardagi o'quvchilar bilan cheklanadi.
+Sovrin fondi ustozning öz coin hisobidan bron qilinadi (qarang: prize_escrow).
+Ustoz faqat özi yaratgan musobaqalarni köradi va boşqaradi, auditoriya esa
+faqat öz guruhlari / şu guruhlardagi öquvçilar bilan çeklanadi.
 """
 from functools import wraps
 
@@ -29,7 +29,7 @@ def teacher_only(view_func):
     @login_required
     def wrapper(request, *args, **kwargs):
         if request.user.role not in ('teacher', 'admin'):
-            messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q.")
+            messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq.")
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -78,7 +78,7 @@ def _non_negative_int(value):
 
 
 def _clean_form(request, user, competition=None):
-    """POST'dan ma'lumotlarni o'qish va tekshirish. Qaytaradi: (data, errors)."""
+    """POST'dan ma'lumotlarni öqiş va tekşiriş. Qaytaradi: (data, errors)."""
     post = request.POST
     errors = []
     data = {
@@ -97,24 +97,24 @@ def _clean_form(request, user, competition=None):
     from .views import parse_game_choice
     game, data['play_ui'] = parse_game_choice(post.get('game'), _typing_games())
     if not game:
-        errors.append("Yozish o'yinini tanlang.")
+        errors.append("Yoziş öyinini tanlang.")
     elif not game.competition_prompts().exists():
-        errors.append(f"\"{game.title}\" o'yinida musobaqa uchun matnlar yo'q. Administratorga murojaat qiling.")
+        errors.append(f"\"{game.title}\" öyinida musobaqa uçun matnlar yöq. Administratorga murojaat qiling.")
     data['game'] = game
 
     if not data['title']:
         errors.append("Musobaqa nomini kiriting.")
     if not data['start_time'] or not data['end_time']:
-        errors.append("Boshlanish va tugash vaqtini kiriting.")
+        errors.append("Boşlaniş va tugaş vaqtini kiriting.")
     elif data['end_time'] <= data['start_time']:
-        errors.append("Tugash vaqti boshlanish vaqtidan keyin bo'lishi kerak.")
+        errors.append("Tugaş vaqti boşlaniş vaqtidan keyin bölişi kerak.")
     elif data['end_time'] <= timezone.now():
-        errors.append("Tugash vaqti kelajakda bo'lishi kerak.")
+        errors.append("Tugaş vaqti kelajakda bölişi kerak.")
 
     if not (data['coin_1st'] >= data['coin_2nd'] >= data['coin_3rd']):
-        errors.append("Sovrinlar o'rin bo'yicha kamayib borishi kerak (1-o'rin ≥ 2-o'rin ≥ 3-o'rin).")
+        errors.append("Sovrinlar örin böyiça kamayib borişi kerak (1-örin ≥ 2-örin ≥ 3-örin).")
 
-    # Auditoriya faqat ustozning o'z doirasidan — boshqa guruh id'larini yuborish foyda bermaydi.
+    # Auditoriya faqat ustozning öz doirasidan — boşqa guruh id'larini yuboriş foyda bermaydi.
     ids = lambda name: [int(x) for x in post.getlist(name) if x.isdigit()]
     if data['audience_type'] == 'groups':
         data['group_ids'] = list(_scope_groups(user).filter(pk__in=ids('group_ids')).values_list('pk', flat=True))
@@ -125,7 +125,7 @@ def _clean_form(request, user, competition=None):
         data['student_ids'] = list(_scope_students(user).filter(pk__in=ids('student_ids')).values_list('pk', flat=True))
         data['group_ids'] = []
         if not data['student_ids']:
-            errors.append("Kamida bitta o'quvchini tanlang.")
+            errors.append("Kamida bitta öquvçini tanlang.")
     return data, errors
 
 
@@ -196,7 +196,7 @@ def competitions(request):
     user = request.user
     base = Competition.objects.filter(created_by=user, prize_source='teacher')
 
-    # Tugagan, hali hisob-kitob qilinmaganlarni yopish (o'chirib qo'yilgan bo'lsa ham).
+    # Tugagan, hali hisob-kitob qilinmaganlarni yopiş (öçirib qöyilgan bölsa ham).
     for comp in base.filter(coins_awarded=False, end_time__lt=timezone.now()).select_related('game'):
         comp.award_competition_coins()
     user.refresh_from_db(fields=['coins'])
@@ -254,7 +254,7 @@ def competition_edit(request, pk):
     user = request.user
     comp = _own_competition(user, pk)
     if comp.status == 'ended':
-        messages.info(request, "Tugagan musobaqani tahrirlab bo'lmaydi.")
+        messages.info(request, "Tugagan musobaqani tahrirlab bölmaydi.")
         return redirect('games:teacher_competitions')
 
     if request.method == 'POST':
@@ -262,8 +262,8 @@ def competition_edit(request, pk):
         new_prizes = (data['coin_1st'], data['coin_2nd'], data['coin_3rd'])
         old_prizes = (comp.coin_1st, comp.coin_2nd, comp.coin_3rd)
         if comp.status != 'upcoming' and new_prizes != old_prizes:
-            # Ishtirokchilar e'lon qilingan sovrin bilan qatnashyapti — o'zgartirish adolatsiz.
-            errors.append("Musobaqa boshlangan — sovrinlarni o'zgartirib bo'lmaydi.")
+            # Iştirokçilar e'lon qilingan sovrin bilan qatnaşyapti — özgartiriş adolatsiz.
+            errors.append("Musobaqa boşlangan — sovrinlarni özgartirib bölmaydi.")
         if not errors:
             try:
                 with transaction.atomic():
@@ -293,7 +293,7 @@ def competition_edit(request, pk):
 def competition_toggle(request, pk):
     comp = _own_competition(request.user, pk)
     if comp.status == 'ended':
-        messages.info(request, "Musobaqa allaqachon tugagan.")
+        messages.info(request, "Musobaqa allaqaçon tugagan.")
         return redirect('games:teacher_competitions')
     comp.is_active = not comp.is_active
     comp.save(update_fields=['is_active'])
@@ -301,8 +301,8 @@ def competition_toggle(request, pk):
         _notify_started(comp)
     messages.success(
         request,
-        f"\"{comp.title}\" " + ("yoqildi — o'quvchilar qatnasha oladi." if comp.is_active
-                                else "o'chirildi — o'quvchilar kira olmaydi. Sovrin fondi bronda qoladi.")
+        f"\"{comp.title}\" " + ("yoqildi — öquvçilar qatnaşa oladi." if comp.is_active
+                                else "öçirildi — öquvçilar kira olmaydi. Sovrin fondi bronda qoladi.")
     )
     return redirect('games:teacher_competitions')
 
@@ -312,16 +312,16 @@ def competition_toggle(request, pk):
 def competition_end(request, pk):
     comp = _own_competition(request.user, pk)
     if comp.status == 'ended':
-        messages.info(request, "Musobaqa allaqachon tugagan.")
+        messages.info(request, "Musobaqa allaqaçon tugagan.")
         return redirect('games:teacher_competitions')
-    # 1 soniya oldin: soat aniqligi past tizimlarda (Windows) `status` darhol 'ended' bo'lishi uchun.
+    # 1 soniya oldin: soat aniqligi past tizimlarda (Windows) `status` darhol 'ended' bölişi uçun.
     now = timezone.now() - timezone.timedelta(seconds=1)
     if comp.start_time > now:
         comp.start_time = now
     comp.end_time = now
     comp.save(update_fields=['start_time', 'end_time'])
     comp.award_competition_coins()
-    messages.success(request, f"\"{comp.title}\" tugatildi. G'oliblarga sovrin berildi, qolgan coin hisobingizga qaytdi.")
+    messages.success(request, f"\"{comp.title}\" tugatildi. Ğoliblarga sovrin berildi, qolgan coin hisobingizga qaytdi.")
     return redirect('games:teacher_competitions')
 
 
@@ -330,12 +330,12 @@ def competition_end(request, pk):
 def competition_delete(request, pk):
     comp = _own_competition(request.user, pk)
     if comp.status != 'upcoming' and comp.attempts.exists():
-        messages.error(request, "Ishtirokchilari bor musobaqani o'chirib bo'lmaydi — uni tugating.")
+        messages.error(request, "Iştirokçilari bor musobaqani öçirib bölmaydi — uni tugating.")
         return redirect('games:teacher_competitions')
     title, reserved = comp.title, comp.prize_reserved
     comp.delete()  # bron pre_delete signalida qaytariladi
     messages.success(
         request,
-        f"\"{title}\" o'chirildi." + (f" {reserved} coin hisobingizga qaytarildi." if reserved else "")
+        f"\"{title}\" öçirildi." + (f" {reserved} coin hisobingizga qaytarildi." if reserved else "")
     )
     return redirect('games:teacher_competitions')

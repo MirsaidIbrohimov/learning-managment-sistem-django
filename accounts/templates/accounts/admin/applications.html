@@ -587,7 +587,7 @@
         </div>
         <div>
             <div class="app-stat-number">{{ total_contacted|default:"0" }}</div>
-            <div class="app-stat-label">Bog'lanildi</div>
+            <div class="app-stat-label">Boğlanildi</div>
         </div>
     </div>
     <div class="app-stat-card">
@@ -632,7 +632,7 @@
         <i class="bi bi-star"></i> Yangi
     </a>
     <a href="?type={{ app_type }}&status=contacted{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'contacted' %}active-orange{% endif %}">
-        <i class="bi bi-telephone"></i> Bog'lanildi
+        <i class="bi bi-telephone"></i> Boğlanildi
     </a>
     <a href="?type={{ app_type }}&status=enrolled{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'enrolled' %}active-green{% endif %}">
         <i class="bi bi-check-circle"></i> Yozildi
@@ -650,9 +650,9 @@
         <input type="hidden" name="status" value="{{ status_filter }}">
         {% endif %}
         <div class="input-group">
-            <input type="text" name="q" class="form-control" placeholder="Ism, familiya, telefon bo'yicha qidirish..." value="{{ search|default:'' }}">
+            <input type="text" name="q" class="form-control" placeholder="Ism, familiya, telefon böyiça qidiriş..." value="{{ search|default:'' }}">
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-search me-1"></i>Qidirish
+                <i class="bi bi-search me-1"></i>Qidiriş
             </button>
         </div>
     </form>
@@ -669,13 +669,13 @@
                     <th>Telefon</th>
                     {% if app_type == 'shaharcha' %}
                     <th>Maktab</th>
-                    <th>Yoshi</th>
+                    <th>Yoşi</th>
                     <th>Mahalla</th>
                     {% else %}
                     <th>Kurs</th>
                     {% endif %}
                     <th>Holat</th>
-                    <th>Kim bog'landi</th>
+                    <th>Kim boğlandi</th>
                     <th>Sana</th>
                     <th>Amallar</th>
                 </tr>
@@ -720,11 +720,11 @@
                                 <i class="bi bi-person-check me-1 text-success"></i>{{ app.handled_by.get_full_name|default:app.handled_by.username }}
                             </span>
                             <small class="text-muted">
-                                {% if app.handled_by.is_admin %}Admin{% else %}Yordamchi{% endif %}{% if app.handled_at %} &middot; {{ app.handled_at|date:"d.m.Y H:i" }}{% endif %}
+                                {% if app.handled_by.is_admin %}Admin{% else %}Yordamçi{% endif %}{% if app.handled_at %} &middot; {{ app.handled_at|date:"d.m.Y H:i" }}{% endif %}
                             </small>
                         </div>
                         {% else %}
-                        <span class="text-muted" style="font-size:0.82rem;"><i class="bi bi-dash-circle me-1"></i>Hali yo'q</span>
+                        <span class="text-muted" style="font-size:0.82rem;"><i class="bi bi-dash-circle me-1"></i>Hali yöq</span>
                         {% endif %}
                     </td>
                     <td>
@@ -737,13 +737,13 @@
                             {% csrf_token %}
                             <select name="status" class="form-select form-select-sm">
                                 <option value="new" {% if app.status == 'new' %}selected{% endif %}>Yangi</option>
-                                <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                                <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Boğlanildi</option>
                                 <option value="enrolled" {% if app.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
                                 <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
                             </select>
                             <textarea name="admin_note" class="form-control form-control-sm" rows="2" placeholder="Izoh...">{{ app.admin_note|default:'' }}</textarea>
                             <button type="submit" class="btn-save">
-                                <i class="bi bi-check2 me-1"></i>Saqlash
+                                <i class="bi bi-check2 me-1"></i>Saqlaş
                             </button>
                         </form>
                     </td>
@@ -755,8 +755,8 @@
                             <div class="app-empty-icon">
                                 <i class="bi bi-inbox"></i>
                             </div>
-                            <h4>Arizalar yo'q</h4>
-                            <p>Hozircha ariza mavjud emas</p>
+                            <h4>Arizalar yöq</h4>
+                            <p>Hozirça ariza mavjud emas</p>
                         </div>
                     </td>
                 </tr>
@@ -778,7 +778,7 @@
                 {% if app.status == 'new' %}
                 <i class="bi bi-star-fill"></i> Yangi
                 {% elif app.status == 'contacted' %}
-                <i class="bi bi-telephone-fill"></i> Bog'lanildi
+                <i class="bi bi-telephone-fill"></i> Boğlanildi
                 {% elif app.status == 'enrolled' %}
                 <i class="bi bi-check-circle-fill"></i> Yozildi
                 {% elif app.status == 'rejected' %}
@@ -798,7 +798,7 @@
                 <span class="app-mobile-detail-value">{{ app.school_number|default:"—" }}</span>
             </div>
             <div class="app-mobile-detail">
-                <span class="app-mobile-detail-label">Yoshi</span>
+                <span class="app-mobile-detail-label">Yoşi</span>
                 <span class="app-mobile-detail-value">{{ app.age }}</span>
             </div>
             <div class="app-mobile-detail">
@@ -816,7 +816,7 @@
                 <span class="app-mobile-detail-value">{{ app.created_at|date:"d.m.Y H:i" }}</span>
             </div>
             <div class="app-mobile-detail">
-                <span class="app-mobile-detail-label">Kim bog'landi</span>
+                <span class="app-mobile-detail-label">Kim boğlandi</span>
                 <span class="app-mobile-detail-value">
                     {% if app.handled_by %}
                     <i class="bi bi-person-check text-success"></i> {{ app.handled_by.get_full_name|default:app.handled_by.username }}
@@ -836,13 +836,13 @@
                 {% csrf_token %}
                 <select name="status" class="form-select form-select-sm">
                     <option value="new" {% if app.status == 'new' %}selected{% endif %}>Yangi</option>
-                    <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                    <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Boğlanildi</option>
                     <option value="enrolled" {% if app.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
                     <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
                 </select>
                 <textarea name="admin_note" class="form-control form-control-sm" rows="2" placeholder="Izoh...">{{ app.admin_note|default:'' }}</textarea>
                 <button type="submit" class="btn-save w-100">
-                    <i class="bi bi-check2 me-1"></i>Saqlash
+                    <i class="bi bi-check2 me-1"></i>Saqlaş
                 </button>
             </form>
         </div>
@@ -852,8 +852,8 @@
         <div class="app-empty-icon">
             <i class="bi bi-inbox"></i>
         </div>
-        <h4>Arizalar yo'q</h4>
-        <p>Hozircha kurs arizalari mavjud emas</p>
+        <h4>Arizalar yöq</h4>
+        <p>Hozirça kurs arizalari mavjud emas</p>
     </div>
     {% endfor %}
 

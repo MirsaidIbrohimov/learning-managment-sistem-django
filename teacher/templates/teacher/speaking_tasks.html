@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Speaking vazifalar - O'qituvchi paneli{% endblock %}
+{% block title %}Speaking vazifalar - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Speaking vazifalar{% endblock %}
 
 {% block teacher_content %}
@@ -76,14 +76,14 @@
 
 <form method="GET" class="t-hw-filters">
     <select name="status" class="t-hw-filter-select" onchange="this.form.submit()">
-        <option value="">Barcha holatlar</option>
+        <option value="">Barça holatlar</option>
         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
-        <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Ko'rilmoqda</option>
+        <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Körilmoqda</option>
         <option value="graded" {% if status_filter == 'graded' %}selected{% endif %}>Baholangan</option>
-        <option value="revision" {% if status_filter == 'revision' %}selected{% endif %}>Qayta ishlash</option>
+        <option value="revision" {% if status_filter == 'revision' %}selected{% endif %}>Qayta işlaş</option>
     </select>
     <select name="course" class="t-hw-filter-select" onchange="this.form.submit()">
-        <option value="">Barcha kurslar</option>
+        <option value="">Barça kurslar</option>
         {% for p in all_professions %}
         <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
         {% endfor %}
@@ -98,7 +98,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Vazifa</th>
                         <th>Kurs</th>
                         <th>Audio</th>
@@ -123,7 +123,7 @@
                         <td>
                             {% if s.audio_file %}
                             <a href="{{ s.audio_file.url }}" target="_blank" class="t-hw-file-link">
-                                <i class="bi bi-play-circle-fill"></i> Tinglash
+                                <i class="bi bi-play-circle-fill"></i> Tinglaş
                             </a>
                             {% elif s.text_transcript %}
                             <span class="t-badge t-badge-secondary">Transkripsiya</span>
@@ -140,7 +140,7 @@
                         <td style="font-size:.82rem; color: var(--bs-secondary-color);">{{ s.submitted_at|date:"d.m.Y H:i" }}</td>
                         <td>
                             <a href="{% url 'teacher:grade_speaking' s.pk %}" class="t-grade-btn">
-                                <i class="bi bi-pencil-square"></i> Baholash
+                                <i class="bi bi-pencil-square"></i> Baholaş
                             </a>
                         </td>
                     </tr>
@@ -151,8 +151,8 @@
         {% else %}
         <div class="t-empty">
             <div class="t-empty-icon"><i class="bi bi-mic-fill"></i></div>
-            <h3>Speaking topshiriqlar yo'q</h3>
-            <p>Hali hech kim speaking vazifa topshirmagan.</p>
+            <h3>Speaking topşiriqlar yöq</h3>
+            <p>Hali heç kim speaking vazifa topşirmagan.</p>
         </div>
         {% endif %}
     </div>

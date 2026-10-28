@@ -1,19 +1,19 @@
 """
 Interactive Video Mid-Quiz System — modellar.
 
-VideoQuiz          — video ichidagi ma'lum soniyada chiqadigan test savoli
-VideoQuizAttempt   — o'quvchining javob urinishi (har savolga 1 marta)
-TeacherVideoIncome — ustozning quiz qo'shgani uchun daromad yozuvi
+VideoQuiz          — video içidagi ma'lum soniyada çiqadigan test savoli
+VideoQuizAttempt   — öquvçining javob urinişi (har savolga 1 marta)
+TeacherVideoIncome — ustozning quiz qöşgani uçun daromad yozuvi
 
 Coin tizimi bilan integratsiya CustomUser.add_coins / remove_coins
-(CoinTransaction avtomatik yoziladi) orqali amalga oshiriladi.
+(CoinTransaction avtomatik yoziladi) orqali amalga oşiriladi.
 """
 from django.conf import settings
 from django.db import models
 
 
 class VideoQuiz(models.Model):
-    """Video ichidagi bitta test savoli (4 variantli)."""
+    """Video içidagi bitta test savoli (4 variantli)."""
 
     OPTION_CHOICES = (
         ('A', 'A'),
@@ -36,8 +36,8 @@ class VideoQuiz(models.Model):
         verbose_name="Yaratgan ustoz",
     )
     trigger_second = models.PositiveIntegerField(
-        verbose_name="Chiqish vaqti (soniya)",
-        help_text="Video shu soniyaga yetganda test chiqadi",
+        verbose_name="Çiqiş vaqti (soniya)",
+        help_text="Video şu soniyaga yetganda test çiqadi",
     )
     question = models.TextField(verbose_name="Savol")
     description = models.TextField(blank=True, default='', verbose_name="Izoh (ixtiyoriy)")
@@ -46,15 +46,15 @@ class VideoQuiz(models.Model):
     option_c = models.CharField(max_length=300, verbose_name="C variant")
     option_d = models.CharField(max_length=300, verbose_name="D variant")
     correct_option = models.CharField(
-        max_length=1, choices=OPTION_CHOICES, verbose_name="To'g'ri javob"
+        max_length=1, choices=OPTION_CHOICES, verbose_name="Töğri javob"
     )
     explanation = models.TextField(
-        blank=True, default='', verbose_name="Tushuntirish (noto'g'ri javobda ko'rsatiladi)"
+        blank=True, default='', verbose_name="Tuşuntiriş (notöğri javobda körsatiladi)"
     )
     reward_coin = models.PositiveSmallIntegerField(default=3, verbose_name="Mukofot coin")
     penalty_coin = models.PositiveSmallIntegerField(default=5, verbose_name="Jarima coin")
     teacher_reward = models.PositiveIntegerField(
-        default=3000, verbose_name="Ustoz mukofoti (so'm)"
+        default=3000, verbose_name="Ustoz mukofoti (söm)"
     )
     is_active = models.BooleanField(default=True, verbose_name="Faol", db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -65,7 +65,7 @@ class VideoQuiz(models.Model):
         verbose_name = "Video test"
         verbose_name_plural = "Video testlar"
         constraints = [
-            # Bir videoda bir xil soniyaga ikkita test qo'yib bo'lmaydi
+            # Bir videoda bir xil soniyaga ikkita test qöyib bölmaydi
             models.UniqueConstraint(
                 fields=['video', 'trigger_second'], name='uniq_video_trigger_second'
             ),
@@ -80,7 +80,7 @@ class VideoQuiz(models.Model):
 
     @property
     def trigger_label(self):
-        """300 -> '05:00' ko'rinishi."""
+        """300 -> '05:00' körinişi."""
         m, s = divmod(int(self.trigger_second), 60)
         return f"{m:02d}:{s:02d}"
 
@@ -92,7 +92,7 @@ class VideoQuiz(models.Model):
 
 
 class VideoQuizAttempt(models.Model):
-    """O'quvchining javob urinishi — har savolga faqat bir marta."""
+    """Öquvçining javob urinişi — har savolga faqat bir marta."""
 
     quiz = models.ForeignKey(
         VideoQuiz, on_delete=models.CASCADE, related_name='attempts',
@@ -100,25 +100,25 @@ class VideoQuizAttempt(models.Model):
     )
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        related_name='video_quiz_attempts', verbose_name="O'quvchi",
+        related_name='video_quiz_attempts', verbose_name="Öquvçi",
     )
     selected_option = models.CharField(
         max_length=1, choices=VideoQuiz.OPTION_CHOICES, verbose_name="Tanlangan javob"
     )
-    is_correct = models.BooleanField(default=False, db_index=True, verbose_name="To'g'ri")
-    coins_change = models.IntegerField(default=0, verbose_name="Coin o'zgarishi")
+    is_correct = models.BooleanField(default=False, db_index=True, verbose_name="Töğri")
+    coins_change = models.IntegerField(default=0, verbose_name="Coin özgarişi")
     answer_ms = models.PositiveIntegerField(
         default=0, verbose_name="Javob vaqti (ms)",
-        help_text="Modal ochilgandan javobgacha o'tgan vaqt",
+        help_text="Modal oçilgandan javobgaça ötgan vaqt",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Video test urinishi"
-        verbose_name_plural = "Video test urinishlari"
+        verbose_name = "Video test urinişi"
+        verbose_name_plural = "Video test urinişlari"
         constraints = [
-            # Bitta o'quvchi bitta savolga faqat bir marta javob beradi
+            # Bitta öquvçi bitta savolga faqat bir marta javob beradi
             models.UniqueConstraint(
                 fields=['quiz', 'student'], name='uniq_quiz_student_attempt'
             ),
@@ -133,14 +133,14 @@ class VideoQuizAttempt(models.Model):
 
 
 class TeacherVideoIncome(models.Model):
-    """Ustozning video-quiz qo'shgani uchun daromad yozuvi (tarix)."""
+    """Ustozning video-quiz qöşgani uçun daromad yozuvi (tarix)."""
 
     teacher = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name='video_quiz_incomes', verbose_name="Ustoz",
     )
-    # Daromad endi VIDEO bo'yicha bir martalik beriladi (har test uchun emas),
-    # shuning uchun asosiy bog'lanish `video`. `quiz` esa tarixiy/ixtiyoriy.
+    # Daromad endi VIDEO böyiça bir martalik beriladi (har test uçun emas),
+    # şuning uçun asosiy boğlaniş `video`. `quiz` esa tarixiy/ixtiyoriy.
     video = models.ForeignKey(
         'accounts.VideoLesson', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='teacher_incomes', verbose_name="Video dars",
@@ -149,7 +149,7 @@ class TeacherVideoIncome(models.Model):
         VideoQuiz, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='income_records', verbose_name="Test",
     )
-    amount = models.PositiveIntegerField(verbose_name="Miqdor (so'm)")
+    amount = models.PositiveIntegerField(verbose_name="Miqdor (söm)")
     note = models.CharField(max_length=300, blank=True, default='', verbose_name="Izoh")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -158,7 +158,7 @@ class TeacherVideoIncome(models.Model):
         verbose_name = "Ustoz video daromadi"
         verbose_name_plural = "Ustoz video daromadlari"
         constraints = [
-            # Bitta ustoz bitta video uchun daromadni faqat BIR MARTA oladi
+            # Bitta ustoz bitta video uçun daromadni faqat BIR MARTA oladi
             models.UniqueConstraint(
                 fields=['teacher', 'video'], name='uniq_teacher_video_income'
             ),
@@ -168,15 +168,15 @@ class TeacherVideoIncome(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.teacher_id}: +{self.amount} so'm"
+        return f"{self.teacher_id}: +{self.amount} söm"
 
 
 class VideoTranscript(models.Model):
-    """YouTube transkriptining DB keshi.
+    """YouTube transkriptining DB keşi.
 
-    Bir marta muvaffaqiyatli olingan transkript shu yerda saqlanadi —
-    keyingi AI generatsiyalar YouTube'ga qayta so'rov yubormaydi
-    (tezlik + IP-blok xavfining oldini olish).
+    Bir marta muvaffaqiyatli olingan transkript şu yerda saqlanadi —
+    keyingi AI generatsiyalar YouTube'ga qayta sörov yubormaydi
+    (tezlik + IP-blok xavfining oldini oliş).
     """
 
     video = models.OneToOneField(
@@ -185,11 +185,11 @@ class VideoTranscript(models.Model):
         related_name='transcript_cache',
         verbose_name="Video dars",
     )
-    text = models.TextField(verbose_name="To'liq matn")
+    text = models.TextField(verbose_name="Töliq matn")
     snippets = models.JSONField(
         default=list, blank=True,
         verbose_name="Snippetlar",
-        help_text="[{'text','start','duration'}] — vaqt belgilari bilan bo'laklar",
+        help_text="[{'text','start','duration'}] — vaqt belgilari bilan bölaklar",
     )
     language = models.CharField(
         max_length=10, blank=True, default='', verbose_name="Til kodi"
@@ -197,15 +197,15 @@ class VideoTranscript(models.Model):
     fetched_at = models.DateTimeField(auto_now=True, verbose_name="Olingan vaqt")
 
     class Meta:
-        verbose_name = "Video transkript keshi"
-        verbose_name_plural = "Video transkript keshlari"
+        verbose_name = "Video transkript keşi"
+        verbose_name_plural = "Video transkript keşlari"
 
     def __str__(self):
         return f"Transkript: video#{self.video_id} ({len(self.text)} belgi)"
 
     @property
     def duration_seconds(self) -> int:
-        """Oxirgi snippet tugashi — videoning haqiqiy davomiyligiga eng yaqin baho."""
+        """Oxirgi snippet tugaşi — videoning haqiqiy davomiyligiga eng yaqin baho."""
         if not self.snippets:
             return 0
         last = self.snippets[-1]
@@ -215,7 +215,7 @@ class VideoTranscript(models.Model):
             return 0
 
 
-# Bu fayl: video ichidagi testlar, urinishlar va ustoz daromadi modellari.
+# Bu fayl: video içidagi testlar, urinişlar va ustoz daromadi modellari.
 # UniqueConstraint'lar bir vaqtga ikki test / bir savolga ikki javob / bir
 # videoga ikki daromadni DB darajasida taqiqlaydi (race-condition'dan himoya).
-# Ustoz daromadi: video bo'yicha bir martalik — ustoz shu videoga >=5 test qo'shsa.
+# Ustoz daromadi: video böyiça bir martalik — ustoz şu videoga >=5 test qöşsa.

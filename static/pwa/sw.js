@@ -1,8 +1,8 @@
 /* ITC Academy service worker — /sw.js orqali beriladi (config/pwa.py).
-   XAVFSIZLIK QOIDASI: faqat o'z domenimizdagi /static/ fayllari keshlanadi.
-   HTML sahifalar, /api/, /media/ (shaxsiy video, vazifa fayllari), to'lov va boshqa
-   har qanday foydalanuvchi ma'lumoti HECH QACHON keshga yozilmaydi.
-   Internet bo'lmasa sahifa o'rniga ommaviy offline sahifa ko'rsatiladi. */
+   XAVFSIZLIK QOIDASI: faqat öz domenimizdagi /static/ fayllari keşlanadi.
+   HTML sahifalar, /api/, /media/ (şaxsiy video, vazifa fayllari), tölov va boşqa
+   har qanday foydalanuvçi ma'lumoti HEÇ QAÇON keşga yozilmaydi.
+   Internet bölmasa sahifa örniga ommaviy offline sahifa körsatiladi. */
 'use strict';
 var VERSION = 'itc-static-v1';
 var OFFLINE_URL = '/static/pwa/offline.html';
@@ -34,9 +34,9 @@ function cacheable(response) {
 
 self.addEventListener('fetch', function (event) {
   var req = event.request;
-  if (req.method !== 'GET') return; // POST (formalar, to'lov, test topshirish) — o'zgarishsiz tarmoqqa
+  if (req.method !== 'GET') return; // POST (formalar, tölov, test topşiriş) — özgarişsiz tarmoqqa
 
-  // Sahifalar: doim tarmoqdan, keshga yozilmaydi. Faqat aloqa yo'q bo'lsa — offline sahifa.
+  // Sahifalar: doim tarmoqdan, keşga yozilmaydi. Faqat aloqa yöq bölsa — offline sahifa.
   if (req.mode === 'navigate') {
     event.respondWith(fetch(req).catch(function () {
       return caches.match(OFFLINE_URL).then(function (r) { return r || Response.error(); });
@@ -46,7 +46,7 @@ self.addEventListener('fetch', function (event) {
 
   var url = new URL(req.url);
   if (url.origin !== self.location.origin || url.pathname.indexOf('/static/') !== 0) return;
-  if (req.headers.has('range')) return; // qisman so'rovlar (audio/video) — to'g'ridan-to'g'ri
+  if (req.headers.has('range')) return; // qisman sörovlar (audio/video) — töğridan-töğri
 
   // /static/: stale-while-revalidate (fayl nomi ?v= bilan yangilanadi)
   event.respondWith(caches.open(VERSION).then(function (cache) {

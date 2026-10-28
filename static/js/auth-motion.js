@@ -1,5 +1,5 @@
 /* IT Creative — login / register: motion va UI.
- * GSAP bo'lmasa ham (CDN yuklanmasa) formalar to'liq ishlaydi — faqat animatsiyalar o'chadi.
+ * GSAP bölmasa ham (CDN yuklanmasa) formalar töliq işlaydi — faqat animatsiyalar öçadi.
  * Global: window.ITCAuth = { toast, formatPhone }
  */
 (function () {
@@ -10,7 +10,7 @@
   const Orb = () => window.AuthOrb || { pulse() {}, setSecret() {}, setTint() {}, burst() {}, spin() {}, theme() {} };
   const anim = !!G && !reduce;
 
-  /* ── Mavzu (sayt bo'yicha umumiy 'theme' kaliti) ── */
+  /* ── Mavzu (sayt böyiça umumiy 'theme' kaliti) ── */
   const themeBtn = document.getElementById('themeBtn');
   themeBtn && themeBtn.addEventListener('click', () => {
     root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -33,7 +33,7 @@
     else setTimeout(() => t.remove(), 4000);
   }
 
-  /* ── Telefon formatlash: 'plain' → 90 123 45 67, 'paren' → (90) 123 45 67 ── */
+  /* ── Telefon formatlaş: 'plain' → 90 123 45 67, 'paren' → (90) 123 45 67 ── */
   function formatPhone(input, style) {
     if (!input) return;
     input.addEventListener('input', function () {
@@ -47,7 +47,7 @@
   }
   window.ITCAuth = { toast, formatPhone };
 
-  /* ── Pill (Kirish/Ro'yxat va rejim tablari) ── */
+  /* ── Pill (Kirish/Röyxat va rejim tablari) ── */
   function movePill(wrap, btn, instant) {
     const pill = wrap.querySelector('.pill'); if (!pill || !btn) return;
     if (G && !instant) G.to(pill, { left: btn.offsetLeft, width: btn.offsetWidth, duration: .55, ease: 'expo.out' });
@@ -58,7 +58,7 @@
   requestAnimationFrame(placeSwitch);
   document.fonts && document.fonts.ready.then(placeSwitch);
 
-  /* ── Sahifa o'tishi (doira) ── */
+  /* ── Sahifa ötişi (doira) ── */
   const wipe = document.getElementById('wipe');
   if (wipe && anim && sessionStorage.getItem('itc-wipe')) {
     sessionStorage.removeItem('itc-wipe');
@@ -101,11 +101,11 @@
     }));
   });
 
-  /* ── Maydonlar: parol ko'zi, Caps Lock, orb reaksiyalari ── */
+  /* ── Maydonlar: parol közi, Caps Lock, orb reaksiyalari ── */
   document.querySelectorAll('.eye').forEach(b => b.addEventListener('click', () => {
     const inp = b.parentElement.querySelector('input'); const show = inp.type === 'password';
     inp.type = show ? 'text' : 'password'; b.innerHTML = `<i class="bi bi-eye${show ? '-slash' : ''}"></i>`;
-    b.setAttribute('aria-label', show ? 'Parolni yashirish' : "Parolni ko'rsatish");
+    b.setAttribute('aria-label', show ? 'Parolni yaşiriş' : "Parolni körsatiş");
     G && G.fromTo(b, { scale: .7 }, { scale: 1, duration: .4, ease: 'back.out(3)' });
   }));
   let last = 0;
@@ -122,7 +122,7 @@
     }
   });
 
-  /* ── 6 xonali kod kataklari → yashirin input ── */
+  /* ── 6 xonali kod kataklari → yaşirin input ── */
   document.querySelectorAll('[data-otp]').forEach(box => {
     const cells = [...box.querySelectorAll('input')], hidden = document.getElementById(box.dataset.otp);
     const sync = () => { hidden.value = cells.map(c => c.value).join(''); cells.forEach(c => c.classList.toggle('filled', !!c.value)); };
@@ -140,18 +140,18 @@
     });
   });
 
-  /* ── Yuborishda yuklanish holati + orb "portlashi" ── */
+  /* ── Yuborişda yuklaniş holati + orb "portlaşi" ── */
   document.querySelectorAll('form[data-loading]').forEach(f => f.addEventListener('submit', e => {
     if (e.defaultPrevented) return;
     const btn = f.querySelector('[type=submit]'); if (!btn) return;
     btn.classList.add('loading'); btn.dataset.html = btn.innerHTML;
-    btn.innerHTML = '<span class="spin"></span> Tekshirilmoqda...';
+    btn.innerHTML = '<span class="spin"></span> Tekşirilmoqda...';
     Orb().burst();
   }));
-  // Orqaga (bfcache) qaytilganda tugmani tiklash
+  // Orqaga (bfcache) qaytilganda tugmani tiklaş
   addEventListener('pageshow', () => document.querySelectorAll('.btn.loading').forEach(b => { b.classList.remove('loading'); if (b.dataset.html) b.innerHTML = b.dataset.html; }));
 
-  /* ── Kursor, magnit tugmalar, karta parallaksi (faqat sichqoncha) ── */
+  /* ── Kursor, magnit tugmalar, karta parallaksi (faqat siçqonça) ── */
   if (hover && G) {
     const dot = document.querySelector('.cur'), ring = document.querySelector('.cur-r');
     if (dot && ring) {
@@ -176,7 +176,7 @@
     });
   }
 
-  /* ── Kirish animatsiyasi ── */
+  /* ── Kiriş animatsiyasi ── */
   document.querySelectorAll('.split').forEach(s => {
     s.innerHTML = s.textContent.trim().split(' ').map(w => `<span class="w">${[...w].map(c => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
   });
@@ -188,7 +188,7 @@
       .from('.stage h1 .ch', { yPercent: 115, rotateX: -80, opacity: 0, duration: 1, stagger: .02, ease: 'expo.out' }, '-=1.1')
       .from('.stage .eyebrow, .stage p', { y: 20, opacity: 0, duration: .8, stagger: .1, ease: 'expo.out' }, '-=.8')
       .from('.chip', { scale: 0, opacity: 0, duration: .9, stagger: .12, ease: 'back.out(2.2)' }, '-=.7');
-    // yPercent — parallaks (x/y) bilan to'qnashmasligi uchun
+    // yPercent — parallaks (x/y) bilan töqnaşmasligi uçun
     G.to('.chip', { yPercent: 18, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: .5 } });
   }
 })();

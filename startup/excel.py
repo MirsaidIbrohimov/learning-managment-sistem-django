@@ -1,13 +1,13 @@
-"""Startuplar uchun Excel eksport / import.
+"""Startuplar uçun Excel eksport / import.
 
-Nega alohida modul: repo'da bu kod har joyda view ichida takrorlangan
+Nega alohida modul: repo'da bu kod har joyda view içida takrorlangan
 (`accounts/views.py:_generate_students_excel`, `games/views.py`,
-`quiz/importers.py`). Bu yerda HTTP bilan ishlash yo'q — view faqat
+`quiz/importers.py`). Bu yerda HTTP bilan işlaş yöq — view faqat
 `build_export_workbook()` / `parse_import_file()` natijasini uzatadi,
-shuning uchun testlash oson.
+şuning uçun testlaş oson.
 
-Xavfsizlik: eksportda ham, importda ham maydonlar **oq roʻyxat** orqali
-oʻtadi; foydalanuvchi bergan ustun nomi hech qachon toʻgʻridan-toʻgʻri
+Xavfsizlik: eksportda ham, importda ham maydonlar **oq röyxat** orqali
+ötadi; foydalanuvçi bergan ustun nomi heç qaçon töğridan-töğri
 modelga yozilmaydi.
 """
 
@@ -41,13 +41,13 @@ EXPORT_FIELDS = {
     'category': 'Kategoriya',
     'profession': 'Kurs / kasb',
     'short_description': 'Qisqa tavsif',
-    'description': 'Toʻliq tavsif',
+    'description': 'Töliq tavsif',
     'problem': 'Muammo',
-    'solution': 'Yechim',
+    'solution': 'Yeçim',
     'target_audience': 'Maqsadli auditoriya',
     'business_model': 'Biznes model',
-    'competitors': 'Raqobatchilar',
-    'current_stage': 'Joriy bosqich',
+    'competitors': 'Raqobatçilar',
+    'current_stage': 'Joriy bosqiç',
     'progress': 'Progress (%)',
     'status': 'Holat',
     'total_xp': 'Umumiy XP',
@@ -75,8 +75,8 @@ DEFAULT_EXPORT_FIELDS = [
 
 
 def _related_maps(startup_ids):
-    """Bitta so'rovda barcha bogʻliq sanoqlar — N+1 va Sum/Count join
-    aralashib ketishidan qochish uchun har biri alohida guruhlanadi."""
+    """Bitta sörovda barça boğliq sanoqlar — N+1 va Sum/Count join
+    aralaşib ketişidan qoçiş uçun har biri alohida guruhlanadi."""
     tasks = {}
     for row in (StartupTask.objects.filter(startup_id__in=startup_ids)
                 .values('startup_id', 'status').annotate(total=Count('id'))):
@@ -155,7 +155,7 @@ def _cell_value(startup, field, maps):
 
 
 def build_export_workbook(queryset, selected_fields):
-    """Tanlangan maydonlar boʻyicha `openpyxl.Workbook` qaytaradi."""
+    """Tanlangan maydonlar böyiça `openpyxl.Workbook` qaytaradi."""
     import openpyxl
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
@@ -203,18 +203,18 @@ def build_export_workbook(queryset, selected_fields):
 
 # ─────────────────────────── Import ───────────────────────────
 
-# Ustun → qabul qilinadigan sarlavhalar. Eksport fayli toʻgʻridan-toʻgʻri
-# qaytib import qilinishi uchun oʻzbekcha sarlavhalar ham roʻyxatda.
+# Ustun → qabul qilinadigan sarlavhalar. Eksport fayli töğridan-töğri
+# qaytib import qilinişi uçun özbekça sarlavhalar ham röyxatda.
 IMPORT_COLUMNS = {
     'owner_username': ['owner_username', 'Egasi (username)', 'username', 'Egasi'],
     'name': ['name', 'Startup nomi', 'nomi'],
     'short_description': ['short_description', 'Qisqa tavsif'],
-    'description': ['description', 'Toʻliq tavsif', "To'liq tavsif"],
+    'description': ['description', 'Töliq tavsif', "Töliq tavsif"],
     'problem': ['problem', 'Muammo'],
-    'solution': ['solution', 'Yechim'],
+    'solution': ['solution', 'Yeçim'],
     'target_audience': ['target_audience', 'Maqsadli auditoriya'],
     'business_model': ['business_model', 'Biznes model'],
-    'competitors': ['competitors', 'Raqobatchilar'],
+    'competitors': ['competitors', 'Raqobatçilar'],
     'category': ['category', 'Kategoriya'],
     'profession': ['profession', 'Kurs / kasb', 'Kurs', 'Kasb'],
     'website': ['website', 'Sayt'],
@@ -226,12 +226,12 @@ IMPORT_COLUMNS = {
 
 REQUIRED_COLUMNS = ['owner_username', 'name', 'short_description']
 
-# Import qilinmaydigan (hisoblanadigan) maydonlar — hujjat uchun.
+# Import qilinmaydigan (hisoblanadigan) maydonlar — hujjat uçun.
 DERIVED_FIELDS = ['slug', 'progress', 'current_stage', 'total_xp', 'logo', 'created_at']
 
 
 def _norm(value):
-    """Sarlavhani solishtirish uchun: faqat harf/raqam, kichik harfda."""
+    """Sarlavhani soliştiriş uçun: faqat harf/raqam, kiçik harfda."""
     if value is None:
         return ''
     return ''.join(ch for ch in str(value).lower() if ch.isalnum())
@@ -257,7 +257,7 @@ def resolve_status(value):
 
 
 def detect_columns(headers):
-    """Sarlavha qatoridan {ustun kaliti: indeks} lugʻatini yasaydi."""
+    """Sarlavha qatoridan {ustun kaliti: indeks} luğatini yasaydi."""
     normalized = {_norm(header): index for index, header in enumerate(headers)}
     mapping = {}
     for key, aliases in IMPORT_COLUMNS.items():
@@ -273,24 +273,24 @@ def parse_import_file(file_obj):
     """`.xlsx` faylni qatorlarga ajratadi.
 
     Qaytaradi `(rows, errors)`: `rows` — har biri `{'row': int, 'data': {...}}`,
-    `errors` — faylning oʻzi bilan bogʻliq halokatli xatolar roʻyxati.
+    `errors` — faylning özi bilan boğliq halokatli xatolar röyxati.
     """
     try:
         import openpyxl
     except ImportError:
-        return [], ["openpyxl kutubxonasi oʻrnatilmagan. pip install openpyxl"]
+        return [], ["openpyxl kutubxonasi örnatilmagan. pip install openpyxl"]
 
     try:
         workbook = openpyxl.load_workbook(file_obj, read_only=True, data_only=True)
         sheet = workbook.active
     except Exception:
-        return [], ["Faylni oʻqib boʻlmadi. Toʻgʻri .xlsx fayl ekanini tekshiring."]
+        return [], ["Faylni öqib bölmadi. Töğri .xlsx fayl ekanini tekşiring."]
 
     rows_iter = sheet.iter_rows(values_only=True)
     try:
         headers = next(rows_iter)
     except StopIteration:
-        return [], ['Fayl boʻsh.']
+        return [], ['Fayl böş.']
 
     columns = detect_columns(list(headers))
     missing = [IMPORT_COLUMNS[key][1] for key in REQUIRED_COLUMNS if key not in columns]
@@ -312,7 +312,7 @@ def parse_import_file(file_obj):
 
         if len(rows) >= MAX_IMPORT_ROWS:
             errors.append(f'Limit: bir importda maksimal {MAX_IMPORT_ROWS} qator '
-                          f'qabul qilinadi — qolgan qatorlar oʻqilmadi.')
+                          f'qabul qilinadi — qolgan qatorlar öqilmadi.')
             break
 
     workbook.close()
@@ -337,8 +337,8 @@ def build_import_template():
     example = {
         'owner_username': 'oquvchi_username',
         'name': 'SmartAgro',
-        'short_description': 'Fermerlar uchun aqlli suv nazorati',
-        'problem': 'Suv isrof boʻladi',
+        'short_description': 'Fermerlar uçun aqlli suv nazorati',
+        'problem': 'Suv isrof böladi',
         'solution': 'IoT sensor + mobil ilova',
         'category': 'AgriTech',
         'status': 'Faol',
@@ -374,12 +374,12 @@ def build_import_template():
     notes['A1'].font = Font(bold=True, size=13)
     for index, line in enumerate([
         'Majburiy ustunlar: Egasi (username), Startup nomi, Qisqa tavsif.',
-        'Egasi — LMS dagi mavjud oʻquvchi username i boʻlishi shart.',
-        '"Yaratish" rejimida oʻquvchida faol startup boʻlsa qator oʻtkazib yuboriladi.',
-        '"Yangilash" rejimida oʻquvchining faol startupi maydonlari yangilanadi.',
+        'Egasi — LMS dagi mavjud öquvçi username i bölişi şart.',
+        '"Yaratiş" rejimida öquvçida faol startup bölsa qator ötkazib yuboriladi.',
+        '"Yangilaş" rejimida öquvçining faol startupi maydonlari yangilanadi.',
         f"Hisoblanadigan maydonlar import qilinmaydi: {', '.join(DERIVED_FIELDS)}.",
-        f'Bir faylda maksimal {MAX_IMPORT_ROWS} qator, fayl hajmi 5 MB gacha.',
-        'Bosqich va progress vazifalar bajarilishiga qarab avtomatik hisoblanadi.',
+        f'Bir faylda maksimal {MAX_IMPORT_ROWS} qator, fayl hajmi 5 MB gaça.',
+        'Bosqiç va progress vazifalar bajarilişiga qarab avtomatik hisoblanadi.',
     ], start=3):
         notes[f'A{index}'] = line
     notes.column_dimensions['A'].width = 96

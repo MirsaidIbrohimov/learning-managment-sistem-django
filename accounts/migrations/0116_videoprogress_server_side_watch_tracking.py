@@ -13,12 +13,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videoprogress',
             name='verified_seconds',
-            field=models.FloatField(default=0, verbose_name="Tasdiqlangan ko'rish vaqti (soniya)"),
+            field=models.FloatField(default=0, verbose_name="Tasdiqlangan köriş vaqti (soniya)"),
         ),
         migrations.AddField(
             model_name='videoprogress',
             name='max_position',
-            field=models.FloatField(default=0, verbose_name="Eng uzoq ko'rilgan nuqta (soniya)"),
+            field=models.FloatField(default=0, verbose_name="Eng uzoq körilgan nuqta (soniya)"),
         ),
         migrations.AddField(
             model_name='videoprogress',
@@ -33,6 +33,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videoprogress',
             name='cheat_attempts',
-            field=models.IntegerField(default=0, verbose_name="Chetlab o'tish urinishlari"),
+            field=models.IntegerField(default=0, verbose_name="Çetlab ötiş urinişlari"),
         ),
     ]

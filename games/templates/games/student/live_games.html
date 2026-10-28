@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% block title %}Jonli O'yinlar{% endblock %}
+{% block title %}Jonli Öyinlar{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -99,7 +99,7 @@
   content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.07);
 }
 
-/* ── GAME-TYPE TABS (alohida UI: o'yinlarni turi bo'yicha ajratish) ── */
+/* ── GAME-TYPE TABS (alohida UI: öyinlarni turi böyiça ajratiş) ── */
 .lg-tabs {
   display: flex; gap: .6rem; margin-bottom: 1.5rem; flex-wrap: wrap;
 }
@@ -341,8 +341,8 @@
         <span class="lg-live-ring"></span>
         Hozir efirda
       </div>
-      <div class="lg-hero-title">Jonli O'yinlar</div>
-      <div class="lg-hero-sub">Real vaqtda bo'layotgan shaxmat va shashka o'yinlarini tomosha qiling</div>
+      <div class="lg-hero-title">Jonli Öyinlar</div>
+      <div class="lg-hero-sub">Real vaqtda bölayotgan şaxmat va şaşka öyinlarini tomoşa qiling</div>
     </div>
     <div class="lg-hero-right">
       <div class="lg-stat-pill red">
@@ -353,10 +353,10 @@
         <span class="val">
           {{ coin_matches_count|default:0 }}
         </span>
-        <span class="lbl">Coin o'yinlar</span>
+        <span class="lbl">Coin öyinlar</span>
       </div>
       <button class="lg-refresh-btn" onclick="refreshPage(this)">
-        <i class="bi bi-arrow-clockwise" id="refresh-icon"></i> Yangilash
+        <i class="bi bi-arrow-clockwise" id="refresh-icon"></i> Yangilaş
       </button>
     </div>
   </div>
@@ -365,19 +365,19 @@
   {% if matches %}
   <div class="lg-section-label">
     <i class="bi bi-controller"></i>
-    {{ matches|length }} ta o'yin davom etmoqda
+    {{ matches|length }} ta öyin davom etmoqda
   </div>
 
-  <!-- Game-type tabs — o'yinlar turi bo'yicha alohida ko'rsatish -->
+  <!-- Game-type tabs — öyinlar turi böyiça alohida körsatiş -->
   <div class="lg-tabs" id="lg-tabs">
     <button class="lg-tab active" data-filter="all" type="button">
-      <i class="bi bi-grid-fill"></i> Barchasi <span class="lg-tab-count">{{ matches|length }}</span>
+      <i class="bi bi-grid-fill"></i> Barçasi <span class="lg-tab-count">{{ matches|length }}</span>
     </button>
     <button class="lg-tab" data-filter="shaxmat" type="button">
-      <i class="bi bi-grid-3x3-gap-fill"></i> Shaxmat <span class="lg-tab-count">{{ chess_count }}</span>
+      <i class="bi bi-grid-3x3-gap-fill"></i> Şaxmat <span class="lg-tab-count">{{ chess_count }}</span>
     </button>
     <button class="lg-tab" data-filter="shashka" type="button">
-      <i class="bi bi-circle-fill"></i> Shashka <span class="lg-tab-count">{{ checkers_count }}</span>
+      <i class="bi bi-circle-fill"></i> Şaşka <span class="lg-tab-count">{{ checkers_count }}</span>
     </button>
   </div>
 
@@ -456,14 +456,14 @@
       <!-- footer -->
       <div class="lg-card-footer">
         <span class="lg-footer-stat"><i class="bi bi-clock-history"></i> {{ match.started_at|default:match.created_at|timesince }} davom etmoqda</span>
-        <span class="lg-footer-stat"><i class="bi bi-arrow-left-right"></i> {{ match.move_count }} yurish</span>
-        <span class="lg-footer-stat"><i class="bi bi-eye"></i> {{ match.spectator_count }} tomosha</span>
+        <span class="lg-footer-stat"><i class="bi bi-arrow-left-right"></i> {{ match.move_count }} yuriş</span>
+        <span class="lg-footer-stat"><i class="bi bi-eye"></i> {{ match.spectator_count }} tomoşa</span>
         {% if match.mode == 'coin' and match.wager_coins %}
         <span class="lg-footer-stat gold"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin tikilgan</span>
         {% else %}
-        <span class="lg-footer-stat"><i class="bi bi-controller"></i> Shunchaki</span>
+        <span class="lg-footer-stat"><i class="bi bi-controller"></i> Şunçaki</span>
         {% endif %}
-        <span class="lg-watch-btn"><i class="bi bi-eye-fill"></i> Tomosha</span>
+        <span class="lg-watch-btn"><i class="bi bi-eye-fill"></i> Tomoşa</span>
       </div>
     </a>
     {% endfor %}
@@ -472,18 +472,18 @@
   <!-- Shown when a tab filter matches zero cards -->
   <div class="lg-empty" id="lg-empty-filtered" style="display:none;">
     <div class="lg-empty-icon"><i class="bi bi-filter-circle"></i></div>
-    <h3>Bu turdagi jonli o'yin yo'q</h3>
-    <p>Boshqa bo'limni tanlang yoki "Barchasi"ni bosing</p>
+    <h3>Bu turdagi jonli öyin yöq</h3>
+    <p>Boşqa bölimni tanlang yoki "Barçasi"ni bosing</p>
   </div>
 
   {% else %}
   <div class="lg-grid">
     <div class="lg-empty">
       <div class="lg-empty-icon"><i class="bi bi-broadcast"></i></div>
-      <h3>Hozirda faol o'yinlar yo'q</h3>
-      <p>Biror o'yinchi o'yin boshlaganida u yerda ko'rinadi</p>
+      <h3>Hozirda faol öyinlar yöq</h3>
+      <p>Biror öyinçi öyin boşlaganida u yerda körinadi</p>
       <a href="{% url 'games:games_list' %}" class="lg-empty-btn">
-        <i class="bi bi-play-circle-fill"></i> O'yin boshlash
+        <i class="bi bi-play-circle-fill"></i> Öyin boşlaş
       </a>
     </div>
   </div>
@@ -515,9 +515,9 @@ function refreshPage(btn) {
   setTimeout(() => location.reload(), 300);
 }
 
-// ── Game-type tabs: Shaxmat / Shashka / Barchasi ─────────────────────
-// Bitta umumiy ro'yxat o'rniga foydalanuvchi xohlagan o'yin turini
-// alohida ko'rishi mumkin — bu o'yinlar "chalkashib ketgan" tuyg'usini
+// ── Game-type tabs: Şaxmat / Şaşka / Barçasi ─────────────────────
+// Bitta umumiy röyxat örniga foydalanuvçi xohlagan öyin turini
+// alohida körişi mumkin — bu öyinlar "çalkaşib ketgan" tuyğusini
 // oldini oladi.
 (function () {
   const tabs = document.querySelectorAll('#lg-tabs .lg-tab');

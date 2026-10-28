@@ -48,20 +48,20 @@
   <form class="su-card" method="post" action="{% url 'startup:task_submit' startup.slug task.pk %}"
         enctype="multipart/form-data" novalidate>
     {% csrf_token %}
-    <h2 class="su-card-title"><i class="bi bi-upload"></i> Natijani topshirish</h2>
+    <h2 class="su-card-title"><i class="bi bi-upload"></i> Natijani topşiriş</h2>
     {% include 'startup/_form.html' %}
     <button class="btn btn-primary" style="margin-top:14px" type="submit">
-      <i class="bi bi-send"></i> Tekshiruvga yuborish
+      <i class="bi bi-send"></i> Tekşiruvga yuboriş
     </button>
     <p class="su-note" style="margin-top:8px">
-      Topshiriqni mentor yoki administrator tekshiradi. Tasdiqlansa +{{ task.points }} XP olasiz.
+      Topşiriqni mentor yoki administrator tekşiradi. Tasdiqlansa +{{ task.points }} XP olasiz.
     </p>
   </form>
   {% endif %}
 
   <div class="su-card">
     <h2 class="su-card-title">
-      <i class="bi bi-clock-history"></i> Topshiriqlar tarixi
+      <i class="bi bi-clock-history"></i> Topşiriqlar tarixi
       <span class="su-count">{{ submissions|length }}</span>
     </h2>
 
@@ -93,35 +93,35 @@
           <div class="su-review">
             <b>{{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}</b>
             — {{ submission.reviewed_at|date:"d.m.Y H:i" }}<br>
-            {{ submission.review_comment|default:"Izoh yoʻq."|linebreaksbr }}
+            {{ submission.review_comment|default:"Izoh yöq."|linebreaksbr }}
           </div>
         {% elif can_review %}
           <form class="su-review" method="post" action="{% url 'startup:task_review' startup.slug task.pk %}">
             {% csrf_token %}
             <label class="su-form-label" for="suComment">Mentor izohi</label>
             <textarea class="form-control" id="suComment" name="comment" rows="2"
-                      placeholder="Nima yaxshi, nimani tuzatish kerak?"></textarea>
+                      placeholder="Nima yaxşi, nimani tuzatiş kerak?"></textarea>
             <div class="d-flex flex-wrap gap-2" style="margin-top:10px">
               <button class="btn btn-sm btn-success" type="submit" name="action" value="approve">
-                <i class="bi bi-check-lg"></i> Tasdiqlash (+{{ task.points }} XP)
+                <i class="bi bi-check-lg"></i> Tasdiqlaş (+{{ task.points }} XP)
               </button>
               <button class="btn btn-sm btn-warning" type="submit" name="action" value="changes">
-                <i class="bi bi-pencil"></i> Oʻzgartirish soʻrash
+                <i class="bi bi-pencil"></i> Özgartiriş söraş
               </button>
               <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="reject">
-                <i class="bi bi-x-lg"></i> Rad etish
+                <i class="bi bi-x-lg"></i> Rad etiş
               </button>
             </div>
           </form>
         {% elif is_owner %}
           <p class="su-note su-review">
-            <i class="bi bi-shield-lock"></i> Tekshiruvda. Oʻz startupingiz vazifasini oʻzingiz
-            tasdiqlay olmaysiz — mentor yoki administrator koʻrib chiqadi.
+            <i class="bi bi-shield-lock"></i> Tekşiruvda. Öz startupingiz vazifasini özingiz
+            tasdiqlay olmaysiz — mentor yoki administrator körib çiqadi.
           </p>
         {% endif %}
       </div>
     {% empty %}
-      <p class="su-note">Hali topshiriq yoʻq.</p>
+      <p class="su-note">Hali topşiriq yöq.</p>
     {% endfor %}
   </div>
 

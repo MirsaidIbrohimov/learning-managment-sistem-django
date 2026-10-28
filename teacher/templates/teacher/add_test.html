@@ -1,17 +1,17 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Test yaratish - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Test yaratish{% endblock %}
+{% block title %}Test yaratiş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Test yaratiş{% endblock %}
 
 {% block teacher_content %}
 <div class="legacy-quiz-banner" style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(5,150,105,.04));border:1px solid rgba(16,185,129,.25);border-left:4px solid #10b981;padding:1rem 1.25rem;margin-bottom:1.25rem;border-radius:12px;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
     <i class="bi bi-stars" style="color:#10b981;font-size:1.4rem;"></i>
     <div style="flex:1;min-width:200px;">
         <strong style="color:#065f46;">Yangi versiya mavjud!</strong>
-        <span style="color:#047857;font-size:.92rem;">Yangilangan test yaratuvchi tayyor — barcha savollar bazasidan tanlash imkoni bilan.</span>
+        <span style="color:#047857;font-size:.92rem;">Yangilangan test yaratuvçi tayyor — barça savollar bazasidan tanlaş imkoni bilan.</span>
     </div>
     <a href="{% url 'quizui:quiz_create' %}" style="background:#10b981;color:#fff;padding:.5rem 1rem;border-radius:8px;text-decoration:none;font-weight:600;font-size:.9rem;white-space:nowrap;">
-        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga o'tish
+        <i class="bi bi-arrow-right-circle"></i> Yangi versiyaga ötiş
     </a>
 </div>
 <style>
@@ -47,14 +47,14 @@
 
 <div class="t-addtest-page">
     <a href="{% url 'teacher:courses' %}" class="t-addtest-back">
-        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytiş
     </a>
 
     <div class="t-addtest-header">
         <div class="t-addtest-icon"><i class="bi bi-brain"></i></div>
         <div>
-            <h1>Yangi test yaratish</h1>
-            <p>{{ profession.name }} kursi uchun</p>
+            <h1>Yangi test yaratiş</h1>
+            <p>{{ profession.name }} kursi uçun</p>
         </div>
     </div>
 
@@ -71,40 +71,40 @@
                 </div>
                 <div class="t-addtest-row">
                     <div>
-                        <label class="t-label">Vaqt chegarasi (daqiqa)</label>
+                        <label class="t-label">Vaqt çegarasi (daqiqa)</label>
                         <input type="number" name="time_limit" class="t-input" value="30" min="1">
                     </div>
                     <div>
-                        <label class="t-label">O'tish bali (%)</label>
+                        <label class="t-label">Ötiş bali (%)</label>
                         <input type="number" name="passing_score" class="t-input" value="60" min="1" max="100">
                     </div>
                 </div>
                 <div class="t-addtest-field">
                     <label class="t-label">Olinadigan savollar soni</label>
-                    <input type="number" name="question_count" class="t-input" value="0" min="0" placeholder="0 = barcha savollar">
-                    <small style="color:var(--bs-secondary-color);display:block;margin-top:.3rem;">0 qoldirsangiz barcha savollar olinadi. Masalan: 20 ta savoldan 10 tasini olish uchun 10 yozing.</small>
+                    <input type="number" name="question_count" class="t-input" value="0" min="0" placeholder="0 = barça savollar">
+                    <small style="color:var(--bs-secondary-color);display:block;margin-top:.3rem;">0 qoldirsangiz barça savollar olinadi. Masalan: 20 ta savoldan 10 tasini oliş uçun 10 yozing.</small>
                 </div>
                 <div style="margin-bottom: 1.5rem;">
-                    <label class="t-label" style="margin-bottom: .75rem;">Qo'shimcha sozlamalar</label>
+                    <label class="t-label" style="margin-bottom: .75rem;">Qöşimça sozlamalar</label>
                     <label class="t-addtest-check">
                         <input type="checkbox" name="allow_retry">
-                        <span>Qayta topshirishga ruxsat</span>
+                        <span>Qayta topşirişga ruxsat</span>
                     </label>
                     <label class="t-addtest-check">
                         <input type="checkbox" name="shuffle_questions">
-                        <span>Savollar tartibini aralashtirish</span>
+                        <span>Savollar tartibini aralaştiriş</span>
                     </label>
                     <label class="t-addtest-check">
                         <input type="checkbox" name="shuffle_answers">
-                        <span>Javoblar tartibini aralashtirish</span>
+                        <span>Javoblar tartibini aralaştiriş</span>
                     </label>
                 </div>
                 <div style="display: flex; gap: .75rem; justify-content: flex-end;">
                     <a href="{% url 'teacher:courses' %}" class="t-btn t-btn-outline">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </a>
                     <button type="submit" class="t-btn t-btn-primary">
-                        <i class="bi bi-check-lg"></i> Yaratish
+                        <i class="bi bi-check-lg"></i> Yaratiş
                     </button>
                 </div>
             </form>

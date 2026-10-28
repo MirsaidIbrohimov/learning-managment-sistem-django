@@ -23,7 +23,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="pp-body"{% if selected_child %} data-child-name="{{ selected_child.first_name }}"{% endif %}{% if show_tour %} data-tour-auto{% endif %}>
-<a class="pp-skip" href="#pp-content">Asosiy tarkibga o‘tish</a>
+<a class="pp-skip" href="#pp-content">Asosiy tarkibga ötiş</a>
 <div class="pp-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 {% with url=request.resolver_match.url_name %}
 <div class="pp-app">
@@ -36,15 +36,15 @@
         <nav class="pp-nav" data-tour="nav">
             <span class="pp-nav-ind" aria-hidden="true"></span>
             <div class="pp-nav-title">Asosiy</div>
-            <a href="{% url 'parent_dashboard' %}" class="{% if url == 'parent_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span></a>
+            <a href="{% url 'parent_dashboard' %}" class="{% if url == 'parent_dashboard' %}active{% endif %}"><i class="bi bi-grid-1x2-fill"></i><span>Boş sahifa</span></a>
             <a href="{% url 'parent_children' %}" class="{% if url == 'parent_children' or url == 'parent_child_detail' %}active{% endif %}"><i class="bi bi-people-fill"></i><span>Farzandlarim</span></a>
-            <div class="pp-nav-title">O‘quv jarayoni</div>
+            <div class="pp-nav-title">Öquv jarayoni</div>
             <a href="{% url 'parent_lessons' %}" class="{% if url == 'parent_lessons' %}active{% endif %}"><i class="bi bi-collection-play-fill"></i><span>Darslar</span></a>
             <a href="{% url 'parent_homework' %}" class="{% if url == 'parent_homework' %}active{% endif %}"><i class="bi bi-journal-check"></i><span>Vazifalar</span></a>
             <a href="{% url 'parent_tests' %}" class="{% if url == 'parent_tests' %}active{% endif %}"><i class="bi bi-ui-checks-grid"></i><span>Test natijalari</span></a>
             <a href="{% url 'parent_attendance' %}" class="{% if url == 'parent_attendance' %}active{% endif %}"><i class="bi bi-calendar2-week-fill"></i><span>Davomat va jadval</span></a>
-            <div class="pp-nav-title">Boshqa</div>
-            <a href="{% url 'parent_payments' %}" class="{% if url == 'parent_payments' %}active{% endif %}"><i class="bi bi-wallet2"></i><span>To‘lovlar</span></a>
+            <div class="pp-nav-title">Boşqa</div>
+            <a href="{% url 'parent_payments' %}" class="{% if url == 'parent_payments' %}active{% endif %}"><i class="bi bi-wallet2"></i><span>Tölovlar</span></a>
             <a href="{% url 'parent_achievements' %}" class="{% if url == 'parent_achievements' %}active{% endif %}"><i class="bi bi-trophy-fill"></i><span>Yutuqlar</span></a>
             <a href="{% url 'parent_books' %}" class="{% if url == 'parent_books' %}active{% endif %}"><i class="bi bi-book-half"></i><span>Kitoblar</span></a>
             <a href="{% url 'parent_messages' %}" class="{% if url == 'parent_messages' %}active{% endif %}"><i class="bi bi-chat-heart-fill"></i><span>Xabarlar</span>{% if unread_replies %}<span class="pp-pill">{{ unread_replies }}</span>{% endif %}</a>
@@ -52,7 +52,7 @@
             <a href="{% url 'parent_settings' %}" class="{% if url == 'parent_settings' %}active{% endif %}"><i class="bi bi-sliders"></i><span>Sozlamalar</span></a>
         </nav>
         <div class="pp-side-foot">
-            <a href="{% url 'parent_logout' %}"><i class="bi bi-box-arrow-right"></i><span>Chiqish</span></a>
+            <a href="{% url 'parent_logout' %}"><i class="bi bi-box-arrow-right"></i><span>Çiqiş</span></a>
         </div>
     </aside>
     <div class="pp-scrim"></div>
@@ -60,7 +60,7 @@
     <!-- ═════ Asosiy qism ═════ -->
     <div class="pp-main">
         <header class="pp-top">
-            <button type="button" class="pp-icon-btn pp-menu-btn" data-menu-open aria-label="Menyuni ochish"><i class="bi bi-list"></i></button>
+            <button type="button" class="pp-icon-btn pp-menu-btn" data-menu-open aria-label="Menyuni oçiş"><i class="bi bi-list"></i></button>
             <div class="pp-top-title">
                 <small>Assalomu alaykum, {{ parent.first_name }}</small>
                 <b>{% block page_title %}Ota-ona paneli{% endblock %}</b>
@@ -85,9 +85,9 @@
                     </div>
                 </div>
                 {% endif %}
-                <a class="pp-icon-btn" href="{% url 'parent_dashboard' %}?tour=1" aria-label="Panel bo‘yicha qo‘llanma" title="Qo‘llanma"><i class="bi bi-question-lg"></i></a>
+                <a class="pp-icon-btn" href="{% url 'parent_dashboard' %}?tour=1" aria-label="Panel böyiça qöllanma" title="Qöllanma"><i class="bi bi-question-lg"></i></a>
                 <a class="pp-icon-btn" href="{% url 'parent_messages' %}" aria-label="Xabarlar" data-tour="messages"><i class="bi bi-bell"></i>{% if unread_replies %}<span class="dot"></span>{% endif %}</a>
-                <button type="button" class="pp-icon-btn" data-theme-toggle aria-label="Yorug‘/qorong‘i rejim"><i data-theme-icon class="bi bi-moon-stars-fill"></i></button>
+                <button type="button" class="pp-icon-btn" data-theme-toggle aria-label="Yorug‘/qoronği rejim"><i data-theme-icon class="bi bi-moon-stars-fill"></i></button>
             </div>
         </header>
 
@@ -95,7 +95,7 @@
         <div class="pp-toasts" role="status" aria-live="polite">
             {% for m in messages %}
             <div class="pp-toast {{ m.tags }}"><i class="bi {% if m.level_tag == 'success' %}bi-check-circle-fill{% elif m.level_tag == 'error' %}bi-exclamation-octagon-fill{% elif m.level_tag == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i><span>{{ m }}</span>
-                <button type="button" aria-label="Yopish" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button></div>
+                <button type="button" aria-label="Yopiş" onclick="this.parentElement.remove()"><i class="bi bi-x-lg"></i></button></div>
             {% endfor %}
         </div>
         {% endif %}

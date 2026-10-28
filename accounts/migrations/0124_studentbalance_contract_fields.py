@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='studentbalance',
             name='contract_name',
-            field=models.CharField(blank=True, default='', max_length=150, verbose_name='Shartnoma nomi'),
+            field=models.CharField(blank=True, default='', max_length=150, verbose_name='Şartnoma nomi'),
         ),
         migrations.AddField(
             model_name='studentbalance',
             name='contract_amount',
-            field=models.DecimalField(decimal_places=0, default=0, max_digits=14, verbose_name="Shartnomadan keladigan summa (so'm)"),
+            field=models.DecimalField(decimal_places=0, default=0, max_digits=14, verbose_name="Şartnomadan keladigan summa (söm)"),
         ),
     ]

@@ -17,12 +17,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('provider', models.CharField(choices=[('google', 'Google'), ('facebook', 'Facebook'), ('apple', 'Apple ID')], max_length=20, verbose_name='Xizmat')),
-                ('uid', models.CharField(max_length=255, verbose_name='Tashqi ID')),
+                ('uid', models.CharField(max_length=255, verbose_name='Taşqi ID')),
                 ('email', models.EmailField(blank=True, max_length=254, verbose_name='Email')),
                 ('name', models.CharField(blank=True, max_length=200, verbose_name='Ism')),
                 ('picture', models.URLField(blank=True, max_length=500, verbose_name='Rasm')),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Ulangan vaqt')),
-                ('last_login_at', models.DateTimeField(blank=True, null=True, verbose_name='Oxirgi kirish')),
+                ('last_login_at', models.DateTimeField(blank=True, null=True, verbose_name='Oxirgi kiriş')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='social_accounts', to=settings.AUTH_USER_MODEL)),
             ],
             options={

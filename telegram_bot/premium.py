@@ -1,27 +1,27 @@
 """
 Premium emoji va stikerlar moduli.
 
-Telegram BOTLARI premium foydalanuvchi akkaunti kabi "premium stiker" yubora
+Telegram BOTLARI premium foydalanuvçi akkaunti kabi "premium stiker" yubora
 olmaydi, lekin quyidagilar mumkin:
 
-  1. Premium CUSTOM EMOJI (animatsiyali) — xabar matni ichida HTML
-     <tg-emoji emoji-id="..."> tegi orqali. Bu aynan premium stiker ko'rinishini
+  1. Premium CUSTOM EMOJI (animatsiyali) — xabar matni içida HTML
+     <tg-emoji emoji-id="..."> tegi orqali. Bu aynan premium stiker körinişini
      beradi va matn bilan birga ketadi.
   2. Oddiy STIKERLAR — sendSticker orqali alohida yuboriladi.
 
-Bu modul ikkalasini ham markazlashtirib beradi va MUHIMI — xato bo'lsa ham
+Bu modul ikkalasini ham markazlaştirib beradi va MUHIMI — xato bölsa ham
 botni buzmaydi:
 
-  * custom_emoji_id noto'g'ri bo'lsa, Telegram xato qaytaradi -> biz avtomatik
+  * custom_emoji_id notöğri bölsa, Telegram xato qaytaradi -> biz avtomatik
     oddiy emoji bilan qayta yuboramiz (self-healing) va keyin custom emojini
-    o'chiramiz.
-  * stiker file_id noto'g'ri bo'lsa, jimgina o'tkazib yuboriladi (stiker
-    bezak — uni yo'qolishi xabarni buzmaydi).
+    öçiramiz.
+  * stiker file_id notöğri bölsa, jimgina ötkazib yuboriladi (stiker
+    bezak — uni yöqolişi xabarni buzmaydi).
 
-Haqiqiy, tekshirilgan ID larni serverda olish uchun:
+Haqiqiy, tekşirilgan ID larni serverda oliş uçun:
     python manage.py discover_telegram_assets
-buyrug'ini ishlating (Telegram serverga ulanadigan joyda). U `premium_assets.json`
-faylini yaratadi va shu yerdagi ID lar ustuvor ishlatiladi.
+buyruğini işlating (Telegram serverga ulanadigan joyda). U `premium_assets.json`
+faylini yaratadi va şu yerdagi ID lar ustuvor işlatiladi.
 """
 
 import json
@@ -35,17 +35,17 @@ from django.conf import settings
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _ASSETS_PATH = os.path.join(_BASE_DIR, "premium_assets.json")
 
-# Custom emoji yuborishda xato chiqsa, jarayon davomida boshqa urinmaslik uchun
+# Custom emoji yuborişda xato çiqsa, jarayon davomida boşqa urinmaslik uçun
 _custom_emoji_disabled = False
 _lock = threading.Lock()
 
 
 # ---------------------------------------------------------------------------
-# Standart ID lar (o'rnatilgan). discover_telegram_assets bularni serverdan
-# olingan tekshirilgan ID larga almashtiradi (premium_assets.json orqali).
+# Standart ID lar (örnatilgan). discover_telegram_assets bularni serverdan
+# olingan tekşirilgan ID larga almaştiradi (premium_assets.json orqali).
 # Har bir emoji -> animatsiyali premium custom emoji ID. Fallback sifatida
-# o'zining unicode varianti ishlatiladi, shuning uchun ID ishlamasa ham
-# foydalanuvchi oddiy emojini ko'radi.
+# özining unicode varianti işlatiladi, şuning uçun ID işlamasa ham
+# foydalanuvçi oddiy emojini köradi.
 # ---------------------------------------------------------------------------
 _DEFAULT_CUSTOM_EMOJI = {
     "🎉": "5368324170671202286",
@@ -74,7 +74,7 @@ _DEFAULT_CUSTOM_EMOJI = {
     "📈": "5215706767009551699",
 }
 
-# Voqea -> stiker file_id. discover_telegram_assets buni to'ldiradi.
+# Voqea -> stiker file_id. discover_telegram_assets buni töldiradi.
 _DEFAULT_STICKERS = {
     "welcome": "",
     "success": "",
@@ -113,7 +113,7 @@ def _stickers_enabled():
     return getattr(settings, "TELEGRAM_USE_STICKERS", True)
 
 
-# Eng uzun emojidan boshlab almashtirish uchun (masalan, "✉️" "✉" dan oldin)
+# Eng uzun emojidan boşlab almaştiriş uçun (masalan, "✉️" "✉" dan oldin)
 def _emoji_pattern():
     keys = sorted(_CUSTOM_EMOJI.keys(), key=len, reverse=True)
     return re.compile("|".join(re.escape(k) for k in keys))
@@ -129,15 +129,15 @@ def tg_emoji(emoji_id, fallback):
 
 
 def premiumize(text):
-    """Matndagi oddiy emojilarni premium custom emoji bilan almashtiradi.
+    """Matndagi oddiy emojilarni premium custom emoji bilan almaştiradi.
 
-    Har bir custom emoji o'z unicode variantini fallback sifatida saqlaydi,
-    shuning uchun ID ishlamasa foydalanuvchi oddiy emojini ko'radi.
+    Har bir custom emoji öz unicode variantini fallback sifatida saqlaydi,
+    şuning uçun ID işlamasa foydalanuvçi oddiy emojini köradi.
     """
     global _custom_emoji_disabled
     if not text or _custom_emoji_disabled or not _emoji_enabled():
         return text
-    # Allaqachon tg-emoji bo'lsa, qayta o'ramaslik uchun belgilarni saqlaymiz
+    # Allaqaçon tg-emoji bölsa, qayta öramaslik uçun belgilarni saqlaymiz
     if "<tg-emoji" in text:
         return text
 
@@ -152,7 +152,7 @@ def premiumize(text):
 
 
 def strip_tg_emoji(text):
-    """tg-emoji teglarini olib tashlab, faqat fallback emojini qoldiradi."""
+    """tg-emoji teglarini olib taşlab, faqat fallback emojini qoldiradi."""
     if not text:
         return text
     return _TG_EMOJI_RE.sub(lambda m: m.group(1), text)
@@ -162,9 +162,9 @@ def _is_custom_emoji_error(resp):
     """Xabar custom emoji sababli rad etilganmi?
 
     Bot (oddiy bot) custom emoji yubora olmaganda Telegram turli xil xatolar
-    qaytaradi: yaroqsiz ID uchun "DOCUMENT_INVALID", ruxsat yo'qligida
+    qaytaradi: yaroqsiz ID uçun "DOCUMENT_INVALID", ruxsat yöqligida
     "CUSTOM_EMOJI_INVALID" yoki "custom emoji" matnli xato, ba'zan entity
-    xatolari. Bularning barchasini ushlab, custom emojisiz qayta yuboramiz.
+    xatolari. Bularning barçasini uşlab, custom emojisiz qayta yuboramiz.
     """
     try:
         if resp is None:
@@ -188,11 +188,11 @@ def _is_custom_emoji_error(resp):
 
 def send_message(bot_token, chat_id, text, reply_markup=None,
                  parse_mode="HTML", session=None, timeout=10, **extra):
-    """Premium custom emojilarni matn ichiga qo'shib bitta xabar yuboradi.
+    """Premium custom emojilarni matn içiga qöşib bitta xabar yuboradi.
 
-    Mavjud requests.post(.../sendMessage, json={...}) chaqiruvlarining
-    o'rnini bosadi. Custom emoji ishlamasa oddiy emojiga qaytadi. Alohida
-    stiker yuborilmaydi, shuning uchun foydalanuvchiga faqat bitta xabar keladi.
+    Mavjud requests.post(.../sendMessage, json={...}) çaqiruvlarining
+    örnini bosadi. Custom emoji işlamasa oddiy emojiga qaytadi. Alohida
+    stiker yuborilmaydi, şuning uçun foydalanuvçiga faqat bitta xabar keladi.
     """
     global _custom_emoji_disabled
     poster = session.post if session is not None else requests.post
@@ -209,7 +209,7 @@ def send_message(bot_token, chat_id, text, reply_markup=None,
     except Exception:
         return None
 
-    # Custom emoji ID noto'g'ri bo'lsa -> custom emojini o'chirib qayta yuboramiz
+    # Custom emoji ID notöğri bölsa -> custom emojini öçirib qayta yuboramiz
     if _is_custom_emoji_error(resp) and final_text != text:
         with _lock:
             _custom_emoji_disabled = True
@@ -223,9 +223,9 @@ def send_message(bot_token, chat_id, text, reply_markup=None,
 
 
 def send_sticker(bot_token, chat_id, event_or_file_id, session=None, timeout=10):
-    """Stiker yuboradi. event nomi yoki to'g'ridan-to'g'ri file_id qabul qiladi.
+    """Stiker yuboradi. event nomi yoki töğridan-töğri file_id qabul qiladi.
 
-    Stiker bezak — xato bo'lsa jimgina o'tkazib yuboriladi.
+    Stiker bezak — xato bölsa jimgina ötkazib yuboriladi.
     """
     if not _stickers_enabled():
         return None
@@ -244,8 +244,8 @@ def send_sticker(bot_token, chat_id, event_or_file_id, session=None, timeout=10)
 def pick_sticker(text):
     """Xabar matniga qarab mos stiker tanlaydi.
 
-    Har bir bot xabari stiker bilan borishi uchun maxsus tur topilmasa
-    ``messages`` stikeri ishlatiladi.
+    Har bir bot xabari stiker bilan borişi uçun maxsus tur topilmasa
+    ``messages`` stikeri işlatiladi.
     """
     if not text:
         return "messages"
@@ -254,11 +254,11 @@ def pick_sticker(text):
         return "celebrate"
     if ("❌" in text or "xato" in t or "topilmadi" in t or
             "ulanmagan" in t or "hujum" in t or "bloklandi" in t or
-            "rad etildi" in t or "noto'g'ri" in t):
+            "rad etildi" in t or "notöğri" in t):
         return "error"
     if "✅" in text or "muvaffaqiyat" in t or "hisobingizga kirildi" in t:
         return "success"
-    if "👋" in text or "/start" in t or "xush kelibsiz" in t:
+    if "👋" in text or "/start" in t or "xuş kelibsiz" in t:
         return "welcome"
     if "📚" in text or "kitob" in t:
         return "books"
@@ -268,6 +268,6 @@ def pick_sticker(text):
         return "stats"
     if "📬" in text or "xabar" in t:
         return "messages"
-    if "🤖" in text or "ai chat" in t:
+    if "🤖" in text or "ai çat" in t:
         return "ai"
     return "messages"

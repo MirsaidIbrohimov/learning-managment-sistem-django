@@ -8,14 +8,14 @@
 
     const TYPE_LABELS = {
         single_choice: 'Bitta tanlov',
-        multiple_choice: "Ko'p tanlov",
-        true_false: "To'g'ri/Noto'g'ri",
+        multiple_choice: "Köp tanlov",
+        true_false: "Töğri/Notöğri",
         short_answer: 'Qisqa javob',
         essay: 'Esse',
     };
     const STATUS_LABELS = {
         draft: ['Qoralama', 'bg-secondary'],
-        published: ['Chop etilgan', 'bg-success'],
+        published: ['Çop etilgan', 'bg-success'],
         archived: ['Arxivlangan', 'bg-warning text-dark'],
     };
 
@@ -64,14 +64,14 @@
             typeBadge.textContent = TYPE_LABELS[question.type] || question.type;
 
             row.querySelector('.q-difficulty-cell').textContent =
-                { easy: 'Oson', medium: "O'rta", hard: 'Qiyin' }[question.difficulty] || question.difficulty;
+                { easy: 'Oson', medium: "Örta", hard: 'Qiyin' }[question.difficulty] || question.difficulty;
 
             const [label, cls] = STATUS_LABELS[question.status] || [question.status, 'bg-secondary'];
             const statusBadge = row.querySelector('.q-status-cell');
             statusBadge.textContent = label;
             statusBadge.className = `badge ${cls}`;
 
-            row.querySelector('.q-usage-cell').textContent = `${question.usage_count}x ishlatilgan`;
+            row.querySelector('.q-usage-cell').textContent = `${question.usage_count}x işlatilgan`;
             row.querySelector('.q-edit-link').href = `/quiz/questions/${question.id}/edit/`;
             row.querySelector('.q-duplicate-btn').addEventListener('click', () => duplicateQuestion(question.id));
 
@@ -122,7 +122,7 @@
 
     bulkArchiveBtn.addEventListener('click', async () => {
         const ids = selectedIds();
-        if (!ids.length || !confirm(`${ids.length} ta savolni arxivlashni tasdiqlaysizmi?`)) return;
+        if (!ids.length || !confirm(`${ids.length} ta savolni arxivlaşni tasdiqlaysizmi?`)) return;
         try {
             await window.QuizApi.post('questions/bulk-update-status/', { ids, status: 'archived' });
             window.QuizApi.toast('Tanlangan savollar arxivlandi.');
@@ -134,10 +134,10 @@
 
     bulkDeleteBtn.addEventListener('click', async () => {
         const ids = selectedIds();
-        if (!ids.length || !confirm(`${ids.length} ta savolni butunlay o'chirishni tasdiqlaysizmi? Bu amalni qaytarib bo'lmaydi.`)) return;
+        if (!ids.length || !confirm(`${ids.length} ta savolni butunlay öçirişni tasdiqlaysizmi? Bu amalni qaytarib bölmaydi.`)) return;
         try {
             await window.QuizApi.post('questions/bulk-delete/', { ids });
-            window.QuizApi.toast('Tanlangan savollar o\'chirildi.');
+            window.QuizApi.toast('Tanlangan savollar öçirildi.');
             loadQuestions();
         } catch (err) {
             window.QuizApi.toast(err.message, 'error');

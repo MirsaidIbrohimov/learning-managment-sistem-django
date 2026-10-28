@@ -16,17 +16,17 @@
         <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
             <div>
                 <h1><i class="bi bi-file-earmark-excel"></i> Excel eksport</h1>
-                <p>Kerakli ustunlarni belgilang — hozirgi filtrga tushgan <b>{{ match_count }}</b> startup yuklab olinadi.</p>
+                <p>Kerakli ustunlarni belgilang — hozirgi filtrga tuşgan <b>{{ match_count }}</b> startup yuklab olinadi.</p>
             </div>
             <div class="sa-hero-actions">
-                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Ro'yxat</a>
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Röyxat</a>
             </div>
         </div>
 
         <form method="post" class="d-flex flex-column gap-3">
             {% csrf_token %}
-            {# Ro'yxat sahifasidagi filtrlar eksportga ham uzatiladi: admin nimani #}
-            {# ko'rgan bo'lsa, xuddi shuni yuklab oladi. #}
+            {# Röyxat sahifasidagi filtrlar eksportga ham uzatiladi: admin nimani #}
+            {# körgan bölsa, xuddi şuni yuklab oladi. #}
             {% for key, value in filters.items %}
                 {% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
             {% endfor %}
@@ -36,7 +36,7 @@
                     <h2 class="sa-section-title mb-0"><i class="bi bi-list-check"></i> Ustunlar</h2>
                     <div class="d-flex gap-2">
                         <button type="button" class="sa-btn sa-btn-sm" data-sa-all><i class="bi bi-check-all"></i> Hammasi</button>
-                        <button type="button" class="sa-btn sa-btn-sm" data-sa-none><i class="bi bi-x-lg"></i> Hech biri</button>
+                        <button type="button" class="sa-btn sa-btn-sm" data-sa-none><i class="bi bi-x-lg"></i> Heç biri</button>
                         <button type="button" class="sa-btn sa-btn-sm" data-sa-default><i class="bi bi-arrow-counterclockwise"></i> Standart</button>
                     </div>
                 </div>
@@ -54,8 +54,8 @@
             </div>
 
             <div class="d-flex flex-wrap gap-2 justify-content-end">
-                <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn">Bekor qilish</a>
-                <button type="submit" class="sa-btn sa-btn-success"><i class="bi bi-download"></i> .xlsx yuklab olish</button>
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn">Bekor qiliş</a>
+                <button type="submit" class="sa-btn sa-btn-success"><i class="bi bi-download"></i> .xlsx yuklab oliş</button>
             </div>
         </form>
     </div>

@@ -1,7 +1,7 @@
 /* AI fon vazifalari (ai_yordamchi/jobs.py).
-   Server AI so'rovini fonga ko'chirsa 202 + X-AI-Job qaytaradi. Bu qobiq natija
-   tayyor bo'lguncha kutadi va ASL javobni qaytaradi — sahifalardagi fetch kodi
-   o'zgarmasdan ishlaydi, sayt esa AI ishlayotganda boshqalar uchun band bo'lmaydi. */
+   Server AI sörovini fonga köçirsa 202 + X-AI-Job qaytaradi. Bu qobiq natija
+   tayyor bölgunça kutadi va ASL javobni qaytaradi — sahifalardagi fetch kodi
+   özgarmasdan işlaydi, sayt esa AI işlayotganda boşqalar uçun band bölmaydi. */
 (function () {
     if (!window.fetch || window.__aiJobFetch) return;
     window.__aiJobFetch = true;
@@ -25,7 +25,7 @@
                 });
             } catch (e) {
                 if (e && e.name === 'AbortError') throw e;
-                delay = 3000;  // tarmoq uzilishi — qayta urinamiz
+                delay = 3000;  // tarmoq uzilişi — qayta urinamiz
                 continue;
             }
             if (resp.status !== 202 || !resp.headers.get('X-AI-Job')) return resp;

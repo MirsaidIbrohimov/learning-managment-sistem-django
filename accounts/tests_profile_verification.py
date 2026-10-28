@@ -14,8 +14,8 @@ from accounts.models import CustomUser, UserSession
 
 VALID = {
     'first_name': 'Husan', 'last_name': 'Suyunov', 'birth_date': '2005-01-30', 'gender': 'male',
-    'nationality': "O'zbek", 'document_type': 'passport', 'passport_series': 'AB', 'passport_number': '1234567',
-    'jshshir': '53001050123456', 'father_name': 'Shavkat', 'mother_name': 'Dilnoza',
+    'nationality': "Özbek", 'document_type': 'passport', 'passport_series': 'AB', 'passport_number': '1234567',
+    'jshshir': '53001050123456', 'father_name': 'Şavkat', 'mother_name': 'Dilnoza',
     'parent_phone': '90 123 45 67', 'school_name': 'Maktab', 'school_number': '15', 'address': 'Zomin',
 }
 
@@ -62,7 +62,7 @@ class ProfileFormTests(TestCase):
         form = self.form(birth_date='2005-01-31', gender='female')
         self.assertFalse(form.is_valid())
         errors = ' '.join(form.errors['jshshir'])
-        self.assertIn("tug'ilgan sanangiz bilan mos emas", errors)
+        self.assertIn("tuğilgan sanangiz bilan mos emas", errors)
         self.assertIn('jinsingiz bilan mos emas', errors)
 
     def test_metrka_needs_no_jshshir(self):
@@ -76,7 +76,7 @@ class ProfileFormTests(TestCase):
 
 
 class BirthDateNotLostTests(TestCase):
-    """Admin profilni tahrirlaganda tug'ilgan sana o'chib qolmasligi kerak."""
+    """Admin profilni tahrirlaganda tuğilgan sana öçib qolmasligi kerak."""
 
     def test_date_inputs_render_iso_value(self):
         user = CustomUser(username='x', birth_date=datetime.date(2005, 1, 30))

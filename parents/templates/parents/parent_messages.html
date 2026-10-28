@@ -38,7 +38,7 @@
         <a class="pm-back" href="{% url 'parents:admin_parents' %}"><i class="bi bi-arrow-left"></i></a>
         <div>
             <h4 style="margin:0;font-weight:800;">💬 Ota-onalar xabarlari</h4>
-            <small style="color:var(--p-muted);">Ota-ona panelidagi “Xabarlar” bo‘limidan yozilgan savollar. Javobingiz ota-onaga darhol ko‘rinadi.</small>
+            <small style="color:var(--p-muted);">Ota-ona panelidagi “Xabarlar” bölimidan yozilgan savollar. Javobingiz ota-onaga darhol körinadi.</small>
         </div>
     </div>
 
@@ -46,7 +46,7 @@
         <div class="pm-tabs">
             <a class="pm-tab {% if status == 'waiting' %}on{% endif %}" href="?status=waiting">Javob kutmoqda<span class="n">{{ waiting_count }}</span></a>
             <a class="pm-tab {% if status == 'answered' %}on{% endif %}" href="?status=answered">Javob berilgan<span class="n">{{ answered_count }}</span></a>
-            <a class="pm-tab {% if status == 'all' %}on{% endif %}" href="?status=all">Barchasi<span class="n">{{ total_count }}</span></a>
+            <a class="pm-tab {% if status == 'all' %}on{% endif %}" href="?status=all">Barçasi<span class="n">{{ total_count }}</span></a>
         </div>
         <form class="pm-search" method="get">
             <input type="hidden" name="status" value="{{ status }}">
@@ -68,24 +68,24 @@
         <div class="pm-body">{{ m.message }}</div>
         {% if m.reply %}
         <div class="pm-reply"><b><i class="bi bi-reply-fill"></i> {{ m.replied_by.full_name|default:"Admin" }}</b> · {{ m.replied_at|date:"d.m.Y H:i" }}
-            {% if m.reply_seen_by_parent %}<span style="color:var(--p-success);font-weight:600;"> · ✓ ota-ona ko‘rdi</span>{% endif %}<br>{{ m.reply }}</div>
+            {% if m.reply_seen_by_parent %}<span style="color:var(--p-success);font-weight:600;"> · ✓ ota-ona kördi</span>{% endif %}<br>{{ m.reply }}</div>
         {% endif %}
         <form method="post" class="pm-form" action="?{{ request.GET.urlencode }}">
             {% csrf_token %}
             <input type="hidden" name="message_id" value="{{ m.pk }}">
-            <textarea name="reply" required placeholder="{% if m.reply %}Javobni yangilash...{% else %}Javobingizni yozing...{% endif %}"></textarea>
+            <textarea name="reply" required placeholder="{% if m.reply %}Javobni yangilaş...{% else %}Javobingizni yozing...{% endif %}"></textarea>
             <div class="pm-quick">
-                <button type="button" data-q="Assalomu alaykum! Xabaringiz uchun rahmat. Farzandingiz darslarda faol qatnashmoqda.">👍 Yaxshi o‘qiyapti</button>
+                <button type="button" data-q="Assalomu alaykum! Xabaringiz uchun rahmat. Farzandingiz darslarda faol qatnashmoqda.">👍 Yaxşi öqiyapti</button>
                 <button type="button" data-q="Assalomu alaykum! Ma’lumot uchun rahmat, ustozga yetkazdik.">✅ Qabul qilindi</button>
-                <button type="button" data-q="Assalomu alaykum! Batafsil gaplashish uchun siz bilan qo‘ng‘iroq orqali bog‘lanamiz.">📞 Qo‘ng‘iroq qilamiz</button>
+                <button type="button" data-q="Assalomu alaykum! Batafsil gaplashish uchun siz bilan qo‘ng‘iroq orqali bog‘lanamiz.">📞 Qönğiroq qilamiz</button>
             </div>
-            <button class="pm-btn" type="submit"><i class="bi bi-send-fill"></i> {% if m.reply %}Javobni yangilash{% else %}Javob yuborish{% endif %}</button>
+            <button class="pm-btn" type="submit"><i class="bi bi-send-fill"></i> {% if m.reply %}Javobni yangilaş{% else %}Javob yuboriş{% endif %}</button>
         </form>
     </div>
     {% empty %}
     <div class="pm-card" style="text-align:center;padding:2.5rem 1rem;color:var(--p-muted);">
         <i class="bi bi-inbox" style="font-size:2.2rem;display:block;margin-bottom:.5rem;"></i>
-        {% if status == 'waiting' %}Javob kutayotgan xabar yo‘q — barchasiga javob berilgan 🎉{% else %}Xabarlar topilmadi.{% endif %}
+        {% if status == 'waiting' %}Javob kutayotgan xabar yöq — barçasiga javob berilgan 🎉{% else %}Xabarlar topilmadi.{% endif %}
     </div>
     {% endfor %}
 </div>

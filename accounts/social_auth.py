@@ -1,15 +1,15 @@
-"""Tashqi hisoblarni (Google, Facebook) profilga ulash va ular orqali kirish (OAuth 2.0).
+"""Taşqi hisoblarni (Google, Facebook) profilga ulaş va ular orqali kiriş (OAuth 2.0).
 
-Oqim (har bir xizmat uchun bir xil):
+Oqim (har bir xizmat uçun bir xil):
   1. /auth/<xizmat>/connect/ (profil) yoki /auth/<xizmat>/login/ (login sahifasi)
-     -> sessiyaga tasodifiy `state` yoziladi va foydalanuvchi xizmat sahifasiga yuboriladi.
+     -> sessiyaga tasodifiy `state` yoziladi va foydalanuvçi xizmat sahifasiga yuboriladi.
   2. Xizmat -> /auth/<xizmat>/callback/?code=...&state=...
-     -> state tekshiriladi, code serverdan-serverga access_token'ga almashtiriladi,
-        profildan o'zgarmas ID, email, ism va rasm olinadi.
-  3. connect: SocialAccount yaratiladi. login: shu ID ulangan foydalanuvchi
-     odatdagi login jarayonidan (`_complete_login`) o'tkaziladi.
+     -> state tekşiriladi, code serverdan-serverga access_token'ga almaştiriladi,
+        profildan özgarmas ID, email, ism va rasm olinadi.
+  3. connect: SocialAccount yaratiladi. login: şu ID ulangan foydalanuvçi
+     odatdagi login jarayonidan (`_complete_login`) ötkaziladi.
 
-Faqat oldin profilga ulangan hisob bilan kirish mumkin — yangi akkaunt avtomatik
+Faqat oldin profilga ulangan hisob bilan kiriş mumkin — yangi akkaunt avtomatik
 yaratilmaydi.
 """
 import hashlib
@@ -50,7 +50,7 @@ PROVIDERS = {
         'settings': ('FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET', 'FACEBOOK_REDIRECT_URI'),
         'auth_url': 'https://www.facebook.com/' + getattr(settings, 'FACEBOOK_GRAPH_VERSION', 'v21.0') + '/dialog/oauth',
         'scope': 'email,public_profile',
-        # Foydalanuvchi oldin email ruxsatini rad etgan bo'lsa — qayta so'raladi
+        # Foydalanuvçi oldin email ruxsatini rad etgan bölsa — qayta söraladi
         'extra': {'auth_type': 'rerequest'},
     },
 }
@@ -73,11 +73,11 @@ def is_configured(provider):
 
 
 def redirect_uri(request, provider):
-    """Xizmat konsolidagi redirect URI bilan harfma-harf mos bo'lishi shart.
+    """Xizmat konsolidagi redirect URI bilan harfma-harf mos bölişi şart.
 
-    Asosiy domen (SITE_URL) uchun manzil SITE_URL'dan quriladi: proxy (cPanel/Passenger)
-    X-Forwarded-Proto yubormasa ham `https://` saqlanadi. Boshqa hostlar (lokal) uchun —
-    so'rov kelgan manzildan.
+    Asosiy domen (SITE_URL) uçun manzil SITE_URL'dan quriladi: proxy (cPanel/Passenger)
+    X-Forwarded-Proto yubormasa ham `https://` saqlanadi. Boşqa hostlar (lokal) uçun —
+    sörov kelgan manzildan.
     """
     configured = getattr(settings, PROVIDERS[provider]['settings'][2], '')
     if configured:
@@ -89,7 +89,7 @@ def redirect_uri(request, provider):
     return request.build_absolute_uri(path)
 
 
-# ---------------- Profilni olish ----------------
+# ---------------- Profilni oliş ----------------
 
 def _fetch_google(request, code):
     client_id, secret = _credentials('google')
@@ -148,8 +148,8 @@ def _fetch_facebook(request, code):
     picture = ((info.get('picture') or {}).get('data') or {}).get('url', '')
     return {
         'uid': info.get('id'),
-        # Facebook faqat tasdiqlangan emailni qaytaradi; telefon bilan ochilgan
-        # akkauntlarda email bo'lmasligi mumkin — ulash Facebook ID orqali bo'ladi.
+        # Facebook faqat tasdiqlangan emailni qaytaradi; telefon bilan oçilgan
+        # akkauntlarda email bölmasligi mumkin — ulaş Facebook ID orqali böladi.
         'email': info.get('email') or '',
         'email_verified': True,
         'name': info.get('name') or '',
@@ -174,7 +174,7 @@ def fetch_profile(request, provider, code):
 def _start(request, provider, mode):
     conf = _provider(provider)
     if not is_configured(provider):
-        messages.error(request, f"{conf['label']} orqali ulanish hozircha sozlanmagan. Administrator bilan bog'laning.")
+        messages.error(request, f"{conf['label']} orqali ulaniş hozirça sozlanmagan. Administrator bilan boğlaning.")
         return redirect('profile' if mode == 'connect' else 'login')
 
     state = secrets.token_urlsafe(32)
@@ -218,17 +218,17 @@ def social_callback(request, provider):
     state = request.GET.get('state', '')
     if (data.get('provider') != provider or not data.get('state') or not state
             or not constant_time_compare(data['state'], state)):
-        messages.error(request, f"{label} so'rovi eskirgan yoki noto'g'ri. Qaytadan urinib ko'ring.")
+        messages.error(request, f"{label} sörovi eskirgan yoki notöğri. Qaytadan urinib köring.")
         return redirect(fail_to)
 
     if request.GET.get('error'):
-        messages.info(request, f"{label} bilan ulanish bekor qilindi.")
+        messages.info(request, f"{label} bilan ulaniş bekor qilindi.")
         return redirect(fail_to)
 
     code = request.GET.get('code', '')
     profile = fetch_profile(request, provider, code) if code else None
     if not profile or not profile.get('uid'):
-        messages.error(request, f"{label} bilan bog'lanib bo'lmadi. Birozdan keyin qayta urinib ko'ring.")
+        messages.error(request, f"{label} bilan boğlanib bölmadi. Birozdan keyin qayta urinib köring.")
         return redirect(fail_to)
     if not profile.get('email_verified'):
         messages.error(request, f"Bu {label} hisobining emaili tasdiqlanmagan.")
@@ -245,12 +245,12 @@ def _finish_connect(request, provider, data, profile):
     label = PROVIDERS[provider]['label']
     user = request.user
     if not user.is_authenticated or user.pk != data.get('user_id'):
-        messages.error(request, "Sessiya o'zgargan. Tizimga qayta kiring va qaytadan ulang.")
+        messages.error(request, "Sessiya özgargan. Tizimga qayta kiring va qaytadan ulang.")
         return redirect('login')
 
     uid = str(profile['uid'])
     if SocialAccount.objects.filter(provider=provider, uid=uid).exclude(user=user).exists():
-        messages.error(request, f"Bu {label} hisob boshqa foydalanuvchi profiliga ulangan.")
+        messages.error(request, f"Bu {label} hisob boşqa foydalanuvçi profiliga ulangan.")
         return redirect('profile')
 
     SocialAccount.objects.update_or_create(
@@ -269,7 +269,7 @@ def _finish_connect(request, provider, data, profile):
             f"🔗 <b>Hisobingizga {label} ulandi</b>\n\n"
             f"👤 {profile['email'] or profile['name']}\n"
             f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
-            f"⚠️ Agar buni siz qilmagan bo'lsangiz, darhol profilingizdan uzing va parolni o'zgartiring!"
+            f"⚠️ Agar buni siz qilmagan bölsangiz, darhol profilingizdan uzing va parolni özgartiring!"
         )
     messages.success(request, f"{label} hisobingiz muvaffaqiyatli ulandi! Endi login sahifasida «{label}» tugmasi bilan kira olasiz.")
     return redirect(reverse('profile') + f'?connected={provider}#connected-accounts')
@@ -289,14 +289,14 @@ def _finish_login(request, provider, profile):
     if account is None:
         messages.error(
             request,
-            f"Bu {label} hisob hech qaysi profilga ulanmagan. Avval odatdagidek kiring, "
-            f"so'ng Profil → «Ulangan hisoblar» bo'limidan {label}'ni ulang."
+            f"Bu {label} hisob heç qaysi profilga ulanmagan. Avval odatdagidek kiring, "
+            f"söng Profil → «Ulangan hisoblar» bölimidan {label}'ni ulang."
         )
         return redirect('login')
 
     user = account.user
     if not user.is_active:
-        messages.error(request, "Akkauntingiz bloklangan. Iltimos, administrator bilan bog'laning. ⛔")
+        messages.error(request, "Akkauntingiz bloklangan. Iltimos, administrator bilan boğlaning. ⛔")
         return redirect('login')
 
     SocialAccount.objects.filter(pk=account.pk).update(last_login_at=timezone.now())
@@ -321,11 +321,11 @@ def social_disconnect(request, provider):
 @login_required
 @require_POST
 def admin_unlink_social(request, pk):
-    """Admin: boshqa foydalanuvchiga ulangan tashqi hisobni (Google/Facebook) uzish."""
+    """Admin: boşqa foydalanuvçiga ulangan taşqi hisobni (Google/Facebook) uziş."""
     from .models import Message
 
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        messages.error(request, "Sizda bu amalni bajariş huquqi yöq!")
         return redirect('home')
 
     account = SocialAccount.objects.select_related('user').filter(pk=pk).first()
@@ -335,7 +335,7 @@ def admin_unlink_social(request, pk):
         nxt = reverse('telegram_bot:admin_telegram') + f'?tab={tab}'
 
     if account is None:
-        messages.error(request, "Hisob topilmadi yoki allaqachon uzilgan.")
+        messages.error(request, "Hisob topilmadi yoki allaqaçon uzilgan.")
         return redirect(nxt)
 
     label = account.get_provider_display()
@@ -346,7 +346,7 @@ def admin_unlink_social(request, pk):
     Message.objects.create(
         title=f"{label} hisobingiz uzildi",
         content=(f"Administrator profilingizga ulangan {label} hisobni ({ident}) uzdi. "
-                 "Kerak bo'lsa Profil → «Ulangan hisoblar» bo'limidan qaytadan ulashingiz mumkin."),
+                 "Kerak bölsa Profil → «Ulangan hisoblar» bölimidan qaytadan ulaşingiz mumkin."),
         message_type='security', recipient=target, sender=request.user,
     )
     if target.telegram_id:
@@ -356,7 +356,7 @@ def admin_unlink_social(request, pk):
             f"🔓 <b>{label} hisobingiz uzildi</b>\n\n"
             f"👤 {ident}\n"
             f"Administrator profilingizga ulangan {label} hisobni uzdi.\n"
-            "Kerak bo'lsa profilingiz orqali qaytadan ulashingiz mumkin."
+            "Kerak bölsa profilingiz orqali qaytadan ulaşingiz mumkin."
         )
     messages.success(request, f"{target.full_name or target.username} ning {label} hisobi uzildi.")
     return redirect(nxt)

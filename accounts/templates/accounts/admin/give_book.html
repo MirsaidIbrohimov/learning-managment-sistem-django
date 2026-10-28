@@ -1,16 +1,16 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Kitob berish - Kutubxona{% endblock %}
+{% block title %}Kitob beriş - Kutubxona{% endblock %}
 
 {% block admin_content %}
 <div class="container-fluid py-4">
     <!-- Header -->
     <div class="mb-4">
         <a href="{% url 'admin_book_rentals' %}" class="text-decoration-none text-muted">
-            <i class="bi bi-arrow-left me-1"></i>Ijaralarga qaytish
+            <i class="bi bi-arrow-left me-1"></i>Ijaralarga qaytiş
         </a>
         <h4 class="mt-2 mb-0">
-            <i class="bi bi-book-half me-2"></i>O'quvchiga kitob berish
+            <i class="bi bi-book-half me-2"></i>Öquvçiga kitob beriş
         </h4>
         <p class="text-muted mb-0">Berilgan sana avtomatik bugungi sana olinadi</p>
     </div>
@@ -35,9 +35,9 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">O'quvchi *</label>
+                            <label class="form-label fw-semibold">Öquvçi *</label>
                             <select name="student_id" class="form-select" required>
-                                <option value="">O'quvchini tanlang...</option>
+                                <option value="">Öquvçini tanlang...</option>
                                 {% for student in students %}
                                 <option value="{{ student.pk }}">{{ student.full_name }} ({{ student.phone|default:student.email }})</option>
                                 {% endfor %}
@@ -51,19 +51,19 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Qaytarish sanasi *</label>
+                            <label class="form-label fw-semibold">Qaytariş sanasi *</label>
                             <input type="date" name="return_date" class="form-control" required min="{{ today|date:'Y-m-d' }}">
                         </div>
                         
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Izoh (ixtiyoriy)</label>
-                            <textarea name="notes" class="form-control" rows="2" placeholder="Qo'shimcha izoh..."></textarea>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Qöşimça izoh..."></textarea>
                         </div>
                         
                         <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-book-half me-2"></i>Kitobni berish
+                            <i class="bi bi-book-half me-2"></i>Kitobni beriş
                         </button>
-                        <a href="{% url 'admin_book_rentals' %}" class="btn btn-secondary">Bekor qilish</a>
+                        <a href="{% url 'admin_book_rentals' %}" class="btn btn-secondary">Bekor qiliş</a>
                     </form>
                 </div>
             </div>
@@ -76,10 +76,10 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted small mb-2">
-                        Kitob berilgach, o'quvchiga xabar yuboriladi: "Ijaraga shu kitob berildi, qaytarish sanasi kelmoqda"
+                        Kitob berilgaç, öquvçiga xabar yuboriladi: "Ijaraga şu kitob berildi, qaytariş sanasi kelmoqda"
                     </p>
                     <p class="text-muted small mb-2">
-                        3 kun oldin va qaytarish kuni eslatma xabarlari avtomatik yuboriladi
+                        3 kun oldin va qaytariş kuni eslatma xabarlari avtomatik yuboriladi
                     </p>
                     <p class="text-muted small mb-0">
                         Ota-onalarga ham farzandlarining ijaradagi kitoblari haqida xabar boradi

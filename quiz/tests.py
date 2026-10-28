@@ -61,8 +61,8 @@ def make_user(role, username, **extra):
         # ProfileCompletionMiddleware before ever reaching the view. Tests
         # that specifically need an incomplete profile should override this.
         'is_profile_completed': True,
-        # Middleware `is_profile_completed` flagidan tashqari `birth_date`ni
-        # ham talab qiladi — ikkisidan biri bo'sh bo'lsa redirect qiladi.
+        # Middleware `is_profile_completed` flagidan taşqari `birth_date`ni
+        # ham talab qiladi — ikkisidan biri böş bölsa redirect qiladi.
         'birth_date': date(2000, 1, 1),
     }
     defaults.update(extra)
@@ -862,7 +862,7 @@ class AttemptAPITests(TestCase):
 
 class LegacyTestResultDualWriteTests(TestCase):
     """
-    Covers the dual-write shim in _finalize_attempt / _dual_write_legacy_
+    Covers the dual-write şim in _finalize_attempt / _dual_write_legacy_
     test_result. Husanbek's explicit instruction (2026-06-28): all student
     test-taking on the live platform now cuts over to the new quiz/Attempt
     system, but 8 files outside the `quiz` app still read accounts.
@@ -1220,8 +1220,8 @@ class LegacyTestCutoverRedirectTests(TestCase):
     # -- lesson_view: PK URL, only ever reached by teacher/admin (students
     # are bounced to the token URL by _redirect_student_to_token) --
 
-    # O'qituvchi/admin dars sahifasidan quizni boshqarish (tahrirlash) sahifasiga
-    # o'tadi — test topshirish sahifasi faqat o'quvchilar uchun.
+    # Öqituvchi/admin dars sahifasidan quizni boşqariş (tahrirlaş) sahifasiga
+    # ötadi — test topşiriş sahifasi faqat öquvçilar uçun.
     def test_lesson_view_redirects_to_new_quiz_for_migrated_non_final_test(self):
         lesson, test, quiz = self._make_migrated_pair('Migrated lesson test')
         teacher = make_user('teacher', 'cutover_teacher')
@@ -1495,11 +1495,11 @@ class QuizRetryPaymentRequestPageTests(TestCase):
         self._submit_first_attempt()
         QuizRetryPayment.objects.create(
             student=self.student, quiz=self.quiz, receipt_image=make_receipt_file(),
-            status='rejected', reject_reason='Chek noaniq',
+            status='rejected', reject_reason='Çek noaniq',
         )
         resp = self.client.get(self.url)
         self.assertIsNotNone(resp.context['rejected_payment'])
-        self.assertEqual(resp.context['rejected_payment'].reject_reason, 'Chek noaniq')
+        self.assertEqual(resp.context['rejected_payment'].reject_reason, 'Çek noaniq')
 
     def test_post_creates_pending_payment_with_receipt_and_amount(self):
         self._login(self.student)
@@ -1663,11 +1663,11 @@ class QuizRetryPaymentApproveRejectViewTests(TestCase):
 
     def test_admin_can_reject_with_reason(self):
         self._login(self.admin)
-        resp = self.client.post(f'/quiz/retry-payments/{self.payment.id}/reject/', {'reason': 'Chek noaniq'})
+        resp = self.client.post(f'/quiz/retry-payments/{self.payment.id}/reject/', {'reason': 'Çek noaniq'})
         self.assertEqual(resp.status_code, 302)
         self.payment.refresh_from_db()
         self.assertEqual(self.payment.status, 'rejected')
-        self.assertEqual(self.payment.reject_reason, 'Chek noaniq')
+        self.assertEqual(self.payment.reject_reason, 'Çek noaniq')
 
     def test_teacher_in_profession_can_approve(self):
         self._login(self.teacher)

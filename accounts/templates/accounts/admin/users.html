@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Foydalanuvchilar - Admin Panel{% endblock %}
+{% block title %}Foydalanuvçilar - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -484,7 +484,7 @@
 /* Loading state */
 .au-row.is-loading { opacity: 0.55; pointer-events: none; }
 
-/* ===== AI Foydalanuvchi Boshqaruvchisi paneli (.uai-) ===== */
+/* ===== AI Foydalanuvçi Boşqaruvçisi paneli (.uai-) ===== */
 .uai-card {
     position: relative;
     border-radius: 22px; overflow: hidden; margin-bottom: 1.25rem;
@@ -665,8 +665,8 @@
     <div class="au-hero">
         <div class="au-hero-top">
             <div>
-                <h1 class="au-hero-title"><i class="bi bi-people-fill"></i> Foydalanuvchilar</h1>
-                <p class="au-hero-sub">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+                <h1 class="au-hero-title"><i class="bi bi-people-fill"></i> Foydalanuvçilar</h1>
+                <p class="au-hero-sub">Barça foydalanuvçilarni boşqariş, izlaş va filtrlaş</p>
             </div>
 
             <div class="au-actions-menu">
@@ -681,29 +681,29 @@
                         <div>
                             <div>Excel Export</div>
                             <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">
-                                {% if group_filter and group_filter != 'none' %}Guruh bo'yicha{% else %}Barchasi{% endif %}
+                                {% if group_filter and group_filter != 'none' %}Guruh böyiça{% else %}Barçasi{% endif %}
                             </div>
                         </div>
                     </a>
                     <a href="{% url 'admin_add_teacher' %}">
                         <i class="ai-teacher bi bi-person-plus-fill"></i>
                         <div>
-                            <div>O'qituvchi qo'shish</div>
-                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi o'qituvchi</div>
+                            <div>Öqituvçi qöşiş</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi öqituvçi</div>
                         </div>
                     </a>
                     <a href="{% url 'admin_add_assistant_admin' %}">
                         <i class="ai-assist bi bi-person-fill-gear"></i>
                         <div>
-                            <div>Yordamchi admin qo'shish</div>
-                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi yordamchi</div>
+                            <div>Yordamçi admin qöşiş</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi yordamçi</div>
                         </div>
                     </a>
                     <a href="{% url 'assistant_admin_dashboard' %}">
                         <i class="ai-panel bi bi-speedometer2"></i>
                         <div>
-                            <div>Yordamchi paneli</div>
-                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Boshqaruv panelini ochish</div>
+                            <div>Yordamçi paneli</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Boşqaruv panelini oçiş</div>
                         </div>
                     </a>
                 </div>
@@ -716,21 +716,21 @@
                 <div class="au-stat-icon"><i class="bi bi-people-fill"></i></div>
                 <div>
                     <div class="au-stat-val">{{ total_count }}</div>
-                    <div class="au-stat-lbl">Jami foydalanuvchi</div>
+                    <div class="au-stat-lbl">Jami foydalanuvçi</div>
                 </div>
             </div>
             <div class="au-stat">
                 <div class="au-stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
                 <div>
                     <div class="au-stat-val">{{ students_count }}</div>
-                    <div class="au-stat-lbl">O'quvchilar</div>
+                    <div class="au-stat-lbl">Öquvçilar</div>
                 </div>
             </div>
             <div class="au-stat">
                 <div class="au-stat-icon"><i class="bi bi-person-workspace"></i></div>
                 <div>
                     <div class="au-stat-val">{{ teachers_count }}</div>
-                    <div class="au-stat-lbl">O'qituvchilar</div>
+                    <div class="au-stat-lbl">Öqituvçilar</div>
                 </div>
             </div>
             <div class="au-stat">
@@ -744,28 +744,28 @@
                 <div class="au-stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
                 <div>
                     <div class="au-stat-val">{{ contract_count }}</div>
-                    <div class="au-stat-lbl">Shartnoma</div>
+                    <div class="au-stat-lbl">Şartnoma</div>
                 </div>
             </div>
             <div class="au-stat">
                 <div class="au-stat-icon" style="background:rgba(239,68,68,0.25);"><i class="bi bi-calendar-x-fill"></i></div>
                 <div>
                     <div class="au-stat-val" style="color:#ffd6d6;">{{ dob_missing_count }}</div>
-                    <div class="au-stat-lbl">Tug'ilgan sanasi yo'q</div>
+                    <div class="au-stat-lbl">Tuğilgan sanasi yöq</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ═══════════ AI FOYDALANUVCHI BOSHQARUVCHISI ═══════════ -->
+    <!-- ═══════════ AI FOYDALANUVÇI BOŞQARUVÇISI ═══════════ -->
     <div class="uai-card collapsed" id="uaiCard">
         <div class="uai-head" id="uaiHead">
             <div class="uai-head-ic"><i class="bi bi-robot"></i></div>
             <div>
-                <h5>AI Foydalanuvchi Boshqaruvchisi</h5>
-                <p>Foydalanuvchilar haqida savol bering yoki buyruq bering — bazada amalga oshiradi</p>
+                <h5>AI Foydalanuvçi Boşqaruvçisi</h5>
+                <p>Foydalanuvçilar haqida savol bering yoki buyruq bering — bazada amalga oşiradi</p>
             </div>
-            <span class="uai-badge {% if not ai_available %}off{% endif %}" title="{% if ai_available %}OpenAI GPT rejimi faol{% else %}OpenAI kaliti yo'q — offline rejim{% endif %}">
+            <span class="uai-badge {% if not ai_available %}off{% endif %}" title="{% if ai_available %}OpenAI GPT rejimi faol{% else %}OpenAI kaliti yöq — offline rejim{% endif %}">
                 <span class="dot"></span>{% if ai_available %}GPT rejim{% else %}Offline rejim{% endif %}
             </span>
             <i class="bi bi-chevron-down uai-toggle"></i>
@@ -774,19 +774,19 @@
             <div class="uai-thread" id="uaiThread"></div>
 
             <div class="uai-chips">
-                <button type="button" class="uai-chip"><i class="bi bi-type-bold"></i>Barcha ismlarni bosh harfini katta qilib chiq</button>
-                <button type="button" class="uai-chip"><i class="bi bi-shield-lock"></i>Bloklanganlar ro'yxatini ko'rsat</button>
-                <button type="button" class="uai-chip"><i class="bi bi-graph-up"></i>Foydalanuvchilar statistikasi</button>
-                <button type="button" class="uai-chip"><i class="bi bi-person-plus"></i>Eng yangi 5 ta foydalanuvchi</button>
+                <button type="button" class="uai-chip"><i class="bi bi-type-bold"></i>Barça ismlarni boş harfini katta qilib çiq</button>
+                <button type="button" class="uai-chip"><i class="bi bi-shield-lock"></i>Bloklanganlar röyxatini körsat</button>
+                <button type="button" class="uai-chip"><i class="bi bi-graph-up"></i>Foydalanuvçilar statistikasi</button>
+                <button type="button" class="uai-chip"><i class="bi bi-person-plus"></i>Eng yangi 5 ta foydalanuvçi</button>
                 <button type="button" class="uai-chip"><i class="bi bi-wifi"></i>Hozir onlayn kimlar bor?</button>
             </div>
 
             <form class="uai-form" id="uaiForm" autocomplete="off">
                 {% csrf_token %}
                 <input type="text" class="uai-input" id="uaiInput" maxlength="600"
-                       placeholder="Masalan: Axmatni blokdan chiqar  •  Madina haqida ma'lumot ber">
+                       placeholder="Masalan: Axmatni blokdan çiqar  •  Madina haqida ma'lumot ber">
                 <button type="submit" class="uai-send" id="uaiSend">
-                    <i class="bi bi-send-fill"></i><span class="d-none d-sm-inline">Yuborish</span>
+                    <i class="bi bi-send-fill"></i><span class="d-none d-sm-inline">Yuboriş</span>
                 </button>
             </form>
         </div>
@@ -800,10 +800,10 @@
             <div class="au-search">
                 <i class="bi bi-search au-search-icon"></i>
                 <input type="text" name="q" class="au-search-input" id="auSearchInput"
-                       placeholder="Ism, username, ID yoki telefon bo'yicha izlash..."
+                       placeholder="Ism, username, ID yoki telefon böyiça izlaş..."
                        value="{{ search_query }}" autocomplete="off">
                 <button type="button" class="au-search-clear {% if search_query %}au-show{% endif %}"
-                        id="auSearchClear" title="Tozalash">
+                        id="auSearchClear" title="Tozalaş">
                     <i class="bi bi-x-circle-fill"></i>
                 </button>
             </div>
@@ -815,17 +815,17 @@
             </button>
 
             <select name="sort" class="au-sort-select" onchange="document.getElementById('auForm').submit()">
-                <option value="">Yangi birinchi</option>
-                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Yangi birinchi</option>
-                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
+                <option value="">Yangi birinçi</option>
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Yangi birinçi</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinçi</option>
                 <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism (A-Z)</option>
                 <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Ism (Z-A)</option>
-                <option value="activity" {% if sort_by == 'activity' %}selected{% endif %}>Faollik bo'yicha</option>
+                <option value="activity" {% if sort_by == 'activity' %}selected{% endif %}>Faollik böyiça</option>
             </select>
 
             <div class="au-view-toggle" id="auViewToggle">
-                <button type="button" data-view="list" class="is-active" title="Ro'yxat"><i class="bi bi-list-ul"></i></button>
-                <button type="button" data-view="grid" title="Kartochka"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+                <button type="button" data-view="list" class="is-active" title="Röyxat"><i class="bi bi-list-ul"></i></button>
+                <button type="button" data-view="grid" title="Kartoçka"><i class="bi bi-grid-3x3-gap-fill"></i></button>
             </div>
         </div>
 
@@ -835,17 +835,17 @@
                 <div class="au-filter-group">
                     <label><i class="bi bi-person-badge me-1"></i>Rol</label>
                     <select name="role" class="au-filter-select">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
-                        <option value="assistant_admin" {% if role_filter == 'assistant_admin' %}selected{% endif %}>Yordamchi admin</option>
-                        <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O'qituvchi</option>
-                        <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O'quvchi</option>
+                        <option value="assistant_admin" {% if role_filter == 'assistant_admin' %}selected{% endif %}>Yordamçi admin</option>
+                        <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>Öqituvçi</option>
+                        <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Öquvçi</option>
                     </select>
                 </div>
                 <div class="au-filter-group">
-                    <label><i class="bi bi-mortarboard me-1"></i>Yo'nalish</label>
+                    <label><i class="bi bi-mortarboard me-1"></i>Yönaliş</label>
                     <select name="profession" class="au-filter-select">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for p in professions %}
                         <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>
                             {{ p.name }}
@@ -856,7 +856,7 @@
                 <div class="au-filter-group">
                     <label><i class="bi bi-shield-check me-1"></i>Status</label>
                     <select name="status" class="au-filter-select">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
                         <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Bloklangan</option>
                     </select>
@@ -864,8 +864,8 @@
                 <div class="au-filter-group">
                     <label><i class="bi bi-people me-1"></i>Guruh</label>
                     <select name="group" class="au-filter-select">
-                        <option value="">Barchasi</option>
-                        <option value="none" {% if group_filter == 'none' %}selected{% endif %}>Guruhsiz o'quvchilar</option>
+                        <option value="">Barçasi</option>
+                        <option value="none" {% if group_filter == 'none' %}selected{% endif %}>Guruhsiz öquvçilar</option>
                         {% for g in groups %}
                         <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>
                             {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
@@ -874,17 +874,17 @@
                     </select>
                 </div>
                 <div class="au-filter-group">
-                    <label><i class="bi bi-cash-coin me-1"></i>To'lov turi</label>
+                    <label><i class="bi bi-cash-coin me-1"></i>Tölov turi</label>
                     <select name="payment" class="au-filter-select">
-                        <option value="">Barchasi</option>
-                        <option value="contract" {% if payment_filter == 'contract' %}selected{% endif %}>Shartnoma</option>
+                        <option value="">Barçasi</option>
+                        <option value="contract" {% if payment_filter == 'contract' %}selected{% endif %}>Şartnoma</option>
                         <option value="balance" {% if payment_filter == 'balance' %}selected{% endif %}>Oddiy (balans)</option>
                     </select>
                 </div>
                 <div class="au-filter-group">
-                    <label><i class="bi bi-calendar-event me-1"></i>Tug'ilgan sana</label>
+                    <label><i class="bi bi-calendar-event me-1"></i>Tuğilgan sana</label>
                     <select name="dob" class="au-filter-select">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         <option value="has" {% if dob_filter == 'has' %}selected{% endif %}>Kiritilgan</option>
                         <option value="missing" {% if dob_filter == 'missing' %}selected{% endif %}>❌ Kiritilmagan</option>
                     </select>
@@ -892,10 +892,10 @@
             </div>
             <div class="au-filter-actions">
                 <a href="{% url 'admin_users' %}" class="au-btn-reset">
-                    <i class="bi bi-arrow-counterclockwise"></i> Tozalash
+                    <i class="bi bi-arrow-counterclockwise"></i> Tozalaş
                 </a>
                 <button type="submit" class="au-btn-apply">
-                    <i class="bi bi-check2"></i> Qo'llash
+                    <i class="bi bi-check2"></i> Qöllaş
                 </button>
             </div>
         </div>
@@ -916,13 +916,13 @@
         {% if role_filter %}
         <span class="au-chip">
             <i class="bi bi-person-badge"></i>
-            {% if role_filter == 'admin' %}Admin{% elif role_filter == 'assistant_admin' %}Yordamchi admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+            {% if role_filter == 'admin' %}Admin{% elif role_filter == 'assistant_admin' %}Yordamçi admin{% elif role_filter == 'teacher' %}Öqituvçi{% else %}Öquvçi{% endif %}
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if profession_filter %}
         <span class="au-chip">
-            <i class="bi bi-mortarboard"></i> Yo'nalish
+            <i class="bi bi-mortarboard"></i> Yönaliş
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
@@ -936,14 +936,14 @@
         {% if group_filter %}
         <span class="au-chip">
             <i class="bi bi-people-fill"></i>
-            {% if group_filter == 'none' %}Guruhsiz o'quvchilar{% else %}{% for g in groups %}{% if group_filter == g.id|stringformat:"i" %}{{ g.name }}{% endif %}{% endfor %}{% endif %}
+            {% if group_filter == 'none' %}Guruhsiz öquvçilar{% else %}{% for g in groups %}{% if group_filter == g.id|stringformat:"i" %}{{ g.name }}{% endif %}{% endfor %}{% endif %}
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if payment_filter %}
         <span class="au-chip">
             <i class="bi bi-cash-coin"></i>
-            {% if payment_filter == 'contract' %}Shartnoma{% else %}Oddiy (balans){% endif %}
+            {% if payment_filter == 'contract' %}Şartnoma{% else %}Oddiy (balans){% endif %}
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
@@ -988,12 +988,12 @@
             <div class="au-phone au-desktop" style="flex-direction:column;align-items:flex-start;gap:0;">
                 <span><i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}</span>
                 {% if u.birth_date %}
-                <span class="au-dob" title="{% if u.age %}{{ u.age }} yosh{% endif %}">
+                <span class="au-dob" title="{% if u.age %}{{ u.age }} yoş{% endif %}">
                     <i class="bi bi-cake2"></i>{{ u.birth_date|date:"d.m.Y" }}{% if u.age %} <span style="opacity:.7;">({{ u.age }})</span>{% endif %}
                 </span>
                 {% else %}
-                <span class="au-dob d-missing" title="Tug'ilgan sana kiritilmagan — profil to'ldirilishi kerak">
-                    <i class="bi bi-calendar-x"></i>Sana yo'q
+                <span class="au-dob d-missing" title="Tuğilgan sana kiritilmagan — profil töldirilişi kerak">
+                    <i class="bi bi-calendar-x"></i>Sana yöq
                 </span>
                 {% endif %}
             </div>
@@ -1009,8 +1009,8 @@
                 {% if u.role == 'student' %}<span class="au-nogroup">Guruhsiz</span>{% else %}<span style="color:var(--au-muted);">—</span>{% endif %}
                 {% endfor %}
                 {% if u.has_contract %}
-                <span class="au-contract-badge" title="To'lov turi: Shartnoma">
-                    <i class="bi bi-file-earmark-text-fill"></i>Shartnoma
+                <span class="au-contract-badge" title="Tölov turi: Şartnoma">
+                    <i class="bi bi-file-earmark-text-fill"></i>Şartnoma
                 </span>
                 {% endif %}
             </div>
@@ -1018,9 +1018,9 @@
             <div class="au-desktop">
                 <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
                     {% if u.role == 'admin' %}<i class="bi bi-shield-fill-check"></i>Admin
-                    {% elif u.role == 'assistant_admin' %}<i class="bi bi-person-fill-gear"></i>Yordamchi
-                    {% elif u.role == 'teacher' %}<i class="bi bi-person-workspace"></i>O'qituvchi
-                    {% else %}<i class="bi bi-mortarboard-fill"></i>O'quvchi{% endif %}
+                    {% elif u.role == 'assistant_admin' %}<i class="bi bi-person-fill-gear"></i>Yordamçi
+                    {% elif u.role == 'teacher' %}<i class="bi bi-person-workspace"></i>Öqituvçi
+                    {% else %}<i class="bi bi-mortarboard-fill"></i>Öquvçi{% endif %}
                 </span>
             </div>
 
@@ -1030,7 +1030,7 @@
                     {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
                 </span>
                 {% if u.is_finished %}
-                <div style="margin-top:4px;"><span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i>Tugatgan</span></div>
+                <div style="margin-top:4px;"><span class="au-badge-finished" title="Kursni tugatgan öquvçi"><i class="bi bi-mortarboard-fill"></i>Tugatgan</span></div>
                 {% endif %}
                 {% if u.last_activity %}
                 <div class="au-last-activity">
@@ -1040,21 +1040,21 @@
             </div>
 
             <div class="au-actions au-desktop">
-                <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
-                <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Köriş"><i class="bi bi-eye"></i></a>
+                <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlaş"><i class="bi bi-pencil"></i></a>
                 {% if not u.is_admin %}
-                <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block js-block-btn" data-block-url="{% url 'admin_user_block' u.pk %}" data-blocked="{{ u.is_blocked|yesno:'1,0' }}" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
+                <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block js-block-btn" data-block-url="{% url 'admin_user_block' u.pk %}" data-blocked="{{ u.is_blocked|yesno:'1,0' }}" title="{% if u.is_blocked %}Blokdan çiqariş{% else %}Bloklaş{% endif %}">
                     <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                 </a>
                 {% if u.role == 'student' %}
                 <a href="{% url 'admin_user_finished' u.pk %}"
                    class="au-act a-finish {% if u.is_finished %}is-on{% endif %}"
-                   title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash{% endif %}"
-                   onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib tashlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi? U yangi kurslarga yozila olmaydi va to\'lovlarda ko\'rinmaydi.{% endif %}')">
+                   title="{% if u.is_finished %}Tugatgan belgisini olib taşlaş{% else %}Tugatgan deb belgilaş{% endif %}"
+                   onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib taşlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi? U yangi kurslarga yozila olmaydi va tölovlarda körinmaydi.{% endif %}')">
                     <i class="bi bi-mortarboard{% if u.is_finished %}-fill{% endif %}"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
+                <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="Öçiriş"><i class="bi bi-trash3"></i></a>
                 {% endif %}
             </div>
 
@@ -1082,7 +1082,7 @@
                         </div>
                     </div>
                     <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                        {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamchi{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                        {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamçi{% elif u.role == 'teacher' %}Öqituvçi{% else %}Öquvçi{% endif %}
                     </span>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:0.5rem 0.8rem; align-items:center;">
@@ -1090,7 +1090,7 @@
                     {% if u.birth_date %}
                     <span class="au-dob"><i class="bi bi-cake2"></i>{{ u.birth_date|date:"d.m.Y" }}{% if u.age %} ({{ u.age }}){% endif %}</span>
                     {% else %}
-                    <span class="au-dob d-missing"><i class="bi bi-calendar-x"></i>Sana yo'q</span>
+                    <span class="au-dob d-missing"><i class="bi bi-calendar-x"></i>Sana yöq</span>
                     {% endif %}
                     <span class="au-status {% if u.is_blocked %}s-blocked{% else %}s-active{% endif %}">
                         <span class="au-status-dot"></span>
@@ -1113,28 +1113,28 @@
                     {% endwith %}
                     {% endfor %}
                     {% if u.has_contract %}
-                    <span class="au-contract-badge" title="To'lov turi: Shartnoma">
-                        <i class="bi bi-file-earmark-text-fill"></i>Shartnoma
+                    <span class="au-contract-badge" title="Tölov turi: Şartnoma">
+                        <i class="bi bi-file-earmark-text-fill"></i>Şartnoma
                     </span>
                     {% endif %}
                 </div>
                 {% endif %}
                 <div class="au-actions" style="justify-content:flex-start; padding-top:0.4rem; border-top:1px dashed var(--au-border);">
-                    <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
-                    <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                    <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Köriş"><i class="bi bi-eye"></i></a>
+                    <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlaş"><i class="bi bi-pencil"></i></a>
                     {% if not u.is_admin %}
-                    <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block js-block-btn" data-block-url="{% url 'admin_user_block' u.pk %}" data-blocked="{{ u.is_blocked|yesno:'1,0' }}" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
+                    <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block js-block-btn" data-block-url="{% url 'admin_user_block' u.pk %}" data-blocked="{{ u.is_blocked|yesno:'1,0' }}" title="{% if u.is_blocked %}Blokdan çiqariş{% else %}Bloklaş{% endif %}">
                         <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                     </a>
                     {% if u.role == 'student' %}
                     <a href="{% url 'admin_user_finished' u.pk %}"
                        class="au-act a-finish {% if u.is_finished %}is-on{% endif %}"
-                       title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash{% endif %}"
-                       onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib tashlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi?{% endif %}')">
+                       title="{% if u.is_finished %}Tugatgan belgisini olib taşlaş{% else %}Tugatgan deb belgilaş{% endif %}"
+                       onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib taşlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi?{% endif %}')">
                         <i class="bi bi-mortarboard{% if u.is_finished %}-fill{% endif %}"></i>
                     </a>
                     {% endif %}
-                    <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
+                    <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="Öçiriş"><i class="bi bi-trash3"></i></a>
                     {% endif %}
                 </div>
             </div>
@@ -1148,11 +1148,11 @@
     {% else %}
     <div class="au-empty">
         <div class="au-empty-icon"><i class="bi bi-people"></i></div>
-        <h5>Foydalanuvchilar topilmadi</h5>
-        <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Filtr shartlariga mos foydalanuvchi yo'q{% endif %}</p>
+        <h5>Foydalanuvçilar topilmadi</h5>
+        <p>{% if search_query %}"{{ search_query }}" böyiça heç narsa topilmadi{% else %}Filtr şartlariga mos foydalanuvçi yöq{% endif %}</p>
         {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter or dob_filter %}
         <a href="{% url 'admin_users' %}" class="au-btn-reset" style="display:inline-flex;">
-            <i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalash
+            <i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalaş
         </a>
         {% endif %}
     </div>
@@ -1242,7 +1242,7 @@
         });
         row.querySelectorAll('.js-block-btn').forEach(function(btn){
             btn.setAttribute('data-blocked', isBlocked ? '1' : '0');
-            btn.title = isBlocked ? 'Blokdan chiqarish' : 'Bloklash';
+            btn.title = isBlocked ? 'Blokdan çiqariş' : 'Bloklaş';
             var icon = btn.querySelector('i');
             if (icon) icon.className = 'bi bi-' + (isBlocked ? 'unlock' : 'lock');
         });
@@ -1270,7 +1270,7 @@
                 alert(res.data.error || 'Xatolik yuz berdi');
             }
         })
-        .catch(function(){ alert('Tarmoq xatosi. Qayta urinib ko\'ring.'); })
+        .catch(function(){ alert('Tarmoq xatosi. Qayta urinib köring.'); })
         .finally(function(){
             btn.dataset.loading = '0';
             if (row) row.classList.remove('is-loading');
@@ -1279,7 +1279,7 @@
 })();
 </script>
 
-<!-- ═══════════ AI FOYDALANUVCHI BOSHQARUVCHISI — JS ═══════════ -->
+<!-- ═══════════ AI FOYDALANUVÇI BOŞQARUVÇISI — JS ═══════════ -->
 <script>
 (function(){
     var card = document.getElementById('uaiCard');
@@ -1361,17 +1361,17 @@
     }
 
     var TOOL_NAMES = {
-        search_users: 'foydalanuvchi qidirish',
-        get_user_profile: 'profilni o\'qish',
+        search_users: 'foydalanuvçi qidiriş',
+        get_user_profile: 'profilni öqiş',
         get_user_stats: 'statistika',
-        list_users: 'ro\'yxat',
+        list_users: 'röyxat',
         get_online_users: 'onlaynlar',
-        block_user: 'BLOKLASH ⚡',
-        unblock_user: 'BLOKDAN CHIQARISH ⚡',
+        block_user: 'BLOKLAŞ ⚡',
+        unblock_user: 'BLOKDAN ÇIQARIŞ ⚡',
         set_finished: 'TUGATGAN BELGISI ⚡',
-        update_user_names: 'ISMNI YANGILASH ⚡',
-        bulk_fix_names: 'ISMLARNI TUZATISH ⚡',
-        delete_user: 'O\'CHIRISH ⚡',
+        update_user_names: 'ISMNI YANGILAŞ ⚡',
+        bulk_fix_names: 'ISMLARNI TUZATIŞ ⚡',
+        delete_user: 'ÖÇIRIŞ ⚡',
     };
 
     function addAiBubble(data) {
@@ -1432,7 +1432,7 @@
             if (data.ok) history.push({ q: q, a: (data.answer || '').slice(0, 1200) });
         } catch (err) {
             removeTyping();
-            addAiBubble({ answer: '⚠️ Server bilan bog\'lanishda xatolik: ' + err, links: [] });
+            addAiBubble({ answer: '⚠️ Server bilan boğlanişda xatolik: ' + err, links: [] });
         }
         busy = false;
         sendBtn.disabled = false;

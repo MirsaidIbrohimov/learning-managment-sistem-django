@@ -27,7 +27,7 @@ def request_code(request):
     try:
         validate_email(address)
     except ValidationError:
-        return 'Email manzilini to‘g‘ri kiriting.'
+        return 'Email manzilini töğri kiriting.'
     blocked, message = check_rate_limit(request, 'email_login_send', identifier=address,
                                         ip_limit=10, id_limit=3, window=600)
     if blocked:
@@ -50,8 +50,8 @@ def request_code(request):
         )
         try:
             sent = send_mail(
-                'IT Creative Academy — Kirish kodi',
-                f'Hisobingizga kirish kodi: {code}\n\nKod 2 daqiqa amal qiladi va faqat bir marta ishlatiladi.\nKodni hech kimga bermang. So‘rovni siz yubormagan bo‘lsangiz, xabarni e’tiborsiz qoldiring.',
+                'IT Creative Academy — Kiriş kodi',
+                f'Hisobingizga kiriş kodi: {code}\n\nKod 2 daqiqa amal qiladi va faqat bir marta işlatiladi.\nKodni heç kimga bermang. Sörovni siz yubormagan bölsangiz, xabarni e’tiborsiz qoldiring.',
                 settings.DEFAULT_FROM_EMAIL, [users[0].email], fail_silently=False,
             )
             if sent != 1:
@@ -59,7 +59,7 @@ def request_code(request):
         except Exception:
             EmailLoginChallenge.objects.filter(pk=challenge.pk).update(used=True)
             logging.getLogger(__name__).warning('Email login delivery failed for challenge %s', challenge.pk)
-    return 'Agar email faol hisobga bog‘langan bo‘lsa, kod yuborildi. Kod 2 daqiqa amal qiladi.'
+    return 'Agar email faol hisobga boğlangan bölsa, kod yuborildi. Kod 2 daqiqa amal qiladi.'
 
 
 def verify_code(request):

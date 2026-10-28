@@ -1,6 +1,6 @@
-"""Default yordamchi rollar (AssistantRole) ni yaratish/yangilash.
+"""Default yordamçi rollar (AssistantRole) ni yaratish/yangilash.
 
-Foydalanish:
+Foydalaniş:
     python manage.py seed_assistant_roles
 """
 

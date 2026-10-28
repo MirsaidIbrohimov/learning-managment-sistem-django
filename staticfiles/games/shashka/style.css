@@ -1,18 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════════
- *  ROYAL CLUB — o'yin dizayn tizimi (0 dan qayta yozilgan)
- *  Shashka uchun to'liq + Shaxmat uchun umumiy poydevor.
+ *  ROYAL CLUB — öyin dizayn tizimi (0 dan qayta yozilgan)
+ *  Şaşka uçun töliq + Şaxmat uçun umumiy poydevor.
  *
- *  Uslub: hashamatli turnir zali — yog'och panellar, brass/oltin
+ *  Uslub: haşamatli turnir zali — yoğoç panellar, brass/oltin
  *  aksentlar, serif sarlavhalar (Playfair Display), baxmal stol.
  *
- *  MUHIM: bu fayl faqat DIZAYN. app.js ishlatadigan barcha class/ID
- *  nomlari (shartnoma) saqlangan: .screen .hidden .cell .piece
+ *  MUHIM: bu fayl faqat DIZAYN. app.js işlatadigan barça class/ID
+ *  nomlari (şartnoma) saqlangan: .screen .hidden .cell .piece
  *  .selected .possible .capture .last-move .movable .capturable ...
  * ═══════════════════════════════════════════════════════════════════ */
 
 /* ───────────────────────── 1. DIZAYN TOKENLARI ───────────────────── */
 :root {
-    /* Shriftlar (index.html'da ulangan) */
+    /* Şriftlar (index.html'da ulangan) */
     --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
     --font-ui: 'Manrope', 'Segoe UI', system-ui, sans-serif;
 
@@ -75,7 +75,7 @@
     --shadow-pop: 0 30px 70px -25px rgba(87, 64, 30, 0.45);
 }
 
-/* ───────────────────── 2. SHASHKA TEMALARI (6) ───────────────────── */
+/* ───────────────────── 2. ŞAŞKA TEMALARI (6) ───────────────────── */
 /* Har tema: aksent + stol felti + doska kataklari + donalar          */
 
 :root, body[data-theme="premium"] {
@@ -154,7 +154,7 @@ body {
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
 }
-/* Zalning nozik shaxmat naqshli "devor qog'ozi" */
+/* Zalning nozik şaxmat naqşli "devor qoğozi" */
 body::before {
     content: '';
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -165,7 +165,7 @@ body::before {
     background-position: 0 0, 23px 23px;
     opacity: 0.05;
 }
-/* Vignette — sahna yoritgichi */
+/* Vignette — sahna yoritgiçi */
 body::after {
     content: '';
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
@@ -211,7 +211,7 @@ button { font-family: var(--font-ui); }
 }
 @keyframes screenIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ─────────────────── 5. PANEL / KARTA (yog'och) ──────────────────── */
+/* ─────────────────── 5. PANEL / KARTA (yoğoç) ──────────────────── */
 .card {
     position: relative;
     background:
@@ -222,7 +222,7 @@ button { font-family: var(--font-ui); }
     box-shadow: var(--shadow-panel);
     padding: 40px 44px;
 }
-/* Ichki brass hoshiya (inlay) */
+/* Içki brass hoşiya (inlay) */
 .card::before {
     content: '';
     position: absolute; inset: 7px;
@@ -230,7 +230,7 @@ button { font-family: var(--font-ui); }
     border-radius: calc(var(--r-lg) - 7px);
     pointer-events: none;
 }
-/* Burchak brass mixchalari */
+/* Burçak brass mixçalari */
 .card::after {
     content: '';
     position: absolute; inset: 0; pointer-events: none;
@@ -400,7 +400,7 @@ button { font-family: var(--font-ui); }
     font-style: italic;
 }
 
-/* Rejim kartalari — klub eshiklari */
+/* Rejim kartalari — klub eşiklari */
 .menu-grid {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 20px;
@@ -508,7 +508,7 @@ button { font-family: var(--font-ui); }
     text-transform: uppercase; letter-spacing: 0.14em;
 }
 
-/* Tema tanlagich */
+/* Tema tanlagiç */
 .theme-picker {
     display: flex; align-items: center; justify-content: center;
     gap: 12px; flex-wrap: wrap;
@@ -558,7 +558,7 @@ button { font-family: var(--font-ui); }
 }
 .theme-swatch:hover .theme-swatch-tip { opacity: 1; transform: translateX(-50%) scale(1); }
 
-/* Shashka swatch ranglari */
+/* Şaşka swatch ranglari */
 .theme-swatch[data-theme="premium"] { background: linear-gradient(135deg, #5e1f28, #c9973f); }
 .theme-swatch[data-theme="emerald"] { background: linear-gradient(135deg, #14532d, #3fae7c); }
 .theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #6b4620, #f0d9b5); }
@@ -603,14 +603,14 @@ button { font-family: var(--font-ui); }
     font-variant-numeric: tabular-nums;
 }
 
-/* ───────────────────── 9. O'YIN EKRANI ───────────────────────────── */
+/* ───────────────────── 9. ÖYIN EKRANI ───────────────────────────── */
 #game-screen {
     justify-content: flex-start;
     padding: 16px 18px 22px;
     gap: 14px;
 }
 
-/* Topbar — ikki o'yinchi lavhasi */
+/* Topbar — ikki öyinçi lavhasi */
 .topbar {
     width: 100%; max-width: 1240px;
     display: flex; align-items: stretch; gap: 12px;
@@ -654,7 +654,7 @@ button { font-family: var(--font-ui); }
     min-width: 0;
 }
 
-/* Yurish belgisi — brass nishon */
+/* Yuriş belgisi — brass nişon */
 .turn-pill {
     display: inline-flex; align-items: center; gap: 9px;
     padding: 8px 20px;
@@ -749,7 +749,7 @@ button { font-family: var(--font-ui); }
     min-height: 26px;
     align-items: center;
 }
-/* Shashka yegan donachasi */
+/* Şaşka yegan donaçasi */
 .captured-piece {
     width: 22px; height: 22px;
     border-radius: 50%;
@@ -768,13 +768,13 @@ button { font-family: var(--font-ui); }
     to   { opacity: 1; transform: none; }
 }
 
-/* ─────────────── 10. DOSKA — felt stol + yog'och rom ─────────────── */
+/* ─────────────── 10. DOSKA — felt stol + yoğoç rom ─────────────── */
 .board-wrapper {
     flex: 1;
     display: flex; align-items: center; justify-content: center;
     min-width: 0;
 }
-/* Baxmal stol yostig'i */
+/* Baxmal stol yostiği */
 .board-container {
     position: relative;
     display: grid;
@@ -795,7 +795,7 @@ button { font-family: var(--font-ui); }
         inset 0 0 34px rgba(0, 0, 0, 0.5),
         0 34px 80px -26px rgba(0, 0, 0, 0.8);
 }
-/* Feltdagi tikilgan hoshiya */
+/* Feltdagi tikilgan hoşiya */
 .board-container::before {
     content: '';
     position: absolute; inset: 9px;
@@ -813,7 +813,7 @@ button { font-family: var(--font-ui); }
     aspect-ratio: 1;
     border-radius: 6px;
     overflow: hidden;
-    /* Yog'och rom: brass ip bilan */
+    /* Yoğoç rom: brass ip bilan */
     box-shadow:
         0 0 0 3px var(--frame-2),
         0 0 0 5px var(--brass),
@@ -822,7 +822,7 @@ button { font-family: var(--font-ui); }
         0 24px 60px -14px rgba(0, 0, 0, 0.75);
 }
 
-/* Koordinatalar — romga o'yilgan */
+/* Koordinatalar — romga öyilgan */
 .coords-top, .coords-bottom, .coords-left, .coords-right {
     display: flex;
     color: rgba(255, 235, 195, 0.65);
@@ -868,8 +868,8 @@ button { font-family: var(--font-ui); }
     z-index: 2;
 }
 
-/* Oxirgi yurish — aniq ko'rinadigan yashil belgi (from + to kataklari).
-   z-index yo'q: dona ostida qoladi, faqat halqa dona atrofida ko'rinadi. */
+/* Oxirgi yuriş — aniq körinadigan yaşil belgi (from + to kataklari).
+   z-index yöq: dona ostida qoladi, faqat halqa dona atrofida körinadi. */
 .cell.last-move::before {
     content: '';
     position: absolute; inset: 0;
@@ -878,7 +878,7 @@ button { font-family: var(--font-ui); }
     animation: lastPop 0.45s var(--ease-out);
     pointer-events: none;
 }
-/* Manzil (kelgan) katagi — kuchliroq, to'qroq halqa */
+/* Manzil (kelgan) katagi — kuçliroq, töqroq halqa */
 .cell.last-move-to::before {
     background: rgba(34, 197, 94, 0.46);
     box-shadow: inset 0 0 0 4px rgba(21, 128, 61, 1);
@@ -891,7 +891,7 @@ button { font-family: var(--font-ui); }
     z-index: 2;
 }
 
-/* Yurish mumkin — oltin nuqta */
+/* Yuriş mumkin — oltin nuqta */
 .cell.possible { cursor: pointer; }
 .cell.possible::after {
     content: '';
@@ -908,7 +908,7 @@ button { font-family: var(--font-ui); }
     50% { transform: scale(1.28); opacity: 0.7; }
 }
 
-/* Yeyish yurishi — qizil nishon halqa */
+/* Yeyiş yurişi — qizil nişon halqa */
 .cell.capture { cursor: pointer; }
 .cell.capture::after {
     content: '';
@@ -924,7 +924,7 @@ button { font-family: var(--font-ui); }
     50% { transform: scale(1.09); opacity: 0.72; }
 }
 
-/* ─────────────── 11. SHASHKA DONALARI — laklangan ────────────────── */
+/* ─────────────── 11. ŞAŞKA DONALARI — laklangan ────────────────── */
 .piece {
     position: relative;
     width: 76%; height: 76%;
@@ -935,7 +935,7 @@ button { font-family: var(--font-ui); }
 }
 @keyframes pieceIn { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
 
-/* O'yilgan halqa + gloss */
+/* Öyilgan halqa + gloss */
 .piece::before {
     content: '';
     position: absolute; inset: 12%;
@@ -979,7 +979,7 @@ button { font-family: var(--font-ui); }
 }
 .piece.black::after { background: linear-gradient(rgba(255, 255, 255, 0.22), transparent); }
 
-/* Yurishga tayyor dona */
+/* Yurişga tayyor dona */
 .piece.movable { cursor: grab; }
 .piece.movable:hover {
     transform: translateY(-3px) scale(1.05);
@@ -1018,7 +1018,7 @@ button { font-family: var(--font-ui); }
     to   { transform: none; opacity: 1; }
 }
 
-/* ────────────── 12. YURISHLAR PANELI / AMALLAR ───────────────────── */
+/* ────────────── 12. YURIŞLAR PANELI / AMALLAR ───────────────────── */
 .moves-panel {
     display: flex; flex-direction: column;
     padding: 14px 16px;
@@ -1049,7 +1049,7 @@ button { font-family: var(--font-ui); }
 .moves-copy-btn:hover { color: var(--brass-2); border-color: var(--brass); }
 .moves-copy-btn.copied { color: var(--success); border-color: var(--success); }
 
-/* Daftar (ledger) uslubidagi ro'yxat */
+/* Daftar (ledger) uslubidagi röyxat */
 #moves-list {
     list-style: none;
     counter-reset: mv;
@@ -1104,7 +1104,7 @@ button { font-family: var(--font-ui); }
     box-shadow: 0 12px 26px -12px rgba(217, 104, 82, 0.5);
 }
 
-/* ───────────────────── 13. KUTISH OVERLAY ────────────────────────── */
+/* ───────────────────── 13. KUTIŞ OVERLAY ────────────────────────── */
 .overlay {
     position: fixed; inset: 0; z-index: 60;
     display: flex; align-items: center; justify-content: center;
@@ -1186,7 +1186,7 @@ button { font-family: var(--font-ui); }
     margin-top: 22px;
 }
 
-/* Tikish presetlari */
+/* Tikiş presetlari */
 .wager-presets {
     display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 8px; margin-top: 16px;
@@ -1221,7 +1221,7 @@ button { font-family: var(--font-ui); }
 }
 .fee-row.fee-win, .fee-row.fee-net { font-weight: 700; }
 
-/* Promotion tanlovi (shaxmat modalí — bazaviy uslub) */
+/* Promotion tanlovi (şaxmat modalí — bazaviy uslub) */
 .promo-choices {
     display: flex; gap: 12px; justify-content: center;
     margin-top: 18px;
@@ -1290,7 +1290,7 @@ button { font-family: var(--font-ui); }
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
     transition: opacity 0.6s;
 }
-/* G'alaba — aylanuvchi oltin nurlar */
+/* Ğalaba — aylanuvçi oltin nurlar */
 .result-bg.win {
     background: radial-gradient(620px 620px at 50% 42%, var(--glow), transparent 65%);
 }
@@ -1326,7 +1326,7 @@ button { font-family: var(--font-ui); }
 }
 .result-card-inner { position: relative; }
 
-/* Uchayotgan zarralar (JS --tx/--ty beradi) */
+/* Uçayotgan zarralar (JS --tx/--ty beradi) */
 .result-stars {
     position: absolute; inset: 0;
     pointer-events: none; overflow: visible;
@@ -1492,7 +1492,7 @@ button { font-family: var(--font-ui); }
     .primary-btn, .ghost-btn { width: 100%; }
 }
 
-/* ─────────────── 18. HARAKAT KAMAYTIRISH (a11y) ──────────────────── */
+/* ─────────────── 18. HARAKAT KAMAYTIRIŞ (a11y) ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -1501,6 +1501,6 @@ button { font-family: var(--font-ui); }
     }
 }
 
-/* Bu fayl: Royal Club dizayn tizimi — barcha ekranlar, shashka doskasi,
- * donalar, modallar, natija sahnasi va 6 tema. Shaxmat o'z style.css'ida
+/* Bu fayl: Royal Club dizayn tizimi — barça ekranlar, şaşka doskasi,
+ * donalar, modallar, natija sahnasi va 6 tema. Şaxmat öz style.css'ida
  * doska/figura/temalarini override qiladi. */

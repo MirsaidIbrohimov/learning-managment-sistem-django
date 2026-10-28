@@ -16,7 +16,7 @@
         <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
             <div>
                 <h1><i class="bi bi-rocket-takeoff"></i> Startuplar</h1>
-                <p>O'quvchilar g'oyalarini ko'rish, boshqarish, Excel'ga chiqarish va import qilish.</p>
+                <p>Öquvçilar ğoyalarini köriş, boşqariş, Excel'ga çiqariş va import qiliş.</p>
             </div>
             <div class="sa-hero-actions">
                 <a href="{% url 'startup_admin:startup_export' %}{% if querystring %}?{{ querystring }}{% endif %}" class="sa-hero-btn">
@@ -45,7 +45,7 @@
             <div class="sa-stat" style="--sa-accent:#f59e0b">
                 <div class="sa-stat-icon"><i class="bi bi-pause-circle"></i></div>
                 <div class="sa-stat-value">{{ totals.paused }}</div>
-                <div class="sa-stat-label">To'xtatilgan</div>
+                <div class="sa-stat-label">Töxtatilgan</div>
             </div>
             <div class="sa-stat" style="--sa-accent:#64748b">
                 <div class="sa-stat-icon"><i class="bi bi-archive"></i></div>
@@ -55,7 +55,7 @@
             <div class="sa-stat" style="--sa-accent:#8b5cf6">
                 <div class="sa-stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
                 <div class="sa-stat-value">{{ totals.avg_progress|default:0|floatformat:0 }}%</div>
-                <div class="sa-stat-label">O'rtacha progress</div>
+                <div class="sa-stat-label">Örtaça progress</div>
             </div>
             <div class="sa-stat" style="--sa-accent:#ec4899">
                 <div class="sa-stat-icon"><i class="bi bi-lightning-charge"></i></div>
@@ -70,17 +70,17 @@
             <div class="sa-stat" style="--sa-accent:#0ea5e9">
                 <div class="sa-stat-icon"><i class="bi bi-hourglass-split"></i></div>
                 <div class="sa-stat-value">{{ totals.pending_reviews }}</div>
-                <div class="sa-stat-label">Tekshiruv kutayotgan</div>
+                <div class="sa-stat-label">Tekşiruv kutayotgan</div>
             </div>
         </div>
 
         <div class="sa-charts">
             <div class="sa-card sa-card-pad">
-                <div class="sa-chart-head"><i class="bi bi-pie-chart"></i> Kategoriya bo'yicha</div>
+                <div class="sa-chart-head"><i class="bi bi-pie-chart"></i> Kategoriya böyiça</div>
                 <div class="sa-chart-box"><canvas id="saCategoryChart"></canvas></div>
             </div>
             <div class="sa-card sa-card-pad">
-                <div class="sa-chart-head"><i class="bi bi-bar-chart"></i> Bosqich bo'yicha</div>
+                <div class="sa-chart-head"><i class="bi bi-bar-chart"></i> Bosqiç böyiça</div>
                 <div class="sa-chart-box"><canvas id="saStageChart"></canvas></div>
             </div>
         </div>
@@ -95,7 +95,7 @@
                 <div class="sa-field">
                     <label for="sa-status">Holat</label>
                     <select id="sa-status" name="status" class="sa-input">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for code, label in status_choices %}
                         <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
@@ -104,16 +104,16 @@
                 <div class="sa-field">
                     <label for="sa-category">Kategoriya</label>
                     <select id="sa-category" name="category" class="sa-input">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for code, label in category_choices %}
                         <option value="{{ code }}" {% if filters.category == code %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div class="sa-field">
-                    <label for="sa-stage">Bosqich</label>
+                    <label for="sa-stage">Bosqiç</label>
                     <select id="sa-stage" name="stage" class="sa-input">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for code, label in stage_choices %}
                         <option value="{{ code }}" {% if filters.stage == code %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
@@ -122,7 +122,7 @@
                 <div class="sa-field">
                     <label for="sa-profession">Kurs / kasb</label>
                     <select id="sa-profession" name="profession" class="sa-input">
-                        <option value="">Barchasi</option>
+                        <option value="">Barçasi</option>
                         {% for profession in professions %}
                         <option value="{{ profession.id }}" {% if filters.profession == profession.id|stringformat:'s' %}selected{% endif %}>{{ profession.name }}</option>
                         {% endfor %}
@@ -131,7 +131,7 @@
                 <div class="sa-field">
                     <label for="sa-mentor">Mentor</label>
                     <select id="sa-mentor" name="mentor" class="sa-input">
-                        <option value="">Farqi yo'q</option>
+                        <option value="">Farqi yöq</option>
                         <option value="yes" {% if filters.mentor == 'yes' %}selected{% endif %}>Biriktirilgan</option>
                         <option value="no" {% if filters.mentor == 'no' %}selected{% endif %}>Mentorsiz</option>
                     </select>
@@ -139,7 +139,7 @@
                 <div class="sa-field">
                     <label for="sa-sort">Tartib</label>
                     <select id="sa-sort" name="sort" class="sa-input">
-                        <option value="xp" {% if filters.sort == 'xp' or not filters.sort %}selected{% endif %}>XP (ko'pdan)</option>
+                        <option value="xp" {% if filters.sort == 'xp' or not filters.sort %}selected{% endif %}>XP (köpdan)</option>
                         <option value="progress" {% if filters.sort == 'progress' %}selected{% endif %}>Progress</option>
                         <option value="new" {% if filters.sort == 'new' %}selected{% endif %}>Yangi</option>
                         <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Nom (A-Z)</option>
@@ -147,9 +147,9 @@
                 </div>
                 <div class="sa-field d-flex gap-2">
                     <button type="submit" class="sa-btn sa-btn-primary flex-grow-1">
-                        <i class="bi bi-funnel"></i> Filtrlash
+                        <i class="bi bi-funnel"></i> Filtrlaş
                     </button>
-                    <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn" title="Tozalash">
+                    <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn" title="Tozalaş">
                         <i class="bi bi-x-lg"></i>
                     </a>
                 </div>
@@ -165,7 +165,7 @@
                             <th>Startup</th>
                             <th>Egasi</th>
                             <th>Kategoriya</th>
-                            <th>Bosqich</th>
+                            <th>Bosqiç</th>
                             <th>Progress</th>
                             <th>Vazifa</th>
                             <th>Jamoa</th>
@@ -224,22 +224,22 @@
                                     </button>
                                     <div class="sa-actions-menu">
                                         <a href="{% url 'startup_admin:startup_detail' startup.slug %}"><i class="bi bi-eye"></i> Batafsil</a>
-                                        <a href="{% url 'startup_admin:startup_edit' startup.slug %}"><i class="bi bi-pencil"></i> Tahrirlash</a>
-                                        <a href="{% url 'startup:detail' startup.slug %}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda ko'rish</a>
+                                        <a href="{% url 'startup_admin:startup_edit' startup.slug %}"><i class="bi bi-pencil"></i> Tahrirlaş</a>
+                                        <a href="{% url 'startup:detail' startup.slug %}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda köriş</a>
                                         <div class="sa-actions-sep"></div>
                                         {% if startup.status != 'active' %}
-                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="active"><i class="bi bi-play-circle"></i> Faollashtirish</button>
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="active"><i class="bi bi-play-circle"></i> Faollaştiriş</button>
                                         {% endif %}
                                         {% if startup.status != 'paused' %}
-                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="paused"><i class="bi bi-pause-circle"></i> To'xtatish</button>
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="paused"><i class="bi bi-pause-circle"></i> Töxtatiş</button>
                                         {% endif %}
                                         {% if startup.status != 'archived' %}
-                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="archived"><i class="bi bi-archive"></i> Arxivlash</button>
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="archived"><i class="bi bi-archive"></i> Arxivlaş</button>
                                         {% endif %}
                                         <div class="sa-actions-sep"></div>
                                         <button type="button" class="sa-danger" data-sa-delete
                                                 data-name="{{ startup.name }}" data-form="sa-delete-{{ startup.pk }}">
-                                            <i class="bi bi-trash"></i> O'chirish
+                                            <i class="bi bi-trash"></i> Öçiriş
                                         </button>
                                     </div>
                                 </div>
@@ -257,7 +257,7 @@
             <div class="sa-empty">
                 <i class="bi bi-inboxes"></i>
                 <b>Startup topilmadi</b>
-                Filtrlarni o'zgartirib ko'ring yoki Excel'dan import qiling.
+                Filtrlarni özgartirib köring yoki Excel'dan import qiling.
             </div>
             {% endif %}
         </div>
@@ -292,13 +292,13 @@
 
 <div class="sa-modal" id="saDeleteModal">
     <div class="sa-modal-box">
-        <h3><i class="bi bi-exclamation-triangle text-danger"></i> O'chirishni tasdiqlang</h3>
-        <p><b id="saDeleteName"></b> startupi butunlay o'chiriladi: roadmap, vazifalar,
-           topshiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bo'lmaydi.</p>
+        <h3><i class="bi bi-exclamation-triangle text-danger"></i> Öçirişni tasdiqlang</h3>
+        <p><b id="saDeleteName"></b> startupi butunlay öçiriladi: roadmap, vazifalar,
+           topşiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bölmaydi.</p>
         <div class="sa-modal-actions">
-            <button type="button" class="sa-btn" data-sa-cancel>Bekor qilish</button>
+            <button type="button" class="sa-btn" data-sa-cancel>Bekor qiliş</button>
             <button type="button" class="sa-btn sa-btn-danger" id="saDeleteConfirm">
-                <i class="bi bi-trash"></i> O'chirish
+                <i class="bi bi-trash"></i> Öçiriş
             </button>
         </div>
     </div>
@@ -322,7 +322,7 @@
         if (toggle) toggle.closest('[data-sa-actions]').classList.toggle('open');
     });
 
-    /* ---- O'chirish modali ---- */
+    /* ---- Öçiriş modali ---- */
     var modal = document.getElementById('saDeleteModal');
     var nameBox = document.getElementById('saDeleteName');
     var confirmBtn = document.getElementById('saDeleteConfirm');

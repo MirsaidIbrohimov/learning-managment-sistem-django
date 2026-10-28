@@ -105,7 +105,7 @@
         <span class="badge bg-primary ms-2">{{ parents.count }}</span>
     </h1>
     <a href="{% url 'admin_parent_add' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Qo'shish
+        <i class="bi bi-plus-lg me-1"></i>Qöşiş
     </a>
 </div>
 
@@ -114,7 +114,7 @@
     <div class="card-body">
         <form method="GET" class="row g-3">
             <div class="col-md-5">
-                <label class="form-label">Qidirish</label>
+                <label class="form-label">Qidiriş</label>
                 <input type="text" name="search" class="form-control" 
                        placeholder="Ism, telefon yoki login..." 
                        value="{{ search_query|default:'' }}">
@@ -123,7 +123,7 @@
             <div class="col-md-4">
                 <label class="form-label">Holat</label>
                 <select name="status" class="form-select">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
                     <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Nofaol</option>
                 </select>
@@ -144,7 +144,7 @@
 <!-- LIST -->
 <div class="card">
     <div class="card-header">
-        Ota-onalar ro'yxati ({{ parents.count }})
+        Ota-onalar röyxati ({{ parents.count }})
     </div>
 
     <div class="card-body p-0">
@@ -158,7 +158,7 @@
                     <th>Login</th>
                     <th>Telefon</th>
                     <th class="text-center">Farzandlar soni</th>
-                    <th>Oxirgi kirish</th>
+                    <th>Oxirgi kiriş</th>
                     <th class="text-center">Holat</th>
                     <th>Amallar</th>
                 </tr>
@@ -189,7 +189,7 @@
                     <span class="badge bg-info">{{ parent.children.count }}</span>
                 </td>
 
-                <td data-label="Oxirgi kirish">
+                <td data-label="Oxirgi kiriş">
                     {% if parent.last_login %}
                         {{ parent.last_login|timesince }} oldin
                     {% else %}
@@ -206,16 +206,16 @@
                 </td>
 
                 <td data-label="Amallar" class="action-btns">
-                    <a href="{% url 'admin_parent_edit' parent.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                    <a href="{% url 'admin_parent_edit' parent.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlaş">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a href="{% url 'admin_parent_view' parent.pk %}" class="btn btn-sm btn-outline-info" title="Farzandlarni ko'rish">
+                    <a href="{% url 'admin_parent_view' parent.pk %}" class="btn btn-sm btn-outline-info" title="Farzandlarni köriş">
                         <i class="bi bi-eye"></i>
                     </a>
-                    <a href="{% url 'admin_parent_toggle' parent.pk %}" class="btn btn-sm btn-outline-warning" title="{% if parent.is_active %}Nofaol qilish{% else %}Faol qilish{% endif %}">
+                    <a href="{% url 'admin_parent_toggle' parent.pk %}" class="btn btn-sm btn-outline-warning" title="{% if parent.is_active %}Nofaol qiliş{% else %}Faol qiliş{% endif %}">
                         <i class="bi bi-{% if parent.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
                     </a>
-                    <a href="{% url 'admin_parent_delete' parent.pk %}" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                    <a href="{% url 'admin_parent_delete' parent.pk %}" class="btn btn-sm btn-outline-danger" title="Öçiriş">
                         <i class="bi bi-trash"></i>
                     </a>
                 </td>
@@ -232,7 +232,7 @@
         <i class="bi bi-people" style="font-size:2.5rem;"></i>
         <p class="mt-2 mb-0">Ota-onalar topilmadi</p>
         <a href="{% url 'admin_parent_add' %}" class="btn btn-primary mt-3">
-            <i class="bi bi-plus-lg me-1"></i>Ota-ona qo'shish
+            <i class="bi bi-plus-lg me-1"></i>Ota-ona qöşiş
         </a>
     </div>
     {% endif %}

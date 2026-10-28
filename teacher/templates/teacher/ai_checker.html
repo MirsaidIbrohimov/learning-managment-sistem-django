@@ -1,8 +1,8 @@
 {% extends 'teacher/base_teacher.html' %}
 {% load static %}
 
-{% block title %}AI Tekshiruvchi - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}AI Tekshiruvchi{% endblock %}
+{% block title %}AI Tekşiruvçi - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}AI Tekşiruvçi{% endblock %}
 
 {% block teacher_content %}
 {% csrf_token %}
@@ -155,14 +155,14 @@
         <i class="bi bi-shield-lock-fill" style="font-size:1.8rem;color:#ef4444;flex-shrink:0;"></i>
         <div style="font-size:.95rem;line-height:1.5;color:var(--bs-body-color);">
             <strong style="color:#ef4444;font-size:1.05rem;display:block;margin-bottom:.3rem;">AI funksiyasi sizga bloklangan</strong>
-            Admin tomonidan AI funksiyasidan foydalanish ruxsati bekor qilingan. Siz AI tekshiruvchini yoqa olmaysiz va AI yordamida vazifa/test baholay olmaysiz. Iltimos, admin bilan bog'laning.
+            Admin tomonidan AI funksiyasidan foydalaniş ruxsati bekor qilingan. Siz AI tekşiruvçini yoqa olmaysiz va AI yordamida vazifa/test baholay olmaysiz. Iltimos, admin bilan boğlaning.
         </div>
     </div>
     {% endif %}
     <div class="aic-header">
         <div class="aic-header-left">
-            <h2><i class="bi bi-cpu"></i> AI Tekshiruvchi</h2>
-            <div class="aic-header-sub">O'z kurslaringiz uchun AI tekshiruvchini boshqaring</div>
+            <h2><i class="bi bi-cpu"></i> AI Tekşiruvçi</h2>
+            <div class="aic-header-sub">Öz kurslaringiz uçun AI tekşiruvçini boşqaring</div>
         </div>
         <div class="aic-stats">
             <div class="aic-stat">
@@ -175,29 +175,29 @@
             </div>
             <div class="aic-stat">
                 <div class="aic-stat-val red">{{ ai_off_hw|add:ai_off_sp }}</div>
-                <div class="aic-stat-label">O'chirilgan</div>
+                <div class="aic-stat-label">Öçirilgan</div>
             </div>
         </div>
     </div>
 
     <div class="aic-controls">
         <select class="aic-select" id="courseFilter" onchange="filterCourse()">
-            <option value="">Barcha kurslar</option>
+            <option value="">Barça kurslar</option>
             {% for p in professions %}
             <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
             {% endfor %}
         </select>
         <button class="aic-btn aic-btn-on aic-btn-ml" onclick="toggleAll('all_on')">
-            <i class="bi bi-check-circle"></i> Barchasini yoqish
+            <i class="bi bi-check-circle"></i> Barçasini yoqiş
         </button>
         <button class="aic-btn aic-btn-off" onclick="toggleAll('all_off')">
-            <i class="bi bi-x-circle"></i> Barchasini o'chirish
+            <i class="bi bi-x-circle"></i> Barçasini öçiriş
         </button>
     </div>
 
     <div class="aic-tabs">
         <button class="aic-tab active" onclick="showTab('all', this)">
-            <i class="bi bi-grid-3x3-gap"></i> Barchasi ({{ total_hw|add:total_sp }})
+            <i class="bi bi-grid-3x3-gap"></i> Barçasi ({{ total_hw|add:total_sp }})
         </button>
         <button class="aic-tab" onclick="showTab('homework', this)">
             <i class="bi bi-file-earmark-text"></i> Uy vazifalar ({{ total_hw }})
@@ -218,7 +218,7 @@
         </div>
         {% if not data.ai_enabled %}
         <div class="aic-admin-block">
-            <i class="bi bi-lock-fill"></i> Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan
+            <i class="bi bi-lock-fill"></i> Admin bu kurs uçun AI tekşiruvçini öçirib qöygan
         </div>
         {% endif %}
         <div class="aic-task-list">
@@ -228,12 +228,12 @@
                 <div class="aic-task-name">{{ hw.lesson.title }}</div>
                 <span class="aic-type-badge aic-hw-badge">Vazifa</span>
                 <span class="aic-file-label"><i class="bi bi-file-earmark"></i></span>
-                <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qilish">
+                <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qiliş">
                     <div class="aic-file-switch-dot"></div>
                 </button>
                 <div class="aic-divider"></div>
                 <span class="aic-status {% if hw.ai_check and data.ai_enabled %}aic-on{% else %}aic-off{% endif %}">
-                    {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                    {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}Öçirilgan{% endif %}
                 </span>
                 <button class="aic-switch {% if hw.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
                         onclick="{% if data.ai_enabled %}toggleAI(this, 'homework', {{ hw.pk }}){% endif %}"
@@ -257,7 +257,7 @@
         </div>
         {% if not data.ai_enabled %}
         <div class="aic-admin-block">
-            <i class="bi bi-lock-fill"></i> Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan
+            <i class="bi bi-lock-fill"></i> Admin bu kurs uçun AI tekşiruvçini öçirib qöygan
         </div>
         {% endif %}
         <div class="aic-task-list">
@@ -267,7 +267,7 @@
                 <div class="aic-task-name">{{ sp.lesson.title }}</div>
                 <span class="aic-type-badge aic-sp-badge">Speaking</span>
                 <span class="aic-status {% if sp.ai_check and data.ai_enabled %}aic-on{% else %}aic-off{% endif %}">
-                    {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                    {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}Öçirilgan{% endif %}
                 </span>
                 <button class="aic-switch {% if sp.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
                         onclick="{% if data.ai_enabled %}toggleAI(this, 'speaking', {{ sp.pk }}){% endif %}"
@@ -284,7 +284,7 @@
     <div class="aic-empty">
         <i class="bi bi-inbox"></i>
         <h5>Vazifalar topilmadi</h5>
-        <p>Sizning kurslaringizda hali vazifa yo'q.</p>
+        <p>Sizning kurslaringizda hali vazifa yöq.</p>
     </div>
     {% endif %}
 </div>
@@ -326,7 +326,7 @@
                 if (data.new_state) {
                     st.textContent = 'Yoqilgan'; st.className = 'aic-status aic-on';
                 } else {
-                    st.textContent = "O'chirilgan"; st.className = 'aic-status aic-off';
+                    st.textContent = "Öçirilgan"; st.className = 'aic-status aic-off';
                 }
                 showNotif(data.message, data.new_state ? 'success' : 'warning');
             } else {
@@ -338,8 +338,8 @@
 
     function toggleAll(action) {
         if (!confirm(action === 'all_on'
-            ? 'Barcha vazifalar uchun AI tekshiruvchini yoqmoqchimisiz?'
-            : 'Barcha vazifalar uchun AI tekshiruvchini o\'chirmoqchimisiz?')) return;
+            ? 'Barça vazifalar uçun AI tekşiruvçini yoqmoqçimisiz?'
+            : 'Barça vazifalar uçun AI tekşiruvçini öçirmoqçimisiz?')) return;
 
         const pid = document.getElementById('courseFilter').value;
         const fd = new FormData();

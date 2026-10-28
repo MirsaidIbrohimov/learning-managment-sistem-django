@@ -1,8 +1,8 @@
 <script>
-/* Unified Messenger-style chat controller (polling-based, no websockets).
+/* Unified Messenger-style çat controller (polling-based, no websockets).
    Drives the two-pane /chat page: sidebar (direct + group threads merged)
    on the left, active conversation on the right. Mobile: single pane that
-   slides between list <-> chat via the .mz-chat-open class on #mzShell. */
+   slides between list <-> çat via the .mz-chat-open class on #mzShell. */
 window.MZChat = (function(){
 
     // Keep in sync with accounts.models.MessageReaction.EMOJI_CHOICES
@@ -35,7 +35,7 @@ window.MZChat = (function(){
     }
     function escAttr(s){ return esc(s).replace(/\n/g,' '); }
 
-    // Fayl hajmini o'qiladigan ko'rinishga o'tkazish: 512 B / 340 KB / 1.0 MB
+    // Fayl hajmini öqiladigan körinişga ötkaziş: 512 B / 340 KB / 1.0 MB
     function fmtSize(bytes){
         if(bytes < 1024) return bytes + ' B';
         var kb = bytes / 1024;
@@ -102,7 +102,7 @@ window.MZChat = (function(){
             if(!d.ok) return;
             state.items = d.items;
             renderSidebar();
-            // Suhbat ochiq bo'lsa — "oxirgi faollik" matnini jonli yangilab turamiz
+            // Suhbat oçiq bölsa — "oxirgi faollik" matnini jonli yangilab turamiz
             if(state.currentKind==='dm' && state.currentId){
                 var cur = findItem('dm', state.currentId);
                 if(cur) updateHeaderSub(cur);
@@ -166,8 +166,8 @@ window.MZChat = (function(){
         dom.list.innerHTML = '';
         if(!list.length && !(q && state.extraUsers && state.extraUsers.length)){
             var emptyMsg = state.filter==='unread'
-                ? '<div class="mz-empty"><i class="bi bi-check2-circle"></i>O\'qilmagan xabar yo\'q 🎉</div>'
-                : '<div class="mz-empty"><i class="bi bi-inbox"></i>Hozircha suhbatlar yo\'q.</div>';
+                ? '<div class="mz-empty"><i class="bi bi-check2-circle"></i>Öqilmagan xabar yöq 🎉</div>'
+                : '<div class="mz-empty"><i class="bi bi-inbox"></i>Hozirça suhbatlar yöq.</div>';
             dom.list.innerHTML = emptyMsg;
         } else {
             // Split pinned vs rest → labelled sections (only in default view)
@@ -297,9 +297,9 @@ window.MZChat = (function(){
         dom.pinBtn.classList.toggle('pinned', !!item.pinned);
     }
 
-    // Ochiq DM suhbat headerida "Online / Oxirgi faollik: ..." matnini
-    // faqat qiymat haqiqatan o'zgarganda (animatsiyali) yangilaydi —
-    // har 8 soniyalik sidebar poll'da bekorga qayta chizilmasin.
+    // Oçiq DM suhbat headerida "Online / Oxirgi faollik: ..." matnini
+    // faqat qiymat haqiqatan özgarganda (animatsiyali) yangilaydi —
+    // har 8 soniyalik sidebar poll'da bekorga qayta çizilmasin.
     function updateHeaderSub(item){
         var textEl = document.getElementById('mzHeadSubText');
         if(!textEl) return;
@@ -336,7 +336,7 @@ window.MZChat = (function(){
 
         if(!list.length){
             if(!dom.body.children.length){
-                dom.body.innerHTML = '<div class="mz-empty"><i class="bi bi-chat-heart"></i>Suhbatni boshlang!</div>';
+                dom.body.innerHTML = '<div class="mz-empty"><i class="bi bi-chat-heart"></i>Suhbatni boşlang!</div>';
             }
             return;
         }
@@ -455,8 +455,8 @@ window.MZChat = (function(){
         html += '<div class="mz-act-btn" data-act="reply" title="Javob"><i class="bi bi-reply-fill"></i></div>';
         html += '<div class="mz-act-btn" data-act="copy" title="Nusxa"><i class="bi bi-clipboard"></i></div>';
         html += '<div class="mz-act-btn" data-act="forward" title="Forward"><i class="bi bi-share-fill"></i></div>';
-        if(m.is_me) html += '<div class="mz-act-btn" data-act="edit" title="Tahrirlash"><i class="bi bi-pencil-fill"></i></div>';
-        if(canDelete) html += '<div class="mz-act-btn danger" data-act="delete" title="O\'chirish"><i class="bi bi-trash-fill"></i></div>';
+        if(m.is_me) html += '<div class="mz-act-btn" data-act="edit" title="Tahrirlaş"><i class="bi bi-pencil-fill"></i></div>';
+        if(canDelete) html += '<div class="mz-act-btn danger" data-act="delete" title="Öçiriş"><i class="bi bi-trash-fill"></i></div>';
         html += '</div>';
         return html;
     }
@@ -561,7 +561,7 @@ window.MZChat = (function(){
                 startEdit(id, text);
                 break;
             case 'delete':
-                if(confirm("Xabarni o'chirishni tasdiqlaysizmi?")) sendDelete(id);
+                if(confirm("Xabarni öçirişni tasdiqlaysizmi?")) sendDelete(id);
                 break;
             case 'forward':
                 openForwardModal(id);
@@ -600,7 +600,7 @@ window.MZChat = (function(){
                 delete state.msgCache[id];
                 loadSidebar();
             } else {
-                alert(d.error || "O'chirilmadi");
+                alert(d.error || "Öçirilmadi");
             }
         }).catch(function(){});
     }
@@ -640,7 +640,7 @@ window.MZChat = (function(){
     function startEdit(id, text){
         state.replyTo = null;
         state.editingId = id;
-        dom.replyLabel.textContent = 'Tahrirlash';
+        dom.replyLabel.textContent = 'Tahrirlaş';
         dom.replySnippet.textContent = text;
         dom.replyBar.style.display = 'flex';
         dom.send.classList.add('editing');
@@ -690,7 +690,7 @@ window.MZChat = (function(){
     }
 
     function submitEdit(id, text){
-        if(!text){ alert("Xabar matni bo'sh bo'lishi mumkin emas"); return; }
+        if(!text){ alert("Xabar matni böş bölişi mumkin emas"); return; }
         fetch(urlFor('msgEdit', id, state.currentKind), {
             method:'POST',
             headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
@@ -850,7 +850,7 @@ window.MZChat = (function(){
         autoGrow();
     }
 
-    // ───────────────────────────── Info panel (o'ng) ─────────────────────────
+    // ───────────────────────────── Info panel (öng) ─────────────────────────
     function openInfo(){
         if(!state.currentKind) return;
         dom.shell.classList.add('mz-info-open');
@@ -880,9 +880,9 @@ window.MZChat = (function(){
     }
     function isInfoOpen(){ return dom.shell.classList.contains('mz-info-open'); }
 
-    // ── To'liq ekran rejimi ──
-    // Native Fullscreen API ishlatiladi; qo'llab-quvvatlamasa (masalan, iOS Safari)
-    // CSS fallback — .mz-fullscreen klassi (position:fixed; inset:0) qo'llaniladi.
+    // ── Töliq ekran rejimi ──
+    // Native Fullscreen API işlatiladi; qöllab-quvvatlamasa (masalan, iOS Safari)
+    // CSS fallback — .mz-fullscreen klassi (position:fixed; inset:0) qöllaniladi.
     function isCssFullscreen(){ return dom.shell.classList.contains('mz-fullscreen'); }
     function exitCssFullscreen(){
         dom.shell.classList.remove('mz-fullscreen');
@@ -910,13 +910,13 @@ window.MZChat = (function(){
         var isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement) || isCssFullscreen();
         if(dom.fullBtn){
             dom.fullBtn.classList.toggle('on', isFs);
-            dom.fullBtn.title = isFs ? "To'liq ekrandan chiqish" : "To'liq ekran";
+            dom.fullBtn.title = isFs ? "Töliq ekrandan çiqiş" : "Töliq ekran";
             dom.fullBtn.innerHTML = isFs ? '<i class="bi bi-fullscreen-exit"></i>' : '<i class="bi bi-arrows-fullscreen"></i>';
         }
     }
 
-    // Info-panel "hero" qismini ochiq suhbat headeridan ko'chiradi.
-    // Shu tarzda serverda render qilingan boshlang'ich suhbat uchun ham ishlaydi.
+    // Info-panel "hero" qismini oçiq suhbat headeridan köçiradi.
+    // Şu tarzda serverda render qilingan boşlanğiç suhbat uçun ham işlaydi.
     function syncInfoHero(){
         if(!dom.infoName) return;
         if(dom.headName) dom.infoName.textContent = dom.headName.textContent;
@@ -1004,7 +1004,7 @@ window.MZChat = (function(){
 
     function renderMembers(members){
         if(!members || !members.length){
-            dom.paneMembers.innerHTML = '<div class="mz-info-empty"><i class="bi bi-people"></i>A\'zolar yo\'q</div>';
+            dom.paneMembers.innerHTML = '<div class="mz-info-empty"><i class="bi bi-people"></i>A\'zolar yöq</div>';
             return;
         }
         var html = '<div class="mz-info-section-label">A\'zolar ('+members.length+')</div>';
@@ -1020,7 +1020,7 @@ window.MZChat = (function(){
         });
         files.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
         if(!files.length){
-            dom.paneFiles.innerHTML = '<div class="mz-info-empty"><i class="bi bi-folder2-open"></i>Hozircha fayl yo\'q</div>';
+            dom.paneFiles.innerHTML = '<div class="mz-info-empty"><i class="bi bi-folder2-open"></i>Hozirça fayl yöq</div>';
             return;
         }
         var imgRe = /\.(png|jpe?g|gif|webp)$/i;
@@ -1077,10 +1077,10 @@ window.MZChat = (function(){
         });
 
         if(dom.callBtn) dom.callBtn.addEventListener('click', function(){
-            mzToast("Audio qo'ng'iroq tez kunda qo'shiladi", 'bi-telephone');
+            mzToast("Audio qönğiroq tez kunda qöşiladi", 'bi-telephone');
         });
         if(dom.videoBtn) dom.videoBtn.addEventListener('click', function(){
-            mzToast("Video qo'ng'iroq tez kunda qo'shiladi", 'bi-camera-video');
+            mzToast("Video qönğiroq tez kunda qöşiladi", 'bi-camera-video');
         });
         if(dom.infoBtn) dom.infoBtn.addEventListener('click', toggleInfo);
         if(dom.fullBtn) dom.fullBtn.addEventListener('click', toggleFullscreen);
@@ -1120,7 +1120,7 @@ window.MZChat = (function(){
         dom.file.addEventListener('change', function(){
             if(!dom.file.files.length) return;
             var f = dom.file.files[0];
-            // Chat fayl limiti: 1 MB (serverda ham tekshiriladi)
+            // Çat fayl limiti: 1 MB (serverda ham tekşiriladi)
             if(f.size > 1024 * 1024){
                 mzToast('Fayl juda katta (' + fmtSize(f.size) + '). Maksimal 1 MB.', 'bi-exclamation-triangle');
                 dom.file.value = '';

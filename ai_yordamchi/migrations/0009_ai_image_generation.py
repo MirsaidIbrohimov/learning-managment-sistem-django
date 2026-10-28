@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='aidailyusage',
             name='generated_images',
-            field=models.PositiveIntegerField(default=0, verbose_name='Chizilgan rasmlar'),
+            field=models.PositiveIntegerField(default=0, verbose_name='Çizilgan rasmlar'),
         ),
     ]

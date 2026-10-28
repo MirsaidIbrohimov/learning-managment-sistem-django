@@ -25,7 +25,7 @@ def png_bytes(w=1200, h=600):
 
 
 class CertificateDesignTests(TestCase):
-    """Kurs bo'yicha sertifikat dizayni: standartga qaytish, admin tahriri, biriktirish."""
+    """Kurs böyiça sertifikat dizayni: standartga qaytiş, admin tahriri, biriktiriş."""
 
     def setUp(self):
         cache.clear()
@@ -53,7 +53,7 @@ class CertificateDesignTests(TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
         cache.clear()
 
-    def make_design(self, name='Ko\'k', w=1200, h=600):
+    def make_design(self, name='Kök', w=1200, h=600):
         return CertificateDesign.objects.create(
             name=name, background=SimpleUploadedFile('bg.png', png_bytes(w, h), content_type='image/png'))
 
@@ -84,7 +84,7 @@ class CertificateDesignTests(TestCase):
         self.assertEqual(certificates.get_certificate_design(self.course_a), design)
         self.assertIsNone(certificates.get_certificate_design(self.course_b))
 
-    # ── Admin: yaratish / tahrirlash / o'chirish ──
+    # ── Admin: yaratiş / tahrirlaş / öçiriş ──
     def test_admin_creates_design_and_rejects_non_image(self):
         bad = self.client.post(reverse('admin_certificate_designs'), {
             'name': 'Yomon', 'background': SimpleUploadedFile('x.png', b'not an image', content_type='image/png')})
@@ -102,14 +102,14 @@ class CertificateDesignTests(TestCase):
         self.client.post(reverse('admin_certificate_design_edit', args=[design.pk]), {
             'name': 'Yangilangan', 'text_color': '#123abc', 'course_format': '{course} KURSI',
             'name_x': '30.5', 'name_y': '140', 'name_size': '500', 'name_font': 'bold',
-            'course_x': 'abc', 'show_course': '1', 'show_series': '1',  # show_date yuborilmadi -> yashiriladi
+            'course_x': 'abc', 'show_course': '1', 'show_series': '1',  # show_date yuborilmadi -> yaşiriladi
         })
         design.refresh_from_db()
         self.assertEqual(design.name, 'Yangilangan')
         self.assertEqual(design.text_color, '#123abc')
         self.assertEqual(design.course_format, '{course} KURSI')
         self.assertEqual((design.name_x, design.name_y, design.name_size, design.name_font), (30.5, 100.0, 120, 'bold'))
-        self.assertEqual(design.course_x, 50.0)  # noto'g'ri qiymat -> standart
+        self.assertEqual(design.course_x, 50.0)  # notöğri qiymat -> standart
         self.assertTrue(design.show_series)
         self.assertFalse(design.show_date)
 
@@ -147,7 +147,7 @@ class CertificateDesignTests(TestCase):
         client.post(reverse('admin_certificate_design_delete', args=[design.pk]))
         self.assertTrue(CertificateDesign.objects.exists())
 
-    # ── Kursga biriktirish ──
+    # ── Kursga biriktiriş ──
     def test_settings_assigns_design_and_optionally_regenerates(self):
         design = self.make_design()
         self.make_cert(self.course_a)
@@ -159,7 +159,7 @@ class CertificateDesignTests(TestCase):
             cfg = CertificateSettings.objects.get(profession=self.course_a)
             self.assertEqual((cfg.series_code, cfg.design), ('ZMT-PY', design))
 
-            # Standartga qaytarish + mavjudlarini yangilash
+            # Standartga qaytariş + mavjudlarini yangilaş
             self.client.post(url, {'profession_id': self.course_a.pk, 'series_code': 'ZMT-PY',
                                    'validity_years': '2', 'design_id': '', 'regenerate': '1'})
             self.assertEqual(regen.call_count, 1)
@@ -189,7 +189,7 @@ class VerifyCertificatePageTests(TestCase):
         self.assertContains(resp, 'Python Backend')
         self.assertContains(resp, 'data-tone="expired"')
         self.assertContains(resp, 'Muddati tugagan')
-        self.assertNotContains(resp, 'Yuklab olish')  # faol bo'lmagan sertifikat fayli ko'rsatilmaydi
+        self.assertNotContains(resp, 'Yuklab oliş')  # faol bölmagan sertifikat fayli körsatilmaydi
 
     def test_not_found(self):
         resp = self.client.get(reverse('verify_certificate'), {'id': 'NOPE-1'})

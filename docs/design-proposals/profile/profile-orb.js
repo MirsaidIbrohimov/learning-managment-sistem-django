@@ -1,6 +1,6 @@
-/* IT Creative — profil hero'si uchun 3D "Reactive Orb" (konteyner ichida).
+/* IT Creative — profil hero'si uçun 3D "Reactive Orb" (konteyner içida).
  * Klassik skript: Three.js sahifadagi importmap orqali dinamik import qilinadi.
- * <div data-pf-orb> ichiga o'z canvas'ini qo'yadi. Ko'rinmaganda chizishni to'xtatadi.
+ * <div data-pf-orb> içiga öz canvas'ini qöyadi. Körinmaganda çizişni töxtatadi.
  * Mavzu: <html data-bs-theme="dark|light">.
  */
 (function () {
@@ -67,7 +67,7 @@
     function tick() {
       if (!visible) { running = false; return; }
       const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
-      const fit = Math.min(1, camera.aspect * .95);         // tor konteynerda sig'ishi uchun
+      const fit = Math.min(1, camera.aspect * .95);         // tor konteynerda siğişi uçun
       g.scale.setScalar(Math.max(.001, st.scale * fit));
       mouse.sx += (Math.max(-1, Math.min(1, mouse.x)) - mouse.sx) * .05; mouse.sy += (Math.max(-1, Math.min(1, mouse.y)) - mouse.sy) * .05;
       g.rotation.y = t * .15 + mouse.sx * .5; g.rotation.x = Math.sin(t * .3) * .15 - mouse.sy * .3;

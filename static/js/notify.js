@@ -1,16 +1,16 @@
 /* ══════════════════════════════════════════════════════════════════════
-   IT Creative — REAL-TIME BILDIRISHNOMA MOTORI
-   Barcha sahifalarda ishlaydi (base.html'ga ulangan).
+   IT Creative — REAL-TIME BILDIRIŞNOMA MOTORI
+   Barça sahifalarda işlaydi (base.html'ga ulangan).
 
-   Loyihada websocket yo'q (ASGI/Channels/Redis o'rnatilmagan), shuning
-   uchun "real-time" HTTP polling orqali — chat API'ning mavjud
-   arxitekturasi bilan bir xil. Tab ko'rinmasa polling to'xtaydi,
+   Loyihada websocket yöq (ASGI/Channels/Redis örnatilmagan), şuning
+   uçun "real-time" HTTP polling orqali — çat API'ning mavjud
+   arxitekturasi bilan bir xil. Tab körinmasa polling töxtaydi,
    qaytganda darhol yangilanadi.
 
    window.ItcNotify:
-     .toast({kind,title,body,url,photo,initials,life})  → toast ko'rsatish
+     .toast({kind,title,body,url,photo,initials,life})  → toast körsatiş
      .beep()                                            → ovoz
-     .poll()                                            → darhol tekshirish
+     .poll()                                            → darhol tekşiriş
      .isMuted() / .setMuted(bool)
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
@@ -19,15 +19,15 @@
   var cfg = window.ITC_NOTIFY || {};
   if (!cfg.feedUrl) return;
 
-  var POLL_ACTIVE = 15000;     // tab ochiq — 15s (rate-limit: 20 so'rov/60s)
-  var POLL_IDLE = 45000;       // foydalanuvchi harakatsiz — sekinroq
+  var POLL_ACTIVE = 15000;     // tab oçiq — 15s (rate-limit: 20 sörov/60s)
+  var POLL_IDLE = 45000;       // foydalanuvçi harakatsiz — sekinroq
   var IDLE_AFTER = 120000;     // 2 daqiqa harakatsizlik
   var TOAST_LIFE = 6000;
   var MUTE_KEY = 'itc_notify_muted';
   var BACKLOG_KEY = 'itc_notify_backlog_shown';
   var MAX_PANEL_ITEMS = 12;
 
-  var since = null;            // epoch ms — oxirgi tekshirilgan vaqt
+  var since = null;            // epoch ms — oxirgi tekşirilgan vaqt
   var timer = null;
   var lastInteraction = Date.now();
   var seen = Object.create(null);
@@ -79,7 +79,7 @@
     } catch (e) { audioReady = false; }
   }
 
-  /* Ikki notali yumshoq "chirilladi" — telefon bildirishnomasiga o'xshash */
+  /* Ikki notali yumşoq "çirilladi" — telefon bildirişnomasiga öxşaş */
   function beep() {
     if (isMuted()) return;
     unlockAudio();
@@ -107,7 +107,7 @@
     if (!soundBtn) return;
     var m = isMuted();
     soundBtn.classList.toggle('muted', m);
-    soundBtn.title = m ? "Ovoz o'chirilgan — yoqish" : "Ovoz yoqilgan — o'chirish";
+    soundBtn.title = m ? "Ovoz öçirilgan — yoqiş" : "Ovoz yoqilgan — öçiriş";
     var ic = soundBtn.querySelector('i');
     if (ic) ic.className = m ? 'bi bi-bell-slash-fill' : 'bi bi-volume-up-fill';
   }
@@ -150,17 +150,17 @@
     el.innerHTML =
       '<div class="ios-notif-icon">' + avatar + kindDot + '</div>' +
       '<div class="ios-notif-body">' +
-        '<div class="ios-notif-title">' + esc(o.title || 'Bildirishnoma') + '</div>' +
+        '<div class="ios-notif-title">' + esc(o.title || 'Bildirişnoma') + '</div>' +
         '<div class="ios-notif-msg">' + esc(o.body || '') + '</div>' +
       '</div>' +
-      '<button class="ios-notif-close" type="button" aria-label="Yopish"><i class="bi bi-x"></i></button>';
+      '<button class="ios-notif-close" type="button" aria-label="Yopiş"><i class="bi bi-x"></i></button>';
 
     el.querySelector('.ios-notif-close').addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation(); dismiss(el);
     });
 
     host.appendChild(el);
-    // Ko'p toast yig'ilib ketmasin
+    // Köp toast yiğilib ketmasin
     while (host.children.length > 4) dismiss(host.firstElementChild);
     setTimeout(function () { dismiss(el); }, life);
     return el;
@@ -204,7 +204,7 @@
     document.title = counts.total ? '(' + (counts.total > 99 ? '99+' : counts.total) + ') ' + base : base;
   }
 
-  // ── Qo'ng'iroq paneli ────────────────────────────────────────────
+  // ── Qönğiroq paneli ────────────────────────────────────────────
   function relTime(ms) {
     var d = Math.max(0, Date.now() - ms) / 1000;
     if (d < 60) return 'hozir';
@@ -217,7 +217,7 @@
     var av = it.photo
       ? '<img src="' + esc(it.photo) + '" alt="">'
       : esc(it.initials || '');
-    // Panelda faqat o'qilmaganlar bo'ladi — har biri "yangi" ko'rinishida.
+    // Panelda faqat öqilmaganlar böladi — har biri "yangi" körinişida.
     return '<a class="nbell-item unread" href="' + esc(it.url || '#') + '">' +
       '<div class="nbell-ava k-' + esc(it.kind) + '">' + av + '</div>' +
       '<div class="nbell-txt">' +
@@ -225,7 +225,7 @@
         '<div class="nbell-msg">' + esc(it.body) + '</div>' +
       '</div>' +
       '<div class="nbell-side"><div class="nbell-time">' + relTime(it.ts) + '</div>' +
-        '<span class="nbell-dot" aria-label="O\'qilmagan"></span></div>' +
+        '<span class="nbell-dot" aria-label="Öqilmagan"></span></div>' +
     '</a>';
   }
 
@@ -236,7 +236,7 @@
         '<span class="nbell-sec-ico"><i class="bi ' + icon + '"></i></span>' +
         '<span class="nbell-sec-title">' + title + '</span>' +
         (unread ? '<span class="nbell-sec-new">' + unread + ' yangi</span>' : '') +
-        '<a class="nbell-sec-all" href="' + esc(url) + '">Barchasi <i class="bi bi-chevron-right"></i></a>' +
+        '<a class="nbell-sec-all" href="' + esc(url) + '">Barçasi <i class="bi bi-chevron-right"></i></a>' +
       '</div>' +
       (items.length
         ? items.map(itemHtml).join('')
@@ -252,17 +252,17 @@
       if (!chats.length && !msgs.length) {
         bellList.innerHTML =
           '<div class="nbell-allread"><span class="nbell-allread-ico"><i class="bi bi-check2-all"></i></span>' +
-          '<b>Hammasi o\'qilgan</b><span>Yangi suhbat yoki xabar kelsa, shu yerda ko\'rinadi.</span></div>';
+          '<b>Hammasi öqilgan</b><span>Yangi suhbat yoki xabar kelsa, şu yerda körinadi.</span></div>';
         return;
       }
       bellList.innerHTML =
-        sectionHtml('chat', 'bi-chat-dots-fill', 'Suhbatlar', recent.chats || [], cfg.chatsUrl || '#', 'Hozircha suhbat yo\'q') +
-        sectionHtml('msg', 'bi-envelope-fill', 'Xabarlar', recent.messages || [], cfg.messagesUrl || '#', 'Hozircha xabar yo\'q');
+        sectionHtml('chat', 'bi-chat-dots-fill', 'Suhbatlar', recent.chats || [], cfg.chatsUrl || '#', 'Hozirça suhbat yöq') +
+        sectionHtml('msg', 'bi-envelope-fill', 'Xabarlar', recent.messages || [], cfg.messagesUrl || '#', 'Hozirça xabar yöq');
       return;
     }
     if (!panelItems.length) {
       bellList.innerHTML =
-        '<div class="nbell-empty"><i class="bi bi-bell-slash"></i>Yangi bildirishnoma yo\'q</div>';
+        '<div class="nbell-empty"><i class="bi bi-bell-slash"></i>Yangi bildirişnoma yöq</div>';
       return;
     }
     bellList.innerHTML = panelItems.map(itemHtml).join('');
@@ -292,12 +292,12 @@
   }
 
   function handleBacklog(bl) {
-    // Login qilgandan keyin bir marta: "sizda o'qilmagan xabarlar bor"
+    // Login qilgandan keyin bir marta: "sizda öqilmagan xabarlar bor"
     if (!bl || backlogShown()) { markBacklogShown(); return; }
     markBacklogShown();
     toast({
       kind: 'system',
-      title: 'Sizda ' + bl.total + ' o\'qilmagan xabar bor',
+      title: 'Sizda ' + bl.total + ' öqilmagan xabar bor',
       body: (bl.lines || []).join('\n'),
       url: bl.url,
       initials: '🔔',
@@ -315,7 +315,7 @@
       credentials: 'same-origin'
     })
       .then(function (r) {
-        if (r.status === 429) return null;   // rate-limit — keyingi urinishda
+        if (r.status === 429) return null;   // rate-limit — keyingi urinişda
         if (!r.ok) throw new Error('http ' + r.status);
         return r.json();
       })
@@ -343,7 +343,7 @@
           beep();
         }
       })
-      .catch(function () { /* tarmoq uzilishi — jim o'tamiz */ })
+      .catch(function () { /* tarmoq uzilişi — jim ötamiz */ })
       .then(function () { inFlight = false; schedule(); });
   }
 
@@ -351,7 +351,7 @@
   ['click', 'keydown', 'touchstart', 'scroll'].forEach(function (ev) {
     window.addEventListener(ev, function () { lastInteraction = Date.now(); }, { passive: true });
   });
-  // Brauzerlar avtomatik ovozni bloklaydi — birinchi harakatda ochib qo'yamiz
+  // Brauzerlar avtomatik ovozni bloklaydi — birinçi harakatda oçib qöyamiz
   ['click', 'keydown', 'touchstart'].forEach(function (ev) {
     window.addEventListener(ev, unlockAudio, { once: true, passive: true });
   });
@@ -386,7 +386,7 @@
           paintCounts((d && d.counts) || { total: 0, chat: 0 }, false);
           paintPanel();
         })
-        .catch(function () { toast({ kind: 'system', title: 'Xatolik', body: 'Belgilab bo\'lmadi. Qayta urinib ko\'ring.', initials: '!' }); })
+        .catch(function () { toast({ kind: 'system', title: 'Xatolik', body: 'Belgilab bölmadi. Qayta urinib köring.', initials: '!' }); })
         .then(function () { readAllBtn.disabled = false; });
     });
   }
@@ -397,7 +397,7 @@
     });
   }
 
-  // Django messages toast'lari (server tomonidan chizilgan) — o'z-o'zidan yopiladi
+  // Django messages toast'lari (server tomonidan çizilgan) — öz-özidan yopiladi
   document.querySelectorAll('.ios-notif[data-server-msg]').forEach(function (el, i) {
     el.querySelectorAll('.ios-notif-close').forEach(function (b) {
       b.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); dismiss(el); });

@@ -74,11 +74,11 @@
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
         <div>
             <h2 class="fw-bold mb-0">🎲 Jumanji savollari</h2>
-            <p class="text-muted mb-0 small">{{ game.title }} — og'zaki javob uchun savol bazasi</p>
+            <p class="text-muted mb-0 small">{{ game.title }} — oğzaki javob uçun savol bazasi</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'games:admin_games' %}" class="btn btn-outline-secondary btn-back">
-                <i class="bi bi-arrow-left"></i> O'yinlar
+                <i class="bi bi-arrow-left"></i> Öyinlar
             </a>
             <button type="button" class="btn btn-xlsx" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bi bi-file-earmark-excel"></i> Excel import
@@ -107,20 +107,20 @@
         </div>
         <div class="pstat prof">
             <span class="ic"><i class="bi bi-diagram-3"></i></span>
-            <span><span class="num">{{ stats.professions }}</span><div class="lbl">Yo'nalish</div></span>
+            <span><span class="num">{{ stats.professions }}</span><div class="lbl">Yönaliş</div></span>
         </div>
     </div>
 
     <form method="get" class="filter-bar">
         <select name="profession" class="form-select" style="width: auto;" onchange="this.form.submit()">
-            <option value="">Yo'nalish: hammasi</option>
-            <option value="none" {% if selected_profession == 'none' %}selected{% endif %}>Umumiy (yo'nalishsiz)</option>
+            <option value="">Yönaliş: hammasi</option>
+            <option value="none" {% if selected_profession == 'none' %}selected{% endif %}>Umumiy (yönalişsiz)</option>
             {% for p in professions %}
             <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
             {% endfor %}
         </select>
         <div class="d-flex gap-2 flex-grow-1" style="min-width: 200px;">
-            <input type="text" name="q" class="form-control" placeholder="Savol matni bo'yicha qidirish…" value="{{ search }}">
+            <input type="text" name="q" class="form-control" placeholder="Savol matni böyiça qidiriş…" value="{{ search }}">
             <button type="submit" class="btn btn-outline-success" style="border-radius: 11px;"><i class="bi bi-search"></i></button>
         </div>
     </form>
@@ -133,8 +133,8 @@
                         <tr>
                             <th>#</th>
                             <th>Savol</th>
-                            <th>To'g'ri javob</th>
-                            <th>Yo'nalish</th>
+                            <th>Töğri javob</th>
+                            <th>Yönaliş</th>
                             <th>Qiyinlik</th>
                             <th>Holat</th>
                             <th>Amallar</th>
@@ -152,7 +152,7 @@
                             <td>{% if q.profession %}<span class="prof-chip">{{ q.profession.name }}</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
                             <td>
                                 {% if q.difficulty == 'easy' %}<span class="badge bg-success" style="border-radius:8px;">Oson</span>
-                                {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;">O'rta</span>
+                                {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;">Örta</span>
                                 {% else %}<span class="badge bg-danger" style="border-radius:8px;">Qiyin</span>{% endif %}
                             </td>
                             <td>
@@ -164,7 +164,7 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form method="post" action="{% url 'games:jumanji_admin_question_delete' q.pk %}"
-                                      onsubmit="return confirm('Savol o\'chirilsinmi?');">
+                                      onsubmit="return confirm('Savol öçirilsinmi?');">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash"></i></button>
                                 </form>
@@ -175,7 +175,7 @@
                             <td colspan="7" class="text-center py-4 text-muted">
                                 <div style="font-size: 2rem; opacity: 0.4;">🎲</div>
                                 <p class="mt-2 mb-1">Savollar topilmadi</p>
-                                <small>Excel import orqali bir vaqtda ko'plab savol qo'shishingiz mumkin</small>
+                                <small>Excel import orqali bir vaqtda köplab savol qöşişingiz mumkin</small>
                             </td>
                         </tr>
                         {% endfor %}
@@ -193,7 +193,7 @@
                 <div class="d-flex gap-1 flex-wrap">
                     {% if q.profession %}<span class="prof-chip">{{ q.profession.name }}</span>{% endif %}
                     {% if q.difficulty == 'easy' %}<span class="badge bg-success" style="border-radius:8px;font-size:0.7rem;">Oson</span>
-                    {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;font-size:0.7rem;">O'rta</span>
+                    {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;font-size:0.7rem;">Örta</span>
                     {% else %}<span class="badge bg-danger" style="border-radius:8px;font-size:0.7rem;">Qiyin</span>{% endif %}
                     {% if not q.is_active %}<span class="badge bg-secondary" style="border-radius:8px;font-size:0.7rem;">Nofaol</span>{% endif %}
                 </div>
@@ -205,7 +205,7 @@
                     <i class="bi bi-pencil"></i>
                 </a>
                 <form method="post" action="{% url 'games:jumanji_admin_question_delete' q.pk %}"
-                      onsubmit="return confirm('Savol o\'chirilsinmi?');">
+                      onsubmit="return confirm('Savol öçirilsinmi?');">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash"></i></button>
                 </form>
@@ -227,24 +227,24 @@
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel'dan import</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopiş"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">
-                        Ustunlar: <strong>Savol</strong> · <strong>To'g'ri javob</strong> ·
-                        Qiyinlik (Oson/O'rta/Qiyin) · Yo'nalish.
-                        Faqat <strong>Savol</strong> va <strong>To'g'ri javob</strong> majburiy.
-                        O'quvchi javobni og'zaki aytadi — variantlar yo'q.
-                        <a href="{% url 'games:jumanji_admin_questions_template' game.pk %}">Tayyor shablonni yuklab oling</a>.
+                        Ustunlar: <strong>Savol</strong> · <strong>Töğri javob</strong> ·
+                        Qiyinlik (Oson/Örta/Qiyin) · Yönaliş.
+                        Faqat <strong>Savol</strong> va <strong>Töğri javob</strong> majburiy.
+                        Öquvçi javobni oğzaki aytadi — variantlar yöq.
+                        <a href="{% url 'games:jumanji_admin_questions_template' game.pk %}">Tayyor şablonni yuklab oling</a>.
                     </p>
                     <label class="import-drop d-block mb-3">
                         <input type="file" name="file" id="importFile" accept=".xlsx" required>
                         <i class="bi bi-cloud-arrow-up" style="font-size: 1.8rem; color: #16a34a;"></i>
                         <div class="mt-1 import-file-name" id="importFileName">.xlsx faylni tanlang</div>
-                        <small class="text-muted">Maksimal 5 MB · 2000 tagacha savol</small>
+                        <small class="text-muted">Maksimal 5 MB · 2000 tagaça savol</small>
                     </label>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Yo'nalish topilmasa qaysisiga biriktirilsin?</label>
+                        <label class="form-label small fw-semibold">Yönaliş topilmasa qaysisiga biriktirilsin?</label>
                         <select name="profession" class="form-select" style="border-radius: 11px;">
                             <option value="">Biriktirilmasin (umumiy savol)</option>
                             {% for p in professions %}
@@ -255,14 +255,14 @@
                     <div class="form-check">
                         <input type="checkbox" name="replace_all" class="form-check-input" id="replaceAll">
                         <label class="form-check-label small" for="replaceAll">
-                            Eski savollarni o'chirib, faqat fayldan import qilish
-                            <span class="text-danger">(ehtiyot bo'ling!)</span>
+                            Eski savollarni öçirib, faqat fayldan import qiliş
+                            <span class="text-danger">(ehtiyot böling!)</span>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qilish</button>
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qiliş</button>
+                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qiliş</button>
                 </div>
             </form>
         </div>

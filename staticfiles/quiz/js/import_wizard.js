@@ -37,8 +37,8 @@
     const CSRF = document.querySelector('meta[name="csrf-token"]').content;
     const TYPE_LABEL = {
         single_choice: 'Bitta tanlov',
-        multiple_choice: "Ko'p tanlov",
-        true_false: "To'g'ri / Noto'g'ri",
+        multiple_choice: "Köp tanlov",
+        true_false: "Töğri / Notöğri",
     };
 
     let rows = [];      // [{...row, _selected: true|false}]
@@ -71,7 +71,7 @@
     els.commitBtn.addEventListener('click', async () => {
         const selected = rows.filter((r) => r._selected !== false && (r._errors || []).length === 0);
         if (!selected.length) {
-            QuizApi.toast("Hech qaysi qator to'g'ri va tanlangan emas.", 'error');
+            QuizApi.toast("Heç qaysi qator töğri va tanlangan emas.", 'error');
             return;
         }
         const payload = { questions: selected.map(stripRow) };
@@ -81,19 +81,19 @@
         els.commitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saqlanmoqda...';
         try {
             const data = await QuizApi.post('questions/import-commit/', payload);
-            els.resultTitle.textContent = data.created > 0 ? 'Saqlandi!' : "Hech narsa saqlanmadi";
-            let msg = `${data.created} ta savol bazaga qo'shildi`;
+            els.resultTitle.textContent = data.created > 0 ? 'Saqlandi!' : "Heç narsa saqlanmadi";
+            let msg = `${data.created} ta savol bazaga qöşildi`;
             if (data.attached) msg += `, ${data.attached} tasi testga ulandi`;
             msg += '.';
             if (data.rejected && data.rejected.length) {
-                msg += ` ${data.rejected.length} ta xato bo'lgani uchun o'tkazib yuborildi.`;
+                msg += ` ${data.rejected.length} ta xato bölgani uçun ötkazib yuborildi.`;
             }
             els.resultMsg.textContent = msg;
             showStage(3);
         } catch (e) {
-            QuizApi.toast('Saqlashda xatolik: ' + e.message, 'error');
+            QuizApi.toast('Saqlaşda xatolik: ' + e.message, 'error');
             els.commitBtn.disabled = false;
-            els.commitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> To\'g\'rilarni saqlash';
+            els.commitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> Töğrilarni saqlaş';
         }
     });
 
@@ -106,7 +106,7 @@
             return;
         }
         if (file.size > 5 * 1024 * 1024) {
-            QuizApi.toast("Fayl 5 MB dan kichik bo'lishi kerak.", 'error');
+            QuizApi.toast("Fayl 5 MB dan kiçik bölişi kerak.", 'error');
             return;
         }
         filename = file.name;
@@ -132,7 +132,7 @@
             renderPreview();
             showStage(2);
         } catch (e) {
-            QuizApi.toast("Yuklashda xatolik: " + e.message, 'error');
+            QuizApi.toast("Yuklaşda xatolik: " + e.message, 'error');
             els.drop.style.opacity = '1';
         }
     }
@@ -149,14 +149,14 @@
 
     function mountRow(node, row, idx) {
         node.querySelector('.imp-row-no').textContent = row._row || (idx + 1);
-        node.querySelector('.imp-row-text').textContent = row.text || '(bo\'sh)';
+        node.querySelector('.imp-row-text').textContent = row.text || '(böş)';
 
         const opts = node.querySelector('.imp-row-options');
         opts.innerHTML = '';
         (row.options || []).forEach((o) => {
             const span = document.createElement('span');
             span.className = 'imp-row-opt' + (o.is_correct ? ' correct' : '');
-            span.textContent = (o.is_correct ? '✓ ' : '○ ') + (o.text || '(bo\'sh)');
+            span.textContent = (o.is_correct ? '✓ ' : '○ ') + (o.text || '(böş)');
             opts.appendChild(span);
         });
 
@@ -192,7 +192,7 @@
         const okCount = rows.filter((r) => (r._errors || []).length === 0).length;
         const errCount = rows.length - okCount;
         if (okCount) {
-            els.statOk.textContent = `${okCount} ta to'g'ri`;
+            els.statOk.textContent = `${okCount} ta töğri`;
             els.statOk.classList.remove('d-none');
         } else {
             els.statOk.classList.add('d-none');
@@ -228,7 +228,7 @@
         if (n === 1) {
             els.drop.style.opacity = '1';
             els.commitBtn.disabled = false;
-            els.commitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> To\'g\'rilarni saqlash';
+            els.commitBtn.innerHTML = '<i class="bi bi-check2-circle"></i> Töğrilarni saqlaş';
         }
     }
 

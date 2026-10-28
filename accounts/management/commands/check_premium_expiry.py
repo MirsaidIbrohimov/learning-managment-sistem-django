@@ -5,7 +5,7 @@ from accounts.models import CustomUser, Message
 
 
 class Command(BaseCommand):
-    help = 'Premium muddati tugayotgan va tugagan foydalanuvchilarni tekshirish'
+    help = 'Premium muddati tugayotgan va tugagan foydalanuvçilarni tekşiriş'
 
     def handle(self, *args, **kwargs):
         now = timezone.now()
@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 Message.objects.create(
                     recipient=user,
                     title="Premium muddati tugamoqda ⚠️",
-                    content=f"Sizning Premium obunangiz muddati {days_left} kundan so'ng tugaydi ({user.premium_expires_at.strftime('%d.%m.%Y %H:%M')}).\n\nIltimos, muddatni uzaytiring! Market bo'limidan Premium uzaytirish tugmasini bosing.",
+                    content=f"Sizning Premium obunangiz muddati {days_left} kundan söng tugaydi ({user.premium_expires_at.strftime('%d.%m.%Y %H:%M')}).\n\nIltimos, muddatni uzaytiring! Market bölimidan Premium uzaytiriş tugmasini bosing.",
                     message_type='reminder'
                 )
                 self.stdout.write(f"Eslatma yuborildi: {user.full_name} ({days_left} kun qoldi)")
@@ -45,9 +45,9 @@ class Command(BaseCommand):
             Message.objects.create(
                 recipient=user,
                 title="Premium muddati tugadi",
-                content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
+                content="Sizning Premium obunangiz muddati tugadi.\n\nQayta oliş uçun Market bölimiga kiring.",
                 message_type='system'
             )
-            self.stdout.write(f"Premium olib tashlandi: {user.full_name}")
+            self.stdout.write(f"Premium olib taşlandi: {user.full_name}")
 
-        self.stdout.write(self.style.SUCCESS('Premium tekshiruvi yakunlandi!'))
+        self.stdout.write(self.style.SUCCESS('Premium tekşiruvi yakunlandi!'))

@@ -75,13 +75,13 @@ class CoinTransferAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
 
     fieldsets = (
-        ('👥 O\'tkazma ma\'lumotlari', {
+        ('👥 Ötkazma ma\'lumotlari', {
             'fields': ('transfer_summary',),
         }),
-        ('📤 Yuboruvchi', {
+        ('📤 Yuboruvçi', {
             'fields': ('sender',),
         }),
-        ('📥 Qabul qiluvchi', {
+        ('📥 Qabul qiluvçi', {
             'fields': ('receiver',),
         }),
         ('🪙 Moliyaviy ma\'lumotlar', {
@@ -103,7 +103,7 @@ class CoinTransferAdmin(admin.ModelAdmin):
             '<small style="color:#999;">@{}</small>',
             obj.sender.full_name, obj.sender.username
         )
-    colored_sender.short_description = 'Yuboruvchi'
+    colored_sender.short_description = 'Yuboruvçi'
     colored_sender.admin_order_field = 'sender__first_name'
 
     def direction_arrow(self, obj):
@@ -119,7 +119,7 @@ class CoinTransferAdmin(admin.ModelAdmin):
             '<small style="color:#999;">@{}</small>',
             obj.receiver.full_name, obj.receiver.username
         )
-    colored_receiver.short_description = 'Qabul qiluvchi'
+    colored_receiver.short_description = 'Qabul qiluvçi'
     colored_receiver.admin_order_field = 'receiver__first_name'
 
     def coin_badge(self, obj):
@@ -145,7 +145,7 @@ class CoinTransferAdmin(admin.ModelAdmin):
             '<span style="color:#c0392b;font-weight:700;">{} <small style="color:#999;">coin</small></span>',
             obj.total_deducted
         )
-    total_display.short_description = 'Jami yechilgan'
+    total_display.short_description = 'Jami yeçilgan'
     total_display.admin_order_field = 'total_deducted'
 
     def status_badge(self, obj):
@@ -169,9 +169,9 @@ class CoinTransferAdmin(admin.ModelAdmin):
         return format_html(
             '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;'
             'padding:20px 24px;border-radius:14px;font-size:0.95em;line-height:1.8;">'
-            '<div style="font-size:1.2em;font-weight:700;margin-bottom:8px;">🔄 O\'tkazma #{}</div>'
-            '<div>📤 <b>Yuboruvchi:</b> {} <small style="opacity:0.6;">(@{})</small></div>'
-            '<div>📥 <b>Qabul qiluvchi:</b> {} <small style="opacity:0.6;">(@{})</small></div>'
+            '<div style="font-size:1.2em;font-weight:700;margin-bottom:8px;">🔄 Ötkazma #{}</div>'
+            '<div>📤 <b>Yuboruvçi:</b> {} <small style="opacity:0.6;">(@{})</small></div>'
+            '<div>📥 <b>Qabul qiluvçi:</b> {} <small style="opacity:0.6;">(@{})</small></div>'
             '<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.15);">'
             '🪙 <b>Miqdor:</b> <span style="color:#f1c40f;font-size:1.1em;">{} coin</span> &nbsp;|&nbsp; '
             '💸 <b>Xizmat haqqi:</b> <span style="color:#e67e22;">{} coin</span> &nbsp;|&nbsp; '
@@ -182,7 +182,7 @@ class CoinTransferAdmin(admin.ModelAdmin):
             obj.receiver.full_name, obj.receiver.username,
             obj.amount, obj.fee, obj.total_deducted,
         )
-    transfer_summary.short_description = 'O\'tkazma xulosasi'
+    transfer_summary.short_description = 'Ötkazma xulosasi'
 
     def has_add_permission(self, request):
         return False
@@ -198,9 +198,9 @@ class CoinTransferAdmin(admin.ModelAdmin):
         qs = self.get_queryset(request)
         completed = qs.filter(status='completed')
         extra_context['title'] = format_html(
-            '🔄 Coin O\'tkazmalar &nbsp;|&nbsp; '
+            '🔄 Coin Ötkazmalar &nbsp;|&nbsp; '
             '✅ {} ta muvaffaqiyatli &nbsp;|&nbsp; '
-            '🪙 {} coin o\'tkazilgan &nbsp;|&nbsp; '
+            '🪙 {} coin ötkazilgan &nbsp;|&nbsp; '
             '💰 {} coin xizmat haqqi',
             completed.count(),
             completed.aggregate(s=Sum('amount'))['s'] or 0,

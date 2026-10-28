@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('last_name', models.CharField(max_length=100, verbose_name='Familiya')),
                 ('phone', models.CharField(max_length=20, verbose_name='Telefon raqam')),
                 ('course_interest', models.CharField(blank=True, max_length=200, verbose_name='Qiziqtirgan kurs')),
-                ('status', models.CharField(choices=[('new', 'Yangi'), ('contacted', "Bog'lanildi"), ('enrolled', 'Yozildi'), ('rejected', 'Rad etildi')], default='new', max_length=20, verbose_name='Holat')),
+                ('status', models.CharField(choices=[('new', 'Yangi'), ('contacted', "Boğlanildi"), ('enrolled', 'Yozildi'), ('rejected', 'Rad etildi')], default='new', max_length=20, verbose_name='Holat')),
                 ('admin_note', models.TextField(blank=True, null=True, verbose_name='Admin izohi')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
             ],

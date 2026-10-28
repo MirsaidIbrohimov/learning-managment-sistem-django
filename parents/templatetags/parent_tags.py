@@ -15,7 +15,7 @@ def tone(value, scale=100):
 
 @register.filter
 def pct(part, whole):
-    """part / whole foizda (butun son). whole=0 bo'lsa 0."""
+    """part / whole foizda (butun son). whole=0 bölsa 0."""
     try:
         return round(float(part) / float(whole) * 100) if float(whole) else 0
     except (TypeError, ValueError):
@@ -24,7 +24,7 @@ def pct(part, whole):
 
 @register.filter
 def dot(value):
-    """Kasr sonni nuqta bilan (lokalizatsiyasiz) — data-* atributlar uchun."""
+    """Kasr sonni nuqta bilan (lokalizatsiyasiz) — data-* atributlar uçun."""
     try:
         return f"{float(value):g}"
     except (TypeError, ValueError):

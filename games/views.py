@@ -25,6 +25,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
 from . import jumanji
+from accounts.alphabet import to_new_alphabet
 from accounts.models import CustomUser
 from accounts.security import get_user_agent, is_mobile_device
 from . import external_api
@@ -54,16 +55,16 @@ def games_list(request):
     games = Game.objects.filter(is_active=True)
     now = timezone.now()
 
-    # Tugagan, ammo coin berilmagan musobaqalarga coin berish
-    # (o'chirib qo'yilgan ustoz musobaqasida ham bron turgan bo'lsa — hisob-kitob qilinadi)
+    # Tugagan, ammo coin berilmagan musobaqalarga coin beriş
+    # (öçirib qöyilgan ustoz musobaqasida ham bron turgan bölsa — hisob-kitob qilinadi)
     for comp in (Competition.objects
                  .filter(coins_awarded=False, end_time__lt=now, game__is_active=True)
                  .filter(Q(is_active=True) | Q(prize_reserved__gt=0))
                  .select_related('game')):
         comp.award_competition_coins()
 
-    # Faol yoki tez orada boshlanadigan musobaqalar â€” sahifaning tepasida chiqadi
-    # Faqat foydalanuvchi auditoriyasiga mos musobaqalar ko'rsatiladi
+    # Faol yoki tez orada boşlanadigan musobaqalar â€” sahifaning tepasida çiqadi
+    # Faqat foydalanuvçi auditoriyasiga mos musobaqalar körsatiladi
     comps = (Competition.objects
              .filter(is_active=True, end_time__gte=now, game__is_active=True)
              .filter(Competition.visible_q(request.user))
@@ -83,14 +84,14 @@ def games_list(request):
             comp.play_url = reverse('games:game_launch', args=[comp.game.slug])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
         elif comp.game.game_type == 'jumanji':
-            # Jumanji jonli o'yin: lobby boshqaruvchi tomonidan ochiladi.
+            # Jumanji jonli öyin: lobby boşqaruvçi tomonidan oçiladi.
             live = comp.jumanji_live_session()
             comp.jumanji_live = live
             comp.play_url = reverse('games:jumanji_room', args=[live.pk]) if live else ''
             comp.can_play = bool(live) and comp.is_user_allowed(request.user)
             comp.leaderboard_url = ''
         else:
-            # Typing: musobaqa yaratilganda tanlangan ko'rinishda o'tadi (klassik yoki 2.0 poyga)
+            # Typing: musobaqa yaratilganda tanlangan körinişda ötadi (klassik yoki 2.0 poyga)
             url_name = 'games:game_play_v2_competition' if comp.is_v2 else 'games:game_play_competition'
             comp.play_url = reverse(url_name, args=[comp.game.slug, comp.pk])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
@@ -99,7 +100,7 @@ def games_list(request):
 
     return render(request, 'games/student/games_list.html', {
         'games': games,
-        # "Yozish mashqi 2.0" ro'yxatda alohida karta bo'lib chiqadi
+        # "Yoziş maşqi 2.0" röyxatda alohida karta bölib çiqadi
         'typing_games': [g for g in games if g.game_type == 'typing'],
         'active_competitions': active_competitions,
         'active_comp_count': sum(1 for c in active_competitions if c.status == 'active'),
@@ -110,7 +111,7 @@ def games_list(request):
 def game_detail(request, slug):
     game = get_object_or_404(Game, slug=slug, is_active=True)
 
-    # Tashqi (External) o'yin → launch sahifaga yo'naltirish
+    # Taşqi (External) öyin → launch sahifaga yönaltiriş
     if game.game_type == 'external':
         return redirect('games:game_launch', slug=game.slug)
 
@@ -119,7 +120,7 @@ def game_detail(request, slug):
                     .order_by('-start_time')
                     .distinct())
     for comp in competitions:
-        # Musobaqa tugagan bo'lsa, coin berish
+        # Musobaqa tugagan bölsa, coin beriş
         if comp.status == 'ended' and not comp.coins_awarded:
             comp.award_competition_coins()
         comp.can_play = comp.can_user_play(request.user)
@@ -127,7 +128,7 @@ def game_detail(request, slug):
         comp.remaining_attempts = max(0, comp.max_attempts - comp.used_attempts)
 
     if game.game_type == 'jumanji':
-        # Jumanji'da urinish yozuvi yo'q — o'yin jonli sessiyada kechadi.
+        # Jumanji'da uriniş yozuvi yöq — öyin jonli sessiyada keçadi.
         for comp in competitions:
             comp.live_session = comp.jumanji_live_session()
         return render(request, 'games/student/jumanji_detail.html', {
@@ -192,16 +193,16 @@ def game_detail(request, slug):
 @login_required
 def game_launch(request, slug):
     """
-    Tashqi (external) tipidagi o'yinni ochish.
+    Taşqi (external) tipidagi öyinni oçiş.
 
-    URL aniqlash tartibi:
-      1. config.external_url      → tashqi serverdagi to'liq URL (boshqa domain ham bo'lishi mumkin)
-      2. config.builtin           → LMS'ning ichki static papkasidagi o'yin (masalan: 'shashka')
+    URL aniqlaş tartibi:
+      1. config.external_url      → taşqi serverdagi töliq URL (boşqa domain ham bölişi mumkin)
+      2. config.builtin           → LMS'ning içki static papkasidagi öyin (masalan: 'şaşka')
                                     → /static/games/<builtin>/index.html
       3. slug nomi bilan papka    → /static/games/<slug>/index.html (avto-detect)
 
-    HMAC-imzolangan launch token URL'ga qo'shiladi, o'yin uni
-    `/api/v1/games/external/verify/` orqali tekshiradi va natijani
+    HMAC-imzolangan launch token URL'ga qöşiladi, öyin uni
+    `/api/v1/games/external/verify/` orqali tekşiradi va natijani
     `/api/v1/games/external/result/` orqali yuboradi.
     """
     from django.conf import settings as dj_settings
@@ -216,9 +217,9 @@ def game_launch(request, slug):
     if not external_url:
         builtin = (cfg.get('builtin') or game.slug).strip()
         static_rel = f"games/{builtin}/index.html"
-        # Static fayl mavjudligini tekshirish:
+        # Static fayl mavjudligini tekşiriş:
         #   1) avval source 'static/' kataloglaridan (finders)
-        #   2) keyin esa STATIC_ROOT'dan (collectstatic chiqishi — production)
+        #   2) keyin esa STATIC_ROOT'dan (collectstatic çiqişi — production)
         found = finders.find(static_rel)
         if not found:
             static_root_path = _os.path.join(str(dj_settings.STATIC_ROOT or ''), *static_rel.split('/'))
@@ -227,16 +228,16 @@ def game_launch(request, slug):
         if not found:
             messages.error(
                 request,
-                f"O'yin fayli topilmadi: static/{static_rel}. "
-                f"Production'da 'python manage.py collectstatic --noinput' ishga tushiring "
-                f"yoki config.external_url ga to'liq URL ko'rsating."
+                f"Öyin fayli topilmadi: static/{static_rel}. "
+                f"Production'da 'python manage.py collectstatic --noinput' işga tuşiring "
+                f"yoki config.external_url ga töliq URL körsating."
             )
             return redirect('games:games_list')
-        # Nisbiy URL — http/https va host masalasini umuman tug'dirmaydi (reverse-proxy uchun xavfsiz)
+        # Nisbiy URL — http/https va host masalasini umuman tuğdirmaydi (reverse-proxy uçun xavfsiz)
         external_url = f"{dj_settings.STATIC_URL}{static_rel}"
 
     token = external_api.issue_launch_token(request.user, game)
-    # Tashqi URL absolyut bo'lsa (boshqa domain), nisbiy api_base ishlamaydi → absolyut beramiz
+    # Taşqi URL absolyut bölsa (boşqa domain), nisbiy api_base işlamaydi → absolyut beramiz
     is_absolute_ext = external_url.startswith('http://') or external_url.startswith('https://')
     if is_absolute_ext:
         host_base = f"{request.scheme}://{request.get_host()}"
@@ -249,14 +250,14 @@ def game_launch(request, slug):
     # Musobaqa (ixtiyoriy) — ?competition_id=... orqali
     competition_id = request.GET.get('competition_id', '').strip()
 
-    # Musobaqada urinishlar tugaganini tekshirish
+    # Musobaqada urinişlar tugaganini tekşiriş
     if competition_id:
         try:
             comp_check = game.competitions.filter(pk=int(competition_id), is_active=True).first()
         except (TypeError, ValueError):
             comp_check = None
         if comp_check and not comp_check.is_user_allowed(request.user):
-            messages.warning(request, f"'{comp_check.title}' musobaqasi siz uchun mo'ljallanmagan.")
+            messages.warning(request, f"'{comp_check.title}' musobaqasi siz uçun möljallanmagan.")
             return redirect('games:game_detail', slug=slug)
         if comp_check:
             used = comp_check.user_attempts_count(request.user)
@@ -264,12 +265,12 @@ def game_launch(request, slug):
                 messages.info(request, f"'{comp_check.title}' musobaqasi tugagan.")
                 return redirect('games:game_detail', slug=slug)
             if comp_check.status == 'upcoming':
-                messages.info(request, f"'{comp_check.title}' musobaqasi hali boshlanmagan.")
+                messages.info(request, f"'{comp_check.title}' musobaqasi hali boşlanmagan.")
                 return redirect('games:game_detail', slug=slug)
             if not comp_check.can_user_play(request.user):
                 messages.warning(
                     request,
-                    f"'{comp_check.title}' musobaqasida urinishlar tugadi "
+                    f"'{comp_check.title}' musobaqasida urinişlar tugadi "
                     f"({used}/{comp_check.max_attempts})."
                 )
                 return redirect('games:game_detail', slug=slug)
@@ -296,7 +297,7 @@ def game_launch(request, slug):
         user=request.user, game=game
     ).order_by('-score').first()
 
-    # Faol musobaqalar (board games uchun ham ishlaydi)
+    # Faol musobaqalar (board games uçun ham işlaydi)
     from django.utils import timezone
     active_competitions = game.competitions.filter(
         is_active=True, start_time__lte=timezone.now(), end_time__gte=timezone.now()
@@ -321,8 +322,8 @@ TYPING_LEVELS = ('easy', 'medium', 'hard')
 
 @login_required
 def game_play(request, slug, competition_id=None, ui='classic'):
-    """Typing o'yini. Ikki ko'rinish bir xil sessiya/token/submit kontraktiga ega:
-    'classic' — eski mashq, 'v2' — "Yozish mashqi 2.0" (lenta + poyga)."""
+    """Typing öyini. Ikki köriniş bir xil sessiya/token/submit kontraktiga ega:
+    'classic' — eski maşq, 'v2' — "Yoziş maşqi 2.0" (lenta + poyga)."""
     game = get_object_or_404(Game, slug=slug, is_active=True)
     if ui not in TYPING_UI_TEMPLATES:
         ui = 'classic'
@@ -334,7 +335,7 @@ def game_play(request, slug, competition_id=None, ui='classic'):
 
     competition = None
 
-    # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
+    # AVVAL: taşlab ketilgan sessiyani saqlaş (orqaga tugmasi himoyasi)
     session_key = f'game_session_{game.slug}'
     old_session = request.session.get(session_key)
     rapid_reentry = _is_rapid_competition_reentry(old_session, competition_id)
@@ -364,66 +365,66 @@ def game_play(request, slug, competition_id=None, ui='classic'):
         request.session[session_key] = old_session
         request.session.modified = True
 
-    # KEYIN: tekshirish
+    # KEYIN: tekşiriş
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
-        # Musobaqa faqat o'zining ko'rinishida o'ynaladi — reyting bir xil sharoitda bo'lsin.
+        # Musobaqa faqat özining körinişida öynaladi — reyting bir xil şaroitda bölsin.
         expected_ui = 'v2' if competition.is_v2 else 'classic'
         if ui != expected_ui:
             url_name = 'games:game_play_v2_competition' if expected_ui == 'v2' else 'games:game_play_competition'
             return redirect(url_name, slug=slug, competition_id=competition.pk)
         if not competition.can_user_play(request.user):
             if not competition.is_user_allowed(request.user):
-                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+                messages.warning(request, "Bu musobaqa siz uçun möljallanmagan.")
             elif competition.status == 'upcoming':
-                messages.info(request, "Musobaqa hali boshlanmagan!")
+                messages.info(request, "Musobaqa hali boşlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")
             else:
-                messages.info(request, "Urinishlaringiz tugadi!")
+                messages.info(request, "Urinişlaringiz tugadi!")
             return redirect('games:game_detail', slug=slug)
 
-        # 📵 Musobaqada faqat kompyuter/noutbukda qatnashish mumkin.
-        # Telefon va planshet (mobil qurilma) taqiqlanadi; mashq rejimi ochiq.
+        # 📵 Musobaqada faqat kompyuter/noutbukda qatnaşiş mumkin.
+        # Telefon va planşet (mobil qurilma) taqiqlanadi; maşq rejimi oçiq.
         if is_mobile_device(get_user_agent(request)):
             messages.warning(
                 request,
-                "Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin. "
-                "Telefon va planshetda musobaqa yopiq — mashq rejimidan foydalaning."
+                "Musobaqada faqat kompyuter yoki noutbukda qatnaşiş mumkin. "
+                "Telefon va planşetda musobaqa yopiq — maşq rejimidan foydalaning."
             )
             return redirect('games:game_detail', slug=slug)
 
     config = game.config or {}
 
     if rapid_reentry:
-        # Tez qayta bosilganda o'sha sessiya va matnni davom ettiramiz:
-        # urinish kamaymaydi va yangi matn tanlab olish imkoni ham bo'lmaydi.
+        # Tez qayta bosilganda öşa sessiya va matnni davom ettiramiz:
+        # uriniş kamaymaydi va yangi matn tanlab oliş imkoni ham bölmaydi.
         prompt = get_object_or_404(Prompt, pk=old_session.get('prompt_id'), game=game)
         game_token = old_session.get('token', '')
         hmac_key = old_session.get('hmac_key', '')
     else:
         # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
-        # mashq — faqat "Mashq" yoki "Ikkalasi" rejimidagi matnlar.
+        # maşq — faqat "Maşq" yoki "Ikkalasi" rejimidagi matnlar.
         level = request.GET.get('level', '')
         if competition:
             prompts = list(competition.get_prompt_pool())
         else:
             prompts = list(game.practice_prompts())
-            # Daraja tanlansa — shu darajadagi matnlar; bo'lmasa butun pool.
+            # Daraja tanlansa — şu darajadagi matnlar; bölmasa butun pool.
             if level in TYPING_LEVELS:
                 prompts = [p for p in prompts if p.difficulty == level] or prompts
 
         if not prompts:
             if competition:
-                messages.error(request, "Bu musobaqa uchun matnlar belgilanmagan. Administratorga murojaat qiling.")
+                messages.error(request, "Bu musobaqa uçun matnlar belgilanmagan. Administratorga murojaat qiling.")
             else:
-                messages.error(request, "Bu o'yin uchun mashq matnlari mavjud emas!")
+                messages.error(request, "Bu öyin uçun maşq matnlari mavjud emas!")
             return redirect('games:game_detail', slug=slug)
 
         prompt = random.choice(prompts)
         game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
 
-        # HMAC kalitini yaratish (har bir sessiya uchun unikal)
+        # HMAC kalitini yaratiş (har bir sessiya uçun unikal)
         hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
 
         request.session[session_key] = {
@@ -476,22 +477,22 @@ def game_submit(request, slug):
     game_session = request.session.get(session_key)
 
     if not game_session:
-        return JsonResponse({'error': "O'yin sessiyasi topilmadi. Iltimos qaytadan boshlang."}, status=403)
+        return JsonResponse({'error': "Öyin sessiyasi topilmadi. Iltimos qaytadan boşlang."}, status=403)
 
     if game_session.get('used'):
-        return JsonResponse({'error': "Bu o'yin sessiyasi allaqachon ishlatilgan."}, status=403)
+        return JsonResponse({'error': "Bu öyin sessiyasi allaqaçon işlatilgan."}, status=403)
 
-    # 🔒 Rate limiting - kamida 5 soniya oralig'ida yuborish mumkin
+    # 🔒 Rate limiting - kamida 5 soniya oraliğida yuboriş mumkin
     rate_key = f'game_rate_{request.user.pk}'
     last_submit_time = request.session.get(rate_key, 0)
     if time.time() - last_submit_time < 5:
-        return JsonResponse({'error': "Juda tez urinish! Biroz kuting."}, status=429)
+        return JsonResponse({'error': "Juda tez uriniş! Biroz kuting."}, status=429)
 
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri sessiya tokeni."}, status=403)
+        return JsonResponse({'error': "Notöğri sessiya tokeni."}, status=403)
 
     if str(game_session.get('prompt_id')) != str(prompt_id):
-        return JsonResponse({'error': "Topshiriq mos kelmadi."}, status=403)
+        return JsonResponse({'error': "Topşiriq mos kelmadi."}, status=403)
 
     session_comp_id = game_session.get('competition_id')
     if str(session_comp_id or '') != str(competition_id or ''):
@@ -511,14 +512,14 @@ def game_submit(request, slug):
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
-            return JsonResponse({'error': "Siz bu musobaqada ishtirok eta olmaysiz!"}, status=403)
+            return JsonResponse({'error': "Siz bu musobaqada iştirok eta olmaysiz!"}, status=403)
 
         # 📵 Musobaqa telefon/planshetda taqiqlangan.
-        # Server UA + mijoz sensori (iPad "desktop rejimi" UA'ni yashiradi) bo'yicha bloklaymiz.
+        # Server UA + mijoz sensori (iPad "desktop rejimi" UA'ni yaşiradi) böyiça bloklaymiz.
         client_touch = request.POST.get('is_touch') == '1'
         if is_mobile_device(get_user_agent(request)) or client_touch:
             return JsonResponse(
-                {'error': "Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin."},
+                {'error': "Musobaqada faqat kompyuter yoki noutbukda qatnaşiş mumkin."},
                 status=403,
             )
 
@@ -527,7 +528,7 @@ def game_submit(request, slug):
 
     import re
     def _normalize_apostrophes(s):
-        return re.sub(r"['\u2018\u2019\u02BC\u0027`]", '`', s)
+        return re.sub(r"['\u2018\u2019\u02BC\u0027`]", '`', to_new_alphabet(s))
 
     correct = 0
     total = len(original_words)
@@ -537,9 +538,9 @@ def game_submit(request, slug):
 
     accuracy = (correct / total * 100) if total > 0 else 0
 
-    # 2.0 qat'iy rejimda xato so'z o'tkazilmaydi — so'z aniqligi deyarli doim 100%.
-    # Xatolarni tugmalar aniqligi ko'rsatadi; ikkalasidan KICHIGI olinadi, shuning uchun
-    # yuqori raqam yuborish ball bermaydi (so'z aniqligi chegara bo'lib qoladi).
+    # 2.0 qat'iy rejimda xato söz ötkazilmaydi — söz aniqligi deyarli doim 100%.
+    # Xatolarni tugmalar aniqligi körsatadi; ikkalasidan KIÇIGI olinadi, şuning uçun
+    # yuqori raqam yuboriş ball bermaydi (söz aniqligi çegara bölib qoladi).
     if game_session.get('ui') == 'v2':
         try:
             key_accuracy = min(100.0, max(0.0, float(request.POST.get('key_accuracy', 100))))
@@ -559,7 +560,7 @@ def game_submit(request, slug):
 
     score = round(wpm * (accuracy / 100), 2)
     
-    # Maksimal ball chegarasi
+    # Maksimal ball çegarasi
     max_possible = MAX_HUMAN_WPM * 1.0
     if score > max_possible:
         score = max_possible
@@ -577,7 +578,7 @@ def game_submit(request, slug):
         ui_version=game_session.get('ui', 'classic'),
     )
 
-    # 🔒 Rate limit vaqtini saqlash
+    # 🔒 Rate limit vaqtini saqlaş
     request.session[rate_key] = time.time()
     request.session.modified = True
 
@@ -596,15 +597,15 @@ def game_submit(request, slug):
 
 
 RESULT_MODES = (
-    ('practice', 'Mashq'),
+    ('practice', 'Maşq'),
     ('competition', 'Musobaqa'),
-    ('v2', 'Yozish mashqi 2.0'),
-    ('room', 'Sheriklar bilan'),
+    ('v2', 'Yoziş maşqi 2.0'),
+    ('room', 'Şeriklar bilan'),
 )
 
 
 class _RoomResult:
-    """Xona poygasi natijasini umumiy natijalar ro'yxatiga moslash."""
+    """Xona poygasi natijasini umumiy natijalar röyxatiga moslaş."""
     result_type = 'room'
     competition = None
 
@@ -614,7 +615,7 @@ class _RoomResult:
         self.wpm, self.accuracy = entry.wpm, entry.accuracy
         self.time_spent = entry.finish_seconds or 0
         self.place, self.payout = entry.place, entry.payout
-        self.score = f"{entry.place}-o'rin" if entry.place else '—'
+        self.score = f"{entry.place}-örin" if entry.place else '—'
         self.created_at = room.finished_at or room.created_at
         self.mode_label = f"Xona {room.code}"
 
@@ -681,7 +682,7 @@ def my_results(request):
 def competition_leaderboard(request, competition_id):
     competition = get_object_or_404(Competition, pk=competition_id)
 
-    # Musobaqa tugagan bo'lsa, coin berish
+    # Musobaqa tugagan bölsa, coin beriş
     if competition.status == 'ended' and not competition.coins_awarded:
         competition.award_competition_coins()
 
@@ -694,7 +695,7 @@ def competition_leaderboard(request, competition_id):
             competition=competition
         ).select_related('user').order_by('user_id', '-created_at')
 
-        # Foydalanuvchi bo'yicha agregatsiya: g'alaba/durang/mag'lubiyat + ball + vaqt
+        # Foydalanuvçi böyiça agregatsiya: ğalaba/durang/mağlubiyat + ball + vaqt
         agg = {}
         for a in all_attempts:
             u = agg.setdefault(a.user_id, {
@@ -714,13 +715,13 @@ def competition_leaderboard(request, competition_id):
             if not u['last_at'] or a.created_at > u['last_at']:
                 u['last_at'] = a.created_at
 
-        # Reyting: g'alabalar > umumiy ball > durang > kam vaqt
+        # Reyting: ğalabalar > umumiy ball > durang > kam vaqt
         ranked_list = sorted(
             agg.values(),
             key=lambda x: (-x['wins'], -x['score'], -x['draws'], x['time_spent'])
         )
 
-        # Template bilan moslash uchun har bir yozuvni "attempt-like" obyektga aylantiramiz
+        # Template bilan moslaş uçun har bir yozuvni "attempt-like" obyektga aylantiramiz
         class _Row:
             __slots__ = ('user', 'rank', 'score', 'wins', 'losses', 'draws', 'played', 'time_spent', 'win_rate', 'accuracy')
             def __init__(self, **kw):
@@ -734,7 +735,7 @@ def competition_leaderboard(request, competition_id):
                 score=round(r['score'], 1),
                 wins=r['wins'], losses=r['losses'], draws=r['draws'],
                 played=r['played'], time_spent=round(r['time_spent'], 1),
-                win_rate=wr, accuracy=wr,  # accuracy = win_rate (template uchun)
+                win_rate=wr, accuracy=wr,  # accuracy = win_rate (template uçun)
             ))
 
         return render(request, 'games/student/leaderboard.html', {
@@ -975,12 +976,12 @@ def admin_game_add(request):
                 title=title, slug=slug, description=description,
                 game_type=game_type, icon=icon, config=config, is_active=is_active,
             )
-            messages.success(request, "O'yin qo'shildi!")
+            messages.success(request, "Öyin qöşildi!")
             return redirect('games:admin_games')
         else:
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            messages.error(request, "Barça maydonlarni töldiring!")
 
-    return render(request, 'games/admin/game_form.html', {'title_page': "O'yin qo'shish"})
+    return render(request, 'games/admin/game_form.html', {'title_page': "Öyin qöşiş"})
 
 
 @login_required
@@ -1005,10 +1006,10 @@ def admin_game_edit(request, pk):
             game.config = {}
 
         game.save()
-        messages.success(request, "O'yin yangilandi!")
+        messages.success(request, "Öyin yangilandi!")
         return redirect('games:admin_games')
 
-    return render(request, 'games/admin/game_form.html', {'title_page': "O'yinni tahrirlash", 'game': game})
+    return render(request, 'games/admin/game_form.html', {'title_page': "Öyinni tahrirlaş", 'game': game})
 
 
 @login_required
@@ -1019,7 +1020,7 @@ def admin_game_delete(request, pk):
     game = get_object_or_404(Game, pk=pk)
     if request.method == 'POST':
         game.delete()
-        messages.success(request, "O'yin o'chirildi!")
+        messages.success(request, "Öyin öçirildi!")
         return redirect('games:admin_games')
 
     return render(request, 'games/admin/game_delete.html', {'game': game})
@@ -1028,10 +1029,10 @@ def admin_game_delete(request, pk):
 @login_required
 @require_POST
 def admin_game_toggle(request, pk):
-    """O'yinni bir bosishda yoqish/o'chirish.
+    """Öyinni bir bosişda yoqish/öchirish.
 
-    O'chirilgan o'yin (is_active=False) o'quvchilarga butunlay yopiladi:
-    ro'yxatda chiqmaydi, detail/launch/play/submit sahifalari 404 qaytaradi.
+    Öçirilgan öyin (is_active=False) öquvçilarga butunlay yopiladi:
+    röyxatda çiqmaydi, detail/launch/play/submit sahifalari 404 qaytaradi.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -1041,9 +1042,9 @@ def admin_game_toggle(request, pk):
     game.save(update_fields=['is_active'])
 
     if game.is_active:
-        messages.success(request, f"«{game.title}» yoqildi — o'quvchilarga ochiq.")
+        messages.success(request, f"«{game.title}» yoqildi — öquvçilarga oçiq.")
     else:
-        messages.warning(request, f"«{game.title}» o'chirildi — o'quvchilar kira olmaydi.")
+        messages.warning(request, f"«{game.title}» öçirildi — öquvçilar kira olmaydi.")
     return redirect('games:admin_games')
 
 
@@ -1118,12 +1119,12 @@ def admin_prompt_add(request, game_pk):
                 game=game, text=text, difficulty=difficulty,
                 usage=usage, order=order, is_active=is_active,
             )
-            messages.success(request, "Topshiriq qo'shildi!")
+            messages.success(request, "Topşiriq qöşildi!")
             return redirect('games:admin_prompts', game_pk=game.pk)
         else:
-            messages.error(request, "Matn kiritish shart!")
+            messages.error(request, "Matn kiritiş şart!")
 
-    return render(request, 'games/admin/prompt_form.html', {'game': game, 'title_page': "Topshiriq qo'shish"})
+    return render(request, 'games/admin/prompt_form.html', {'game': game, 'title_page': "Topşiriq qöşiş"})
 
 
 @login_required
@@ -1145,21 +1146,21 @@ def admin_prompt_edit(request, pk):
             prompt.order = 0
         prompt.is_active = 'is_active' in request.POST
         prompt.save()
-        messages.success(request, "Topshiriq yangilandi!")
+        messages.success(request, "Topşiriq yangilandi!")
         return redirect('games:admin_prompts', game_pk=prompt.game.pk)
 
     return render(request, 'games/admin/prompt_form.html', {
-        'game': prompt.game, 'prompt': prompt, 'title_page': "Topshiriqni tahrirlash"
+        'game': prompt.game, 'prompt': prompt, 'title_page': "Topşiriqni tahrirlaş"
     })
 
 
 # ---- Prompts: Excel import / export ----
 
 PROMPT_XLSX_HEADERS = ['Matn', 'Qiyinlik', 'Rejim', 'Faol', 'Tartib']
-PROMPT_DIFFICULTY_MAP = {'oson': 'easy', "o'rta": 'medium', 'orta': 'medium', "o`rta": 'medium', 'qiyin': 'hard'}
-PROMPT_USAGE_MAP = {'mashq': 'practice', 'musobaqa': 'competition', 'ikkalasi': 'both'}
-PROMPT_DIFFICULTY_LABELS = {'easy': 'Oson', 'medium': "O'rta", 'hard': 'Qiyin'}
-PROMPT_USAGE_LABELS = {'practice': 'Mashq', 'competition': 'Musobaqa', 'both': 'Ikkalasi'}
+PROMPT_DIFFICULTY_MAP = {'oson': 'easy', "örta": 'medium', 'orta': 'medium', "örta": 'medium', 'qiyin': 'hard'}
+PROMPT_USAGE_MAP = {'maşq': 'practice', 'mashq': 'practice', 'musobaqa': 'competition', 'ikkalasi': 'both'}
+PROMPT_DIFFICULTY_LABELS = {'easy': 'Oson', 'medium': "Örta", 'hard': 'Qiyin'}
+PROMPT_USAGE_LABELS = {'practice': 'Maşq', 'competition': 'Musobaqa', 'both': 'Ikkalasi'}
 
 
 def _prompt_xlsx_workbook(title):
@@ -1192,9 +1193,9 @@ def _add_prompt_sheet_validation(ws, max_row=1000):
     """Qiyinlik / Rejim / Faol ustunlariga dropdown validatsiya."""
     from openpyxl.worksheet.datavalidation import DataValidation
 
-    dv_diff = DataValidation(type='list', formula1='"Oson,O\'rta,Qiyin"', allow_blank=True, showDropDown=False)
-    dv_usage = DataValidation(type='list', formula1='"Mashq,Musobaqa,Ikkalasi"', allow_blank=True, showDropDown=False)
-    dv_active = DataValidation(type='list', formula1='"Ha,Yo\'q"', allow_blank=True, showDropDown=False)
+    dv_diff = DataValidation(type='list', formula1='"Oson,Örta,Qiyin"', allow_blank=True, showDropDown=False)
+    dv_usage = DataValidation(type='list', formula1='"Maşq,Musobaqa,Ikkalasi"', allow_blank=True, showDropDown=False)
+    dv_active = DataValidation(type='list', formula1='"Ha,Yöq"', allow_blank=True, showDropDown=False)
     ws.add_data_validation(dv_diff)
     ws.add_data_validation(dv_usage)
     ws.add_data_validation(dv_active)
@@ -1218,7 +1219,7 @@ def _xlsx_response(wb, filename):
 
 @login_required
 def admin_prompts_export(request, game_pk):
-    """O'yin matnlarini Excel (.xlsx) faylga eksport qilish."""
+    """Öyin matnlarini Excel (.xlsx) faylga eksport qiliş."""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -1227,9 +1228,9 @@ def admin_prompts_export(request, game_pk):
 
     for row, p in enumerate(game.prompts.all(), start=2):
         ws.cell(row=row, column=1, value=p.text)
-        ws.cell(row=row, column=2, value=PROMPT_DIFFICULTY_LABELS.get(p.difficulty, "O'rta"))
+        ws.cell(row=row, column=2, value=PROMPT_DIFFICULTY_LABELS.get(p.difficulty, "Örta"))
         ws.cell(row=row, column=3, value=PROMPT_USAGE_LABELS.get(p.usage, 'Ikkalasi'))
-        ws.cell(row=row, column=4, value='Ha' if p.is_active else "Yo'q")
+        ws.cell(row=row, column=4, value='Ha' if p.is_active else "Yöq")
         ws.cell(row=row, column=5, value=p.order)
 
     _add_prompt_sheet_validation(ws, max_row=max(1000, game.prompts.count() + 100))
@@ -1238,17 +1239,17 @@ def admin_prompts_export(request, game_pk):
 
 @login_required
 def admin_prompts_template(request, game_pk):
-    """Bo'sh import shabloni (.xlsx) — namunaviy qatorlar bilan."""
+    """Böş import şabloni (.xlsx) — namunaviy qatorlar bilan."""
     if not request.user.is_admin:
         return redirect('home')
 
     game = get_object_or_404(Game, pk=game_pk)
-    wb, ws = _prompt_xlsx_workbook('Shablon')
+    wb, ws = _prompt_xlsx_workbook('Şablon')
 
     samples = [
-        ("Bu yerga yoziladigan matn kiritiladi. Har bir qator — bitta topshiriq.", 'Oson', 'Mashq', 'Ha', 1),
-        ("Musobaqa uchun mo'ljallangan matnlar Rejim ustunida Musobaqa deb belgilanadi.", "O'rta", 'Musobaqa', 'Ha', 2),
-        ("Ikkalasi rejimidagi matn ham mashqda, ham musobaqada chiqadi.", 'Qiyin', 'Ikkalasi', 'Ha', 3),
+        ("Bu yerga yoziladigan matn kiritiladi. Har bir qator — bitta topşiriq.", 'Oson', 'Maşq', 'Ha', 1),
+        ("Musobaqa uçun möljallangan matnlar Rejim ustunida Musobaqa deb belgilanadi.", "Örta", 'Musobaqa', 'Ha', 2),
+        ("Ikkalasi rejimidagi matn ham maşqda, ham musobaqada çiqadi.", 'Qiyin', 'Ikkalasi', 'Ha', 3),
     ]
     from openpyxl.styles import Font
     for row, sample in enumerate(samples, start=2):
@@ -1263,10 +1264,10 @@ def admin_prompts_template(request, game_pk):
 @login_required
 @require_POST
 def admin_prompts_import(request, game_pk):
-    """Excel (.xlsx) fayldan matnlarni import qilish.
+    """Excel (.xlsx) fayldan matnlarni import qiliş.
 
-    Ustunlar: Matn | Qiyinlik (Oson/O'rta/Qiyin) | Rejim (Mashq/Musobaqa/Ikkalasi) | Faol (Ha/Yo'q) | Tartib
-    Faqat 'Matn' majburiy — qolganlari bo'sh bo'lsa standart qiymat olinadi.
+    Ustunlar: Matn | Qiyinlik (Oson/Örta/Qiyin) | Rejim (Mashq/Musobaqa/Ikkalasi) | Faol (Ha/Yöq) | Tartib
+    Faqat 'Matn' majburiy — qolganlari böş bölsa standart qiymat olinadi.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -1284,7 +1285,7 @@ def admin_prompts_import(request, game_pk):
         return redirect('games:admin_prompts', game_pk=game.pk)
 
     if file.size > 5 * 1024 * 1024:
-        messages.error(request, "Fayl hajmi 5 MB dan oshmasligi kerak!")
+        messages.error(request, "Fayl hajmi 5 MB dan oşmasligi kerak!")
         return redirect('games:admin_prompts', game_pk=game.pk)
 
     import openpyxl
@@ -1292,7 +1293,7 @@ def admin_prompts_import(request, game_pk):
         wb = openpyxl.load_workbook(file, read_only=True, data_only=True)
         ws = wb.active
     except Exception:
-        messages.error(request, "Faylni o'qib bo'lmadi. To'g'ri .xlsx fayl ekanligiga ishonch hosil qiling.")
+        messages.error(request, "Faylni öqib bölmadi. Töğri .xlsx fayl ekanligiga işonç hosil qiling.")
         return redirect('games:admin_prompts', game_pk=game.pk)
 
     def _norm(value):
@@ -1308,21 +1309,21 @@ def admin_prompts_import(request, game_pk):
     for i, row in enumerate(ws.iter_rows(min_row=2, max_col=5, values_only=True), start=2):
         text = _norm(row[0] if len(row) > 0 else '')
         if not text:
-            continue  # bo'sh qator — o'tkazib yuboriladi
+            continue  # böş qator — ötkazib yuboriladi
 
         if len(text) > 5000:
             errors.append(f"{i}-qator: matn juda uzun (maks. 5000 belgi)")
             continue
 
         if text in seen_in_file or text in existing_texts:
-            errors.append(f"{i}-qator: takroriy matn — o'tkazib yuborildi")
+            errors.append(f"{i}-qator: takroriy matn — ötkazib yuborildi")
             continue
         seen_in_file.add(text)
 
-        difficulty = PROMPT_DIFFICULTY_MAP.get(_norm(row[1] if len(row) > 1 else '').lower(), 'medium')
-        usage = PROMPT_USAGE_MAP.get(_norm(row[2] if len(row) > 2 else '').lower(), 'both')
+        difficulty = PROMPT_DIFFICULTY_MAP.get(to_new_alphabet(_norm(row[1] if len(row) > 1 else '').lower()), 'medium')
+        usage = PROMPT_USAGE_MAP.get(to_new_alphabet(_norm(row[2] if len(row) > 2 else '').lower()), 'both')
         active_raw = _norm(row[3] if len(row) > 3 else '').lower()
-        is_active = active_raw not in ("yo'q", 'yoq', 'no', '0', 'false')
+        is_active = to_new_alphabet(active_raw) not in ("yöq", 'yoq', 'no', '0', 'false')
         try:
             order = int(float(_norm(row[4] if len(row) > 4 else '') or 0))
         except (TypeError, ValueError):
@@ -1349,9 +1350,9 @@ def admin_prompts_import(request, game_pk):
 
     msg = f"{len(new_prompts)} ta matn import qilindi!"
     if replace_all:
-        msg += " (eski matnlar o'chirildi)"
+        msg += " (eski matnlar öçirildi)"
     if errors:
-        msg += f" Ogohlantirishlar: {len(errors)} ta qator o'tkazib yuborildi."
+        msg += f" Ogohlantirişlar: {len(errors)} ta qator ötkazib yuborildi."
     messages.success(request, msg)
     return redirect('games:admin_prompts', game_pk=game.pk)
 
@@ -1365,7 +1366,7 @@ def admin_prompt_delete(request, pk):
     game_pk = prompt.game.pk
     if request.method == 'POST':
         prompt.delete()
-        messages.success(request, "Topshiriq o'chirildi!")
+        messages.success(request, "Topşiriq öçirildi!")
         return redirect('games:admin_prompts', game_pk=game_pk)
 
     return render(request, 'games/admin/prompt_delete.html', {'prompt': prompt})
@@ -1374,9 +1375,9 @@ def admin_prompt_delete(request, pk):
 # ---- Competitions ----
 
 def parse_game_choice(value, games_qs=None):
-    """Formadagi o'yin tanlovi: "<id>" yoki "<id>:v2" (Yozish mashqi 2.0 poygasi).
+    """Formadagi öyin tanlovi: "<id>" yoki "<id>:v2" (Yoziş maşqi 2.0 poygasi).
 
-    Qaytaradi: (game | None, play_ui). 2.0 faqat typing o'yinlari uchun.
+    Qaytaradi: (game | None, play_ui). 2.0 faqat typing öyinlari uçun.
     """
     raw, _, ui = str(value or '').partition(':')
     game = (games_qs if games_qs is not None else Game.objects).filter(pk=_int_or(raw, 0)).first()
@@ -1393,7 +1394,7 @@ def _int_or(value, default=0):
 
 
 def _competition_prompts_data(games):
-    """Musobaqa formasidagi matn tanlash paneli uchun ma'lumot.
+    """Musobaqa formasidagi matn tanlaş paneli uçun ma'lumot.
 
     {game_id: [{id, text, difficulty, usage, words}, ...]}
     Template'da json_script orqali xavfsiz embed qilinadi.
@@ -1415,14 +1416,14 @@ def _competition_prompts_data(games):
 
 
 def _save_competition_prompts(competition, request):
-    """Formdan tanlangan matnlarni (faqat o'z o'yiniga tegishlilarini) saqlash."""
+    """Formdan tanlangan matnlarni (faqat öz öyiniga tegişlilarini) saqlaş."""
     prompt_ids = [pid for pid in request.POST.getlist('prompt_ids') if pid.isdigit()]
     valid_prompts = Prompt.objects.filter(pk__in=prompt_ids, game=competition.game)
     competition.prompts.set(valid_prompts)
 
 
 def _clean_audience(request):
-    """Formdan auditoriya ma'lumotlarini o'qish va validatsiya qilish.
+    """Formdan auditoriya ma'lumotlarini öqiş va validatsiya qiliş.
 
     Qaytaradi: (audience_type, group_ids, student_ids, error_message)
     """
@@ -1447,16 +1448,16 @@ def _clean_audience(request):
             .values_list('pk', flat=True)
         )
         if not student_ids:
-            return audience_type, [], [], "Kamida bitta o'quvchi tanlang!"
+            return audience_type, [], [], "Kamida bitta öquvçi tanlang!"
 
     return audience_type, group_ids, student_ids, None
 
 
 def _save_competition_audience(competition, audience_type, group_ids, student_ids):
-    """Auditoriya turini va tegishli M2M bog'lamalarni saqlash.
+    """Auditoriya turini va tegişli M2M boğlamalarni saqlaş.
 
-    Tanlanmagan rejimdagi bog'lamalar tozalanadi — eski tanlovlar
-    chalkashlik keltirmasligi uchun.
+    Tanlanmagan rejimdagi boğlamalar tozalanadi — eski tanlovlar
+    çalkaşlik keltirmasligi uçun.
     """
     competition.audience_type = audience_type
     competition.save(update_fields=['audience_type'])
@@ -1465,7 +1466,7 @@ def _save_competition_audience(competition, audience_type, group_ids, student_id
 
 
 def _audience_form_context():
-    """Musobaqa formasi uchun guruhlar va o'quvchilar ro'yxati."""
+    """Musobaqa formasi uçun guruhlar va öquvçilar röyxati."""
     from accounts.models import StudyGroup
 
     groups = (
@@ -1521,13 +1522,13 @@ def admin_competition_add(request):
         audience_type, group_ids, student_ids, audience_error = _clean_audience(request)
 
         if not (game_id and title and start_time and end_time):
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            messages.error(request, "Barça maydonlarni töldiring!")
         elif audience_error:
             messages.error(request, audience_error)
         else:
             game, play_ui = parse_game_choice(game_id)
             if not game:
-                raise Http404("O'yin topilmadi")
+                raise Http404("Öyin topilmadi")
             comp = Competition.objects.create(
                 game=game, play_ui=play_ui, title=title, start_time=start_time,
                 end_time=end_time, max_attempts=max(1, max_attempts),
@@ -1539,18 +1540,18 @@ def admin_competition_add(request):
             )
             _save_competition_prompts(comp, request)
             _save_competition_audience(comp, audience_type, group_ids, student_ids)
-            # Telegram xabar: hammaga — guruh kanaliga, cheklangan — shaxsiy DM
+            # Telegram xabar: hammaga — guruh kanaliga, çeklangan — şaxsiy DM
             if is_active:
                 # objects.create() POST qiymatlarini instance'da str holida qoldiradi.
-                # Xabarnomada strftime ishlatilishi uchun vaqtlarni datetime qilib qayta yuklaymiz.
+                # Xabarnomada strftime işlatilişi uçun vaqtlarni datetime qilib qayta yuklaymiz.
                 comp.refresh_from_db(fields=['start_time', 'end_time'])
                 from telegram_bot.utils import notify_competition_started
                 notify_competition_started(comp)
-            messages.success(request, "Musobaqa qo'shildi!")
+            messages.success(request, "Musobaqa qöşildi!")
             return redirect('games:admin_competitions')
 
     return render(request, 'games/admin/competition_form.html', {
-        'title_page': "Musobaqa qo'shish",
+        'title_page': "Musobaqa qöşiş",
         'games': games,
         'prompts_data': _competition_prompts_data(games),
         'selected_prompt_ids': [],
@@ -1576,7 +1577,7 @@ def admin_competition_edit(request, pk):
         else:
             game, play_ui = parse_game_choice(request.POST.get('game'))
             if not game:
-                raise Http404("O'yin topilmadi")
+                raise Http404("Öyin topilmadi")
             competition.game, competition.play_ui = game, play_ui
             competition.title = request.POST.get('title', competition.title).strip() or competition.title
             competition.start_time = request.POST.get('start_time')
@@ -1585,8 +1586,8 @@ def admin_competition_edit(request, pk):
             competition.allow_retry = 'allow_retry' in request.POST
             competition.is_active = 'is_active' in request.POST
             # Ustoz hisobidan sovrinli musobaqada fond ustoz coinlari bilan
-            # ta'minlangan — admin formasidan o'zgartirilsa bron bilan mos
-            # kelmay qoladi, shuning uchun bu yerda tegilmaydi.
+            # ta'minlangan — admin formasidan özgartirilsa bron bilan mos
+            # kelmay qoladi, şuning uçun bu yerda tegilmaydi.
             if not competition.is_teacher_funded:
                 competition.coin_1st = _int_or(request.POST.get('coin_1st'))
                 competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
@@ -1598,7 +1599,7 @@ def admin_competition_edit(request, pk):
             return redirect('games:admin_competitions')
 
     return render(request, 'games/admin/competition_form.html', {
-        'title_page': "Musobaqani tahrirlash",
+        'title_page': "Musobaqani tahrirlaş",
         'competition': competition,
         'games': games,
         'prompts_data': _competition_prompts_data(games),
@@ -1617,7 +1618,7 @@ def admin_competition_delete(request, pk):
     competition = get_object_or_404(Competition, pk=pk)
     if request.method == 'POST':
         competition.delete()
-        messages.success(request, "Musobaqa o'chirildi!")
+        messages.success(request, "Musobaqa öçirildi!")
         return redirect('games:admin_competitions')
 
     return render(request, 'games/admin/competition_delete.html', {'competition': competition})
@@ -1632,11 +1633,11 @@ def admin_competition_end(request, pk):
     competition = get_object_or_404(Competition, pk=pk)
 
     if competition.status == 'ended':
-        messages.info(request, "Bu musobaqa allaqachon tugagan!")
+        messages.info(request, "Bu musobaqa allaqaçon tugagan!")
         return redirect('games:admin_competitions')
 
-    # 1 soniya oldin: soat aniqligi past tizimlarda `status` darhol 'ended' bo'lishi uchun
-    # (aks holda end_time == now bo'lib, coinlar berilmay qolardi).
+    # 1 soniya oldin: soat aniqligi past tizimlarda `status` darhol 'ended' bölişi uçun
+    # (aks holda end_time == now bölib, coinlar berilmay qolardi).
     competition.end_time = timezone.now() - timezone.timedelta(seconds=1)
     competition.save(update_fields=['end_time'])
 
@@ -1718,7 +1719,7 @@ def _build_results_pdf(attempts, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 6*mm))
 
-    data = [['№', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM/So\'zlar', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
+    data = [['№', 'Foydalanuvçi', "Öyin", 'Rejim', 'WPM/Sözlar', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
     for i, a in enumerate(attempts, 1):
         try:
             mode = a.competition.title if a.competition else 'Practice'
@@ -1729,7 +1730,7 @@ def _build_results_pdf(attempts, title):
         rtype = getattr(a, 'result_type', 'typing')
         if rtype == 'word_builder':
             found = getattr(a, 'found_count', 0) or 0
-            col_wpm = f"{found} so'z"
+            col_wpm = f"{found} söz"
             col_acc = '—'
             col_score = str(getattr(a, 'total_score', 0))
         else:
@@ -1807,7 +1808,7 @@ def admin_results_pdf(request):
 
     all_results.sort(key=lambda x: x.created_at, reverse=True)
 
-    return _build_results_pdf(all_results[:500], "O'yin natijalari")
+    return _build_results_pdf(all_results[:500], "Öyin natijalari")
 
 
 @login_required
@@ -1827,18 +1828,18 @@ def word_game_play(request, slug, competition_id=None):
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
             if not competition.is_user_allowed(request.user):
-                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+                messages.warning(request, "Bu musobaqa siz uçun möljallanmagan.")
             elif competition.status == 'upcoming':
-                messages.info(request, "Musobaqa hali boshlanmagan!")
+                messages.info(request, "Musobaqa hali boşlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")
             else:
-                messages.info(request, "Siz allaqachon ishtirok etgansiz!")
+                messages.info(request, "Siz allaqaçon iştirok etgansiz!")
             return redirect('games:game_detail', slug=slug)
 
     rounds = list(game.word_rounds.filter(is_active=True))
     if not rounds:
-        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+        messages.error(request, "Bu öyin uçun raundlar mavjud emas!")
         return redirect('games:game_detail', slug=slug)
 
     word_round = random.choice(rounds)
@@ -1890,11 +1891,11 @@ def word_game_check(request, slug):
         return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
 
     if game_session.get('used'):
-        return JsonResponse({'error': "Sessiya ishlatilgan."}, status=403)
+        return JsonResponse({'error': "Sessiya işlatilgan."}, status=403)
 
     game_token = request.POST.get('game_token', '')
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+        return JsonResponse({'error': "Notöğri token."}, status=403)
 
     word = request.POST.get('word', '').strip().lower()
     if not word or len(word) < 3:
@@ -1906,7 +1907,7 @@ def word_game_check(request, slug):
     found_words = game_session.get('found_words', [])
 
     if word in found_words:
-        return JsonResponse({'valid': False, 'message': "Bu so'z allaqachon topilgan!"})
+        return JsonResponse({'valid': False, 'message': "Bu söz allaqaçon topilgan!"})
 
     valid_words = [w.lower() for w in (word_round.valid_words or [])]
 
@@ -1925,7 +1926,7 @@ def word_game_check(request, slug):
             'total_score': sum(len(w) ** 2 for w in found_words),
         })
 
-    # So'z bazada yo'q - taklif qilish imkoniyatini berish
+    # Söz bazada yöq - taklif qiliş imkoniyatini beriş
     try:
         already_suggested = WordSuggestion.objects.filter(
             user=request.user, word_round=word_round, word=word.upper()
@@ -1937,7 +1938,7 @@ def word_game_check(request, slug):
         'valid': False,
         'not_in_system': True,
         'already_suggested': already_suggested,
-        'message': "Bu so'z tizimda yo'q!",
+        'message': "Bu söz tizimda yöq!",
     })
 
 
@@ -1953,11 +1954,11 @@ def word_game_finish(request, slug):
         return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
 
     if game_session.get('used'):
-        return JsonResponse({'error': "Sessiya allaqachon ishlatilgan."}, status=403)
+        return JsonResponse({'error': "Sessiya allaqaçon işlatilgan."}, status=403)
 
     game_token = request.POST.get('game_token', '')
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+        return JsonResponse({'error': "Notöğri token."}, status=403)
 
     game_session['used'] = True
     request.session[session_key] = game_session
@@ -1976,7 +1977,7 @@ def word_game_finish(request, slug):
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
-            return JsonResponse({'error': "Musobaqada ishtirok eta olmaysiz!"}, status=403)
+            return JsonResponse({'error': "Musobaqada iştirok eta olmaysiz!"}, status=403)
 
     attempt = WordGameAttempt.objects.create(
         user=request.user,
@@ -2005,7 +2006,7 @@ def word_game_leaderboard(request, competition_id):
     return redirect('games:competition_leaderboard', competition_id=competition_id)
 
 
-# ---- So'z taklifi ----
+# ---- Söz taklifi ----
 
 @login_required
 @require_POST
@@ -2020,24 +2021,24 @@ def word_game_suggest(request, slug):
 
     game_token = request.POST.get('game_token', '')
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+        return JsonResponse({'error': "Notöğri token."}, status=403)
 
     word = request.POST.get('word', '').strip().upper()
     if not word or len(word) < 3:
-        return JsonResponse({'error': "So'z kamida 3 harfdan iborat bo'lishi kerak."}, status=400)
+        return JsonResponse({'error': "Söz kamida 3 harfdan iborat bölişi kerak."}, status=400)
 
     round_id = game_session.get('round_id')
     word_round = get_object_or_404(WordRound, pk=round_id, game=game)
 
     valid_words = [w.upper() for w in (word_round.valid_words or [])]
     if word in valid_words:
-        return JsonResponse({'error': "Bu so'z allaqachon mavjud."}, status=400)
+        return JsonResponse({'error': "Bu söz allaqaçon mavjud."}, status=400)
 
     existing = WordSuggestion.objects.filter(
         user=request.user, word_round=word_round, word=word
     ).first()
     if existing:
-        return JsonResponse({'error': "Bu so'z allaqachon taklif qilingan."}, status=400)
+        return JsonResponse({'error': "Bu söz allaqaçon taklif qilingan."}, status=400)
 
     WordSuggestion.objects.create(
         user=request.user,
@@ -2045,10 +2046,10 @@ def word_game_suggest(request, slug):
         word=word,
     )
 
-    return JsonResponse({'success': True, 'message': "Taklif yuborildi! Admin ko'rib chiqadi. ✅"})
+    return JsonResponse({'success': True, 'message': "Taklif yuborildi! Admin körib çiqadi. ✅"})
 
 
-# ---- Admin: So'z takliflari ----
+# ---- Admin: Söz takliflari ----
 
 @login_required
 def admin_word_suggestions(request):
@@ -2085,18 +2086,18 @@ def admin_word_suggestion_action(request, pk):
         suggestion.reviewed_at = timezone.now()
         suggestion.reviewed_by = request.user
         suggestion.save()
-        messages.success(request, f"'{suggestion.word}' so'zi qabul qilindi va raundga qo'shildi!")
+        messages.success(request, f"'{suggestion.word}' sözi qabul qilindi va raundga qöşildi!")
     elif action == 'reject':
         suggestion.status = 'rejected'
         suggestion.reviewed_at = timezone.now()
         suggestion.reviewed_by = request.user
         suggestion.save()
-        messages.info(request, f"'{suggestion.word}' so'zi rad etildi.")
+        messages.info(request, f"'{suggestion.word}' sözi rad etildi.")
 
     return redirect('games:admin_word_suggestions')
 
 
-# ---- Admin: Natijalarni tahrirlash va o'chirish ----
+# ---- Admin: Natijalarni tahrirlaş va öçiriş ----
 
 def _admin_result_or_404(pk, result_type):
     if result_type == 'typing':
@@ -2124,7 +2125,7 @@ def admin_result_edit(request, pk, result_type):
 
     attempt, score_field = _admin_result_or_404(pk, result_type)
     if attempt is None:
-        messages.error(request, "Noto'g'ri natija turi!")
+        messages.error(request, "Notöğri natija turi!")
         return _admin_results_redirect(request)
 
     try:
@@ -2133,14 +2134,14 @@ def admin_result_edit(request, pk, result_type):
         score = None
 
     if score is None or not math.isfinite(score) or score < 0:
-        messages.error(request, "Ball 0 yoki undan katta son bo'lishi kerak!")
+        messages.error(request, "Ball 0 yoki undan katta son bölişi kerak!")
         return _admin_results_redirect(request)
 
     setattr(attempt, score_field, round(score, 2))
     attempt.save(update_fields=[score_field])
     messages.success(
         request,
-        f"{attempt.user.full_name} uchun ball {getattr(attempt, score_field)} ga o'zgartirildi!",
+        f"{attempt.user.full_name} uçun ball {getattr(attempt, score_field)} ga özgartirildi!",
     )
     return _admin_results_redirect(request)
 
@@ -2152,11 +2153,11 @@ def admin_result_delete(request, pk, result_type):
 
     attempt, _ = _admin_result_or_404(pk, result_type)
     if attempt is None:
-        messages.error(request, "Noto'g'ri tur!")
+        messages.error(request, "Notöğri tur!")
         return _admin_results_redirect(request)
 
     attempt.delete()
-    messages.success(request, "Natija o'chirildi!")
+    messages.success(request, "Natija öçirildi!")
     return _admin_results_redirect(request)
 
 
@@ -2187,7 +2188,7 @@ def admin_word_round_add(request, game_pk):
         order = int(request.POST.get('order', 0))
         is_active = 'is_active' in request.POST
 
-        # Vergul bilan ajratilgan formatni parse qilish
+        # Vergul bilan ajratilgan formatni parse qiliş
         cleaned = valid_words_str.replace('[', '').replace(']', '').replace('"', '').replace("'", '')
         valid_words = [w.strip().upper() for w in cleaned.split(',') if w.strip()]
 
@@ -2197,13 +2198,13 @@ def admin_word_round_add(request, game_pk):
                 difficulty=difficulty, time_limit=time_limit,
                 order=order, is_active=is_active,
             )
-            messages.success(request, "Raund qo'shildi!")
+            messages.success(request, "Raund qöşildi!")
             return redirect('games:admin_word_rounds', game_pk=game.pk)
         else:
-            messages.error(request, "Harflar va so'zlar kiritish shart!")
+            messages.error(request, "Harflar va sözlar kiritiş şart!")
 
     return render(request, 'games/admin/word_round_form.html', {
-        'game': game, 'title_page': "Raund qo'shish"
+        'game': game, 'title_page': "Raund qöşiş"
     })
 
 
@@ -2222,7 +2223,7 @@ def admin_word_round_edit(request, pk):
         word_round.is_active = 'is_active' in request.POST
 
         valid_words_str = request.POST.get('valid_words', '')
-        # Vergul bilan ajratilgan formatni parse qilish
+        # Vergul bilan ajratilgan formatni parse qiliş
         cleaned = valid_words_str.replace('[', '').replace(']', '').replace('"', '').replace("'", '')
         valid_words = [w.strip().upper() for w in cleaned.split(',') if w.strip()]
 
@@ -2232,7 +2233,7 @@ def admin_word_round_edit(request, pk):
         return redirect('games:admin_word_rounds', game_pk=word_round.game.pk)
 
     return render(request, 'games/admin/word_round_form.html', {
-        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlash"
+        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlaş"
     })
 
 
@@ -2245,7 +2246,7 @@ def admin_word_round_delete(request, pk):
     game_pk = word_round.game.pk
     if request.method == 'POST':
         word_round.delete()
-        messages.success(request, "Raund o'chirildi!")
+        messages.success(request, "Raund öçirildi!")
         return redirect('games:admin_word_rounds', game_pk=game_pk)
 
     return render(request, 'games/admin/word_round_delete.html', {'word_round': word_round})
@@ -2258,7 +2259,7 @@ def word_game_play(request, slug, competition_id=None):
     game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
     competition = None
 
-    # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
+    # AVVAL: taşlab ketilgan sessiyani saqlaş (orqaga tugmasi himoyasi)
     session_key = f'word_game_session_{game.slug}'
     old_session = request.session.get(session_key)
     rapid_reentry = _is_rapid_competition_reentry(old_session, competition_id)
@@ -2282,23 +2283,23 @@ def word_game_play(request, slug, competition_id=None):
             )
         except (WordRound.DoesNotExist, Competition.DoesNotExist):
             pass
-        # Sessiyani tozalash
+        # Sessiyani tozalaş
         old_session['used'] = True
         request.session[session_key] = old_session
         request.session.modified = True
 
-    # KEYIN: tekshirish (urinish allaqachon saqlanganidan keyin)
+    # KEYIN: tekşiriş (uriniş allaqaçon saqlanganidan keyin)
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
             if not competition.is_user_allowed(request.user):
-                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+                messages.warning(request, "Bu musobaqa siz uçun möljallanmagan.")
             elif competition.status == 'upcoming':
-                messages.info(request, "Musobaqa hali boshlanmagan!")
+                messages.info(request, "Musobaqa hali boşlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")
             else:
-                messages.info(request, "Urinishlaringiz tugadi!")
+                messages.info(request, "Urinişlaringiz tugadi!")
             return redirect('games:game_detail', slug=slug)
 
     if rapid_reentry:
@@ -2308,7 +2309,7 @@ def word_game_play(request, slug, competition_id=None):
     else:
         rounds = list(game.word_rounds.filter(is_active=True))
         if not rounds:
-            messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+            messages.error(request, "Bu öyin uçun raundlar mavjud emas!")
             return redirect('games:game_detail', slug=slug)
 
         word_round = random.choice(rounds)
@@ -2358,9 +2359,9 @@ def word_game_check(request, slug):
     game_token = request.POST.get('game_token', '')
 
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+        return JsonResponse({'error': "Notöğri token."}, status=403)
 
-    # Anti-cheat: so'rovlar orasida minimum interval tekshiruvi
+    # Anti-cheat: sörovlar orasida minimum interval tekşiruvi
     now = time.time()
     last_check = game_session.get('last_check_time', 0)
     if last_check and (now - last_check) < 0.5:
@@ -2376,7 +2377,7 @@ def word_game_check(request, slug):
     word_round = get_object_or_404(WordRound, pk=round_id, game=game)
 
     if elapsed > word_round.time_limit + 5:
-        # Sessiyani avtomatik tugatish
+        # Sessiyani avtomatik tugatiş
         if not game_session.get('used'):
             game_session['used'] = True
             request.session[session_key] = game_session
@@ -2402,12 +2403,12 @@ def word_game_check(request, slug):
         return JsonResponse({'error': "Vaqt tugadi!", 'time_up': True}, status=400)
 
     if not word or len(word) < 3:
-        return JsonResponse({'valid': False, 'message': "Kamida 3 harf bo'lishi kerak!"})
+        return JsonResponse({'valid': False, 'message': "Kamida 3 harf bölişi kerak!"})
 
     found_words = game_session.get('found_words', [])
 
     if word in found_words:
-        return JsonResponse({'valid': False, 'message': "Bu so'z allaqachon topilgan!"})
+        return JsonResponse({'valid': False, 'message': "Bu söz allaqaçon topilgan!"})
 
     valid_words = [w.upper() for w in (word_round.valid_words or [])]
 
@@ -2426,7 +2427,7 @@ def word_game_check(request, slug):
             'total_score': sum(len(w) ** 2 for w in found_words),
         })
 
-    return JsonResponse({'valid': False, 'message': "Bu so'z to'g'ri emas!"})
+    return JsonResponse({'valid': False, 'message': "Bu söz töğri emas!"})
 
 
 @login_required
@@ -2441,11 +2442,11 @@ def word_game_submit(request, slug):
         return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
 
     if game_session.get('used'):
-        return JsonResponse({'error': "Bu sessiya allaqachon ishlatilgan."}, status=403)
+        return JsonResponse({'error': "Bu sessiya allaqaçon işlatilgan."}, status=403)
 
     game_token = request.POST.get('game_token', '')
     if game_session.get('token') != game_token:
-        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+        return JsonResponse({'error': "Notöğri token."}, status=403)
 
     game_session['used'] = True
     request.session[session_key] = game_session
@@ -2535,12 +2536,12 @@ def admin_word_round_add(request, game_pk):
                 difficulty=difficulty, time_limit=time_limit,
                 order=order, is_active=is_active,
             )
-            messages.success(request, "Raund qo'shildi!")
+            messages.success(request, "Raund qöşildi!")
             return redirect('games:admin_word_rounds', game_pk=game.pk)
         else:
-            messages.error(request, "Harflar va so'zlar kiritish shart!")
+            messages.error(request, "Harflar va sözlar kiritiş şart!")
 
-    return render(request, 'games/admin/word_round_form.html', {'game': game, 'title_page': "Raund qo'shish"})
+    return render(request, 'games/admin/word_round_form.html', {'game': game, 'title_page': "Raund qöşiş"})
 
 
 @login_required
@@ -2573,7 +2574,7 @@ def admin_word_round_edit(request, pk):
         return redirect('games:admin_word_rounds', game_pk=word_round.game.pk)
 
     return render(request, 'games/admin/word_round_form.html', {
-        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlash"
+        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlaş"
     })
 
 
@@ -2586,7 +2587,7 @@ def admin_word_round_delete(request, pk):
     game_pk = word_round.game.pk
     if request.method == 'POST':
         word_round.delete()
-        messages.success(request, "Raund o'chirildi!")
+        messages.success(request, "Raund öçirildi!")
         return redirect('games:admin_word_rounds', game_pk=game_pk)
 
     return render(request, 'games/admin/word_round_delete.html', {'word_round': word_round})
@@ -2598,7 +2599,7 @@ LIVE_BOARD_INACTIVITY_MINUTES = 5
 
 
 def _is_spectatable_board_match(match):
-    """Live tomosha sahifasi faqat shaxmat/shashka matchlarini ko'rsatadi."""
+    """Live tomoşa sahifasi faqat shaxmat/shashka matchlarini körsatadi."""
     engine = ((match.game.config or {}).get('engine') or match.game.slug).lower()
     return (
         match.game.game_type == 'external'
@@ -2611,7 +2612,7 @@ def _is_spectatable_board_match(match):
 
 
 def _finish_stale_live_matches(matches):
-    """Polling to'xtab qolsa ham eski active matchlar live sahifada osilib qolmasin."""
+    """Polling töxtab qolsa ham eski active matchlar live sahifada osilib qolmasin."""
     from datetime import timedelta
 
     cutoff = timezone.now() - timedelta(minutes=LIVE_BOARD_INACTIVITY_MINUTES)
@@ -2633,12 +2634,12 @@ def _finish_stale_live_matches(matches):
 
 @login_required
 def live_games(request):
-    """Hozir o'ynalayotgan barcha taxta o'yinlarini (shaxmat + shashka) ko'rsatadi.
+    """Hozir öynalayotgan barça taxta öyinlarini (şaxmat + şaşka) körsatadi.
 
-    Ko'rsatishdan oldin "zombie" matchlarni (texnik holati "active",
-    lekin haqiqatda harakatsiz qolib ketgan — masalan ikki o'yinchi ham
+    Körsatişdan oldin "zombie" matchlarni (texnik holati "active",
+    lekin haqiqatda harakatsiz qolib ketgan — masalan ikki öyinçi ham
     sahifani yopib ketgan) avtomatik yakunlaymiz. Aks holda ular tugagan
-    bo'lishiga qaramay jonli o'yinlar ro'yxatida ko'rinishda davom etardi.
+    bölişiga qaramay jonli öyinlar röyxatida körinişda davom etardi.
     """
     from .models import BoardMatch
     matches = list(
@@ -2674,25 +2675,25 @@ def live_games(request):
 
 @login_required
 def spectate_match(request, match_id):
-    """Bitta o'yinni tomosha qilish sahifasi (read-only, polling)."""
+    """Bitta öyinni tomoşa qiliş sahifasi (read-only, polling)."""
     import json as _json
     from .models import BoardMatch
     match = get_object_or_404(BoardMatch.objects.select_related('white_player', 'black_player', 'game'), pk=match_id)
     if not _is_spectatable_board_match(match):
-        messages.info(request, "Bu live tomosha sahifasi faqat shaxmat va shashka o'yinlari uchun.")
+        messages.info(request, "Bu live tomoşa sahifasi faqat şaxmat va şaşka öyinlari uçun.")
         return redirect('games:live_games')
 
     _finish_stale_live_matches([match])
     if match.status != 'active':
-        messages.info(request, "Bu o'yin tugagan, live ro'yxatdan olib tashlandi.")
+        messages.info(request, "Bu öyin tugagan, live röyxatdan olib taşlandi.")
         return redirect('games:live_games')
 
-    # Tomoshabinni qo'shish
+    # Tomoşabinni qöşiş
     is_player = request.user == match.white_player or request.user == match.black_player
     if not is_player:
         match.add_spectator(request.user.id)
 
-    # Tomoshabinlar ro'yxati
+    # Tomoşabinlar röyxati
     from accounts.models import CustomUser
     spectator_users = CustomUser.objects.filter(id__in=match.spectator_ids).only('id', 'first_name', 'last_name', 'username')[:20]
 
@@ -2714,11 +2715,11 @@ def spectate_state(request, match_id):
         return JsonResponse({'ok': False, 'error': 'Match topilmadi'}, status=404)
 
     if not _is_spectatable_board_match(match):
-        return JsonResponse({'ok': False, 'error': "Bu o'yinni live tomosha qilish qo'llab-quvvatlanmaydi"}, status=400)
+        return JsonResponse({'ok': False, 'error': "Bu öyinni live tomoşa qiliş qöllab-quvvatlanmaydi"}, status=400)
 
     _finish_stale_live_matches([match])
 
-    # Tomoshabinlar ro'yxati
+    # Tomoşabinlar röyxati
     spectators = []
     if match.spectator_ids:
         spectator_users = CustomUser.objects.filter(id__in=match.spectator_ids).only('id', 'first_name', 'last_name', 'username')[:20]

@@ -14,8 +14,8 @@ BACKFILL_DAYS = 120
 def backfill(apps, schema_editor):
     """Oxirgi 120 kunlik "saytga kirgan kunlar"ni mavjud izlardan tiklaydi.
 
-    Manbalar: muvaffaqiyatli loginlar, sessiyalar, ko'rilgan videolar, vazifalar,
-    testlar va quiz urinishlari. Har (o'quvchi, kun) uchun eng erta va eng kech vaqt olinadi.
+    Manbalar: muvaffaqiyatli loginlar, sessiyalar, körilgan videolar, vazifalar,
+    testlar va quiz urinişlari. Har (öquvçi, kun) uçun eng erta va eng keç vaqt olinadi.
     """
     User = apps.get_model('accounts', 'CustomUser')
     Visit = apps.get_model('accounts', 'StudentDailyVisit')

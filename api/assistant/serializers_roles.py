@@ -21,17 +21,17 @@ class AssistantRoleSerializer(serializers.ModelSerializer):
 
     def validate_permissions(self, value):
         if not isinstance(value, list):
-            raise serializers.ValidationError("permissions list bo'lishi kerak")
+            raise serializers.ValidationError("permissions list bölişi kerak")
         invalid = [p for p in value if not (isinstance(p, str) and is_valid_permission(p))]
         if invalid:
-            raise serializers.ValidationError(f"Noto'g'ri permission kodlari: {invalid}")
+            raise serializers.ValidationError(f"Notöğri permission kodlari: {invalid}")
         return value
 
     def validate(self, data):
-        # is_system rollar uchun code o'zgartirib bo'lmaydi
+        # is_system rollar uçun code özgartirib bölmaydi
         if self.instance and self.instance.is_system:
             if 'code' in data and data['code'] != self.instance.code:
-                raise serializers.ValidationError("Tizim rolining kodini o'zgartirib bo'lmaydi")
+                raise serializers.ValidationError("Tizim rolining kodini özgartirib bölmaydi")
         return data
 
 

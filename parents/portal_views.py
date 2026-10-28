@@ -21,10 +21,10 @@ from .phone import UZ_PHONE_ERROR, local_part, normalize_uz_phone
 
 LOGIN_TEMPLATE = 'parents/portal/login.html'
 
-# Enumeration'ga qarshi: login yo'q va parol xato holatlari uchun BIR XIL xabar.
-# Ilgari "Foydalanuvchi topilmadi" / "Parol noto'g'ri" farqlanardi — shu orqali
-# qaysi loginlar mavjudligini ro'yxatlab olish mumkin edi.
-AUTH_ERROR = "Login yoki parol noto'g'ri"
+# Enumeration'ga qarşi: login yöq va parol xato holatlari uçun BIR XIL xabar.
+# Ilgari "Foydalanuvçi topilmadi" / "Parol notöğri" farqlanardi — şu orqali
+# qaysi loginlar mavjudligini röyxatlab oliş mumkin edi.
+AUTH_ERROR = "Login yoki parol notöğri"
 
 
 def parent_required(view_func):
@@ -44,7 +44,7 @@ def parent_required(view_func):
 
 
 def _base(request, **extra):
-    """Har bir sahifa uchun umumiy kontekst: ota-ona, farzandlar, tanlangan farzand."""
+    """Har bir sahifa uçun umumiy kontekst: ota-ona, farzandlar, tanlangan farzand."""
     children = request.parent.children.all().order_by('first_name')
     child = insights.select_child(request, children)
     unread = ParentMessage.objects.filter(parent=request.parent, sender_type='parent', reply__isnull=False,
@@ -54,7 +54,7 @@ def _base(request, **extra):
     return ctx
 
 
-# ───────────────────────── Kirish / chiqish ─────────────────────────
+# ───────────────────────── Kiriş / çiqiş ─────────────────────────
 
 def parent_login_view(request):
     if request.session.get('parent_id'):
@@ -82,8 +82,8 @@ def parent_login_view(request):
 
         parent = Parent.objects.filter(is_active=True, **lookup).first() if lookup else None
         if parent is None:
-            # Parolni baribir hashlaymiz: aks holda javob vaqti farqi
-            # ("tez" = login yo'q) enumeration kanaliga aylanardi.
+            # Parolni baribir haşlaymiz: aks holda javob vaqti farqi
+            # ("tez" = login yöq) enumeration kanaliga aylanardi.
             Parent().set_password(password)
             password_ok = False
         else:
@@ -96,13 +96,13 @@ def parent_login_view(request):
             )
             return render(request, LOGIN_TEMPLATE, {**ctx, 'error': AUTH_ERROR})
 
-        # Session fixation: hujumchi oldin bergan sessiya ID si bilan
-        # ota-ona sessiyasini o'zlashtirib olmasin.
+        # Session fixation: hujumçi oldin bergan sessiya ID si bilan
+        # ota-ona sessiyasini özlaştirib olmasin.
         first_login = parent.last_login is None
         request.session.cycle_key()
         request.session['parent_id'] = parent.id
         if first_login:
-            request.session['pp_tour'] = True  # birinchi kirish — bosh sahifada qo'llanma
+            request.session['pp_tour'] = True  # birinçi kiriş — boş sahifada qöllanma
         parent.last_login = timezone.now()
         parent.save(update_fields=['last_login'])
         return redirect('parent_dashboard')
@@ -113,12 +113,12 @@ def parent_login_view(request):
 def parent_logout_view(request):
     request.session.pop('parent_id', None)
     request.session.pop(insights.SESSION_CHILD_KEY, None)
-    # Chiqishdan keyin eski sessiya ID si qayta ishlatilmasin.
+    # Çiqişdan keyin eski sessiya ID si qayta işlatilmasin.
     request.session.cycle_key()
     return redirect('parent_login')
 
 
-# ───────────────────────── Bosh sahifa ─────────────────────────
+# ───────────────────────── Boş sahifa ─────────────────────────
 
 @parent_required
 def parent_dashboard(request):
@@ -169,7 +169,7 @@ def parent_children(request):
 
 @parent_required
 def parent_child_detail(request, child_id):
-    """Farzand haqida to'liq ma'lumot (bitta sahifada hammasi)."""
+    """Farzand haqida töliq ma'lumot (bitta sahifada hammasi)."""
     children = request.parent.children.all()
     child = get_object_or_404(children, id=child_id)
     request.session[insights.SESSION_CHILD_KEY] = child.id
@@ -201,7 +201,7 @@ def parent_child_detail(request, child_id):
     return render(request, 'parents/portal/child_detail.html', ctx)
 
 
-# ───────────────────────── O'quv jarayoni ─────────────────────────
+# ───────────────────────── Öquv jarayoni ─────────────────────────
 
 @parent_required
 def parent_lessons(request):
@@ -211,7 +211,7 @@ def parent_lessons(request):
     if child:
         enrollments = CourseEnrollment.objects.filter(user=child).select_related('profession')
         prof_ids = [e.profession_id for e in enrollments]
-        # Bitta so'rov bilan bajarilganlar to'plami (har dars uchun alohida so'rov yo'q)
+        # Bitta sörov bilan bajarilganlar töplami (har dars uçun alohida sörov yöq)
         watched = set(VideoProgress.objects.filter(
             user=child, watched=True, video__lesson__profession_id__in=prof_ids
         ).values_list('video__lesson_id', flat=True))
@@ -226,7 +226,7 @@ def parent_lessons(request):
         passed_tests = set(TestResult.objects.filter(
             student=child, passed=True, test__lesson__profession_id__in=prof_ids
         ).values_list('test__lesson_id', flat=True))
-        # Yangi quiz tizimi: eng yaxshi ball va o'tilgan darslar
+        # Yangi quiz tizimi: eng yaxşi ball va ötilgan darslar
         try:
             from quiz.models import Attempt
             for lesson_id, score, ok in Attempt.objects.filter(
@@ -257,29 +257,29 @@ def parent_lessons(request):
                     done, detail = False, ''
                     if lesson.lesson_type == 'video':
                         done = lesson.id in watched
-                        detail = "Ko'rilgan" if done else "Ko'rilmagan"
+                        detail = "Körilgan" if done else "Körilmagan"
                     elif lesson.lesson_type == 'homework':
                         st = hw_status.get(lesson.id)
                         if st:
                             done = st[0] in ('accepted', 'graded')
                             detail = hw_labels.get(st[0], st[0]) + (f" · {st[1]}/10" if st[1] is not None else '')
                         else:
-                            detail = 'Topshirilmagan'
+                            detail = 'Topşirilmagan'
                     elif lesson.lesson_type == 'test':
                         if lesson.id in best_test:
                             done = lesson.id in passed_tests
                             detail = f"{best_test[lesson.id]}% · {'o‘tdi' if done else 'o‘tmadi'}"
                         else:
-                            detail = 'Ishlanmagan'
+                            detail = 'Işlanmagan'
                     elif lesson.lesson_type == 'speaking':
                         st = speaking.get(lesson.id)
                         if st:
                             done = st[0] == 'graded'
                             detail = sp_labels.get(st[0], st[0]) + (f" · {st[1]} ball" if st[1] is not None else '')
                         else:
-                            detail = 'Topshirilmagan'
+                            detail = 'Topşirilmagan'
                     else:
-                        continue  # lug'at kabi kuzatilmaydigan darslar
+                        continue  # luğat kabi kuzatilmaydigan darslar
                     items.append({'lesson': lesson, 'done': done, 'detail': detail})
                 total = len(items)
                 done_n = sum(1 for i in items if i['done'])
@@ -371,7 +371,7 @@ def parent_payments(request):
 
 
 def _topup_ctx(payment):
-    """Balansni to'ldirish formasi uchun: tayyor summalar va onlayn to'lov mavjudligi."""
+    """Balansni töldiriş formasi uçun: tayyor summalar va onlayn tölov mavjudligi."""
     fee = int(payment['fee'] or 0)
     return {
         'presets': [{'months': m, 'amount': fee * m} for m in (1, 2, 3, 6)] if fee else [],
@@ -393,10 +393,10 @@ MAX_TOPUP_SOM = 50_000_000
 @parent_required
 @require_POST
 def parent_payment_checkout(request):
-    """Ota-ona farzandining oylik to'lovi/balansini onlayn to'laydi.
+    """Ota-ona farzandining oylik tölovi/balansini onlayn tölaydi.
 
-    O'quvchining o'z to'lovi bilan bir xil yo'l (start_monthly_checkout) ishlatiladi —
-    to'lov tasdiqlangach webhook farzand balansiga yozadi va muddatni uzaytiradi.
+    Öquvçining öz tölovi bilan bir xil yöl (start_monthly_checkout) işlatiladi —
+    tölov tasdiqlangaç webhook farzand balansiga yozadi va muddatni uzaytiradi.
     """
     from django.db import transaction
     from accounts.tezcheck_views import start_monthly_checkout
@@ -411,7 +411,7 @@ def parent_payment_checkout(request):
         return redirect(back)
     raw = request.POST.get('amount', '').replace(' ', '').replace(',', '')
     if raw and (not raw.isdigit() or not 1000 <= int(raw) <= MAX_TOPUP_SOM):
-        messages.error(request, "Summa 1 000 dan 50 000 000 so‘mgacha bo‘lishi kerak.")
+        messages.error(request, "Summa 1 000 dan 50 000 000 sömgaça bölişi kerak.")
         return redirect(back)
     with transaction.atomic():
         return start_monthly_checkout(
@@ -422,8 +422,8 @@ def parent_payment_checkout(request):
 
 @parent_required
 def parent_payment_return(request):
-    """To'lov sahifasidan qaytish — faqat ma'lumot; to'lovni webhook tasdiqlaydi."""
-    messages.info(request, "Rahmat! To‘lov holati tekshirilmoqda — tasdiqlangach balans shu sahifada yangilanadi.")
+    """Tölov sahifasidan qaytiş — faqat ma'lumot; tölovni webhook tasdiqlaydi."""
+    messages.info(request, "Rahmat! Tölov holati tekşirilmoqda — tasdiqlangaç balans şu sahifada yangilanadi.")
     return redirect('parent_payments')
 
 
@@ -452,13 +452,13 @@ def parent_achievements(request):
     perfect = results.filter(score__gte=100).order_by('completed_at').first()
     first_cert = certificates.order_by('issued_at').first()
     badges = [
-        badge('Birinchi test', 'Birinchi testni topshirdi', 'pencil-square', '#6366f1', first and first.completed_at),
-        badge("5 ta test", "5 ta testdan o'tdi", 'check2-all', '#10b981', passed[4].completed_at if passed_n >= 5 else None),
-        badge("10 ta test", "10 ta testdan o'tdi", 'trophy-fill', '#f59e0b', passed[9].completed_at if passed_n >= 10 else None),
+        badge('Birinçi test', 'Birinçi testni topşirdi', 'pencil-square', '#6366f1', first and first.completed_at),
+        badge("5 ta test", "5 ta testdan ötdi", 'check2-all', '#10b981', passed[4].completed_at if passed_n >= 5 else None),
+        badge("10 ta test", "10 ta testdan ötdi", 'trophy-fill', '#f59e0b', passed[9].completed_at if passed_n >= 10 else None),
         badge('Mukammal natija', 'Testda 100% oldi', 'star-fill', '#ef4444', perfect and perfect.completed_at),
-        badge('Sertifikat egasi', 'Birinchi sertifikatni oldi', 'patch-check-fill', '#0ea5e9',
+        badge('Sertifikat egasi', 'Birinçi sertifikatni oldi', 'patch-check-fill', '#0ea5e9',
               first_cert and first_cert.issued_at),
-        badge("100 coin", "Jami 100 coin yig'di", 'coin', '#eab308', True if coins_earned >= 100 else None),
+        badge("100 coin", "Jami 100 coin yiğdi", 'coin', '#eab308', True if coins_earned >= 100 else None),
         badge('Faol hafta', "7 kun ketma-ket kirdi", 'fire', '#f97316',
               True if (child.streak_days or 0) >= 7 else None),
     ]
@@ -495,12 +495,12 @@ def parent_books(request):
 
 # ───────────────────────── Xabarlar ─────────────────────────
 
-TOPICS = ['Uy vazifasi', 'Davomat', 'Baholar', 'To‘lov', 'Boshqa']
+TOPICS = ['Uy vazifasi', 'Davomat', 'Baholar', 'Tölov', 'Boşqa']
 
 
 @parent_required
 def parent_messages(request):
-    """Messenjer ko'rinishidagi suhbat: har bir farzand bo'yicha bitta chat."""
+    """Messenjer körinişidagi suhbat: har bir farzand böyiça bitta çat."""
     parent = request.parent
     children = parent.children.all().order_by('first_name')
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
@@ -509,10 +509,10 @@ def parent_messages(request):
         child = children.filter(id=request.POST.get('child_id') or 0).first()
         text = request.POST.get('message', '').strip()[:4000]
         topic = request.POST.get('topic', '').strip()
-        # Eski forma (mavzu maydoni bilan) ham ishlayveradi
+        # Eski forma (mavzu maydoni bilan) ham işlayveradi
         subject = (request.POST.get('subject', '').strip() or (topic if topic in TOPICS else '')
                    or (text[:60] + ('…' if len(text) > 60 else '')))[:200]
-        error = "Farzand topilmadi" if child is None else ("Barcha maydonlarni to'ldiring" if not text else None)
+        error = "Farzand topilmadi" if child is None else ("Barça maydonlarni töldiring" if not text else None)
         if error:
             if is_ajax:
                 return JsonResponse({'success': False, 'error': error})
@@ -528,7 +528,7 @@ def parent_messages(request):
     ctx = _base(request, sent=request.GET.get('sent') == '1')
     chat_child = children.filter(id=request.GET.get('child')).first() if (request.GET.get('child') or '').isdigit() else None
     ctx.update(_chat_context(request, children, chat_child or ctx['selected_child']))
-    ctx['unread_replies'] = max(0, ctx['unread_replies'] - ctx['seen_now'])  # hozirgina ko'rilganlar
+    ctx['unread_replies'] = max(0, ctx['unread_replies'] - ctx['seen_now'])  # hozirgina körilganlar
     return render(request, 'parents/portal/messages.html', ctx)
 
 
@@ -548,14 +548,14 @@ def _notify_admins_new_message(request, msg):
             "",
             html.escape(msg.message[:500]),
             "",
-            f"Javob berish: {url}",
+            f"Javob beriş: {url}",
         ]))
     except Exception:
         pass
 
 
 def _chat_context(request, children, chat_child):
-    """Suhbatlar ro'yxati va tanlangan farzand bo'yicha xronologik chat lentasi."""
+    """Suhbatlar röyxati va tanlangan farzand böyiça xronologik çat lentasi."""
     parent = request.parent
     all_msgs = list(ParentMessage.objects.filter(parent=parent).select_related('child', 'replied_by')
                     .order_by('created_at'))
@@ -587,20 +587,20 @@ def _chat_context(request, children, chat_child):
                 is_new = not m.reply_seen_by_parent
                 if is_new:
                     new_ids.add(m.id)
-                # Javob hech qachon savoldan oldin ko'rinmasin (soat farqi / tahrirlash holatlari)
+                # Javob heç qaçon savoldan oldin körinmasin (soat farqi / tahrirlaş holatlari)
                 at = max(m.replied_at or m.created_at, m.created_at)
                 events.append({'kind': 'them', 'at': at, 'text': m.reply, 'new': is_new,
-                               'by': (m.replied_by.full_name if m.replied_by else '') or 'O‘quv markazi'})
+                               'by': (m.replied_by.full_name if m.replied_by else '') or 'Öquv markazi'})
         for i, e in enumerate(events):
             e['seq'] = i
         events.sort(key=lambda e: (e['at'], e['seq']))
-        # Sana ajratgichlari
+        # Sana ajratgiçlari
         prev = None
         for e in events:
             day = timezone.localtime(e['at']).date()
             e['new_day'] = day != prev
             prev = day
-        # Ochilgan chatdagi yangi javoblar "ko'rildi" (admin uchun is_read'ga tegilmaydi)
+        # Oçilgan çatdagi yangi javoblar "körildi" (admin uçun is_read'ga tegilmaydi)
         if new_ids:
             ParentMessage.objects.filter(id__in=new_ids).update(reply_seen_by_parent=True)
             for cv in convs:
@@ -636,7 +636,7 @@ def parent_profile_edit(request):
         elif phone is None:
             error = UZ_PHONE_ERROR
         elif Parent.objects.filter(phone=phone).exclude(pk=parent.pk).exists():
-            error = "Bu telefon raqam allaqachon mavjud!"
+            error = "Bu telefon raqam allaqaçon mavjud!"
         if error:
             return render(request, 'parents/portal/profile_edit.html', _base(request, error=error, form={
                 'first_name': first_name, 'last_name': last_name, 'phone': local_part(phone or raw_phone),
@@ -658,7 +658,7 @@ def parent_change_password(request):
         confirm = request.POST.get('confirm_password', '')
         error = None
         if not parent.check_password(current):
-            error = "Joriy parol noto'g'ri!"
+            error = "Joriy parol notöğri!"
         elif new != confirm:
             error = "Yangi parollar mos kelmadi!"
         else:
@@ -667,8 +667,8 @@ def parent_change_password(request):
             return render(request, 'parents/portal/change_password.html', _base(request, error=error))
         parent.password = make_password(new)
         parent.save(update_fields=['password', 'updated_at'])
-        # Parol o'zgardi — eski sessiya ID si bilan davom etilmasin.
-        # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almashtiradi.
+        # Parol özgardi — eski sessiya ID si bilan davom etilmasin.
+        # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almaştiradi.
         request.session.cycle_key()
         return redirect(f"{reverse('parent_profile')}?password=1")
     return render(request, 'parents/portal/change_password.html', _base(request))
@@ -676,15 +676,15 @@ def parent_change_password(request):
 
 @parent_required
 def parent_settings(request):
-    """Ko'rinish sozlamalari (mavzu, animatsiya) — brauzerda saqlanadi."""
+    """Köriniş sozlamalari (mavzu, animatsiya) — brauzerda saqlanadi."""
     return render(request, 'parents/portal/settings.html', _base(request))
 
 
 def parent_password_reset_request(request):
-    """Ota-ona parol tiklash so'rovi"""
+    """Ota-ona parol tiklaş sörovi"""
     template = 'parents/portal/password_reset_request.html'
-    # Enumeration'ga qarshi: login mavjud bo'lsa ham, bo'lmasa ham bir xil javob.
-    generic_success = "So'rov yuborildi! Administrator tasdiqlagach, yangi parol bilan kira olasiz."
+    # Enumeration'ga qarşi: login mavjud bölsa ham, bölmasa ham bir xil javob.
+    generic_success = "Sörov yuborildi! Administrator tasdiqlagaç, yangi parol bilan kira olasiz."
 
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -692,7 +692,7 @@ def parent_password_reset_request(request):
         confirm_password = request.POST.get('confirm_password', '')
 
         if not username or not new_password:
-            return render(request, template, {'error': "Barcha maydonlarni to'ldiring", 'username': username})
+            return render(request, template, {'error': "Barça maydonlarni töldiring", 'username': username})
 
         if new_password != confirm_password:
             return render(request, template, {'error': "Parollar mos kelmadi", 'username': username})
@@ -714,8 +714,8 @@ def parent_password_reset_request(request):
         if parent is not None:
             from accounts.models import ParentPasswordResetRequest
 
-            # Parol so'rov paytida hashlanadi. Ilgari ochiq matnda saqlanardi:
-            # admin panelidan yoki DB nusxasidan o'qib olish mumkin edi.
+            # Parol sörov paytida haşlanadi. Ilgari oçiq matnda saqlanardi:
+            # admin panelidan yoki DB nusxasidan öqib oliş mumkin edi.
             ParentPasswordResetRequest.objects.create(
                 parent=parent,
                 new_password=make_password(new_password),

@@ -13,5 +13,5 @@ def payment_method_picker():
 
 @register.inclusion_tag('accounts/includes/payment_methods_cards.html')
 def payment_method_cards():
-    """Brendli kartalar ko'rinishidagi tanlov (Marketdan tashqari to'lov sahifalari)."""
+    """Brendli kartalar körinişidagi tanlov (Marketdan taşqari tölov sahifalari)."""
     return {'payment_methods': available_methods()}

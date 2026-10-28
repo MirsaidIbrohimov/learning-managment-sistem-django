@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='father_name',
-            field=models.CharField(blank=True, max_length=200, null=True, verbose_name="Otasining to'liq ismi"),
+            field=models.CharField(blank=True, max_length=200, null=True, verbose_name="Otasining töliq ismi"),
         ),
         migrations.AddField(
             model_name='customuser',
@@ -23,12 +23,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='is_profile_completed',
-            field=models.BooleanField(default=False, verbose_name="Profil to'ldirilgan"),
+            field=models.BooleanField(default=False, verbose_name="Profil töldirilgan"),
         ),
         migrations.AddField(
             model_name='customuser',
             name='mother_name',
-            field=models.CharField(blank=True, max_length=200, null=True, verbose_name="Onasining to'liq ismi"),
+            field=models.CharField(blank=True, max_length=200, null=True, verbose_name="Onasining töliq ismi"),
         ),
         migrations.AddField(
             model_name='customuser',

@@ -754,7 +754,7 @@
 /* ── ROADMAP (enhanced UX) ─────────────────────────────── */
 .roadmap-scroll { position: relative; }
 
-/* Chap/o'ng surish tugmalari */
+/* Chap/öng suriş tugmalari */
 .rm-scroll-btn {
     position: absolute; top: 52px; transform: translateY(-50%);
     z-index: 6; width: 34px; height: 34px; border-radius: 50%;
@@ -779,7 +779,7 @@
 }
 [data-bs-theme="dark"] .rm-head-pct { background: rgba(16,185,129,.18); color: #4ade80; }
 
-/* "Siz shu yerda" pill above the active node */
+/* "Siz şu yerda" pill above the active node */
 .rn-here {
     position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
     display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
@@ -969,7 +969,7 @@
 <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <a href="{% url 'professions' %}" class="cd-back">
-    <i class="bi bi-arrow-left"></i> Barcha kurslar
+    <i class="bi bi-arrow-left"></i> Barça kurslar
 </a>
 
 <div class="row g-4">
@@ -1005,7 +1005,7 @@
 
             {% if profession.closed_group_link and is_enrolled or profession.closed_group_link and user.is_admin or profession.closed_group_link and is_teaching %}
             <a href="{{ profession.closed_group_link }}" target="_blank" rel="noopener noreferrer" class="cd-btn cd-btn-warn">
-                <i class="bi bi-lock-fill"></i> Yopiq guruhga qo'shilish
+                <i class="bi bi-lock-fill"></i> Yopiq guruhga qöşiliş
             </a>
             {% endif %}
 
@@ -1016,11 +1016,11 @@
                     </div>
                     {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}
                     <a href="{% url 'classmates' profession.pk %}" class="cd-btn cd-btn-outline">
-                        <i class="bi bi-people"></i> Kursdoshlar
+                        <i class="bi bi-people"></i> Kursdoşlar
                     </a>
                     {% else %}
                     <a href="{% url 'coin:buy_premium' %}" class="cd-btn cd-btn-outline">
-                        <i class="bi bi-lock"></i> Kursdoshlar
+                        <i class="bi bi-lock"></i> Kursdoşlar
                         <span style="font-size:.68rem;background:#f59e0b;color:#fff;padding:.1rem .4rem;border-radius:5px;margin-left:.25rem;">Premium</span>
                     </a>
                     {% endif %}
@@ -1033,7 +1033,7 @@
                     </a>
                     {% endfor %}
                     <button type="button" class="cd-btn cd-btn-danger" onclick="openUnenrollModal()">
-                        <i class="bi bi-box-arrow-right"></i> Kursdan chiqish
+                        <i class="bi bi-box-arrow-right"></i> Kursdan çiqiş
                     </button>
 
                 {% elif enrollment_request %}
@@ -1041,17 +1041,17 @@
                     <div class="cd-status-warn">
                         <i class="bi bi-clock-history"></i>
                         <div>
-                            <strong>So'rovingiz ko'rib chiqilmoqda</strong>
-                            <div style="font-size:.78rem;margin-top:.15rem;">Admin tasdiqlashini kuting</div>
+                            <strong>Sörovingiz körib çiqilmoqda</strong>
+                            <div style="font-size:.78rem;margin-top:.15rem;">Admin tasdiqlaşini kuting</div>
                         </div>
                     </div>
                     {% elif enrollment_request.status == 'rejected' %}
                     <div class="cd-status-err">
                         <i class="bi bi-x-circle"></i>
                         <div>
-                            <strong>So'rovingiz rad etildi</strong>
+                            <strong>Sörovingiz rad etildi</strong>
                             <div style="font-size:.78rem;margin-top:.15rem;">
-                                {% if enrollment_request.admin_message %}{{ enrollment_request.admin_message }}{% else %}Sizga ushbu kursni o'qish imkoniyati berilmadi.{% endif %}
+                                {% if enrollment_request.admin_message %}{{ enrollment_request.admin_message }}{% else %}Sizga uşbu kursni öqiş imkoniyati berilmadi.{% endif %}
                             </div>
                         </div>
                     </div>
@@ -1060,11 +1060,11 @@
                 {% else %}
                     <a href="{% url 'enroll_course' profession.pk %}" class="cd-btn cd-btn-primary" style="font-size:.95rem;padding:.75rem 1rem;">
                         {% if profession.is_sold_once %}
-                        <i class="bi bi-credit-card"></i> Sotib olish — {% if profession.sale.has_discount %}<del style="opacity:.6">{{ profession.sale.original|floatformat:"0g" }}</del> {% endif %}{{ profession.sale.price|floatformat:"0g" }} so'm
+                        <i class="bi bi-credit-card"></i> Sotib oliş — {% if profession.sale.has_discount %}<del style="opacity:.6">{{ profession.sale.original|floatformat:"0g" }}</del> {% endif %}{{ profession.sale.price|floatformat:"0g" }} söm
                         {% elif profession.is_paid %}
-                        <i class="bi bi-send"></i> Kursga yozilish so'rov yuborish
+                        <i class="bi bi-send"></i> Kursga yoziliş sörov yuboriş
                         {% else %}
-                        <i class="bi bi-play-circle-fill"></i> O'qishni boshlash
+                        <i class="bi bi-play-circle-fill"></i> Öqişni boşlaş
                         {% endif %}
                     </a>
                 {% endif %}
@@ -1072,13 +1072,13 @@
 
             {% if user.is_admin or is_teaching %}
             <a href="{% url 'classmates' profession.pk %}" class="cd-btn cd-btn-outline">
-                <i class="bi bi-people"></i> Kursdoshlar
+                <i class="bi bi-people"></i> Kursdoşlar
             </a>
             <a href="{% url 'course_statistics' profession.pk %}" class="cd-btn cd-btn-primary">
                 <i class="bi bi-bar-chart-line"></i> Kurs statistikasi
             </a>
             <a href="{% url 'manage_lessons' profession.pk %}" class="cd-btn cd-btn-outline">
-                <i class="bi bi-gear"></i> Boshqarish
+                <i class="bi bi-gear"></i> Boşqariş
             </a>
             {% endif %}
 
@@ -1100,7 +1100,7 @@
         </h5>
         {% if user.is_admin or is_teaching %}
         <a href="{% url 'add_section' profession.pk %}" class="cd-btn cd-btn-primary" style="padding:.4rem .9rem;font-size:.82rem;">
-            <i class="bi bi-plus-lg"></i> Bo'lim qo'shish
+            <i class="bi bi-plus-lg"></i> Bölim qöşiş
         </a>
         {% endif %}
     </div>
@@ -1115,16 +1115,16 @@
                 <div class="roadmap-head">
                     <div class="rm-head-icon"><i class="bi bi-signpost-split-fill"></i></div>
                     <div class="rm-head-text">
-                        <div class="roadmap-title">Kurs yo'l xaritasi</div>
-                        <div class="roadmap-subtitle">{{ course_roadmap.completed_count }}/{{ course_roadmap.total }} bo'lim tugallandi · bosib o'ting</div>
+                        <div class="roadmap-title">Kurs yöl xaritasi</div>
+                        <div class="roadmap-subtitle">{{ course_roadmap.completed_count }}/{{ course_roadmap.total }} bölim tugallandi · bosib öting</div>
                     </div>
                     <div class="rm-head-pct" id="rmHeadPct">0%</div>
                 </div>
                 <div class="roadmap-scroll">
-                    <button type="button" class="rm-scroll-btn rm-scroll-prev" id="rmScrollPrev" aria-label="Chapga surish" hidden>
+                    <button type="button" class="rm-scroll-btn rm-scroll-prev" id="rmScrollPrev" aria-label="Çapga suriş" hidden>
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    <button type="button" class="rm-scroll-btn rm-scroll-next" id="rmScrollNext" aria-label="O'ngga surish" hidden>
+                    <button type="button" class="rm-scroll-btn rm-scroll-next" id="rmScrollNext" aria-label="Öngga suriş" hidden>
                         <i class="bi bi-chevron-right"></i>
                     </button>
                     <div class="roadmap-connector">
@@ -1136,7 +1136,7 @@
                         <div class="roadmap-node rn-{{ node.state }}" data-section-id="{{ node.id }}" data-state="{{ node.state }}"
                              id="rmNode{{ forloop.counter0 }}" tabindex="0" role="button"
                              title="{{ node.title }}" aria-label="{{ node.num }}. {{ node.title }}">
-                            {% if node.state == 'active' %}<span class="rn-here"><i class="bi bi-geo-alt-fill"></i> Siz shu yerda</span>{% endif %}
+                            {% if node.state == 'active' %}<span class="rn-here"><i class="bi bi-geo-alt-fill"></i> Siz şu yerda</span>{% endif %}
                             <div class="rn-circle">
                                 <span class="rn-num">{{ node.num }}</span>
                                 <div class="rn-check"><i class="bi bi-check-lg"></i></div>
@@ -1167,7 +1167,7 @@
         <div class="daily-limit-banner">
             <i class="bi bi-calendar-check"></i>
             <div class="daily-limit-text">
-                📚 Bugun siz faqat <strong>"{{ daily_limit_section_name }}"</strong> bo'limini o'qiyolasiz. Bo'lim ichidagi barcha darslarni (video, test, uyga vazifa) bajarishingiz mumkin. Yangi bo'limga ertaga kirishingiz mumkin!
+                📚 Bugun siz faqat <strong>"{{ daily_limit_section_name }}"</strong> bölimini öqiyolasiz. Bölim içidagi barça darslarni (video, test, uyga vazifa) bajarişingiz mumkin. Yangi bölimga ertaga kirişingiz mumkin!
             </div>
         </div>
         {% endif %}
@@ -1208,7 +1208,7 @@
                 {% if section_locked %}
                 <div class="p-4 text-center text-muted">
                     <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
-                    <p class="mt-2 mb-0">Bu bo'lim ochilishi uchun avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) bajarishingiz kerak</p>
+                    <p class="mt-2 mb-0">Bu bölim oçilişi uçun avval oldingi bölimdagi barça darslarni (video, test, uyga vazifa) bajarişingiz kerak</p>
                 </div>
                 {% for lesson in section.lessons.all %}
                     {% if lesson.lesson_type == 'dictionary' %}
@@ -1222,11 +1222,11 @@
                         </div>
                         <div class="lesson-info">
                             <div class="lesson-title">{{ lesson.title }}</div>
-                            <div class="lesson-type">Lug'at</div>
+                            <div class="lesson-type">Luğat</div>
                         </div>
                         <div class="lesson-status">
                             <span class="status-badge" style="background:rgba(16,185,129,0.1);color:#10b981;">
-                                <i class="bi bi-unlock-fill"></i>Ochiq
+                                <i class="bi bi-unlock-fill"></i>Oçiq
                             </span>
                         </div>
                     </a>
@@ -1258,7 +1258,7 @@
                         </div>
                         <div class="lesson-info">
                             <div class="lesson-title">{{ lesson.title }}</div>
-                            <div class="lesson-type text-primary">📅 Ertaga ochiladi</div>
+                            <div class="lesson-type text-primary">📅 Ertaga oçiladi</div>
                         </div>
                         <div class="lesson-status">
                             <span class="status-badge" style="background:rgba(13,110,253,0.1);color:#0d6efd;">
@@ -1273,7 +1273,7 @@
                         </div>
                         <div class="lesson-info">
                             <div class="lesson-title">{{ lesson.title }}</div>
-                            <div class="lesson-type text-danger">🔒 Avval vazifangiz tasdiqlanishi kerak</div>
+                            <div class="lesson-type text-danger">🔒 Avval vazifangiz tasdiqlanişi kerak</div>
                         </div>
                         <div class="lesson-status">
                             <span class="status-badge" style="background:rgba(220,53,69,0.1);color:#dc3545;">
@@ -1305,7 +1305,7 @@
                             <div class="lesson-type">
                                 {% if lesson.lesson_type == 'video' %}Video darslik
                                 {% elif lesson.lesson_type == 'homework' %}Uy vazifasi
-                                {% elif lesson.lesson_type == 'dictionary' %}Lug'at
+                                {% elif lesson.lesson_type == 'dictionary' %}Luğat
                                 {% elif lesson.lesson_type == 'speaking' %}Speaking
                                 {% else %}Test{% endif %}
                             </div>
@@ -1313,7 +1313,7 @@
                         <div class="lesson-status">
                             {% if lesson.lesson_type == 'dictionary' %}
                                 <span class="status-badge" style="background:rgba(108,117,125,0.1);color:#6c757d;">
-                                    <i class="bi bi-book"></i>Lug'at
+                                    <i class="bi bi-book"></i>Luğat
                                 </span>
                             {% else %}
                             {% with progress=lesson_progress|get_item:lesson.pk %}
@@ -1321,7 +1321,7 @@
                                 {% if progress.type == 'test' %}
                                     {% if progress.passed %}
                                     <span class="status-badge completed">
-                                        <i class="bi bi-check-circle-fill"></i>O'tdi ({{ progress.score }}%)
+                                        <i class="bi bi-check-circle-fill"></i>Ötdi ({{ progress.score }}%)
                                     </span>
                                     {% else %}
                                     <span class="status-badge failed">
@@ -1339,11 +1339,11 @@
                                     </span>
                                     {% elif progress.status == 'revision' %}
                                     <span class="status-badge revision">
-                                        <i class="bi bi-arrow-repeat"></i>Qayta topshiring
+                                        <i class="bi bi-arrow-repeat"></i>Qayta topşiring
                                     </span>
                                     {% elif progress.status == 'reviewing' %}
                                     <span class="status-badge reviewing">
-                                        <i class="bi bi-hourglass-split"></i>Tekshirilmoqda
+                                        <i class="bi bi-hourglass-split"></i>Tekşirilmoqda
                                     </span>
                                     {% else %}
                                     <span class="status-badge reviewing">
@@ -1371,7 +1371,7 @@
                 {% else %}
                     <div class="empty-section">
                         <i class="bi bi-inbox"></i>
-                        <p class="mb-0">Bu bo'limda hali darslar yo'q</p>
+                        <p class="mb-0">Bu bölimda hali darslar yöq</p>
                     </div>
                 {% endif %}
                 
@@ -1388,7 +1388,7 @@
                             <i class="bi bi-patch-question-fill me-1"></i>Quiz
                         </a>
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=dictionary" class="btn btn-sm btn-outline-info rounded-pill">
-                            <i class="bi bi-translate me-1"></i>Lug'at
+                            <i class="bi bi-translate me-1"></i>Luğat
                         </a>
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=speaking" class="btn btn-sm btn-outline-danger rounded-pill">
                             <i class="bi bi-mic me-1"></i>Speaking
@@ -1410,7 +1410,7 @@
                     <div class="section-icon" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
                         <i class="bi bi-collection"></i>
                     </div>
-                    Boshqa darslar
+                    Boşqa darslar
                 </h6>
                 <div class="section-meta">
                     {% if no_section_locked %}
@@ -1425,7 +1425,7 @@
                 {% if no_section_locked %}
                 <div class="p-4 text-center text-muted">
                     <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
-                    <p class="mt-2 mb-0">Barcha bo'limlarni tugatgandan so'ng ochiladi</p>
+                    <p class="mt-2 mb-0">Barça bölimlarni tugatgandan söng oçiladi</p>
                 </div>
                 {% else %}
                 {% for lesson in lessons_without_section %}
@@ -1458,7 +1458,7 @@
                             {% if progress.type == 'test' %}
                                 {% if progress.passed %}
                                 <span class="status-badge completed">
-                                    <i class="bi bi-check-circle-fill"></i>O'tdi ({{ progress.score }}%)
+                                    <i class="bi bi-check-circle-fill"></i>Ötdi ({{ progress.score }}%)
                                 </span>
                                 {% else %}
                                 <span class="status-badge failed">
@@ -1476,11 +1476,11 @@
                                 </span>
                                 {% elif progress.status == 'revision' %}
                                 <span class="status-badge revision">
-                                    <i class="bi bi-arrow-repeat"></i>Qayta topshiring
+                                    <i class="bi bi-arrow-repeat"></i>Qayta topşiring
                                 </span>
                                 {% elif progress.status == 'reviewing' %}
                                 <span class="status-badge reviewing">
-                                    <i class="bi bi-hourglass-split"></i>Tekshirilmoqda
+                                    <i class="bi bi-hourglass-split"></i>Tekşirilmoqda
                                 </span>
                                 {% else %}
                                 <span class="status-badge reviewing">
@@ -1511,10 +1511,10 @@
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mt-3">Hozircha darslar mavjud emas</p>
+            <p class="text-muted mt-3">Hozirça darslar mavjud emas</p>
             {% if user.is_admin or is_teaching %}
             <a href="{% url 'add_lesson' profession.pk %}" class="cd-btn cd-btn-primary mt-2" style="display:inline-flex;width:auto;">
-                <i class="bi bi-plus-lg"></i> Dars qo'shish
+                <i class="bi bi-plus-lg"></i> Dars qöşiş
             </a>
             {% endif %}
         </div>
@@ -1556,7 +1556,7 @@
                             YAKUNIY TEST
                         </div>
                         <div style="color:rgba(255,255,255,0.8);font-size:0.78rem;">
-                            Kursni yakunlash uchun majburiy imtihon
+                            Kursni yakunlaş uçun majburiy imtihon
                         </div>
                     </div>
                     <div style="margin-left:auto;">
@@ -1611,18 +1611,18 @@
                                 {{ lesson.title }}
                             </div>
                             <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-top: 0.1rem;">
-                                <i class="bi bi-award-fill me-1"></i>Yakuniy imtihon · {{ test.time_limit }} daqiqa · {{ test.passing_score }}% o'tish bali
+                                <i class="bi bi-award-fill me-1"></i>Yakuniy imtihon · {{ test.time_limit }} daqiqa · {{ test.passing_score }}% ötiş bali
                             </div>
                         </div>
                         <!-- Status badge -->
                         <div style="flex-shrink:0;">
                             {% if item.locked %}
                             <span style="background:rgba(107,114,128,0.12);color:#6b7280;border:1px solid rgba(107,114,128,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                                <i class="bi bi-lock-fill me-1"></i>Avval barcha darslarni bajaring
+                                <i class="bi bi-lock-fill me-1"></i>Avval barça darslarni bajaring
                             </span>
                             {% elif payment_status == 'pending' %}
                             <span style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                                <i class="bi bi-hourglass-split me-1"></i>To'lov kutilmoqda
+                                <i class="bi bi-hourglass-split me-1"></i>Tölov kutilmoqda
                             </span>
                             {% elif payment_status == 'approved' %}
                             <span style="background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
@@ -1630,15 +1630,15 @@
                             </span>
                             {% elif progress and progress.passed %}
                             <span style="background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                                <i class="bi bi-trophy-fill me-1"></i>O'tdi ({{ progress.score }}%)
+                                <i class="bi bi-trophy-fill me-1"></i>Ötdi ({{ progress.score }}%)
                             </span>
                             {% elif progress and not progress.passed %}
                             <span style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                                <i class="bi bi-x-circle-fill me-1"></i>Qayta topshiring
+                                <i class="bi bi-x-circle-fill me-1"></i>Qayta topşiring
                             </span>
                             {% else %}
                             <span style="background:rgba(99,102,241,0.1);color:#6366f1;border:1px solid rgba(99,102,241,0.25);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
-                                <i class="bi bi-play-fill me-1"></i>Topshirish
+                                <i class="bi bi-play-fill me-1"></i>Topşiriş
                             </span>
                             {% endif %}
                         </div>
@@ -1662,7 +1662,7 @@
                 ">
                     <i class="bi bi-info-circle-fill" style="color:#ef4444;font-size:0.85rem;flex-shrink:0;"></i>
                     <span style="font-size:0.78rem;color:var(--text-muted);line-height:1.4;">
-                        Yakuniy test birinchi marta bepul topshiriladi. Qayta topshirish uchun <strong style="color:#ef4444;">65,000 so'm</strong> to'lov kerak.
+                        Yakuniy test birinçi marta bepul topşiriladi. Qayta topşiriş uçun <strong style="color:#ef4444;">65,000 söm</strong> tölov kerak.
                     </span>
                 </div>
             </div>
@@ -1680,8 +1680,8 @@
         {% if not profession.has_certificate %}
         <div class="text-center">
             <div class="cd-cert-icon gray"><i class="bi bi-patch-exclamation"></i></div>
-            <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Bu kurs uchun sertifikat joriy qilinmagan</h5>
-            <p class="text-muted mb-0">Hozircha bu kurs uchun sertifikat berilmaydi. Qo'shimcha ma'lumot uchun admin bilan bog'laning.</p>
+            <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Bu kurs uçun sertifikat joriy qilinmagan</h5>
+            <p class="text-muted mb-0">Hozirça bu kurs uçun sertifikat berilmaydi. Qöşimça ma'lumot uçun admin bilan boğlaning.</p>
         </div>
         {% elif certificate %}
         <div class="text-center">
@@ -1692,13 +1692,13 @@
                 <div class="mb-1"><strong>Seriya:</strong> {{ certificate.certificate_id }}</div>
                 <div class="mb-1"><strong>Berilgan:</strong> {{ certificate.valid_from|date:"d.m.Y" }}</div>
                 {% if certificate.valid_until %}
-                <div class="mb-1"><strong>Amal qiladi:</strong> {{ certificate.valid_until|date:"d.m.Y" }} gacha</div>
+                <div class="mb-1"><strong>Amal qiladi:</strong> {{ certificate.valid_until|date:"d.m.Y" }} gaça</div>
                 {% endif %}
                 <div><span class="badge" style="background:{{ certificate.status_color }};color:#fff;">{{ certificate.get_status_display }}</span></div>
             </div>
             <div class="mt-3">
                 <a href="{% url 'download_certificate' certificate.pk %}" class="cd-btn cd-btn-success" style="display:inline-flex;width:auto;">
-                    <i class="bi bi-download"></i> Sertifikatni yuklab olish
+                    <i class="bi bi-download"></i> Sertifikatni yuklab oliş
                 </a>
             </div>
         </div>
@@ -1706,23 +1706,23 @@
         <div class="text-center">
             <div class="cd-cert-icon gray"><i class="bi bi-ui-checks-grid"></i></div>
             <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Yakuniy test mavjud emas</h5>
-            <p class="text-muted mb-0">Sertifikat olish uchun kursga yakuniy test qo'shilishi va undan muvaffaqiyatli o'tish kerak.</p>
+            <p class="text-muted mb-0">Sertifikat oliş uçun kursga yakuniy test qöşilişi va undan muvaffaqiyatli ötiş kerak.</p>
         </div>
         {% elif has_empty_section %}
         <div class="text-center">
             <div class="cd-cert-icon gray"><i class="bi bi-hourglass"></i></div>
-            <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Kurs hali to'liq yuklanmagan</h5>
-            <p class="text-muted mb-0">Ba'zi bo'limlarga hali darslar qo'shilmagan. Ustoz kursni to'liq yuklashi kerak.</p>
+            <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Kurs hali töliq yuklanmagan</h5>
+            <p class="text-muted mb-0">Ba'zi bölimlarga hali darslar qöşilmagan. Ustoz kursni töliq yuklaşi kerak.</p>
         </div>
         {% elif course_completed %}
         <div class="text-center">
             <div class="cd-cert-icon purple"><i class="bi bi-mortarboard-fill"></i></div>
             <h5 class="fw-bold mb-2">🎉 Tabriklaymiz! Kursni tugatdingiz!</h5>
-            <p class="text-muted mb-3">Barcha darslarni bajardingiz. Sertifikatingiz avtomatik tayyorlanadi — tugmani bosing!</p>
+            <p class="text-muted mb-3">Barça darslarni bajardingiz. Sertifikatingiz avtomatik tayyorlanadi — tugmani bosing!</p>
             <form method="POST" action="{% url 'request_certificate' profession.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="cd-btn cd-btn-primary" style="display:inline-flex;width:auto;font-size:1rem;padding:.75rem 1.5rem;">
-                    <i class="bi bi-mortarboard-fill"></i> Sertifikatni olish
+                    <i class="bi bi-mortarboard-fill"></i> Sertifikatni oliş
                 </button>
             </form>
         </div>
@@ -1735,10 +1735,10 @@
 
 <div class="cd-main" style="text-align:center;padding:3rem 2rem;">
     <div style="font-size:3.5rem;margin-bottom:1rem;opacity:.4;"><i class="bi bi-lock"></i></div>
-    <h5 class="fw-bold mb-2">Darslarni ko'rish uchun kursga yoziling</h5>
-    <p class="text-muted mb-4">Kursga yozilganingizdan so'ng barcha darslarga kirish mumkin bo'ladi</p>
+    <h5 class="fw-bold mb-2">Darslarni köriş uçun kursga yoziling</h5>
+    <p class="text-muted mb-4">Kursga yozilganingizdan söng barça darslarga kiriş mumkin böladi</p>
     <a href="{% url 'enroll_course' profession.pk %}" class="cd-btn cd-btn-primary" style="display:inline-flex;width:auto;font-size:.95rem;padding:.7rem 1.5rem;">
-        <i class="bi bi-play-circle-fill"></i> O'qishni boshlash
+        <i class="bi bi-play-circle-fill"></i> Öqişni boşlaş
     </a>
 </div>
 
@@ -1851,8 +1851,8 @@ if (ueOverlay) {
 
 // ===== Course Roadmap Nodes Engine =====
 // Holatlar (completed/active/locked/upcoming) server tomonda hisoblanib,
-// markupga rn-* klass sifatida qo'yiladi. Bu yer faqat animatsiya va
-// interaktivlik bilan shug'ullanadi (mijozda holatni qayta hisoblamaymiz).
+// markupga rn-* klass sifatida qöyiladi. Bu yer faqat animatsiya va
+// interaktivlik bilan şuğullanadi (mijozda holatni qayta hisoblamaymiz).
 (function() {
     var roadmap = document.getElementById('courseRoadmap');
     if (!roadmap) return;
@@ -1868,7 +1868,7 @@ if (ueOverlay) {
     var progress = parseInt(roadmap.dataset.progress || '0', 10);
     if (isNaN(progress)) progress = 0;
 
-    // Faol nodegacha bo'lgan ulanish chizig'i to'ldiriladi
+    // Faol nodegaça bölgan ulaniş çiziği töldiriladi
     var states = Array.prototype.map.call(nodes, function(n) { return n.dataset.state; });
     var total = states.length;
     var activeIdx = states.indexOf('active');
@@ -1876,11 +1876,11 @@ if (ueOverlay) {
 
     function connectorTarget() {
         if (total <= 1) return completedCount > 0 ? 100 : 0;
-        var reach = activeIdx >= 0 ? activeIdx : completedCount; // faol node markazigacha
+        var reach = activeIdx >= 0 ? activeIdx : completedCount; // faol node markazigaça
         return Math.min(100, (reach / (total - 1)) * 100);
     }
 
-    // ---- Animatsiyalar (sahifa ko'ringanda) ----
+    // ---- Animatsiyalar (sahifa köringanda) ----
     function animate() {
         connectorFill.style.width = connectorTarget() + '%';
         progressFill.style.width = progress + '%';
@@ -1913,7 +1913,7 @@ if (ueOverlay) {
         trigger();
     }
 
-    // ---- Faol nodeni gorizontal markazga keltirish ----
+    // ---- Faol nodeni gorizontal markazga keltiriş ----
     if (scroller) {
         var activeNode = roadmap.querySelector('.roadmap-node.rn-active') ||
                          roadmap.querySelector('.roadmap-node.rn-upcoming');
@@ -1923,7 +1923,7 @@ if (ueOverlay) {
         }
     }
 
-    // ---- Chap/o'ng surish tugmalari ----
+    // ---- Chap/öng suriş tugmalari ----
     if (scroller) {
         var btnPrev = document.getElementById('rmScrollPrev');
         var btnNext = document.getElementById('rmScrollNext');
@@ -1943,14 +1943,14 @@ if (ueOverlay) {
         if (btnNext) btnNext.addEventListener('click', function() { scrollByStep(1); });
         scroller.addEventListener('scroll', updateScrollBtns, { passive: true });
         window.addEventListener('resize', updateScrollBtns);
-        setTimeout(updateScrollBtns, 400); // markazlash animatsiyasidan keyin
+        setTimeout(updateScrollBtns, 400); // markazlaş animatsiyasidan keyin
     }
 
-    // ---- Node bosilganda: bo'limga o'tish + akkordeonni ochish ----
+    // ---- Node bosilganda: bölimga ötiş + akkordeonni oçiş ----
     function goToSection(node) {
         if (node.dataset.state === 'locked') {
             node.classList.remove('rn-shake');
-            void node.offsetWidth; // reflow → animatsiyani qayta ishga tushirish
+            void node.offsetWidth; // reflow → animatsiyani qayta işga tuşiriş
             node.classList.add('rn-shake');
             return;
         }
@@ -1994,8 +1994,8 @@ if (ueOverlay) {
             <i class="bi bi-box-arrow-right"></i>
         </div>
 
-        <h4>Kursdan chiqmoqchimisiz?</h4>
-        <p class="ue-subtitle">So'rovingiz adminga yuboriladi va ko'rib chiqiladi</p>
+        <h4>Kursdan çiqmoqçimisiz?</h4>
+        <p class="ue-subtitle">Sörovingiz adminga yuboriladi va körib çiqiladi</p>
 
         <div class="ue-course-badge">
             <i class="bi bi-book"></i> {{ profession.name }}
@@ -2007,7 +2007,7 @@ if (ueOverlay) {
                 <div>
                     <strong style="color: #92400e;">Diqqat!</strong>
                     <p style="margin: 0.25rem 0 0; color: #78350f; font-size: 0.85rem; line-height: 1.4;">
-                        Kursdan chiqsangiz, shu kursdan olgan barcha <strong>coinlaringiz</strong> va <strong>ballaringiz</strong> (vazifa baholari, test natijalari) ayirib tashlanadi.
+                        Kursdan çiqsangiz, şu kursdan olgan barça <strong>coinlaringiz</strong> va <strong>ballaringiz</strong> (vazifa baholari, test natijalari) ayirib taşlanadi.
                     </p>
                 </div>
             </div>
@@ -2016,7 +2016,7 @@ if (ueOverlay) {
         <form method="POST" action="{% url 'unenroll_course' profession.pk %}" id="ueForm">
             {% csrf_token %}
             <textarea name="reason" id="ueReason" class="ue-textarea"
-                      placeholder="Kursdan chiqish sababini yozing..." maxlength="500"></textarea>
+                      placeholder="Kursdan çiqiş sababini yozing..." maxlength="500"></textarea>
             <div class="ue-char-count" id="ueCharCount">0/500</div>
 
             <div class="ue-error" id="ueError">
@@ -2029,7 +2029,7 @@ if (ueOverlay) {
                     <i class="bi bi-arrow-left me-1"></i>Orqaga
                 </button>
                 <button type="button" class="ue-btn ue-btn-confirm" id="ueSubmitBtn" onclick="submitUnenroll()">
-                    <i class="bi bi-send me-1"></i>So'rov yuborish
+                    <i class="bi bi-send me-1"></i>Sörov yuboriş
                 </button>
             </div>
         </form>

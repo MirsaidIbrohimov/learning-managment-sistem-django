@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}AI Chatlar - Admin{% endblock %}
+{% block title %}AI Çatlar - Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -537,8 +537,8 @@
     <!-- Page Header -->
     <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
-            <h2><i class="bi bi-robot me-2"></i>AI Chatlar</h2>
-            <p>Barcha foydalanuvchilarning AI suhbatlarini boshqaring</p>
+            <h2><i class="bi bi-robot me-2"></i>AI Çatlar</h2>
+            <p>Barça foydalanuvçilarning AI suhbatlarini boşqaring</p>
         </div>
         <a href="/admin/ai_yordamchi/chatsession/" class="btn btn-sm btn-outline-primary" style="border-radius:10px;">
             <i class="bi bi-gear me-1"></i>Django Admin
@@ -574,11 +574,11 @@
     <div class="toolbar fade-in fade-in-2">
         <div class="search-box">
             <i class="bi bi-search"></i>
-            <input type="text" id="searchInput" placeholder="Suhbat qidirish..." autocomplete="off">
+            <input type="text" id="searchInput" placeholder="Suhbat qidiriş..." autocomplete="off">
         </div>
         <div class="filter-btns">
             <a href="{% url 'ai_yordamchi:admin_chats' %}" class="filter-btn {% if not request.GET.is_active %}active{% endif %}">
-                <i class="bi bi-grid"></i> Barchasi
+                <i class="bi bi-grid"></i> Barçasi
             </a>
             <a href="?is_active=1" class="filter-btn {% if request.GET.is_active == '1' %}active{% endif %}">
                 <i class="bi bi-check-circle"></i> Faol
@@ -594,7 +594,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Foydalanuvchi</th>
+                    <th>Foydalanuvçi</th>
                     <th>Suhbat</th>
                     <th>Xabarlar</th>
                     <th>Yaratilgan</th>
@@ -633,10 +633,10 @@
                     </td>
                     <td>
                         <div class="action-btns">
-                            <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="action-btn view" title="Ko'rish">
+                            <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="action-btn view" title="Köriş">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="action-btn edit" title="Tahrirlash">
+                            <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="action-btn edit" title="Tahrirlaş">
                                 <i class="bi bi-pencil"></i>
                             </a>
                         </div>
@@ -647,7 +647,7 @@
                     <td colspan="6">
                         <div class="empty-state">
                             <i class="bi bi-chat-square-dots"></i>
-                            <p>Hali chatlar yo'q</p>
+                            <p>Hali çatlar yöq</p>
                         </div>
                     </td>
                 </tr>
@@ -711,17 +711,17 @@
             </div>
             <div class="card-actions">
                 <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="card-action-btn primary">
-                    <i class="bi bi-eye"></i> Ko'rish
+                    <i class="bi bi-eye"></i> Köriş
                 </a>
                 <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="card-action-btn">
-                    <i class="bi bi-pencil"></i> Tahrirlash
+                    <i class="bi bi-pencil"></i> Tahrirlaş
                 </a>
             </div>
         </div>
         {% empty %}
         <div class="empty-state" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;">
             <i class="bi bi-chat-square-dots"></i>
-            <p>Hali chatlar yo'q</p>
+            <p>Hali çatlar yöq</p>
         </div>
         {% endfor %}
 

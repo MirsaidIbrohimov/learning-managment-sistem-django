@@ -14,11 +14,11 @@ class Command(BaseCommand):
         try:
             backend.set(key, 'ok', 30)
             if backend.get(key) != 'ok':
-                raise CommandError('Keshga yozilmadi. FILE_CACHE_DIR ruxsatlarini tekshiring.')
+                raise CommandError('Keşga yozilmadi. FILE_CACHE_DIR ruxsatlarini tekşiring.')
         except CommandError:
             raise
         except Exception as exc:
-            raise CommandError('Kesh tekshiruvi xato: ' + type(exc).__name__) from None
+            raise CommandError('Keş tekşiruvi xato: ' + type(exc).__name__) from None
         finally:
             backend.delete(key)
         self.stdout.write(self.style.SUCCESS(type(backend).__name__ + ': OK'))

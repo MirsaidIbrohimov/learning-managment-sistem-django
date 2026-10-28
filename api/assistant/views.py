@@ -1,8 +1,8 @@
 """Assistant Admin API views with granular permissions and audit log.
 
-Har bir view o'zining `required_perm` orqali permission talab qiladi.
-Admin (role='admin') yoki super_admin assistant_role barcha amallarni
-bajara oladi. Boshqa rollar uchun faqat berilgan permissionlarga ruxsat.
+Har bir view özining `required_perm` orqali permission talab qiladi.
+Admin (role='admin') yoki super_admin assistant_role barça amallarni
+bajara oladi. Boşqa rollar uçun faqat berilgan permissionlarga ruxsat.
 """
 
 import logging
@@ -56,7 +56,7 @@ BASE_AUTH = [IsAuthenticated, IsNotBlocked]
 
 
 def _perm(code):
-    """Shortcut: permission_classes uchun [..., HasAssistantPerm.require(code)]"""
+    """Shortcut: permission_classes uçun [..., HasAssistantPerm.require(code)]"""
     return BASE_AUTH + [HasAssistantPerm.require(code)]
 
 
@@ -67,7 +67,7 @@ def _perm(code):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked, IsAdminOrAssistant])
 def permission_registry(request):
-    """Mavjud barcha permissionlar guruhlangan ko'rinishda."""
+    """Mavjud barça permissionlar guruhlangan körinişda."""
     out = {}
     for key, group in PERMISSIONS.items():
         out[key] = {
@@ -106,9 +106,9 @@ class AssistantRoleDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         if instance.is_system:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Tizim rolini o'chirib bo'lmaydi")
+            raise PermissionDenied("Tizim rolini öçirib bölmaydi")
         log_action(self.request, 'roles.delete', target=instance,
-                   description=f"Rol o'chirildi: {instance.name}")
+                   description=f"Rol öçirildi: {instance.name}")
         instance.delete()
 
 
@@ -176,7 +176,7 @@ def assistant_dashboard(request):
 
 
 # ============================================================
-# 1) O'QUV JARAYONI
+# 1) ÖQUV JARAYONI
 # ============================================================
 
 # ---- Vazifalar ----
@@ -205,7 +205,7 @@ class HomeworkSubmissionListView(generics.ListAPIView):
 
 
 class HomeworkSubmissionUpdateView(generics.RetrieveUpdateDestroyAPIView):
-    """Submission'ga baho/feedback berish, o'chirish (alohida permission)"""
+    """Submission'ga baho/feedback beriş, öçiriş (alohida permission)"""
     serializer_class = HomeworkSubmissionSerializer
     queryset = HomeworkSubmission.objects.all()
 
@@ -223,7 +223,7 @@ class HomeworkSubmissionUpdateView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'homework.delete', target=instance,
-                   description=f"Vazifa topshirig'i o'chirildi: #{instance.id}")
+                   description=f"Vazifa topşiriği öçirildi: #{instance.id}")
         instance.delete()
 
 
@@ -257,7 +257,7 @@ class TestResultDetailView(generics.RetrieveDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'tests.delete', target=instance,
-                   description=f"Test natijasi o'chirildi: #{instance.id}")
+                   description=f"Test natijasi öçirildi: #{instance.id}")
         instance.delete()
 
 
@@ -301,7 +301,7 @@ class AttendanceListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         att = serializer.save(created_by=self.request.user)
         log_action(self.request, 'attendance.add', target=att,
-                   description=f"Davomat qo'shildi: {att.teacher.full_name} - {att.date} ({att.status})")
+                   description=f"Davomat qöşildi: {att.teacher.full_name} - {att.date} ({att.status})")
 
 
 class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -323,11 +323,11 @@ class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'attendance.delete', target=instance,
-                   description=f"Davomat o'chirildi: #{instance.id}")
+                   description=f"Davomat öçirildi: #{instance.id}")
         instance.delete()
 
 
-# ---- Sertifikatlar (so'rovlar tizimi olib tashlangan — avtomatik beriladi) ----
+# ---- Sertifikatlar (sörovlar tizimi olib taşlangan — avtomatik beriladi) ----
 
 class CertificateListView(generics.ListAPIView):
     serializer_class = CertificateSerializer
@@ -342,7 +342,7 @@ class CertificateListView(generics.ListAPIView):
 
 
 # ============================================================
-# 2) FOYDALANUVCHILAR
+# 2) FOYDALANUVÇILAR
 # ============================================================
 
 class UserListView(generics.ListAPIView):
@@ -383,14 +383,14 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         u = serializer.save()
         log_action(self.request, 'users.edit', target=u,
-                   description=f"Foydalanuvchi tahrirlandi: {u.username}")
+                   description=f"Foydalanuvçi tahrirlandi: {u.username}")
 
     def perform_destroy(self, instance):
         if instance.is_admin:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Adminni o'chirib bo'lmaydi")
+            raise PermissionDenied("Adminni öçirib bölmaydi")
         log_action(self.request, 'users.delete', target=instance,
-                   description=f"Foydalanuvchi o'chirildi: {instance.username} ({instance.role})")
+                   description=f"Foydalanuvçi öçirildi: {instance.username} ({instance.role})")
         instance.delete()
 
 
@@ -400,11 +400,11 @@ def user_set_password(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     new_password = request.data.get('new_password', '').strip()
     if not new_password or len(new_password) < 6:
-        return Response({'error': "Parol kamida 6 belgi bo'lishi kerak"}, status=400)
+        return Response({'error': "Parol kamida 6 belgi bölişi kerak"}, status=400)
     user.set_password(new_password)
     user.save(update_fields=['password'])
     log_action(request, 'users.set_password', target=user,
-               description=f"Parol qo'lda o'rnatildi: {user.username}")
+               description=f"Parol qölda örnatildi: {user.username}")
     return Response({'status': 'ok'})
 
 
@@ -413,7 +413,7 @@ def user_set_password(request, pk):
 def user_toggle_block(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     if user.is_admin:
-        return Response({'error': "Admin foydalanuvchini bloklash mumkin emas"}, status=400)
+        return Response({'error': "Admin foydalanuvçini bloklaş mumkin emas"}, status=400)
     user.is_blocked = not user.is_blocked
     user.save(update_fields=['is_blocked'])
     log_action(request, 'users.block', target=user,
@@ -424,13 +424,13 @@ def user_toggle_block(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked, HasAssistantPerm.require('users.edit')])
 def user_assign_role(request, pk):
-    """Foydalanuvchiga assistant_role biriktirish.
+    """Foydalanuvçiga assistant_role biriktiriş.
 
     body: { 'role_code': 'support' | null }
-    Faqat admin yoki system.roles_manage permission'iga ega bo'lganlar uchun.
+    Faqat admin yoki system.roles_manage permission'iga ega bölganlar uçun.
     """
     if not (request.user.is_admin or request.user.has_assistant_perm('system.roles_manage')):
-        return Response({'error': "Ruxsat yo'q"}, status=403)
+        return Response({'error': "Ruxsat yöq"}, status=403)
     user = get_object_or_404(CustomUser, pk=pk)
     role_code = request.data.get('role_code')
     if role_code:
@@ -443,11 +443,11 @@ def user_assign_role(request, pk):
         user.assistant_role = None
     user.save(update_fields=['assistant_role'])
     log_action(request, 'users.assign_role', target=user,
-               description=f"Yordamchi rol o'zgartirildi: {user.username} -> {role_code or '(none)'}")
+               description=f"Yordamçi rol özgartirildi: {user.username} -> {role_code or '(none)'}")
     return Response(AssistantUserSerializer(user).data)
 
 
-# ---- Parol tiklash ----
+# ---- Parol tiklaş ----
 
 class PasswordResetRequestListView(generics.ListAPIView):
     serializer_class = PasswordResetRequestSerializer
@@ -467,7 +467,7 @@ def password_reset_review(request, pk):
     req = get_object_or_404(PasswordResetRequest, pk=pk)
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
+        return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     req.admin_message = request.data.get('admin_message', '')
     req.reviewed_by = request.user
@@ -477,7 +477,7 @@ def password_reset_review(request, pk):
         user.password = req.new_password
         user.save(update_fields=['password'])
     log_action(request, 'password_resets.review', target=req,
-               description=f"Parol so'rovi {action}: {req.user.username}")
+               description=f"Parol sörovi {action}: {req.user.username}")
     return Response(PasswordResetRequestSerializer(req).data)
 
 
@@ -500,7 +500,7 @@ class ParentListCreateView(generics.ListCreateAPIView):
         if isinstance(raw_password, list):
             raw_password = raw_password[0]
         if not raw_password or len(str(raw_password)) < 6:
-            return Response({'error': "Parol kamida 6 belgi bo'lishi kerak"}, status=400)
+            return Response({'error': "Parol kamida 6 belgi bölişi kerak"}, status=400)
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         parent = serializer.save(password=make_password(str(raw_password)))
@@ -508,7 +508,7 @@ class ParentListCreateView(generics.ListCreateAPIView):
         if children:
             parent.children.set(children)
         log_action(request, 'parents.add', target=parent,
-                   description=f"Ota-ona qo'shildi: {parent.full_name}")
+                   description=f"Ota-ona qöşildi: {parent.full_name}")
         return Response(self.get_serializer(parent).data, status=201)
 
 
@@ -531,7 +531,7 @@ class ParentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'parents.delete', target=instance,
-                   description=f"Ota-ona o'chirildi: {instance.full_name}")
+                   description=f"Ota-ona öçirildi: {instance.full_name}")
         instance.delete()
 
 
@@ -555,12 +555,12 @@ def parent_message_reply(request, pk):
     msg = get_object_or_404(ParentMessage, pk=pk)
     reply = request.data.get('reply', '').strip()
     if not reply:
-        return Response({'error': "Javob bo'sh bo'lmasligi kerak"}, status=400)
+        return Response({'error': "Javob böş bölmasligi kerak"}, status=400)
     msg.reply = reply
     msg.replied_by = request.user
     msg.replied_at = timezone.now()
     msg.is_read = True
-    msg.reply_seen_by_parent = False  # ota-ona panelida "yangi javob" belgisi chiqsin
+    msg.reply_seen_by_parent = False  # ota-ona panelida "yangi javob" belgisi çiqsin
     msg.save()
     log_action(request, 'parents.message_reply', target=msg,
                description=f"Ota-ona xabariga javob: {msg.parent.full_name}")
@@ -579,7 +579,7 @@ def parent_password_reset_review(request, pk):
     req = get_object_or_404(ParentPasswordResetRequest, pk=pk)
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
+        return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     req.reviewed_by = request.user
     req.reviewed_at = timezone.now()
@@ -589,11 +589,11 @@ def parent_password_reset_review(request, pk):
         parent.password = req.new_password
         parent.save(update_fields=['password'])
     log_action(request, 'parents.password_review', target=req,
-               description=f"Ota-ona parol so'rovi {action}: {req.parent.full_name}")
+               description=f"Ota-ona parol sörovi {action}: {req.parent.full_name}")
     return Response(ParentPasswordResetRequestSerializer(req).data)
 
 
-# ---- So'rovlar ----
+# ---- Sörovlar ----
 
 class EnrollmentRequestListView(generics.ListAPIView):
     serializer_class = CourseEnrollmentRequestSerializer
@@ -613,7 +613,7 @@ def enrollment_request_review(request, pk):
     req = get_object_or_404(CourseEnrollmentRequest, pk=pk)
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
+        return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     if hasattr(req, 'reviewed_by'):
         req.reviewed_by = request.user
@@ -624,7 +624,7 @@ def enrollment_request_review(request, pk):
         from accounts.models import CourseEnrollment
         CourseEnrollment.objects.get_or_create(user=req.user, profession=req.profession)
     log_action(request, 'requests.enrollment_review', target=req,
-               description=f"Kursga yozilish so'rovi {action}: {req.user.username} -> {req.profession.name}")
+               description=f"Kursga yoziliş sörovi {action}: {req.user.username} -> {req.profession.name}")
     return Response(CourseEnrollmentRequestSerializer(req).data)
 
 
@@ -646,7 +646,7 @@ def unenroll_request_review(request, pk):
     req = get_object_or_404(CourseUnenrollRequest, pk=pk)
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
+        return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     if hasattr(req, 'reviewed_by'):
         req.reviewed_by = request.user
@@ -657,7 +657,7 @@ def unenroll_request_review(request, pk):
         from accounts.models import CourseEnrollment
         CourseEnrollment.objects.filter(user=req.user, profession=req.profession).delete()
     log_action(request, 'requests.unenroll_review', target=req,
-               description=f"Kursdan chiqish so'rovi {action}: {req.user.username}")
+               description=f"Kursdan çiqiş sörovi {action}: {req.user.username}")
     return Response(CourseUnenrollRequestSerializer(req).data)
 
 
@@ -679,7 +679,7 @@ def premium_request_review(request, pk):
     req = get_object_or_404(PremiumRequest, pk=pk)
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
+        return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     if hasattr(req, 'reviewed_by'):
         req.reviewed_by = request.user
@@ -687,7 +687,7 @@ def premium_request_review(request, pk):
         req.reviewed_at = timezone.now()
     req.save()
     log_action(request, 'requests.premium_review', target=req,
-               description=f"Premium so'rovi {action}: {req.user.username}")
+               description=f"Premium sörovi {action}: {req.user.username}")
     return Response(PremiumRequestSerializer(req).data)
 
 
@@ -729,7 +729,7 @@ class MessageDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'messages.delete', target=instance,
-                   description=f"Xabar o'chirildi: #{instance.id}")
+                   description=f"Xabar öçirildi: #{instance.id}")
         instance.delete()
 
 
@@ -747,7 +747,7 @@ class BlogPostListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         post = serializer.save(author=self.request.user)
         log_action(self.request, 'blog.add', target=post,
-                   description=f"Blog post qo'shildi: {post.title}")
+                   description=f"Blog post qöşildi: {post.title}")
 
 
 class BlogPostDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -769,7 +769,7 @@ class BlogPostDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'blog.delete', target=instance,
-                   description=f"Blog post o'chirildi: {instance.title}")
+                   description=f"Blog post öçirildi: {instance.title}")
         instance.delete()
 
 
@@ -791,7 +791,7 @@ class BlogCommentDeleteView(generics.DestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'blog.comment_delete', target=instance,
-                   description=f"Blog izoh o'chirildi: #{instance.id}")
+                   description=f"Blog izoh öçirildi: #{instance.id}")
         instance.delete()
 
 
@@ -811,7 +811,7 @@ class BookListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         b = serializer.save()
         log_action(self.request, 'library.book_add', target=b,
-                   description=f"Kitob qo'shildi: {b.title}")
+                   description=f"Kitob qöşildi: {b.title}")
 
 
 class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -833,7 +833,7 @@ class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'library.book_delete', target=instance,
-                   description=f"Kitob o'chirildi: {instance.title}")
+                   description=f"Kitob öçirildi: {instance.title}")
         instance.delete()
 
 
@@ -866,7 +866,7 @@ class BookRentalListCreateView(generics.ListCreateAPIView):
 def book_rental_return(request, pk):
     rental = get_object_or_404(BookRental, pk=pk)
     if rental.status == 'returned':
-        return Response({'error': "Bu kitob allaqachon qaytarilgan"}, status=400)
+        return Response({'error': "Bu kitob allaqaçon qaytarilgan"}, status=400)
     rental.mark_returned(request.user)
     log_action(request, 'library.rental_return', target=rental,
                description=f"Kitob qaytarildi: {rental.book.title}")
@@ -903,7 +903,7 @@ class HelpRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'help_requests.delete', target=instance,
-                   description=f"Yordam xati o'chirildi: #{instance.id}")
+                   description=f"Yordam xati öçirildi: #{instance.id}")
         instance.delete()
 
 
@@ -954,11 +954,11 @@ class CourseApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def perform_destroy(self, instance):
         log_action(self.request, 'applications.delete', target=instance,
-                   description=f"Ariza o'chirildi: #{instance.id}")
+                   description=f"Ariza öçirildi: #{instance.id}")
         instance.delete()
 
 
-# ---- So'rovnomalar ----
+# ---- Sörovnomalar ----
 
 class SurveyFormListCreateView(generics.ListCreateAPIView):
     serializer_class = SurveyFormSerializer
@@ -972,7 +972,7 @@ class SurveyFormListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         s = serializer.save()
         log_action(self.request, 'surveys.add', target=s,
-                   description=f"So'rovnoma yaratildi: {s.title}")
+                   description=f"Sörovnoma yaratildi: {s.title}")
 
 
 class SurveyFormDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -990,11 +990,11 @@ class SurveyFormDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         s = serializer.save()
         log_action(self.request, 'surveys.edit', target=s,
-                   description=f"So'rovnoma tahrirlandi: {s.title}")
+                   description=f"Sörovnoma tahrirlandi: {s.title}")
 
     def perform_destroy(self, instance):
         log_action(self.request, 'surveys.delete', target=instance,
-                   description=f"So'rovnoma o'chirildi: {instance.title}")
+                   description=f"Sörovnoma öçirildi: {instance.title}")
         instance.delete()
 
 

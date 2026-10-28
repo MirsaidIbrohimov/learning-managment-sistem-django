@@ -17,7 +17,7 @@ CYRILLIC = 'Снимок_экрана_2026.png'
 
 
 class CyrillicMediaTests(TestCase):
-    """Kirillcha nomli yuklangan fayllar 404 bermasligi kerak."""
+    """Kirillça nomli yuklangan fayllar 404 bermasligi kerak."""
 
     def setUp(self):
         self.media = tempfile.mkdtemp()
@@ -62,7 +62,7 @@ class CyrillicMediaTests(TestCase):
         course = Profession.objects.create(name='K', description='d', photo=f'professions/{CYRILLIC}')
 
         out = StringIO()
-        call_command('fix_media_filenames', stdout=out)  # dry-run: hech narsa o'zgarmaydi
+        call_command('fix_media_filenames', stdout=out)  # dry-run: heç narsa özgarmaydi
         course.refresh_from_db()
         self.assertEqual(course.photo.name, f'professions/{CYRILLIC}')
         self.assertIn('1 ta fayl', out.getvalue())

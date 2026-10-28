@@ -1,7 +1,7 @@
-/* ITC Academy — PWA: service worker ro'yxati + o'rnatish taklifi.
+/* ITC Academy — PWA: service worker röyxati + örnatiş taklifi.
    <script src=".../pwa.js" data-sw="/sw.js" defer> (templates/partials/pwa/_head.html).
-   Taklif faqat brauzer `beforeinstallprompt` bersa (Chrome/Edge, Android va kompyuter) chiqadi;
-   o'rnatilgan ilova (TWA, standalone) va ITC Academy desktop ilovasi ichida ko'rsatilmaydi. */
+   Taklif faqat brauzer `beforeinstallprompt` bersa (Chrome/Edge, Android va kompyuter) çiqadi;
+   örnatilgan ilova (TWA, standalone) va ITC Academy desktop ilovasi içida körsatilmaydi. */
 (function () {
   'use strict';
   var script = document.currentScript;
@@ -10,7 +10,7 @@
   if (!('serviceWorker' in navigator) || !secure) return;
 
   addEventListener('load', function () {
-    navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(function () { /* SW ixtiyoriy: sayt usiz ham ishlaydi */ });
+    navigator.serviceWorker.register(swUrl, { scope: '/' }).catch(function () { /* SW ixtiyoriy: sayt usiz ham işlaydi */ });
   });
 
   var standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -38,9 +38,9 @@
     bar = document.createElement('div');
     bar.className = 'itc-inst';
     bar.setAttribute('role', 'dialog');
-    bar.setAttribute('aria-label', 'Ilovani o‘rnatish');
-    bar.innerHTML = '<img src="/static/pwa/icons/icon-192.png" alt=""><span><b>ITC Academy ilovasi</b><small>Tezroq ochiladi, alohida oynada ishlaydi</small></span>'
-      + '<button type="button" class="go">O‘rnatish</button><button type="button" class="x" aria-label="Yopish">×</button>';
+    bar.setAttribute('aria-label', 'Ilovani örnatiş');
+    bar.innerHTML = '<img src="/static/pwa/icons/icon-192.png" alt=""><span><b>ITC Academy ilovasi</b><small>Tezroq oçiladi, alohida oynada işlaydi</small></span>'
+      + '<button type="button" class="go">Örnatiş</button><button type="button" class="x" aria-label="Yopiş">×</button>';
     bar.querySelector('.go').addEventListener('click', function () {
       if (!deferred) return hide(false);
       deferred.prompt();

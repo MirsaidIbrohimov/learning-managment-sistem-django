@@ -36,14 +36,14 @@
 <div class="ap-wrap">
   <div class="ap-hero">
     <h1><i class="bi bi-phone me-2"></i>ITC Academy ilovalari</h1>
-    <p>LMS’dan telefon va kompyuterda alohida ilova sifatida foydalaning — tezroq ochiladi, login saqlanadi.</p>
+    <p>LMS’dan telefon va kompyuterda alohida ilova sifatida foydalaning — tezroq oçiladi, login saqlanadi.</p>
   </div>
 
   <div class="ap-grid">
     {% for e in entries %}{% with rel=e.release plat=e.key %}
     {% if rel %}
     <div class="ap-card" data-plat="{{ plat }}">
-      <span class="ap-rec" hidden>Qurilmangiz uchun</span>
+      <span class="ap-rec" hidden>Qurilmangiz uçun</span>
       <div class="ap-top">
         <span class="ap-ic" style="background:{{ e.color }}"><i class="bi bi-{{ e.icon }}"></i></span>
         <div><h2>{{ rel.title }} — {{ e.label }}</h2><small>Versiya {{ rel.version }} · {{ rel.created_at|date:"d.m.Y" }}</small></div>
@@ -56,38 +56,38 @@
       {% if rel.notes %}<p class="ap-notes">{{ rel.notes }}</p>{% endif %}
       <ol class="ap-steps">
         {% if plat == 'android' %}
-        <li>Faylni yuklab oling va oching.</li>
-        <li>“Noma’lum manbalardan o‘rnatish”ga shu ilova uchun ruxsat bering.</li>
-        <li><b>O‘rnatish</b> → <b>Ochish</b> — LMS login’i bilan kiring.</li>
+        <li>Faylni yuklab oling va oçing.</li>
+        <li>“Noma’lum manbalardan örnatiş”ga şu ilova uçun ruxsat bering.</li>
+        <li><b>Örnatiş</b> → <b>Oçiş</b> — LMS login’i bilan kiring.</li>
         {% elif plat == 'windows' %}
-        <li>Faylni yuklab oling va ishga tushiring.</li>
+        <li>Faylni yuklab oling va işga tuşiring.</li>
         <li>SmartScreen ogohlantirsa: <b>More info → Run anyway</b>.</li>
-        <li>Start menyudan <b>ITC Academy</b> ni oching.</li>
+        <li>Start menyudan <b>ITC Academy</b> ni oçing.</li>
         {% elif plat == 'macos' %}
-        <li>Faylni yuklab oling va oching.</li>
+        <li>Faylni yuklab oling va oçing.</li>
         <li>ITC Academy’ni <b>Applications</b> papkasiga torting.</li>
-        <li>Birinchi ochishda: o‘ng tugma → <b>Open</b>.</li>
+        <li>Birinçi oçişda: öng tugma → <b>Open</b>.</li>
         {% elif plat == 'linux' %}
         <li>Faylni yuklab oling.</li>
-        <li>AppImage: <code>chmod +x</code> qilib ishga tushiring; .deb/.rpm: paket menejeri bilan o‘rnating.</li>
+        <li>AppImage: <code>chmod +x</code> qilib işga tuşiring; .deb/.rpm: paket menejeri bilan örnating.</li>
         {% else %}
-        <li>Faylni yuklab oling va qurilmangizga mos usulda o‘rnating.</li>
+        <li>Faylni yuklab oling va qurilmangizga mos usulda örnating.</li>
         {% endif %}
       </ol>
-      {% if rel.sha256 %}<div class="ap-sha" title="Fayl butunligini tekshirish uchun">SHA-256: {{ rel.sha256 }}</div>{% endif %}
-      <a class="ap-btn" href="{% url 'app_release_download' rel.pk %}" download><i class="bi bi-download"></i>Yuklab olish</a>
+      {% if rel.sha256 %}<div class="ap-sha" title="Fayl butunligini tekşiriş uçun">SHA-256: {{ rel.sha256 }}</div>{% endif %}
+      <a class="ap-btn" href="{% url 'app_release_download' rel.pk %}" download><i class="bi bi-download"></i>Yuklab oliş</a>
     </div>
     {% else %}
     <div class="ap-card soon" data-plat="{{ plat }}">
-      <span class="ap-rec" hidden>Qurilmangiz uchun</span>
+      <span class="ap-rec" hidden>Qurilmangiz uçun</span>
       <div class="ap-top">
         <span class="ap-ic" style="background:{{ e.color }}"><i class="bi bi-{{ e.icon }}"></i></span>
         <div><h2>ITC Academy — {{ e.label }}</h2><small>Ilova tayyorlanmoqda</small></div>
       </div>
       {% if plat == 'ios' %}
-      <p class="ap-notes">Hozircha iPhone/iPad’da Safari orqali saytni oching → <b>Ulashish</b> → <b>Bosh ekranga qo‘shish</b> — ilova kabi ishlaydi.</p>
+      <p class="ap-notes">Hozirça iPhone/iPad’da Safari orqali saytni oçing → <b>Ulaşiş</b> → <b>Boş ekranga qöşiş</b> — ilova kabi işlaydi.</p>
       {% else %}
-      <p class="ap-notes">Hozircha brauzerda <b>itc-academy.uz</b> orqali to‘liq foydalanishingiz mumkin.</p>
+      <p class="ap-notes">Hozirça brauzerda <b>itc-academy.uz</b> orqali töliq foydalanişingiz mumkin.</p>
       {% endif %}
       <span class="ap-btn ap-btn-soon" aria-disabled="true"><i class="bi bi-hourglass-split"></i>Tez kunda</span>
     </div>

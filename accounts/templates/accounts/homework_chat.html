@@ -441,7 +441,7 @@
 .hw-feedback-title { font-weight: 700; font-size: 15px; color: var(--hw-text); margin-bottom: 8px; }
 .hw-feedback-text { font-size: 14px; color: var(--hw-text2); line-height: 1.6; margin: 0; }
 
-/* ===== CHAT ===== */
+/* ===== ÇAT ===== */
 .hw-chat-card {
     display: flex;
     flex-direction: column;
@@ -467,7 +467,7 @@
     animation: statusPulse 2s infinite;
 }
 
-/* Chat messages */
+/* Çat messages */
 .hw-chat-body {
     flex: 1;
     overflow-y: auto;
@@ -549,7 +549,7 @@
 }
 .hw-chat-empty i { font-size: 48px; }
 
-/* Chat input */
+/* Çat input */
 .hw-chat-footer {
     padding: 10px 14px;
     background: var(--hw-blur);
@@ -700,10 +700,10 @@
                     </div>
                     <div>
                         <div class="hw-status-text">
-                            {% if submission.status == 'pending' %}Kutilmoqda{% elif submission.status == 'reviewing' %}Tekshirilmoqda{% elif submission.status == 'revision' %}Qayta ishlash{% elif submission.status == 'accepted' %}Qabul qilindi{% elif submission.status == 'graded' %}Baholandi{% endif %}
+                            {% if submission.status == 'pending' %}Kutilmoqda{% elif submission.status == 'reviewing' %}Tekşirilmoqda{% elif submission.status == 'revision' %}Qayta işlaş{% elif submission.status == 'accepted' %}Qabul qilindi{% elif submission.status == 'graded' %}Baholandi{% endif %}
                         </div>
                         <div class="hw-status-sub">
-                            {% if submission.status == 'pending' %}O'qituvchi tekshirishini kuting{% elif submission.status == 'reviewing' %}Hozirda ko'rib chiqilmoqda{% elif submission.status == 'revision' %}Tuzatib qayta yuboring · <strong>−{{ resubmit_cost }} coin</strong>{% elif submission.status == 'accepted' %}Vazifa muvaffaqiyatli{% elif submission.status == 'graded' %}Baho qo'yildi{% endif %}
+                            {% if submission.status == 'pending' %}Öqituvçi tekşirişini kuting{% elif submission.status == 'reviewing' %}Hozirda körib çiqilmoqda{% elif submission.status == 'revision' %}Tuzatib qayta yuboring · <strong>−{{ resubmit_cost }} coin</strong>{% elif submission.status == 'accepted' %}Vazifa muvaffaqiyatli{% elif submission.status == 'graded' %}Baho qöyildi{% endif %}
                         </div>
                     </div>
                 </div>
@@ -718,7 +718,7 @@
                         <span class="hw-info-value">{{ submission.homework.lesson.profession.name }}</span>
                     </div>
                     <div class="hw-info-row">
-                        <span class="hw-info-label"><i class="bi bi-arrow-repeat me-2"></i>Urinish</span>
+                        <span class="hw-info-label"><i class="bi bi-arrow-repeat me-2"></i>Uriniş</span>
                         <span class="hw-info-value">{{ submission.version }}-urinish</span>
                     </div>
                 </div>
@@ -757,34 +757,34 @@
             {% if submission.status == 'revision' %}
             <div class="hw-card anim-2 hw-revision">
                 <div class="hw-revision-header">
-                    <i class="bi bi-arrow-repeat"></i> Qayta topshirish
+                    <i class="bi bi-arrow-repeat"></i> Qayta topşiriş
                 </div>
                 <div class="hw-revision-body">
-                    <!-- Coin ogohlantirish -->
+                    <!-- Coin ogohlantiriş -->
                     <div class="hw-coin-warn">
                         <div class="hw-coin-warn-icon {% if request.user.is_premium %}premium{% else %}normal{% endif %}">
                             <i class="bi bi-coin"></i>
                         </div>
                         <div class="hw-coin-warn-info">
                             <div class="hw-coin-warn-title">
-                                Qayta topshirish jarimasi:
+                                Qayta topşiriş jarimasi:
                                 <span class="hw-coin-amount cost"><i class="bi bi-coin"></i> -{{ resubmit_cost }}</span>
                                 <span class="hw-coin-balance"><i class="bi bi-wallet2"></i> {{ request.user.coins }} coin</span>
                             </div>
                             <p class="hw-coin-warn-text">
-                                Har bir qayta topshirish uchun balansingizdan <strong>{{ resubmit_cost }} coin</strong> yechiladi.
-                                {% if request.user.is_premium %}<br><strong style="color:#f59e0b;"><i class="bi bi-gem"></i> Premium 50% chegirma qo'llanildi (30 o'rniga 15 coin).</strong>{% endif %}
+                                Har bir qayta topşiriş uçun balansingizdan <strong>{{ resubmit_cost }} coin</strong> yeçiladi.
+                                {% if request.user.is_premium %}<br><strong style="color:#f59e0b;"><i class="bi bi-gem"></i> Premium 50% çegirma qöllanildi (30 örniga 15 coin).</strong>{% endif %}
                             </p>
                             {% if request.user.coins < 0 %}
                             <div class="hw-not-enough" style="background:rgba(255,165,0,0.15);border-color:orange;color:orange;">
-                                <i class="bi bi-info-circle-fill"></i> Balans: {{ request.user.coins }} coin. Qayta topshirsangiz {{ resubmit_cost }} coin yechiladi.
+                                <i class="bi bi-info-circle-fill"></i> Balans: {{ request.user.coins }} coin. Qayta topşirsangiz {{ resubmit_cost }} coin yeçiladi.
                             </div>
                             {% endif %}
                         </div>
                     </div>
 
                     {% if submission.text_content|is_web_project %}
-                    <a class="hw-revision-btn" href="{% url 'lesson_view' submission.homework.lesson.pk %}">Kodni muharrirda tahrirlash va qayta topshirish</a>
+                    <a class="hw-revision-btn" href="{% url 'lesson_view' submission.homework.lesson.pk %}">Kodni muharrirda tahrirlaş va qayta topşiriş</a>
                     {% else %}
                     <form method="POST" enctype="multipart/form-data" id="resubmit-form">
                         {% csrf_token %}
@@ -794,9 +794,9 @@
                         {% else %}
                         <textarea name="new_text_content" class="form-control mb-3" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
                         {% endif %}
-                        <textarea name="note" class="form-control mb-3" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
+                        <textarea name="note" class="form-control mb-3" rows="2" placeholder="Tuzatiş haqida qisqaça..."></textarea>
                         <button type="submit" class="hw-revision-btn" id="resubmit-btn">
-                            <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish (−{{ resubmit_cost }} <i class="bi bi-coin"></i>)
+                            <i class="bi bi-arrow-repeat me-1"></i> Qayta topşiriş (−{{ resubmit_cost }} <i class="bi bi-coin"></i>)
                         </button>
                     </form>
                     {% endif %}
@@ -808,14 +808,14 @@
             {% if submission.feedback %}
             <div class="hw-card anim-3">
                 <div class="hw-feedback-body">
-                    <div class="hw-feedback-title"><i class="bi bi-chat-quote me-2"></i>O'qituvchi izohi</div>
+                    <div class="hw-feedback-title"><i class="bi bi-chat-quote me-2"></i>Öqituvçi izohi</div>
                     <p class="hw-feedback-text">{{ submission.feedback }}</p>
                 </div>
             </div>
             {% endif %}
         </div>
 
-        <!-- RIGHT: Chat Column -->
+        <!-- RIGHT: Çat Column -->
         <div class="hw-card anim-chat hw-chat-card">
             <div class="hw-chat-header">
                 <i class="bi bi-chat-fill"></i>
@@ -875,7 +875,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (resubmitForm) {
         resubmitForm.addEventListener('submit', function(e) {
             var cost = '{{ resubmit_cost }}';
-            if (!confirm('Qayta topshirish uchun ' + cost + ' coin yechiladi. Davom etasizmi?')) {
+            if (!confirm('Qayta topşiriş uçun ' + cost + ' coin yeçiladi. Davom etasizmi?')) {
                 e.preventDefault();
                 return;
             }

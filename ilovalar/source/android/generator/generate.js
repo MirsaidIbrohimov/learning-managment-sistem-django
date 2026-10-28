@@ -1,7 +1,7 @@
 /* ITC Academy — Android TWA loyihasini Bubblewrap core bilan yaratadi.
-   Ishlatish:  node generate.js <icon-base-url> <chiqish-papkasi> <keystore-yo'li>
+   Işlatiş:  node generate.js <icon-base-url> <chiqish-papkasi> <keystore-yöli>
    Masalan:    node generate.js http://127.0.0.1:8799/pwa/icons ../twa C:\Users\<siz>\.itc-academy-signing\itc-academy-release.jks
-   icon-base-url — static/pwa/icons ni beruvchi manzil (production deploy'dan keyin: https://itc-academy.uz/static/pwa/icons). */
+   icon-base-url — static/pwa/icons ni beruvçi manzil (production deploy'dan keyin: https://itc-academy.uz/static/pwa/icons). */
 'use strict';
 const path = require('path');
 const fs = require('fs');
@@ -9,7 +9,7 @@ const { TwaManifest, TwaGenerator, ConsoleLog } = require('@bubblewrap/core');
 
 const [iconBase, outDir, keystore] = process.argv.slice(2);
 if (!iconBase || !outDir || !keystore) {
-  console.error('Foydalanish: node generate.js <icon-base-url> <chiqish-papkasi> <keystore-yo\'li>');
+  console.error('Foydalaniş: node generate.js <icon-base-url> <chiqish-papkasi> <keystore-yöli>');
   process.exit(2);
 }
 
@@ -50,7 +50,7 @@ const manifest = new TwaManifest({
   const target = path.resolve(outDir);
   fs.mkdirSync(target, { recursive: true });
   await new TwaGenerator().createTwaProject(target, manifest, new ConsoleLog('twa'));
-  // Production manifest manzili (bubblewrap update uchun) va ikonkalar productiondagi manzilga yoziladi
+  // Production manifest manzili (bubblewrap update uçun) va ikonkalar productiondagi manzilga yoziladi
   const json = manifest.toJson();
   json.webManifestUrl = `https://${HOST}/manifest.webmanifest`;
   json.iconUrl = `https://${HOST}/static/pwa/icons/icon-512.png`;

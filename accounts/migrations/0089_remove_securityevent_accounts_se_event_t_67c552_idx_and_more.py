@@ -2,19 +2,19 @@
 #
 # ─── PATCH (2026-07-03) ───────────────────────────────────────────────────
 # ORIGINAL MIGRATION MUAMMOSI:
-#   RemoveIndex(accounts_se_event_t_67c552_idx, …) va bir nechta AlterField
-#   operatsiyalari DB'ga to'g'ridan-to'g'ri yugurtirilar edi. Lekin server
-#   DB'da bu indekslar ba'zi hollarda mavjud emas (0087 rename holati o'sha
-#   serverga ko'chirilgunicha 0087 sifatida oldindan tugatilgan yoki qo'lda
-#   yozilgan bo'lgan).  Natija:
+#   RemoveIndex(accounts_se_event_t_67c552_idx, …) va bir neçta AlterField
+#   operatsiyalari DB'ga töğridan-töğri yugurtirilar edi. Lekin server
+#   DB'da bu indekslar ba'zi hollarda mavjud emas (0087 rename holati öşa
+#   serverga köçirilguniça 0087 sifatida oldindan tugatilgan yoki qölda
+#   yozilgan bölgan).  Natija:
 #     ValueError: No index named accounts_se_event_t_67c552_idx on model
 #                 SecurityEvent
 #
-# YECHIM:
-#   SecurityEvent'ga tegishli RemoveIndex/AlterField'lar `SeparateDatabase
-#   AndState` ichida faqat STATE uchun qoldiriladi (0093 kabi). Homework va
+# YEÇIM:
+#   SecurityEvent'ga tegişli RemoveIndex/AlterField'lar `SeparateDatabase
+#   AndState` içida faqat STATE uçun qoldiriladi (0093 kabi). Homework va
 #   SpeakingTask'ning `max_score` AlterField'lari haqiqatan schema
-#   o'zgarishlari, ular tashqarida qoladi.
+#   özgarişlari, ular taşqarida qoladi.
 # ─────────────────────────────────────────────────────────────────────────
 
 import django.db.models.deletion
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # ── SecurityEvent: DB allaqachon final holatda — STATE-ONLY ─────
+        # ── SecurityEvent: DB allaqaçon final holatda — STATE-ONLY ─────
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.RemoveIndex(
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='event_type',
-                    field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oshirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP so'rov yubordi"), ('sqli_attempt', 'SQL Injection urinish'), ('xss_attempt', 'XSS urinish'), ('path_trav', 'Path Traversal urinish'), ('ssti', 'Template Injection urinish'), ('cmd_inject', 'Command Injection urinish'), ('brute_force', 'Brute-force urinish'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Shubhali fayl yuklanishga urinish'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kirish urinishi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol o'zgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boshqa')], db_index=True, max_length=40, verbose_name='Hodisa turi'),
+                    field=models.CharField(choices=[('rate_limit_hit', 'Rate limit oşirildi'), ('ip_blocked', 'IP bloklandi'), ('blocked_ip_request', "Bloklangan IP sörov yubordi"), ('sqli_attempt', 'SQL Injection uriniş'), ('xss_attempt', 'XSS uriniş'), ('path_trav', 'Path Traversal uriniş'), ('ssti', 'Template Injection uriniş'), ('cmd_inject', 'Command Injection uriniş'), ('brute_force', 'Brute-force uriniş'), ('failed_login', 'Muvaffaqiyatsiz login'), ('suspicious_upload', 'Şubhali fayl yuklanişga uriniş'), ('csrf_failure', 'CSRF muvaffaqiyatsiz'), ('permission_denied', 'Ruxsatsiz kiriş urinişi'), ('account_locked', 'Hisob bloklandi'), ('password_changed', "Parol özgartirildi"), ('profile_updated', 'Profil yangilandi'), ('admin_action', 'Admin harakat'), ('other', 'Boşqa')], db_index=True, max_length=40, verbose_name='Hodisa turi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='path',
-                    field=models.CharField(blank=True, max_length=500, verbose_name='URL yo`li'),
+                    field=models.CharField(blank=True, max_length=500, verbose_name='URL yöli'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
@@ -87,12 +87,12 @@ class Migration(migrations.Migration):
                 migrations.AlterField(
                     model_name='securityevent',
                     name='severity',
-                    field=models.CharField(choices=[('low', 'Past'), ('medium', "O'rta"), ('high', 'Yuqori'), ('critical', 'Kritik')], db_index=True, default='medium', max_length=10, verbose_name='Xavf darajasi'),
+                    field=models.CharField(choices=[('low', 'Past'), ('medium', "Örta"), ('high', 'Yuqori'), ('critical', 'Kritik')], db_index=True, default='medium', max_length=10, verbose_name='Xavf darajasi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
                     name='user',
-                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='security_events', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi'),
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='security_events', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi'),
                 ),
                 migrations.AlterField(
                     model_name='securityevent',
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
             ],
             database_operations=[],
         ),
-        # ── Haqiqiy schema o'zgarishlari ────────────────────────────────
+        # ── Haqiqiy schema özgarişlari ────────────────────────────────
         migrations.AlterField(
             model_name='homework',
             name='max_score',

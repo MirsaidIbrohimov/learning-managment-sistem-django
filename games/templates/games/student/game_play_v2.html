@@ -16,9 +16,9 @@
     <h1><i class="bi bi-keyboard"></i>{{ game.title }} <small>2.0</small></h1>
     <span class="coin" title="Coin balansingiz"><b>₵</b><span>{{ request.user.coins }}</span></span>
     {% if competition %}
-    <a href="{% url 'games:game_play_competition' game.slug competition.pk %}" class="tv-btn ghost sm" title="Eski ko'rinishda qatnashish"><i class="bi bi-window"></i> Klassik</a>
+    <a href="{% url 'games:game_play_competition' game.slug competition.pk %}" class="tv-btn ghost sm" title="Eski körinişda qatnaşiş"><i class="bi bi-window"></i> Klassik</a>
     {% else %}
-    <a href="{% url 'games:game_play' game.slug %}" class="tv-btn ghost sm" title="Eski ko'rinishdagi mashq"><i class="bi bi-window"></i> Klassik</a>
+    <a href="{% url 'games:game_play' game.slug %}" class="tv-btn ghost sm" title="Eski körinişdagi maşq"><i class="bi bi-window"></i> Klassik</a>
     {% endif %}
     <a href="{% url 'games:game_detail' game.slug %}" class="tv-btn ghost sm"><i class="bi bi-arrow-left"></i> Orqaga</a>
   </div>
@@ -31,17 +31,17 @@
       <span class="pill live">Musobaqa</span>
       <div class="gauge"><svg viewBox="0 0 46 30"><defs><linearGradient id="gG"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs><path d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="5" stroke-linecap="round"/><path id="gArc" d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="url(#gG)" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .3s"/></svg><div><b id="gW">0</b> <small>WPM</small></div></div>
       {% if competition.prize_total %}<span class="pill hot">🏆 {{ competition.coin_1st }} / {{ competition.coin_2nd }} / {{ competition.coin_3rd }}</span>{% endif %}
-      <span class="pill" title="Tab almashish">👁 <span id="tabCount">0</span>/3</span>
+      <span class="pill" title="Tab almaşiş">👁 <span id="tabCount">0</span>/3</span>
     </div>
     <div class="track" id="track"></div>
     <div class="board">
       <div class="rtape glass">
-        <div class="rt-h"><span>SO‘Z <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">To‘g‘ri so‘z = nitro 🚀</span></div>
+        <div class="rt-h"><span>SÖZ <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">Töğri söz = nitro 🚀</span></div>
         <div class="tape" id="rTape"></div>
         <div class="tbar"><i id="rBar"></i></div>
       </div>
-      <div class="standings glass"><h4>JONLI O‘RINLAR <span id="clock">0.0s</span></h4><div id="stand"></div>
-        <p class="pill mt-2" style="white-space:normal;display:block;line-height:1.5">Raqiblar — reytingdagi eng yaxshi natijalar tezligida harakatlanadi.</p>
+      <div class="standings glass"><h4>JONLI ÖRINLAR <span id="clock">0.0s</span></h4><div id="stand"></div>
+        <p class="pill mt-2" style="white-space:normal;display:block;line-height:1.5">Raqiblar — reytingdagi eng yaxşi natijalar tezligida harakatlanadi.</p>
       </div>
     </div>
     <div class="lights on" id="lights">
@@ -51,16 +51,16 @@
     <div class="podium" id="podium"></div>
   </section>
   {% else %}
-  <!-- ═══════════ MASHQ: LENTA ═══════════ -->
+  <!-- ═══════════ MAŞQ: LENTA ═══════════ -->
   <section class="prac glass" id="prac">
     <div class="prac-h">
-      <h3><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Mashq</h3>
+      <h3><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Maşq</h3>
       <div class="lvl">
         <a href="?level=easy" class="{% if level == 'easy' %}on{% endif %}">Oson</a>
-        <a href="?level=medium" class="{% if level == 'medium' %}on{% endif %}">O‘rta</a>
+        <a href="?level=medium" class="{% if level == 'medium' %}on{% endif %}">Örta</a>
         <a href="?level=hard" class="{% if level == 'hard' %}on{% endif %}">Qiyin</a>
       </div>
-      <a class="tv-btn ghost sm" href="?level={{ level }}" id="newText"><i class="bi bi-shuffle"></i> Boshqa matn</a>
+      <a class="tv-btn ghost sm" href="?level={{ level }}" id="newText"><i class="bi bi-shuffle"></i> Boşqa matn</a>
     </div>
     <div class="hud">
       <div><small>TEZLIK</small><b id="hW">0</b><em>WPM</em></div>
@@ -70,7 +70,7 @@
     </div>
     <div class="tape" id="pTape" style="margin-top:10px"></div>
     <div class="tbar" id="pBar"><i></i></div>
-    <div class="prac-f"><i class="bi bi-info-circle"></i> Yozishni boshlang — taymer o‘zi yoqiladi · <kbd>Space</kbd> keyingi so‘z · xato so‘zni tuzatmaguncha o‘tib bo‘lmaydi · <kbd>Esc</kbd> yangi matn
+    <div class="prac-f"><i class="bi bi-info-circle"></i> Yozişni boşlang — taymer özi yoqiladi · <kbd>Space</kbd> keyingi söz · xato sözni tuzatmagunça ötib bölmaydi · <kbd>Esc</kbd> yangi matn
       <span class="sp mono">{% if best_wpm %}Rekord: {{ best_wpm }} WPM · {% endif %}<span id="pCount"></span></span></div>
   </section>
   {% endif %}
@@ -96,32 +96,32 @@
 <script>
 (function () {
   'use strict';
-  if (navigator.webdriver) { document.getElementById('tv2').innerHTML = '<p style="text-align:center;padding:80px;color:#ef4444">⛔ Avtomatlashtirish vositasi aniqlandi.</p>'; return; }
+  if (navigator.webdriver) { document.getElementById('tv2').innerHTML = '<p style="text-align:center;padding:80px;color:#ef4444">⛔ Avtomatlaştiriş vositasi aniqlandi.</p>'; return; }
 
   const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const G = window.gsap;
   const mobile = () => window.innerWidth <= 900;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  // Apostroflar eski mashqdagidek ` ga keltiriladi — server ham shunday solishtiradi.
+  // Apostroflar eski maşqdagidek ` ga keltiriladi — server ham şunday soliştiradi.
   const norm = s => s.replace(/[’‘'ʻʼ]/g, '`');
   const WORDS = norm(JSON.parse($('#tv2-prompt').textContent)).split(/\s+/).filter(Boolean);
   const IS_COMP = {{ competition|yesno:"true,false" }};
   const BEST_WPM = {{ best_wpm|default:0 }};
-  const LEVEL = "{{ level|default:'medium' }}", LEVEL_NAMES = { easy: 'Oson', medium: "O'rta", hard: 'Qiyin' };
+  const LEVEL = "{{ level|default:'medium' }}", LEVEL_NAMES = { easy: 'Oson', medium: "Örta", hard: 'Qiyin' };
   const ROOMS_URL = "{% url 'games:rooms_lobby' %}", RESULTS_URL = "{% url 'games:my_results' %}?mode=v2";
   const LB_API = {% if competition %}"{% url 'games:competition_leaderboard_api' competition.pk %}"{% else %}""{% endif %};
   const COMP_TITLE = {% if competition %}"{{ competition.title|escapejs }}"{% else %}""{% endif %};
   const LB_URL = {% if competition %}"{% url 'games:competition_leaderboard' competition.pk %}"{% else %}""{% endif %};
   const DETAIL_URL = "{% url 'games:game_detail' game.slug %}";
-  // Sensorli ekranli noutbuk — kompyuter (sichqoncha/trackpad bor). Telefon/planshet: asosiy kiritish barmoq
-  // yoki sensor bor-u aniq ko'rsatkich umuman yo'q (iPad "desktop" rejimi ham shu bilan ushlanadi).
+  // Sensorli ekranli noutbuk — kompyuter (sichqoncha/trackpad bor). Telefon/planshet: asosiy kiritiş barmoq
+  // yoki sensor bor-u aniq körsatkiç umuman yöq (iPad "desktop" rejimi ham şu bilan uşlanadi).
   const mm = q => !!(window.matchMedia && matchMedia(q).matches);
   const isTouch = mm('(pointer: coarse)') || (((navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window) && !mm('(any-pointer: fine)'));
   $('#fTouch').value = isTouch ? '1' : '0';
 
   const { Tape } = window.Typing2, Typing2 = window.Typing2;
 
-  /* ════════ Serverga yuborish — klassik mashq bilan bir xil kontrakt ════════ */
+  /* ════════ Serverga yuboriş — klassik maşq bilan bir xil kontrakt ════════ */
   let submitted = false;
   async function submit(tape) {
     if (submitted) return null;
@@ -135,7 +135,7 @@
       const data = await r.json();
       return data.error ? { error: data.error } : data;
     } catch (e) {
-      return { error: "Natijani yuborib bo'lmadi. Internetni tekshiring." };
+      return { error: "Natijani yuborib bölmadi. Internetni tekşiring." };
     }
   }
   function countUp(el, to) {
@@ -145,11 +145,11 @@
 
   if (!IS_COMP) practice(); else race();
 
-  /* ════════ MASHQ ════════ */
+  /* ════════ MAŞQ ════════ */
   function practice() {
     const pBar = $('#pBar i');
     const tape = new Tape($('#pTape'), {
-      strict: true,   // xato so'z tasdiqlanmaydi — tuzatmaguncha keyingisiga o'tilmaydi
+      strict: true,   // xato söz tasdiqlanmaydi — tuzatmagunça keyingisiga ötilmaydi
       onEsc: () => location.assign($('#newText').href), onWord: hud, onDone: finish,
       onReject: w => hint(`❌ “${w}” — xato. Tuzatib, keyin probel bosing`),
     });
@@ -167,7 +167,7 @@
       $('#hW').textContent = s.wpm; $('#hA').textContent = s.acc; $('#hT').textContent = s.sec.toFixed(1);
       const c = $('#hC'); if (+c.textContent !== s.combo) { c.textContent = s.combo; if (s.combo > 1 && G) G.fromTo(c, { scale: 1.5 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); }
       pBar.style.width = tape.wordProgress() * 100 + '%';
-      $('#pCount').textContent = `${Math.min(tape.i, WORDS.length)} / ${WORDS.length} so‘z`;
+      $('#pCount').textContent = `${Math.min(tape.i, WORDS.length)} / ${WORDS.length} söz`;
     }
     tape.inp.addEventListener('input', hud);
     const tick = setInterval(() => { if (tape.t0 && !tape.done) hud(); }, 100);
@@ -177,29 +177,29 @@
       clearInterval(tick); hud();
       const lvl = LEVEL_NAMES[LEVEL] || '';
       const screen = Typing2.showResult({
-        kicker: `MASHQ 2.0 · ${lvl.toUpperCase()}`, subtitle: `${WORDS.length} so'z · ${lvl} daraja`,
+        kicker: `MAŞQ 2.0 · ${lvl.toUpperCase()}`, subtitle: `${WORDS.length} söz · ${lvl} daraja`,
         wpm: s.wpm, acc: s.acc, score: Math.round(s.wpm * s.acc) / 100, sec: s.sec, combo: s.maxCombo, errors: s.errors,
         wordSpeeds: tape.wordSpeeds(),
         actions: [
           { label: 'Yana bir bor', href: '?level=' + LEVEL, icon: 'bi-arrow-repeat', primary: true },
           { label: 'Qiyinroq', href: '?level=' + (LEVEL === 'easy' ? 'medium' : 'hard'), icon: 'bi-graph-up-arrow' },
-          { label: 'Sheriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
+          { label: 'Şeriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
           { label: 'Natijalarim', href: RESULTS_URL, icon: 'bi-bar-chart-line' },
         ],
       });
       const res = await submit(tape);
       if (!res) return;
       if (res.error) { screen.error(res.error); return; }
-      // Rasmiy (server) natija — reyting va rekord shu bo'yicha hisoblanadi
+      // Rasmiy (server) natija — reyting va rekord şu böyiça hisoblanadi
       screen.update({ wpm: res.wpm, acc: Math.round(res.accuracy), score: res.score, sec: res.time_spent });
       const w = Math.round(res.wpm);
-      if (!BEST_WPM) screen.record('🎉 Birinchi natijangiz saqlandi!', true);
-      else if (w > BEST_WPM) screen.record(`🏆 Yangi shaxsiy rekord! (+${w - BEST_WPM} WPM)`, true);
+      if (!BEST_WPM) screen.record('🎉 Birinçi natijangiz saqlandi!', true);
+      else if (w > BEST_WPM) screen.record(`🏆 Yangi şaxsiy rekord! (+${w - BEST_WPM} WPM)`, true);
       else screen.record(`Rekordingiz ${BEST_WPM} WPM — yana ${BEST_WPM - w} WPM qoldi`);
     }
   }
 
-  /* ════════ MUSOBAQA: arvoh mashinalar bilan poyga ════════ */
+  /* ════════ MUSOBAQA: arvoh maşinalar bilan poyga ════════ */
   function race() {
     const { ROSTER, carSVG } = window.Typing2;
 
@@ -208,12 +208,12 @@
     const tape = new Tape($('#rTape'), {
       strict: true,
       onWord: good => { if (st.on && good) nitro(0); },
-      onReject: w => toast(`❌ “${w}” so‘zini to‘g‘ri yozing`),
-      onDone: () => { /* marraga yetish loop'da aniqlanadi */ },
+      onReject: w => toast(`❌ “${w}” sözini töğri yozing`),
+      onDone: () => { /* marraga yetiş loop'da aniqlanadi */ },
     });
     tape.load(WORDS); tape.locked = true;
 
-    // Raqiblar = reytingdagi eng yaxshi natijalar ("arvohlar"): ularning rasmiy WPM tezligida yuradi.
+    // Raqiblar = reytingdagi eng yaxşi natijalar ("arvohlar"): ularning rasmiy WPM tezligida yuradi.
     async function loadGhosts() {
       try {
         const r = await fetch(LB_API, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
@@ -256,8 +256,8 @@
         const min = (performance.now() - st.t0) / 60000;
         st.cars.forEach(c => {
           if (c.me || c.target >= 1) return;
-          // Rasmiy o'rtacha tezlik ± kichik tebranish: arvoh odamdek notekis yozadi,
-          // lekin marraga aynan o'z natijasidagi vaqtda yetadi.
+          // Rasmiy örtaça tezlik ± kiçik tebraniş: arvoh odamdek notekis yozadi,
+          // lekin marraga aynan öz natijasidagi vaqtda yetadi.
           const wobble = 1 + Math.sin(min * 20 + c.phase) * 0.04;
           c.target = Math.max(c.target, Math.min(1, c.gw * min / N * wobble));
           if (Math.random() < .12) nitro(c.k);
@@ -269,7 +269,7 @@
       st.raf = requestAnimationFrame(loop);
       const now = performance.now(), dt = Math.min(.05, (now - st.lastT) / 1000); st.lastT = now;
       const { x0, span } = geom();
-      st.cars[0].target = tape.wordProgress();   // faqat to'g'ri so'zlar mashinani yurgizadi
+      st.cars[0].target = tape.wordProgress();   // faqat töğri sözlar maşinani yurgizadi
       st.cars.forEach(c => {
         const prev = c.pos;
         c.pos += (c.target - c.pos) * Math.min(1, dt * 5);
@@ -292,7 +292,7 @@
     }
     function finishFx(c) {
       G && G.fromTo(c.plate, { scale: 1.4 }, { scale: 1, duration: .5, ease: 'back.out(3)' });
-      if (c.me && st.fin.length === 1) toast('🏁 Birinchi bo‘lib marraga yetdingiz!');
+      if (c.me && st.fin.length === 1) toast('🏁 Birinçi bölib marraga yetdingiz!');
     }
     function order() {
       return st.cars.map(c => c.k).sort((a, b) => {
@@ -311,12 +311,12 @@
       o.forEach((k, r) => { const p = st.cars[k].plate, i = p.firstChild, t = 'P' + (r + 1);
         if (i.textContent !== t) { i.textContent = t; G && !first && G.fromTo(i, { scale: 1.6 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); }
         p.className = 'plate' + (r < 3 ? ' p' + (r + 1) : ''); });
-      // FLIP: o'rin almashganda qatorlar sirpanadi
+      // FLIP: örin almaşganda qatorlar sirpanadi
       [...el.children].forEach(c => { const was = old[c.dataset.k]; if (was != null && G) { const d = was - c.getBoundingClientRect().top; if (d) G.fromTo(c, { y: d }, { y: 0, duration: .45, ease: 'power3.out' }); } });
       const myRank = o.indexOf(0) + 1;
       if (st.on && st.lastRank && myRank !== st.lastRank && !st.fin.includes(0)) {
-        if (myRank < st.lastRank) toast(`🚀 Siz ${myRank}-o‘ringa chiqdingiz!`);
-        else toast(`⚠️ ${st.cars[o[myRank - 2]].name} sizni quvib o‘tdi`);
+        if (myRank < st.lastRank) toast(`🚀 Siz ${myRank}-öringa çiqdingiz!`);
+        else toast(`⚠️ ${st.cars[o[myRank - 2]].name} sizni quvib ötdi`);
       }
       st.lastRank = myRank;
       const s = tape.stats(); gauge(s.wpm);
@@ -338,19 +338,19 @@
       const s = tape.stats(), ok = res && !res.error, rank = lb && lb.your_rank;
       const screen = Typing2.showResult({
         kicker: 'MUSOBAQA · ' + COMP_TITLE.toUpperCase(),
-        title: reason ? '⛔ ' + reason : rank === 1 ? 'Siz reyting yetakchisisiz! 🏆' : rank ? `Reytingda ${rank}-o'rin` : '',
-        subtitle: "G'oliblar musobaqa tugagach aniqlanadi va coin avtomatik beriladi.",
+        title: reason ? '⛔ ' + reason : rank === 1 ? 'Siz reyting yetakçisisiz! 🏆' : rank ? `Reytingda ${rank}-örin` : '',
+        subtitle: "Ğoliblar musobaqa tugagaç aniqlanadi va coin avtomatik beriladi.",
         wpm: ok ? res.wpm : s.wpm, acc: ok ? Math.round(res.accuracy) : s.acc, score: ok ? res.score : 0,
         sec: ok ? res.time_spent : s.sec, combo: s.maxCombo, errors: s.errors, wordSpeeds: tape.wordSpeeds(),
         extra: [{ key: 'rank', label: "REYTINGDA", value: rank ? `#${rank} / ${lb.total_participants}` : '—' }],
         actions: [
           { label: 'Reyting', href: LB_URL, icon: 'bi-bar-chart-fill', primary: true },
-          { label: "O'yin sahifasi", href: DETAIL_URL, icon: 'bi-list-ul' },
-          { label: 'Sheriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
+          { label: "Öyin sahifasi", href: DETAIL_URL, icon: 'bi-list-ul' },
+          { label: 'Şeriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
         ],
       });
       if (!ok) screen.error((res && res.error) || 'Natija yuborilmadi.');
-      else { screen.update({ wpm: res.wpm, acc: Math.round(res.accuracy), score: res.score, sec: res.time_spent }); if (rank && rank <= 3) screen.record(`🏅 Hozircha ${rank}-o'rindasiz!`, true); }
+      else { screen.update({ wpm: res.wpm, acc: Math.round(res.accuracy), score: res.score, sec: res.time_spent }); if (rank && rank <= 3) screen.record(`🏅 Hozirça ${rank}-örindasiz!`, true); }
     }
     function podium(res, lb, reason) {
       drawStand();
@@ -359,11 +359,11 @@
       const ok = res && !res.error;
       const myRank = lb && lb.your_rank;
       const srv = ok ? `<div class="srv"><span class="pill">Ball <b>${esc(res.score)}</b></span><span class="pill">${Math.round(res.wpm)} WPM</span><span class="pill">Aniqlik ${Math.round(res.accuracy)}%</span>${myRank ? `<span class="pill hot">Reytingda: #${myRank} / ${lb.total_participants}</span>` : ''}</div>` : '';
-      const title = reason ? '⛔ ' + reason : !ok ? '⚠️ Natija qabul qilinmadi' : (st.cars.length === 1 ? 'Marraga yetdingiz! 🏁' : meWin ? 'Siz yetakchisiz! 🏆' : esc(st.cars[o[0]].name) + ' oldinda!');
-      const sub = ok ? 'Natijangiz rasmiy reytingga yozildi. G‘oliblar musobaqa tugagach aniqlanadi.' : esc((res && res.error) || 'Natija yuborilmadi.');
+      const title = reason ? '⛔ ' + reason : !ok ? '⚠️ Natija qabul qilinmadi' : (st.cars.length === 1 ? 'Marraga yetdingiz! 🏁' : meWin ? 'Siz yetakçisiz! 🏆' : esc(st.cars[o[0]].name) + ' oldinda!');
+      const sub = ok ? 'Natijangiz rasmiy reytingga yozildi. Ğoliblar musobaqa tugagaç aniqlanadi.' : esc((res && res.error) || 'Natija yuborilmadi.');
       $('#podium').innerHTML = `<div class="title"><h3>${title}</h3><p>${sub}</p>${srv}</div>
         <div class="again"><a class="tv-btn ghost sm" href="${LB_URL}"><i class="bi bi-bar-chart-fill"></i> Reyting</a>
-        <a class="tv-btn ghost sm" href="${DETAIL_URL}"><i class="bi bi-list-ul"></i> O‘yin sahifasi</a></div>` +
+        <a class="tv-btn ghost sm" href="${DETAIL_URL}"><i class="bi bi-list-ul"></i> Öyin sahifasi</a></div>` +
         slots.map(p => { const c = st.cars[o[p]], hi = [1, 0, 2].indexOf(p);
           return `<div class="col"><div class="pcar">${carSVG(c.k, c.k + 7)}</div><div class="who">${esc(c.name)}</div><div class="pay">${c.finT ? c.finT.toFixed(1) + 's' : Math.round(c.target * 100) + '%'}</div><div class="blk" style="height:${H[hi]}px;background:${C[hi]}">${p + 1}</div></div>`; }).join('');
       $('#podium').classList.add('on');
@@ -381,20 +381,20 @@
       }
     }
 
-    // Musobaqada tabdan chiqish: 3 marta — natija shu holatda yuboriladi.
+    // Musobaqada tabdan çiqiş: 3 marta — natija şu holatda yuboriladi.
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden || !st.on) return;
       st.tabs++; $('#tabCount').textContent = st.tabs;
-      if (st.tabs >= 3) end('Tab 3 marta almashtirildi — natija shu holatda yuborildi');
-      else toast(`⚠️ Tab almashish: ${st.tabs}/3`);
+      if (st.tabs >= 3) end('Tab 3 marta almaştirildi — natija şu holatda yuborildi');
+      else toast(`⚠️ Tab almaşiş: ${st.tabs}/3`);
     });
     window.addEventListener('beforeunload', e => { if (st.on && !submitted) { e.preventDefault(); e.returnValue = ''; } });
     window.addEventListener('resize', () => st.cars.length && place());
 
-    // Klassik mashqdagidek sanoq avtomatik boshlanadi (server vaqti sahifa ochilgandan hisoblanadi).
+    // Klassik maşqdagidek sanoq avtomatik boşlanadi (server vaqti sahifa oçilgandan hisoblanadi).
     loadGhosts().then(ghosts => {
       build(ghosts);
-      if (!ghosts.length) toast('Birinchi ishtirokchi — siz! 🏁');
+      if (!ghosts.length) toast('Birinçi iştirokçi — siz! 🏁');
       lightsThenGo();
     });
   }

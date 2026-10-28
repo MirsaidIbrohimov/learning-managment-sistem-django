@@ -127,7 +127,7 @@ class JumanjiSessionAdmin(admin.ModelAdmin):
                        'event_seq', 'winner', 'created_by', 'created_at', 'started_at', 'ended_at']
     inlines = [JumanjiPlayerInline]
 
-    @admin.display(description="O'yinchilar")
+    @admin.display(description="Öyinçilar")
     def player_count(self, obj):
         return obj.players.count()
 

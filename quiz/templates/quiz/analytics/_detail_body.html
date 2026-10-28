@@ -251,7 +251,7 @@ Expected context:
 </style>
 
 <div class="tx">
-  <a class="tx-back" href="{% url back_url_name %}"><i class="bi bi-arrow-left"></i> Test hulosalariga qaytish</a>
+  <a class="tx-back" href="{% url back_url_name %}"><i class="bi bi-arrow-left"></i> Test hulosalariga qaytiş</a>
 
   {# ─── Hero banner ─── #}
   <div class="tx-hero">
@@ -262,7 +262,7 @@ Expected context:
       {% if detail.lesson_order is not None %}<span class="m">Dars {{ detail.lesson_order }}</span>{% endif %}
       {% if detail.section_title %}<span class="m">{{ detail.section_title }}</span>{% endif %}
       <span class="m">{{ detail.question_count }} savol</span>
-      {% if detail.passing_score is not None %}<span class="m">O'tish: {{ detail.passing_score }}%</span>{% endif %}
+      {% if detail.passing_score is not None %}<span class="m">Ötiş: {{ detail.passing_score }}%</span>{% endif %}
       <span class="m">{% if detail.ref.source == 'quiz' %}Yangi tizim{% else %}Eski tizim{% endif %}</span>
     </div>
   </div>
@@ -270,19 +270,19 @@ Expected context:
   {# ─── Floating stat strip ─── #}
   <div class="tx-stats">
     <div class="tx-stat" data-t="attempts"><span class="accent"></span>
-      <div class="k">Urinishlar</div><div class="v">{{ detail.overview.attempts }}</div>
+      <div class="k">Urinişlar</div><div class="v">{{ detail.overview.attempts }}</div>
     </div>
     <div class="tx-stat" data-t="students"><span class="accent"></span>
-      <div class="k">O'quvchilar</div><div class="v">{{ detail.overview.students }}</div>
+      <div class="k">Öquvçilar</div><div class="v">{{ detail.overview.students }}</div>
     </div>
     <div class="tx-stat" data-t="passed"><span class="accent"></span>
-      <div class="k">O'tganlar</div><div class="v">{{ detail.overview.passed }}</div>
+      <div class="k">Ötganlar</div><div class="v">{{ detail.overview.passed }}</div>
     </div>
     <div class="tx-stat" data-t="pass"><span class="accent"></span>
-      <div class="k">O'tish %</div><div class="v">{{ detail.overview.pass_rate }}<small>%</small></div>
+      <div class="k">Ötiş %</div><div class="v">{{ detail.overview.pass_rate }}<small>%</small></div>
     </div>
     <div class="tx-stat" data-t="avg"><span class="accent"></span>
-      <div class="k">O'rtacha</div><div class="v">{{ detail.overview.avg_score }}<small>%</small></div>
+      <div class="k">Örtaça</div><div class="v">{{ detail.overview.avg_score }}<small>%</small></div>
     </div>
   </div>
 
@@ -295,8 +295,8 @@ Expected context:
     <div class="tx-panel">
       <div class="tx-panel-h">
         <span class="icon"><i class="bi bi-people-fill"></i></span>
-        <span class="t">O'quvchilar</span>
-        <span class="sub">{{ detail.overview.students }} kishi · bosib ochish</span>
+        <span class="t">Öquvçilar</span>
+        <span class="sub">{{ detail.overview.students }} kişi · bosib oçiş</span>
       </div>
       {% if detail.student_groups %}
         <div class="tx-students">
@@ -309,7 +309,7 @@ Expected context:
                 </div>
                 <span class="tx-tries">{{ g.attempts|length }}×</span>
                 <span class="tx-score-pill {% if g.best_score >= 80 %}hi{% elif g.best_score >= 60 %}mid{% else %}lo{% endif %}">{{ g.best_score }}%</span>
-                <span class="tx-status-dot {% if g.ever_passed %}pass{% else %}fail{% endif %}" title="{% if g.ever_passed %}O'tgan{% else %}Yiqilgan{% endif %}"></span>
+                <span class="tx-status-dot {% if g.ever_passed %}pass{% else %}fail{% endif %}" title="{% if g.ever_passed %}Ötgan{% else %}Yiqilgan{% endif %}"></span>
               </summary>
               <div class="tx-stu-body">
                 {% for a in g.attempts %}
@@ -318,7 +318,7 @@ Expected context:
                     <span class="date">{{ a.finished_at|date:"d.m.Y H:i" }}</span>
                     <span class="frac">{{ a.correct }}/{{ a.total }}</span>
                     <span class="sc {% if a.score >= 80 %}hi{% elif a.score >= 60 %}mid{% else %}lo{% endif %}">{{ a.score }}%</span>
-                    <span class="st {% if a.passed %}p{% else %}f{% endif %}">{% if a.passed %}O'tdi{% else %}Yiqildi{% endif %}</span>
+                    <span class="st {% if a.passed %}p{% else %}f{% endif %}">{% if a.passed %}Ötdi{% else %}Yiqildi{% endif %}</span>
                   </div>
                 {% endfor %}
               </div>
@@ -326,7 +326,7 @@ Expected context:
           {% endfor %}
         </div>
       {% else %}
-        <div class="tx-empty"><i class="bi bi-inbox"></i>Bu testni hali hech kim ishlamagan.</div>
+        <div class="tx-empty"><i class="bi bi-inbox"></i>Bu testni hali heç kim işlamagan.</div>
       {% endif %}
     </div>
 
@@ -335,7 +335,7 @@ Expected context:
       <div class="tx-panel-h">
         <span class="icon warn"><i class="bi bi-bar-chart-fill"></i></span>
         <span class="t">Savollar tahlili</span>
-        <span class="sub">xato darajasi bo'yicha</span>
+        <span class="sub">xato darajasi böyiça</span>
       </div>
       {% if detail.question_stats %}
         <div class="tx-qs">
@@ -358,7 +358,7 @@ Expected context:
           {% endfor %}
         </div>
       {% else %}
-        <div class="tx-empty"><i class="bi bi-inbox"></i>Savollar bo'yicha ma'lumot yo'q.</div>
+        <div class="tx-empty"><i class="bi bi-inbox"></i>Savollar böyiça ma'lumot yöq.</div>
       {% endif %}
     </div>
 

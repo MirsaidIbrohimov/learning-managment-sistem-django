@@ -29,9 +29,9 @@ class LoginLocationFlowTests(TestCase):
         })
         self.assertRedirects(response, reverse('login_location_consent'), fetch_redirect_response=False)
         response = self.client.get(reverse('login_location_consent'))
-        self.assertContains(response, 'Joylashuvingizni ulashasizmi?')
-        self.assertContains(response, 'Joylashuvni ulashish')
-        self.assertContains(response, 'Keyinroq davom etish')
+        self.assertContains(response, 'Joylaşuvingizni ulaşasizmi?')
+        self.assertContains(response, 'Joylaşuvni ulaşiş')
+        self.assertContains(response, 'Keyinroq davom etiş')
 
     def test_user_can_skip_location_and_continue(self):
         self.client.force_login(self.user)
@@ -50,7 +50,7 @@ class LoginLocationFlowTests(TestCase):
         session = self.client.session
         session['location_capture_pending'] = True
         session.save()
-        response_data = {'address': {'town': 'Zomin', 'county': 'Jizzax tumani', 'state': 'Jizzax', 'country': 'O‘zbekiston'}}
+        response_data = {'address': {'town': 'Zomin', 'county': 'Jizzax tumani', 'state': 'Jizzax', 'country': 'Özbekiston'}}
         mock_response = Mock(ok=True)
         mock_response.json.return_value = response_data
         mock_get.return_value = mock_response
@@ -104,7 +104,7 @@ class LoginLocationFlowTests(TestCase):
             address='Zomin, Jizzax', map_url='https://www.google.com/maps?q=39.9601,68.3952',
         )
         response = self.client.get(reverse('admin_user_view', args=[self.user.pk]))
-        self.assertContains(response, 'Joylashuvlari')
+        self.assertContains(response, 'Joylaşuvlari')
         self.assertContains(response, 'Zomin, Jizzax')
 
     def test_geolocation_policy_is_allowed_only_on_consent_page(self):

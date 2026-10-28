@@ -15,7 +15,7 @@ from coin.topup_pricing import pricing_data
 
 
 class BalanceSpendTests(TestCase):
-    """Oylik to'lovdan ortgan balans bilan tanga va pulli kurs sotib olish."""
+    """Oylik tölovdan ortgan balans bilan tanga va pulli kurs sotib oliş."""
 
     def setUp(self):
         cache.clear()
@@ -87,7 +87,7 @@ class BalanceSpendTests(TestCase):
     def test_checkout_page_offers_balance(self):
         body = self.client.get(reverse('enroll_course', args=[self.course.pk])).content.decode()
         self.assertIn(reverse('course_balance_pay', args=[self.course.pk]), body)
-        self.assertIn("Balansdan to'lash", body)
+        self.assertIn("Balansdan tölaş", body)
 
     def test_balance_orders_hidden_from_tezcheck_admin_totals(self):
         self.client.post(reverse('course_balance_pay', args=[self.course.pk]))

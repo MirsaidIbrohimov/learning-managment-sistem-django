@@ -369,7 +369,7 @@
             <span><i class="bi bi-briefcase"></i>{{ group.profession.name }}</span>
             <span><i class="bi bi-clock"></i>{{ group.time_range }}</span>
             <span><i class="bi bi-calendar-week"></i>{{ group.days_display }}</span>
-            <span><i class="bi bi-people"></i>{{ total_students }} o'quvchi</span>
+            <span><i class="bi bi-people"></i>{{ total_students }} öquvçi</span>
         </div>
     </div>
     <div class="am-header-date-badge">
@@ -415,10 +415,10 @@
 <div class="am-stats">
     <div class="am-stat present"><span class="num" id="cnt-present">{{ stats.present }}</span><span class="lbl"><i class="bi bi-check-circle"></i> Kelgan</span></div>
     <div class="am-stat absent"><span class="num" id="cnt-absent">{{ stats.absent }}</span><span class="lbl"><i class="bi bi-x-circle"></i> Kelmagan</span></div>
-    <div class="am-stat late"><span class="num" id="cnt-late">{{ stats.late }}</span><span class="lbl"><i class="bi bi-clock"></i> Kechikkan</span></div>
+    <div class="am-stat late"><span class="num" id="cnt-late">{{ stats.late }}</span><span class="lbl"><i class="bi bi-clock"></i> Keçikkan</span></div>
     <div class="am-stat sick"><span class="num" id="cnt-sick">{{ stats.sick }}</span><span class="lbl"><i class="bi bi-heart-pulse"></i> Kasal</span></div>
     <div class="am-stat excused"><span class="num" id="cnt-excused">{{ stats.excused }}</span><span class="lbl"><i class="bi bi-file-earmark"></i> Sabab</span></div>
-    <div class="am-stat unmarked"><span class="num" id="cnt-unmarked">{{ stats.unmarked }}</span><span class="lbl"><i class="bi bi-question-circle"></i> Yo'q</span></div>
+    <div class="am-stat unmarked"><span class="num" id="cnt-unmarked">{{ stats.unmarked }}</span><span class="lbl"><i class="bi bi-question-circle"></i> Yöq</span></div>
 </div>
 
 {% if students_with_status %}
@@ -426,10 +426,10 @@
 <div class="am-bulk">
     <span class="am-bulk-label"><i class="bi bi-lightning-charge-fill"></i> Tez amallar:</span>
     <button type="button" class="am-bulk-btn present" data-bulk="present">
-        <i class="bi bi-check-all"></i> Barchasi kelgan
+        <i class="bi bi-check-all"></i> Barçasi kelgan
     </button>
     <button type="button" class="am-bulk-btn absent" data-bulk="absent">
-        <i class="bi bi-x-lg"></i> Barchasi kelmagan
+        <i class="bi bi-x-lg"></i> Barçasi kelmagan
     </button>
     <button type="button" class="am-bulk-btn clear" data-bulk="clear">
         <i class="bi bi-arrow-counterclockwise"></i> Belgilanmagan holatga
@@ -454,7 +454,7 @@
             <div class="am-student-info">
                 <div class="am-student-name">{{ row.student.first_name }} {{ row.student.last_name }}</div>
                 <div class="am-student-meta">
-                    {% if row.visited_at %}<span style="color:#0891b2;font-weight:700;" title="Shu kuni platformaga kirgan"><i class="bi bi-box-arrow-in-right"></i> Saytga kirdi {{ row.visited_at|time:"H:i" }}{% if row.auto_marked %} · avtomatik{% endif %}</span>
+                    {% if row.visited_at %}<span style="color:#0891b2;font-weight:700;" title="Şu kuni platformaga kirgan"><i class="bi bi-box-arrow-in-right"></i> Saytga kirdi {{ row.visited_at|time:"H:i" }}{% if row.auto_marked %} · avtomatik{% endif %}</span>
                     {% elif selected_date == today %}<span style="color:#9ca3af;"><i class="bi bi-wifi-off"></i> Bugun saytga kirmagan</span>{% endif %}
                     {% if row.student.phone %}
                     <span><i class="bi bi-telephone"></i> {{ row.student.phone }}</span>
@@ -463,7 +463,7 @@
                     <span title="Oxirgi 30 kun"><i class="bi bi-calendar3"></i>
                         {{ row.month_stats.total }} kun
                         · <span style="color:#10b981;">{{ row.month_stats.present }} kelgan</span>
-                        · <span style="color:#ef4444;">{{ row.month_stats.absent }} yo'q</span>
+                        · <span style="color:#ef4444;">{{ row.month_stats.absent }} yöq</span>
                     </span>
                     {% endif %}
                 </div>
@@ -485,7 +485,7 @@
                     <i class="bi bi-x-lg"></i>
                 </button>
                 <button type="button" class="am-status-btn late {% if row.current_status == 'late' %}selected{% endif %}"
-                        data-status="late" title="Kechikkan">
+                        data-status="late" title="Keçikkan">
                     <i class="bi bi-clock"></i>
                 </button>
                 <button type="button" class="am-status-btn sick {% if row.current_status == 'sick' %}selected{% endif %}"
@@ -504,18 +504,18 @@
     <div class="am-save-bar">
         <div class="am-save-info">
             <i class="bi bi-info-circle"></i>
-            <span>Har bir o'quvchi uchun holatni tanlang va saqlang</span>
+            <span>Har bir öquvçi uçun holatni tanlang va saqlang</span>
         </div>
         <button type="submit" class="am-save-btn pulse">
-            <i class="bi bi-check-circle-fill"></i> Davomatni saqlash
+            <i class="bi bi-check-circle-fill"></i> Davomatni saqlaş
         </button>
     </div>
 </form>
 {% else %}
 <div class="am-empty">
     <div class="am-empty-icon"><i class="bi bi-people"></i></div>
-    <h5>Guruhda o'quvchi yo'q</h5>
-    <p style="color: var(--text-muted);">Bu guruhga hozircha o'quvchilar qo'shilmagan.</p>
+    <h5>Guruhda öquvçi yöq</h5>
+    <p style="color: var(--text-muted);">Bu guruhga hozirça öquvçilar qöşilmagan.</p>
 </div>
 {% endif %}
 {% endblock %}

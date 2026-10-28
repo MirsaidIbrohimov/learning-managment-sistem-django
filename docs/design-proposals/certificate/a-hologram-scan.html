@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>A — Hologram Scan | Sertifikat tekshirish</title>
+<title>A — Hologram Scan | Sertifikat tekşiriş</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 /* =====================================================================
    VARIANT A — HOLOGRAM SCAN
-   Qorong'i kiber uslub: lazer nur hujjatni skanerlaydi, ma'lumotlar
-   "dekod" bo'lib chiqadi, tasdiq muhri tushadi.
+   Qoronği kiber uslub: lazer nur hujjatni skanerlaydi, ma'lumotlar
+   "dekod" bölib çiqadi, tasdiq muhri tuşadi.
    ===================================================================== */
 :root {
   --bg: #04060d; --panel: rgba(10,16,30,.78); --line: rgba(56,232,255,.16);
@@ -23,7 +23,7 @@
 body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
 .mono { font-family:var(--mono); }
 
-/* ---------- Fon: matritsa to'r + aylanuvchi radar ---------- */
+/* ---------- Fon: matritsa tör + aylanuvçi radar ---------- */
 .bg { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
 .bg::before {
   content:''; position:absolute; inset:-2px;
@@ -90,7 +90,7 @@ h1 .glitch::after  { background-image:linear-gradient(90deg,var(--cy),var(--cy))
 .hints button { font:600 .72rem var(--mono); color:var(--cy); background:rgba(56,232,255,.06); border:1px dashed var(--line);
   padding:.3rem .6rem; border-radius:8px; cursor:pointer; }
 
-/* ---------- SKAN bosqichi ---------- */
+/* ---------- SKAN bosqiçi ---------- */
 .stage { margin-top:1.6rem; }
 .scan { padding:1.6rem; display:none; }
 .scan.on { display:block; animation: rise .5s var(--smooth) both; }
@@ -203,7 +203,7 @@ h1 .glitch::after  { background-image:linear-gradient(90deg,var(--cy),var(--cy))
 <div class="wrap">
   <header class="head">
     <span class="chip"><span class="dot"></span> Tizim onlayn · Rasmiy portal</span>
-    <h1>Sertifikatni <span class="glitch" data-t="tekshirish">tekshirish</span></h1>
+    <h1>Sertifikatni <span class="glitch" data-t="tekshirish">tekşiriş</span></h1>
     <p class="sub">IT Creative Zomin — seriya raqami orqali haqiqiyligini aniqlang</p>
   </header>
 
@@ -212,7 +212,7 @@ h1 .glitch::after  { background-image:linear-gradient(90deg,var(--cy),var(--cy))
     <label class="label" for="cid">// Seriya raqami</label>
     <div class="field">
       <div class="input"><i class="bi bi-upc-scan"></i><input id="cid" placeholder="ZMT-PY-26001" required></div>
-      <button class="btn" type="submit"><i class="bi bi-radar"></i> Skanerlash</button>
+      <button class="btn" type="submit"><i class="bi bi-radar"></i> Skanerlaş</button>
     </div>
     <div class="hints">Demo:
       <button type="button" data-id="ZMT-PY-26001">ZMT-PY-26001</button>
@@ -242,16 +242,16 @@ h1 .glitch::after  { background-image:linear-gradient(90deg,var(--cy),var(--cy))
 <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gA" x1="0" x2="1"><stop offset="0" stop-color="#8b7bff"/><stop offset="1" stop-color="#38e8ff"/></linearGradient></defs></svg>
 
 <script>
-/* ---------- DEMO ma'lumotlar (Django'da {{ certificate }} bilan almashtiriladi) ---------- */
+/* ---------- DEMO ma'lumotlar (Django'da {{ certificate }} bilan almaştiriladi) ---------- */
 const DB = {
-  'ZMT-PY-26001': { status:'active', label:'Faol', owner:'Aliyev Jasur Baxtiyorovich', course:'Python Backend dasturlash', from:'14.03.2026', until:'14.03.2028', left:'1 yil 4 oy', by:'Husanbek Suyunov',
+  'ZMT-PY-26001': { status:'active', label:'Faol', owner:'Aliyev Jasur Baxtiyoroviç', course:'Python Backend dasturlaş', from:'14.03.2026', until:'14.03.2028', left:'1 yil 4 oy', by:'Husanbek Suyunov',
     desc:'Kursni a\'lo baholar bilan tamomlagan.', overall:87.4, tests:[['Python asoslari',96,1],['OOP va klasslar',88,1],['Django ORM',74,1],['REST API',58,0],['Yakuniy imtihon',91,1]],
     hw:[14,8.7], sp:[6,8.2] },
   'ZMT-WB-25014': { status:'expired', label:'Muddati tugagan', owner:'Karimova Nilufar', course:'Frontend: HTML, CSS, JS', from:'02.02.2024', until:'02.02.2026', by:'IT Creative — avtomatik tizim',
     overall:71.2, tests:[['HTML semantika',82,1],['CSS Grid',66,1],['JavaScript DOM',49,0]], hw:[9,7.1], sp:[0,0] }
 };
 const ICON = { active:'bi-patch-check-fill', expired:'bi-clock-history', frozen:'bi-snow2', revoked:'bi-x-octagon-fill' };
-const STAMP = { active:'TASDIQLANDI', expired:'MUDDATI O\'TGAN', frozen:'MUZLATILGAN', revoked:'BEKOR' };
+const STAMP = { active:'TASDIQLANDI', expired:'MUDDATI ÖTGAN', frozen:'MUZLATILGAN', revoked:'BEKOR' };
 const $ = s => document.querySelector(s);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -276,14 +276,14 @@ $('#form').addEventListener('submit', async e => {
   const res = $('#result'), scan = $('#scan'), log = $('#log'), prog = $('#prog');
   res.className = 'result'; res.innerHTML = ''; log.innerHTML = ''; prog.style.width = '0';
   scan.classList.add('on');
-  const steps = [['> ID formati tekshirilmoqda…', 'cy'], ['> Ma\'lumotlar bazasidan qidirilmoqda…', 'cy'], ['> Raqamli imzo solishtirilmoqda…', 'cy']];
+  const steps = [['> ID formati tekşirilmoqda…', 'cy'], ['> Ma\'lumotlar bazasidan qidirilmoqda…', 'cy'], ['> Raqamli imzo soliştirilmoqda…', 'cy']];
   for (let i = 0; i < steps.length; i++) {
     log.insertAdjacentHTML('beforeend', `<div class="${steps[i][1]}">${steps[i][0]}</div>`);
     prog.style.width = ((i + 1) / (steps.length + 1) * 100) + '%';
     await sleep(reduced ? 0 : 520);
   }
   const c = DB[id];
-  log.insertAdjacentHTML('beforeend', c ? '<div class="ok">✓ Hujjat topildi</div>' : '<div style="color:var(--bad)">✗ Mos yozuv yo\'q</div>');
+  log.insertAdjacentHTML('beforeend', c ? '<div class="ok">✓ Hujjat topildi</div>' : '<div style="color:var(--bad)">✗ Mos yozuv yöq</div>');
   prog.style.width = '100%';
   await sleep(reduced ? 0 : 450);
   scan.classList.remove('on');
@@ -293,7 +293,7 @@ $('#form').addEventListener('submit', async e => {
 function renderNotFound() {
   const r = $('#result');
   r.innerHTML = `<div class="panel nf shake"><div class="big">404</div><h3>Sertifikat topilmadi</h3>
-    <p>Bu seriya raqamiga mos sertifikat mavjud emas. Raqamni tekshirib, qayta urinib ko'ring.</p></div>`;
+    <p>Bu seriya raqamiga mos sertifikat mavjud emas. Raqamni tekşirib, qayta urinib köring.</p></div>`;
   r.className = 'result on';
 }
 
@@ -316,23 +316,23 @@ function renderFound(id, c) {
       ${row('bi-person-fill', 'Egasi', c.owner, .3, true)}
       ${row('bi-book-fill', 'Kurs', c.course, .4, true)}
       ${row('bi-calendar-check', 'Berilgan sana', c.from, .5)}
-      ${row('bi-calendar-x', 'Amal qilish muddati', c.until + (c.left ? ` · <span style="color:var(--ok)">${c.left} qoldi</span>` : ''), .58)}
+      ${row('bi-calendar-x', 'Amal qiliş muddati', c.until + (c.left ? ` · <span style="color:var(--ok)">${c.left} qoldi</span>` : ''), .58)}
       ${row('bi-award-fill', 'Kim tomonidan berilgan', c.by, .66, true)}
       ${c.desc ? row('bi-info-circle', 'Tavsif', c.desc, .74, true) : ''}
     </div>
-    <div class="sect"><h3><i class="bi bi-activity"></i> O'quvchi natijalari</h3>
+    <div class="sect"><h3><i class="bi bi-activity"></i> Öquvçi natijalari</h3>
       <div class="score-grid">
         <div class="gauge"><svg width="150" height="150" viewBox="0 0 150 150"><circle class="bgc" cx="75" cy="75" r="65"/><circle class="fg" id="fg" cx="75" cy="75" r="65"/></svg>
           <div class="num"><b class="count" data-to="${c.overall}">0</b><span>UMUMIY BALL</span></div></div>
         <div class="bars">
-          ${bar('Testlar', `${c.tests.filter(t => t[2]).length}/${c.tests.length} o'tdi · ${avg}%`, avg)}
+          ${bar('Testlar', `${c.tests.filter(t => t[2]).length}/${c.tests.length} ötdi · ${avg}%`, avg)}
           ${bar('Uy vazifalari', `${c.hw[0]} ta · ${c.hw[1]}/10`, c.hw[1] * 10)}
           ${bar('Speaking', `${c.sp[0]} ta · ${c.sp[1]}/10`, c.sp[1] * 10)}
         </div>
       </div>
     </div>
     <div class="sect"><h3><i class="bi bi-list-check"></i> Test natijalari</h3><div class="tests">${tests}</div></div>
-    ${c.status === 'active' ? `<div class="actions"><a class="p" href="#"><i class="bi bi-download"></i> Yuklab olish</a><a class="o" href="#"><i class="bi bi-box-arrow-up-right"></i> Ochish</a></div>` : ''}
+    ${c.status === 'active' ? `<div class="actions"><a class="p" href="#"><i class="bi bi-download"></i> Yuklab oliş</a><a class="o" href="#"><i class="bi bi-box-arrow-up-right"></i> Oçiş</a></div>` : ''}
   </div>`;
   r.className = 'result on';
   decode($('#cidOut'), id, 900);
@@ -353,7 +353,7 @@ function countUp(el) {
   (function f(n) { const p = Math.max(0, Math.min(1, (n - t0) / d)), e = 1 - Math.pow(1 - p, 3); el.textContent = (to * e).toFixed(1) + '%'; if (p < 1) requestAnimationFrame(f); })(t0);
 }
 
-/* ---------- Fon zarrachalari ---------- */
+/* ---------- Fon zarraçalari ---------- */
 (function () {
   const cv = $('#particles'), ctx = cv.getContext('2d'); let W, H, P = [];
   const resize = () => { W = cv.width = innerWidth; H = cv.height = innerHeight; P = Array.from({ length: Math.min(70, W / 18) }, () => ({ x: Math.random() * W, y: Math.random() * H, v: .2 + Math.random() * .6, s: Math.random() * 1.6 + .4 })); };
@@ -366,7 +366,7 @@ function countUp(el) {
     requestAnimationFrame(loop);
   })();
 })();
-/* ?id=... bilan ochilsa — avtomatik tekshirish */
+/* ?id=... bilan oçilsa — avtomatik tekşiriş */
 const qid = new URLSearchParams(location.search).get('id');
 if (qid) { $('#cid').value = qid; $('#form').requestSubmit(); }
 </script>

@@ -122,7 +122,7 @@ class AIGenerateView(QuizStaffRequiredMixin, TemplateView):
             messages.error(
                 request,
                 "AI funksiyasi sizga admin tomonidan bloklangan. "
-                "Bu funksiyadan foydalanish uchun admin bilan bog'laning."
+                "Bu funksiyadan foydalaniş uçun admin bilan boğlaning."
             )
             return redirect('quizui:quiz_list')
         return super().dispatch(request, *args, **kwargs)
@@ -144,11 +144,11 @@ class AIGenerateView(QuizStaffRequiredMixin, TemplateView):
         return context
 
     def _build_transcript_courses_json(self):
-        """Bo'lim transkriptidan test yaratish uchun kurs+bo'lim ma'lumoti.
+        """Bölim transkriptidan test yaratiş uçun kurs+bölim ma'lumoti.
 
-        Ustoz faqat o'z kurslarini, admin/yordamchi barcha kurslarni ko'radi.
-        Har bir bo'lim uchun order saqlanadi (frontend "shu va oldingi" mantiqni
-        tushuntirish uchun ishlatishi mumkin)."""
+        Ustoz faqat öz kurslarini, admin/yordamchi barça kurslarni köradi.
+        Har bir bölim uçun order saqlanadi (frontend "şu va oldingi" mantiqni
+        tuşuntiriş uçun işlatişi mumkin)."""
         import json
 
         from accounts.models import Profession, Section
@@ -243,13 +243,13 @@ class QuizTakeView(StudentRequiredMixin, TemplateView):
         if quiz.status != Quiz.Status.PUBLISHED:
             blocked_reason = "Bu test hali e'lon qilinmagan."
         elif not can_take_quiz(student, quiz):
-            blocked_reason = "Siz bu kursga yozilmagansiz, shuning uchun bu testni topshira olmaysiz."
+            blocked_reason = "Siz bu kursga yozilmagansiz, şuning uçun bu testni topşira olmaysiz."
         elif not quiz_prerequisites_met(student, quiz):
-            blocked_reason = "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring."
+            blocked_reason = "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring."
         elif settings_ is None:
-            blocked_reason = "Bu test uchun sozlamalar kiritilmagan."
+            blocked_reason = "Bu test uçun sozlamalar kiritilmagan."
         elif not quiz.quiz_questions.exists():
-            blocked_reason = "Bu testda hali savollar yo'q."
+            blocked_reason = "Bu testda hali savollar yöq."
 
         prior_attempts = list(
             Attempt.objects.filter(
@@ -325,7 +325,7 @@ class QuizRetryPaymentRequestView(StudentRequiredMixin, View):
         quiz = get_object_or_404(Quiz.objects.select_related('settings'), pk=pk)
         settings_ = getattr(quiz, 'settings', None)
         if quiz.status != Quiz.Status.PUBLISHED or not settings_ or not settings_.retry_payment_required:
-            messages.error(request, "Bu test uchun pullik qayta urinish talab qilinmaydi.")
+            messages.error(request, "Bu test uçun pullik qayta uriniş talab qilinmaydi.")
             return None, None, redirect('quizui:quiz_take', pk=pk)
 
         has_attempted = Attempt.objects.filter(
@@ -385,9 +385,9 @@ class QuizRetryPaymentRequestView(StudentRequiredMixin, View):
                     receipt_image=receipt,
                     amount=settings_.retry_payment_amount,
                 )
-                messages.success(request, "To'lov cheki yuklandi! Tasdiqlanishini kuting.")
+                messages.success(request, "Tölov çeki yuklandi! Tasdiqlanişini kuting.")
                 return redirect('quizui:quiz_retry_payment_request', pk=quiz.pk)
-            messages.error(request, "Iltimos, to'lov chekini yuklang.")
+            messages.error(request, "Iltimos, tölov çekini yuklang.")
 
         return render(request, self.template_name, self._build_context(request, quiz, settings_))
 
@@ -439,7 +439,7 @@ class QuizRetryPaymentReviewMixin(QuizStaffRequiredMixin):
             professions = user.teaching_professions.all()
             profession = payment.quiz.lesson.profession if payment.quiz.lesson_id else None
             if profession not in professions:
-                messages.error(request, "Sizda bu to'lovni ko'rib chiqish huquqi yo'q.")
+                messages.error(request, "Sizda bu tölovni körib çiqiş huquqi yöq.")
                 return None
         return payment
 
@@ -452,7 +452,7 @@ class QuizRetryPaymentApproveView(QuizRetryPaymentReviewMixin, View):
             payment.reviewed_by = request.user
             payment.reviewed_at = timezone.now()
             payment.save(update_fields=['status', 'reviewed_by', 'reviewed_at'])
-            messages.success(request, f"{payment.student.full_name}ning to'lovi tasdiqlandi!")
+            messages.success(request, f"{payment.student.full_name}ning tölovi tasdiqlandi!")
         return redirect('quizui:quiz_retry_payment_list')
 
 
@@ -465,7 +465,7 @@ class QuizRetryPaymentRejectView(QuizRetryPaymentReviewMixin, View):
             payment.reviewed_at = timezone.now()
             payment.reject_reason = request.POST.get('reason', '')
             payment.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'reject_reason'])
-            messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
+            messages.success(request, f"{payment.student.full_name}ning tölovi rad etildi.")
         return redirect('quizui:quiz_retry_payment_list')
 
 

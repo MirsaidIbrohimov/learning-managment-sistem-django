@@ -17,12 +17,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('telegram_id', models.BigIntegerField(unique=True, verbose_name='Telegram ID')),
-                ('is_ai_chat', models.BooleanField(default=False, verbose_name='AI chat rejimida')),
-                ('ai_session', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_yordamchi.chatsession', verbose_name='AI chat sessiyasi')),
+                ('is_ai_chat', models.BooleanField(default=False, verbose_name='AI çat rejimida')),
+                ('ai_session', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ai_yordamchi.chatsession', verbose_name='AI çat sessiyasi')),
             ],
             options={
-                'verbose_name': 'Telegram chat holati',
-                'verbose_name_plural': 'Telegram chat holatlari',
+                'verbose_name': 'Telegram çat holati',
+                'verbose_name_plural': 'Telegram çat holatlari',
             },
         ),
     ]

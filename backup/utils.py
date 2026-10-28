@@ -22,13 +22,13 @@ def lock(root):
     try:
         import fcntl
     except ImportError:
-        raise BackupError('Backup lock uchun Linux/Ubuntu kerak.') from None
+        raise BackupError('Backup lock uçun Linux/Ubuntu kerak.') from None
     fd = os.open(root / '.send_backup.lock', os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
     with os.fdopen(fd, 'w') as stream:
         try:
             fcntl.flock(stream, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            raise BackupError('Boshqa backup jarayoni ishlayapti.') from None
+            raise BackupError('Boşqa backup jarayoni işlayapti.') from None
         try:
             yield
         finally:
@@ -61,14 +61,14 @@ class Storage:
             if old.stat().st_mtime < self.cutoff or not fits():
                 self.remove(old)
         if not fits():
-            raise BackupError('Backup disk chegarasi/quota yoki bo‘sh joy yetarli emas.')
+            raise BackupError('Backup disk chegarasi/quota yoki böş joy yetarli emas.')
 
 
 def dump_sqlite(db, directory, storage, timeout):
     """Online backup API includes committed WAL data; never copy a live DB file."""
     name = str(db.get('NAME', ''))
     if not name or name == ':memory:' or name.startswith('file:'):
-        raise BackupError('SQLite uchun diskdagi DB NAME fayl yo‘li talab qilinadi.')
+        raise BackupError('SQLite uçun diskdagi DB NAME fayl yöli talab qilinadi.')
     source = Path(name).resolve()
     if not source.is_file():
         raise BackupError('SQLite baza fayli topilmadi.')
@@ -78,7 +78,7 @@ def dump_sqlite(db, directory, storage, timeout):
 
     def check_timeout():
         if time.monotonic() >= deadline:
-            raise BackupError('SQLite backup timeout; BACKUP_DUMP_TIMEOUTni tekshiring.')
+            raise BackupError('SQLite backup timeout; BACKUP_DUMP_TIMEOUTni tekşiring.')
 
     try:
         with closing(sqlite3.connect(source.as_uri() + '?mode=ro', uri=True, timeout=5)) as live:
@@ -102,7 +102,7 @@ def dump_sqlite(db, directory, storage, timeout):
                             out.write(chunk)
                             out.flush()
     except (sqlite3.Error, OSError):
-        raise BackupError('SQLite backup o‘qish/yozish/timeout xatosi; baza va disk/quota holatini tekshiring.') from None
+        raise BackupError('SQLite backup öqish/yozish/timeout xatosi; baza va disk/quota holatini tekşiring.') from None
     finally:
         snapshot.unlink(missing_ok=True)
     return raw
@@ -114,10 +114,10 @@ def dump_database(db, directory, storage, timeout, pg_binary, mysql_binary):
         return dump_sqlite(db, directory, storage, timeout)
     if engine not in ('django.db.backends.postgresql', 'django.db.backends.postgresql_psycopg2',
                       'django.db.backends.mysql'):
-        raise BackupError('Faqat SQLite, PostgreSQL yoki MySQL/MariaDB qo‘llanadi; faol DB backendni tekshiring.')
+        raise BackupError('Faqat SQLite, PostgreSQL yoki MySQL/MariaDB qöllanadi; faol DB backendni tekşiring.')
     name = str(db.get('NAME', ''))
     if not name or '://' in name or '=' in name:
-        raise BackupError('DB NAME oddiy baza nomi bo‘lishi kerak; connection string qabul qilinmaydi.')
+        raise BackupError('DB NAME oddiy baza nomi bölişi kerak; connection string qabul qilinmaydi.')
     opts = db.get('OPTIONS', {})
     # Do not copy the application's tokens and DB_PASSWORD into child env.
     safe_env = {'PATH', 'HOME', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ',
@@ -128,7 +128,7 @@ def dump_database(db, directory, storage, timeout, pg_binary, mysql_binary):
     if 'postgresql' in engine:
         allowed = {'sslmode', 'sslcert', 'sslkey', 'sslrootcert', 'connect_timeout'}
         if set(opts) - allowed:
-            raise BackupError('PostgreSQL OPTIONS qo‘llanmaydigan qiymatga ega; backup mappingni tekshiring.')
+            raise BackupError('PostgreSQL OPTIONS qöllanmaydigan qiymatga ega; backup mappingni tekşiring.')
         def escape(value):
             return str(value).replace('\\', '\\\\').replace(':', '\\:')
         host = str(db.get('HOST') or '')
@@ -148,7 +148,7 @@ def dump_database(db, directory, storage, timeout, pg_binary, mysql_binary):
     else:
         allowed = {'charset', 'unix_socket', 'ssl', 'init_command', 'isolation_level'}
         if set(opts) - allowed or opts.get('ssl'):
-            raise BackupError('MySQL OPTIONS/SSL uchun backup mappingni sozlang; xavfsiz to‘xtatildi.')
+            raise BackupError('MySQL OPTIONS/SSL uçun backup mappingni sozlang; xavfsiz töxtatildi.')
         def quote(value):
             return '"' + str(value).replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r') + '"'
         values = {'user': db.get('USER', ''), 'password': db.get('PASSWORD', ''),
@@ -175,18 +175,18 @@ def dump_database(db, directory, storage, timeout, pg_binary, mysql_binary):
                         out.flush()
                 code = proc.wait()
                 if code:
-                    raise BackupError('DB dump muvaffaqiyatsiz (exit/timeout); binary, ruxsat va DB sozlamalarini tekshiring.')
+                    raise BackupError('DB dump muvaffaqiyatsiz (exit/timeout); binary, ruxsat va DB sozlamalarini tekşiring.')
             finally:
                 if proc.poll() is None:
                     proc.kill()
                 proc.wait()
                 timer.cancel()
     except OSError:
-        raise BackupError('DB dump binary ishga tushmadi yoki disk/quota yozish xatosi.') from None
+        raise BackupError('DB dump binary işga tuşmadi yoki disk/quota yoziş xatosi.') from None
     finally:
         credentials.unlink(missing_ok=True)
     if not raw.stat().st_size:
-        raise BackupError('Dump bo‘sh.')
+        raise BackupError('Dump böş.')
     return raw
 
 

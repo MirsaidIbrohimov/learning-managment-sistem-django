@@ -1,8 +1,8 @@
-"""Ilovalar boshqaruvi: admin Android/Windows o'rnatuvchilarini yuklaydi, foydalanuvchilar navbardan yuklab oladi.
+"""Ilovalar boşqaruvi: admin Android/Windows örnatuvçilarini yuklaydi, foydalanuvçilar navbardan yuklab oladi.
 
 Xavfsizlik:
-  * yuklash va boshqaruv — faqat admin (`user.is_admin`);
-  * fayl turi kengaytma VA ichki imzo (magic bytes) bo'yicha tekshiriladi;
+  * yuklaş va boşqaruv — faqat admin (`user.is_admin`);
+  * fayl turi kengaytma VA içki imzo (magic bytes) böyiça tekşiriladi;
   * fayllar yopiq papkada (`app_release_storage`), faqat `app_release_download`
     orqali, login bilan va `attachment` sifatida beriladi.
 """
@@ -21,7 +21,7 @@ from django.views.decorators.http import require_POST
 
 from .models import AppRelease
 
-# Kengaytma -> fayl boshidagi imzo (`.dmg` imzosi fayl OXIRIDA: "koly" trailer)
+# Kengaytma -> fayl boşidagi imzo (`.dmg` imzosi fayl OXIRIDA: "koly" trailer)
 ALLOWED_TYPES = {
     'android': {'.apk': b'PK\x03\x04'},
     'windows': {'.exe': b'MZ', '.msi': b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'},
@@ -44,7 +44,7 @@ DEFAULT_MIN_OS = {
     'android': 'Android 7.0+', 'windows': 'Windows 10/11 (64-bit)', 'ios': 'iOS 15+',
     'macos': 'macOS 11+', 'linux': 'Linux x64',
 }
-# Navbar va sahifalar uchun ko'rinish (tartib — PLATFORM_CHOICES bo'yicha)
+# Navbar va sahifalar uçun köriniş (tartib — PLATFORM_CHOICES böyiça)
 PLATFORM_META = {
     'android': {'icon': 'android2', 'color': '#16a34a'},
     'windows': {'icon': 'windows', 'color': '#0078d4'},
@@ -52,20 +52,20 @@ PLATFORM_META = {
     'macos': {'icon': 'laptop', 'color': '#6b7280'},
     'linux': {'icon': 'ubuntu', 'color': '#e95420'},
 }
-# RequestSizeLimitMiddleware butun so'rovni 20 MB bilan cheklaydi — forma maydonlari uchun joy qoldiriladi
+# RequestSizeLimitMiddleware butun sörovni 20 MB bilan çeklaydi — forma maydonlari uçun joy qoldiriladi
 MAX_FILE_SIZE = 19 * 1024 * 1024
 _CACHE_KEY = 'app_releases_published_v1'
 
 
 def platform_entries():
-    """Navbar/sahifa uchun barcha platformalar: [{key, label, icon, color, release|None}] — None bo'lsa 'Tez kunda'."""
+    """Navbar/sahifa uçun barça platformalar: [{key, label, icon, color, release|None}] — None bölsa 'Tez kunda'."""
     current = published_releases()
     return [dict(key=key, label=label, release=current.get(key), **PLATFORM_META[key])
             for key, label in AppRelease.PLATFORM_CHOICES]
 
 
 def published_releases():
-    """{platforma: AppRelease|None} — har platformaning eng yangi e'lon qilingani (keshlangan)."""
+    """{platforma: AppRelease|None} — har platformaning eng yangi e'lon qilingani (keşlangan)."""
     data = cache.get(_CACHE_KEY)
     if data is None:
         data = {}
@@ -73,7 +73,7 @@ def published_releases():
             for platform, _ in AppRelease.PLATFORM_CHOICES:
                 data[platform] = AppRelease.objects.filter(platform=platform, is_published=True).first()
         except (OperationalError, ProgrammingError):
-            # Migratsiya hali qo'llanmagan bo'lsa ham sahifalar ishlayveradi
+            # Migratsiya hali qöllanmagan bölsa ham sahifalar işlayveradi
             return {}
         cache.set(_CACHE_KEY, data, 300)
     return data
@@ -84,21 +84,21 @@ def _invalidate():
 
 
 def validate_upload(platform, uploaded):
-    """Xato matnini qaytaradi yoki None. Fayl o'qish joyi boshiga qaytariladi."""
+    """Xato matnini qaytaradi yoki None. Fayl öqiş joyi boşiga qaytariladi."""
     if not uploaded:
         return "Fayl tanlanmagan."
     allowed = ALLOWED_TYPES.get(platform)
     if not allowed:
-        return "Platforma noto'g'ri."
+        return "Platforma notöğri."
     ext = Path(uploaded.name).suffix.lower()
     if ext not in allowed:
-        return f"{dict(AppRelease.PLATFORM_CHOICES)[platform]} uchun faqat {', '.join(allowed)} fayl yuklash mumkin."
+        return f"{dict(AppRelease.PLATFORM_CHOICES)[platform]} uçun faqat {', '.join(allowed)} fayl yuklaş mumkin."
     if uploaded.size > MAX_FILE_SIZE:
-        return f"Fayl juda katta ({uploaded.size / 1048576:.1f} MB). Ruxsat: {MAX_FILE_SIZE // 1048576} MB gacha."
+        return f"Fayl juda katta ({uploaded.size / 1048576:.1f} MB). Ruxsat: {MAX_FILE_SIZE // 1048576} MB gaça."
     if uploaded.size < 1024:
-        return "Fayl bo'sh yoki buzilgan."
+        return "Fayl böş yoki buzilgan."
     signature = allowed[ext]
-    if signature is None:  # .dmg: UDIF trailer oxirgi 512 baytda "koly" bilan boshlanadi
+    if signature is None:  # .dmg: UDIF trailer oxirgi 512 baytda "koly" bilan boşlanadi
         uploaded.seek(uploaded.size - 512)
         ok = uploaded.read(4) == b'koly'
     else:
@@ -106,7 +106,7 @@ def validate_upload(platform, uploaded):
         ok = uploaded.read(len(signature)) == signature
     uploaded.seek(0)
     if not ok:
-        return f"Fayl haqiqiy {ext} emas (ichki imzo mos kelmadi)."
+        return f"Fayl haqiqiy {ext} emas (içki imzo mos kelmadi)."
     return None
 
 
@@ -159,7 +159,7 @@ def _admin_context(form=None, edit=None):
 
 @login_required
 def admin_app_releases(request):
-    """Ro'yxat + yangi versiya yuklash."""
+    """Röyxat + yangi versiya yuklaş."""
     if not request.user.is_admin:
         return redirect('home')
     if request.method == 'POST':
@@ -190,13 +190,13 @@ def admin_app_releases(request):
 
 @login_required
 def admin_app_release_edit(request, pk):
-    """Ma'lumotlarni tahrirlash va (ixtiyoriy) faylni almashtirish."""
+    """Ma'lumotlarni tahrirlaş va (ixtiyoriy) faylni almaştiriş."""
     if not request.user.is_admin:
         return redirect('home')
     release = get_object_or_404(AppRelease, pk=pk)
     if request.method == 'POST':
         data = _form_data(request, release)
-        data['platform'] = release.platform  # platforma o'zgarmaydi — fayl turi unga bog'liq
+        data['platform'] = release.platform  # platforma özgarmaydi — fayl turi unga boğliq
         uploaded = request.FILES.get('file')
         error = None if data['version'] else "Versiyani kiriting."
         if not error and uploaded:
@@ -244,11 +244,11 @@ def admin_app_release_delete(request, pk):
     label = str(release)
     release.delete()
     _invalidate()
-    messages.success(request, f"{label} o'chirildi.")
+    messages.success(request, f"{label} öçirildi.")
     return redirect('admin_app_releases')
 
 
-# ─────────────────────────── Foydalanuvchi ───────────────────────────
+# ─────────────────────────── Foydalanuvçi ───────────────────────────
 
 @login_required
 def apps_page(request):

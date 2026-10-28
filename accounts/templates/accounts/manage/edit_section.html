@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Bo'limni tahrirlash - LMS{% endblock %}
+{% block title %}Bölimni tahrirlaş - LMS{% endblock %}
 
 {% block content %}
 <style>
@@ -237,7 +237,7 @@ textarea.es-input { resize: vertical; min-height: 80px; }
             <div class="es-header-icon">
                 <i class="bi bi-folder2-open"></i>
             </div>
-            <h3>Bo'limni tahrirlash</h3>
+            <h3>Bölimni tahrirlaş</h3>
             <p>{{ section.profession.name }}</p>
         </div>
 
@@ -251,16 +251,16 @@ textarea.es-input { resize: vertical; min-height: 80px; }
                 </div>
 
                 <div class="es-group">
-                    <label class="es-label">Bo'lim nomi</label>
+                    <label class="es-label">Bölim nomi</label>
                     <input type="text" name="title" class="es-input" id="sectionTitle"
-                           placeholder="Masalan: 1-bo'lim: Kirish" required
+                           placeholder="Masalan: 1-bölim: Kiriş" required
                            value="{{ section.title }}">
                 </div>
 
                 <div class="es-group">
                     <label class="es-label">Tavsif (ixtiyoriy)</label>
                     <textarea name="description" class="es-input" id="sectionDesc"
-                              placeholder="Bo'lim haqida qisqacha...">{{ section.description|default:'' }}</textarea>
+                              placeholder="Bölim haqida qisqaça...">{{ section.description|default:'' }}</textarea>
                 </div>
 
                 <div class="es-section-label" style="margin-top:1.5rem;">
@@ -280,7 +280,7 @@ textarea.es-input { resize: vertical; min-height: 80px; }
                         </button>
                     </div>
                     <div class="es-hint">
-                        <i class="bi bi-info-circle"></i> Kichik raqamli bo'limlar birinchi ko'rsatiladi
+                        <i class="bi bi-info-circle"></i> Kiçik raqamli bölimlar birinçi körsatiladi
                     </div>
                 </div>
 
@@ -291,7 +291,7 @@ textarea.es-input { resize: vertical; min-height: 80px; }
                             <i class="bi bi-power" id="toggleIcon"></i>
                             <div class="es-toggle-info-text">
                                 <strong>Faol</strong>
-                                <span>O'chirilsa, o'quvchilarga ko'rinmaydi</span>
+                                <span>Öçirilsa, öquvçilarga körinmaydi</span>
                             </div>
                         </div>
                         <label class="es-switch">
@@ -304,7 +304,7 @@ textarea.es-input { resize: vertical; min-height: 80px; }
                 <!-- Live Preview -->
                 <div class="es-preview {% if section.title %}has-content{% endif %}" id="preview">
                     <div class="es-preview-label">
-                        <span>Ko'rinishi</span>
+                        <span>Körinişi</span>
                         <span class="es-preview-badge {% if section.is_active %}on{% else %}off{% endif %}" id="previewBadge">
                             {% if section.is_active %}Faol{% else %}Nofaol{% endif %}
                         </span>
@@ -318,13 +318,13 @@ textarea.es-input { resize: vertical; min-height: 80px; }
 
                 <div class="es-actions">
                     <button type="submit" class="es-btn es-btn-primary" id="submitBtn">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                     <a href="{% url 'delete_section' section.pk %}" class="es-btn es-btn-danger">
-                        <i class="bi bi-trash"></i> O'chirish
+                        <i class="bi bi-trash"></i> Öçiriş
                     </a>
                     <a href="{% url 'manage_lessons' section.profession.pk %}" class="es-btn es-btn-ghost">
-                        Bekor qilish
+                        Bekor qiliş
                     </a>
                 </div>
             </form>
@@ -350,7 +350,7 @@ textarea.es-input { resize: vertical; min-height: 80px; }
             previewTitle.textContent = title;
             preview.classList.add('has-content');
         } else {
-            previewTitle.textContent = "Bo'lim nomi...";
+            previewTitle.textContent = "Bölim nomi...";
             preview.classList.remove('has-content');
         }
         previewDesc.textContent = desc;

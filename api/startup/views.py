@@ -1,8 +1,8 @@
-"""MY StartUp REST API (o'qish uchun).
+"""MY StartUp REST API (öqiş uçun).
 
-Ruxsatlar `startup.permissions` dagi AYNAN o'sha funksiyalar bilan
-tekshiriladi — web view va API bir xil qoidaga bo'ysunadi, aks holda API
-IDOR teshigiga aylanadi.
+Ruxsatlar `startup.permissions` dagi AYNAN öşa funksiyalar bilan
+tekşiriladi — web view va API bir xil qoidaga böysunadi, aks holda API
+IDOR teşigiga aylanadi.
 """
 
 from django.db.models import Count, Q
@@ -55,14 +55,14 @@ def _startup(slug):
 def _public(request, slug):
     startup = _startup(slug)
     if not can_view_startup(request.user, startup):
-        raise PermissionDenied('Bu startupga ruxsatingiz yoʻq.')
+        raise PermissionDenied('Bu startupga ruxsatingiz yöq.')
     return startup
 
 
 def _private(request, slug):
     startup = _startup(slug)
     if not can_view_private(request.user, startup):
-        raise PermissionDenied('Bu boʻlim faqat jamoa, mentor va admin uchun.')
+        raise PermissionDenied('Bu bölim faqat jamoa, mentor va admin uçun.')
     return startup
 
 
@@ -108,7 +108,7 @@ def leaderboard(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def me(request):
-    """Joriy foydalanuvchining faol startupi (yo'q bo'lsa `startup: null`)."""
+    """Joriy foydalanuvçining faol startupi (yöq bölsa `startup: null`)."""
     startup = get_active_startup(request.user)
     if startup is None:
         joined = (Startup.objects
@@ -187,7 +187,7 @@ def tasks(request, slug):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def team(request, slug):
-    """Faol a'zolar ochiq; kutilayotgan so'rovlar faqat yopiq ruxsat bilan."""
+    """Faol a'zolar oçiq; kutilayotgan sörovlar faqat yopiq ruxsat bilan."""
     startup = _public(request, slug)
     members = startup.members.filter(status='active').select_related('user')
     payload = {

@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='jumanjisession',
             name='profession',
-            field=models.ForeignKey(blank=True, help_text="Savollar shu yo'nalishdan olinadi. Bo'sh — barcha savollar.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='jumanji_sessions', to='accounts.profession', verbose_name="Yo'nalish (kurs)"),
+            field=models.ForeignKey(blank=True, help_text="Savollar şu yönalişdan olinadi. Böş — barça savollar.", null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='jumanji_sessions', to='accounts.profession', verbose_name="Yönaliş (kurs)"),
         ),
         migrations.AlterField(
             model_name='jumanjiplayer',

@@ -27,7 +27,7 @@ def coin_history(request):
 
 @login_required
 def coin_transfer(request):
-    """Coin o'tkazma sahifasi — alohida sahifa"""
+    """Coin ötkazma sahifasi — alohida sahifa"""
     return render(request, 'coin/transfer.html')
 
 
@@ -74,7 +74,7 @@ def buy_premium_page(request):
 
 @login_required
 def extend_premium_page(request):
-    """Premium uzaytirish sahifasi"""
+    """Premium uzaytiriş sahifasi"""
     return render(request, 'coin/market/extend_premium.html')
 
 
@@ -121,18 +121,18 @@ def admin_product_add(request):
             for u in CustomUser.objects.filter(telegram_id__isnull=False):
                 notify_user(
                     u.telegram_id,
-                    f"🛍 <b>Yangi mahsulot qo'shildi!</b>\n\n"
+                    f"🛍 <b>Yangi mahsulot qöşildi!</b>\n\n"
                     f"📦 <b>{product.name}</b>\n"
                     f"🪙 Narxi: <b>{product.coin_price}</b> coin\n\n"
-                    f"🛒 Xarid qilish uchun saytga kiring!"
+                    f"🛒 Xarid qiliş uçun saytga kiring!"
                 )
 
-            messages.success(request, "Mahsulot qo'shildi!")
+            messages.success(request, "Mahsulot qöşildi!")
             return redirect('coin:admin_products')
         else:
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            messages.error(request, "Barça maydonlarni töldiring!")
     
-    return render(request, 'coin/admin/product_form.html', {'title': "Mahsulot qo'shish"})
+    return render(request, 'coin/admin/product_form.html', {'title': "Mahsulot qöşiş"})
 
 
 @login_required
@@ -156,7 +156,7 @@ def admin_product_edit(request, pk):
         messages.success(request, "Mahsulot yangilandi!")
         return redirect('coin:admin_products')
     
-    return render(request, 'coin/admin/product_form.html', {'title': "Mahsulotni tahrirlash", 'product': product})
+    return render(request, 'coin/admin/product_form.html', {'title': "Mahsulotni tahrirlaş", 'product': product})
 
 
 @login_required
@@ -168,7 +168,7 @@ def admin_product_delete(request, pk):
     
     if request.method == 'POST':
         product.delete()
-        messages.success(request, "Mahsulot o'chirildi!")
+        messages.success(request, "Mahsulot öçirildi!")
         return redirect('coin:admin_products')
     
     return render(request, 'coin/admin/product_delete.html', {'product': product})
@@ -193,28 +193,28 @@ def admin_mark_delivered(request, pk):
     purchase.status = 'delivered'
     purchase.save()
     
-    # Foydalanuvchiga telegram xabar
+    # Foydalanuvçiga telegram xabar
     if purchase.user.telegram_id:
         notify_user(
             purchase.user.telegram_id,
             f"📦 <b>Mahsulotingiz yetib keldi!</b>\n\n"
             f"📦 <b>{purchase.product.name}</b>\n"
             f"📋 Buyurtma #{purchase.pk}\n\n"
-            f"✅ Mahsulotingiz IT Shaharda sizni kutmoqda! Olib ketishingiz mumkin."
+            f"✅ Mahsulotingiz IT Şaharda sizni kutmoqda! Olib ketişingiz mumkin."
         )
     
     # Guruhga telegram xabar
     notify_group(
         f"📦 <b>Mahsulot yetib keldi!</b>\n\n"
-        f"Hurmatli <b>{purchase.user.full_name}</b> o'quvchi,\n"
-        f"🛍 <b>{purchase.product.name}</b> mahsulotingiz IT Shaharda sizni kutmoqda! ✅"
+        f"Hurmatli <b>{purchase.user.full_name}</b> öquvçi,\n"
+        f"🛍 <b>{purchase.product.name}</b> mahsulotingiz IT Şaharda sizni kutmoqda! ✅"
     )
     
-    # Foydalanuvchiga xabar (Message)
+    # Foydalanuvçiga xabar (Message)
     Message.objects.create(
         recipient=purchase.user,
         title=f"📦 Buyurtma #{purchase.pk} yetkazildi",
-        content=f"'{purchase.product.name}' mahsuloti yetkazildi! Mahsulotingizni olib ketishingiz mumkin.",
+        content=f"'{purchase.product.name}' mahsuloti yetkazildi! Mahsulotingizni olib ketişingiz mumkin.",
         message_type='system'
     )
     
@@ -230,19 +230,19 @@ def admin_cancel_purchase(request, pk):
     purchase = get_object_or_404(ProductPurchase, pk=pk)
     
     if purchase.status != 'pending' or purchase.is_delivered:
-        messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi!")
+        messages.error(request, "Bu buyurtmani bekor qilib bölmaydi!")
         return redirect('coin:admin_purchases')
     
     if request.method == 'POST':
         with transaction.atomic():
-            # Holatni shartli UPDATE bilan band qilamiz — tugma ikki marta
+            # Holatni şartli UPDATE bilan band qilamiz — tugma ikki marta
             # bosilsa coin ikki marta qaytarilmasin.
             cancelled = ProductPurchase.objects.filter(
                 pk=purchase.pk, status='pending', is_delivered=False
             ).update(status='cancelled', cancelled_at=timezone.now())
 
             if not cancelled:
-                messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi!")
+                messages.error(request, "Bu buyurtmani bekor qilib bölmaydi!")
                 return redirect('coin:admin_purchases')
 
             purchase.refresh_from_db(fields=['status', 'cancelled_at'])
@@ -264,7 +264,7 @@ def admin_cancel_purchase(request, pk):
                 reason=f"Admin tomonidan buyurtma bekor qilindi: {purchase.product.name} (#{purchase.pk})"
             )
             
-            # Foydalanuvchiga telegram xabar
+            # Foydalanuvçiga telegram xabar
             if purchase.user.telegram_id:
                 notify_user(
                     purchase.user.telegram_id,
@@ -274,15 +274,15 @@ def admin_cancel_purchase(request, pk):
                     f"📋 Buyurtma #{purchase.pk}"
                 )
             
-            # Foydalanuvchiga xabar (Message)
+            # Foydalanuvçiga xabar (Message)
             Message.objects.create(
                 recipient=purchase.user,
                 title=f"❌ Buyurtma #{purchase.pk} bekor qilindi",
-                content=f"'{purchase.product.name}' mahsuloti uchun buyurtmangiz admin tomonidan bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
+                content=f"'{purchase.product.name}' mahsuloti uçun buyurtmangiz admin tomonidan bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
                 message_type='system'
             )
         
-        messages.success(request, f"Buyurtma bekor qilindi. {purchase.coins_spent} coin foydalanuvchiga qaytarildi!")
+        messages.success(request, f"Buyurtma bekor qilindi. {purchase.coins_spent} coin foydalanuvçiga qaytarildi!")
     
     return redirect('coin:admin_purchases')
 
@@ -298,7 +298,7 @@ def admin_transfers(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    # Qaysi ko'rinish: 'transfers' (coin o'tkazmalar) yoki 'games' (coin o'yinlar)
+    # Qaysi köriniş: 'transfers' (coin ötkazmalar) yoki 'games' (coin öyinlar)
     view_type = request.GET.get('view', 'transfers')
 
     filter_type = request.GET.get('filter', 'all')
@@ -321,7 +321,7 @@ def admin_transfers(request):
                 qs = qs.filter(created_at__date__lte=date_to)
         return qs
 
-    # ===== Coin o'tkazmalar =====
+    # ===== Coin ötkazmalar =====
     transfers = CoinTransfer.objects.all().select_related('sender', 'receiver')
     transfers = apply_date_filter(transfers)
 
@@ -331,7 +331,7 @@ def admin_transfers(request):
     total_coins = success_qs.aggregate(total=Sum('amount'))['total'] or 0
     total_fees = success_qs.aggregate(total=Sum('fee'))['total'] or 0
 
-    # ===== Coin bilan o'ynalgan o'yinlar (BoardMatch, mode='coin') =====
+    # ===== Coin bilan öynalgan öyinlar (BoardMatch, mode='coin') =====
     from games.models import BoardMatch
     from games.external_api import SERVICE_FEE_PERCENT
 
@@ -344,9 +344,9 @@ def admin_transfers(request):
 
     games_total_count = games_qs.count()
     games_finished_count = games_qs.filter(status='ended').count()
-    # Har bir o'yinda jami bank = 2 * wager_coins
+    # Har bir öyinda jami bank = 2 * wager_coins
     games_total_wager = (games_qs.aggregate(total=Sum('wager_coins'))['total'] or 0) * 2
-    # Yutgan o'yinlardan ushlangan xizmat haqi (durang/bekorlardan tashqari)
+    # Yutgan öyinlardan uşlangan xizmat haqi (durang/bekorlardan taşqari)
     decided_qs = games_qs.filter(status='ended', winner__in=['white', 'black'])
     games_total_fees = sum(
         ((m.wager_coins * 2) * SERVICE_FEE_PERCENT) // 100

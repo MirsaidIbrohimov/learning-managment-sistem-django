@@ -40,7 +40,7 @@ class PremiumHomeTests(TestCase):
         UserSession.objects.create(user=user, session_key=self.client.session.session_key,
                                    expires_at=timezone.now() + timedelta(hours=2))
 
-    # ── 50% tanga chegirmasi ──
+    # ── 50% tanga çegirmasi ──
     def test_premium_pays_half_for_coins(self):
         self.assertEqual(quote(10000, pricing_data(self.student))['payable'], 20000)
         self.assertEqual(quote(10000, pricing_data(self.premium))['payable'], 10000)
@@ -67,12 +67,12 @@ class PremiumHomeTests(TestCase):
         response = self.client.post(reverse('coin:coin_balance_buy'), {'amount': '10000', 'pricing_token': token})
         self.assertEqual(response.status_code, 409)
 
-    # ── Bosh sahifa ──
+    # ── Boş sahifa ──
     def test_home_shows_premium_ad_and_curiosity_question(self):
         self.login(self.premium)
         html = self.client.get(reverse('home')).content.decode()
-        self.assertIn('Hoziroq coin oling — siz uchun 50% chegirma!', html)
-        self.assertIn('Javobni bilish', html)
+        self.assertIn('Hoziroq coin oling — siz uçun 50% çegirma!', html)
+        self.assertIn('Javobni biliş', html)
         self.assertIn('hf-topic', html)
         self.assertIn('autosend=1', html)
         self.assertIn('class="is-premium"', html)
@@ -99,7 +99,7 @@ class PremiumHomeTests(TestCase):
         self.assertEqual(curiosity.pick_question(self.student, now),
                          curiosity.pick_question(self.student, now + timedelta(minutes=30)))
 
-    # ── AI chat ──
+    # ── AI çat ──
     def test_ask_button_opens_chat_with_autosend(self):
         self.login(self.student)
         question = curiosity.QUESTIONS[0][1]
@@ -125,15 +125,15 @@ class PremiumHomeTests(TestCase):
         self.assertEqual(message.coins_spent, 0)
         # The free answer is single-use and only for the exact shown question.
         self.assertEqual(self.client.post(send, {'content': question}, **ajax).status_code, 400)
-        self.assertEqual(self.client.post(send, {'content': 'Boshqa savol'}, **ajax).status_code, 400)
+        self.assertEqual(self.client.post(send, {'content': 'Boşqa savol'}, **ajax).status_code, 400)
 
 
 class FakeOpenAI:
-    """client.chat.completions.create(...) ning soxta o'rni."""
+    """client.chat.completions.create(...) ning soxta örni."""
     def __init__(self, payload):
         self.calls = []
         reply = type('R', (), {'choices': [type('C', (), {'message': type('M', (), {'content': json.dumps(payload)})()})()]})()
-        self.chat = type('Chat', (), {'completions': type('Comp', (), {'create': lambda _, **kw: (self.calls.append(kw), reply)[1]})()})()
+        self.chat = type('Çat', (), {'completions': type('Comp', (), {'create': lambda _, **kw: (self.calls.append(kw), reply)[1]})()})()
 
 
 class CuriosityGenerationTests(TestCase):
@@ -141,26 +141,26 @@ class CuriosityGenerationTests(TestCase):
         cache.clear()
 
     def test_generated_questions_are_cleaned_validated_and_deduplicated(self):
-        CuriosityQuestion.objects.create(category='internet', text='Birinchi domen nomi qaysi yilda ro‘yxatdan o‘tgan, bilasizmi?')
+        CuriosityQuestion.objects.create(category='internet', text='Birinçi domen nomi qaysi yilda röyxatdan ötgan, bilasizmi?')
         client = FakeOpenAI({'questions': [
-            {'category': 'programming', 'text': "🐍 Python tilining birinchi versiyasi qaysi yilda e'lon qilingan, bilasizmi?"},
-            {'category': 'internet', 'text': 'Birinchi domen nomi qaysi yilda ro‘yxatdan o‘tgan, bilasizmi?'},  # takror
-            {'category': 'sport', 'text': 'Futbol qachon paydo bo‘lgan va kim ixtiro qilgan, bilasizmi?'},      # noma'lum mavzu
+            {'category': 'programming', 'text': "🐍 Python tilining birinçi versiyasi qaysi yilda e'lon qilingan, bilasizmi?"},
+            {'category': 'internet', 'text': 'Birinçi domen nomi qaysi yilda röyxatdan ötgan, bilasizmi?'},  # takror
+            {'category': 'sport', 'text': 'Futbol qaçon paydo bölgan va kim ixtiro qilgan, bilasizmi?'},      # noma'lum mavzu
             {'category': 'ai', 'text': 'Qisqa?'},                                                                # juda qisqa
-            {'category': 'security', 'text': 'Birinchi kompyuter virusi qanday nomlangan edi'},                  # savol emas
-            'noto‘g‘ri element',
+            {'category': 'security', 'text': 'Birinçi kompyuter virusi qanday nomlangan edi'},                  # savol emas
+            'notöğri element',
         ]})
         self.assertEqual(curiosity.generate_batch(5, client=client), 1)
         created = CuriosityQuestion.objects.get(category='programming')
-        self.assertEqual(created.text, 'Python tilining birinchi versiyasi qaysi yilda e’lon qilingan, bilasizmi?')
+        self.assertEqual(created.text, 'Python tilining birinçi versiyasi qaysi yilda e’lon qilingan, bilasizmi?')
         self.assertEqual(client.calls[0]['response_format'], {'type': 'json_object'})
-        self.assertIn('Birinchi domen nomi', client.calls[0]['messages'][0]['content'])
+        self.assertIn('Birinçi domen nomi', client.calls[0]['messages'][0]['content'])
 
     def test_pick_question_uses_generated_pool_with_category_icon(self):
-        CuriosityQuestion.objects.create(category='security', text='Birinchi kompyuter virusi qanday nomlangan, bilasizmi?')
+        CuriosityQuestion.objects.create(category='security', text='Birinçi kompyuter virusi qanday nomlangan, bilasizmi?')
         user = CustomUser.objects.create_user(username='pool-user', phone='+998901112233', password='x')
         question = curiosity.pick_question(user)
-        self.assertEqual(question['text'], 'Birinchi kompyuter virusi qanday nomlangan, bilasizmi?')
+        self.assertEqual(question['text'], 'Birinçi kompyuter virusi qanday nomlangan, bilasizmi?')
         self.assertEqual((question['label'], question['icon']), ('Kiberxavfsizlik', 'bi-shield-lock'))
 
     def test_fallback_questions_have_no_emoji(self):
@@ -179,7 +179,7 @@ class CuriosityGenerationTests(TestCase):
     def test_refresh_starts_one_background_job_when_stale(self):
         with patch('accounts.curiosity.threading.Thread') as thread:
             curiosity.refresh_if_stale()
-            curiosity.refresh_if_stale()   # lock: ikkinchi chaqiruv yangi ish boshlamaydi
+            curiosity.refresh_if_stale()   # lock: ikkinçi çaqiruv yangi iş boşlamaydi
         thread.assert_called_once()
 
     @override_settings(OPENAI_API_KEY='sk-test', RUNNING_TESTS=False)

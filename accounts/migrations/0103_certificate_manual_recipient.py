@@ -1,4 +1,4 @@
-# Sertifikatni qo'lda (ism-familiya kiritib) berish imkoniyati
+# Sertifikatni qölda (ism-familiya kiritib) beriş imkoniyati
 
 import django.db.models.deletion
 from django.conf import settings
@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name='certificates',
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="O'quvchi (platformada)",
+                verbose_name="Öquvçi (platformada)",
             ),
         ),
         migrations.AddField(
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             name='recipient_name',
             field=models.CharField(
                 blank=True, default='', max_length=150,
-                verbose_name="Qabul qiluvchi (qo'lda kiritilgan ism)",
+                verbose_name="Qabul qiluvçi (qölda kiritilgan ism)",
             ),
         ),
     ]

@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='certificate',
             name='valid_until',
-            field=models.DateField(blank=True, null=True, verbose_name='Amal qilish muddati'),
+            field=models.DateField(blank=True, null=True, verbose_name='Amal qiliş muddati'),
         ),
         migrations.AlterField(
             model_name='certificate',

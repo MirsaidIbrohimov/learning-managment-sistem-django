@@ -1,26 +1,26 @@
-"""AI Foydalanuvchi Boshqaruvchisi — admin paneldagi "Foydalanuvchilar"
-sahifasi uchun sun'iy intellekt yordamchisi.
+"""AI Foydalanuvçi Boşqaruvçisi — admin paneldagi "Foydalanuvçilar"
+sahifasi uçun sun'iy intellekt yordamçisi.
 
-Ikki rejimda ishlaydi:
+Ikki rejimda işlaydi:
 
-1. **OpenAI agent rejimi** (OPENAI_API_KEY sozlangan bo'lsa):
-   GPT modeli function-calling orqali quyidagi vositalarni o'zi tanlab
-   chaqiradi: foydalanuvchi qidirish, to'liq profil o'qish, statistika,
-   ro'yxatlar (rol/status/guruh bo'yicha) hamda HARAKATLAR — bloklash,
-   blokdan chiqarish, kursni tugatgan deb belgilash, ism-familiyani
-   tuzatish, barcha ismlarni bosh harfini katta qilish, o'chirish.
-   Javob o'zbek tilida, profil havolalari (markdown) bilan qaytariladi.
+1. **OpenAI agent rejimi** (OPENAI_API_KEY sozlangan bölsa):
+   GPT modeli function-calling orqali quyidagi vositalarni özi tanlab
+   çaqiradi: foydalanuvçi qidiriş, töliq profil öqiş, statistika,
+   röyxatlar (rol/status/guruh böyiça) hamda HARAKATLAR — bloklaş,
+   blokdan çiqariş, kursni tugatgan deb belgilaş, ism-familiyani
+   tuzatiş, barça ismlarni boş harfini katta qiliş, öçiriş.
+   Javob özbek tilida, profil havolalari (markdown) bilan qaytariladi.
 
-2. **Offline fallback rejimi** (API kalit yo'q bo'lsa):
-   Eng ko'p so'raladigan savol/buyruqlarni oddiy qoidalar asosida
-   bajaradi (statistika, bloklanganlar ro'yxati, bloklash/blokdan
-   chiqarish, ismlarni katta harf qilish, foydalanuvchi qidirish).
+2. **Offline fallback rejimi** (API kalit yöq bölsa):
+   Eng köp söraladigan savol/buyruqlarni oddiy qoidalar asosida
+   bajaradi (statistika, bloklanganlar röyxati, bloklash/blokdan
+   çiqariş, ismlarni katta harf qiliş, foydalanuvçi qidiriş).
 
 Xavfsizlik qoidalari:
-- Admin va superuser hisoblariga nisbatan har qanday o'zgartirish
-  (bloklash/o'chirish) RAD ETILADI.
-- O'chirish faqat admin aniq "o'chir" deb yozganda bajariladi.
-- Barcha bajarilgan harakatlar javobda hisobot qilib ko'rsatiladi.
+- Admin va superuser hisoblariga nisbatan har qanday özgartiriş
+  (bloklash/öchirish) RAD ETILADI.
+- Öçiriş faqat admin aniq "öçir" deb yozganda bajariladi.
+- Barça bajarilgan harakatlar javobda hisobot qilib körsatiladi.
 """
 import json
 import re
@@ -31,29 +31,31 @@ from django.db.models import Q, Count
 from django.urls import reverse
 from django.utils import timezone
 
+from .alphabet import to_new_alphabet
+
 # ---------------------------------------------------------------------------
 #  Konfiguratsiya
 # ---------------------------------------------------------------------------
 AI_MODEL = "gpt-4o-mini"
 AI_MAX_TOKENS = 1600
 AI_TEMPERATURE = 0.2
-AGENT_MAX_STEPS = 8          # harakatli buyruqlar ko'proq qadam talab qilishi mumkin
-MAX_LIST_RESULTS = 30        # ro'yxat tool'laridagi maksimal natija
-MAX_BULK_UPDATES = 3000      # bulk ism tuzatishdagi maksimal yangilash
+AGENT_MAX_STEPS = 8          # harakatli buyruqlar köproq qadam talab qilişi mumkin
+MAX_LIST_RESULTS = 30        # röyxat tool'laridagi maksimal natija
+MAX_BULK_UPDATES = 3000      # bulk ism tuzatişdagi maksimal yangilaş
 
 _PROTECTED_ROLES = ('admin',)
 _ONLINE_WINDOW = timedelta(minutes=5)
 
 _ROLE_LABELS = {
-    'student': "O'quvchi",
-    'teacher': "O'qituvchi",
+    'student': "Öquvçi",
+    'teacher': "Öqituvçi",
     'admin': 'Admin',
-    'assistant_admin': 'Yordamchi admin',
+    'assistant_admin': 'Yordamçi admin',
 }
 
 
 # ---------------------------------------------------------------------------
-#  Umumiy yordamchilar
+#  Umumiy yordamçilar
 # ---------------------------------------------------------------------------
 def _user_model():
     from .models import CustomUser
@@ -110,7 +112,7 @@ def _user_row(u, status=None, extra=None):
 
 
 def _find_users(query, limit=6):
-    """Ism/familiya/username/telefon/ID bo'yicha foydalanuvchi qidirish."""
+    """Ism/familiya/username/telefon/ID böyiça foydalanuvçi qidiriş."""
     CustomUser = _user_model()
     query = (query or '').strip()
     if not query:
@@ -149,10 +151,10 @@ def _apply_list_filters(qs, role=None, status=None, group_id=None, online=None):
 #  TOOL implementatsiyalari — har biri (json_matn, havolalar) qaytaradi
 # ---------------------------------------------------------------------------
 def tool_search_users(query, role=None, limit=8):
-    """Foydalanuvcharni ism/username/telefon/ID bo'yicha qidirish."""
+    """Foydalanuvçarni ism/username/telefon/ID böyiça qidiriş."""
     users = _find_users(query, limit=min(int(limit or 8), MAX_LIST_RESULTS))
     if not users:
-        return json.dumps({'found': [], 'note': 'Bunday foydalanuvchi topilmadi.'},
+        return json.dumps({'found': [], 'note': 'Bunday foydalanuvçi topilmadi.'},
                           ensure_ascii=False), []
     rows, links = [], []
     for u in users:
@@ -166,12 +168,12 @@ def tool_search_users(query, role=None, limit=8):
 
 
 def tool_get_user_profile(user_id):
-    """Foydalanuvchining to'liq profili — barcha asosiy ma'lumotlar."""
+    """Foydalanuvçining töliq profili — barça asosiy ma'lumotlar."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.select_related('profession').get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
 
     groups = [g.name for g in u.study_groups.all()[:6]]
     contract = False
@@ -213,7 +215,7 @@ def tool_get_user_profile(user_id):
 
 
 def tool_get_user_stats():
-    """Butun tizimdagi foydalanuvchilar statistikasi."""
+    """Butun tizimdagi foydalanuvçilar statistikasi."""
     CustomUser = _user_model()
     now = timezone.now()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -234,7 +236,7 @@ def tool_get_user_stats():
 
 
 def tool_list_users(role=None, status=None, limit=15, order='newest'):
-    """Foydalanuvchilar ro'yxati: rol/status bo'yicha, saralash bilan."""
+    """Foydalanuvçilar röyxati: rol/status böyiça, saralaş bilan."""
     CustomUser = _user_model()
     qs = _apply_list_filters(CustomUser.objects.all(), role=role, status=status)
 
@@ -249,7 +251,7 @@ def tool_list_users(role=None, status=None, limit=15, order='newest'):
     users = list(qs[:min(int(limit or 15), MAX_LIST_RESULTS)])
 
     if not users:
-        return json.dumps({'users': [], 'note': 'Filtrga mos foydalanuvchi topilmadi.'},
+        return json.dumps({'users': [], 'note': 'Filtrga mos foydalanuvçi topilmadi.'},
                           ensure_ascii=False), []
 
     rows, links = [], []
@@ -265,12 +267,12 @@ def tool_list_users(role=None, status=None, limit=15, order='newest'):
 
 
 def tool_get_online_users(limit=10):
-    """Hozir onlayn bo'lgan foydalanuvchilar (oxirgi 5 daqiqa faollik)."""
+    """Hozir onlayn bölgan foydalanuvçilar (oxirgi 5 daqiqa faollik)."""
     CustomUser = _user_model()
     qs = _apply_list_filters(CustomUser.objects.all(), online=True).order_by('-last_activity')
     users = list(qs[:min(int(limit or 10), MAX_LIST_RESULTS)])
     if not users:
-        return json.dumps({'online': [], 'note': 'Hozir hech kim onlayn emas.'},
+        return json.dumps({'online': [], 'note': 'Hozir heç kim onlayn emas.'},
                           ensure_ascii=False), []
     rows = []
     for u in users:
@@ -284,68 +286,68 @@ def tool_get_online_users(limit=10):
 
 # ── HARAKAT (ACTION) TOOLLARI ──────────────────────────────────────────────
 def tool_block_user(user_id):
-    """Foydalanuvchini bloklash (admin/superuser bloklanmaydi)."""
+    """Foydalanuvçini bloklaş (admin/superuser bloklanmaydi)."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     if _is_protected(u):
-        return json.dumps({'error': 'Admin hisobini bloklash mumkin emas.'},
+        return json.dumps({'error': 'Admin hisobini bloklaş mumkin emas.'},
                           ensure_ascii=False), []
     if u.is_blocked:
         return json.dumps({'success': True, 'already': True, 'user': _user_name(u),
-                           'note': 'Foydalanuvchi allaqachon bloklangan.'},
+                           'note': 'Foydalanuvçi allaqaçon bloklangan.'},
                           ensure_ascii=False), []
     u.is_blocked = True
     u.save(update_fields=['is_blocked'])
     return json.dumps({'success': True, 'action': 'blocked', 'user': _user_name(u),
                        'user_id': u.pk,
-                       'note': 'Foydalanuvchi muvaffaqiyatli bloklandi.'},
+                       'note': 'Foydalanuvçi muvaffaqiyatli bloklandi.'},
                       ensure_ascii=False), []
 
 
 def tool_unblock_user(user_id):
-    """Foydalanuvchini blokdan chiqarish."""
+    """Foydalanuvçini blokdan çiqariş."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     if not u.is_blocked:
         return json.dumps({'success': True, 'already': True, 'user': _user_name(u),
-                           'note': 'Foydalanuvchi bloklangan emas edi.'},
+                           'note': 'Foydalanuvçi bloklangan emas edi.'},
                           ensure_ascii=False), []
     CustomUser.objects.filter(pk=u.pk).update(is_blocked=False)
     return json.dumps({'success': True, 'action': 'unblocked', 'user': _user_name(u),
                        'user_id': u.pk,
-                       'note': 'Foydalanuvchi blokdan chiqarildi.'},
+                       'note': 'Foydalanuvçi blokdan çiqarildi.'},
                       ensure_ascii=False), []
 
 
 def tool_set_finished(user_id, finished=True):
-    """O'quvchini 'kursni tugatgan' deb belgilash yoki belgisini olib tashlash."""
+    """Öquvçini 'kursni tugatgan' deb belgilaş yoki belgisini olib taşlaş."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     CustomUser.objects.filter(pk=u.pk).update(is_finished=bool(finished))
     action = 'marked_finished' if finished else 'unmarked_finished'
     return json.dumps({'success': True, 'action': action, 'user': _user_name(u),
                        'user_id': u.pk,
                        'note': ('Kursni tugatgan deb belgilandi.' if finished
-                                else "Tugatgan belgisi olib tashlandi.")},
+                                else "Tugatgan belgisi olib taşlandi.")},
                       ensure_ascii=False), []
 
 
 def tool_update_user_names(user_id, first_name=None, last_name=None):
-    """Foydalanuvchining ism/familiyasini yangilash."""
+    """Foydalanuvçining ism/familiyasini yangilaş."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     old = f"{u.first_name} {u.last_name}".strip()
     updates = {}
     if first_name is not None:
@@ -365,13 +367,13 @@ def tool_update_user_names(user_id, first_name=None, last_name=None):
 
 
 def tool_bulk_fix_names(mode='capitalize'):
-    """BARCHA foydalanuvchilar ismlarini tuzatish.
+    """BARÇA foydalanuvçilar ismlarini tuzatiş.
 
-    mode='capitalize' — har bir so'zning birinchi harfini katta, qolganini
-    kichik harfga o'tkazadi ("ali VALIYEV" -> "Ali Valiyev")."""
+    mode='capitalize' — har bir sözning birinçi harfini katta, qolganini
+    kiçik harfga ötkazadi ("ali VALIYEV" -> "Ali Valiyev")."""
     CustomUser = _user_model()
     if mode != 'capitalize':
-        return json.dumps({'error': "Faqat mode='capitalize' qo'llab-quvvatlanadi."},
+        return json.dumps({'error': "Faqat mode='capitalize' qöllab-quvvatlanadi."},
                           ensure_ascii=False), []
 
     def fix(value):
@@ -395,31 +397,31 @@ def tool_bulk_fix_names(mode='capitalize'):
         'success': True, 'action': 'bulk_fix_names',
         'scanned': scanned, 'changed': changed,
         'samples': samples,
-        'note': (f"{changed} ta foydalanuvchining ismi tuzatildi "
-                 f"(jami ko'rilgan: {scanned})."),
+        'note': (f"{changed} ta foydalanuvçining ismi tuzatildi "
+                 f"(jami körilgan: {scanned})."),
     }, ensure_ascii=False), []
 
 
 def tool_delete_user(user_id, confirm=False):
-    """Foydalanuvchini O'CHIRISH — faqat admin aniq buyruq berganda (confirm=True).
-    Admin/superuser hisoblari o'chirilmaydi."""
+    """Foydalanuvçini ÖÇIRIŞ — faqat admin aniq buyruq berganda (confirm=True).
+    Admin/superuser hisoblari öçirilmaydi."""
     CustomUser = _user_model()
     try:
         u = CustomUser.objects.get(pk=int(user_id))
     except (CustomUser.DoesNotExist, ValueError, TypeError):
-        return json.dumps({'error': 'Foydalanuvchi topilmadi.'}, ensure_ascii=False), []
+        return json.dumps({'error': 'Foydalanuvçi topilmadi.'}, ensure_ascii=False), []
     if _is_protected(u):
-        return json.dumps({'error': 'Admin hisobini o\'chirish mumkin emas.'},
+        return json.dumps({'error': 'Admin hisobini öçiriş mumkin emas.'},
                           ensure_ascii=False), []
     if not confirm:
         return json.dumps({'needs_confirmation': True,
-                           'note': ("Bu qaytarib bo'lmaydigan amal. Admin "
-                                    "'o'chirishni tasdiqlayman' deganda bajariladi.")},
+                           'note': ("Bu qaytarib bölmaydigan amal. Admin "
+                                    "'öçirişni tasdiqlayman' deganda bajariladi.")},
                           ensure_ascii=False), []
     name = _user_name(u)
     u.delete()
     return json.dumps({'success': True, 'action': 'deleted', 'user': name,
-                       'note': f'{name} tizimdan o\'chirildi.'},
+                       'note': f'{name} tizimdan öçirildi.'},
                       ensure_ascii=False), []
 
 
@@ -428,14 +430,14 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "search_users",
-            "description": "Foydalanuvchini ism, familiya, username, telefon yoki student_id "
-                           "bo'yicha qidiradi. Savol yoki buyruqdagi ismni user_id'ga "
-                           "aylantirish uchun avval shuni chaqiring.",
+            "description": "Foydalanuvçini ism, familiya, username, telefon yoki student_id "
+                           "böyiça qidiradi. Savol yoki buyruqdagi ismni user_id'ga "
+                           "aylantiriş uçun avval şuni çaqiring.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {"type": "string", "description": "Ism yoki uning bir qismi"},
-                    "limit": {"type": "integer", "description": "Nechta natija (max 30)"},
+                    "limit": {"type": "integer", "description": "Neçta natija (max 30)"},
                 },
                 "required": ["query"],
             },
@@ -445,9 +447,9 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_user_profile",
-            "description": "Foydalanuvchining TO'LIQ profilini qaytaradi: telefon, rol, status, "
-                           "guruhlar, yo'nalish, premium, tanga, telegram, qo'shilgan sana, "
-                           "oxirgi faollik va h.k. 'Axmat haqida malumot ber' kabi savollar uchun.",
+            "description": "Foydalanuvçining TÖLIQ profilini qaytaradi: telefon, rol, status, "
+                           "guruhlar, yönaliş, premium, tanga, telegram, qöşilgan sana, "
+                           "oxirgi faollik va h.k. 'Axmat haqida malumot ber' kabi savollar uçun.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -461,9 +463,9 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_user_stats",
-            "description": "Tizimdagi foydalanuvchilar statistikasi: jami, o'quvchilar, "
-                           "o'qituvchilar, bloklanganlar, premium, onlayn, bugun qo'shilganlar. "
-                           "'Nechta foydalanuvchi bor?' kabi savollar uchun.",
+            "description": "Tizimdagi foydalanuvçilar statistikasi: jami, öquvçilar, "
+                           "öqituvçilar, bloklanganlar, premium, onlayn, bugun qöşilganlar. "
+                           "'Neçta foydalanuvçi bor?' kabi savollar uçun.",
             "parameters": {"type": "object", "properties": {}},
         },
     }),
@@ -471,9 +473,9 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "list_users",
-            "description": "Foydalanuvchilar ro'yxatini qaytaradi (rol/status bo'yicha filtr, "
-                           "saralash bilan). 'Yangi foydalanuvchilar', 'bloklanganlar ro'yxati', "
-                           "'o'quvchilar ro'yxati' kabi so'rovlar uchun.",
+            "description": "Foydalanuvçilar röyxatini qaytaradi (rol/status böyiça filtr, "
+                           "saralaş bilan). 'Yangi foydalanuvçilar', 'bloklanganlar röyxati', "
+                           "'öquvçilar röyxati' kabi sörovlar uçun.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -481,10 +483,10 @@ TOOLS = {
                              "description": "Rol filtri (ixtiyoriy)"},
                     "status": {"type": "string", "enum": ["active", "blocked"],
                                "description": "Status filtri (ixtiyoriy)"},
-                    "limit": {"type": "integer", "description": "Nechta natija (max 30)"},
+                    "limit": {"type": "integer", "description": "Neçta natija (max 30)"},
                     "order": {"type": "string",
                               "enum": ["newest", "oldest", "name", "name_desc", "activity"],
-                              "description": "Saralash (ixtiyoriy)"},
+                              "description": "Saralaş (ixtiyoriy)"},
                 },
             },
         },
@@ -493,11 +495,11 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "get_online_users",
-            "description": "Hozir onlayn bo'lgan foydalanuvchilar ro'yxati (oxirgi 5 daqiqa).",
+            "description": "Hozir onlayn bölgan foydalanuvçilar röyxati (oxirgi 5 daqiqa).",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "limit": {"type": "integer", "description": "Nechta natija (max 30)"},
+                    "limit": {"type": "integer", "description": "Neçta natija (max 30)"},
                 },
             },
         },
@@ -506,8 +508,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "block_user",
-            "description": "Foydalanuvchini BLOKLAYDI (harakat). Admin aniq 'blokla' deganda "
-                           "bajariladi. Admin hisoblarini bloklash mumkin emas.",
+            "description": "Foydalanuvçini BLOKLAYDI (harakat). Admin aniq 'blokla' deganda "
+                           "bajariladi. Admin hisoblarini bloklaş mumkin emas.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -521,8 +523,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "unblock_user",
-            "description": "Foydalanuvchini BLOKDAN CHIQARADI (harakat). "
-                           "'blokdan chiqar' buyrug'i bilan.",
+            "description": "Foydalanuvçini BLOKDAN ÇIQARADI (harakat). "
+                           "'blokdan çiqar' buyruği bilan.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -536,14 +538,14 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "set_finished",
-            "description": "O'quvchini 'kursni tugatgan' deb belgilaydi yoki belgisini "
-                           "olib tashlaydi (harakat).",
+            "description": "Öquvçini 'kursni tugatgan' deb belgilaydi yoki belgisini "
+                           "olib taşlaydi (harakat).",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "user_id": {"type": "integer"},
                     "finished": {"type": "boolean",
-                                 "description": "true=belgilash, false=olib tashlash"},
+                                 "description": "true=belgilaş, false=olib taşlaş"},
                 },
                 "required": ["user_id"],
             },
@@ -553,8 +555,8 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "update_user_names",
-            "description": "Foydalanuvchining ism yoki familiyasini yangilaydi (harakat). "
-                           "Masalan: 'Axmatning familiyasini Karimov qilib qo'y'.",
+            "description": "Foydalanuvçining ism yoki familiyasini yangilaydi (harakat). "
+                           "Masalan: 'Axmatning familiyasini Karimov qilib qöy'.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -570,14 +572,14 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "bulk_fix_names",
-            "description": "BARCHA foydalanuvchilarning ism-familiyasini tuzatadi: har bir "
-                           "so'zning birinchi harfini katta qiladi (harakat). "
-                           "'Ismlarni bosh harfini katta qilib chiq' buyrug'i bilan.",
+            "description": "BARÇA foydalanuvçilarning ism-familiyasini tuzatadi: har bir "
+                           "sözning birinçi harfini katta qiladi (harakat). "
+                           "'Ismlarni boş harfini katta qilib çiq' buyruği bilan.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "mode": {"type": "string", "enum": ["capitalize"],
-                             "description": "Hozircha faqat 'capitalize'"},
+                             "description": "Hozirça faqat 'capitalize'"},
                 },
             },
         },
@@ -586,9 +588,9 @@ TOOLS = {
         "type": "function",
         "function": {
             "name": "delete_user",
-            "description": "Foydalanuvchini butunlay O'CHIRADI (qaytarilmas harakat). "
-                           "FAQAT admin aniq 'o'chir' deganda, confirm=true bilan chaqiring. "
-                           "Ikkilanganingizda confirm=false yuborib tasdiq so'rang.",
+            "description": "Foydalanuvçini butunlay ÖÇIRADI (qaytarilmas harakat). "
+                           "FAQAT admin aniq 'öçir' deganda, confirm=true bilan çaqiring. "
+                           "Ikkilanganingizda confirm=false yuborib tasdiq sörang.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -604,20 +606,20 @@ TOOLS = {
 
 
 def _dispatch_tool(name, args):
-    """Tool chaqiruvini xavfsiz bajaradi; (json_matn, havolalar) qaytaradi."""
+    """Tool çaqiruvini xavfsiz bajaradi; (json_matn, havolalar) qaytaradi."""
     entry = TOOLS.get(name)
     if not entry:
         return json.dumps({'error': f"Noma'lum vosita: {name}"}, ensure_ascii=False), []
     func = entry[0]
     try:
         return func(**args)
-    except Exception as e:  # tool xatosi agent'ni to'xtatmasligi kerak
+    except Exception as e:  # tool xatosi agent'ni töxtatmasligi kerak
         # Xato matni OpenAI ga qaytib yuboriladi — DB jadval/ustun nomlari va
-        # qator ma'lumotlari uchinchi tomonga chiqib ketmasin. To'liq izoh
+        # qator ma'lumotlari uçinçi tomonga çiqib ketmasin. Töliq izoh
         # server jurnalida qoladi.
         from .security import safe_error
         return json.dumps(
-            {'error': safe_error(e, f'users_ai_tool:{name}', 'Ichki xatolik')},
+            {'error': safe_error(e, f'users_ai_tool:{name}', 'Içki xatolik')},
             ensure_ascii=False,
         ), []
 
@@ -633,42 +635,42 @@ def _get_client():
         from openai import OpenAI
         return OpenAI(api_key=api_key.strip(), timeout=60)
     except Exception as e:
-        print(f"Users AI: OpenAI client yaratib bo'lmadi: {e}")
+        print(f"Users AI: OpenAI client yaratib bölmadi: {e}")
         return None
 
 
 def _system_prompt():
     now = timezone.localtime()
-    weekdays = ['Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba', 'Yakshanba']
-    return f"""Siz LMS admin panelining "AI Foydalanuvchi Boshqaruvchisi" modulisiz.
-Vazifangiz — admin savollariga FOYDALANUVCHILAR bazasiga tayangan holda javob
-berish HAMDA adminning aniq buyruqlarini (bloklash, blokdan chiqarish, ism
-tuzatish, o'chirish va h.k.) bazada AMALGA OSHIRISH.
-Har doim O'ZBEK tilida javob bering.
+    weekdays = ['Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba', 'Yakşanba']
+    return f"""Siz LMS admin panelining "AI Foydalanuvçi Boşqaruvçisi" modulisiz.
+Vazifangiz — admin savollariga FOYDALANUVÇILAR bazasiga tayangan holda javob
+beriş HAMDA adminning aniq buyruqlarini (bloklaş, blokdan çiqariş, ism
+tuzatiş, öçiriş va h.k.) bazada AMALGA OŞIRIŞ.
+Har doim ÖZBEK tilida javob bering.
 
 BUGUN: {now.strftime('%Y-%m-%d')} ({weekdays[now.weekday()]}), soat {now.strftime('%H:%M')}.
 
 QOIDALAR:
 1. FAQAT vositalar (tools) qaytargan ma'lumotlarga tayanib javob bering.
-   Foydalanuvchi ma'lumotini O'ZINGIZ O'YLAB CHIQARMANG.
-2. Savol yoki buyruqdagi ism uchun avval search_users chaqirib user_id oling.
+   Foydalanuvçi ma'lumotini ÖZINGIZ ÖYLAB ÇIQARMANG.
+2. Savol yoki buyruqdagi ism uçun avval search_users çaqirib user_id oling.
 3. HARAKAT BUYRUQLARI (block_user, unblock_user, set_finished, update_user_names,
-   bulk_fix_names): admin aniq buyruq berganda darhol bajaring — ruxsat so'ramang.
-   Admin noaniq yozsa (masalan bir nechta xuddi shu ismli bor), aniqlashtirib so'rang.
-4. delete_user — FAQAT admin "o'chir" / "o'chirib yubor" deb aniq yozganda.
-   Avval confirm=false bilan chaqirib tasdiq so'rang, admin tasdiqlaganda
-   confirm=true bilan bajaring. Admin hisoblarini o'chirish/bloklash MUMKIN EMAS —
+   bulk_fix_names): admin aniq buyruq berganda darhol bajaring — ruxsat söramang.
+   Admin noaniq yozsa (masalan bir neçta xuddi şu ismli bor), aniqlaştirib sörang.
+4. delete_user — FAQAT admin "öçir" / "öçirib yubor" deb aniq yozganda.
+   Avval confirm=false bilan çaqirib tasdiq sörang, admin tasdiqlaganda
+   confirm=true bilan bajaring. Admin hisoblarini öchirish/bloklash MUMKIN EMAS —
    buni rad eting.
-5. Harakat bajarilgach javobda nima o'zgargani aniq yozing (kim, qanaqa amal) va
-   "Ro'yxatni yangilash uchun sahifani yangilang (F5)" deb eslatib qo'ying.
+5. Harakat bajarilgaç javobda nima özgargani aniq yozing (kim, qanaqa amal) va
+   "Röyxatni yangilaş uçun sahifani yangilang (F5)" deb eslatib qöying.
 6. Profilga havolalarni FAQAT vositalar qaytargan profile_url'dan oling va
-   markdown ko'rinishida yozing: [Ism](profile_url)
-7. Javob tuzilishi: avval 1-2 gaplik xulosa, kerak bo'lsa qisqa ro'yxat,
-   oxirida havola(lar). Katta ro'yxatni 10-15 tadan oshib ko'chirmang —
+   markdown körinişida yozing: [Ism](profile_url)
+7. Javob tuzilişi: avval 1-2 gaplik xulosa, kerak bölsa qisqa röyxat,
+   oxirida havola(lar). Katta röyxatni 10-15 tadan oşib köçirmang —
    "yana bor" deb yozing.
-8. Telefon, passport kabi shaxsiy ma'lumotlarni faqat admin so'raganda ko'rsating.
-9. Hech narsa topilmasa ochiq ayting va aniqlashtiruvchi savol taklif qiling.
-10. Qisqa, rasmiy-do'stona ohangda yozing.
+8. Telefon, passport kabi şaxsiy ma'lumotlarni faqat admin söraganda körsating.
+9. Heç narsa topilmasa oçiq ayting va aniqlaştiruvçi savol taklif qiling.
+10. Qisqa, rasmiy-döstona ohangda yozing.
 """
 
 
@@ -700,12 +702,12 @@ def _run_openai_agent(client, question, history=None):
                 max_tokens=AI_MAX_TOKENS,
             )
         except Exception as e:
-            # OpenAI SDK xatoligi so'rov URL i, model va tashkilot ID sini
-            # o'z ichiga oladi — brauzerga chiqarilmasin.
+            # OpenAI SDK xatoligi sörov URL i, model va taşkilot ID sini
+            # öz içiga oladi — brauzerga çiqarilmasin.
             from .security import safe_error
             return {
                 'answer': "⚠️ " + safe_error(
-                    e, 'users_ai_openai', "AI xizmatiga ulanishda xatolik. Keyinroq urinib ko'ring.",
+                    e, 'users_ai_openai', "AI xizmatiga ulanişda xatolik. Keyinroq urinib köring.",
                 ),
                 'links': [], 'mode': 'openai', 'tools_used': tools_used, 'ok': False,
             }
@@ -740,7 +742,7 @@ def _run_openai_agent(client, question, history=None):
         }
 
     return {
-        'answer': "⚠️ Agent juda ko'p qadam bajardi — savolni soddaroq qilib qayta yozing.",
+        'answer': "⚠️ Agent juda köp qadam bajardi — savolni soddaroq qilib qayta yozing.",
         'links': _dedupe_links(links), 'mode': 'openai', 'tools_used': tools_used, 'ok': False,
     }
 
@@ -756,28 +758,28 @@ def _dedupe_links(links):
 
 
 # ---------------------------------------------------------------------------
-#  Offline fallback (API kalit bo'lmasa) — qoidaviy yordamchi
+#  Offline fallback (API kalit bölmasa) — qoidaviy yordamçi
 # ---------------------------------------------------------------------------
 _QUESTION_WORDS = {
-    'nechta', 'nechchi', 'qancha', 'kim', 'kimlar', 'bor', 'bormi', 'hamma',
-    'barcha', 'barisi', 'royxatini', "ro'yxatini", 'korsat', "ko'rsat", 'korib',
-    "ko'rib", 'chiqarib', 'chiq', 'qilib', 'qil', 'bilan', 'haqida', 'malumot',
+    'neçta', 'neççi', 'qança', 'kim', 'kimlar', 'bor', 'bormi', 'hamma',
+    'barça', 'barisi', 'royxatini', "röyxatini", 'korsat', "körsat", 'korib',
+    "körib", 'çiqarib', 'çiq', 'qilib', 'qil', 'bilan', 'haqida', 'malumot',
     "ma'lumot", 'malumotlar', "ma'lumotlar", 'ber', 'aysan', 'menda', 'tizimda',
-    'bazada', 'hozir', 'bugun', 'kecha', 'shu', 'ushbu', 'tani', 'tanib',
-    'ochir', "o'chir", 'ochirish', "o'chirish", 'blok', 'blokla', 'bloklangan',
+    'bazada', 'hozir', 'bugun', 'keça', 'şu', 'uşbu', 'tani', 'tanib',
+    'oçir', "öçir", 'oçiriş', "öçiriş", 'blok', 'blokla', 'bloklangan',
     'bloklanganlar', 'blokdan', 'faol', 'faollar', 'onlayn', 'online', 'admin',
-    'AI', 'ai', 'yordamchi', 'iltimos', 'va', 'ham', 'da', 'ni', 'ning', 'ga',
+    'AI', 'ai', 'yordamçi', 'iltimos', 'va', 'ham', 'da', 'ni', 'ning', 'ga',
     'the', 'bor', 'edi', 'mikan', 'mikin',
 }
 
 
 def _extract_names(question):
     tokens = re.findall(r"[A-Za-zÀ-žʼ’'0-9]+", question)
-    return [t for t in tokens if len(t) >= 3 and t.lower() not in _QUESTION_WORDS]
+    return [t for t in tokens if len(t) >= 3 and to_new_alphabet(t.lower()) not in _QUESTION_WORDS]
 
 
 def _run_fallback(question):
-    q = question.lower()
+    q = to_new_alphabet(question.lower())
 
     def _md_list(rows, with_status=False):
         lines = []
@@ -793,46 +795,46 @@ def _run_fallback(question):
             lines.append(entry)
         return lines
 
-    # 1) "Ismlarni bosh harfini katta qilib chiq" — bulk amal
-    if ('bosh harf' in q or 'katta harf' in q or 'kapital' in q) and ('ism' in q or 'familiya' in q):
+    # 1) "Ismlarni boş harfini katta qilib çiq" — bulk amal
+    if ('boş harf' in q or 'katta harf' in q or 'kapital' in q) and ('ism' in q or 'familiya' in q):
         result_json, links = tool_bulk_fix_names('capitalize')
         data = json.loads(result_json)
         if data.get('error'):
             answer = f"⚠️ {data['error']}"
         else:
-            answer = (f"✅ **Barcha ismlar tuzatildi!**\n\n"
-                      f"- Ko'rilgan foydalanuvchi: **{data['scanned']}**\n"
-                      f"- O'zgargan: **{data['changed']}**\n\n")
+            answer = (f"✅ **Barça ismlar tuzatildi!**\n\n"
+                      f"- Körilgan foydalanuvçi: **{data['scanned']}**\n"
+                      f"- Özgargan: **{data['changed']}**\n\n")
             if data.get('samples'):
                 answer += "Namunalar:\n"
                 for s in data['samples'][:5]:
                     answer += f"- {s['old']} → **{s['new']}**\n"
-            answer += "\n*Sahifani yangilang (F5) — ro'yxatda yangi ismlar ko'rinadi.*"
+            answer += "\n*Sahifani yangilang (F5) — röyxatda yangi ismlar körinadi.*"
         return {'answer': answer, 'links': [], 'mode': 'fallback',
                 'tools_used': ['bulk_fix_names'], 'ok': True}
 
-    # 2) Blokdan chiqarish / bloklash buyrug'i
+    # 2) Blokdan çiqariş / bloklaş buyruği
     names = _extract_names(question)
-    if names and ('blokdan chiqar' in q or 'blokdan ozod' in q):
+    if names and ('blokdan çiqar' in q or 'blokdan ozod' in q):
         users = _find_users(' '.join(names[:2]))
         if users:
             u = users[0]
             if _is_protected(u):
-                answer = f"⚠️ {_user_name(u)} — admin hisobi, uni bloklash/blokdan chiqarish mumkin emas."
+                answer = f"⚠️ {_user_name(u)} — admin hisobi, uni bloklash/blokdan çiqariş mumkin emas."
                 return _fb(answer, [])
             result_json, _ = tool_unblock_user(u.pk)
             data = json.loads(result_json)
-            answer = (f"✅ **{_user_name(u)}** blokdan chiqarildi."
+            answer = (f"✅ **{_user_name(u)}** blokdan çiqarildi."
                       if data.get('success') and not data.get('already')
                       else f"ℹ️ {_user_name(u)} — {data.get('note', '')}")
             lnk = _user_link(u)
             return _fb(answer, [lnk] if lnk else [])
-    if names and ('blokla' in q) and ('royxat' not in q and "ro'yxat" not in q and 'nechta' not in q):
+    if names and ('blokla' in q) and ('royxat' not in q and "röyxat" not in q and 'neçta' not in q):
         users = _find_users(' '.join(names[:2]))
         if users:
             u = users[0]
             if _is_protected(u):
-                return _fb(f"⚠️ {_user_name(u)} — admin hisobini bloklash mumkin emas.", [])
+                return _fb(f"⚠️ {_user_name(u)} — admin hisobini bloklaş mumkin emas.", [])
             result_json, _ = tool_block_user(u.pk)
             data = json.loads(result_json)
             answer = (f"✅ **{_user_name(u)}** bloklandi." if data.get('success')
@@ -841,50 +843,50 @@ def _run_fallback(question):
             return _fb(answer, [lnk] if lnk else [])
 
     # 3) Statistika
-    if any(w in q for w in ('nechta', 'nechchi', 'qancha', 'statistika')):
+    if any(w in q for w in ('neçta', 'neççi', 'qança', 'statistika')):
         result_json, _ = tool_get_user_stats()
         s = json.loads(result_json)['stats']
         answer = (
-            f"📊 **Foydalanuvchilar statistikasi:**\n\n"
+            f"📊 **Foydalanuvçilar statistikasi:**\n\n"
             f"- Jami: **{s['total']}**\n"
-            f"- O'quvchilar: **{s['students']}**\n"
-            f"- O'qituvchilar: **{s['teachers']}**\n"
-            f"- Adminlar: **{s['admins']}** | Yordamchi adminlar: **{s['assistants']}**\n"
+            f"- Öquvçilar: **{s['students']}**\n"
+            f"- Öqituvçilar: **{s['teachers']}**\n"
+            f"- Adminlar: **{s['admins']}** | Yordamçi adminlar: **{s['assistants']}**\n"
             f"- 🚫 Bloklangan: **{s['blocked']}**\n"
             f"- ⭐ Premium: **{s['premium']}** | 🎓 Kursni tugatgan: **{s['finished']}**\n"
             f"- 🟢 Hozir onlayn: **{s['online_now']}**\n"
-            f"- Bugun qo'shilgan: **{s['new_today']}** (bu hafta: {s['new_week']})"
+            f"- Bugun qöşilgan: **{s['new_today']}** (bu hafta: {s['new_week']})"
         )
         return _fb(answer, [])
 
-    # 4) Bloklanganlar ro'yxati
+    # 4) Bloklanganlar röyxati
     if 'bloklangan' in q:
         result_json, links = tool_list_users(status='blocked', limit=15)
         data = json.loads(result_json)
         rows = data.get('users', [])
         if not rows:
-            answer = "Hozircha bloklangan foydalanuvchi yo'q. ✅"
+            answer = "Hozirça bloklangan foydalanuvçi yöq. ✅"
         else:
-            answer = f"🚫 **Bloklangan foydalanuvchilar ({len(rows)}):**\n\n"
+            answer = f"🚫 **Bloklangan foydalanuvçilar ({len(rows)}):**\n\n"
             answer += '\n'.join(_md_list(rows))
             if data.get('count', len(rows)) >= 15:
-                answer += "\n\n*(boshqalar ham bor — sahifadai *Bloklangan* filtri bilan ko'ring)*"
+                answer += "\n\n*(boşqalar ham bor — sahifadai *Bloklangan* filtri bilan köring)*"
         return _fb(answer, links)
 
-    # 5) Onlayn foydalanuvchilar
+    # 5) Onlayn foydalanuvçilar
     if 'onlayn' in q or 'online' in q:
         result_json, links = tool_get_online_users(10)
         data = json.loads(result_json)
         rows = data.get('online', [])
         if not rows:
-            answer = "Hozir hech kim onlayn emas."
+            answer = "Hozir heç kim onlayn emas."
         else:
             answer = f"🟢 **Hozir onlayn ({len(rows)}):**\n\n"
             answer += '\n'.join(f"- [{r['name']}]({r['profile_url']}) — {r['role']}"
                                 if r.get('profile_url') else f"- {r['name']}" for r in rows)
         return _fb(answer, links)
 
-    # 6) Ism bo'yicha qidiruv / profil
+    # 6) Ism böyiça qidiruv / profil
     if names:
         users = _find_users(' '.join(names[:3]))
         if users:
@@ -900,20 +902,20 @@ def _run_fallback(question):
                     + f"- Status: {'🚫 Bloklangan' if p['blocked'] else '✅ Faol'}"
                     + (f" | 🎓 Kursni tugatgan" if p.get('finished_course') else "") + "\n"
                     + (f"- Guruhlar: {', '.join(p['groups'])}\n" if p.get('groups') else "")
-                    + (f"- Qo'shilgan: {p['joined_at']}\n" if p.get('joined_at') else "")
+                    + (f"- Qöşilgan: {p['joined_at']}\n" if p.get('joined_at') else "")
                     + (f"- Oxirgi faollik: {p['last_activity']}" if p.get('last_activity') else "")
                 )
                 return _fb(answer, links)
 
     # 7) Umumiy yordam
     answer = (
-        "Savolingizni tushunmadim. Quyidagicha so'rang yoki buyruq bering:\n"
-        "- *Nechta bloklangan foydalanuvchi bor?*\n"
-        "- *Barcha ismlarni bosh harfini katta qilib chiq*\n"
-        "- *Axmatni blokdan chiqar*\n"
+        "Savolingizni tuşunmadim. Quyidagiça sörang yoki buyruq bering:\n"
+        "- *Neçta bloklangan foydalanuvçi bor?*\n"
+        "- *Barça ismlarni boş harfini katta qilib çiq*\n"
+        "- *Axmatni blokdan çiqar*\n"
         "- *Madina haqida ma'lumot ber*\n"
-        "- *Bloklanganlar ro'yxatini ko'rsat*\n\n"
-        "ℹ️ To'liq AI rejimi uchun OPENAI_API_KEY sozlanishi kerak."
+        "- *Bloklanganlar röyxatini körsat*\n\n"
+        "ℹ️ Töliq AI rejimi uçun OPENAI_API_KEY sozlanişi kerak."
     )
     return _fb(answer, [])
 
@@ -924,7 +926,7 @@ def _fb(answer, links):
 
 
 # ---------------------------------------------------------------------------
-#  Kirish nuqtasi
+#  Kiriş nuqtasi
 # ---------------------------------------------------------------------------
 def analyze_users(question, history=None):
     """Admin savoliga javob qaytaradi.
@@ -934,7 +936,7 @@ def analyze_users(question, history=None):
     """
     question = (question or '').strip()
     if not question:
-        return {'answer': "Savol bo'sh.", 'links': [], 'mode': 'none', 'tools_used': [], 'ok': False}
+        return {'answer': "Savol böş.", 'links': [], 'mode': 'none', 'tools_used': [], 'ok': False}
 
     client = _get_client()
     if client:
@@ -943,5 +945,5 @@ def analyze_users(question, history=None):
 
 
 def ai_available():
-    """OpenAI kaliti sozlanganmi — UI'da badge ko'rsatish uchun."""
+    """OpenAI kaliti sozlanganmi — UI'da badge körsatiş uçun."""
     return bool((getattr(settings, 'OPENAI_API_KEY', '') or '').strip())

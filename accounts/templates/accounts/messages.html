@@ -414,7 +414,7 @@
     <div class="mx-hero-inner">
       <div class="mx-hero-badge"><i class="bi bi-envelope-fill"></i> Inbox</div>
       <h1>Xabarlar{% if unread_count > 0 %}<span class="mx-unread-badge">{{ unread_count }}</span>{% endif %}</h1>
-      <p>Sizga kelgan barcha tizim xabarlari</p>
+      <p>Sizga kelgan barça tizim xabarlari</p>
     </div>
   </div>
 
@@ -425,18 +425,18 @@
     <form method="POST" action="{% url 'mark_all_messages_read' %}" class="mx-act-form">
       {% csrf_token %}
       <button type="submit" class="mx-act-btn primary">
-        <i class="bi bi-check2-all"></i> Barchasini o'qilgan deb belgilash
+        <i class="bi bi-check2-all"></i> Barçasini öqilgan deb belgilaş
       </button>
     </form>
     {% endif %}
     {% if read_count > 0 %}
     <button type="button" class="mx-act-btn danger" data-mx-open="mxDelRead">
-      <i class="bi bi-trash3"></i> O'qilganlarni o'chirish ({{ read_count }})
+      <i class="bi bi-trash3"></i> Öqilganlarni öçiriş ({{ read_count }})
     </button>
     {% endif %}
     {% if total_count > 0 %}
     <button type="button" class="mx-act-btn danger" data-mx-open="mxDelAll">
-      <i class="bi bi-trash3-fill"></i> Barchasini o'chirish ({{ total_count }})
+      <i class="bi bi-trash3-fill"></i> Barçasini öçiriş ({{ total_count }})
     </button>
     {% endif %}
   </div>
@@ -447,15 +447,15 @@
     <!-- Filter tabs -->
     <div class="mx-tabs" role="tablist" aria-label="Xabar filtri">
       <button class="mx-tab active" data-filter="all" role="tab" aria-selected="true">
-        <i class="bi bi-inbox"></i> Barchasi
+        <i class="bi bi-inbox"></i> Barçasi
         <span class="cnt">{{ total_count|default:0 }}</span>
       </button>
       <button class="mx-tab" data-filter="unread" role="tab" aria-selected="false">
-        <i class="bi bi-circle-fill" style="font-size:.45rem;"></i> O'qilmagan
+        <i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Öqilmagan
         <span class="cnt">{{ unread_count|default:0 }}</span>
       </button>
       <button class="mx-tab" data-filter="payment" role="tab" aria-selected="false">
-        <i class="bi bi-credit-card"></i> To'lov
+        <i class="bi bi-credit-card"></i> Tölov
       </button>
       <button class="mx-tab" data-filter="system" role="tab" aria-selected="false">
         <i class="bi bi-gear"></i> Tizim
@@ -464,7 +464,7 @@
         <i class="bi bi-trophy"></i> Yutuqlar
       </button>
       <button class="mx-tab" data-filter="motivation" role="tab" aria-selected="false">
-        <i class="bi bi-emoji-smile"></i> Rag'bat
+        <i class="bi bi-emoji-smile"></i> Rağbat
       </button>
       <button class="mx-tab" data-filter="reminder" role="tab" aria-selected="false">
         <i class="bi bi-alarm"></i> Eslatma
@@ -473,7 +473,7 @@
         <i class="bi bi-lightbulb"></i> Tavsiya
       </button>
       <button class="mx-tab" data-filter="warning" role="tab" aria-selected="false">
-        <i class="bi bi-exclamation-triangle"></i> Ogohlantirish
+        <i class="bi bi-exclamation-triangle"></i> Ogohlantiriş
       </button>
       <button class="mx-tab" data-filter="security" role="tab" aria-selected="false">
         <i class="bi bi-shield-lock"></i> Xavfsizlik
@@ -519,11 +519,11 @@
 
         <div class="mx-meta">
           <span class="mx-time">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
-          {% if msg.message_type == 'payment' %}<span class="mx-type-pill payment">To'lov</span>
+          {% if msg.message_type == 'payment' %}<span class="mx-type-pill payment">Tölov</span>
           {% elif msg.message_type == 'system' %}<span class="mx-type-pill system">Tizim</span>
-          {% elif msg.message_type == 'motivation' %}<span class="mx-type-pill motivation">Rag'bat</span>
+          {% elif msg.message_type == 'motivation' %}<span class="mx-type-pill motivation">Rağbat</span>
           {% elif msg.message_type == 'achievement' %}<span class="mx-type-pill achievement">Yutuq</span>
-          {% elif msg.message_type == 'warning' %}<span class="mx-type-pill warning">Ogohlantirish</span>
+          {% elif msg.message_type == 'warning' %}<span class="mx-type-pill warning">Ogohlantiriş</span>
           {% elif msg.message_type == 'reminder' %}<span class="mx-type-pill reminder">Eslatma</span>
           {% elif msg.message_type == 'recommendation' %}<span class="mx-type-pill recommend">Tavsiya</span>
           {% elif msg.message_type == 'security' %}<span class="mx-type-pill security">Xavfsizlik</span>
@@ -536,15 +536,15 @@
     <!-- Empty state for filtered view -->
     <div class="mx-empty" id="mxFilterEmpty" style="display:none;margin-top:1rem;">
       <i class="bi bi-funnel"></i>
-      <h4>Bu kategoriyada xabar yo'q</h4>
-      <p>Boshqa filtrni tanlab ko'ring</p>
+      <h4>Bu kategoriyada xabar yöq</h4>
+      <p>Boşqa filtrni tanlab köring</p>
     </div>
 
     {% else %}
     <div class="mx-empty">
       <i class="bi bi-envelope-open"></i>
-      <h4>Xabarlar yo'q</h4>
-      <p>Hozircha sizga hech qanday xabar kelmagan</p>
+      <h4>Xabarlar yöq</h4>
+      <p>Hozirça sizga heç qanday xabar kelmagan</p>
     </div>
     {% endif %}
   </div>
@@ -555,13 +555,13 @@
 <div class="mx-overlay" id="mxDelRead" role="dialog" aria-modal="true" aria-labelledby="mxDelReadTitle">
   <div class="mx-modal">
     <div class="mx-modal-icon"><i class="bi bi-trash3"></i></div>
-    <h5 id="mxDelReadTitle">O'qilganlarni o'chirish</h5>
-    <p>{{ read_count }} ta o'qilgan xabar o'chiriladi. Bu amalni qaytarib bo'lmaydi!</p>
+    <h5 id="mxDelReadTitle">Öqilganlarni öçiriş</h5>
+    <p>{{ read_count }} ta öqilgan xabar öçiriladi. Bu amalni qaytarib bölmaydi!</p>
     <div class="mx-modal-btns">
-      <button type="button" class="mx-modal-cancel" data-mx-close>Bekor qilish</button>
+      <button type="button" class="mx-modal-cancel" data-mx-close>Bekor qiliş</button>
       <form method="POST" action="{% url 'delete_read_messages' %}" class="mx-modal-form">
         {% csrf_token %}
-        <button type="submit" class="mx-modal-del"><i class="bi bi-trash3"></i> O'chirish</button>
+        <button type="submit" class="mx-modal-del"><i class="bi bi-trash3"></i> Öçiriş</button>
       </form>
     </div>
   </div>
@@ -573,14 +573,14 @@
 <div class="mx-overlay" id="mxDelAll" role="dialog" aria-modal="true" aria-labelledby="mxDelAllTitle">
   <div class="mx-modal">
     <div class="mx-modal-icon"><i class="bi bi-trash3-fill"></i></div>
-    <h5 id="mxDelAllTitle">Barcha xabarlarni o'chirish</h5>
-    <p>{{ total_count }} ta xabar o'chiriladi. Bu amalni qaytarib bo'lmaydi!</p>
+    <h5 id="mxDelAllTitle">Barça xabarlarni öçiriş</h5>
+    <p>{{ total_count }} ta xabar öçiriladi. Bu amalni qaytarib bölmaydi!</p>
     <div class="mx-modal-btns">
-      <button type="button" class="mx-modal-cancel" data-mx-close>Bekor qilish</button>
+      <button type="button" class="mx-modal-cancel" data-mx-close>Bekor qiliş</button>
       <form method="POST" action="{% url 'delete_read_messages' %}" class="mx-modal-form">
         {% csrf_token %}
         <input type="hidden" name="mode" value="all">
-        <button type="submit" class="mx-modal-del"><i class="bi bi-trash3-fill"></i> Barchasini o'chirish</button>
+        <button type="submit" class="mx-modal-del"><i class="bi bi-trash3-fill"></i> Barçasini öçiriş</button>
       </form>
     </div>
   </div>

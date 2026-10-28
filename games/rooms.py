@@ -1,19 +1,19 @@
-""""Sheriklar bilan" — xona-xona jonli yozish poygasi.
+""""Şeriklar bilan" — xona-xona jonli yoziş poygasi.
 
 Hayot sikli:  lobby ──start──▶ running ──(hamma marrada / vaqt tugadi)──▶ finished
-                 └──egasi chiqdi / eskirdi──▶ cancelled
+                 └──egasi çiqdi / eskirdi──▶ cancelled
 
-Coin qoidalari (tikish > 0 bo'lsa):
-  * qo'shilishda tikish o'yinchi hisobidan bron qilinadi (`try_spend_coins`);
-  * lobbidan chiqsa yoki xona bekor bo'lsa — qaytariladi;
-  * poyga boshlangach chiqib ketsa — tikish bankda qoladi (forfeit);
-  * g'olib: matnni birinchi bo'lib to'liq va xatosiz tugatgan o'yinchi
-    (xato so'z progress bermaydi — tuzatilmaguncha mashina joyida turadi). Unga `bank - xizmat haqi` to'lanadi. Xizmat haqi va
-    tikish chegaralari boshqa coinli o'yinlardagidek `game.config` dan olinadi;
-  * vaqt tugab hech kim marraga yetmasa — hamma tikishi qaytariladi.
+Coin qoidalari (tikiş > 0 bölsa):
+  * qöşilişda tikiş öyinçi hisobidan bron qilinadi (`try_spend_coins`);
+  * lobbidan çiqsa yoki xona bekor bölsa — qaytariladi;
+  * poyga boşlangaç çiqib ketsa — tikiş bankda qoladi (forfeit);
+  * ğolib: matnni birinçi bölib töliq va xatosiz tugatgan öyinçi
+    (xato söz progress bermaydi — tuzatilmagunça maşina joyida turadi). Unga `bank - xizmat haqi` tölanadi. Xizmat haqi va
+    tikiş çegaralari boşqa coinli öyinlardagidek `game.config` dan olinadi;
+  * vaqt tugab heç kim marraga yetmasa — hamma tikişi qaytariladi.
 
-Natijani mijoz emas, server hisoblaydi: vaqt `starts_at` dan o'lchanadi,
-inson uchun imkonsiz tezlikdagi progress qabul qilinmaydi.
+Natijani mijoz emas, server hisoblaydi: vaqt `starts_at` dan ölçanadi,
+inson uçun imkonsiz tezlikdagi progress qabul qilinmaydi.
 """
 import random
 import re
@@ -31,13 +31,13 @@ COUNTDOWN_SECONDS = 4
 MIN_RACE_SECONDS, SECONDS_PER_WORD_LIMIT = 60, 4
 MAX_HUMAN_WPM = 180
 LOBBY_TTL = timedelta(minutes=30)
-CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'   # 0/O, 1/I chalkashmasin
+CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'   # 0/O, 1/I çalkaşmasin
 
 _APOS = re.compile(r"['‘’ʼʻ`]")
 
 
 class RoomError(Exception):
-    """Foydalanuvchiga ko'rsatiladigan xato."""
+    """Foydalanuvçiga körsatiladigan xato."""
 
 
 def _norm(word):
@@ -45,7 +45,7 @@ def _norm(word):
 
 
 def wager_rules(game):
-    """Tikish qoidalari boshqa coinli o'yinlar (shashka, xo, ...) bilan bir xil:
+    """Tikiş qoidalari boşqa coinli öyinlar (şaşka, xo, ...) bilan bir xil:
     `game.config` dagi min_wager / max_wager / service_fee_percent."""
     from .external_api import SERVICE_FEE_PERCENT
     cfg = game.config or {}
@@ -57,7 +57,7 @@ def wager_rules(game):
 
 
 def settle_amounts(stake, players, fee_percent):
-    """Bank, xizmat haqi va g'olib ulushi: 2 × 100 → 200 bank, 15% → 30 haq, 170 g'olibga."""
+    """Bank, xizmat haqi va ğolib uluşi: 2 × 100 → 200 bank, 15% → 30 haq, 170 ğolibga."""
     pot = stake * players
     fee = pot * fee_percent // 100
     return pot, fee, pot - fee
@@ -72,19 +72,19 @@ def _new_code():
         code = ''.join(secrets.choice(CODE_ALPHABET) for _ in range(5))
         if not TypingRoom.objects.filter(code=code).exists():
             return code
-    raise RoomError("Xona kodi yaratib bo'lmadi, qayta urinib ko'ring.")
+    raise RoomError("Xona kodi yaratib bölmadi, qayta urinib köring.")
 
 
 def _locked(room):
-    """Xona qatorini qulflab qayta o'qish (tranzaksiya ichida)."""
+    """Xona qatorini qulflab qayta öqiş (tranzaksiya içida)."""
     return TypingRoom.objects.select_for_update().get(pk=room.pk)
 
 
 def _escrow(user, room):
     if room.stake <= 0:
         return 0
-    if not user.try_spend_coins(room.stake, f"Poyga xonasi {room.code}: tikish (bron)"):
-        raise RoomError(f"Coin yetarli emas: tikish {room.stake} coin, hisobingizda {user.coins} coin.")
+    if not user.try_spend_coins(room.stake, f"Poyga xonasi {room.code}: tikiş (bron)"):
+        raise RoomError(f"Coin yetarli emas: tikiş {room.stake} coin, hisobingizda {user.coins} coin.")
     return room.stake
 
 
@@ -101,11 +101,11 @@ def _refund(player, reason):
 def create_room(host, game, stake, max_players, is_public=True):
     rules = wager_rules(game)
     if stake and not rules['min'] <= stake <= rules['max']:
-        raise RoomError(f"Tikish {rules['min']}–{rules['max']} coin oralig'ida bo'lishi kerak (yoki 0 — shunchaki).")
+        raise RoomError(f"Tikiş {rules['min']}–{rules['max']} coin oraliğida bölişi kerak (yoki 0 — şunçaki).")
     if not MIN_PLAYERS <= max_players <= MAX_PLAYERS:
-        raise RoomError(f"O'yinchilar soni {MIN_PLAYERS}–{MAX_PLAYERS} bo'lishi kerak.")
+        raise RoomError(f"Öyinçilar soni {MIN_PLAYERS}–{MAX_PLAYERS} bölişi kerak.")
     if not game.practice_prompts().exists():
-        raise RoomError("Bu o'yinda matnlar yo'q.")
+        raise RoomError("Bu öyinda matnlar yöq.")
     room = TypingRoom.objects.create(code=_new_code(), game=game, host=host, stake=stake,
                                      max_players=max_players, is_public=is_public,
                                      fee_percent=rules['fee_percent'])
@@ -118,12 +118,12 @@ def create_room(host, game, stake, max_players, is_public=True):
 def join(room, user):
     room = _locked(room)
     if room.status != 'lobby':
-        raise RoomError("Poyga allaqachon boshlangan yoki tugagan.")
+        raise RoomError("Poyga allaqaçon boşlangan yoki tugagan.")
     if room.players.filter(user=user).exists():
         return room
     taken = set(room.players.values_list('slot', flat=True))
     if len(taken) >= room.max_players:
-        raise RoomError("Xona to'lgan.")
+        raise RoomError("Xona tölgan.")
     paid = _escrow(user, room)
     slot = min(set(range(room.max_players)) - taken)
     TypingRoomPlayer.objects.create(room=room, user=user, slot=slot, stake_paid=paid)
@@ -138,11 +138,11 @@ def leave(room, user):
         return room
     if room.status == 'lobby':
         if user.pk == room.host_id:
-            return _cancel(room, "Xona egasi chiqib ketdi")
-        _refund(player, f"Poyga xonasi {room.code}: chiqildi, tikish qaytarildi")
+            return _cancel(room, "Xona egasi çiqib ketdi")
+        _refund(player, f"Poyga xonasi {room.code}: çiqildi, tikiş qaytarildi")
         player.delete()
     elif room.status == 'running' and not player.finish_seconds:
-        player.has_left = True              # tikish bankda qoladi
+        player.has_left = True              # tikiş bankda qoladi
         player.save(update_fields=['has_left'])
         maybe_finish(room)
     return room
@@ -153,17 +153,17 @@ def _cancel(room, reason):
     room.finished_at = timezone.now()
     room.save(update_fields=['status', 'finished_at'])
     for p in room.players.select_related('user'):
-        _refund(p, f"Poyga xonasi {room.code} bekor qilindi ({reason}), tikish qaytarildi")
+        _refund(p, f"Poyga xonasi {room.code} bekor qilindi ({reason}), tikiş qaytarildi")
     return room
 
 
 def expire_stale_lobbies():
-    """Uzoq kutib qolgan lobbilarni bekor qilish (coin qaytadi)."""
+    """Uzoq kutib qolgan lobbilarni bekor qiliş (coin qaytadi)."""
     for room in TypingRoom.objects.filter(status='lobby', created_at__lt=timezone.now() - LOBBY_TTL):
         with transaction.atomic():
             room = _locked(room)
             if room.status == 'lobby':
-                _cancel(room, "kutish vaqti tugadi")
+                _cancel(room, "kutiş vaqti tugadi")
 
 
 # ---------- Poyga ----------
@@ -172,14 +172,14 @@ def expire_stale_lobbies():
 def start(room, user):
     room = _locked(room)
     if user.pk != room.host_id:
-        raise RoomError("Poygani faqat xona egasi boshlaydi.")
+        raise RoomError("Poygani faqat xona egasi boşlaydi.")
     if room.status != 'lobby':
-        raise RoomError("Poyga allaqachon boshlangan.")
+        raise RoomError("Poyga allaqaçon boşlangan.")
     if room.players.count() < MIN_PLAYERS:
-        raise RoomError(f"Kamida {MIN_PLAYERS} o'yinchi kerak.")
+        raise RoomError(f"Kamida {MIN_PLAYERS} öyinçi kerak.")
     prompts = list(room.game.practice_prompts())
     if not prompts:
-        raise RoomError("Bu o'yinda matnlar yo'q.")
+        raise RoomError("Bu öyinda matnlar yöq.")
     room.prompt = random.choice(prompts)
     words = len(room.prompt.text.split())
     room.starts_at = timezone.now() + timedelta(seconds=COUNTDOWN_SECONDS)
@@ -190,11 +190,11 @@ def start(room, user):
 
 
 def correct_prefix(typed, target):
-    """Boshidan ketma-ket TO'G'RI yozilgan so'zlar soni.
+    """Boşidan ketma-ket TÖĞRI yozilgan sözlar soni.
 
-    Poygada faqat shu hisoblanadi: xato so'z (masalan "O'zbekiston" o'rniga
-    "jhdsbvcj") mashinani oldinga surmaydi va undan keyingi so'zlar ham
-    hisobga olinmaydi — o'yinchi xatoni tuzatmaguncha joyida turadi.
+    Poygada faqat şu hisoblanadi: xato söz (masalan "Özbekiston" örniga
+    "jhdsbvcj") maşinani oldinga surmaydi va undan keyingi sözlar ham
+    hisobga olinmaydi — öyinçi xatoni tuzatmagunça joyida turadi.
     """
     n = 0
     for a, b in zip(typed, target):
@@ -206,11 +206,11 @@ def correct_prefix(typed, target):
 
 @transaction.atomic
 def record_progress(room, user, typed_text, accuracy=None):
-    """Mijoz yozgan so'zlarni yuboradi; server progress va natijani o'zi hisoblaydi.
+    """Mijoz yozgan sözlarni yuboradi; server progress va natijani özi hisoblaydi.
 
-    `accuracy` — mijozdagi tugmalar aniqligi, faqat ko'rsatish uchun saqlanadi
-    (g'olibni aniqlashga ta'sir qilmaydi: g'alaba = matnni birinchi bo'lib
-    xatosiz tugatish, buni server so'zma-so'z tekshiradi).
+    `accuracy` — mijozdagi tugmalar aniqligi, faqat körsatiş uçun saqlanadi
+    (ğolibni aniqlaşga ta'sir qilmaydi: ğalaba = matnni birinçi bölib
+    xatosiz tugatiş, buni server sözma-söz tekşiradi).
     """
     room = _locked(room)
     if room.status != 'running':
@@ -220,7 +220,7 @@ def record_progress(room, user, typed_text, accuracy=None):
         return room
     now = timezone.now()
     if now < room.starts_at:
-        raise RoomError("Start chirog'ini kuting.")
+        raise RoomError("Start çiroğini kuting.")
 
     target = room.prompt.text.split()
     done = correct_prefix(typed_text.split(), target)
@@ -239,7 +239,7 @@ def record_progress(room, user, typed_text, accuracy=None):
             pass
     player.wpm = round(min(MAX_HUMAN_WPM, done / (elapsed / 60)), 1)
     if done == len(target):
-        # Yaxlitlanmaydi: bir xil yuzdan bir soniyada kelganlarni ham to'g'ri ajratish uchun
+        # Yaxlitlanmaydi: bir xil yuzdan bir soniyada kelganlarni ham töğri ajratiş uçun
         player.finish_seconds = elapsed
     player.save()
     maybe_finish(room)
@@ -247,7 +247,7 @@ def record_progress(room, user, typed_text, accuracy=None):
 
 
 def maybe_finish(room):
-    """Hamma marraga yetdi / qolganlar chiqib ketdi / vaqt tugadi — hisob-kitob."""
+    """Hamma marraga yetdi / qolganlar çiqib ketdi / vaqt tugadi — hisob-kitob."""
     if room.status != 'running':
         return
     racing = room.players.filter(has_left=False, finish_seconds__isnull=True)
@@ -272,8 +272,8 @@ def _settle(room):
         p.place = place
         p.save(update_fields=['place'])
 
-    # G'olib — matnni birinchi bo'lib to'liq va xatosiz tugatgan o'yinchi
-    # (qat'iy rejimda marraga faqat to'g'ri so'zlar bilan yetib boriladi).
+    # Ğolib — matnni birinçi bölib töliq va xatosiz tugatgan öyinçi
+    # (qat'iy rejimda marraga faqat töğri sözlar bilan yetib boriladi).
     winner = next((p for p in ranked if p.finish_seconds is not None and not p.has_left), None)
     pot = sum(p.stake_paid for p in players)
     fields = ['winner']
@@ -282,14 +282,14 @@ def _settle(room):
         if winner:
             fee = pot * room.fee_percent // 100
             room.pot, room.fee, room.payout = pot, fee, pot - fee
-            winner.user.add_coins(room.payout, f"Poyga xonasi {room.code}: g'alaba (bank {pot}, xizmat haqi {fee})")
+            winner.user.add_coins(room.payout, f"Poyga xonasi {room.code}: ğalaba (bank {pot}, xizmat haqi {fee})")
             winner.payout = room.payout
             winner.save(update_fields=['payout'])
             TypingRoomPlayer.objects.filter(room=room).update(stake_paid=0)
             fields += ['pot', 'fee', 'payout']
         else:
             for p in players:
-                _refund(p, f"Poyga xonasi {room.code}: g'olib aniqlanmadi, tikish qaytarildi")
+                _refund(p, f"Poyga xonasi {room.code}: ğolib aniqlanmadi, tikiş qaytarildi")
     room.save(update_fields=fields)
 
 
@@ -316,7 +316,7 @@ def state(room, user):
         'deadline': room.deadline.timestamp() * 1000 if room.deadline else None,
         'calc': {'pot': pot, 'fee': fee, 'win': win, 'fee_percent': room.fee_percent},
         'words': room.prompt.text.split() if room.prompt and room.status != 'lobby' else None,
-        # Faqat o'zingizniki: sahifa yangilansa lenta shu joydan davom etadi
+        # Faqat özingizniki: sahifa yangilansa lenta şu joydan davom etadi
         'my_typed': me.typed_text.split() if me and room.status == 'running' else [],
         'my_coins': user.__class__.objects.filter(pk=user.pk).values_list('coins', flat=True).first(),
         'players': [{

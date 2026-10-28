@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}So'rovlar - Admin Panel{% endblock %}
+{% block title %}Sörovlar - Admin Panel{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -492,7 +492,7 @@
 {% block admin_content %}
 <div class="top-bar">
     <h1 class="page-title">
-        <i class="bi bi-person-plus me-2"></i>So'rovlar
+        <i class="bi bi-person-plus me-2"></i>Sörovlar
         {% if pending_count > 0 or unenroll_pending > 0 %}
         <span class="badge bg-danger ms-2">{{ pending_count|add:unenroll_pending }}</span>
         {% endif %}
@@ -502,17 +502,17 @@
 <!-- Tabs -->
 <div class="enroll-tabs">
     <a href="?tab=enroll{% if status_filter %}&status={{ status_filter }}{% endif %}" class="enroll-tab {% if tab == 'enroll' %}active{% endif %}">
-        <i class="bi bi-person-plus"></i> Yozilish so'rovlari
+        <i class="bi bi-person-plus"></i> Yoziliş sörovlari
         {% if pending_count > 0 %}<span class="tab-badge bg-warning">{{ pending_count }}</span>{% endif %}
     </a>
     <a href="?tab=unenroll{% if status_filter %}&status={{ status_filter }}{% endif %}" class="enroll-tab {% if tab == 'unenroll' %}active{% endif %}">
-        <i class="bi bi-box-arrow-right"></i> Chiqish so'rovlari
+        <i class="bi bi-box-arrow-right"></i> Çiqiş sörovlari
         {% if unenroll_pending > 0 %}<span class="tab-badge bg-danger">{{ unenroll_pending }}</span>{% endif %}
     </a>
 </div>
 
 {% if tab == 'enroll' %}
-<!-- ============ YOZILISH SO'ROVLARI ============ -->
+<!-- ============ YOZILIŞ SÖROVLARI ============ -->
 
 <!-- Stats Summary -->
 <div class="enroll-stats">
@@ -547,14 +547,14 @@
 
 <!-- Mobile Filter Toggle -->
 <button class="filter-toggle-btn" id="filterToggle" type="button">
-    <span><i class="bi bi-funnel me-2"></i>Filtrlash</span>
+    <span><i class="bi bi-funnel me-2"></i>Filtrlaş</span>
     <i class="bi bi-chevron-down"></i>
 </button>
 
 <!-- Filters -->
 <div class="filter-card" id="filterCard">
     <div class="filter-title">
-        <i class="bi bi-funnel"></i> Filtrlash
+        <i class="bi bi-funnel"></i> Filtrlaş
     </div>
     <form method="GET">
         <input type="hidden" name="tab" value="{{ tab }}">
@@ -562,7 +562,7 @@
             <div class="col-md-3 col-6">
                 <label class="form-label small fw-semibold">Holat</label>
                 <select name="status" class="form-select">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
                     <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Qabul qilingan</option>
                     <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
@@ -571,7 +571,7 @@
             <div class="col-md-3 col-6">
                 <label class="form-label small fw-semibold">Kurs</label>
                 <select name="profession" class="form-select">
-                    <option value="">Barcha kurslar</option>
+                    <option value="">Barça kurslar</option>
                     {% for prof in professions %}
                     <option value="{{ prof.pk }}" {% if profession_filter == prof.pk|stringformat:"s" %}selected{% endif %}>{{ prof.name }}</option>
                     {% endfor %}
@@ -583,7 +583,7 @@
             </div>
             <div class="col-md-2 col-12 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-1"></i>Qidirish
+                    <i class="bi bi-search me-1"></i>Qidiriş
                 </button>
             </div>
         </div>
@@ -597,7 +597,7 @@
             <table class="table table-hover mb-0 enrollment-table">
                 <thead>
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Telefon</th>
                         <th>Kurs</th>
                         <th>Sana</th>
@@ -653,11 +653,11 @@
                             <div class="btn-group">
                                 <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-success btn-sm" title="Qabul qilish">
+                                    <button type="submit" class="btn btn-success btn-sm" title="Qabul qiliş">
                                         <i class="bi bi-check-lg"></i> Qabul
                                     </button>
                                 </form>
-                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.pk }}" title="Rad etish">
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.pk }}" title="Rad etiş">
                                     <i class="bi bi-x-lg"></i> Rad
                                 </button>
                             </div>
@@ -670,7 +670,7 @@
                                             {% csrf_token %}
                                             <div class="modal-header border-0 pb-0">
                                                 <h5 class="modal-title fw-bold">
-                                                    <i class="bi bi-x-circle text-danger me-2"></i>So'rovni rad etish
+                                                    <i class="bi bi-x-circle text-danger me-2"></i>Sörovni rad etiş
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
@@ -690,14 +690,14 @@
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Rad etish sababi (ixtiyoriy)</label>
+                                                    <label class="form-label fw-semibold">Rad etiş sababi (ixtiyoriy)</label>
                                                     <textarea name="admin_message" class="form-control" rows="3" placeholder="Sababni kiriting..."></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 pt-0">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qilish</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qiliş</button>
                                                 <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
-                                                    <i class="bi bi-x-circle me-1"></i>Rad etish
+                                                    <i class="bi bi-x-circle me-1"></i>Rad etiş
                                                 </button>
                                             </div>
                                         </form>
@@ -720,8 +720,8 @@
                                 <div class="enroll-empty-icon">
                                     <i class="bi bi-inbox"></i>
                                 </div>
-                                <h4>So'rovlar yo'q</h4>
-                                <p>Hozircha kursga yozilish so'rovlari mavjud emas</p>
+                                <h4>Sörovlar yöq</h4>
+                                <p>Hozirça kursga yoziliş sörovlari mavjud emas</p>
                             </div>
                         </td>
                     </tr>
@@ -782,7 +782,7 @@
             </div>
             {% if req.reviewed_by %}
             <div class="enroll-mobile-detail">
-                <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
+                <span class="enroll-mobile-detail-label">Körib çiqdi</span>
                 <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})</span>
             </div>
             {% endif %}
@@ -797,7 +797,7 @@
                 </button>
             </form>
             <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.pk }}">
-                <i class="bi bi-x-lg me-1"></i>Rad etish
+                <i class="bi bi-x-lg me-1"></i>Rad etiş
             </button>
         </div>
         {% endif %}
@@ -807,8 +807,8 @@
         <div class="enroll-empty-icon">
             <i class="bi bi-inbox"></i>
         </div>
-        <h4>So'rovlar yo'q</h4>
-        <p>Hozircha kursga yozilish so'rovlari mavjud emas</p>
+        <h4>Sörovlar yöq</h4>
+        <p>Hozirça kursga yoziliş sörovlari mavjud emas</p>
     </div>
     {% endfor %}
 
@@ -816,7 +816,7 @@
 </div>
 
 {% else %}
-<!-- ============ CHIQISH SO'ROVLARI ============ -->
+<!-- ============ ÇIQIŞ SÖROVLARI ============ -->
 
 <!-- Stats Summary -->
 <div class="enroll-stats">
@@ -851,14 +851,14 @@
 
 <!-- Mobile Filter Toggle -->
 <button class="filter-toggle-btn" id="filterToggleUnenroll" type="button">
-    <span><i class="bi bi-funnel me-2"></i>Filtrlash</span>
+    <span><i class="bi bi-funnel me-2"></i>Filtrlaş</span>
     <i class="bi bi-chevron-down"></i>
 </button>
 
 <!-- Filters -->
 <div class="filter-card" id="filterCardUnenroll">
     <div class="filter-title">
-        <i class="bi bi-funnel"></i> Filtrlash
+        <i class="bi bi-funnel"></i> Filtrlaş
     </div>
     <form method="GET">
         <input type="hidden" name="tab" value="unenroll">
@@ -866,7 +866,7 @@
             <div class="col-md-3 col-6">
                 <label class="form-label small fw-semibold">Holat</label>
                 <select name="status" class="form-select">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
                     <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
                     <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
@@ -875,7 +875,7 @@
             <div class="col-md-3 col-6">
                 <label class="form-label small fw-semibold">Kurs</label>
                 <select name="profession" class="form-select">
-                    <option value="">Barcha kurslar</option>
+                    <option value="">Barça kurslar</option>
                     {% for prof in professions %}
                     <option value="{{ prof.pk }}" {% if profession_filter == prof.pk|stringformat:"s" %}selected{% endif %}>{{ prof.name }}</option>
                     {% endfor %}
@@ -887,7 +887,7 @@
             </div>
             <div class="col-md-2 col-12 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">
-                    <i class="bi bi-search me-1"></i>Qidirish
+                    <i class="bi bi-search me-1"></i>Qidiriş
                 </button>
             </div>
         </div>
@@ -901,7 +901,7 @@
             <table class="table table-hover mb-0 enrollment-table">
                 <thead>
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Telefon</th>
                         <th>Kurs</th>
                         <th>Sabab</th>
@@ -961,12 +961,12 @@
                             <div class="btn-group">
                                 <form method="POST" action="{% url 'approve_unenroll_request' req.pk %}" class="d-inline">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-success btn-sm" title="Tasdiqlash"
-                                            onclick="return confirm('{{ req.user.full_name }} ni {{ req.profession.name }} kursidan chiqarishni tasdiqlaysizmi?')">
-                                        <i class="bi bi-check-lg"></i> Tasdiqlash
+                                    <button type="submit" class="btn btn-success btn-sm" title="Tasdiqlaş"
+                                            onclick="return confirm('{{ req.user.full_name }} ni {{ req.profession.name }} kursidan çiqarişni tasdiqlaysizmi?')">
+                                        <i class="bi bi-check-lg"></i> Tasdiqlaş
                                     </button>
                                 </form>
-                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectUnenrollModal{{ req.pk }}" title="Rad etish">
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectUnenrollModal{{ req.pk }}" title="Rad etiş">
                                     <i class="bi bi-x-lg"></i> Rad
                                 </button>
                             </div>
@@ -979,7 +979,7 @@
                                             {% csrf_token %}
                                             <div class="modal-header border-0 pb-0">
                                                 <h5 class="modal-title fw-bold">
-                                                    <i class="bi bi-x-circle text-danger me-2"></i>Chiqish so'rovini rad etish
+                                                    <i class="bi bi-x-circle text-danger me-2"></i>Çiqiş sörovini rad etiş
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
@@ -999,18 +999,18 @@
                                                     </div>
                                                 </div>
                                                 <div class="p-3 rounded-3 mb-3" style="background: rgba(239,68,68,0.06);">
-                                                    <small class="fw-semibold text-muted">Chiqish sababi:</small>
+                                                    <small class="fw-semibold text-muted">Çiqiş sababi:</small>
                                                     <p class="mb-0 mt-1" style="font-size: 0.9rem;">{{ req.reason }}</p>
                                                 </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Rad etish sababi (ixtiyoriy)</label>
+                                                    <label class="form-label fw-semibold">Rad etiş sababi (ixtiyoriy)</label>
                                                     <textarea name="admin_message" class="form-control" rows="3" placeholder="Sababni kiriting..."></textarea>
                                                 </div>
                                             </div>
                                             <div class="modal-footer border-0 pt-0">
-                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qilish</button>
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qiliş</button>
                                                 <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
-                                                    <i class="bi bi-x-circle me-1"></i>Rad etish
+                                                    <i class="bi bi-x-circle me-1"></i>Rad etiş
                                                 </button>
                                             </div>
                                         </form>
@@ -1033,8 +1033,8 @@
                                 <div class="enroll-empty-icon">
                                     <i class="bi bi-inbox"></i>
                                 </div>
-                                <h4>So'rovlar yo'q</h4>
-                                <p>Hozircha kursdan chiqish so'rovlari mavjud emas</p>
+                                <h4>Sörovlar yöq</h4>
+                                <p>Hozirça kursdan çiqiş sörovlari mavjud emas</p>
                             </div>
                         </td>
                     </tr>
@@ -1099,7 +1099,7 @@
             </div>
             {% if req.reviewed_by %}
             <div class="enroll-mobile-detail">
-                <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
+                <span class="enroll-mobile-detail-label">Körib çiqdi</span>
                 <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})</span>
             </div>
             {% endif %}
@@ -1110,12 +1110,12 @@
             <form method="POST" action="{% url 'approve_unenroll_request' req.pk %}" class="flex-fill">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-success w-100"
-                        onclick="return confirm('{{ req.user.full_name }} ni kursdan chiqarishni tasdiqlaysizmi?')">
-                    <i class="bi bi-check-lg me-1"></i>Tasdiqlash
+                        onclick="return confirm('{{ req.user.full_name }} ni kursdan çiqarişni tasdiqlaysizmi?')">
+                    <i class="bi bi-check-lg me-1"></i>Tasdiqlaş
                 </button>
             </form>
             <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#rejectUnenrollModal{{ req.pk }}">
-                <i class="bi bi-x-lg me-1"></i>Rad etish
+                <i class="bi bi-x-lg me-1"></i>Rad etiş
             </button>
         </div>
         {% endif %}
@@ -1125,8 +1125,8 @@
         <div class="enroll-empty-icon">
             <i class="bi bi-inbox"></i>
         </div>
-        <h4>So'rovlar yo'q</h4>
-        <p>Hozircha kursdan chiqish so'rovlari mavjud emas</p>
+        <h4>Sörovlar yöq</h4>
+        <p>Hozirça kursdan çiqiş sörovlari mavjud emas</p>
     </div>
     {% endfor %}
 

@@ -6,7 +6,7 @@
 {% include 'coin/market/_market_ui.html' %}
 <style>
 /* ============ PREMIUM SAHIFA — fokus uslub (gold aksent) ============ */
-/* JS generatsiya qilgan HTML var(--ps-*) ishlatadi — aliaslar: */
+/* JS generatsiya qilgan HTML var(--ps-*) işlatadi — aliaslar: */
 :root {
     --ps-card: var(--mkt-card);
     --ps-bg: var(--mkt-accent-soft);
@@ -26,7 +26,7 @@
 .ps-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap; }
 .ps-hero-chips { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
 
-/* Kutish ogohlantirishi */
+/* Kutiş ogohlantirişi */
 .ps-pending-alert {
     background: var(--mkt-gold-soft);
     border: 1px solid rgba(245, 158, 11, 0.3);
@@ -149,7 +149,7 @@
 .ps-benefit-title { font-weight: 700; font-size: 0.86rem; margin: 0; color: var(--mkt-text); }
 .ps-benefit-desc { font-size: 0.75rem; color: var(--mkt-dim); margin: 0; }
 
-/* Guest (premium bo'lmaganlar) kartasi */
+/* Guest (premium bölmaganlar) kartasi */
 .ps-guest-card {
     background: var(--mkt-card);
     border: 1px solid rgba(245, 158, 11, 0.35);
@@ -180,7 +180,7 @@
 }
 .ps-guest-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(245, 158, 11, 0.35); color: #fff; }
 
-/* So'rovlar tarixi */
+/* Sörovlar tarixi */
 .ps-history {
     background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: 16px;
     overflow: hidden; margin-bottom: 1.25rem;
@@ -221,7 +221,7 @@
         <div class="ps-hero-top">
             <div>
                 <h1><i class="bi bi-patch-check-fill"></i> Premium</h1>
-                <p class="sub">Sizning maxsus imkoniyatlaringiz shu yerda</p>
+                <p class="sub">Sizning maxsus imkoniyatlaringiz şu yerda</p>
             </div>
             <a href="{% url 'coin:market_list' %}" class="mkt-back"><i class="bi bi-arrow-left"></i> Market</a>
         </div>
@@ -249,35 +249,35 @@
                 <div class="ps-benefit-icon"><i class="bi bi-gift"></i></div>
                 <div>
                     <p class="ps-benefit-title">+15% bonus tanga</p>
-                    <p class="ps-benefit-desc">Hisob to‘ldirilganda (onlayn yoki admin)</p>
+                    <p class="ps-benefit-desc">Hisob töldirilganda (onlayn yoki admin)</p>
                 </div>
             </div>
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-coin"></i></div>
                 <div>
                     <p class="ps-benefit-title">Tanga 50% arzon</p>
-                    <p class="ps-benefit-desc">Tanga sotib olishda yarim narx</p>
+                    <p class="ps-benefit-desc">Tanga sotib olişda yarim narx</p>
                 </div>
             </div>
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-percent"></i></div>
                 <div>
-                    <p class="ps-benefit-title">5% chegirma</p>
-                    <p class="ps-benefit-desc">Barcha mahsulotlarga</p>
+                    <p class="ps-benefit-title">5% çegirma</p>
+                    <p class="ps-benefit-desc">Barça mahsulotlarga</p>
                 </div>
             </div>
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-coin"></i></div>
                 <div>
                     <p class="ps-benefit-title">2x coin</p>
-                    <p class="ps-benefit-desc">Like va izoh uchun</p>
+                    <p class="ps-benefit-desc">Like va izoh uçun</p>
                 </div>
             </div>
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-trophy"></i></div>
                 <div>
-                    <p class="ps-benefit-title">To'liq reyting</p>
-                    <p class="ps-benefit-desc">Barcha o'quvchilar orasida</p>
+                    <p class="ps-benefit-title">Töliq reyting</p>
+                    <p class="ps-benefit-desc">Barça öquvçilar orasida</p>
                 </div>
             </div>
             <div class="ps-benefit">
@@ -290,15 +290,15 @@
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-people"></i></div>
                 <div>
-                    <p class="ps-benefit-title">Kursdoshlar</p>
-                    <p class="ps-benefit-desc">Bo'lim ochiladi</p>
+                    <p class="ps-benefit-title">Kursdoşlar</p>
+                    <p class="ps-benefit-desc">Bölim oçiladi</p>
                 </div>
             </div>
             <div class="ps-benefit">
                 <div class="ps-benefit-icon"><i class="bi bi-patch-check-fill"></i></div>
                 <div>
                     <p class="ps-benefit-title">✅ Premium belgi</p>
-                    <p class="ps-benefit-desc">Profilingizda ko'rinadi</p>
+                    <p class="ps-benefit-desc">Profilingizda körinadi</p>
                 </div>
             </div>
         </div>
@@ -348,11 +348,11 @@
             const totalEarned = plans.total_earned || 0;
 
             document.getElementById('psBalance').textContent = formatNum(totalCoins);
-            document.getElementById('psTotalEarned').innerHTML = '<i class="bi bi-graph-up-arrow"></i> Jami yig\'ilgan: <span class="num">' + formatNum(totalEarned) + '</span> coin';
+            document.getElementById('psTotalEarned').innerHTML = '<i class="bi bi-graph-up-arrow"></i> Jami yiğilgan: <span class="num">' + formatNum(totalEarned) + '</span> coin';
 
             const eligEl = document.getElementById('psEligibility');
             if (!plans.eligible && !plans.is_premium) {
-                eligEl.innerHTML = '<div class="ps-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:var(--mkt-bad-soft)"><i class="bi bi-lock-fill"></i><div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
+                eligEl.innerHTML = '<div class="ps-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:var(--mkt-bad-soft)"><i class="bi bi-lock-fill"></i><div>Premium sotib oliş uçun kamida 1 oy oldin röyxatdan ötgan bölişingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutişingiz kerak</small></div></div>';
                 eligEl.style.display = 'block';
             }
 
@@ -362,7 +362,7 @@
             if (plans.has_pending_request) {
                 const pr = plans.pending_request;
                 const prDate = new Date(pr.created_at).toLocaleDateString('uz-UZ');
-                html = '<div class="ps-pending-alert"><i class="bi bi-hourglass-split"></i><div>Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.<br><small style="opacity:0.8">Tarif: '+pr.plan_display+' | Narxi: '+formatNum(pr.price)+' coin | Yuborilgan: '+prDate+'</small></div></div>';
+                html = '<div class="ps-pending-alert"><i class="bi bi-hourglass-split"></i><div>Sizda kutilayotgan Premium sörov bor. Admin tasdiqlaşini kuting.<br><small style="opacity:0.8">Tarif: '+pr.plan_display+' | Narxi: '+formatNum(pr.price)+' coin | Yuborilgan: '+prDate+'</small></div></div>';
             }
 
             if (plans.is_premium) {
@@ -371,7 +371,7 @@
                 let durationBlock = '';
                 if (plans.premium_expires_at) {
                     const exp = new Date(plans.premium_expires_at);
-                    expiresBlock = '<p class="ps-crown-expires"><i class="bi bi-calendar-check"></i> Muddat: <b>' + exp.toLocaleDateString('uz-UZ') + '</b> gacha' + (stats ? ' (<b>' + stats.remainingDays + '</b> kun qoldi)' : '') + '</p>';
+                    expiresBlock = '<p class="ps-crown-expires"><i class="bi bi-calendar-check"></i> Muddat: <b>' + exp.toLocaleDateString('uz-UZ') + '</b> gaça' + (stats ? ' (<b>' + stats.remainingDays + '</b> kun qoldi)' : '') + '</p>';
                 }
                 if (stats) {
                     const circumference = 2 * Math.PI * 52;
@@ -389,7 +389,7 @@
                         </div>
                         <div class="ps-duration-info">
                             <h4 class="ps-duration-title">Premium muddati progressi</h4>
-                            <p class="ps-duration-desc">Sizning obunangiz qanchalik davom etganini va qancha qolganini kuzatib boring.</p>
+                            <p class="ps-duration-desc">Sizning obunangiz qançalik davom etganini va qança qolganini kuzatib boring.</p>
                             <div class="ps-duration-stats">
                                 <span><b>${stats.totalDays}</b> jami kun</span>
                                 <span><b style="color:var(--ps-success)">${stats.usedDays}</b> foydalanilgan</span>
@@ -410,8 +410,8 @@
                             <span class="ps-crown-sparkle s3">✦</span>
                         </div>
                         <div class="ps-crown-info">
-                            <h2 class="ps-crown-title">Siz Premium foydalanuvchisiz! <span class="ps-vip-tag">⭐ VIP</span></h2>
-                            <p class="ps-crown-desc">Barcha maxsus imtiyozlaringiz faol. Muddat tugashidan oldin uzaytirsangiz kunlaringiz yo'qolmaydi.</p>
+                            <h2 class="ps-crown-title">Siz Premium foydalanuvçisiz! <span class="ps-vip-tag">⭐ VIP</span></h2>
+                            <p class="ps-crown-desc">Barça maxsus imtiyozlaringiz faol. Muddat tugaşidan oldin uzaytirsangiz kunlaringiz yöqolmaydi.</p>
                             ${expiresBlock}
                         </div>
                     </div>
@@ -445,16 +445,16 @@
 
                 // CTA
                 html += `<div class="ps-cta-row">
-                    <a href="/market/extend-premium/" class="ps-cta-btn ps-cta-extend"><i class="bi bi-arrow-repeat"></i> Muddatni uzaytirish</a>
-                    <a href="/market/" class="ps-cta-btn ps-cta-market"><i class="bi bi-shop"></i> Marketga qaytish</a>
+                    <a href="/market/extend-premium/" class="ps-cta-btn ps-cta-extend"><i class="bi bi-arrow-repeat"></i> Muddatni uzaytiriş</a>
+                    <a href="/market/" class="ps-cta-btn ps-cta-market"><i class="bi bi-shop"></i> Marketga qaytiş</a>
                 </div>`;
             } else if (!plans.has_pending_request) {
                 html += `<div class="ps-guest-card">
                     <div class="ps-guest-icon">👑</div>
-                    <h2 class="ps-guest-title">Premium bilan yaxshiroq o'qing</h2>
-                    <p class="ps-guest-desc">15% bonus tanga, 50% arzon tanga, 5% chegirma, 2x coin, to'liq reyting, kursdoshlar, AI imkoniyatlari — hammasi Premium bilan</p>
+                    <h2 class="ps-guest-title">Premium bilan yaxşiroq öqing</h2>
+                    <p class="ps-guest-desc">15% bonus tanga, 50% arzon tanga, 5% çegirma, 2x coin, töliq reyting, kursdoşlar, AI imkoniyatlari — hammasi Premium bilan</p>
                     <a href="/market/buy-premium/" class="ps-guest-btn">
-                        <i class="bi bi-rocket-takeoff-fill"></i> Premium olish
+                        <i class="bi bi-rocket-takeoff-fill"></i> Premium oliş
                     </a>
                 </div>`;
             }
@@ -464,10 +464,10 @@
             // Request history
             const historyEl = document.getElementById('psHistory');
             if (plans.request_history && plans.request_history.length > 0) {
-                let hH = '<div class="ps-history"><div class="ps-history-title">📋 So\'rovlar tarixi</div>';
+                let hH = '<div class="ps-history"><div class="ps-history-title">📋 Sörovlar tarixi</div>';
                 plans.request_history.forEach(r => {
                     const d = new Date(r.created_at).toLocaleDateString('uz-UZ');
-                    hH += '<div class="ps-history-item"><div class="ps-history-left"><span class="ps-history-plan">'+r.plan_display+(r.is_extension?' (uzaytirish)':'')+'</span><span class="ps-history-date">'+d+' • '+formatNum(r.price)+' coin</span></div><span class="ps-history-badge '+r.status+'">'+r.status_display+'</span></div>';
+                    hH += '<div class="ps-history-item"><div class="ps-history-left"><span class="ps-history-plan">'+r.plan_display+(r.is_extension?' (uzaytiriş)':'')+'</span><span class="ps-history-date">'+d+' • '+formatNum(r.price)+' coin</span></div><span class="ps-history-badge '+r.status+'">'+r.status_display+'</span></div>';
                 });
                 hH += '</div>';
                 historyEl.innerHTML = hH;

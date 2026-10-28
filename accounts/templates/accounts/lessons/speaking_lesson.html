@@ -224,7 +224,7 @@
         {% else %}
         <a href="{% url 'profession_detail' lesson.profession.pk %}" class="back-btn mb-3">
         {% endif %}
-            <i class="bi bi-arrow-left"></i> Kursga qaytish
+            <i class="bi bi-arrow-left"></i> Kursga qaytiş
         </a>
 
         <div class="speaking-header">
@@ -234,7 +234,7 @@
             </div>
             <h1>{{ lesson.title }}</h1>
             <div class="subtitle">{{ lesson.profession.name }}</div>
-            {% with prompt="«"|add:lesson.title|add:"» mavzusida gapirishni mashq qilmoqchiman. Foydali iboralar, savollar va gapirish uchun maslahatlar bering." %}
+            {% with prompt="«"|add:lesson.title|add:"» mavzusida gapirişni maşq qilmoqçiman. Foydali iboralar, savollar va gapiriş uçun maslahatlar bering." %}
             <div style="margin-top:12px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
             {% endwith %}
         </div>
@@ -267,7 +267,7 @@
 
             {% if speaking_task.criteria %}
             <div class="alert alert-info" style="border-radius: 12px;">
-                <i class="bi bi-clipboard-check me-1"></i> <strong>Baholash mezonlari:</strong><br>
+                <i class="bi bi-clipboard-check me-1"></i> <strong>Baholaş mezonlari:</strong><br>
                 {{ speaking_task.criteria|linebreaksbr }}
             </div>
             {% endif %}
@@ -276,18 +276,18 @@
         {% if submission %}
         <!-- Existing Submission -->
         <div class="speaking-card">
-            <h5><i class="bi bi-check-circle-fill text-success"></i> Sizning topshiriqingiz</h5>
+            <h5><i class="bi bi-check-circle-fill text-success"></i> Sizning topşiriqingiz</h5>
 
             <div class="status-card {{ submission.status }} mb-3">
                 <i class="bi bi-{% if submission.status == 'graded' %}star-fill{% elif submission.status == 'reviewing' %}hourglass-split{% elif submission.status == 'revision' %}arrow-repeat{% else %}clock{% endif %}"></i>
                 <div>
                     <div style="font-weight: 700;">
                         {% if submission.status == 'graded' %}Baholangan
-                        {% elif submission.status == 'reviewing' %}Tekshirilmoqda
-                        {% elif submission.status == 'revision' %}Qayta ishlash kerak
+                        {% elif submission.status == 'reviewing' %}Tekşirilmoqda
+                        {% elif submission.status == 'revision' %}Qayta işlaş kerak
                         {% else %}Kutilmoqda{% endif %}
                     </div>
-                    <div style="font-size: 0.85rem; opacity: 0.8;">Topshirilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+                    <div style="font-size: 0.85rem; opacity: 0.8;">Topşirilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
                 </div>
             </div>
 
@@ -296,7 +296,7 @@
                 <label class="form-label fw-bold"><i class="bi bi-soundwave me-1"></i> Audio yozuv:</label>
                 <audio controls style="width: 100%; border-radius: 12px;">
                     <source src="{{ submission.audio_file.url }}" type="audio/mpeg">
-                    Brauzeringiz audio elementni qo'llab-quvvatlamaydi.
+                    Brauzeringiz audio elementni qöllab-quvvatlamaydi.
                 </audio>
             </div>
             {% endif %}
@@ -328,7 +328,7 @@
                     {% endif %}
                     {% if submission.vocabulary_score is not None %}
                     <div class="speaking-info-item">
-                        <div class="label">Lug'at</div>
+                        <div class="label">Luğat</div>
                         <div class="value">{{ submission.vocabulary_score }}</div>
                     </div>
                     {% endif %}
@@ -361,7 +361,7 @@
         {% else %}
         <!-- Submit Form -->
         <div class="speaking-card">
-            <h5><i class="bi bi-upload text-danger"></i> Vazifani topshirish</h5>
+            <h5><i class="bi bi-upload text-danger"></i> Vazifani topşiriş</h5>
             {% if student_token %}
             <form method="POST" enctype="multipart/form-data" action="{% url 'student_submit_speaking' student_token.token %}">
             {% else %}
@@ -376,7 +376,7 @@
                     <div id="fileName" class="mt-2 fw-bold text-danger" style="display: none;"></div>
                 </div>
                 <button type="submit" class="submit-btn">
-                    <i class="bi bi-send-fill me-2"></i> Yuborish
+                    <i class="bi bi-send-fill me-2"></i> Yuboriş
                 </button>
             </form>
         </div>

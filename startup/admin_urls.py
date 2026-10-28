@@ -1,12 +1,12 @@
 """Admin panel route'lari — `dashboard/startups/` prefiksi ostida.
 
-Nega `startup/urls.py` ga qo'shilmadi: u yerda `path('<slug:slug>/', detail)`
-catch-all bor, ya'ni slug'i `export` yoki `import` bo'lgan startup admin
-sahifasini soyada qoldirardi. Alohida prefiks bu xatarni yo'q qiladi va
-mavjud `dashboard/users/`, `dashboard/statistics/` konvensiyasiga mos tushadi.
+Nega `startup/urls.py` ga qöşilmadi: u yerda `path('<slug:slug>/', detail)`
+catch-all bor, ya'ni slug'i `export` yoki `import` bölgan startup admin
+sahifasini soyada qoldirardi. Alohida prefiks bu xatarni yöq qiladi va
+mavjud `dashboard/users/`, `dashboard/statistics/` konvensiyasiga mos tuşadi.
 
 DIQQAT: statik segmentlar (`export/`, `import/`, `submission/`) `<slug:slug>/`
-dan OLDIN turishi shart.
+dan OLDIN turişi şart.
 """
 
 from django.urls import path

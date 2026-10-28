@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load custom_filters %}
-{% block title %}Oylik To'lovlar — Admin Panel{% endblock %}
+{% block title %}Oylik Tölovlar — Admin Panel{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -112,7 +112,7 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
     <div class="pm-header">
         <div class="pm-title">
             <i class="bi bi-calendar-check-fill"></i>
-            Oylik To'lovlar
+            Oylik Tölovlar
         </div>
         <form method="get" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
             <input type="hidden" name="status" value="{{ filter_status }}">
@@ -135,27 +135,27 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
         <div class="pm-stat c-indigo">
             <div class="pm-stat-label">Jami talabalar</div>
             <div class="pm-stat-value">{{ total_students }}</div>
-            <div class="pm-stat-sub">Faol o'quvchilar</div>
+            <div class="pm-stat-sub">Faol öquvçilar</div>
         </div>
         <div class="pm-stat c-green">
-            <div class="pm-stat-label">To'lagan</div>
+            <div class="pm-stat-label">Tölagan</div>
             <div class="pm-stat-value">{{ total_paid_count }}</div>
-            <div class="pm-stat-sub">{{ total_paid_sum|space_num }} so'm</div>
+            <div class="pm-stat-sub">{{ total_paid_sum|space_num }} söm</div>
         </div>
         <div class="pm-stat c-red">
-            <div class="pm-stat-label">To'lamagan</div>
+            <div class="pm-stat-label">Tölamagan</div>
             <div class="pm-stat-value">{{ total_unpaid }}</div>
             <div class="pm-stat-sub">Kutilayotgan</div>
         </div>
         <div class="pm-stat c-yellow">
             <div class="pm-stat-label">Bloklangan</div>
             <div class="pm-stat-value">{{ blocked_count }}</div>
-            <div class="pm-stat-sub">Kirish cheklangan</div>
+            <div class="pm-stat-sub">Kiriş çeklangan</div>
         </div>
         <div class="pm-stat c-teal">
             <div class="pm-stat-label">Qarzdorlik</div>
             <div class="pm-stat-value" style="font-size:1.1rem;">{{ total_debt|space_num }}</div>
-            <div class="pm-stat-sub">so'm</div>
+            <div class="pm-stat-sub">söm</div>
         </div>
     </div>
 
@@ -185,21 +185,21 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
             <input type="hidden" name="month" value="{{ selected_month }}">
             <input type="hidden" name="year" value="{{ selected_year }}">
             <div class="pm-filter-group">
-                <label>Qidirish</label>
+                <label>Qidiriş</label>
                 <input type="text" name="q" value="{{ search_query }}" placeholder="Ism, username, telefon...">
             </div>
             <div class="pm-filter-btns">
                 <button type="submit" class="btn-sm" style="background:var(--primary,#6366f1);color:#fff;border:none;cursor:pointer;border-radius:10px;padding:.45rem 1.1rem;font-size:.85rem;">
-                    <i class="bi bi-search"></i> Qidirish
+                    <i class="bi bi-search"></i> Qidiriş
                 </button>
                 {% if search_query %}
-                <a href="?month={{ selected_month }}&year={{ selected_year }}&status={{ filter_status }}" class="btn-sm" style="background:var(--border-color);color:var(--text-color);text-decoration:none;border-radius:10px;padding:.45rem 1rem;font-size:.85rem;">✕ Tozalash</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&status={{ filter_status }}" class="btn-sm" style="background:var(--border-color);color:var(--text-color);text-decoration:none;border-radius:10px;padding:.45rem 1rem;font-size:.85rem;">✕ Tozalaş</a>
                 {% endif %}
             </div>
             <div class="pm-tab-btns">
                 <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}" class="pm-tab {% if not filter_status %}active{% endif %}">Hammasi</a>
-                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=paid" class="pm-tab green {% if filter_status == 'paid' %}active{% endif %}"><i class="bi bi-check-circle"></i> To'lagan</a>
-                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=unpaid" class="pm-tab red {% if filter_status == 'unpaid' %}active{% endif %}"><i class="bi bi-x-circle"></i> To'lamagan</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=paid" class="pm-tab green {% if filter_status == 'paid' %}active{% endif %}"><i class="bi bi-check-circle"></i> Tölagan</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=unpaid" class="pm-tab red {% if filter_status == 'unpaid' %}active{% endif %}"><i class="bi bi-x-circle"></i> Tölamagan</a>
                 <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=blocked" class="pm-tab orange {% if filter_status == 'blocked' %}active{% endif %}"><i class="bi bi-lock"></i> Bloklangan</a>
             </div>
         </form>
@@ -210,7 +210,7 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
         <div class="pm-table-header">
             <h3>
                 {% for num, name in months %}{% if num == selected_month %}{{ name }}{% endif %}{% endfor %}
-                {{ selected_year }} — To'lovlar
+                {{ selected_year }} — Tölovlar
             </h3>
             <span style="font-size:.8rem;color:var(--text-muted);">{{ students.paginator.count }} ta talaba</span>
         </div>
@@ -223,7 +223,7 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
                     <th>#</th>
                     <th>Talaba</th>
                     <th>Summa</th>
-                    <th>To'langan</th>
+                    <th>Tölangan</th>
                     <th>Holat</th>
                     <th>Amal</th>
                 </tr>
@@ -249,12 +249,12 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
                     </td>
                     <td>
                         <span class="pm-amount">
-                            {% if rec %}{{ rec.amount|space_num }}{% else %}—{% endif %} so'm
+                            {% if rec %}{{ rec.amount|space_num }}{% else %}—{% endif %} söm
                         </span>
                     </td>
                     <td>
                         {% if rec and rec.is_paid %}
-                        <span class="pm-amount green">{{ rec.paid_amount|space_num }} so'm</span>
+                        <span class="pm-amount green">{{ rec.paid_amount|space_num }} söm</span>
                         {% else %}
                         <span class="pm-amount muted">—</span>
                         {% endif %}
@@ -262,12 +262,12 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
                     <td>
                         {% if rec %}
                             {% if rec.is_paid %}
-                            <span class="pm-badge paid"><i class="bi bi-check-circle-fill"></i> To'langan</span>
+                            <span class="pm-badge paid"><i class="bi bi-check-circle-fill"></i> Tölangan</span>
                             {% else %}
-                            <span class="pm-badge unpaid"><i class="bi bi-x-circle-fill"></i> To'lanmagan</span>
+                            <span class="pm-badge unpaid"><i class="bi bi-x-circle-fill"></i> Tölanmagan</span>
                             {% endif %}
                         {% else %}
-                        <span class="pm-badge" style="color:var(--text-muted);">Ma'lumot yo'q</span>
+                        <span class="pm-badge" style="color:var(--text-muted);">Ma'lumot yöq</span>
                         {% endif %}
                     </td>
                     <td>
@@ -279,7 +279,7 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
                                 <input type="hidden" name="year" value="{{ selected_year }}">
                                 <input type="hidden" name="amount" value="{% if rec %}{{ rec.amount }}{% else %}200000{% endif %}">
                                 <button type="submit" class="pm-action-btn pay">
-                                    <i class="bi bi-check"></i> To'landi
+                                    <i class="bi bi-check"></i> Tölandi
                                 </button>
                             </form>
                             {% else %}
@@ -323,7 +323,7 @@ table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
         {% else %}
         <div class="pm-empty">
             <i class="bi bi-calendar-x"></i>
-            Bu oy uchun talabalar topilmadi
+            Bu oy uçun talabalar topilmadi
         </div>
         {% endif %}
     </div>

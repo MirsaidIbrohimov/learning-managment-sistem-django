@@ -528,12 +528,12 @@
                     <div class="stat-item">
                         <div class="stat-icon time"><i class="bi bi-clock"></i></div>
                         <div class="stat-value">{{ test.time_limit }}'</div>
-                        <div class="stat-label">Vaqt chegarasi</div>
+                        <div class="stat-label">Vaqt çegarasi</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon pass"><i class="bi bi-percent"></i></div>
                         <div class="stat-value">{{ test.passing_score }}%</div>
-                        <div class="stat-label">O'tish bali</div>
+                        <div class="stat-label">Ötiş bali</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-icon questions"><i class="bi bi-list-ol"></i></div>
@@ -552,7 +552,7 @@
                 <div class="process-nodes">
                     <div class="process-node completed">
                         <div class="node-circle"><i class="bi bi-book"></i></div>
-                        <div class="node-label">Kursni o'qish</div>
+                        <div class="node-label">Kursni öqiş</div>
                     </div>
                     <div class="process-node active">
                         <div class="node-circle"><i class="bi bi-shield-lock"></i></div>
@@ -560,7 +560,7 @@
                     </div>
                     <div class="process-node">
                         <div class="node-circle"><i class="bi bi-pencil-square"></i></div>
-                        <div class="node-label">Javob berish</div>
+                        <div class="node-label">Javob beriş</div>
                     </div>
                     <div class="process-node">
                         <div class="node-circle"><i class="bi bi-award"></i></div>
@@ -573,28 +573,28 @@
             <div class="warnings-section">
                 <div class="warnings-title">
                     <i class="bi bi-exclamation-triangle-fill"></i>
-                    <span>Muhim ogohlantirishlar</span>
+                    <span>Muhim ogohlantirişlar</span>
                 </div>
                 <div class="warnings-list">
                     <div class="warning-item">
                         <i class="bi bi-fullscreen"></i>
-                        <span><strong>To'liq ekran rejimi!</strong> Test boshlanganda sahifa avtomatik to'liq ekranga o'tadi. To'liq ekrandan chiqish taqiqlangan.</span>
+                        <span><strong>Töliq ekran rejimi!</strong> Test boşlanganda sahifa avtomatik töliq ekranga ötadi. Töliq ekrandan çiqiş taqiqlangan.</span>
                     </div>
                     <div class="warning-item">
                         <i class="bi bi-x-circle"></i>
-                        <span><strong>Sahifani yopmang!</strong> Test vaqtida sahifani yopsangiz yoki boshqa tabga o'tsangiz, test avtomatik yakunlanadi.</span>
+                        <span><strong>Sahifani yopmang!</strong> Test vaqtida sahifani yopsangiz yoki boşqa tabga ötsangiz, test avtomatik yakunlanadi.</span>
                     </div>
                     <div class="warning-item">
                         <i class="bi bi-keyboard"></i>
-                        <span><strong>Barcha klaviatura kombinatsiyalari bloklangan!</strong> Ctrl, Alt, Tab va barcha tezkor tugmalar ishlamaydi.</span>
+                        <span><strong>Barça klaviatura kombinatsiyalari bloklangan!</strong> Ctrl, Alt, Tab va barça tezkor tugmalar işlamaydi.</span>
                     </div>
                     <div class="warning-item">
                         <i class="bi bi-camera-video-off"></i>
-                        <span><strong>DevTools va skrinshot to'liq taqiqlangan!</strong> Har qanday qoidabuzarlik testni avtomatik yakunlaydi.</span>
+                        <span><strong>DevTools va skrinşot töliq taqiqlangan!</strong> Har qanday qoidabuzarlik testni avtomatik yakunlaydi.</span>
                     </div>
                     <div class="warning-item">
                         <i class="bi bi-shield-exclamation"></i>
-                        <span><strong>3 ta ogohlantirish!</strong> Agar 3 marta qoidani buzsangiz, test avtomatik yakunlanadi.</span>
+                        <span><strong>3 ta ogohlantiriş!</strong> Agar 3 marta qoidani buzsangiz, test avtomatik yakunlanadi.</span>
                     </div>
                 </div>
             </div>
@@ -612,14 +612,14 @@
                     </div>
                     <div class="result-info">
                         <div class="result-score">Oxirgi natija: {{ result.score }}%</div>
-                        <div class="result-details">{{ result.correct_answers }}/{{ result.total_questions }} to'g'ri javob</div>
+                        <div class="result-details">{{ result.correct_answers }}/{{ result.total_questions }} töğri javob</div>
                     </div>
                     {% if student_token %}
                     <a href="{% url 'student_test_result' student_token.token result.pk %}" class="result-btn">
                     {% else %}
                     <a href="{% url 'test_result' result.pk %}" class="result-btn">
                     {% endif %}
-                        <i class="bi bi-eye"></i> Ko'rish
+                        <i class="bi bi-eye"></i> Köriş
                     </a>
                 </div>
             </div>
@@ -635,19 +635,19 @@
                     <a href="{% url 'start_test' test.pk %}" class="start-btn free-btn">
                     {% endif %}
                         <i class="bi bi-play-fill"></i>
-                        Testni boshlash
+                        Testni boşlaş
                         <span class="free-badge"><i class="bi bi-gift-fill"></i> BEPUL</span>
                     </a>
                     <div class="fullscreen-note">
                         <i class="bi bi-info-circle"></i>
-                        Birinchi urinish <strong>bepul</strong>. Keyingi urinishlar uchun 65,000 so'm to'lov talab etiladi.
+                        Birinçi uriniş <strong>bepul</strong>. Keyingi urinişlar uçun 65,000 söm tölov talab etiladi.
                     </div>
                 {% elif pending_payment %}
                     <!-- Payment pending -->
                     <div class="pending-box">
                         <i class="bi bi-hourglass-split"></i>
-                        <p>To'lov chekingiz tekshirilmoqda...</p>
-                        <small>Admin tasdiqlashini kuting</small>
+                        <p>Tölov çekingiz tekşirilmoqda...</p>
+                        <small>Admin tasdiqlaşini kuting</small>
                     </div>
                 {% elif approved_payment %}
                     <!-- Payment approved — retry -->
@@ -657,21 +657,21 @@
                     <a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">
                     {% endif %}
                         <i class="bi bi-arrow-repeat"></i>
-                        Qayta topshirish
+                        Qayta topşiriş
                     </a>
                     <div class="fullscreen-note">
                         <i class="bi bi-check-circle" style="color: var(--success);"></i>
-                        To'lovingiz tasdiqlangan. Qayta topshirishingiz mumkin!
+                        Tölovingiz tasdiqlangan. Qayta topşirişingiz mumkin!
                     </div>
                 {% else %}
                     <!-- Payment required -->
                     <a href="{% url 'final_test_payment' test.pk %}" class="start-btn payment-btn">
                         <i class="bi bi-credit-card-2-front"></i>
-                        To'lov qilish va qayta topshirish
+                        Tölov qiliş va qayta topşiriş
                     </a>
                     <div class="payment-info">
-                        <div class="price">65,000 so'm</div>
-                        <div class="price-label">Qayta topshirish narxi</div>
+                        <div class="price">65,000 söm</div>
+                        <div class="price-label">Qayta topşiriş narxi</div>
                     </div>
                 {% endif %}
             </div>

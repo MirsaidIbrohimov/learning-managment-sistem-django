@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ game.title }} | O'yinlar{% endblock %}
+{% block title %}{{ game.title }} | Öyinlar{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -421,23 +421,23 @@
 <div class="container py-4">
     <div class="detail-hero">
         <a href="{% url 'games:games_list' %}" class="back-link">
-            <i class="bi bi-arrow-left"></i> Barcha o'yinlar
+            <i class="bi bi-arrow-left"></i> Barça öyinlar
         </a>
         <h1><i class="bi {{ game.icon }}"></i> {{ game.title }}</h1>
         <p>{{ game.description }}</p>
         <div class="mt-2">
             <span class="stat-mini">
-                <i class="bi bi-arrow-repeat"></i> Urinishlar: {{ user_attempts_count }}
+                <i class="bi bi-arrow-repeat"></i> Urinişlar: {{ user_attempts_count }}
             </span>
             <span class="stat-mini">
-                <i class="bi bi-joystick"></i> Mashq: {{ practice_count }}
+                <i class="bi bi-joystick"></i> Maşq: {{ practice_count }}
             </span>
             {% if best_practice %}
             <span class="stat-mini">
-                <i class="bi bi-trophy"></i> Eng yaxshi: {{ best_practice.total_score }} ball
+                <i class="bi bi-trophy"></i> Eng yaxşi: {{ best_practice.total_score }} ball
             </span>
             <span class="stat-mini">
-                <i class="bi bi-check2-circle"></i> {{ best_practice.found_count }} so'z
+                <i class="bi bi-check2-circle"></i> {{ best_practice.found_count }} söz
             </span>
             {% endif %}
         </div>
@@ -447,9 +447,9 @@
         <div class="col-lg-8">
             <div class="section-card practice-section text-center">
                 <h4 class="justify-content-center"><i class="bi bi-joystick text-success"></i> Practice Mode</h4>
-                <p class="text-muted mb-3">Cheksiz mashq qiling va o'z natijalaringizni yaxshilang!</p>
+                <p class="text-muted mb-3">Çeksiz maşq qiling va öz natijalaringizni yaxşilang!</p>
                 <a href="{% url 'games:word_game_play' game.slug %}" class="btn btn-practice">
-                    <i class="bi bi-play-fill"></i> Mashqni boshlash
+                    <i class="bi bi-play-fill"></i> Maşqni boşlaş
                 </a>
             </div>
 
@@ -472,7 +472,7 @@
                         {% endif %}
                         <div class="mt-1">
                             <small style="color:var(--bs-secondary-color);">
-                                <i class="bi bi-arrow-repeat"></i> Urinish: <strong>{{ comp.used_attempts }}/{{ comp.max_attempts }}</strong>
+                                <i class="bi bi-arrow-repeat"></i> Uriniş: <strong>{{ comp.used_attempts }}/{{ comp.max_attempts }}</strong>
                                 {% if comp.remaining_attempts > 0 %}
                                     <span style="color:#10b981;">({{ comp.remaining_attempts }} ta qoldi)</span>
                                 {% else %}
@@ -484,7 +484,7 @@
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         {% if comp.status == 'upcoming' %}
                             <span class="status-badge status-upcoming">
-                                <i class="bi bi-clock"></i> Boshlanmagan
+                                <i class="bi bi-clock"></i> Boşlanmagan
                             </span>
                         {% elif comp.status == 'active' %}
                             <span class="status-badge status-active">
@@ -492,10 +492,10 @@
                             </span>
                             {% if comp.can_play %}
                             <a href="{% url 'games:word_game_play_competition' game.slug comp.pk %}" class="btn btn-comp js-competition-start">
-                                <i class="bi bi-play-fill"></i> Boshlash
+                                <i class="bi bi-play-fill"></i> Boşlaş
                             </a>
                             {% else %}
-                            <span class="badge bg-secondary">Urinishlar tugadi</span>
+                            <span class="badge bg-secondary">Urinişlar tugadi</span>
                             {% endif %}
                         {% else %}
                             <span class="status-badge status-ended">
@@ -519,7 +519,7 @@
                         <i class="bi bi-person"></i> Mening
                     </button>
                     <button class="tab-btn" data-tab="all-results">
-                        <i class="bi bi-people"></i> Barcha
+                        <i class="bi bi-people"></i> Barça
                     </button>
                 </div>
 
@@ -534,7 +534,7 @@
                                 {{ attempt.total_score }} ball
                             </div>
                             <small class="text-muted">
-                                {{ attempt.found_count }} so'z · {{ attempt.time_spent }}s
+                                {{ attempt.found_count }} söz · {{ attempt.time_spent }}s
                             </small>
                         </div>
                         <div class="text-end">
@@ -551,13 +551,13 @@
                     {% endfor %}
                     <div class="text-center mt-3">
                         <a href="{% url 'games:my_results' %}?game={{ game.pk }}" class="btn btn-sm btn-outline-primary" style="border-radius: 10px;">
-                            Barchasi <i class="bi bi-arrow-right"></i>
+                            Barçasi <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                     {% else %}
                     <div class="text-center py-3">
                         <i class="bi bi-emoji-smile text-muted" style="font-size: 2.5rem; animation: floatY 3s ease-in-out infinite;"></i>
-                        <p class="text-muted mt-2 mb-0">Hali natijalar yo'q</p>
+                        <p class="text-muted mt-2 mb-0">Hali natijalar yöq</p>
                     </div>
                     {% endif %}
                 </div>
@@ -571,7 +571,7 @@
                             <div class="attempt-user-name">{{ attempt.user.full_name }}</div>
                             <div class="attempt-score" style="font-size: 0.88rem;">{{ attempt.total_score }} ball</div>
                             <small class="text-muted">
-                                {{ attempt.found_count }} so'z · {{ attempt.time_spent }}s
+                                {{ attempt.found_count }} söz · {{ attempt.time_spent }}s
                             </small>
                         </div>
                         <div class="text-end">
@@ -589,7 +589,7 @@
                     {% else %}
                     <div class="text-center py-3">
                         <i class="bi bi-emoji-smile text-muted" style="font-size: 2.5rem; animation: floatY 3s ease-in-out infinite;"></i>
-                        <p class="text-muted mt-2 mb-0">Hali natijalar yo'q</p>
+                        <p class="text-muted mt-2 mb-0">Hali natijalar yöq</p>
                     </div>
                     {% endif %}
                 </div>
@@ -619,7 +619,7 @@ document.querySelectorAll('.js-competition-start').forEach(link => {
         this.dataset.starting = '1';
         this.style.pointerEvents = 'none';
         this.setAttribute('aria-disabled', 'true');
-        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda...';
+        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Oçilmoqda...';
     });
 });
 </script>

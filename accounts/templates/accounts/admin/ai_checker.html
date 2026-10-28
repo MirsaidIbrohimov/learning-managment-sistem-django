@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}AI Tekshiruvchi - Admin Panel{% endblock %}
+{% block title %}AI Tekşiruvçi - Admin Panel{% endblock %}
 
 {% block admin_content %}
 {% csrf_token %}
@@ -195,13 +195,13 @@
 </style>
 
 <div class="aic-page">
-    <a href="{% url 'admin_dashboard' %}" class="aic-back"><i class="bi bi-arrow-left"></i> Bosh sahifa</a>
+    <a href="{% url 'admin_dashboard' %}" class="aic-back"><i class="bi bi-arrow-left"></i> Boş sahifa</a>
 
     <!-- Header -->
     <div class="aic-header">
         <div class="aic-header-left">
-            <h1><i class="bi bi-cpu"></i> AI Tekshiruvchi</h1>
-            <div class="aic-header-sub">Barcha vazifalar uchun AI tekshiruvchini boshqaring</div>
+            <h1><i class="bi bi-cpu"></i> AI Tekşiruvçi</h1>
+            <div class="aic-header-sub">Barça vazifalar uçun AI tekşiruvçini boşqaring</div>
         </div>
         <div class="aic-stats">
             <div class="aic-stat-card">
@@ -214,7 +214,7 @@
             </div>
             <div class="aic-stat-card">
                 <div class="aic-stat-val red">{{ ai_off_hw|add:ai_off_sp }}</div>
-                <div class="aic-stat-label">AI o'chirilgan</div>
+                <div class="aic-stat-label">AI öçirilgan</div>
             </div>
         </div>
     </div>
@@ -222,24 +222,24 @@
     <!-- Controls -->
     <div class="aic-controls">
         <select class="aic-filter-select" id="courseFilter" onchange="filterByCourse()">
-            <option value="">Barcha kurslar</option>
+            <option value="">Barça kurslar</option>
             {% for p in professions %}
             <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
             {% endfor %}
         </select>
 
         <button class="aic-btn aic-btn-on aic-btn-ml" onclick="toggleAll('all_on')">
-            <i class="bi bi-check-circle"></i> Barchasini yoqish
+            <i class="bi bi-check-circle"></i> Barçasini yoqiş
         </button>
         <button class="aic-btn aic-btn-off" onclick="toggleAll('all_off')">
-            <i class="bi bi-x-circle"></i> Barchasini o'chirish
+            <i class="bi bi-x-circle"></i> Barçasini öçiriş
         </button>
     </div>
 
     <!-- Tabs -->
     <div class="aic-tabs">
         <button class="aic-tab-btn active" onclick="showTab('all', this)">
-            <i class="bi bi-grid-3x3-gap"></i> Barchasi ({{ total_hw|add:total_sp }})
+            <i class="bi bi-grid-3x3-gap"></i> Barçasi ({{ total_hw|add:total_sp }})
         </button>
         <button class="aic-tab-btn" onclick="showTab('homework', this)">
             <i class="bi bi-file-earmark-text"></i> Uy vazifalar ({{ total_hw }})
@@ -269,7 +269,7 @@
             </div>
             {% if not data.ai_enabled %}
             <div class="aic-admin-block">
-                <i class="bi bi-lock-fill"></i> Bu kurs uchun AI tekshiruvchi o'chirilgan — o'qituvchi ham yoqa olmaydi
+                <i class="bi bi-lock-fill"></i> Bu kurs uçun AI tekşiruvçi öçirilgan — öqituvçi ham yoqa olmaydi
             </div>
             {% endif %}
             <div class="aic-task-list">
@@ -279,12 +279,12 @@
                     <div class="aic-task-name">{{ hw.lesson.title }}</div>
                     <span class="aic-task-type aic-type-hw">Vazifa</span>
                     <span class="aic-file-label"><i class="bi bi-file-earmark"></i> Fayl</span>
-                    <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qilish">
+                    <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qiliş">
                         <div class="aic-file-switch-dot"></div>
                     </button>
                     <div class="aic-divider"></div>
                     <span class="aic-status-text {% if hw.ai_check and data.ai_enabled %}aic-status-on{% else %}aic-status-off{% endif %}">
-                        {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                        {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}Öçirilgan{% endif %}
                     </span>
                     <button class="aic-switch {% if hw.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
                             onclick="{% if data.ai_enabled %}toggleAI(this, 'homework', {{ hw.pk }}){% endif %}">
@@ -317,7 +317,7 @@
             </div>
             {% if not data.ai_enabled %}
             <div class="aic-admin-block">
-                <i class="bi bi-lock-fill"></i> Bu kurs uchun AI tekshiruvchi o'chirilgan — o'qituvchi ham yoqa olmaydi
+                <i class="bi bi-lock-fill"></i> Bu kurs uçun AI tekşiruvçi öçirilgan — öqituvçi ham yoqa olmaydi
             </div>
             {% endif %}
             <div class="aic-task-list">
@@ -327,7 +327,7 @@
                     <div class="aic-task-name">{{ sp.lesson.title }}</div>
                     <span class="aic-task-type aic-type-sp">Speaking</span>
                     <span class="aic-status-text {% if sp.ai_check and data.ai_enabled %}aic-status-on{% else %}aic-status-off{% endif %}">
-                        {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                        {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}Öçirilgan{% endif %}
                     </span>
                     <button class="aic-switch {% if sp.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
                             onclick="{% if data.ai_enabled %}toggleAI(this, 'speaking', {{ sp.pk }}){% endif %}">
@@ -344,7 +344,7 @@
     <div class="aic-empty">
         <i class="bi bi-inbox"></i>
         <h4>Vazifalar topilmadi</h4>
-        <p>Hali hech qanday uy vazifa yoki speaking vazifa yaratilmagan.</p>
+        <p>Hali heç qanday uy vazifa yoki speaking vazifa yaratilmagan.</p>
     </div>
     {% endif %}
 </div>
@@ -429,7 +429,7 @@
                     statusEl.textContent = 'Yoqilgan';
                     statusEl.className = 'aic-status-text aic-status-on';
                 } else {
-                    statusEl.textContent = "O'chirilgan";
+                    statusEl.textContent = "Öçirilgan";
                     statusEl.className = 'aic-status-text aic-status-off';
                 }
                 showNotif(data.message, data.new_state ? 'success' : 'warning');
@@ -442,8 +442,8 @@
 
     function toggleAll(action) {
         if (!confirm(action === 'all_on'
-            ? 'Barcha vazifalar uchun AI tekshiruvchini yoqmoqchimisiz?'
-            : 'Barcha vazifalar uchun AI tekshiruvchini o\'chirmoqchimisiz?')) return;
+            ? 'Barça vazifalar uçun AI tekşiruvçini yoqmoqçimisiz?'
+            : 'Barça vazifalar uçun AI tekşiruvçini öçirmoqçimisiz?')) return;
 
         const professionId = document.getElementById('courseFilter').value;
         const formData = new FormData();

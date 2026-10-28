@@ -4,23 +4,23 @@
 <section id="coin-topup" class="ct-panel" aria-labelledby="ct-title">
   <div class="ct-heading">
     {% if request.user.is_premium %}
-    <div><span class="ct-eyebrow"><i class="bi bi-gem" aria-hidden="true"></i> Premium · Tanga sotib olish</span>
-      <h2 id="ct-title">Ko‘proq tanga oling —<br><em class="mkx-gold">yarim narxda to‘lang.</em></h2>
-      <p>Premium a’zo sifatida tanga siz uchun 50% arzon. Chegirma to‘lovda avtomatik qo‘llanadi.</p>
+    <div><span class="ct-eyebrow"><i class="bi bi-gem" aria-hidden="true"></i> Premium · Tanga sotib oliş</span>
+      <h2 id="ct-title">Köproq tanga oling —<br><em class="mkx-gold">yarim narxda tölang.</em></h2>
+      <p>Premium a’zo sifatida tanga siz uçun 50% arzon. Çegirma tölovda avtomatik qöllanadi.</p>
     </div>
     {% else %}
-    <div><span class="ct-eyebrow"><i class="bi bi-coin" aria-hidden="true"></i> LMS Market · Tanga sotib olish</span>
-      <h2 id="ct-title">Istagan mahsulotingizga bir qadam yaqinlashing</h2>
-      <p>Balansingizni to‘ldiring va Marketdagi mahsulotlarni tangalar bilan xarid qiling.</p>
+    <div><span class="ct-eyebrow"><i class="bi bi-coin" aria-hidden="true"></i> LMS Market · Tanga sotib oliş</span>
+      <h2 id="ct-title">Istagan mahsulotingizga bir qadam yaqinlaşing</h2>
+      <p>Balansingizni töldiring va Marketdagi mahsulotlarni tangalar bilan xarid qiling.</p>
     </div>
     {% endif %}
     <div class="ct-wallet"><i class="bi bi-wallet2" aria-hidden="true"></i><span>Joriy balans<strong><span id="ct-balance" data-value="{{ request.user.coins }}">{{ request.user.coins }}</span> tanga</strong></span></div>
   </div>
-  <div class="ct-rate"><i class="bi bi-coin" aria-hidden="true"></i><div><small>JORIY TANGA NARXI</small><strong id="ct-rate-label">1 tanga = {{ coin_pricing.rate }} so‘m</strong></div><span id="ct-rate-status">Amaldagi narx</span></div>
+  <div class="ct-rate"><i class="bi bi-coin" aria-hidden="true"></i><div><small>JORIY TANGA NARXI</small><strong id="ct-rate-label">1 tanga = {{ coin_pricing.rate }} söm</strong></div><span id="ct-rate-status">Amaldagi narx</span></div>
   <div id="ct-offers-section" {% if not coin_pricing.discounts %}hidden{% endif %}>
-    <div class="ct-offers-heading"><h3><i class="bi bi-stars"></i> Siz uchun maxsus aksiyalar</h3><span>Eng foydalisi avtomatik qo‘llanadi</span></div>
+    <div class="ct-offers-heading"><h3><i class="bi bi-stars"></i> Siz uçun maxsus aksiyalar</h3><span>Eng foydalisi avtomatik qöllanadi</span></div>
     <div id="ct-offers" class="ct-offers">
-    {% for discount in coin_pricing.discounts %}<article class="cp-offer" data-theme="{{ discount.theme }}"><div class="cp-art" aria-hidden="true">✦<span>{% if discount.theme == 'premium' %}💎{% elif discount.theme == 'navruz' %}🌷{% elif discount.theme == 'newyear' %}🎄{% elif discount.theme == 'eid' %}☪{% elif discount.theme == 'simple' %}✦{% else %}🎁{% endif %}</span>✧</div><div class="cp-copy"><span class="cp-label">{% if discount.theme == 'premium' %}PREMIUM TAKLIF{% elif discount.theme == 'simple' %}MAXSUS TAKLIF{% else %}BAYRAM TAKLIFI{% endif %}</span><h3>{{ discount.name }}</h3><p>{% if discount.theme == 'premium' %}Siz uchun barcha tanga xaridlari yarim narxda{% elif discount.discount_type == 'package' %}<span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga atigi <span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}Kamida <span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga xaridida{% endif %}</p>{% if discount.ends_at %}<small class="cp-ends" data-ends-at="{{ discount.ends_at }}"></small>{% endif %}</div><div class="cp-value"><strong>{% if discount.discount_type == 'package' %}<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}−<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span>{% if discount.discount_type == 'percentage' %}%{% else %} so‘m{% endif %}{% endif %}</strong></div></article>{% endfor %}
+    {% for discount in coin_pricing.discounts %}<article class="cp-offer" data-theme="{{ discount.theme }}"><div class="cp-art" aria-hidden="true">✦<span>{% if discount.theme == 'premium' %}💎{% elif discount.theme == 'navruz' %}🌷{% elif discount.theme == 'newyear' %}🎄{% elif discount.theme == 'eid' %}☪{% elif discount.theme == 'simple' %}✦{% else %}🎁{% endif %}</span>✧</div><div class="cp-copy"><span class="cp-label">{% if discount.theme == 'premium' %}PREMIUM TAKLIF{% elif discount.theme == 'simple' %}MAXSUS TAKLIF{% else %}BAYRAM TAKLIFI{% endif %}</span><h3>{{ discount.name }}</h3><p>{% if discount.theme == 'premium' %}Siz uçun barça tanga xaridlari yarim narxda{% elif discount.discount_type == 'package' %}<span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga atigi <span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> söm{% else %}Kamida <span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga xaridida{% endif %}</p>{% if discount.ends_at %}<small class="cp-ends" data-ends-at="{{ discount.ends_at }}"></small>{% endif %}</div><div class="cp-value"><strong>{% if discount.discount_type == 'package' %}<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> söm{% else %}−<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span>{% if discount.discount_type == 'percentage' %}%{% else %} söm{% endif %}{% endif %}</strong></div></article>{% endfor %}
     </div>
   </div>
   {{ coin_pricing|json_script:'ct-pricing' }}
@@ -30,36 +30,36 @@
       <div class="ct-packages">
         {% for package in coin_packages %}<label class="ct-package">
           <input type="radio" name="package" value="{{ package.coins }}" {% if forloop.first %}checked{% endif %}>
-          <span class="ct-package-face"><i class="bi bi-coin" aria-hidden="true"></i><strong data-ct-number="{{ package.coins }}">{{ package.coins }}</strong><span>tanga</span><small class="ct-package-cost" data-coins="{{ package.coins }}">{% if package.discount %}<del data-ct-number="{{ package.gross }}">{{ package.gross }}</del> → {% endif %}<span data-ct-number="{{ package.payable }}">{{ package.payable }}</span> so‘m</small><span class="ct-selected">✓ Tanlangan</span></span>
+          <span class="ct-package-face"><i class="bi bi-coin" aria-hidden="true"></i><strong data-ct-number="{{ package.coins }}">{{ package.coins }}</strong><span>tanga</span><small class="ct-package-cost" data-coins="{{ package.coins }}">{% if package.discount %}<del data-ct-number="{{ package.gross }}">{{ package.gross }}</del> → {% endif %}<span data-ct-number="{{ package.payable }}">{{ package.payable }}</span> söm</small><span class="ct-selected">✓ Tanlangan</span></span>
         </label>{% endfor %}
       </div>
-      <label for="ct-custom" class="ct-custom-label">Nechta tanga olmoqchisiz?</label>
+      <label for="ct-custom" class="ct-custom-label">Neçta tanga olmoqçisiz?</label>
       <input id="ct-custom" name="amount" class="ct-custom" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Kamida 1 000 tanga" aria-describedby="ct-limits ct-error">
-      <p id="ct-limits" class="ct-hint">Eng kam xarid: <b>1 000 tanga</b>. {% if coin_limits %}To‘lov chegarasi: <span data-ct-number="{{ coin_limits.0 }}">{{ coin_limits.0 }}</span> – <span data-ct-number="{{ coin_limits.1 }}">{{ coin_limits.1 }}</span> so‘m.{% else %}To‘lov chegaralari sozlanmoqda.{% endif %}</p>
+      <p id="ct-limits" class="ct-hint">Eng kam xarid: <b>1 000 tanga</b>. {% if coin_limits %}Tölov çegarasi: <span data-ct-number="{{ coin_limits.0 }}">{{ coin_limits.0 }}</span> – <span data-ct-number="{{ coin_limits.1 }}">{{ coin_limits.1 }}</span> söm.{% else %}Tölov çegaralari sozlanmoqda.{% endif %}</p>
     </fieldset>
-    <div class="ct-summary" aria-live="polite"><span>Olasiz: <strong id="ct-receive">{{ coin_packages.0.coins }} tanga</strong></span><span>To‘laysiz: <strong id="ct-pay">{{ coin_packages.0.payable }} so‘m</strong></span></div>
-    <div class="ct-breakdown"><span>Asl narx <b id="ct-gross">{{ coin_packages.0.gross }} so‘m</b></span><span id="ct-savings-row" hidden>Tejaysiz <b id="ct-savings">—</b></span></div>
+    <div class="ct-summary" aria-live="polite"><span>Olasiz: <strong id="ct-receive">{{ coin_packages.0.coins }} tanga</strong></span><span>Tölaysiz: <strong id="ct-pay">{{ coin_packages.0.payable }} söm</strong></span></div>
+    <div class="ct-breakdown"><span>Asl narx <b id="ct-gross">{{ coin_packages.0.gross }} söm</b></span><span id="ct-savings-row" hidden>Tejaysiz <b id="ct-savings">—</b></span></div>
     <p id="ct-discount" class="ct-hint" aria-live="polite"></p>
     <p id="ct-error" class="ct-error" role="alert"></p>
-    {% if coin_checkout_ready %}{% payment_method_picker %}{% else %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
-    <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash</button>
+    {% if coin_checkout_ready %}{% payment_method_picker %}{% else %}<p class="ct-hint">Tanga tölovi hozirça sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
+    <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn tölaş</button>
     {% if money_balance %}
     <div class="ct-or">yoki</div>
     <div class="ct-wallet-pay">
       <div class="ct-wallet-pay-head"><span class="ct-wallet-pay-ico" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
-        <div><small>Pul balansingiz</small><strong id="ct-money" data-value="{{ money_balance }}">{{ money_balance }}</strong> so‘m</div></div>
+        <div><small>Pul balansingiz</small><strong id="ct-money" data-value="{{ money_balance }}">{{ money_balance }}</strong> söm</div></div>
       <button type="button" id="ct-balance-btn" class="ct-submit ct-balance-btn" data-url="{% url 'coin:coin_balance_buy' %}">
-        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Balansdan to‘lash
+        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Balansdan tölaş
       </button>
       <p id="ct-money-hint" class="ct-hint" aria-live="polite"></p>
     </div>
     {% endif %}
-    <noscript><p>Miqdorni kiriting yoki paketni tanlang. Yakuniy summa amaldagi narx va chegirmalar bo‘yicha hisoblanadi.</p></noscript>
+    <noscript><p>Miqdorni kiriting yoki paketni tanlang. Yakuniy summa amaldagi narx va çegirmalar böyiça hisoblanadi.</p></noscript>
   </form>
   <div id="ct-result" role="status" aria-live="polite" {% if coin_return_order %}data-return-status-url="{% url 'coin:coin_payment_status' coin_return_order.pk %}"{% endif %} hidden></div>
-  <button id="ct-recheck" type="button" class="ct-recheck" hidden>Holatni qayta tekshirish</button>
+  <button id="ct-recheck" type="button" class="ct-recheck" hidden>Holatni qayta tekşiriş</button>
   {% if coin_orders %}<details class="ct-history" open><summary>Tanga xaridlari</summary>
-    {% for order in coin_orders %}<div class="ct-history-row"><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'d.m.Y H:i' }}</time><span><strong data-ct-number="{{ order.coin_quantity|default_if_none:order.amount_som }}">{{ order.coin_quantity|default_if_none:order.amount_som }}</strong> tanga</span><span><span data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</span> so‘m</span><button type="button" class="ct-order-status" data-status-url="{% url 'coin:coin_payment_status' order.pk %}" data-order="{{ order.pk }}">{{ order.get_status_display }}</button></div>{% endfor %}
+    {% for order in coin_orders %}<div class="ct-history-row"><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'d.m.Y H:i' }}</time><span><strong data-ct-number="{{ order.coin_quantity|default_if_none:order.amount_som }}">{{ order.coin_quantity|default_if_none:order.amount_som }}</strong> tanga</span><span><span data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</span> söm</span><button type="button" class="ct-order-status" data-status-url="{% url 'coin:coin_payment_status' order.pk %}" data-order="{{ order.pk }}">{{ order.get_status_display }}</button></div>{% endfor %}
   </details>{% endif %}
 </section>
 <style>

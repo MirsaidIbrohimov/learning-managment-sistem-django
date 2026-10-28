@@ -62,7 +62,7 @@ class EmailVerificationTests(TestCase):
         other.email = ''
         other.save()
         self.client.force_login(other)
-        # Haqiqiy login kabi faol sessiya (aks holda DeviceLimitMiddleware chiqarib yuboradi).
+        # Haqiqiy login kabi faol sessiya (aks holda DeviceLimitMiddleware çiqarib yuboradi).
         UserSession.objects.create(user=other, session_key=self.client.session.session_key,
                                    expires_at=timezone.now() + timedelta(hours=2))
         self.assertContains(self.client.get(self.link()), 'Email tasdiqlanmadi')

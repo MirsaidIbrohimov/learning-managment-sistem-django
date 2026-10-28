@@ -5,7 +5,7 @@
 <h1 align="center">🚀 IT Creative Zomin — Learning Management System</h1>
 
 <p align="center">
-  <strong>O'zbekiston IT ta'lim markazlari uchun to'liq funksional ta'lim boshqaruv tizimi</strong>
+  <strong>Özbekiston IT ta'lim markazlari uçun töliq funksional ta'lim boşqaruv tizimi</strong>
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 
 <p align="center">
   <a href="https://itc-academy.uz">🌐 Sayt</a> •
-  <a href="#-oʻrnatish">⚙️ O'rnatish</a> •
+  <a href="#-örnatish">⚙️ Örnatiş</a> •
   <a href="#-api-hujjatlari">📡 API</a> •
   <a href="#-xavfsizlik">🔐 Xavfsizlik</a> •
   <a href="#-deploy-qilish">🚀 Deploy</a>
@@ -34,37 +34,37 @@
 - [Arxitektura](#-arxitektura)
 - [Foydalanuvchi rollari](#-foydalanuvchi-rollari)
 - [Ilovalar (Apps)](#-ilovalar-apps)
-- [O'rnatish](#-oʻrnatish)
-- [Muhit o'zgaruvchilari](#-muhit-oʻzgaruvchilari)
+- [Örnatish](#-örnatish)
+- [Muhit özgaruvçilari](#-muhit-özgaruvchilari)
 - [API hujjatlari](#-api-hujjatlari)
 - [Xavfsizlik](#-xavfsizlik)
 - [Telegram bot](#-telegram-bot)
-- [Deploy qilish](#-deploy-qilish)
-- [Loyiha tuzilishi](#-loyiha-tuzilishi)
+- [Deploy qiliş](#-deploy-qilish)
+- [Loyiha tuzilişi](#-loyiha-tuzilishi)
 - [Muallif](#-muallif)
 
 ---
 
 ## 📖 Loyiha haqida
 
-**IT Creative Zomin LMS** — bu IT ta'lim markazlari uchun yaratilgan to'liq funksional ta'lim boshqaruv tizimi. Tizim o'quvchilar, o'qituvchilar, adminlar va ota-onalar uchun alohida dashboardlar bilan ta'minlangan.
+**IT Creative Zomin LMS** — bu IT ta'lim markazlari uçun yaratilgan töliq funksional ta'lim boşqaruv tizimi. Tizim öquvçilar, öqituvçilar, adminlar va ota-onalar uçun alohida dashboardlar bilan ta'minlangan.
 
 ### ✨ Asosiy imkoniyatlar
 
-| Yo'nalish | Imkoniyatlar |
+| Yönaliş | Imkoniyatlar |
 |-----------|-------------|
-| 📚 **Ta'lim** | Kurslar, bo'limlar, darslar (video, uyga vazifa, test, lug'at, speaking) |
-| 🤖 **Sun'iy intellekt** | OpenAI asosidagi AI yordamchi, uy vazifalarini AI bilan tekshirish |
-| 🪙 **Coin iqtisodiyoti** | Coin qo'lga kiritish, do'kon, P2P transfer, faollik mukofotlari |
-| 🎮 **O'yinlar** | Typing challenge, so'z o'yini, shaxmat/shashka, musobaqalar |
+| 📚 **Ta'lim** | Kurslar, bölimlar, darslar (video, uyga vazifa, test, luğat, speaking) |
+| 🤖 **Sun'iy intellekt** | OpenAI asosidagi AI yordamçi, uy vazifalarini AI bilan tekşiriş |
+| 🪙 **Coin iqtisodiyoti** | Coin qölga kiritiş, dökon, P2P transfer, faollik mukofotlari |
+| 🎮 **Öyinlar** | Typing challenge, söz öyini, shaxmat/shashka, musobaqalar |
 | 📝 **Blog** | Yangiliklar, maqolalar, likes & comments |
-| 🤖 **Telegram bot** | OTP login, bildirishnomalar, AI chat, ommaviy xabarlar |
-| 👨‍👩‍👧 **Ota-ona portali** | Farzand progressini kuzatish, to'lovlar, o'qituvchi bilan aloqa |
-| 💳 **To'lov tizimi** | Payme & Click integratsiya, balans, avtomatik chegirmalar |
-| 📊 **Sertifikatlar** | Avtomatik PDF sertifikat generatsiya, CERT-ID bilan tekshirish |
-| 💬 **Chat tizimi** | Guruh chat, shaxsiy xabarlar, reaktsiyalar, reply, pin |
-| 📋 **So'rovnomalar** | Dinamik so'rovnoma yaratish (8 xil savol turi) |
-| 📖 **Kutubxona** | Kitob ijarasi, eslatmalar, qaytarish kuzatuvi |
+| 🤖 **Telegram bot** | OTP login, bildirişnomalar, AI çat, ommaviy xabarlar |
+| 👨‍👩‍👧 **Ota-ona portali** | Farzand progressini kuzatiş, tölovlar, öqituvçi bilan aloqa |
+| 💳 **Tölov tizimi** | Payme & Click integratsiya, balans, avtomatik çegirmalar |
+| 📊 **Sertifikatlar** | Avtomatik PDF sertifikat generatsiya, CERT-ID bilan tekşiriş |
+| 💬 **Çat tizimi** | Guruh çat, şaxsiy xabarlar, reaktsiyalar, reply, pin |
+| 📋 **Sörovnomalar** | Dinamik sörovnoma yaratiş (8 xil savol turi) |
+| 📖 **Kutubxona** | Kitob ijarasi, eslatmalar, qaytariş kuzatuvi |
 | 🏆 **Gamifikatsiya** | XP/level tizimi, streak, yutuqlar, reyting |
 
 ---
@@ -80,14 +80,14 @@
 | Django REST Framework | 3.15.2 | REST API |
 | Django Jazzmin | 3.0.2 | Admin panel UI (Cyborg tema) |
 | WhiteNoise | 6.11.0 | Statik fayllar |
-| Pillow | 12.1.1 | Rasm ishlov berish |
+| Pillow | 12.1.1 | Rasm işlov beriş |
 | ReportLab | 4.4.10 | PDF sertifikat generatsiya |
-| OpenAI SDK | 2.21.0 | AI yordamchi |
+| OpenAI SDK | 2.21.0 | AI yordamçi |
 | openpyxl | 3.1.5 | Excel eksport |
 | psycopg2-binary | — | PostgreSQL driver |
-| argon2-cffi | 23.1+ | Kuchli parol hashlash |
-| python-dotenv | 1.0.1 | Muhit o'zgaruvchilari |
-| requests | 2.32.5 | HTTP so'rovlar (Telegram API) |
+| argon2-cffi | 23.1+ | Kuçli parol haşlaş |
+| python-dotenv | 1.0.1 | Muhit özgaruvçilari |
+| requests | 2.32.5 | HTTP sörovlar (Telegram API) |
 
 ### Frontend
 
@@ -151,47 +151,47 @@ graph TB
 
 ---
 
-## 👥 Foydalanuvchi rollari
+## 👥 Foydalanuvçi rollari
 
 ### 🔴 Admin
-- To'liq tizim boshqaruvi
-- O'quvchi/o'qituvchi qo'shish va boshqarish
-- Kurslar, darslar, testlar yaratish
-- To'lovlarni boshqarish va monitoring
+- Töliq tizim boşqaruvi
+- Öquvchi/öqituvchi qöşiş va boşqariş
+- Kurslar, darslar, testlar yaratiş
+- Tölovlarni boşqariş va monitoring
 - Tizim statistikasi va hisobotlar (PDF/Excel)
-- Ommaviy xabar yuborish (Telegram + tizim ichida)
-- Maintenance mode boshqaruvi
-- Xavfsizlik hodisalarini kuzatish
+- Ommaviy xabar yuboriş (Telegram + tizim içida)
+- Maintenance mode boşqaruvi
+- Xavfsizlik hodisalarini kuzatiş
 
-### 🟡 Yordamchi admin
+### 🟡 Yordamçi admin
 - Granular permission tizimi (AssistantRole modeli)
-- Admin tomonidan belgilangan vakolatlar doirasida ishlash
+- Admin tomonidan belgilangan vakolatlar doirasida işlaş
 - Harakatlar audit log bilan kuzatiladi
 
-### 🟢 O'qituvchi
-- O'z kurslaridagi darslarni boshqarish
-- Uyga vazifalarni tekshirish va baholash
-- O'quvchi progressini kuzatish
-- Maosh va davomat ko'rish
-- Sertifikatlarni boshqarish
-- O'quvchilar bilan chat
+### 🟢 Öqituvçi
+- Öz kurslaridagi darslarni boşqariş
+- Uyga vazifalarni tekşiriş va baholaş
+- Öquvçi progressini kuzatiş
+- Maoş va davomat köriş
+- Sertifikatlarni boşqariş
+- Öquvçilar bilan çat
 
-### 🔵 O'quvchi
-- Kurslarga yozilish va darslarni o'rganish
+### 🔵 Öquvçi
+- Kurslarga yoziliş va darslarni örganiş
 - Video darslar, testlar, uyga vazifalar
-- AI yordamchidan foydalanish
-- Coin yig'ish va do'konda sarflash
-- O'yinlar va musobaqalarda qatnashish
-- Sertifikat olish
-- Blog yozish va boshqalar bilan muloqot
+- AI yordamçidan foydalaniş
+- Coin yiğiş va dökonda sarflaş
+- Öyinlar va musobaqalarda qatnaşiş
+- Sertifikat oliş
+- Blog yoziş va boşqalar bilan muloqot
 
 ### 🟣 Ota-ona
 - Alohida portal (Django User emas, mustaqil model)
-- Farzand progressini real-time kuzatish
-- Test natijalari va baholash
-- To'lov tarixi
-- O'qituvchi bilan xabar almashish
-- Kitob ijarasi ko'rish
+- Farzand progressini real-time kuzatiş
+- Test natijalari va baholaş
+- Tölov tarixi
+- Öqituvçi bilan xabar almaşiş
+- Kitob ijarasi köriş
 
 ---
 
@@ -205,41 +205,41 @@ graph TB
 
 | Model | Vazifasi |
 |-------|----------|
-| `CustomUser` | Foydalanuvchilar (admin, teacher, student, assistant_admin) |
-| `Profession` | Kurslar va kasblar (pullik/bepul, sertifikatli, AI tekshiruv) |
-| `Section` | Kurs bo'limlari (tartiblanuvchi) |
+| `CustomUser` | Foydalanuvçilar (admin, teacher, student, assistant_admin) |
+| `Profession` | Kurslar va kasblar (pullik/bepul, sertifikatli, AI tekşiruv) |
+| `Section` | Kurs bölimlari (tartiblanuvçi) |
 | `Lesson` | Darslar (video, homework, test, dictionary, speaking) |
 | `VideoLesson` | Video darslar (YouTube/Vimeo) |
-| `Homework` / `HomeworkSubmission` | Uyga vazifalar va topshiriqlar |
+| `Homework` / `HomeworkSubmission` | Uyga vazifalar va topşiriqlar |
 | `Test` / `TestQuestion` / `TestResult` | Test tizimi (lesson, midterm, practice, final) |
 | `Certificate` | Sertifikatlar (CERT-YYYYMMDD-XXXX format) |
-| `PaymentStatus` / `PaymentRecord` | To'lov kuzatuvi |
+| `PaymentStatus` / `PaymentRecord` | Tölov kuzatuvi |
 | `StudentBalance` | Balans tizimi (auto-deduction) |
-| `Message` | Tizim ichki bildirish nomalari (12 tur) |
-| `UserDevice` / `UserSession` | Qurilma va sessiya boshqaruvi |
-| `GroupChatMessage` / `DirectMessage` | Chat tizimi |
-| `SurveyForm` / `SurveyQuestion` | So'rovnoma tizimi |
-| `PaymeTransaction` / `ClickTransaction` | To'lov gateway integratsiya |
+| `Message` | Tizim içki bildiriş nomalari (12 tur) |
+| `UserDevice` / `UserSession` | Qurilma va sessiya boşqaruvi |
+| `GroupChatMessage` / `DirectMessage` | Çat tizimi |
+| `SurveyForm` / `SurveyQuestion` | Sörovnoma tizimi |
+| `PaymeTransaction` / `ClickTransaction` | Tölov gateway integratsiya |
 | `SecurityEvent` | Xavfsizlik hodisalari log |
 | `Book` / `BookRental` | Kutubxona tizimi |
 | `Parent` / `ParentMessage` | Ota-ona modeli va xabarlar |
-| `AssistantRole` / `AssistantActionLog` | Yordamchi admin roli va audit |
+| `AssistantRole` / `AssistantActionLog` | Yordamçi admin roli va audit |
 
 ---
 
-### 2. `teacher` — O'qituvchi paneli
+### 2. `teacher` — Öqituvçi paneli
 
 | Model | Vazifasi |
 |-------|----------|
-| `TeacherCertificate` | O'qituvchi sertifikatlari |
-| `TeacherSalary` | Maosh (oylik, KPI, bonus, jarima, bayram) |
-| `TeacherAttendance` | Davomat (keldi, kelmadi, kech qoldi, kasal, ta'til) |
+| `TeacherCertificate` | Öqituvçi sertifikatlari |
+| `TeacherSalary` | Maoş (oylik, KPI, bonus, jarima, bayram) |
+| `TeacherAttendance` | Davomat (keldi, kelmadi, keç qoldi, kasal, ta'til) |
 
 ---
 
 ### 3. `parents` — Ota-ona portali
 
-Alohida login tizimi bilan farzandlar progressini kuzatish, to'lov tarixi, o'qituvchi bilan aloqa.
+Alohida login tizimi bilan farzandlar progressini kuzatiş, tölov tarixi, öqituvçi bilan aloqa.
 
 ---
 
@@ -260,43 +260,43 @@ Alohida login tizimi bilan farzandlar progressini kuzatish, to'lov tarixi, o'qit
 
 ---
 
-### 5. `ai_yordamchi` — AI yordamchi
+### 5. `ai_yordamchi` — AI yordamçi
 
 | Model | Vazifasi |
 |-------|----------|
-| `ChatSession` | Foydalanuvchi AI chat sessiyalari |
-| `ChatMessage` | Xabarlar (user/assistant), rasm va fayl qo'llab-quvvatlash |
+| `ChatSession` | Foydalanuvçi AI çat sessiyalari |
+| `ChatMessage` | Xabarlar (user/assistant), rasm va fayl qöllab-quvvatlash |
 
-OpenAI GPT asosida kurs mavzulari bo'yicha savol-javob. Har bir so'rov uchun coin sarflanadi.
+OpenAI GPT asosida kurs mavzulari böyiça savol-javob. Har bir sörov uçun coin sarflanadi.
 
 ---
 
-### 6. `coin` — Coin iqtisodiyoti va do'kon
+### 6. `coin` — Coin iqtisodiyoti va dökon
 
 | Model | Vazifasi |
 |-------|----------|
-| `Product` | Do'kon mahsulotlari (nom, narx, zaxira) |
+| `Product` | Dökon mahsulotlari (nom, narx, zaxira) |
 | `ProductLike` / `ProductComment` | Like va izohlar |
 | `ProductPurchase` | Xarid tarixi (pending/delivered/cancelled) |
 | `CoinTransaction` | Tranzaksiya logi (add/remove/purchase) |
-| `CoinTransfer` | P2P transfer (10% komissiya, tasdiqlash kodi) |
+| `CoinTransfer` | P2P transfer (10% komissiya, tasdiqlaş kodi) |
 | `ActivityLog` | Faollik kuzatuvi (17 xil harakat turi) |
 
 ---
 
-### 7. `games` — O'yinlar va musobaqalar
+### 7. `games` — Öyinlar va musobaqalar
 
 | Model | Vazifasi |
 |-------|----------|
-| `Game` | O'yin turlari (typing, quiz, word_builder, external) |
+| `Game` | Öyin turlari (typing, quiz, word_builder, external) |
 | `Prompt` | Typing challenge matnlari (qiyinlik darajali) |
-| `Competition` | Musobaqalar (coin mukofotlar: 1/2/3 o'rin) |
+| `Competition` | Musobaqalar (coin mukofotlar: 1/2/3 örin) |
 | `GameAttempt` | Typing natijalar (WPM, aniqlik, ball) |
-| `BoardMatch` | Multiplayer o'yinlar (shaxmat/shashka, coin tikish) |
-| `WordRound` / `WordGameAttempt` | So'z o'yini |
+| `BoardMatch` | Multiplayer öyinlar (shaxmat/shashka, coin tikiş) |
+| `WordRound` / `WordGameAttempt` | Söz öyini |
 | `GameProgress` / `UserAchievement` | XP/level/yutuqlar tizimi |
 
-> 🔒 **Xavfsizlik:** HMAC asosida natijalar tekshiruvi (cheat prevention).
+> 🔒 **Xavfsizlik:** HMAC asosida natijalar tekşiruvi (cheat prevention).
 
 ---
 
@@ -315,15 +315,15 @@ OpenAI GPT asosida kurs mavzulari bo'yicha savol-javob. Har bir so'rov uchun coi
 | Model | Vazifasi |
 |-------|----------|
 | `TelegramLoginCode` | OTP login kodlari (6 raqamli, 5 daqiqa) |
-| `TelegramLinkToken` | Akkaunt bog'lash tokenlari |
-| `TelegramMessageLog` | Kiruvchi xabarlar logi |
+| `TelegramLinkToken` | Akkaunt boğlaş tokenlari |
+| `TelegramMessageLog` | Kiruvçi xabarlar logi |
 | `ContactMessage` | Saytdan aloqa xabarlari |
-| `TelegramBroadcastMessage` | Ommaviy xabar yuborish |
-| `TelegramChatState` | Foydalanuvchi holati (AI chat, contact mode) |
+| `TelegramBroadcastMessage` | Ommaviy xabar yuboriş |
+| `TelegramChatState` | Foydalanuvçi holati (AI çat, contact mode) |
 
 ---
 
-## ⚙️ O'rnatish
+## ⚙️ Örnatiş
 
 ### Talablar
 
@@ -332,14 +332,14 @@ OpenAI GPT asosida kurs mavzulari bo'yicha savol-javob. Har bir so'rov uchun coi
 - Git
 - SQLite (development) yoki PostgreSQL (production)
 
-### 1. Repozitoriyani klonlash
+### 1. Repozitoriyani klonlaş
 
 ```bash
 git clone https://github.com/Xusanbek0039/learning-managment-sistem-django.git
 cd learning-managment-sistem-django
 ```
 
-### 2. Virtual muhit yaratish
+### 2. Virtual muhit yaratiş
 
 ```bash
 python -m venv venv
@@ -351,13 +351,13 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 3. Kutubxonalarni o'rnatish
+### 3. Kutubxonalarni örnatiş
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Muhit o'zgaruvchilarini sozlash
+### 4. Muhit özgaruvçilarini sozlaş
 
 `.env` faylini yarating:
 
@@ -365,42 +365,42 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-`.env` faylini to'ldiring (pastdagi [Muhit o'zgaruvchilari](#-muhit-oʻzgaruvchilari) bo'limiga qarang).
+`.env` faylini töldiring (pastdagi [Muhit özgaruvçilari](#-muhit-özgaruvchilari) bölimiga qarang).
 
-### 5. Ma'lumotlar bazasini migratsiya qilish
+### 5. Ma'lumotlar bazasini migratsiya qiliş
 
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Superuser yaratish
+### 6. Superuser yaratiş
 
 ```bash
 python manage.py createsuperuser
 ```
 
-### 7. Statik fayllarni yig'ish
+### 7. Statik fayllarni yiğiş
 
 ```bash
 python manage.py collectstatic --noinput
 ```
 
-### 8. Serverni ishga tushirish
+### 8. Serverni işga tuşiriş
 
 ```bash
 python manage.py runserver
 ```
 
-Brauzerda oching: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+Brauzerda oçing: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 Admin panel: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
 
 ---
 
-## 🔑 Muhit o'zgaruvchilari
+## 🔑 Muhit özgaruvçilari
 
-`.env` faylida quyidagi o'zgaruvchilarni sozlang:
+`.env` faylida quyidagi özgaruvçilarni sozlang:
 
 ```env
 # ═══════════════════════════════════════
@@ -457,9 +457,9 @@ RECAPTCHA_SECRET_KEY=your-recaptcha-secret-key
 
 ### Autentifikatsiya
 
-API **Token** va **Session** autentifikatsiyasini qo'llab-quvvatlaydi.
+API **Token** va **Session** autentifikatsiyasini qöllab-quvvatlaydi.
 
-**Token olish:**
+**Token oliş:**
 ```http
 POST /api/v1/token/
 Content-Type: application/json
@@ -477,7 +477,7 @@ Content-Type: application/json
 }
 ```
 
-**Tokenni ishlatish:**
+**Tokenni işlatiş:**
 ```http
 GET /api/v1/profile/
 Authorization: Token abc123def456...
@@ -487,30 +487,30 @@ Authorization: Token abc123def456...
 
 | Metod | Endpoint | Tavsif |
 |-------|----------|--------|
-| `POST` | `/api/v1/token/` | Auth token olish |
+| `POST` | `/api/v1/token/` | Auth token oliş |
 | `GET` | `/api/v1/status/` | API holati |
 | `GET` | `/api/v1/profile/` | Profil ma'lumotlari |
-| `PUT` | `/api/v1/profile/complete/` | Profil to'ldirish |
-| `GET` | `/api/v1/courses/` | Kurslar ro'yxati |
-| `GET` | `/api/v1/students/` | O'quvchilar (admin) |
+| `PUT` | `/api/v1/profile/complete/` | Profil töldiriş |
+| `GET` | `/api/v1/courses/` | Kurslar röyxati |
+| `GET` | `/api/v1/students/` | Öquvçilar (admin) |
 | `GET/POST` | `/api/v1/coin/` | Coin operatsiyalari |
 | `GET` | `/api/v1/reyting/` | Reyting jadvali |
 
-### O'yin API (tashqi o'yinlar uchun)
+### Öyin API (taşqi öyinlar uçun)
 
 | Metod | Endpoint | Tavsif |
 |-------|----------|--------|
-| `POST` | `/api/v1/external-game/sso-verify/` | SSO tekshirish |
-| `POST` | `/api/v1/external-game/result/` | Natija yuborish |
-| `POST` | `/api/v1/external-game/multiplayer/find/` | Raqib topish |
-| `GET` | `/api/v1/external-game/multiplayer/state/` | O'yin holati |
-| `POST` | `/api/v1/external-game/multiplayer/move/` | Yurish |
-| `GET` | `/api/v1/external-game/gamification/profile/` | O'yinchi profili |
+| `POST` | `/api/v1/external-game/sso-verify/` | SSO tekşiriş |
+| `POST` | `/api/v1/external-game/result/` | Natija yuboriş |
+| `POST` | `/api/v1/external-game/multiplayer/find/` | Raqib topiş |
+| `GET` | `/api/v1/external-game/multiplayer/state/` | Öyin holati |
+| `POST` | `/api/v1/external-game/multiplayer/move/` | Yuriş |
+| `GET` | `/api/v1/external-game/gamification/profile/` | Öyinçi profili |
 | `GET` | `/api/v1/external-game/gamification/leaderboard/` | Liderlar jadvali |
 
 ### Paginatsiya
 
-Barcha ro'yxat endpointlari `PageNumberPagination` ishlatadi (har sahifada 20 ta element):
+Barça röyxat endpointlari `PageNumberPagination` işlatadi (har sahifada 20 ta element):
 
 ```json
 {
@@ -525,13 +525,13 @@ Barcha ro'yxat endpointlari `PageNumberPagination` ishlatadi (har sahifada 20 ta
 
 | Endpoint | Limit |
 |----------|-------|
-| Coin transfer | 10 so'rov/daqiqa |
+| Coin transfer | 10 sörov/daqiqa |
 
 ---
 
 ## 🔐 Xavfsizlik
 
-### Middleware zanjiri (tartib bo'yicha)
+### Middleware zanjiri (tartib böyiça)
 
 ```
 1.  SecurityMiddleware              — Django o'rnatilgan xavfsizlik
@@ -557,20 +557,20 @@ Barcha ro'yxat endpointlari `PageNumberPagination` ishlatadi (har sahifada 20 ta
 21. PremiumExpiryMiddleware         — Premium muddati tekshiruvi
 ```
 
-### Xavfsizlik choralari
+### Xavfsizlik çoralari
 
 | Himoya | Tavsif |
 |--------|--------|
-| **Parol hashlash** | PBKDF2 (default) + Argon2 (agar o'rnatilgan bo'lsa) |
+| **Parol haşlaş** | PBKDF2 (default) + Argon2 (agar örnatilgan bölsa) |
 | **HTTPS** | HSTS 1 yil (production), SSL redirect, secure cookies |
 | **CSP** | Content Security Policy — XSS hujumlardan himoya |
 | **CSRF** | SameSite=Lax, HttpOnly cookies |
 | **Session** | DB-backed, custom cookie (`itc_sid`), 2 soat muddatli |
-| **Login himoya** | 5 ta urinish, 15 daqiqa blokirovka |
-| **Fayl yuklash** | Max 10MB (fayl), Max 20MB (umumiy) |
-| **O'yin xavfsizligi** | HMAC-based natija tekshiruvi |
+| **Login himoya** | 5 ta uriniş, 15 daqiqa blokirovka |
+| **Fayl yuklaş** | Max 10MB (fayl), Max 20MB (umumiy) |
+| **Öyin xavfsizligi** | HMAC-based natija tekşiruvi |
 | **Logging** | Rotating file handler (5MB × 10 fayl) |
-| **Qurilma boshqaruvi** | Qurilma limiti, ishonchli qurilma tizimi |
+| **Qurilma boşqaruvi** | Qurilma limiti, işonçli qurilma tizimi |
 
 ### Xavfsizlik hodisalari
 
@@ -584,11 +584,11 @@ Tizim 17 xil xavfsizlik hodisasini 4 darajada (info, warning, error, critical) k
 
 | Funksiya | Tavsif |
 |----------|--------|
-| 🔑 **OTP Login** | 6 raqamli kod bilan tezkor kirish (5 daqiqa amal qiladi) |
-| 🔗 **Akkaunt bog'lash** | Telegram hisobni LMS hisobiga ulash |
-| 📢 **Bildirishnomalar** | Yangi dars, uyga vazifa, test natijalari haqida xabar |
-| 📨 **Ommaviy xabar** | Barcha / o'quvchilar / o'qituvchilar / guruh / individual |
-| 🤖 **AI chat** | Telegram orqali AI yordamchidan foydalanish |
+| 🔑 **OTP Login** | 6 raqamli kod bilan tezkor kiriş (5 daqiqa amal qiladi) |
+| 🔗 **Akkaunt boğlaş** | Telegram hisobni LMS hisobiga ulaş |
+| 📢 **Bildirişnomalar** | Yangi dars, uyga vazifa, test natijalari haqida xabar |
+| 📨 **Ommaviy xabar** | Barça / öquvçilar / öqituvçilar / guruh / individual |
+| 🤖 **AI çat** | Telegram orqali AI yordamçidan foydalaniş |
 | 📞 **Aloqa** | Sayt orqali aloqa xabarlari (loginsiz) |
 | ✨ **Premium emoji** | Premium animatsiyali emoji va stikerlar |
 
@@ -601,9 +601,9 @@ TELEGRAM_GROUP_CHAT_ID=-100xxxxxxxxxx
 SITE_URL=https://your-domain.uz
 ```
 
-> ⚠️ `SITE_URL` bo'sh yoki `*` bo'lsa — bot lokal **polling** rejimida ishlaydi. Production uchun real domen kerak (**webhook** rejimi).
+> ⚠️ `SITE_URL` böş yoki `*` bölsa — bot lokal **polling** rejimida işlaydi. Production uçun real domen kerak (**webhook** rejimi).
 
-### Webhook sozlash
+### Webhook sozlaş
 
 ```
 POST https://api.telegram.org/bot<TOKEN>/setWebhook
@@ -612,7 +612,7 @@ POST https://api.telegram.org/bot<TOKEN>/setWebhook
 
 ---
 
-## 🚀 Deploy qilish
+## 🚀 Deploy qiliş
 
 ### Production sozlamalari
 
@@ -625,7 +625,7 @@ CSRF_TRUSTED_ORIGINS=https://your-domain.uz,https://www.your-domain.uz
 DJANGO_SECRET_KEY=juda-uzun-va-murakkab-kalit
 ```
 
-2. **PostgreSQL ga o'ting:**
+2. **PostgreSQL ga öting:**
 
 ```env
 DB_ENGINE=django.db.backends.postgresql
@@ -636,7 +636,7 @@ DB_HOST=localhost
 DB_PORT=5432
 ```
 
-3. **Statik fayllarni yig'ing:**
+3. **Statik fayllarni yiğing:**
 
 ```bash
 python manage.py collectstatic --noinput
@@ -650,7 +650,7 @@ python manage.py migrate
 
 ### cPanel / Passenger deploy
 
-Loyiha `passenger_wsgi.py` fayliga ega bo'lib, cPanel/Passenger muhitida deploy qilishga tayyor:
+Loyiha `passenger_wsgi.py` fayliga ega bölib, cPanel/Passenger muhitida deploy qilişga tayyor:
 
 ```python
 # passenger_wsgi.py avtomatik ravishda:
@@ -665,13 +665,13 @@ Loyiha `passenger_wsgi.py` fayliga ega bo'lib, cPanel/Passenger muhitida deploy 
 |------|----------|
 | `passenger_wsgi.py` | cPanel/Passenger WSGI konfiguratsiya |
 | `.htaccess` | Apache konfiguratsiya |
-| `robots.txt` | Qidiruv tizimi boshqaruvi |
+| `robots.txt` | Qidiruv tizimi boşqaruvi |
 | `sitemap.xml` | Sayt xaritasi |
-| `requirements.txt` | Python kutubxonalar ro'yxati |
+| `requirements.txt` | Python kutubxonalar röyxati |
 
 ---
 
-## 📁 Loyiha tuzilishi
+## 📁 Loyiha tuzilişi
 
 ```
 learning-managment-sistem-django/
@@ -760,26 +760,26 @@ learning-managment-sistem-django/
 
 ---
 
-## 📊 URL marshrut xaritasi
+## 📊 URL marşrut xaritasi
 
 | Prefiks | Ilova | Tavsif |
 |---------|-------|--------|
 | `/` | `accounts` | Asosiy sahifalar (login, dashboard, kurslar) |
-| `/` | `coin` | Do'kon va coin operatsiyalari |
+| `/` | `coin` | Dökon va coin operatsiyalari |
 | `/admin/` | Django Admin | Jazzmin admin paneli |
 | `/api/v1/` | `api` | REST API endpointlar |
-| `/ai/` | `ai_yordamchi` | AI yordamchi |
-| `/teacher/` | `teacher` | O'qituvchi paneli |
-| `/yordamchi/` | `accounts` | Yordamchi admin sahifalari |
-| `/dashboard/parents/` | `parents` | Ota-onalar (admin ko'rinishi) |
+| `/ai/` | `ai_yordamchi` | AI yordamçi |
+| `/teacher/` | `teacher` | Öqituvçi paneli |
+| `/yordamchi/` | `accounts` | Yordamçi admin sahifalari |
+| `/dashboard/parents/` | `parents` | Ota-onalar (admin körinişi) |
 | `/parent/` | `parents` | Ota-ona portali |
 | `/blog/` | `blog` | Blog va yangiliklar |
-| `/games/` | `games` | O'yinlar |
+| `/games/` | `games` | Öyinlar |
 | `/telegrambotlms/` | `telegram_bot` | Telegram webhook |
 
 ---
 
-## 🧪 Testlash
+## 🧪 Testlaş
 
 ```bash
 # Barcha testlarni ishga tushirish
@@ -797,23 +797,23 @@ python test_security.py
 
 ## 📈 Kelajakdagi rejalar
 
-- [ ] WebSocket orqali real-time chat (Django Channels)
+- [ ] WebSocket orqali real-time çat (Django Channels)
 - [ ] Mobil ilova (Flutter / React Native)
-- [ ] Video darslarni to'g'ridan-to'g'ri yuklash (AWS S3)
-- [ ] Ko'p tilli qo'llab-quvvatlash (i18n)
+- [ ] Video darslarni töğridan-töğri yuklaş (AWS S3)
+- [ ] Köp tilli qöllab-quvvatlash (i18n)
 - [ ] Redis cache integratsiya
-- [ ] Celery — fon vazifalari uchun
+- [ ] Celery — fon vazifalari uçun
 - [ ] Docker konteynerizatsiya
 
 ---
 
-## 🤝 Hissa qo'shish
+## 🤝 Hissa qöşiş
 
 1. Repozitoriyani fork qiling
 2. Yangi branch yarating (`git checkout -b feature/yangi-funksiya`)
-3. O'zgarishlarni commit qiling (`git commit -m 'feat: yangi funksiya qo'shildi'`)
+3. Özgarişlarni commit qiling (`git commit -m 'feat: yangi funksiya qo'shildi'`)
 4. Branch'ni push qiling (`git push origin feature/yangi-funksiya`)
-5. Pull Request oching
+5. Pull Request oçing
 
 ---
 
@@ -827,7 +827,7 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 
 <p align="center">
   <strong>Husanbek Suyunov</strong><br/>
-  <em>Full-Stack Developer | IT Creative Zomin asoschisi</em>
+  <em>Full-Stack Developer | IT Creative Zomin asosçisi</em>
 </p>
 
 <p align="center">
@@ -838,17 +838,17 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 ---
 
 <p align="center">
-  <sub>© 2024-2026 Suyunov Husan | IT Creative Zomin. Barcha huquqlar himoyalangan.</sub>
+  <sub>© 2024-2026 Suyunov Husan | IT Creative Zomin. Barça huquqlar himoyalangan.</sub>
 </p>
 
 Claude edit test
 
-## Sayt tezligini oshirish: Redis, query, Nginx va Passenger
+## Sayt tezligini oşiriş: Redis, query, Nginx va Passenger
 
-Staging testlari, har bosqichdan keyin RPS/TTFB o‘lchovi, cPanel/Engintron
+Staging testlari, har bosqiçdan keyin RPS/TTFB ölçovi, cPanel/Engintron
 konfiguratsiya template'lari va rollback amallari: **[docs/performance.md](docs/performance.md)**.
-Mavjud SQLite saqlanadi. Redis default o‘chiq; avval hostingda mavjudligini
-tekshiring. Shaxsiy/CSRF sahifalar umumiy Nginx cache'ga qo‘yilmaydi.
+Mavjud SQLite saqlanadi. Redis default öçiq; avval hostingda mavjudligini
+tekşiring. Shaxsiy/CSRF sahifalar umumiy Nginx cache'ga qöyilmaydi.
 
 ```bash
 python -m pip install -r requirements.txt
@@ -857,15 +857,15 @@ python manage.py test accounts.test_performance config.test_public_cache blog.te
 python scripts/benchmark_http.py https://STAGING_DOMAIN/ --requests 50 --concurrency 5
 ```
 
-Production profili uchun `.env`da `DEBUG=False` va amaldagi secret/host sozlamalari
-kerak. Haqiqiy `.env` o‘zgartirilmagan. Production deploy/yuklama testi bajarilmagan.
+Production profili uçun `.env`da `DEBUG=False` va amaldagi secret/host sozlamalari
+kerak. Haqiqiy `.env` özgartirilmagan. Production deploy/yuklama testi bajarilmagan.
 
 ## Har kuni DB backup: Telegram (Ubuntu staging)
 
-### cPanelda avtomatik yuborishni bir marta yoqish
+### cPanelda avtomatik yuborişni bir marta yoqiş
 
-Fayllarni serverga yuklash cron jadvalini o‘zi o‘rnatmaydi. Quyidagi installer
-serverdagi loyiha egasining crontab'iga alohida boshqariladigan blok qo‘shadi:
+Fayllarni serverga yuklaş cron jadvalini özi örnatmaydi. Quyidagi installer
+serverdagi loyiha egasining crontab'iga alohida boşqariladigan blok qöşadi:
 
 ```bash
 source /home/itcacade/virtualenv/lmsv1/3.10/bin/activate
@@ -877,86 +877,86 @@ crontab -l
 ```
 
 `.env`dagi mavjud `TELEGRAM_BOT_TOKEN` va
-`BACKUP_TELEGRAM_CHAT_ID=-1003968166001` ishlatiladi. Haqiqiy `.env` repositoryda
-yaratilmaydi. Installer server timezone'iga bog‘liq bo‘lmagan `* * * * *` jadval
-qo‘yadi: kichik `backup/scheduler.py` har daqiqada **Django yuklamasdan** vaqtni
-tekshiradi. Faqat `settings.TIME_ZONE` bo‘yicha 02:00 da `send_backup`ni chaqiradi.
-Hozir loyiha timezone'i `Asia/Tashkent`. Server UTC bo‘lsa ham shu vaqtda ishlaydi.
-02:00 dan keyin o‘rnatilsa birinchi avtomatik backup ertasi kuni yuboriladi.
-Cron xizmati ishlashi va hostingda Cron Jobs ruxsati bo‘lishi shart. Server
-02:00 da o‘chiq yoki cron to‘xtagan bo‘lsa o‘tkazib yuborilgan ish avtomatik
-qoplanmaydi. Installer faqat yozilgan jadvalni tekshiradi, cron daemonini yoqmaydi.
+`BACKUP_TELEGRAM_CHAT_ID=-1003968166001` işlatiladi. Haqiqiy `.env` repositoryda
+yaratilmaydi. Installer server timezone'iga boğliq bölmagan `* * * * *` jadval
+qöyadi: kiçik `backup/scheduler.py` har daqiqada **Django yuklamasdan** vaqtni
+tekşiradi. Faqat `settings.TIME_ZONE` böyiça 02:00 da `send_backup`ni çaqiradi.
+Hozir loyiha timezone'i `Asia/Tashkent`. Server UTC bölsa ham şu vaqtda işlaydi.
+02:00 dan keyin örnatilsa birinçi avtomatik backup ertasi kuni yuboriladi.
+Cron xizmati işlaşi va hostingda Cron Jobs ruxsati bölişi şart. Server
+02:00 da öçiq yoki cron töxtagan bölsa ötkazib yuborilgan iş avtomatik
+qoplanmaydi. Installer faqat yozilgan jadvalni tekşiradi, cron daemonini yoqmaydi.
 
-Installer boshqa cronlarni saqlaydi, o‘z blokini qayta o‘rnatganda dublikat
-yaratmaydi. Oldingi qo‘lda yozilgan backup cron mavjud bo‘lsa, dublikat
-yaratmasdan to‘xtaydi: `crontab -e`da faqat eski backup qatorini olib tashlab,
-installerni qayta ishlating. Oldingi crontab private nusxasi installer chiqargan
-yo‘lda saqlanadi. Unda boshqa ishlar sirlari bo‘lishi mumkin, nusxani chatga yubormang.
+Installer boşqa cronlarni saqlaydi, öz blokini qayta örnatganda dublikat
+yaratmaydi. Oldingi qölda yozilgan backup cron mavjud bölsa, dublikat
+yaratmasdan töxtaydi: `crontab -e`da faqat eski backup qatorini olib taşlab,
+installerni qayta işlating. Oldingi crontab private nusxasi installer çiqargan
+yölda saqlanadi. Unda boşqa işlar sirlari bölişi mumkin, nusxani çatga yubormang.
 
-Hozir scheduler orqali haqiqiy backup yuborishni tekshirish:
+Hozir scheduler orqali haqiqiy backup yuborişni tekşiriş:
 
 ```bash
 python backup/scheduler.py --backup-dir /home/itcacade/private_backups --timezone Asia/Tashkent --run-now
 echo $?
 ```
 
-Installer ko‘rsatgan `schedule.log`dan natijani o‘qing. Log fayli 1 MB x 3 bilan
-cheklangan; muvaffaqiyat yoki exit code yoziladi. Telegramga batafsil xavfsiz
-xabarni mavjud `send_backup` yuboradi. `--run-now` shu kun uchun avtomatik
-muvaffaqiyat belgisini ham qo‘yadi; ertasi kuni yana 02:00 da yuboriladi.
+Installer körsatgan `schedule.log`dan natijani öqing. Log fayli 1 MB x 3 bilan
+çeklangan; muvaffaqiyat yoki exit code yoziladi. Telegramga batafsil xavfsiz
+xabarni mavjud `send_backup` yuboradi. `--run-now` şu kun uçun avtomatik
+muvaffaqiyat belgisini ham qöyadi; ertasi kuni yana 02:00 da yuboriladi.
 Oddiy jadval bir kunda bir marta muvaffaqiyat belgisini yozadi, lock ikki
-schedulerning birga ishlashiga yo‘l qo‘ymaydi. Barcha Telegram qismlari va yakuniy
-xabar kelganini tekshiring. Shu daqiqada backup allaqachon mavjud bo‘lsa keyingi
-daqiqada sinang. Xato bilan tugagan scheduled backup o‘sha kuni qayta urinmaydi;
-sababini tuzatib `--run-now` ishlating.
+schedulerning birga işlaşiga yöl qöymaydi. Barça Telegram qismlari va yakuniy
+xabar kelganini tekşiring. Şu daqiqada backup allaqaçon mavjud bölsa keyingi
+daqiqada sinang. Xato bilan tugagan scheduled backup öşa kuni qayta urinmaydi;
+sababini tuzatib `--run-now` işlating.
 
-O‘chirish/rollback: `crontab -e`da installerga tegishli `BEGIN LMS BACKUP ...`
-va `END LMS BACKUP ...` orasidagi blokni shu markerlari bilan olib tashlang.
-Butun eski crontabni qayta tiklash boshqa yangi ishlarni yo‘qotishi mumkin;
-boshqa cronlarga tegmang. Ilova/Passenger restart talab qilinmaydi.
+Öchirish/rollback: `crontab -e`da installerga tegişli `BEGIN LMS BACKUP ...`
+va `END LMS BACKUP ...` orasidagi blokni şu markerlari bilan olib taşlang.
+Butun eski crontabni qayta tiklaş boşqa yangi işlarni yöqotişi mumkin;
+boşqa cronlarga tegmang. Ilova/Passenger restart talab qilinmaydi.
 
-Tekshirilgan joylashuvlar: `manage.py`, `config/settings.py`, `config/urls.py`,
+Tekşirilgan joylaşuvlar: `manage.py`, `config/settings.py`, `config/urls.py`,
 `requirements.txt`, `passenger_wsgi.py`, `.htaccess`, asosiy `README.md`.
-`config.settings` va Passenger `.env`ni mavjud `python-dotenv` bilan o‘qiydi;
-qo‘shimcha Python dependency kerak emas. Backup uchun HTTP URL/webhook yoki
-Passenger/Nginx sozlamalarini o‘zgartirish kerak emas; cron alohida Python commandni ishlatadi.
+`config.settings` va Passenger `.env`ni mavjud `python-dotenv` bilan öqiydi;
+qöşimça Python dependency kerak emas. Backup uçun HTTP URL/webhook yoki
+Passenger/Nginx sozlamalarini özgartiriş kerak emas; cron alohida Python commandni işlatadi.
 Serverga ulanilmadi, deploy yoki haqiqiy Telegram upload bajarilmadi.
 
-**Faol settings SQLite ishlatadi va backup uni qo‘llaydi.** Bazani almashtirish
-kerak emas. SQLite online backup API orqali vaqtinchalik izchil nusxa olinadi
+**Faol settings SQLite işlatadi va backup uni qöllaydi.** Bazani almaştiriş
+kerak emas. SQLite online backup API orqali vaqtinçalik izçil nusxa olinadi
 (WAL'dagi commit qilingan yozuvlar ham kiradi), undan SQL dump va `.sql.gz`
-yaratiladi. Ishlayotgan `db.sqlite3` fayli oddiy copy qilinmaydi.
-100 MB va undan katta baza ham qo‘llanadi: limit asl DBga emas, yuboriladigan
-siqilgan fayl/qismlarga tegishli. Siqilish nisbati ma’lumotga bog‘liq;
+yaratiladi. Işlayotgan `db.sqlite3` fayli oddiy copy qilinmaydi.
+100 MB va undan katta baza ham qöllanadi: limit asl DBga emas, yuboriladigan
+siqilgan fayl/qismlarga tegişli. Siqiliş nisbati ma’lumotga boğliq;
 49 000 000 baytdan katta gzip avtomatik qismlanadi.
-README'dagi DB env misollari o‘z-o‘zidan `DATABASES`ni o‘zgartirmaydi.
+README'dagi DB env misollari öz-özidan `DATABASES`ni özgartirmaydi.
 Command PostgreSQL va MySQL/MariaDB backendlarini ham aniqlaydi.
-`ENGINE`, `NAME`, `USER`, `PASSWORD`, `HOST`, `PORT`, qo‘llanadigan `OPTIONS`
-Django sozlamasidan olinadi. Connection string o‘rniga alohida maydonlardan foydalaning.
-PostgreSQL uchun `sslmode`, `sslcert`, `sslkey`, `sslrootcert`, `connect_timeout`
+`ENGINE`, `NAME`, `USER`, `PASSWORD`, `HOST`, `PORT`, qöllanadigan `OPTIONS`
+Django sozlamasidan olinadi. Connection string örniga alohida maydonlardan foydalaning.
+PostgreSQL uçun `sslmode`, `sslcert`, `sslkey`, `sslrootcert`, `connect_timeout`
 uzatiladi. MySQL `charset`, `unix_socket`ni uzatadi; `init_command` va
-`isolation_level` Django sessioniga tegishli. Boshqa OPTIONS, MySQL SSL yoki
-PostgreSQL service mapping kerak bo‘lsa command xavfsiz to‘xtaydi: avval mappingni
-stagingda moslashtiring. MySQL dump InnoDB uchun `--single-transaction` ishlatadi;
-MyISAM va parallel DDL paytida izchillik uchun maintenance/DB lock rejasini tuzing.
-DB userga dump qilinadigan barcha obyektlar, routines/events uchun zarur ruxsatlar kerak.
+`isolation_level` Django sessioniga tegişli. Boşqa OPTIONS, MySQL SSL yoki
+PostgreSQL service mapping kerak bölsa command xavfsiz töxtaydi: avval mappingni
+stagingda moslaştiring. MySQL dump InnoDB uçun `--single-transaction` işlatadi;
+MyISAM va parallel DDL paytida izçillik uçun maintenance/DB lock rejasini tuzing.
+DB userga dump qilinadigan barça obyektlar, routines/events uçun zarur ruxsatlar kerak.
 
-1. Staging Ubuntu'da shu loyiha virtualenv'ini ishlating. SQLite uchun Pythonning
-   standart `sqlite3` moduli yetarli, tashqi dump binary kerak emas.
-   PostgreSQL/MySQL ishlatilsa DBga mos client
-   (`postgresql-client`, yoki `mysql-client`/`mariadb-client`) o‘rnating.
-   `pg_dump` major versiyasi DB serveridan eski bo‘lmasin.
-   MySQL backend uchun serverdagi Django DB driver ham o‘rnatilgan bo‘lishi kerak.
+1. Staging Ubuntu'da şu loyiha virtualenv'ini işlating. SQLite uçun Pythonning
+   standart `sqlite3` moduli yetarli, taşqi dump binary kerak emas.
+   PostgreSQL/MySQL işlatilsa DBga mos client
+   (`postgresql-client`, yoki `mysql-client`/`mariadb-client`) örnating.
+   `pg_dump` major versiyasi DB serveridan eski bölmasin.
+   MySQL backend uçun serverdagi Django DB driver ham örnatilgan bölişi kerak.
    Mavjud `.env`ga `.env.example`dagi `BACKUP_*` qiymatlarini administrator kiritsin;
    token faqat serverdagi himoyalangan `.env`da saqlansin (`chmod 600 .env`).
-   Mavjud `TELEGRAM_BOT_TOKEN` avtomatik ishlatiladi. Uni takrorlash shart emas:
-   `BACKUP_TELEGRAM_BOT_TOKEN`ni bo‘sh qoldiring yoki umuman kiritmang.
-   Alohida backup bot kerak bo‘lsagina shu override qiymatini to‘ldiring.
-   Test uchun alohida staging kanal/token ishlating; production kanal ID namunasi
-   `-1003968166001`, bot admin bo‘lib hujjat va xabar yubora olishi kerak.
+   Mavjud `TELEGRAM_BOT_TOKEN` avtomatik işlatiladi. Uni takrorlaş şart emas:
+   `BACKUP_TELEGRAM_BOT_TOKEN`ni böş qoldiring yoki umuman kiritmang.
+   Alohida backup bot kerak bölsagina şu override qiymatini töldiring.
+   Test uçun alohida staging kanal/token işlating; production kanal ID namunasi
+   `-1003968166001`, bot admin bölib hujjat va xabar yubora olişi kerak.
 
-2. Backup papkasini web document root, `media` va `static`dan tashqarida,
-   cron ishlaydigan foydalanuvchi nomidan yarating:
+2. Backup papkasini web document root, `media` va `static`dan taşqarida,
+   cron işlaydigan foydalanuvçi nomidan yarating:
 
    ```bash
    install -d -m 700 /home/itcreati/private_backups
@@ -966,43 +966,43 @@ DB userga dump qilinadigan barcha obyektlar, routines/events uchun zarur ruxsatl
    du -sh /home/itcreati/private_backups
    ```
 
-   `/`dagi 3.5 TB umumiy va 1.4 TB bo‘sh joy hosting hisobining quota'si emas.
-   Tarifdagi 3 GB chegarani cPanel Disk Usage va hosting administratoridan aynan
-   backup papkasi joylashgan filesystem, user/project quota va inode bo‘yicha
-   tasdiqlang. `quota -s` ishlamasa yoki quota ko‘rinmasa uni cheksiz deb hisoblamang.
-   377 GiB RAM/233 GiB available ham disk quota'sini oshirmaydi.
-   `BACKUP_MAX_DISK_MB=1024` faqat backup katalogi uchun namunaviy limit;
-   hisobning qolgan fayllari, DB va loglarini ham 3 GB ichida hisoblang.
-   `BACKUP_MIN_FREE_MB=100` filesystem bo‘sh joy zaxirasi, user quota zaxirasi emas.
-   Haqiqiy quota buzilsa yozish xatosi commandni to‘xtatadi.
+   `/`dagi 3.5 TB umumiy va 1.4 TB böş joy hosting hisobining quota'si emas.
+   Tarifdagi 3 GB çegarani cPanel Disk Usage va hosting administratoridan aynan
+   backup papkasi joylaşgan filesystem, user/project quota va inode böyiça
+   tasdiqlang. `quota -s` işlamasa yoki quota körinmasa uni çeksiz deb hisoblamang.
+   377 GiB RAM/233 GiB available ham disk quota'sini oşirmaydi.
+   `BACKUP_MAX_DISK_MB=1024` faqat backup katalogi uçun namunaviy limit;
+   hisobning qolgan fayllari, DB va loglarini ham 3 GB içida hisoblang.
+   `BACKUP_MIN_FREE_MB=100` filesystem böş joy zaxirasi, user quota zaxirasi emas.
+   Haqiqiy quota buzilsa yoziş xatosi commandni töxtatadi.
 
-3. Sozlamalar (MB o‘nlik: 1 MB = 1 000 000 bayt):
+3. Sozlamalar (MB önlik: 1 MB = 1 000 000 bayt):
 
    | Qiymat | Vazifasi |
    |---|---|
-   | `BACKUP_DIR` | Mutlaq, symlink bo‘lmagan, `700` huquqli yopiq katalog |
-   | `BACKUP_RETENTION_DAYS` | Saqlash kunlari, musbat son; default 7 |
-   | `BACKUP_MAX_DISK_MB` | Shu papkadagi barcha fayllar hajmi chegarasi; default 1024 |
-   | `BACKUP_MIN_FREE_MB` | Filesystemda bo‘sh qolishi kerak bo‘lgan joy; default 100 |
-   | `BACKUP_DUMP_TIMEOUT` | Dump uchun timeout sekundda; default 1800 |
+   | `BACKUP_DIR` | Mutlaq, symlink bölmagan, `700` huquqli yopiq katalog |
+   | `BACKUP_RETENTION_DAYS` | Saqlaş kunlari, musbat son; default 7 |
+   | `BACKUP_MAX_DISK_MB` | Şu papkadagi barça fayllar hajmi çegarasi; default 1024 |
+   | `BACKUP_MIN_FREE_MB` | Filesystemda böş qolişi kerak bölgan joy; default 100 |
+   | `BACKUP_DUMP_TIMEOUT` | Dump uçun timeout sekundda; default 1800 |
    | `BACKUP_HTTP_TIMEOUT` | HTTP socket amallari timeout'i sekundda; default 120 |
-   | `BACKUP_PG_DUMP`, `BACKUP_MYSQLDUMP` | Binary nomi yoki mutlaq yo‘li; argumentlar yozmang |
+   | `BACKUP_PG_DUMP`, `BACKUP_MYSQLDUMP` | Binary nomi yoki mutlaq yöli; argumentlar yozmang |
 
-   SQL avval vaqtinchalik disk fayliga yoziladi, keyin gzip qilinadi. Shu sabab
-   raw SQL + gzip + bitta 49 MB qismga joy hisoblang. SQLite uchun izchil snapshot
-   + raw SQL bir vaqtda ham joy egallaydi; SQL hajmi asl DBdan kattaroq bo‘lishi
-   mumkin (ayniqsa BLOB ma’lumotlarda). Har blok yozilishidan oldin
-   limit tekshiriladi; zaruratda eng eski boshqariladigan backup o‘chiriladi,
-   joy baribir yetmasa command xato bilan to‘xtaydi. Eski backup faqat aniq
+   SQL avval vaqtinçalik disk fayliga yoziladi, keyin gzip qilinadi. Şu sabab
+   raw SQL + gzip + bitta 49 MB qismga joy hisoblang. SQLite uçun izçil snapshot
+   + raw SQL bir vaqtda ham joy egallaydi; SQL hajmi asl DBdan kattaroq bölişi
+   mumkin (ayniqsa BLOB ma’lumotlarda). Har blok yozilişidan oldin
+   limit tekşiriladi; zaruratda eng eski boşqariladigan backup öçiriladi,
+   joy baribir yetmasa command xato bilan töxtaydi. Eski backup faqat aniq
    `backup_YYYY_MM_DD_HH_MM.sql.gz` nomi va command yaratgan `.owned` belgisi
-   mavjud bo‘lsa tozalanadi. Begona fayllar o‘chirilmaydi, lekin limitda hisoblanadi.
-   Katalog faqat bitta ishonchli foydalanuvchiga tegishli bo‘lsin.
-   Eski nusxalar yangi dump muvaffaqiyatsiz bo‘lishidan oldin ham tozalanishi mumkin.
-   Lock faylini o‘chirmang: Linux `flock` jarayon tugaganda avtomatik bo‘shaydi.
-   SIGKILL/quvvat uzilishidan qolgan `.send-backup-*` kataloglarini avtomatik
-   o‘chirmaydi; faol jarayon yo‘qligini tekshirgach administrator tozalaydi.
+   mavjud bölsa tozalanadi. Begona fayllar öçirilmaydi, lekin limitda hisoblanadi.
+   Katalog faqat bitta işonçli foydalanuvçiga tegişli bölsin.
+   Eski nusxalar yangi dump muvaffaqiyatsiz bölişidan oldin ham tozalanişi mumkin.
+   Lock faylini öçirmang: Linux `flock` jarayon tugaganda avtomatik böşaydi.
+   SIGKILL/quvvat uzilişidan qolgan `.send-backup-*` kataloglarini avtomatik
+   öçirmaydi; faol jarayon yöqligini tekşirgaç administrator tozalaydi.
 
-4. Staging tekshiruvlari (yo‘llarni staging joylashuviga moslang):
+4. Staging tekşiruvlari (yöllarni staging joylaşuviga moslang):
 
    ```bash
    /path/to/venv/bin/python -m pip install -r requirements.txt
@@ -1012,23 +1012,23 @@ DB userga dump qilinadigan barcha obyektlar, routines/events uchun zarur ruxsatl
    echo $?
    ```
 
-   Oxirgi buyruq **haqiqiy DB dump va Telegram upload** qiladi. Kanalda barcha
-   qismlar va yakuniy muvaffaqiyat xabari bo‘lishini tekshiring; exit code 0
-   bo‘lishi kerak. Alohida stagingda noto‘g‘ri binary/token, HTTP timeout,
-   kichik disk limiti va parallel ikkita commandni tekshiring (noto‘g‘ri binary
-   testi faqat PostgreSQL/MySQLga tegishli): xato uchun exit 1,
-   qisman dump yuborilmasligi va vaqtinchalik fayllar tozalanishi kerak.
-   HTTP/Telegram xatosida allaqachon yuborilgan qismlar kanalda qolishi mumkin;
-   muvaffaqiyat xabarisiz to‘plamni tayyor backup deb hisoblamang.
-   Unit testlar tarmoqsiz siqish, bo‘lish/birlashtirish, retention, xatolar va
-   Linuxda lockni tekshiradi; real DB/Telegram staging sinovi alohida zarur.
-   Django settings yuklanishidan oldingi xatolarda command hali ishga tushmaydi;
+   Oxirgi buyruq **haqiqiy DB dump va Telegram upload** qiladi. Kanalda barça
+   qismlar va yakuniy muvaffaqiyat xabari bölişini tekşiring; exit code 0
+   bölişi kerak. Alohida stagingda notöğri binary/token, HTTP timeout,
+   kiçik disk limiti va parallel ikkita commandni tekşiring (notöğri binary
+   testi faqat PostgreSQL/MySQLga tegişli): xato uçun exit 1,
+   qisman dump yuborilmasligi va vaqtinçalik fayllar tozalanişi kerak.
+   HTTP/Telegram xatosida allaqaçon yuborilgan qismlar kanalda qolişi mumkin;
+   muvaffaqiyat xabarisiz töplamni tayyor backup deb hisoblamang.
+   Unit testlar tarmoqsiz siqiş, bölish/birlashtirish, retention, xatolar va
+   Linuxda lockni tekşiradi; real DB/Telegram staging sinovi alohida zarur.
+   Django settings yuklanişidan oldingi xatolarda command hali işga tuşmaydi;
    cron stderr monitoringini ham saqlang.
 
 5. Cron: Django `TIME_ZONE=Asia/Tashkent`; nomdagi vaqt haqiqiy mahalliy
-   vaqt (`backup_2026_10_20_02_00.sql.gz`), qo‘lda ishga tushganda ham 02:00
-   deb qotirilmagan. Shu daqiqada mavjud backup ustiga yozilmaydi.
-   Ubuntu cron **server timezone** bo‘yicha ishlaydi:
+   vaqt (`backup_2026_10_20_02_00.sql.gz`), qölda işga tuşganda ham 02:00
+   deb qotirilmagan. Şu daqiqada mavjud backup ustiga yozilmaydi.
+   Ubuntu cron **server timezone** böyiça işlaydi:
 
    ```bash
    timedatectl
@@ -1036,25 +1036,25 @@ DB userga dump qilinadigan barcha obyektlar, routines/events uchun zarur ruxsatl
    crontab -e
    ```
 
-   Server timezone Asia/Tashkent bo‘lsa, loyiha egasining crontab'iga:
+   Server timezone Asia/Tashkent bölsa, loyiha egasining crontab'iga:
 
    ```cron
    0 2 * * * cd /home/itcreati/itc-academy.uz && /home/itcreati/itc-academy.uz/.venv/bin/python manage.py send_backup >> /home/itcreati/backup-cron.log 2>&1
    ```
 
-   Server UTC bo‘lsa Tashkent 02:00 uchun `0 21 * * *` ishlating (oldingi UTC kun).
-   `TZ` env qiymatini qo‘yish Ubuntu cron jadvalini avtomatik o‘zgartiradi deb
-   hisoblamang. Cron uchun Passenger `.htaccess`dagi interpreter va loyiha yo‘lini
-   tekshiring. Log fayliga `600` huquq va logrotate qo‘ying. Engintron/Nginx va
-   Passenger 6.2.0 ichida scheduler yoki request orqali backup ishga tushirilmaydi.
+   Server UTC bölsa Tashkent 02:00 uçun `0 21 * * *` işlating (oldingi UTC kun).
+   `TZ` env qiymatini qöyiş Ubuntu cron jadvalini avtomatik özgartiradi deb
+   hisoblamang. Cron uçun Passenger `.htaccess`dagi interpreter va loyiha yölini
+   tekşiring. Log fayliga `600` huquq va logrotate qöying. Engintron/Nginx va
+   Passenger 6.2.0 içida scheduler yoki request orqali backup işga tuşirilmaydi.
 
-### Stagingda tiklashni tekshirish
+### Stagingda tiklaşni tekşiriş
 
 Telegram `sendDocument` rasmiy limit 50 MB:
 https://core.telegram.org/bots/api#senddocument . Command 49 000 000 baytlik
 qismlardan foydalanadi; har qism alohida hujjat va caption'da `qism N/T` bilan
-yuboriladi. RAMga to‘liq arxiv yuklanmaydi. Qismlar mustaqil gzip emas: avval
-nomdagi raqamlar tartibida birlashtiring. Caption'dagi SHA256 to‘liq gzipga tegishli.
+yuboriladi. RAMga töliq arxiv yuklanmaydi. Qismlar mustaqil gzip emas: avval
+nomdagi raqamlar tartibida birlaştiring. Caption'dagi SHA256 töliq gzipga tegişli.
 
 ```bash
 # Bitta backup to‘plamining barcha qismlarini alohida katalogga yuklab oling.
@@ -1065,7 +1065,7 @@ gzip -dc restored.sql.gz > restored.sql
 # Bitta hujjat bo‘lsa cat kerak emas: o‘sha .sql.gz uchun sha256sum va gzip -t.
 ```
 
-SHA256 caption bilan bir xil va barcha qismlar mavjudligini tekshiring. So‘ng
+SHA256 caption bilan bir xil va barça qismlar mavjudligini tekşiring. Söng
 faqat izolyatsiyalangan staging DBda, parolni command argumentiga yozmasdan:
 
 ```bash
@@ -1079,7 +1079,7 @@ psql -W -h localhost -U staging_user -d staging_restore -v ON_ERROR_STOP=1 -f re
 mysql -h localhost -u staging_user -p < restored.sql
 ```
 
-Tiklangan jadvallar va asosiy yozuvlar sonini tekshiring. Dump fayllarida shaxsiy
-ma’lumotlar bo‘lishi mumkin; kanal va server backup katalogiga kirishni cheklang.
-Token, DB paroli, to‘liq connection string yoki xom HTTP/subprocess xatolari
-command logiga chiqarilmaydi. Haqiqiy `.env` bu o‘zgarishlarda yaratilmaydi.
+Tiklangan jadvallar va asosiy yozuvlar sonini tekşiring. Dump fayllarida şaxsiy
+ma’lumotlar bölişi mumkin; kanal va server backup katalogiga kirişni çeklang.
+Token, DB paroli, töliq connection string yoki xom HTTP/subprocess xatolari
+command logiga çiqarilmaydi. Haqiqiy `.env` bu özgarişlarda yaratilmaydi.

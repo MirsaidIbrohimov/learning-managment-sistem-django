@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}O'qituvchilar Davomati - Admin Panel{% endblock %}
-{% block topbar_title %}O'qituvchilar Davomati{% endblock %}
+{% block title %}Öqituvçilar Davomati - Admin Panel{% endblock %}
+{% block topbar_title %}Öqituvçilar Davomati{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -232,9 +232,9 @@
 
 {% block admin_content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">O'qituvchilar Davomati</h2>
+    <h2 class="mb-0">Öqituvçilar Davomati</h2>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
-        <i class="bi bi-plus-circle me-2"></i>Davomat qo'shish
+        <i class="bi bi-plus-circle me-2"></i>Davomat qöşiş
     </button>
 </div>
 
@@ -269,7 +269,7 @@
             <i class="bi bi-clock-fill"></i>
         </div>
         <div class="stat-value">{{ late_count }}</div>
-        <div class="stat-label">Kechikkan</div>
+        <div class="stat-label">Keçikkan</div>
     </div>
     
     <div class="stat-card">
@@ -286,18 +286,18 @@
     <form method="GET" class="mb-0">
         <div class="filter-row">
             <div>
-                <label class="form-label">Qidirish</label>
+                <label class="form-label">Qidiriş</label>
                 <input type="text" class="form-control" name="q" value="{{ search_query }}" 
-                       placeholder="O'qituvchi nomi, username yoki izoh...">
+                       placeholder="Öqituvçi nomi, username yoki izoh...">
             </div>
             
             <div>
                 <label class="form-label">Holati</label>
                 <select class="form-select" name="status">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     <option value="present" {% if status_filter == 'present' %}selected{% endif %}>Kelgan</option>
                     <option value="absent" {% if status_filter == 'absent' %}selected{% endif %}>Kelmagan</option>
-                    <option value="late" {% if status_filter == 'late' %}selected{% endif %}>Kechikkan</option>
+                    <option value="late" {% if status_filter == 'late' %}selected{% endif %}>Keçikkan</option>
                     <option value="sick" {% if status_filter == 'sick' %}selected{% endif %}>Kasal</option>
                     <option value="vacation" {% if status_filter == 'vacation' %}selected{% endif %}>Ta'til</option>
                     <option value="business" {% if status_filter == 'business' %}selected{% endif %}>Xizmat safari</option>
@@ -337,10 +337,10 @@
         
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel me-2"></i>Filterlash
+                <i class="bi bi-funnel me-2"></i>Filterlaş
             </button>
             <a href="{% url 'admin_teacher_attendance' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+                <i class="bi bi-arrow-clockwise me-2"></i>Tozalaş
             </a>
         </div>
     </form>
@@ -352,13 +352,13 @@
     <table>
         <thead>
             <tr>
-                <th>O'qituvchi</th>
+                <th>Öqituvçi</th>
                 <th>Sana</th>
                 <th>Holati</th>
-                <th>Kirish vaqti</th>
-                <th>Chiqish vaqti</th>
+                <th>Kiriş vaqti</th>
+                <th>Çiqiş vaqti</th>
                 <th>Izoh</th>
-                <th>Qo'shdi</th>
+                <th>Qöşdi</th>
                 <th>Amallar</th>
             </tr>
         </thead>
@@ -384,7 +384,7 @@
                         {% elif attendance.status == 'absent' %}
                             <i class="bi bi-x-circle-fill"></i> Kelmagan
                         {% elif attendance.status == 'late' %}
-                            <i class="bi bi-clock-fill"></i> Kechikkan
+                            <i class="bi bi-clock-fill"></i> Keçikkan
                         {% elif attendance.status == 'sick' %}
                             <i class="bi bi-heart-pulse-fill"></i> Kasal
                         {% elif attendance.status == 'vacation' %}
@@ -417,7 +417,7 @@
                         {% if attendance.notes %}
                             {{ attendance.notes|truncatechars:50 }}
                         {% else %}
-                            <span class="text-muted">Izoh yo'q</span>
+                            <span class="text-muted">Izoh yöq</span>
                         {% endif %}
                     </div>
                 </td>
@@ -450,7 +450,7 @@
     <div class="empty-state">
         <i class="bi bi-calendar-x"></i>
         <h4>Davomat ma'lumotlari topilmadi</h4>
-        <p>Berilgan filterlar bo'yicha hech qanday davomat yozuvi mavjud emas.</p>
+        <p>Berilgan filterlar böyiça heç qanday davomat yozuvi mavjud emas.</p>
     </div>
     {% endif %}
 </div>
@@ -460,7 +460,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Davomat qo'shish</h5>
+                <h5 class="modal-title">Davomat qöşiş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{% url 'admin_teacher_attendance' %}">
@@ -468,9 +468,9 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">O'qituvchi</label>
+                            <label class="form-label">Öqituvçi</label>
                             <select class="form-select" name="teacher" required>
-                                <option value="">O'qituvchini tanlang</option>
+                                <option value="">Öqituvçini tanlang</option>
                                 {% for teacher in teachers %}
                                 <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
                                 {% endfor %}
@@ -489,18 +489,18 @@
                             <select class="form-select" name="status" required>
                                 <option value="present">Kelgan</option>
                                 <option value="absent">Kelmagan</option>
-                                <option value="late">Kechikkan</option>
+                                <option value="late">Keçikkan</option>
                                 <option value="sick">Kasal</option>
                                 <option value="vacation">Ta'til</option>
                                 <option value="business">Xizmat safari</option>
                             </select>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label">Kirish vaqti</label>
+                            <label class="form-label">Kiriş vaqti</label>
                             <input type="time" class="form-control" name="check_in_time">
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label">Chiqish vaqti</label>
+                            <label class="form-label">Çiqiş vaqti</label>
                             <input type="time" class="form-control" name="check_out_time">
                         </div>
                     </div>
@@ -508,13 +508,13 @@
                     <div class="mb-3">
                         <label class="form-label">Izoh</label>
                         <textarea class="form-control" name="notes" rows="3" 
-                                  placeholder="Qo'shimcha izoh..."></textarea>
+                                  placeholder="Qöşimça izoh..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qiliş</button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>Saqlash
+                        <i class="bi bi-check-circle me-2"></i>Saqlaş
                     </button>
                 </div>
             </form>
@@ -529,7 +529,7 @@ function editAttendance(id) {
 }
 
 function deleteAttendance(id) {
-    if (confirm('Ushbu davomat yozuvini oʻchirishni istaysizmi?')) {
+    if (confirm('Uşbu davomat yozuvini öçirişni istaysizmi?')) {
         // Delete functionality - can be implemented later
         console.log('Delete attendance:', id);
     }

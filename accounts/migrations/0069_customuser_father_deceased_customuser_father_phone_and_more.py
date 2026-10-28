@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='jshshir',
-            field=models.CharField(blank=True, max_length=14, null=True, verbose_name='JSHSHIR (PINFL)'),
+            field=models.CharField(blank=True, max_length=14, null=True, verbose_name='JŞŞIR (PINFL)'),
         ),
         migrations.AddField(
             model_name='customuser',

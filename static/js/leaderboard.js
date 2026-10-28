@@ -113,7 +113,7 @@
     // ====== PILLS ======
     function renderPills(professions) {
         if (!pillsContainer) return;
-        var html = '<button class="lb-pill' + (!currentProfession ? ' active' : '') + '" data-prof="">Barchasi</button>';
+        var html = '<button class="lb-pill' + (!currentProfession ? ' active' : '') + '" data-prof="">Barçasi</button>';
         professions.forEach(function(p) {
             var active = (String(currentProfession) === String(p.id)) ? ' active' : '';
             html += '<button class="lb-pill' + active + '" data-prof="' + p.id + '">' + esc(p.name) + '</button>';
@@ -173,7 +173,7 @@
             '<div class="lb-your-rank-card">' +
                 '<div class="yr-rank">' + data.user_rank + '</div>' +
                 '<div class="yr-info">' +
-                    '<div class="yr-label">Sizning o\'rningiz</div>' +
+                    '<div class="yr-label">Sizning örningiz</div>' +
                     '<div class="yr-name">' + esc(USER_FULL_NAME) + '</div>' +
                 '</div>' +
                 '<div class="yr-coins">' + icon + '</div>' +
@@ -223,7 +223,7 @@
 
         var vi = valueIcon();
         var startIndex = students.length >= 3 ? 3 : 0;
-        var html = '<div class="lb-list-header"><div>#</div><div>Foydalanuvchi</div><div>' +
+        var html = '<div class="lb-list-header"><div>#</div><div>Foydalanuvçi</div><div>' +
                    (currentTab === 'score' ? 'Ball' : 'Coin') + '</div><div></div></div>';
 
         students.slice(startIndex).forEach(function(s, i) {
@@ -303,8 +303,8 @@
             if (totalCount) totalCount.textContent = data.total;
             if (searchStatus) {
                 searchStatus.textContent = currentSearch
-                    ? '“' + currentSearch + '” uchun ' + data.total + ' ta natija'
-                    : data.total + ' ta o‘quvchi reytingda';
+                    ? '“' + currentSearch + '” uçun ' + data.total + ' ta natija'
+                    : data.total + ' ta öquvçi reytingda';
             }
 
             if (data.students.length === 0) {
@@ -335,8 +335,8 @@
             if (err.name === 'AbortError') return;
             if (lbLoading) lbLoading.style.display = 'none';
             if (lbContent) lbContent.style.display = '';
-            if (searchStatus) searchStatus.textContent = 'Qidirishda xatolik yuz berdi';
-            if (lbList) lbList.innerHTML = '<div class="lb-empty"><div class="lb-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3>Xatolik yuz berdi</h3><p>Sahifani yangilab, qayta urinib ko\'ring.</p></div>';
+            if (searchStatus) searchStatus.textContent = 'Qidirişda xatolik yuz berdi';
+            if (lbList) lbList.innerHTML = '<div class="lb-empty"><div class="lb-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3>Xatolik yuz berdi</h3><p>Sahifani yangilab, qayta urinib köring.</p></div>';
         });
     }
 

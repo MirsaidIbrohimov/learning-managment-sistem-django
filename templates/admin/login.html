@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>{% trans "Kirish" %} | {{ jazzmin_settings.site_title }}</title>
+    <title>{% trans "Kiriş" %} | {{ jazzmin_settings.site_title }}</title>
 
     <link rel="shortcut icon" href="{% static jazzmin_settings.site_icon %}" type="image/png">
 
@@ -389,15 +389,15 @@
         </div>
 
         <div class="card">
-            <h2>{% trans "Xush kelibsiz" %} 👋</h2>
-            <p class="hint">{% trans "Boshqaruv paneliga kirish uchun login va parolingizni kiriting." %}</p>
+            <h2>{% trans "Xuş kelibsiz" %} 👋</h2>
+            <p class="hint">{% trans "Boşqaruv paneliga kiriş uçun login va parolingizni kiriting." %}</p>
 
             {% if user.is_authenticated %}
                 <div class="alert error">
                     <i class="fas fa-triangle-exclamation"></i>
                     <span>
                         {% blocktrans trimmed %}
-                            Siz {{ username }} sifatida tizimga kirgansiz, lekin bu sahifaga ruxsatingiz yo'q.
+                            Siz {{ username }} sifatida tizimga kirgansiz, lekin bu sahifaga ruxsatingiz yöq.
                         {% endblocktrans %}
                     </span>
                 </div>
@@ -410,7 +410,7 @@
                         {% if form.non_field_errors %}
                             {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
                         {% else %}
-                            {% trans "Login yoki parol noto'g'ri. Iltimos, qayta urinib ko'ring." %}
+                            {% trans "Login yoki parol notöğri. Iltimos, qayta urinib köring." %}
                         {% endif %}
                     </span>
                 </div>
@@ -420,7 +420,7 @@
                 {% csrf_token %}
 
                 <div class="field">
-                    <label for="id_username">{% trans "Foydalanuvchi nomi" %}</label>
+                    <label for="id_username">{% trans "Foydalanuvçi nomi" %}</label>
                     <div class="input-wrap">
                         <i class="fas fa-user leading"></i>
                         <input
@@ -466,20 +466,20 @@
 
                 <button type="submit" class="btn-login">
                     <i class="fas fa-right-to-bracket"></i>
-                    <span>{% trans "Kirish" %}</span>
+                    <span>{% trans "Kiriş" %}</span>
                 </button>
             </form>
 
             <div class="footer-note">
                 <i class="fas fa-shield-halved"></i>
-                {% trans "Ulanish shifrlangan va xavfsiz" %}
+                {% trans "Ulaniş şifrlangan va xavfsiz" %}
             </div>
         </div>
 
         <div class="copyright">
             © {% now "Y" %} {{ jazzmin_settings.copyright|default:"IT Creative Zomin" }}
             <span class="dot">•</span>
-            <a href="/" style="color:inherit;text-decoration:none;">{% trans "Saytga qaytish" %}</a>
+            <a href="/" style="color:inherit;text-decoration:none;">{% trans "Saytga qaytiş" %}</a>
         </div>
     </div>
 

@@ -42,26 +42,26 @@
         {% endif %}
       </div>
     {% empty %}
-      <p class="su-note">Aʻzo yoʻq.</p>
+      <p class="su-note">Aʻzo yöq.</p>
     {% endfor %}
   </div>
 
   {% if can_manage_team %}
   <form class="su-card" method="post" action="{% url 'startup:team_invite' startup.slug %}">
     {% csrf_token %}
-    <h2 class="su-card-title"><i class="bi bi-envelope-plus"></i> Jamoaga taklif qilish</h2>
+    <h2 class="su-card-title"><i class="bi bi-envelope-plus"></i> Jamoaga taklif qiliş</h2>
     <p class="su-note" style="margin-bottom:12px">
-      Foydalanuvchining LMS logini (username) va roli. Taklif qabul qilinsa aʻzo faol boʻladi.
+      Foydalanuvçining LMS logini (username) va roli. Taklif qabul qilinsa aʻzo faol böladi.
     </p>
     {% include 'startup/_form.html' with form=invite_form %}
     <div style="margin-top:14px">
-      <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Taklif yuborish</button>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Taklif yuboriş</button>
     </div>
   </form>
 
   <div class="su-card">
     <h2 class="su-card-title">
-      <i class="bi bi-hourglass-split"></i> Kutilayotgan soʻrovlar
+      <i class="bi bi-hourglass-split"></i> Kutilayotgan sörovlar
       <span class="su-count">{{ pending|length }}</span>
     </h2>
     {% for membership in pending %}
@@ -70,7 +70,7 @@
         <span class="su-avatar">{{ membership.user.first_name|first|default:membership.user.username|first|upper }}</span>
         <span class="su-person-name">
           {{ membership.user.get_full_name|default:membership.user.username }}
-          <small>{% if membership.is_invite %}Taklif yuborilgan{% else %}Qoʻshilish soʻrovi{% endif %} · {{ membership.joined_at|date:"d.m.Y" }}</small>
+          <small>{% if membership.is_invite %}Taklif yuborilgan{% else %}Qöşiliş sörovi{% endif %} · {{ membership.joined_at|date:"d.m.Y" }}</small>
         </span>
         <select class="form-select form-select-sm" name="role" style="max-width:150px" aria-label="Rol">
           {% for value, label in role_choices %}
@@ -85,7 +85,7 @@
         </button>
       </form>
     {% empty %}
-      <p class="su-note">Yangi soʻrov yoʻq.</p>
+      <p class="su-note">Yangi sörov yöq.</p>
     {% endfor %}
   </div>
   {% endif %}
@@ -108,16 +108,16 @@
   {% if not is_member and not membership %}
   <form class="su-card" method="post" action="{% url 'startup:team_join' startup.slug %}">
     {% csrf_token %}
-    <h2 class="su-card-title"><i class="bi bi-person-plus"></i> Jamoaga qoʻshilish</h2>
+    <h2 class="su-card-title"><i class="bi bi-person-plus"></i> Jamoaga qöşiliş</h2>
     <p class="su-note" style="margin-bottom:12px">
-      Soʻrov yuborsangiz startup egasi koʻrib chiqib, rol berib qabul qiladi.
+      Sörov yuborsangiz startup egasi körib çiqib, rol berib qabul qiladi.
     </p>
-    <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Soʻrov yuborish</button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Sörov yuboriş</button>
   </form>
   {% elif membership and membership.status == 'pending' %}
   <div class="su-card">
     <p class="su-note" style="margin:0">
-      <i class="bi bi-hourglass"></i> Soʻrovingiz koʻrib chiqilmoqda.
+      <i class="bi bi-hourglass"></i> Sörovingiz körib çiqilmoqda.
     </p>
   </div>
   {% endif %}

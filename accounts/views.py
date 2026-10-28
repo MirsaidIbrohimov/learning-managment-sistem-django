@@ -15,6 +15,7 @@ import math
 import random
 import secrets
 import time
+from .alphabet import to_new_alphabet
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
     AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm, DictionaryForm,
@@ -51,8 +52,8 @@ from telegram_bot.utils import notify_admins, notify_user, notify_group, notify_
 
 
 def _to_int(value, default=0):
-    """Xavfsiz int o'girish: bo'sh/noto'g'ri qiymatda default qaytaradi.
-    Filtr/qidiruv formasi bo'sh month/year yuborganda 500 xatolikni oldini oladi."""
+    """Xavfsiz int ögiriş: bösh/notöğri qiymatda default qaytaradi.
+    Filtr/qidiruv formasi böş month/year yuborganda 500 xatolikni oldini oladi."""
     try:
         return int(value)
     except (TypeError, ValueError):
@@ -60,28 +61,28 @@ def _to_int(value, default=0):
 
 
 def _redirect_student_to_token(request, lesson):
-    """O'quvchilarni PK URL'dan bloklash — faqat token URL orqali kirish mumkin."""
+    """Öquvçilarni PK URL'dan bloklaş — faqat token URL orqali kiriş mumkin."""
     if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
         return render(request, 'accounts/student_token_required.html', status=403)
     return None
 
 
 def _reset_course_progress(user, profession):
-    """O'quvchi kursdan chiqib qayta yozilganda barcha progressni tozalash.
-    Video progress, homework submissions, test results, speaking submissions va sertifikatlarni o'chiradi."""
+    """Öquvçi kursdan çiqib qayta yozilganda barça progressni tozalaş.
+    Video progress, homework submissions, test results, speaking submissions va sertifikatlarni öçiradi."""
     # Video progress
     VideoProgress.objects.filter(
         user=user,
         video__lesson__profession=profession
     ).delete()
 
-    # Homework submissions (va ularga bog'liq messages, revisions cascade bilan o'chadi)
+    # Homework submissions (va ularga boğliq messages, revisions cascade bilan öçadi)
     HomeworkSubmission.objects.filter(
         student=user,
         homework__lesson__profession=profession
     ).delete()
 
-    # Test results (va ularga bog'liq user_answers cascade bilan o'chadi)
+    # Test results (va ularga boğliq user_answers cascade bilan öçadi)
     TestResult.objects.filter(
         student=user,
         test__lesson__profession=profession
@@ -93,7 +94,7 @@ def _reset_course_progress(user, profession):
         speaking_task__lesson__profession=profession
     ).delete()
 
-    # Sertifikatlarni bekor qilish
+    # Sertifikatlarni bekor qiliş
     Certificate.objects.filter(
         student=user,
         profession=profession
@@ -101,7 +102,7 @@ def _reset_course_progress(user, profession):
 
 
 def _generate_ai_article(lesson_title, profession_name):
-    """Video mavzusiga qarab AI maqola yaratish (background da ishlamaydi, sync)"""
+    """Video mavzusiga qarab AI maqola yaratiş (background da işlamaydi, sync)"""
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
@@ -115,16 +116,16 @@ def _generate_ai_article(lesson_title, profession_name):
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. O'zbek tilida professional maqola yoz. "
+                        "Sen tajribali IT öqituvçisan. Özbek tilida professional maqola yoz. "
                         "HTML formatda yoz (h2, h3, p, ul, li, strong, em, code taglardan foydalan). "
-                        "Maqola 400-600 so'z bo'lsin. Mavzuni chuqur tushuntir, misollar keltir. "
-                        "Boshida qisqa kirish, keyin asosiy tushunchalar, oxirida xulosa bo'lsin. "
-                        "Faqat HTML content qaytar, <html>, <body>, <head> taglarini ISHLATMA."
+                        "Maqola 400-600 söz bölsin. Mavzuni çuqur tuşuntir, misollar keltir. "
+                        "Boşida qisqa kiriş, keyin asosiy tuşunçalar, oxirida xulosa bölsin. "
+                        "Faqat HTML content qaytar, <html>, <body>, <head> taglarini IŞLATMA."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"Kurs: {profession_name}\nMavzu: {lesson_title}\n\nShu mavzu bo'yicha o'quv maqolasi yoz."
+                    "content": f"Kurs: {profession_name}\nMavzu: {lesson_title}\n\nŞu mavzu böyiça öquv maqolasi yoz."
                 }
             ],
             max_tokens=2000,
@@ -138,14 +139,14 @@ def _generate_ai_article(lesson_title, profession_name):
 
 @ai_offload
 def generate_ai_homework(request):
-    """Bo'lim nomiga qarab AI orqali uyga vazifa yaratish"""
+    """Bölim nomiga qarab AI orqali uyga vazifa yaratiş"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': 'Ruxsat yöq'}, status=403)
 
     if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
         return JsonResponse({
             'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
-                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+                     "Bu funksiyadan foydalaniş uçun admin bilan boğlaning.",
             'ai_blocked': True,
         }, status=403)
     
@@ -180,7 +181,7 @@ def generate_ai_homework(request):
             pass
     
     if not section_name and not profession_name:
-        return JsonResponse({'error': 'Bo\'lim yoki kurs tanlanmagan'}, status=400)
+        return JsonResponse({'error': 'Bölim yoki kurs tanlanmagan'}, status=400)
     
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -194,26 +195,26 @@ def generate_ai_homework(request):
         topic = section_name if section_name else profession_name
         prompt_context = f"Kurs: {profession_name}" if profession_name else ""
         if section_name:
-            prompt_context += f"\nBo'lim: {section_name}"
+            prompt_context += f"\nBölim: {section_name}"
         
         example_homework = (
             '<h3>📌 Vazifa maqsadi</h3>'
-            '<p>Bu vazifada HTML asosiy teglarini o\'rganasiz. Sarlavhalar, ro\'yxatlar va havolalar yaratishni mashq qilasiz.</p>'
-            '<h3>📝 Topshiriqlar</h3>'
-            '<p><strong>1-topshiriq: Shaxsiy sahifa yarating.</strong> O\'zingiz haqingizda HTML sahifa yarating. '
+            '<p>Bu vazifada HTML asosiy teglarini örganasiz. Sarlavhalar, röyxatlar va havolalar yaratişni maşq qilasiz.</p>'
+            '<h3>📝 Topşiriqlar</h3>'
+            '<p><strong>1-topshiriq: Şaxsiy sahifa yarating.</strong> Özingiz haqingizda HTML sahifa yarating. '
             'Sahifada h1 teg bilan ismingiz, h2 bilan "Men haqimda" sarlavhasi va p tegda 3-4 jumla yozing. '
             'Misol: <code>&lt;h1&gt;Ali Valiyev&lt;/h1&gt;</code></p>'
             '<p><strong>2-topshiriq: Jadval tuzing.</strong> 4 qatorli va 3 ustunli jadval yarating. '
-            'Jadvalda o\'zingiz va oila a\'zolaringiz haqida ma\'lumot kiriting (ism, yosh, kasb). '
-            'table, tr, th, td teglarini ishlating.</p>'
-            '<p><strong>3-topshiriq: Ro\'yxat yarating.</strong> Sevimli filmlaringiz tartibli ro\'yxatini (ol) va '
-            'sevimli ovqatlaringiz tartivsiz ro\'yxatini (ul) yarating. Har bir ro\'yxatda kamida 5 ta element bo\'lsin.</p>'
-            '<p><strong>4-topshiriq: Havola va rasm qo\'shing.</strong> Sahifangizga 2 ta havola (a teg) va '
-            '1 ta rasm (img teg) qo\'shing. Rasmga alt atribut yozing.</p>'
-            '<h3>✅ Baholash mezonlari</h3>'
-            '<p><strong>To\'g\'ri bajarilishi (4 ball):</strong> Barcha teglar to\'g\'ri yopilgan, sahifa brauzerde xatosiz ochiladi.</p>'
-            '<p><strong>Kod sifati (3 ball):</strong> Kod tartibli yozilgan, indentatsiya to\'g\'ri, teglar bir xil stilida.</p>'
-            '<p><strong>Ijodkorlik (3 ball):</strong> Qo\'shimcha teglar ishlatilgan, sahifa mazmunli va chiroyli.</p>'
+            'Jadvalda özingiz va oila a\'zolaringiz haqida ma\'lumot kiriting (ism, yoş, kasb). '
+            'table, tr, th, td teglarini işlating.</p>'
+            '<p><strong>3-topshiriq: Röyxat yarating.</strong> Sevimli filmlaringiz tartibli röyxatini (ol) va '
+            'sevimli ovqatlaringiz tartivsiz röyxatini (ul) yarating. Har bir röyxatda kamida 5 ta element bölsin.</p>'
+            '<p><strong>4-topshiriq: Havola va rasm qöşing.</strong> Sahifangizga 2 ta havola (a teg) va '
+            '1 ta rasm (img teg) qöşing. Rasmga alt atribut yozing.</p>'
+            '<h3>✅ Baholaş mezonlari</h3>'
+            '<p><strong>Töğri bajarilişi (4 ball):</strong> Barça teglar töğri yopilgan, sahifa brauzerde xatosiz oçiladi.</p>'
+            '<p><strong>Kod sifati (3 ball):</strong> Kod tartibli yozilgan, indentatsiya töğri, teglar bir xil stilida.</p>'
+            '<p><strong>Ijodkorlik (3 ball):</strong> Qöşimça teglar işlatilgan, sahifa mazmunli va çiroyli.</p>'
             '<p><strong>Umumiy ball: 10</strong></p>'
         )
 
@@ -223,23 +224,23 @@ def generate_ai_homework(request):
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. Senden uyga vazifa yozish so'raladi. "
-                        "O'zbek tilida yoz. Faqat HTML formatda javob qaytar.\n\n"
+                        "Sen tajribali IT öqituvçisan. Senden uyga vazifa yoziş söraladi. "
+                        "Özbek tilida yoz. Faqat HTML formatda javob qaytar.\n\n"
                         "MUHIM QOIDALAR:\n"
-                        "- Faqat <h3>, <p>, <strong>, <em>, <code> teglarini ishlat\n"
-                        "- <ol>, <ul>, <li> teglarini ISHLATMA! O'rniga <p> ichida yoz\n"
-                        "- <html>, <body>, <head> teglarini ISHLATMA\n"
-                        "- Har bir topshiriqni alohida <p> tegda yoz\n"
-                        "- Har bir <p> ichida kamida 2-3 jumla bo'lsin\n"
-                        "- Topshiriqlarda ANIQ kod misollari keltir\n\n"
+                        "- Faqat <h3>, <p>, <strong>, <em>, <code> teglarini işlat\n"
+                        "- <ol>, <ul>, <li> teglarini IŞLATMA! Örniga <p> içida yoz\n"
+                        "- <html>, <body>, <head> teglarini IŞLATMA\n"
+                        "- Har bir topşiriqni alohida <p> tegda yoz\n"
+                        "- Har bir <p> içida kamida 2-3 jumla bölsin\n"
+                        "- Topşiriqlarda ANIQ kod misollari keltir\n\n"
                         "Namuna:\n" + example_homework + "\n\n"
-                        "Xuddi shu formatda yoz. Topshiriqlar soni 4 ta. Umumiy ball 10."
+                        "Xuddi şu formatda yoz. Topşiriqlar soni 4 ta. Umumiy ball 10."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"{prompt_context}\n\nShu mavzu uchun uyga vazifa yoz. "
-                               f"Har bir topshiriqni <p> tegda batafsil yoz, aniq ko'rsatma va kod misoli bo'lsin."
+                    "content": f"{prompt_context}\n\nŞu mavzu uçun uyga vazifa yoz. "
+                               f"Har bir topşiriqni <p> tegda batafsil yoz, aniq körsatma va kod misoli bölsin."
                 }
             ],
             max_tokens=2500,
@@ -256,21 +257,21 @@ def generate_ai_homework(request):
         })
     except Exception as e:
         return JsonResponse(
-            {'error': safe_error(e, 'ai_generate_homework', "AI xatolik. Qayta urinib ko'ring.")},
+            {'error': safe_error(e, 'ai_generate_homework', "AI xatolik. Qayta urinib köring.")},
             status=500,
         )
 
 
 @ai_offload
 def generate_ai_test(request):
-    """AI orqali test savollari yaratish"""
+    """AI orqali test savollari yaratiş"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': 'Ruxsat yöq'}, status=403)
 
     if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
         return JsonResponse({
             'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
-                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+                     "Bu funksiyadan foydalaniş uçun admin bilan boğlaning.",
             'ai_blocked': True,
         }, status=403)
     
@@ -320,7 +321,7 @@ def generate_ai_test(request):
         
         prompt_context = f"Kurs: {profession_name}"
         if section_name:
-            prompt_context += f"\nBo'lim: {section_name}"
+            prompt_context += f"\nBölim: {section_name}"
         prompt_context += f"\nDars: {lesson_title}"
         
         response = client.chat.completions.create(
@@ -329,14 +330,14 @@ def generate_ai_test(request):
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. Senden test savollari yaratish so'raladi. "
-                        "O'zbek tilida yoz. Faqat JSON formatda javob qaytar, boshqa hech narsa yozma.\n\n"
-                        "Har bir savol uchun 3 ta variant (A, B, C) bo'lsin.\n"
-                        "To'g'ri javob faqat A, B yoki C bo'lsin.\n"
-                        "Savollar real amaliy bo'lsin, kodli misollar ham bo'lishi mumkin.\n"
-                        "Javoblar bir-biriga yaqin va chalg'ituvchi bo'lsin, LEKIN har bir savolda A, B, C variantlari bir-biridan FARQLI bo'lishi SHART. "
-                        "Hech qachon ikki yoki uch variant bir xil matnli bo'lmasin!\n"
-                        "Izoh 1-2 gap bilan tushuntirsin.\n\n"
+                        "Sen tajribali IT öqituvçisan. Senden test savollari yaratiş söraladi. "
+                        "Özbek tilida yoz. Faqat JSON formatda javob qaytar, boşqa heç narsa yozma.\n\n"
+                        "Har bir savol uçun 3 ta variant (A, B, C) bölsin.\n"
+                        "Töğri javob faqat A, B yoki C bölsin.\n"
+                        "Savollar real amaliy bölsin, kodli misollar ham bölişi mumkin.\n"
+                        "Javoblar bir-biriga yaqin va çalğituvçi bölsin, LEKIN har bir savolda A, B, C variantlari bir-biridan FARQLI bölişi ŞART. "
+                        "Heç qaçon ikki yoki uç variant bir xil matnli bölmasin!\n"
+                        "Izoh 1-2 gap bilan tuşuntirsin.\n\n"
                         "JSON formati:\n"
                         "[\n"
                         "  {\n"
@@ -348,12 +349,12 @@ def generate_ai_test(request):
                         '    "explanation": "Izoh"\n'
                         "  }\n"
                         "]\n\n"
-                        "MUHIM: Faqat JSON array qaytar. Markdown yoki boshqa text qo'shma."
+                        "MUHIM: Faqat JSON array qaytar. Markdown yoki boşqa text qöşma."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha {question_count} ta test savoli yarat."
+                    "content": f"{prompt_context}\n\nŞu mavzu böyiça {question_count} ta test savoli yarat."
                 }
             ],
             max_tokens=4000,
@@ -372,7 +373,7 @@ def generate_ai_test(request):
         questions_data = json.loads(ai_text)
         
         if not isinstance(questions_data, list):
-            return JsonResponse({'error': 'AI noto\'g\'ri format qaytardi'}, status=500)
+            return JsonResponse({'error': 'AI notöğri format qaytardi'}, status=500)
         
         from django.db import transaction
         created_count = 0
@@ -390,10 +391,10 @@ def generate_ai_test(request):
                 if not q_text or not opt_a or not opt_b or not opt_c or correct not in ('A', 'B', 'C'):
                     continue
                 
-                # Dublikat variantlarni tekshirish
+                # Dublikat variantlarni tekşiriş
                 options = [opt_a.lower(), opt_b.lower(), opt_c.lower()]
                 if len(set(options)) < 3:
-                    # Agar variantlar ichida bir xili bo'lsa, bu savolni o'tkazib yuboramiz
+                    # Agar variantlar içida bir xili bölsa, bu savolni ötkazib yuboramiz
                     continue
                 
                 question = TestQuestion.objects.create(
@@ -416,10 +417,10 @@ def generate_ai_test(request):
             'message': f'{created_count} ta savol muvaffaqiyatli yaratildi!'
         })
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
+        return JsonResponse({'error': 'AI javobini öqişda xatolik. Qayta urinib köring.'}, status=500)
     except Exception as e:
         return JsonResponse(
-            {'error': safe_error(e, 'ai_generate_questions', "AI xatolik. Qayta urinib ko'ring.")},
+            {'error': safe_error(e, 'ai_generate_questions', "AI xatolik. Qayta urinib köring.")},
             status=500,
         )
 
@@ -427,14 +428,14 @@ def generate_ai_test(request):
 @login_required
 @ai_offload
 def generate_ai_article_view(request, pk):
-    """AJAX: AI maqola yaratish yoki qayta yaratish"""
+    """AJAX: AI maqola yaratiş yoki qayta yaratiş"""
     if not (request.user.is_admin or request.user.is_teacher):
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': 'Ruxsat yöq'}, status=403)
 
     if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
         return JsonResponse({
             'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
-                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+                     "Bu funksiyadan foydalaniş uçun admin bilan boğlaning.",
             'ai_blocked': True,
         }, status=403)
     
@@ -446,13 +447,13 @@ def generate_ai_article_view(request, pk):
             lesson.ai_article = ai_article
             lesson.save(update_fields=['ai_article'])
             return JsonResponse({'success': True, 'article': ai_article})
-        return JsonResponse({'error': 'AI maqola yaratishda xatolik'}, status=500)
+        return JsonResponse({'error': 'AI maqola yaratişda xatolik'}, status=500)
     
     return JsonResponse({'error': 'POST kerak'}, status=405)
 
 
 def send_course_notification(profession, title, content, sender=None):
-    """Kursga yozilgan barcha o'quvchilarga xabar yuborish (sayt + Telegram)"""
+    """Kursga yozilgan barça öquvçilarga xabar yuboriş (sayt + Telegram)"""
     import threading
     
     enrollments = CourseEnrollment.objects.filter(profession=profession).select_related('user')
@@ -480,8 +481,8 @@ def send_course_notification(profession, title, content, sender=None):
                 f"{content}\n\n"
             )
             if teacher_name:
-                telegram_text += f"👨‍🏫 O'qituvchi: {teacher_name}\n"
-            telegram_text += f"🔗 Saytga kiring va ko'ring!"
+                telegram_text += f"👨‍🏫 Öqituvçi: {teacher_name}\n"
+            telegram_text += f"🔗 Saytga kiring va köring!"
             notify_user(tid, telegram_text)
     
     threading.Thread(target=_send_telegram, daemon=True).start()
@@ -491,7 +492,7 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     
-    # Rate limiting — ro'yxatdan o'tish uchun
+    # Rate limiting — röyxatdan ötiş uçun
     if request.method == 'POST':
         blocked, msg = check_rate_limit(
             request, 'register', ip_limit=3, id_limit=3, window=3600
@@ -506,29 +507,29 @@ def register_view(request):
             user = form.save()
             from .email_verification import send_verification
             if send_verification(user, request):
-                messages.info(request, 'Emailingizga tasdiqlash havolasi yuborildi. Havolani ochmaguncha email hisobga bog‘lanmaydi.')
+                messages.info(request, 'Emailingizga tasdiqlaş havolasi yuborildi. Havolani oçmagunça email hisobga boğlanmaydi.')
             else:
-                messages.warning(request, 'Email hali bog‘lanmagan. Tasdiqlash havolasi yuborilmadi; profil orqali qayta yuboring.')
+                messages.warning(request, 'Email hali boğlanmagan. Tasdiqlaş havolasi yuborilmadi; profil orqali qayta yuboring.')
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            # Login'dagi kabi sessiyani ro'yxatdan o'tkazamiz — aks holda
-            # DeviceLimitMiddleware faol UserSession topmay, yangi o'quvchini
-            # profilni to'ldirish sahifasiga yetmasdan tizimdan chiqarib yuboradi.
+            # Login'dagi kabi sessiyani röyxatdan ötkazamiz — aks holda
+            # DeviceLimitMiddleware faol UserSession topmay, yangi öquvçini
+            # profilni töldiriş sahifasiga yetmasdan tizimdan çiqarib yuboradi.
             _register_device_and_session(request, user)
             notify_admins(
-                f"👤 <b>Yangi foydalanuvchi ro'yxatdan o'tdi!</b>\n\n"
+                f"👤 <b>Yangi foydalanuvçi röyxatdan ötdi!</b>\n\n"
                 f"📛 {user.first_name} {user.last_name}\n"
                 f"🆔 @{user.username}\n"
                 f"📱 {user.phone}\n"
                 f"🎓 {user.get_role_display()}"
             )
             notify_group(
-                f"🎉 <b>Safimizga yangi foydalanuvchi qo'shildi!</b>\n\n"
+                f"🎉 <b>Safimizga yangi foydalanuvçi qöşildi!</b>\n\n"
                 f"👤 {user.first_name} {user.last_name}\n"
                 f"🎓 {user.get_role_display()}\n\n"
-                f"🚀 Xush kelibsiz!"
+                f"🚀 Xuş kelibsiz!"
             )
-            messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi profilingizni to'ldiring.")
-            # Auto-login qilingan — profilni to'ldirish (hujjat tasdig'i bilan) sahifasiga.
+            messages.success(request, "Röyxatdan muvaffaqiyatli ötdingiz! Endi profilingizni töldiring.")
+            # Auto-login qilingan — profilni töldiriş (hujjat tasdiği bilan) sahifasiga.
             return redirect('complete_profile')
         else:
             for field, errors in form.errors.items():
@@ -541,7 +542,7 @@ def register_view(request):
 
 
 def _login_render(request, form, login_mode):
-    """Login sahifasini render qilish"""
+    """Login sahifasini render qiliş"""
     # Login token — har bir sahifa yuklanganda yangilanadi
     login_token = request.session.get('login_token')
     if not login_token:
@@ -555,7 +556,7 @@ def _login_render(request, form, login_mode):
 
 
 def _parse_user_agent(ua):
-    """User-Agent dan qurilma nomi, turi, brauzer va OS ni aniqlash"""
+    """User-Agent dan qurilma nomi, turi, brauzer va OS ni aniqlaş"""
     # Qurilma turi
     if 'Mobile' in ua or 'Android' in ua and 'Tablet' not in ua:
         device_type = 'mobile'
@@ -597,17 +598,17 @@ def _parse_user_agent(ua):
 
 
 def _get_device_id(user, ua, ip_address):
-    """User-Agent va IP dan qurilma ID yaratish"""
+    """User-Agent va IP dan qurilma ID yaratiş"""
     import hashlib
     device_id_raw = f"{user.pk}-{ua}-{ip_address}"
     return hashlib.md5(device_id_raw.encode()).hexdigest()
 
 
 def _register_device_and_session(request, user):
-    """Login paytida qurilma va sessiyani ro'yxatdan o'tkazish.
+    """Login paytida qurilma va sessiyani röyxatdan ötkaziş.
     
     Qoidalar:
-    - Faqat 1 ta qurilma online bo'ladi. Boshqa sessiyalar o'chiriladi.
+    - Faqat 1 ta qurilma online böladi. Boşqa sessiyalar öçiriladi.
     """
     from django.contrib.sessions.models import Session as DjangoSession
     
@@ -616,11 +617,11 @@ def _register_device_and_session(request, user):
     device_name, device_type, browser, os_name = _parse_user_agent(ua)
     device_id = _get_device_id(user, ua, ip_address)
 
-    # Bu qurilma allaqachon ro'yxatdan o'tganmi?
+    # Bu qurilma allaqaçon röyxatdan ötganmi?
     device = UserDevice.objects.filter(user=user, device_id=device_id, is_active=True).first()
 
     if not device:
-        # Yangi qurilma yaratish (qurilma soni cheklanmagan)
+        # Yangi qurilma yaratiş (qurilma soni çeklanmagan)
         device, created = UserDevice.objects.get_or_create(
             user=user,
             device_id=device_id,
@@ -640,17 +641,17 @@ def _register_device_and_session(request, user):
         device.ip_address = ip_address
         device.save(update_fields=['ip_address', 'last_login'])
 
-    # Sessiyani yaratish
+    # Sessiyani yaratiş
     if not request.session.session_key:
         request.session.create()
 
-    # ✅ FAQAT 1 TA ONLINE: barcha eski sessiyalarni o'chirish
+    # ✅ FAQAT 1 TA ONLINE: barça eski sessiyalarni öçiriş
     old_sessions = UserSession.objects.filter(user=user, is_active=True)
     old_session_keys = list(old_sessions.values_list('session_key', flat=True))
     DjangoSession.objects.filter(session_key__in=old_session_keys).delete()
     old_sessions.update(is_active=False)
 
-    # Yangi sessiya yaratish
+    # Yangi sessiya yaratiş
     UserSession.objects.create(
         user=user,
         device=device,
@@ -660,16 +661,16 @@ def _register_device_and_session(request, user):
         is_active=True,
     )
 
-    # DeviceLimitMiddleware faol sessiyani cache'dan tekshiradi.
-    # Eski sessiyalar o'chirilgandan keyin cache yangilanmasa, keyingi requestda
-    # yangi login qilingan foydalanuvchi darhol logout bo'lib qolishi mumkin.
+    # DeviceLimitMiddleware faol sessiyani cache'dan tekşiradi.
+    # Eski sessiyalar öçirilgandan keyin cache yangilanmasa, keyingi requestda
+    # yangi login qilingan foydalanuvçi darhol logout bölib qolişi mumkin.
     cache.set(f'active_session_{user.id}', request.session.session_key, 120)
 
     return True
 
 
 def _record_failed_login(ip_address, username='', user_agent='', login_token=''):
-    """Muvaffaqiyatsiz login urinishini yozish"""
+    """Muvaffaqiyatsiz login urinişini yoziş"""
     LoginAttempt.objects.create(
         ip_address=ip_address,
         username=username[:150],
@@ -680,7 +681,7 @@ def _record_failed_login(ip_address, username='', user_agent='', login_token='')
 
 
 def _record_successful_login(ip_address, username='', user_agent='', login_token=''):
-    """Muvaffaqiyatli loginni yozish va token urinishlarni tozalash"""
+    """Muvaffaqiyatli loginni yoziş va token urinişlarni tozalaş"""
     LoginAttempt.objects.create(
         ip_address=ip_address,
         username=username[:150],
@@ -692,7 +693,7 @@ def _record_successful_login(ip_address, username='', user_agent='', login_token
 
 
 def _add_one_month(d):
-    """Sanaga 1 oy qo'shadi, kunni saqlab (kerak bo'lsa oy oxiriga qisqartirib).
+    """Sanaga 1 oy qöşadi, kunni saqlab (kerak bölsa oy oxiriga qisqartirib).
     Masalan: 13-iyun -> 13-iyul, 31-yanvar -> 28/29-fevral. dateutil talab qilmaydi.
     """
     import calendar
@@ -704,12 +705,12 @@ def _add_one_month(d):
 
 def _auto_deduct_and_unblock(user):
     """
-    O'quvchi balansidan oylik yoki qisman to'lovni yechib, unblock qilishga urinadi.
-    - Balans oylik to'lovdan kam bo'lsa (masalan 400 minglik to'lovga 200 ming bo'lsa),
-      proporsional kunlar (15 kun) hisoblanadi va foydalanuvchi blokdan chiqariladi.
-    True  → muvaffaqiyatli yechildi va unblock bo'ldi.
-    False → balans yetarli emas (kamida 1 kunga yetmaydi), foydalanuvchi hali ham blokli.
-    Shartnoma rejimida bo'lsa — to'lov olinmaydi, to'g'ridan to'g'ri unblock.
+    Öquvçi balansidan oylik yoki qisman tölovni yeçib, unblock qilişga urinadi.
+    - Balans oylik tölovdan kam bölsa (masalan 400 minglik tölovga 200 ming bölsa),
+      proporsional kunlar (15 kun) hisoblanadi va foydalanuvçi blokdan çiqariladi.
+    True  → muvaffaqiyatli yeçildi va unblock böldi.
+    False → balans yetarli emas (kamida 1 kunga yetmaydi), foydalanuvçi hali ham blokli.
+    Şartnoma rejimida bölsa — tölov olinmaydi, töğridan töğri unblock.
     """
     from django.utils import timezone
     from .models import StudentBalance, PaymentStatus, PaymentRecord, calculate_extension_from_amount
@@ -719,14 +720,14 @@ def _auto_deduct_and_unblock(user):
         ps = PaymentStatus.objects.get(user=user)
         today = timezone.now().date()
 
-        # Shartnoma rejimi — to'lov olinmaydi, shunchaki unblock
+        # Şartnoma rejimi — tölov olinmaydi, şunçaki unblock
         if balance.is_contract:
             user.is_blocked = False
             user.save(update_fields=['is_blocked'])
             ps.is_paid = True
             ps.last_payment_date = today
             ps.auto_blocked = False
-            # next_payment_date belgilanmaydi (shartnoma abonent)
+            # next_payment_date belgilanmaydi (şartnoma abonent)
             balance.next_payment_date = None
             balance.save(update_fields=['next_payment_date', 'updated_at'])
             ps.save()
@@ -736,7 +737,7 @@ def _auto_deduct_and_unblock(user):
         if balance.amount <= 0:
             return False
 
-        # Boshlang'ich sana: agar mavjud to'lov muddati bugundan keyin bo'lsa, o'shandan davom ettiramiz
+        # Boşlanğiç sana: agar mavjud tölov muddati bugundan keyin bölsa, öşandan davom ettiramiz
         base_date = balance.next_payment_date if (balance.next_payment_date and balance.next_payment_date > today) else today
 
         next_date, added_days, used_amount, desc = calculate_extension_from_amount(
@@ -746,7 +747,7 @@ def _auto_deduct_and_unblock(user):
         if not next_date or added_days < 1:
             return False
 
-        # Balansdan yechish
+        # Balansdan yeçiş
         balance.amount -= used_amount
         balance.next_payment_date = next_date
         balance.save(update_fields=['amount', 'next_payment_date', 'updated_at'])
@@ -755,7 +756,7 @@ def _auto_deduct_and_unblock(user):
         user.is_blocked = False
         user.save(update_fields=['is_blocked'])
 
-        # PaymentStatus yangilash
+        # PaymentStatus yangilaş
         ps.is_paid = True
         ps.last_payment_date = today
         ps.auto_blocked = False
@@ -770,7 +771,7 @@ def _auto_deduct_and_unblock(user):
                 'paid_date': today,
                 'paid_amount': used_amount,
                 'amount': used_amount,
-                'notes': f"Balansdan to'landi ({desc}). Keyingi to'lov: {next_date.strftime('%d.%m.%Y')}",
+                'notes': f"Balansdan tölandi ({desc}). Keyingi tölov: {next_date.strftime('%d.%m.%Y')}",
             }
         )
         return True
@@ -786,9 +787,9 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
 
-    # Login urinishlari IP bo'yicha hisoblanadi. `REMOTE_ADDR` proxy ortida
-    # hamma foydalanuvchi uchun bir xil bo'lib qolardi — bitta hujumchi
-    # butun saytni qulflab qo'yishi mumkin edi.
+    # Login urinişlari IP böyiça hisoblanadi. `REMOTE_ADDR` proxy ortida
+    # hamma foydalanuvçi uçun bir xil bölib qolardi — bitta hujumçi
+    # butun saytni qulflab qöyişi mumkin edi.
     ip_address = get_client_ip(request) or ''
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     max_attempts = getattr(django_settings, 'LOGIN_MAX_ATTEMPTS', 5)
@@ -796,7 +797,7 @@ def login_view(request):
 
     login_mode = request.POST.get('login_mode', 'username') if request.method == 'POST' else 'username'
 
-    # Login token — sessiyadan olish yoki yangi yaratish
+    # Login token — sessiyadan oliş yoki yangi yaratiş
     login_token = request.session.get('login_token', '')
     if not login_token:
         login_token = LoginAttempt.generate_token()
@@ -806,12 +807,12 @@ def login_view(request):
         form = LoginForm(request.POST if login_mode == 'username' else None)
         # login_token ATAYLAB POST dan olinmaydi. Ilgari
         #     login_token = request.POST.get('login_token', login_token)
-        # deb yozilgan edi — hidden field mijoz nazoratida bo'lgani uchun
-        # hujumchi har urinishda yangi tasodifiy token yuborib, pastdagi
-        # `is_token_blocked` bloklashini butunlay chetlab o'tardi. Token faqat
+        # deb yozilgan edi — hidden field mijoz nazoratida bölgani uçun
+        # hujumçi har urinişda yangi tasodifiy token yuborib, pastdagi
+        # `is_token_blocked` bloklaşini butunlay çetlab ötardi. Token faqat
         # serverdagi sessiyadan olinadi; hidden field template'da qolsa ham
-        # ishonilmaydi. Sessiyasiz brute-force uchun IP asosidagi
-        # check_rate_limit ishlaydi (uni cookie tashlab yuborib bo'lmaydi).
+        # işonilmaydi. Sessiyasiz brute-force uçun IP asosidagi
+        # check_rate_limit işlaydi (uni cookie taşlab yuborib bölmaydi).
         request.session['login_token'] = login_token
 
         # 🛡️ IP-based rate limiting
@@ -819,9 +820,9 @@ def login_view(request):
             login_identifier = 'email:' + request.session.get('email_login_token', login_token)[:64]
         elif login_mode == 'telegram':
             # Telegram kodi — akkaunt identifikatori EMAS, balki taxmin
-            # qilinayotgan sirning o'zi. Uni identifier qilib berilganda har
-            # taxmin yangi kalitga tushib, id_limit hech qachon ishlamaydi.
-            # Sessiyaga bog'lab qo'yamiz — shunda 5 ta noto'g'ri kodda to'xtaydi.
+            # qilinayotgan sirning özi. Uni identifier qilib berilganda har
+            # taxmin yangi kalitga tuşib, id_limit heç qaçon işlamaydi.
+            # Sessiyaga boğlab qöyamiz — şunda 5 ta notöğri kodda töxtaydi.
             login_identifier = f'tgcode:{login_token[:32]}'
         else:
             login_identifier = (
@@ -837,20 +838,20 @@ def login_view(request):
             messages.error(request, block_msg)
             return _login_render(request, form, login_mode)
 
-        # 🤖 Honeypot — botlar uchun tuzoq
+        # 🤖 Honeypot — botlar uçun tuzoq
         honeypot = request.POST.get('website_url', '')
         if honeypot:
             _record_failed_login(ip_address, 'honeypot_bot', user_agent, login_token)
-            time.sleep(1.5)  # Bot sekinlashtirish
-            messages.error(request, "Kirish rad etildi! ❌")
+            time.sleep(1.5)  # Bot sekinlaştiriş
+            messages.error(request, "Kiriş rad etildi! ❌")
             return _login_render(request, form, login_mode)
 
-        # 🔒 Token bloklangan bo'lsa — kirishga ruxsat bermaslik
+        # 🔒 Token bloklangan bölsa — kirişga ruxsat bermaslik
         if LoginAttempt.is_token_blocked(login_token, max_attempts, lockout_minutes):
             remaining = LoginAttempt.get_token_remaining_time(login_token, max_attempts, lockout_minutes)
             remaining_min = remaining // 60 + 1
-            messages.error(request, f"Juda ko'p noto'g'ri urinish! {remaining_min} daqiqadan keyin qayta urinib ko'ring. 🔒")
-            # Admin'ga xabar berish
+            messages.error(request, f"Juda köp notöğri uriniş! {remaining_min} daqiqadan keyin qayta urinib köring. 🔒")
+            # Admin'ga xabar beriş
             if not request.session.get('brute_notified'):
                 try:
                     notify_admins(
@@ -859,7 +860,7 @@ def login_view(request):
                         f"🔑 Token: {login_token[:16]}...\n"
                         f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n"
                         f"📱 UA: {user_agent[:100]}\n"
-                        f"⚠️ {max_attempts} marta noto'g'ri urinish — token bloklandi ({lockout_minutes} daqiqa)"
+                        f"⚠️ {max_attempts} marta notöğri uriniş — token bloklandi ({lockout_minutes} daqiqa)"
                     )
                 except Exception:
                     pass
@@ -875,7 +876,7 @@ def login_view(request):
             user = verify_code(request)
             if user is None:
                 _record_failed_login(ip_address, 'email_code:invalid', user_agent, login_token)
-                messages.error(request, 'Kod noto‘g‘ri, muddati tugagan yoki ishlatilgan. Yangi kod so‘rang.')
+                messages.error(request, 'Kod notöğri, muddati tugagan yoki işlatilgan. Yangi kod sörang.')
                 return _login_render(request, form, 'email')
 
         # Telegram kod orqali login
@@ -885,16 +886,16 @@ def login_view(request):
                 messages.error(request, "Iltimos, kodni kiriting! ⚠️")
                 return _login_render(request, form, 'telegram')
 
-            # Faqat 6 xonali raqam — bazaga tegmasdan shovqinni to'sadi.
+            # Faqat 6 xonali raqam — bazaga tegmasdan şovqinni tösadi.
             if not (len(telegram_code) == 6 and telegram_code.isdigit()):
                 _record_failed_login(ip_address, 'telegram_code:invalid', user_agent, login_token)
-                messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                messages.error(request, "Kod notöğri yoki allaqaçon işlatilgan! ❌")
                 return _login_render(request, form, 'telegram')
 
             from telegram_bot.models import TelegramLoginCode
 
             # Kodni bir martalik qilib qulflab olamiz: bir vaqtda kelgan ikki
-            # so'rov bitta kodni ikki marta "ishlatib" yubormasin.
+            # sörov bitta kodni ikki marta "işlatib" yubormasin.
             with transaction.atomic():
                 login_code = (
                     TelegramLoginCode.objects
@@ -906,11 +907,11 @@ def login_view(request):
                     _record_failed_login(
                         ip_address, 'telegram_code:unknown', user_agent, login_token
                     )
-                    messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                    messages.error(request, "Kod notöğri yoki allaqaçon işlatilgan! ❌")
                     return _login_render(request, form, 'telegram')
 
                 if login_code.is_attempt_exhausted:
-                    login_code.is_used = True   # kodni butunlay o'lik qilamiz
+                    login_code.is_used = True   # kodni butunlay ölik qilamiz
                     login_code.save(update_fields=['is_used'])
                     messages.error(request, "Bu kod bloklandi. Botdan yangi kod oling. 🔒")
                     return _login_render(request, form, 'telegram')
@@ -923,7 +924,7 @@ def login_view(request):
                 if user is None:
                     login_code.attempts += 1
                     login_code.save(update_fields=['attempts'])
-                    messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                    messages.error(request, "Kod notöğri yoki allaqaçon işlatilgan! ❌")
                     return _login_render(request, form, 'telegram')
 
                 login_code.is_used = True
@@ -934,7 +935,7 @@ def login_view(request):
             password = request.POST.get('password', '').strip()
 
             if not phone or not password:
-                messages.error(request, "Iltimos, barcha maydonlarni to'ldiring ⚠️")
+                messages.error(request, "Iltimos, barça maydonlarni töldiring ⚠️")
                 return _login_render(request, form, 'phone')
 
             try:
@@ -945,7 +946,7 @@ def login_view(request):
 
             if user is None:
                 _record_failed_login(ip_address, f'phone:{phone[:20]}', user_agent, login_token)
-                messages.error(request, "Telefon raqam yoki parol noto'g'ri ❌")
+                messages.error(request, "Telefon raqam yoki parol notöğri ❌")
                 return _login_render(request, form, 'phone')
 
         elif form.is_valid():
@@ -955,20 +956,20 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is None:
-                # Parol to'g'ri, lekin akkaunt o'chirilgan/bloklangan (is_active=False)
-                # bo'lsa — authenticate None qaytaradi. Shuni aniqlab, aniq xabar beramiz.
+                # Parol töğri, lekin akkaunt öchirilgan/bloklangan (is_active=False)
+                # bölsa — authenticate None qaytaradi. Şuni aniqlab, aniq xabar beramiz.
                 _u = CustomUser.objects.filter(username__iexact=(username or '').strip()).first()
                 if _u and not _u.is_active and _u.check_password(password):
                     messages.error(
                         request,
-                        "Akkauntingiz bloklangan. Iltimos, administrator bilan bog'laning. ⛔"
+                        "Akkauntingiz bloklangan. Iltimos, administrator bilan boğlaning. ⛔"
                     )
                     return _login_render(request, form, login_mode)
                 _record_failed_login(ip_address, username, user_agent, login_token)
-                messages.error(request, "Username yoki parol noto'g'ri ❌")
+                messages.error(request, "Username yoki parol notöğri ❌")
                 return _login_render(request, form, login_mode)
         else:
-            messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
+            messages.error(request, "Iltimos, barça maydonlarni töğri töldiring ⚠️")
             return _login_render(request, form, login_mode)
 
         return _complete_login(request, user, ip_address, user_agent, login_token)
@@ -980,38 +981,38 @@ def login_view(request):
 
 
 def _complete_login(request, user, ip_address, user_agent, login_token):
-    """Foydalanuvchi tasdiqlangandan keyingi umumiy login jarayoni.
+    """Foydalanuvçi tasdiqlangandan keyingi umumiy login jarayoni.
 
-    Parol, telefon, email kodi, Telegram kodi va Google orqali kirish — barchasi
-    shu yerdan o'tadi: bloklash/to'lov, qurilma va sessiya, bonuslar, xabarlar.
+    Parol, telefon, email kodi, Telegram kodi va Google orqali kiriş — barçasi
+    şu yerdan ötadi: bloklash/tölov, qurilma va sessiya, bonuslar, xabarlar.
     """
-    # ⛔ Bloklangan user — avval balansdan avtomatik to'lov sinab ko'riladi
+    # ⛔ Bloklangan user — avval balansdan avtomatik tölov sinab köriladi
     if hasattr(user, "is_blocked") and user.is_blocked:
         if not _auto_deduct_and_unblock(user):
-            # Balans yetarli emas → login qilinadi, to'lov sahifasiga yo'naltiriladi
+            # Balans yetarli emas → login qilinadi, tölov sahifasiga yönaltiriladi
             _record_successful_login(ip_address, user.username, user_agent, login_token)
             request.session.pop('login_token', None)
             request.session.pop('brute_notified', None)
             login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
             user.last_activity = timezone.now()
             user.save(update_fields=["last_activity"])
-            # Sessiyani ro'yxatdan o'tkazamiz — aks holda DeviceLimitMiddleware
-            # faol UserSession topa olmay, o'quvchini /tolov/ ga yetmasdan
-            # chiqarib yuboradi (to'lov sahifasi faqat bir marta ko'rinardi).
+            # Sessiyani röyxatdan ötkazamiz — aks holda DeviceLimitMiddleware
+            # faol UserSession topa olmay, öquvçini /tolov/ ga yetmasdan
+            # çiqarib yuboradi (tölov sahifasi faqat bir marta körinardi).
             _register_device_and_session(request, user)
             _reason = getattr(user, 'blocked_reason', '') or ''
             messages.warning(
                 request,
-                "Akkauntingiz vaqtincha bloklangan"
+                "Akkauntingiz vaqtinça bloklangan"
                 + (f": {_reason}" if _reason else "")
-                + ". To'lovni amalga oshiring. 🔒"
+                + ". Tölovni amalga oşiring. 🔒"
             )
             return redirect('payment_wall')
-        # Unblock bo'ldi — oddiy login davom etadi
+        # Unblock böldi — oddiy login davom etadi
 
-    # ✅ Login successful — urinishlarni tozalash
+    # ✅ Login successful — urinişlarni tozalaş
     _record_successful_login(ip_address, user.username, user_agent, login_token)
-    # Token va brute_notified ni tozalash
+    # Token va brute_notified ni tozalaş
     request.session.pop('login_token', None)
     request.session.pop('brute_notified', None)
     login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
@@ -1019,13 +1020,13 @@ def _complete_login(request, user, ip_address, user_agent, login_token):
     user.last_activity = timezone.now()
     user.save(update_fields=["last_activity"])
 
-    # 🔥 Kunlik streak'ni yangilash
+    # 🔥 Kunlik streak'ni yangilaş
     try:
         user.update_streak()
     except Exception:
         pass
 
-    # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
+    # 📱 Qurilma va sessiya röyxatdan ötkaziş
     _register_device_and_session(request, user)
 
     # 💎 Premium kunlik bonus: 5 coin
@@ -1034,7 +1035,7 @@ def _complete_login(request, user, ip_address, user_agent, login_token):
         user.last_daily_login = today
         user.save(update_fields=["last_daily_login"])
         user.add_coins(5, "Premium kunlik bonus")
-        messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
+        messages.success(request, "💎 Premium bonus: +5 coin qöşildi!")
 
     ip_address = get_client_ip(request) or ''
     ActivityLog.objects.create(
@@ -1080,33 +1081,33 @@ def _complete_login(request, user, ip_address, user_agent, login_token):
             f"{'🌍 Brauzer: ' + browser + chr(10) if browser else ''}"
             f"🌐 IP: {ip_address}\n"
             f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
-            f"⚠️ Agar bu siz bo'lmasangiz, darhol parolingizni o'zgartiring!"
+            f"⚠️ Agar bu siz bölmasangiz, darhol parolingizni özgartiring!"
         )
 
     messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
 
-    # Premium reklama (premium bo'lmagan studentlar uchun)
+    # Premium reklama (premium bölmagan studentlar uçun)
     if user.role == 'student' and not user.is_premium:
         request.session['show_premium_ad'] = True
 
-    # AI yordamchi reklama (har safar login qilganda)
+    # AI yordamçi reklama (har safar login qilganda)
     request.session['show_ai_ad'] = True
 
-    # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgisini tozalaymiz
+    # Har login'da qayta söraladi — ötkazib yuboriş (skip) belgisini tozalaymiz
     request.session.pop('profile_verify_skipped', None)
 
     # Geolokatsiya muvaffaqiyatli login'dan keyin, alohida rozilik bilan olinadi.
     # Brauzerda saqlangan qurilma roziligi 30 kun amal qiladi.
-    # Boshqa zarur login oqimlari (to'lov, profil, so'rovnoma) ustuvor qoladi.
+    # Boşqa zarur login oqimlari (tölov, profil, sörovnoma) ustuvor qoladi.
     request.session['location_capture_pending'] = True
 
-    # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
-    # (hujjat tasdig'i — pasport yoki metrika — shu formaning ichida)
+    # Profil töliq bölmasa complete_profile sahifasiga yönaltiriş
+    # (hujjat tasdiği — pasport yoki metrika — şu formaning içida)
     if user.role == 'student' and not user.is_profile_completed:
         request.session.pop('location_capture_pending', None)
         return redirect('complete_profile')
 
-    # So'rovnoma tekshirish (login qilganda)
+    # Sörovnoma tekşiriş (login qilganda)
     pending_survey = SurveyForm.objects.filter(
         is_active=True,
         show_on_login=True,
@@ -1139,7 +1140,7 @@ def login_location_consent(request):
 
 @login_required
 def login_location_skip(request):
-    """Joylashuvni ulashmasdan login jarayonini davom ettiradi."""
+    """Joylaşuvni ulaşmasdan login jarayonini davom ettiradi."""
     request.session.pop('location_capture_pending', None)
     return redirect('home')
 
@@ -1147,16 +1148,16 @@ def login_location_skip(request):
 @login_required
 @require_POST
 def login_location_record(request):
-    """Brauzer ruxsati bilan olingan koordinatani joriy foydalanuvchiga bog'laydi."""
+    """Brauzer ruxsati bilan olingan koordinatani joriy foydalanuvçiga boğlaydi."""
     if not request.session.get('location_capture_pending', False):
-        return JsonResponse({'ok': False, 'error': 'Joylashuv yozuvi uchun login tasdig‘i topilmadi.'}, status=403)
+        return JsonResponse({'ok': False, 'error': 'Joylaşuv yozuvi uçun login tasdiği topilmadi.'}, status=403)
     if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
-        return JsonResponse({'ok': False, 'error': 'Noto‘g‘ri so‘rov.'}, status=400)
+        return JsonResponse({'ok': False, 'error': 'Notöğri sörov.'}, status=400)
     try:
         latitude = float(request.POST.get('latitude', ''))
         longitude = float(request.POST.get('longitude', ''))
     except (TypeError, ValueError):
-        return JsonResponse({'ok': False, 'error': 'Koordinatalar noto‘g‘ri.'}, status=400)
+        return JsonResponse({'ok': False, 'error': 'Koordinatalar notöğri.'}, status=400)
     try:
         accuracy = float(request.POST.get('accuracy', ''))
         if not math.isfinite(accuracy) or accuracy < 0:
@@ -1164,7 +1165,7 @@ def login_location_record(request):
     except (TypeError, ValueError):
         accuracy = None
     if not (math.isfinite(latitude) and math.isfinite(longitude) and -90 <= latitude <= 90 and -180 <= longitude <= 180):
-        return JsonResponse({'ok': False, 'error': 'Koordinatalar diapazondan tashqarida.'}, status=400)
+        return JsonResponse({'ok': False, 'error': 'Koordinatalar diapazondan taşqarida.'}, status=400)
     from decimal import Decimal
     lat = Decimal(str(round(latitude, 6)))
     lon = Decimal(str(round(longitude, 6)))
@@ -1174,8 +1175,8 @@ def login_location_record(request):
         latitude=lat,
         longitude=lon,
         map_url=map_url,
-        # Tarmoq orqali aniqlangan joylashuv ba'zan juda katta radius qaytaradi.
-        # Bu joylashuv yozuvini rad etmasin; bazada yuqori chegaraga qisqartiramiz.
+        # Tarmoq orqali aniqlangan joylaşuv ba'zan juda katta radius qaytaradi.
+        # Bu joylaşuv yozuvini rad etmasin; bazada yuqori çegaraga qisqartiramiz.
         accuracy_meters=min(int(round(accuracy)), 100000) if accuracy is not None else None,
     )
     request.session.pop('location_capture_pending', None)
@@ -1201,7 +1202,7 @@ def login_location_record(request):
             if not address:
                 address = (payload.get('display_name') or '')[:255]
     except Exception:
-        # Reverse geocoding tashqi xizmatga bog'liq; koordinata va map link saqlanib qoladi.
+        # Reverse geocoding taşqi xizmatga boğliq; koordinata va map link saqlanib qoladi.
         pass
     if address:
         location.address = address[:255]
@@ -1217,7 +1218,7 @@ def login_location_record(request):
 
 def logout_view(request):
     if request.user.is_authenticated:
-        # Sessiyani deaktivatsiya qilish
+        # Sessiyani deaktivatsiya qiliş
         current_session_key = request.session.session_key
         if current_session_key:
             UserSession.objects.filter(
@@ -1227,21 +1228,21 @@ def logout_view(request):
         ActivityLog.objects.create(
             user=request.user,
             action_type='logout',
-            description="Tizimdan chiqdi",
+            description="Tizimdan çiqdi",
             ip_address=get_client_ip(request)
         )
 
     logout(request)
-    messages.success(request, "Tizimdan muvaffaqiyatli chiqdingiz 👋")
+    messages.success(request, "Tizimdan muvaffaqiyatli çiqdingiz 👋")
     return redirect('login')
 
 
 # ============================================================
-# ROLGA XOS BOSH SAHIFALAR (home_view ichidan chaqiriladi)
+# ROLGA XOS BOŞ SAHIFALAR (home_view içidan çaqiriladi)
 # ============================================================
 
 def _safe_photo_url(obj):
-    """Rasm URL'ini xavfsiz olish (fayl o'chirilgan bo'lsa ham 500 bermaydi)."""
+    """Rasm URL'ini xavfsiz oliş (fayl öçirilgan bölsa ham 500 bermaydi)."""
     try:
         return obj.photo.url if obj.photo else ''
     except Exception:
@@ -1249,7 +1250,7 @@ def _safe_photo_url(obj):
 
 
 def _build_quick_actions(items):
-    """(label, url_name, icon) ro'yxatidan xavfsiz quick-action ro'yxati."""
+    """(label, url_name, icon) röyxatidan xavfsiz quick-action röyxati."""
     out = []
     for label, url_name, icon in items:
         try:
@@ -1259,11 +1260,11 @@ def _build_quick_actions(items):
     return out
 
 
-_WEEKDAY_UZ = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
+_WEEKDAY_UZ = ['Du', 'Se', 'Ç', 'Pa', 'Ju', 'Ş', 'Ya']
 
 
 def _week_bars(date_counts, today):
-    """Oxirgi 7 kun uchun mini bar-chart ma'lumoti: {label, count, pct}."""
+    """Oxirgi 7 kun uçun mini bar-chart ma'lumoti: {label, count, pct}."""
     bars = []
     try:
         max_c = max(date_counts.values(), default=0) or 1
@@ -1281,7 +1282,7 @@ def _week_bars(date_counts, today):
 
 
 def _trend(current, previous):
-    """Oldingi davr bilan solishtirish: {dir, pct}. previous=0 bo'lsa yo'nalish beriladi."""
+    """Oldingi davr bilan soliştiriş: {dir, pct}. previous=0 bölsa yönaliş beriladi."""
     try:
         cur, prev = int(current or 0), int(previous or 0)
     except (TypeError, ValueError):
@@ -1295,7 +1296,7 @@ def _trend(current, previous):
 
 
 def _online_now(minutes=5):
-    """Oxirgi `minutes` daqiqada faol bo'lgan noyob foydalanuvchilar soni."""
+    """Oxirgi `minutes` daqiqada faol bölgan noyob foydalanuvçilar soni."""
     try:
         return UserSession.objects.filter(
             is_active=True,
@@ -1306,7 +1307,7 @@ def _online_now(minutes=5):
 
 
 def _home_teacher(request):
-    """O'qituvchi uchun bosh sahifa: kurslari, tekshirilmagan vazifalar, faollik."""
+    """Öqituvçi uçun boş sahifa: kurslari, tekşirilmagan vazifalar, faollik."""
     user = request.user
     professions = user.teaching_professions.annotate(
         lesson_total=Count('lessons', distinct=True),
@@ -1355,14 +1356,14 @@ def _home_teacher(request):
         ).order_by('-submitted_at')[:6]
     )
 
-    # So'nggi test natijalari
+    # Sönggi test natijalari
     recent_tests = list(
         TestResult.objects.filter(
             test__lesson__profession__teachers=user
         ).select_related('student', 'test', 'test__lesson').order_by('-completed_at')[:6]
     )
 
-    # Oxirgi 7 kunda topshirilgan vazifalar (mini-chart)
+    # Oxirgi 7 kunda topşirilgan vazifalar (mini-chart)
     try:
         _counts = dict(
             HomeworkSubmission.objects.filter(
@@ -1375,14 +1376,14 @@ def _home_teacher(request):
     week_bars = _week_bars(_counts, today)
     week_total = sum(_counts.values())
 
-    # Eng faol o'quvchilar (coin bo'yicha, faqat o'z kurslaridan)
+    # Eng faol öquvçilar (coin böyiça, faqat öz kurslaridan)
     top_students = list(
         CustomUser.objects.filter(
             role='student', enrollments__profession__teachers=user
         ).distinct().order_by('-coins')[:5]
     )
 
-    # ── Bugungi ko'rsatkichlar ──
+    # ── Bugungi körsatkiçlar ──
     subs_today = HomeworkSubmission.objects.filter(
         homework__lesson__profession__teachers=user, submitted_at__date=today
     ).count()
@@ -1394,12 +1395,12 @@ def _home_teacher(request):
         students_active_today = 0
 
     today_stats = [
-        {'label': "Bugun topshirilgan vazifa", 'value': subs_today, 'icon': 'journal-arrow-up'},
+        {'label': "Bugun topşirilgan vazifa", 'value': subs_today, 'icon': 'journal-arrow-up'},
         {'label': "Bugungi test natijasi", 'value': tests_today, 'icon': 'patch-check'},
-        {'label': "Bugun faol o'quvchilar", 'value': students_active_today, 'icon': 'person-check'},
+        {'label': "Bugun faol öquvçilar", 'value': students_active_today, 'icon': 'person-check'},
     ]
 
-    # ── Sifat ko'rsatkichlari (oxirgi 30 kun) ──
+    # ── Sifat körsatkiçlari (oxirgi 30 kun) ──
     since_30 = timezone.now() - timedelta(days=30)
     score_agg = TestResult.objects.filter(
         test__lesson__profession__teachers=user, completed_at__gte=since_30
@@ -1415,7 +1416,7 @@ def _home_teacher(request):
     ).count()
     graded_pct = round((hw_total - pending_homeworks) / hw_total * 100) if hw_total else 100
 
-    # ── Oldingi hafta bilan solishtirish ──
+    # ── Oldingi hafta bilan soliştiriş ──
     try:
         prev_week_subs = HomeworkSubmission.objects.filter(
             homework__lesson__profession__teachers=user,
@@ -1426,7 +1427,7 @@ def _home_teacher(request):
         prev_week_subs = 0
     week_trend = _trend(week_total, prev_week_subs)
 
-    # ── E'tibor talab qiladigan o'quvchilar (7+ kun faolsiz) ──
+    # ── E'tibor talab qiladigan öquvçilar (7+ kun faolsiz) ──
     risk_cutoff = timezone.now() - timedelta(days=7)
     risk_students = []
     try:
@@ -1442,21 +1443,21 @@ def _home_teacher(request):
 
     quick_actions = _build_quick_actions([
         ("Kurslarim", 'teacher:courses', 'collection-play'),
-        ("O'quvchilarim", 'teacher:my_students', 'people'),
+        ("Öquvçilarim", 'teacher:my_students', 'people'),
         ("Vazifalar", 'teacher:homeworks', 'journal-check'),
         ("Test natijalari", 'teacher:test_results', 'patch-check'),
         ("Speaking", 'teacher:speaking_tasks', 'mic'),
-        ("Guruh chatlari", 'teacher:group_chats', 'chat-dots'),
+        ("Guruh çatlari", 'teacher:group_chats', 'chat-dots'),
         ("Daromadlarim", 'teacher:earnings', 'wallet2'),
         ("Sertifikatlar", 'teacher:certificates', 'award'),
         ("Statistika", 'teacher:statistics', 'graph-up'),
-        ("AI tekshiruvchi", 'teacher:ai_checker', 'robot'),
+        ("AI tekşiruvçi", 'teacher:ai_checker', 'robot'),
     ])
 
     stat_cards = [
         {'label': "Kurslarim", 'value': len(my_courses), 'icon': 'collection-play', 'color': 'accent'},
-        {'label': "O'quvchilarim", 'value': total_students, 'icon': 'people', 'color': 'accent2'},
-        {'label': "Tekshirilmagan vazifa", 'value': pending_homeworks, 'icon': 'journal-x', 'color': 'warning'},
+        {'label': "Öquvçilarim", 'value': total_students, 'icon': 'people', 'color': 'accent2'},
+        {'label': "Tekşirilmagan vazifa", 'value': pending_homeworks, 'icon': 'journal-x', 'color': 'warning'},
         {'label': "Bugungi test natijalari", 'value': tests_today, 'icon': 'patch-check', 'color': 'success'},
     ]
 
@@ -1483,7 +1484,7 @@ def _home_teacher(request):
 
 
 def _home_admin(request):
-    """Admin uchun bosh sahifa: umumiy statistika, kutilayotgan ishlar, faollik."""
+    """Admin uçun boş sahifa: umumiy statistika, kutilayotgan işlar, faollik."""
     stats = get_performance_cache().get('home_admin_stats')
     if stats is None:
         stats = {
@@ -1500,15 +1501,15 @@ def _home_admin(request):
     new_users_week = CustomUser.objects.filter(date_joined__gte=week_ago).count()
 
     pending_items = [
-        {'label': "Tekshirilmagan uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
+        {'label': "Tekşirilmagan uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
          'url_name': 'admin_dashboard', 'icon': 'journal-x'},
-        {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
+        {'label': "Yordam sörovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
          'url_name': 'admin_help_requests', 'icon': 'life-preserver'},
         {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
          'url_name': 'admin_applications', 'icon': 'inbox'},
-        {'label': "Kursga yozilish so'rovlari", 'count': CourseEnrollmentRequest.objects.filter(status='pending').count(),
+        {'label': "Kursga yoziliş sörovlari", 'count': CourseEnrollmentRequest.objects.filter(status='pending').count(),
          'url_name': 'admin_enrollment_requests', 'icon': 'person-plus'},
-        {'label': "Premium so'rovlari", 'count': PremiumRequest.objects.filter(status='pending').count(),
+        {'label': "Premium sörovlari", 'count': PremiumRequest.objects.filter(status='pending').count(),
          'url_name': 'admin_premium_management', 'icon': 'gem'},
     ]
     pending = []
@@ -1532,7 +1533,7 @@ def _home_admin(request):
         action_type='login', created_at__date=today
     ).count()
 
-    # Oxirgi 7 kunda ro'yxatdan o'tishlar (mini-chart)
+    # Oxirgi 7 kunda röyxatdan ötişlar (mini-chart)
     try:
         _counts = dict(
             CustomUser.objects.filter(
@@ -1543,7 +1544,7 @@ def _home_admin(request):
         _counts = {}
     week_bars = _week_bars(_counts, today)
 
-    # Eng ommabop kurslar (o'quvchilar soni bo'yicha)
+    # Eng ommabop kurslar (öquvçilar soni böyiça)
     top_courses = list(
         Profession.objects.annotate(
             student_total=Count(
@@ -1554,18 +1555,18 @@ def _home_admin(request):
         ).order_by('-student_total')[:5]
     )
 
-    # So'nggi yangi arizalar
+    # Sönggi yangi arizalar
     recent_applications = list(
         CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
     )
 
-    # ── Oldingi hafta bilan solishtirish ──
+    # ── Oldingi hafta bilan soliştiriş ──
     prev_week_users = CustomUser.objects.filter(
         date_joined__gte=timezone.now() - timedelta(days=14), date_joined__lt=week_ago
     ).count()
     users_trend = _trend(new_users_week, prev_week_users)
 
-    # ── Bugungi harakat ko'rsatkichlari ──
+    # ── Bugungi harakat körsatkiçlari ──
     def _count_today(qs_filter):
         try:
             return qs_filter()
@@ -1577,18 +1578,18 @@ def _home_admin(request):
     ).aggregate(s=Sum('amount'))['s'] or 0)
 
     today_stats = [
-        {'label': "Yangi ro'yxatlar", 'value': CustomUser.objects.filter(date_joined__date=today).count(),
+        {'label': "Yangi röyxatlar", 'value': CustomUser.objects.filter(date_joined__date=today).count(),
          'icon': 'person-plus'},
-        {'label': "Ko'rilgan videolar", 'value': _count_today(
+        {'label': "Körilgan videolar", 'value': _count_today(
             lambda: VideoProgress.objects.filter(watched_at__date=today).count()), 'icon': 'play-btn'},
-        {'label': "Topshirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(
+        {'label': "Topşirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(
             submitted_at__date=today).count(), 'icon': 'journal-arrow-up'},
         {'label': "Test natijalari", 'value': TestResult.objects.filter(
             completed_at__date=today).count(), 'icon': 'patch-check'},
         {'label': "Berilgan coinlar", 'value': coins_today, 'icon': 'coin'},
     ]
 
-    # ── Eng ko'p o'quvchisi bor o'qituvchilar ──
+    # ── Eng köp öquvçisi bor öqituvçilar ──
     top_teachers = []
     try:
         top_teachers = list(
@@ -1615,32 +1616,32 @@ def _home_admin(request):
     health = [
         {'label': "Darssiz kurslar", 'value': empty_courses, 'icon': 'folder-x',
          'state': 'ok' if not empty_courses else 'warn'},
-        {'label': "Bugungi muvaffaqiyatsiz kirishlar", 'value': failed_logins, 'icon': 'shield-exclamation',
+        {'label': "Bugungi muvaffaqiyatsiz kirişlar", 'value': failed_logins, 'icon': 'shield-exclamation',
          'state': 'ok' if failed_logins < 10 else 'warn'},
-        {'label': "Bloklangan foydalanuvchilar", 'value': stats['blocked'], 'icon': 'slash-circle',
+        {'label': "Bloklangan foydalanuvçilar", 'value': stats['blocked'], 'icon': 'slash-circle',
          'state': 'ok' if not stats['blocked'] else 'warn'},
         {'label': "Faol sessiyalar", 'value': active_sessions, 'icon': 'hdd-network', 'state': 'ok'},
     ]
 
     quick_actions = _build_quick_actions([
-        ("Foydalanuvchilar", 'admin_users', 'people'),
-        ("O'qituvchi qo'shish", 'admin_add_teacher', 'person-plus'),
-        ("Kurs qo'shish", 'admin_profession_add', 'folder-plus'),
+        ("Foydalanuvçilar", 'admin_users', 'people'),
+        ("Öqituvçi qöşiş", 'admin_add_teacher', 'person-plus'),
+        ("Kurs qöşiş", 'admin_profession_add', 'folder-plus'),
         ("Kurslar", 'admin_professions', 'collection-play'),
-        ("Coin boshqaruvi", 'admin_manage_coins', 'coin'),
+        ("Coin boşqaruvi", 'admin_manage_coins', 'coin'),
         ("Xabarlar", 'admin_messages', 'envelope'),
-        ("So'rovnomalar", 'admin_surveys', 'clipboard-data'),
+        ("Sörovnomalar", 'admin_surveys', 'clipboard-data'),
         ("Kutubxona", 'admin_books', 'book'),
         ("Xavfsizlik", 'admin_security_events', 'shield-lock'),
         ("Davomat", 'admin_teacher_attendance', 'calendar-check'),
     ])
 
     stat_cards = [
-        {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
-        {'label': "O'qituvchilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
+        {'label': "Öquvçilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
+        {'label': "Öqituvçilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
         {'label': "Kurslar", 'value': stats['courses'], 'icon': 'collection-play', 'color': 'success'},
         {'label': "Darslar", 'value': stats['lessons'], 'icon': 'journal-bookmark', 'color': 'accent'},
-        {'label': "Yozilishlar", 'value': stats['enrollments'], 'icon': 'person-check', 'color': 'accent2'},
+        {'label': "Yozilişlar", 'value': stats['enrollments'], 'icon': 'person-check', 'color': 'accent2'},
         {'label': "Bloklanganlar", 'value': stats['blocked'], 'icon': 'slash-circle', 'color': 'danger'},
     ]
 
@@ -1665,15 +1666,15 @@ def _home_admin(request):
 
 
 def _home_assistant(request):
-    """Yordamchi admin uchun bosh sahifa: kutilayotgan ishlar va tezkor havolalar."""
+    """Yordamçi admin uçun boş sahifa: kutilayotgan işlar va tezkor havolalar."""
     pending_items = [
         {'label': "Uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
          'url_name': 'yordamchi_homework', 'icon': 'journal-x'},
-        {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
+        {'label': "Yordam sörovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
          'url_name': 'yordamchi_help', 'icon': 'life-preserver'},
         {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
          'url_name': 'yordamchi_applications', 'icon': 'inbox'},
-        {'label': "Boshqa so'rovlar", 'count': (
+        {'label': "Boşqa sörovlar", 'count': (
             PasswordResetRequest.objects.filter(status='pending').count()
             + CourseEnrollmentRequest.objects.filter(status='pending').count()
             + CourseUnenrollRequest.objects.filter(status='pending').count()
@@ -1700,25 +1701,25 @@ def _home_assistant(request):
         get_performance_cache().set('home_assistant_stats', stats, 120)
 
     stat_cards = [
-        {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
-        {'label': "O'qituvchilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
+        {'label': "Öquvçilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
+        {'label': "Öqituvçilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
         {'label': "Ota-onalar", 'value': stats['parents'], 'icon': 'people', 'color': 'success'},
         {'label': "Bloklanganlar", 'value': stats['blocked'], 'icon': 'slash-circle', 'color': 'danger'},
     ]
 
     today = timezone.localdate()
 
-    # Bugungi ko'rsatkichlar
+    # Bugungi körsatkiçlar
     today_stats = [
         {'label': "Bugungi arizalar", 'value': CourseApplication.objects.filter(created_at__date=today).count(),
          'icon': 'inbox'},
-        {'label': "Bugun topshirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(submitted_at__date=today).count(),
+        {'label': "Bugun topşirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(submitted_at__date=today).count(),
          'icon': 'journal-arrow-up'},
-        {'label': "Bugungi yordam so'rovlari", 'value': HelpRequest.objects.filter(created_at__date=today).count(),
+        {'label': "Bugungi yordam sörovlari", 'value': HelpRequest.objects.filter(created_at__date=today).count(),
          'icon': 'life-preserver'},
     ]
 
-    # Kechikkan kitob ijaralari
+    # Keçikkan kitob ijaralari
     overdue_rentals = 0
     library = {'total': 0, 'rented': 0, 'available': 0}
     try:
@@ -1734,12 +1735,12 @@ def _home_assistant(request):
     except Exception:
         overdue_rentals = 0
 
-    # So'nggi yangi arizalar
+    # Sönggi yangi arizalar
     recent_applications = list(
         CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
     )
 
-    # So'nggi yordam so'rovlari
+    # Sönggi yordam sörovlari
     recent_help = list(
         HelpRequest.objects.select_related('user').filter(
             status='pending'
@@ -1758,7 +1759,7 @@ def _home_assistant(request):
     week_bars = _week_bars(_counts, today)
     week_total = sum(_counts.values())
 
-    # Mening so'nggi harakatlarim (audit)
+    # Mening sönggi harakatlarim (audit)
     my_actions = []
     my_week_total = 0
     try:
@@ -1773,17 +1774,17 @@ def _home_assistant(request):
         my_actions = []
 
     quick_actions = _build_quick_actions([
-        ("O'quvchilar", 'yordamchi_students', 'mortarboard'),
-        ("O'qituvchilar", 'yordamchi_teachers', 'person-video3'),
+        ("Öquvçilar", 'yordamchi_students', 'mortarboard'),
+        ("Öqituvçilar", 'yordamchi_teachers', 'person-video3'),
         ("Ota-onalar", 'yordamchi_parents', 'people'),
         ("Uy vazifalar", 'yordamchi_homework', 'journal-check'),
         ("Testlar", 'yordamchi_tests', 'patch-question'),
         ("Sertifikatlar", 'yordamchi_certificates', 'patch-check'),
         ("Kutubxona", 'yordamchi_books', 'book'),
         ("Ijaralar", 'yordamchi_rentals', 'arrow-left-right'),
-        ("Kechikkan ijaralar", 'yordamchi_rentals_overdue', 'exclamation-triangle'),
+        ("Keçikkan ijaralar", 'yordamchi_rentals_overdue', 'exclamation-triangle'),
         ("Kitob arizalari", 'yordamchi_book_requests', 'journal-plus'),
-        ("Yordam so'rovlari", 'yordamchi_help', 'life-preserver'),
+        ("Yordam sörovlari", 'yordamchi_help', 'life-preserver'),
         ("Harakatlar tarixi", 'yordamchi_audit_log', 'clock-history'),
     ])
 
@@ -1811,21 +1812,21 @@ _DQ_OK = '[correct]'
 _DQ_FAIL = '[wrong]'
 
 _DAILY_QUOTES = (
-    ("Bugun qilgan kichik qadamingiz — ertangi katta natijangiz.", "IT Creative"),
-    ("Kod yozishni o'rganish — fikrlashni o'rganishdir.", "Steve Jobs"),
-    ("Mukammallikni kutib o'tirmang, boshlang va yo'lda o'rganing.", "Kent Beck"),
-    ("Har kuni 1% yaxshilanish — bir yilda 37 barobar o'sish.", "James Clear"),
-    ("Eng yaxshi dasturchi — eng ko'p o'qigan dasturchi.", "Robert C. Martin"),
-    ("Xatolar — muvaffaqiyatga olib boruvchi eng qisqa yo'l.", "Thomas Edison"),
-    ("Bilim — yagona boylik, uni sarflaganingiz sari ko'payadi.", "Xalq maqoli"),
-    ("Murakkab masalani kichik bo'laklarga bo'l — u oddiy bo'lib qoladi.", "Rene Descartes"),
-    ("Bugun o'rganmagan narsangizni ertaga kimdir sizdan yaxshi biladi.", "IT Creative"),
-    ("Izchillik iste'doddan kuchli.", "Xalq maqoli"),
-    ("Yaxshi kod — izohga muhtoj bo'lmagan kod.", "Martin Fowler"),
-    ("O'rganish to'xtaganda o'sish ham to'xtaydi.", "Benjamin Franklin"),
-    ("Sabr — bu kutish emas, kutayotganda ishlashdir.", "Xalq maqoli"),
-    ("Kichik loyihalar katta dasturchilarni tarbiyalaydi.", "Linus Torvalds"),
-    ("Bugungi mashqingiz — ertangi ishonchingiz.", "IT Creative"),
+    ("Bugun qilgan kiçik qadamingiz — ertangi katta natijangiz.", "IT Creative"),
+    ("Kod yozişni örganiş — fikrlaşni örganişdir.", "Steve Jobs"),
+    ("Mukammallikni kutib ötirmang, boşlang va yölda örganing.", "Kent Beck"),
+    ("Har kuni 1% yaxşilaniş — bir yilda 37 barobar ösiş.", "James Clear"),
+    ("Eng yaxşi dasturçi — eng köp öqigan dasturçi.", "Robert C. Martin"),
+    ("Xatolar — muvaffaqiyatga olib boruvçi eng qisqa yöl.", "Thomas Edison"),
+    ("Bilim — yagona boylik, uni sarflaganingiz sari köpayadi.", "Xalq maqoli"),
+    ("Murakkab masalani kiçik bölaklarga böl — u oddiy bölib qoladi.", "Rene Descartes"),
+    ("Bugun örganmagan narsangizni ertaga kimdir sizdan yaxşi biladi.", "IT Creative"),
+    ("Izçillik iste'doddan kuçli.", "Xalq maqoli"),
+    ("Yaxşi kod — izohga muhtoj bölmagan kod.", "Martin Fowler"),
+    ("Örganiş töxtaganda ösiş ham töxtaydi.", "Benjamin Franklin"),
+    ("Sabr — bu kutiş emas, kutayotganda işlaşdir.", "Xalq maqoli"),
+    ("Kiçik loyihalar katta dasturçilarni tarbiyalaydi.", "Linus Torvalds"),
+    ("Bugungi maşqingiz — ertangi işonçingiz.", "IT Creative"),
 )
 
 
@@ -1835,7 +1836,7 @@ def _daily_quote(today):
 
 
 def _next_study_lesson(user):
-    """O'quvchining keyingi jadval darsi — countdown uchun aniq vaqt bilan."""
+    """Öquvçining keyingi jadval darsi — countdown uçun aniq vaqt bilan."""
     try:
         groups = list(StudyGroup.objects.filter(
             students=user, is_active=True
@@ -1888,7 +1889,7 @@ def _next_study_lesson(user):
 
 
 def _daily_question_for(user, today):
-    """Kunning savoli — mavjud test savollaridan, foydalanuvchi+kun bo'yicha barqaror tanlov."""
+    """Kunning savoli — mavjud test savollaridan, foydalanuvçi+kun böyiça barqaror tanlov."""
     seed = (user.pk or 1) * 7919 + today.toordinal()
     try:
         prof_ids = list(user.enrollments.values_list('profession_id', flat=True))
@@ -1942,7 +1943,7 @@ def _daily_question_for(user, today):
 
 
 def _daily_question_log(user, today):
-    """Bugun kun savoliga javob berilganini bildiruvchi yozuv (yoki None)."""
+    """Bugun kun savoliga javob berilganini bildiruvçi yozuv (yoki None)."""
     try:
         return ActivityLog.objects.filter(
             user=user,
@@ -1957,14 +1958,14 @@ def _daily_question_log(user, today):
 @login_required
 @require_POST
 def onboarding_done(request):
-    """O'quvchi qo'llanmasi tugatildi/o'tkazib yuborildi — qayta avtomatik chiqmaydi."""
+    """Öquvçi qöllanmasi tugatildi/ötkazib yuborildi — qayta avtomatik çiqmaydi."""
     CustomUser.objects.filter(pk=request.user.pk).update(onboarding_done=True)
     return JsonResponse({'ok': True})
 
 
 @login_required
 def daily_question_answer(request):
-    """Kun savoliga javobni qabul qiladi: kunda faqat bir marta, to'g'ri javobga coin."""
+    """Kun savoliga javobni qabul qiladi: kunda faqat bir marta, töğri javobga coin."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'method'}, status=405)
 
@@ -2015,7 +2016,7 @@ def daily_question_answer(request):
 
 
 def home_view(request):
-    # Landing sahifa — login qilmagan foydalanuvchilar uchun
+    # Landing sahifa — login qilmagan foydalanuvçilar uçun
     if not request.user.is_authenticated:
         public_data = landing_data()
         from .course_pricing import attach_prices
@@ -2044,7 +2045,7 @@ def home_view(request):
                     f"👤 {first_name} {last_name}\n"
                     f"📱 {phone}\n"
                     f"📚 Kurs: {course_interest or 'Belgilanmagan'}\n\n"
-                    f"📞 Tez orada bog'laning!"
+                    f"📞 Tez orada boğlaning!"
                 )
                 success = True
 
@@ -2055,7 +2056,7 @@ def home_view(request):
             'success': success,
         })
 
-    # --- Rolga qarab bosh sahifa: har bir rol o'z home ko'rinishini ko'radi ---
+    # --- Rolga qarab boş sahifa: har bir rol öz home körinişini köradi ---
     #   admin           -> accounts/home_admin.html
     #   assistant_admin -> accounts/home_assistant.html
     #   teacher         -> accounts/home_teacher.html
@@ -2067,7 +2068,7 @@ def home_view(request):
     if request.user.role == 'teacher':
         return _home_teacher(request)
 
-    # --- Asosiy ma'lumotlar (login qilgan o'quvchilar uchun) ---
+    # --- Asosiy ma'lumotlar (login qilgan öquvçilar uçun) ---
     professions = Profession.objects.prefetch_related('teachers').annotate(
         lesson_count=Count('lessons')
     ).all()[:6]
@@ -2085,7 +2086,7 @@ def home_view(request):
         total_lessons = Lesson.objects.count()
         get_performance_cache().set('total_lessons_count', total_lessons, 300)
 
-    # --- O'quvchi uchun kurslari ---
+    # --- Öquvçi uçun kurslari ---
     my_enrollments = []
     dashboard_courses = []
     quick_courses = []
@@ -2101,7 +2102,7 @@ def home_view(request):
         if my_enrollments:
             prof_ids = [e.profession_id for e in my_enrollments]
             
-            # Bulk: barcha kurslar uchun total countlar
+            # Bulk: barça kurslar uçun total countlar
             video_counts = dict(VideoLesson.objects.filter(
                 lesson__profession_id__in=prof_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
@@ -2112,7 +2113,7 @@ def home_view(request):
                 lesson__profession_id__in=prof_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
             
-            # Bulk: foydalanuvchi progressi
+            # Bulk: foydalanuvçi progressi
             watched_counts = dict(VideoProgress.objects.filter(
                 user=request.user, watched=True,
                 video__lesson__profession_id__in=prof_ids
@@ -2157,7 +2158,7 @@ def home_view(request):
                     'lesson_count': video_counts.get(pid, 0),
                 })
 
-    # Mondly-uslub dashboard uchun progress guruhlari
+    # Mondly-uslub dashboard uçun progress guruhlari
     db_completed = sum(1 for c in dashboard_courses if c['progress'] >= 100)
     db_inprogress = sum(1 for c in dashboard_courses if 0 < c['progress'] < 100)
     db_upcoming = sum(1 for c in dashboard_courses if c['progress'] == 0)
@@ -2168,19 +2169,19 @@ def home_view(request):
 
     # ⚠️ MUHIM:
     # unread_messages_count BU YERDA HISOBLANMAYDI!
-    # Navbar uchun qiymat context processor orqali keladi.
+    # Navbar uçun qiymat context processor orqali keladi.
 
-    # Telegram ulash tavsiyasi
+    # Telegram ulaş tavsiyasi
     show_telegram_prompt = not request.user.telegram_id
 
-    # Foydalanuvchi reytingdagi o'rni (coinlar bo'yicha)
+    # Foydalanuvçi reytingdagi örni (coinlar böyiça)
     user_rank = None
     if request.user.is_student:
         user_rank = CustomUser.objects.filter(
             role='student', coins__gt=request.user.coins
         ).count() + 1
 
-    # Top 5 o'quvchi (coinlar bo'yicha)
+    # Top 5 öquvçi (coinlar böyiça)
     top_students_qs = CustomUser.objects.filter(
         role='student'
     ).order_by('-coins')[:5]
@@ -2199,8 +2200,8 @@ def home_view(request):
         })
 
     # =========================================================================
-    # PREMIUM DASHBOARD — yangi kontekst kalitlari (faqat o'quvchi/admin uchun)
-    # Barchasi MAVJUD modellardan, himoyalangan (defensive) tarzda hisoblanadi.
+    # PREMIUM DASHBOARD — yangi kontekst kalitlari (faqat öquvchi/admin uçun)
+    # Barçasi MAVJUD modellardan, himoyalangan (defensive) tarzda hisoblanadi.
     # =========================================================================
     user = request.user
     today = timezone.localdate()
@@ -2214,11 +2215,11 @@ def home_view(request):
             chosen = max(in_progress, key=lambda c: c.get('progress', 0))
         elif dashboard_courses:
             # most recent enrollment -> my_enrollments[0] (enrolled_at desc emas,
-            # lekin dashboard_courses my_enrollments tartibida; birinchisini olamiz)
+            # lekin dashboard_courses my_enrollments tartibida; birinçisini olamiz)
             chosen = dashboard_courses[0]
         if chosen:
             prog = chosen.get('progress', 0) or 0
-            # total_lessons -> shu kursdagi darslar soni (himoyalangan)
+            # total_lessons -> şu kursdagi darslar soni (himoyalangan)
             try:
                 total_l = Lesson.objects.filter(profession_id=chosen['id']).count()
             except Exception:
@@ -2253,7 +2254,7 @@ def home_view(request):
         hw_today = HomeworkSubmission.objects.filter(
             student=user, submitted_at__date=today
         ).count()
-        # coinlar bo'yicha bugungi faollik — agar derivable bo'lsa
+        # coinlar böyiça bugungi faollik — agar derivable bölsa
         coins_today = None
         try:
             from coin.models import CoinTransaction as _CoinTx
@@ -2267,13 +2268,13 @@ def home_view(request):
             coins_today = min(20, (videos_today + quizzes_today + hw_today) * 10)
 
         _missions_raw = [
-            {'key': 'watch_video', 'title': "Video dars ko'rish", 'icon': 'play-circle',
+            {'key': 'watch_video', 'title': "Video dars köriş", 'icon': 'play-circle',
              'target': 1, 'current': videos_today, 'reward_xp': 10},
-            {'key': 'pass_quiz', 'title': "Testdan o'tish", 'icon': 'patch-check',
+            {'key': 'pass_quiz', 'title': "Testdan ötiş", 'icon': 'patch-check',
              'target': 1, 'current': quizzes_today, 'reward_xp': 15},
-            {'key': 'submit_homework', 'title': "Uy vazifa topshirish", 'icon': 'journal-check',
+            {'key': 'submit_homework', 'title': "Uy vazifa topşiriş", 'icon': 'journal-check',
              'target': 1, 'current': hw_today, 'reward_xp': 20},
-            {'key': 'earn_coins', 'title': "Tanga ishlash", 'icon': 'coin',
+            {'key': 'earn_coins', 'title': "Tanga işlaş", 'icon': 'coin',
              'target': 20, 'current': coins_today, 'reward_xp': 25},
         ]
         for m in _missions_raw:
@@ -2347,7 +2348,7 @@ def home_view(request):
         'certificates_earned': certificates_earned,
     }
 
-    # ---- 4) heatmap_days (oxirgi 90 kun, har manba uchun 1 ta query) -------
+    # ---- 4) heatmap_days (oxirgi 90 kun, har manba uçun 1 ta query) -------
     heatmap_days = []
     heatmap_max = 0
     heatmap_total = 0
@@ -2420,25 +2421,25 @@ def home_view(request):
         coins_val = user.coins or 0
 
         _ach_rules = [
-            ('first_course', 'Birinchi kurs', 'mortarboard',
-             'Birinchi kursga yozildingiz', enroll_count > 0),
+            ('first_course', 'Birinçi kurs', 'mortarboard',
+             'Birinçi kursga yozildingiz', enroll_count > 0),
             ('streak_7', '7 kunlik streak', 'fire',
              '7 kun ketma-ket faollik', (user.streak_days or 0) >= 7),
             ('streak_30', '30 kunlik streak', 'lightning-charge',
              '30 kun ketma-ket faollik', (user.streak_days or 0) >= 30),
             ('quiz_master', 'Test ustasi', 'patch-check',
-             '5 ta testdan muvaffaqiyatli o\'tdingiz', passed_tests_count >= 5),
+             '5 ta testdan muvaffaqiyatli ötdingiz', passed_tests_count >= 5),
             ('centurion', 'Sentaurion', 'coin',
-             '100 ta tanga to\'pladingiz', coins_val >= 100),
+             '100 ta tanga töpladingiz', coins_val >= 100),
             ('scholar', 'Bilimdon', 'book',
              '20 ta dars tugatdingiz', lessons_completed >= 20),
             ('certified', 'Sertifikatli', 'award',
              'Sertifikat oldingiz', certificates_earned >= 1),
             ('premium', 'Premium', 'gem',
-             'Premium foydalanuvchi', bool(getattr(user, 'is_premium', False))),
+             'Premium foydalanuvçi', bool(getattr(user, 'is_premium', False))),
             ('top_10', 'Top 10', 'trophy',
              'Reytingda top 10 talikdasiz', bool(user_rank) and user_rank <= 10),
-            ('explorer', 'Kashfiyotchi', 'compass',
+            ('explorer', 'Kaşfiyotçi', 'compass',
              '3 va undan ortiq kursga yozildingiz', enroll_count >= 3),
         ]
         for key, title, icon, desc, earned in _ach_rules:
@@ -2469,7 +2470,7 @@ def home_view(request):
         if rec_prof:
             ai_recommendations['course'] = {
                 'title': rec_prof.name,
-                'reason': 'Sizning qiziqishlaringizga mos yangi kurs',
+                'reason': 'Sizning qiziqişlaringizga mos yangi kurs',
                 'url': reverse('profession_detail', args=[rec_prof.id]),
                 'icon': 'mortarboard',
             }
@@ -2496,14 +2497,14 @@ def home_view(request):
     try:
         ai_recommendations['practice'] = {
             'title': 'Bilimni mustahkamlang',
-            'reason': "O'yinlar orqali ko'nikmangizni oshiring",
+            'reason': "Öyinlar orqali könikmangizni oşiring",
             'url': reverse('games:games_list'),
             'icon': 'controller',
         }
     except Exception:
         ai_recommendations['practice'] = None
 
-    # ---- 7) recommended_courses (6 tagacha) --------------------------------
+    # ---- 7) recommended_courses (6 tagaça) --------------------------------
     recommended_courses = []
     try:
         rec_qs = Profession.objects.filter(
@@ -2532,7 +2533,7 @@ def home_view(request):
                 'teacher': t_name,
                 'is_paid': getattr(p, 'is_paid', False),
                 'lesson_count': getattr(p, 'lesson_count', 0) or 0,
-                'reason': 'Sizning qiziqishlaringizga mos',
+                'reason': 'Sizning qiziqişlaringizga mos',
                 'url': rc_url,
             })
     except Exception:
@@ -2612,8 +2613,8 @@ def home_view(request):
     quick_access = []
     _qa_items = [
         ('Kurslar', 'professions', None, 'mortarboard', '#6366f1'),
-        ('AI Chat', 'ai_yordamchi:chat_home', None, 'robot', '#8b5cf6'),
-        ("O'yinlar", 'games:games_list', None, 'controller', '#ec4899'),
+        ('AI Çat', 'ai_yordamchi:chat_home', None, 'robot', '#8b5cf6'),
+        ("Öyinlar", 'games:games_list', None, 'controller', '#ec4899'),
         ('Market', 'coin:market_list', None, 'bag', '#f59e0b'),
         ('Blog', 'blog:post_list', None, 'newspaper', '#10b981'),
         ('Sertifikatlar', 'my_certificates', None, 'award', '#06b6d4'),
@@ -2632,21 +2633,21 @@ def home_view(request):
             'color': color,
         })
 
-    # --- Template uchun tayyor StatsCard ro'yxati (learning_stats dan) ---
+    # --- Template uçun tayyor StatsCard röyxati (learning_stats dan) ---
     _ls = learning_stats if isinstance(learning_stats, dict) else {}
     stat_cards = [
         {'label': "Tugatilgan kurslar", 'value': _ls.get('courses_completed', 0), 'icon': 'mortarboard-fill', 'color': 'accent'},
         {'label': "Tugatilgan darslar", 'value': _ls.get('lessons_completed', 0), 'icon': 'collection-play-fill', 'color': 'accent2'},
-        {'label': "Jami o'qish (soat)", 'value': _ls.get('study_hours', 0), 'icon': 'clock-history', 'color': 'success'},
+        {'label': "Jami öqiş (soat)", 'value': _ls.get('study_hours', 0), 'icon': 'clock-history', 'color': 'success'},
         {'label': "Online vaqt (daqiqa)", 'value': _ls.get('weekly_minutes', 0), 'icon': 'clock', 'color': 'warning'},
         {'label': "Test aniqligi", 'value': str(_ls.get('quiz_accuracy', 0)) + '%', 'icon': 'bullseye', 'color': 'accent'},
         {'label': "Sertifikatlar", 'value': _ls.get('certificates_earned', 0), 'icon': 'patch-check-fill', 'color': 'success'},
     ]
 
-    # --- Kunlik vazifalar sarlavhasi uchun matn ---
+    # --- Kunlik vazifalar sarlavhasi uçun matn ---
     missions_subtitle = "%s / 4 bajarildi · +%s XP" % (missions_done_count, missions_xp_earned)
 
-    # --- Foydalanuvchining reyting qatori (top 5 ichida bo'lmasa) ---
+    # --- Foydalanuvçining reyting qatori (top 5 içida bölmasa) ---
     my_leader_row = None
     try:
         if user_rank and user_rank > 5 and request.user.is_student:
@@ -2670,7 +2671,7 @@ def home_view(request):
     xp_in_level = _coins % 100
     xp_to_next = 100 - xp_in_level
 
-    # --- Vaqtga qarab salomlashuv (server local time = o'quvchi vaqti) ---
+    # --- Vaqtga qarab salomlaşuv (server local time = öquvçi vaqti) ---
     _hour = timezone.localtime().hour
     if _hour < 6:
         greeting, greeting_icon = 'Xayrli tun', '🌙'
@@ -2679,7 +2680,7 @@ def home_view(request):
     elif _hour < 18:
         greeting, greeting_icon = 'Xayrli kun', '👋'
     else:
-        greeting, greeting_icon = 'Xayrli kech', '🌆'
+        greeting, greeting_icon = 'Xayrli keç', '🌆'
 
     # --- Kun iqtibosi, keyingi jadval darsi, kun savoli ---
     daily_quote = _daily_quote(today)
@@ -2695,7 +2696,7 @@ def home_view(request):
                 daily_question_state = 'correct' if _DQ_OK in _log.description else 'wrong'
             else:
                 daily_question_state = 'new'
-            # to'g'ri javob ID'si shablonga faqat javob berilgandan keyin uzatiladi
+            # töğri javob ID'si şablonga faqat javob berilgandan keyin uzatiladi
             daily_question = {k: v for k, v in _dq.items() if k != 'correct_id'}
             if daily_question_state != 'new':
                 daily_question['correct_id'] = _dq['correct_id']
@@ -2762,10 +2763,10 @@ def home_view(request):
     context['sale_promos'] = discounted_courses(exclude_ids=purchased_course_ids(user))
     context['coin_promos'] = promos()
 
-    # Premium reklamasi: premiumga — tanga 50% arzon, boshqalarga — premium taklifi.
+    # Premium reklamasi: premiumga — tanga 50% arzon, boşqalarga — premium taklifi.
     from coin.topup_pricing import PREMIUM_DISCOUNT_PERCENT
     from .models import CoinPricingSettings
-    # Misol paket: 10 000 tanga (narx 1 so'm bo'lsa ham farq ko'rinadi).
+    # Misol paket: 10 000 tanga (narx 1 söm bölsa ham farq körinadi).
     gross = 10000 * CoinPricingSettings.current().som_per_coin
     context['premium_coin_offer'] = {
         'percent': PREMIUM_DISCOUNT_PERCENT,
@@ -2774,13 +2775,13 @@ def home_view(request):
         'payable': (gross * (100 - PREMIUM_DISCOUNT_PERCENT) + 99) // 100,
     }
 
-    # "Bilasizmi?" — har soatda va har kirishda yangi savol, javobini AI beradi.
+    # "Bilasizmi?" — har soatda va har kirişda yangi savol, javobini AI beradi.
     from . import curiosity
     context['curiosity_question'] = curiosity.pick_question(user)
     curiosity.remember(request, context['curiosity_question'])
     curiosity.refresh_if_stale()
 
-    # Birinchi kirishdagi qo'llanma (yoki ?tour=1 — qayta ko'rish)
+    # Birinçi kirişdagi qöllanma (yoki ?tour=1 — qayta köriş)
     context['show_student_tour'] = user.is_learner and (
         not user.onboarding_done or request.GET.get('tour') == '1'
     )
@@ -2826,9 +2827,9 @@ def global_search(request):
         students = getattr(p, '_students', 0) or 0
         hours = max(1, round(lessons * 8 / 60)) if lessons else 0
         if lessons < 12:
-            level, level_lab = 'beginner', "Boshlang'ich"
+            level, level_lab = 'beginner', "Boşlanğiç"
         elif lessons < 30:
-            level, level_lab = 'inter', "O'rta"
+            level, level_lab = 'inter', "Örta"
         else:
             level, level_lab = 'advanced', 'Yuqori'
         dur = 'short' if hours < 2 else ('mid' if hours <= 6 else 'long')
@@ -2923,7 +2924,7 @@ def global_search(request):
                            'icon': 'bi-newspaper', 'color': '#EC4899', 'items': post_items})
             total += len(post_items)
 
-    # --- Tavsiya etilgan kurslar (empty state + pastki blok uchun) ---
+    # --- Tavsiya etilgan kurslar (empty state + pastki blok uçun) ---
     rec_qs = Profession.objects.filter(is_blocked=False).annotate(
         _lessons=_Count('lessons', distinct=True),
         _students=_Count('enrollments', distinct=True),
@@ -2944,7 +2945,7 @@ def professions_view(request):
         # Sort: enrolled courses first, then the rest
         professions = sorted(professions, key=lambda p: (p.pk not in enrolled_ids, p.pk))
 
-        # Har bir kurs uchun progress hisoblash (bulk querylar)
+        # Har bir kurs uçun progress hisoblaş (bulk querylar)
         if enrolled_ids:
             video_counts = dict(VideoLesson.objects.filter(
                 lesson__profession_id__in=enrolled_ids
@@ -2974,12 +2975,12 @@ def professions_view(request):
                 completed = watched_counts.get(p.pk, 0) + passed_counts.get(p.pk, 0) + done_hw_counts.get(p.pk, 0)
                 p.progress = min(round((completed / total_items) * 100), 100)
 
-    # Qidiruv, filtr va sahifalash brauzerda barcha kurslar bo'yicha ishlaydi:
-    # serverda sahifalash qidiruvni faqat joriy 8 ta kurs bilan cheklab qo'yardi.
+    # Qidiruv, filtr va sahifalaş brauzerda barça kurslar böyiça işlaydi:
+    # serverda sahifalaş qidiruvni faqat joriy 8 ta kurs bilan çeklab qöyardi.
     from .course_pricing import attach_prices
     professions = attach_prices(professions)
 
-    # O'quvchilar uchun kurs tokenlarini yaratish
+    # Öquvçilar uçun kurs tokenlarini yaratiş
     course_token_map = {}
     purchased_ids = set()
     if request.user.is_authenticated and request.user.is_learner:
@@ -2989,7 +2990,7 @@ def professions_view(request):
         from kurslarim.access import purchased_course_ids
         purchased_ids = purchased_course_ids(request.user)
 
-    # Bir martalik to'lov bilan sotiladigan kurslar — alohida marketing bloki.
+    # Bir martalik tölov bilan sotiladigan kurslar — alohida marketing bloki.
     sale_courses = [p for p in professions if p.is_sold_once and not p.is_blocked and not p.is_mandatory]
 
     return render(request, 'accounts/professions.html', {
@@ -3003,7 +3004,7 @@ def professions_view(request):
 
 
 def _passed_test_lesson_counts(user, profession_ids):
-    """Eski test va yangi Quiz natijalarini dars bo'yicha takrorlamasdan sanaydi."""
+    """Eski test va yangi Quiz natijalarini dars böyiça takrorlamasdan sanaydi."""
     passed_by_profession = {}
 
     legacy_rows = TestResult.objects.filter(
@@ -3052,8 +3053,8 @@ def _homework_locked_lesson_ids(lessons, completed_lesson_ids, submitted_homewor
     The homework lesson itself is never locked by this -- a student must
     still be able to open it to submit or resubmit.
     """
-    # Vazifa TOPSHIRILGACH (baholanmasa ham) undan keyingi darslar — jumladan
-    # test — ochiladi. Faqat umuman topshirilmagan vazifa keyingilarni bloklaydi.
+    # Vazifa TOPŞIRILGAÇ (baholanmasa ham) undan keyingi darslar — jumladan
+    # test — oçiladi. Faqat umuman topşirilmagan vazifa keyingilarni bloklaydi.
     submitted_homework_lesson_ids = submitted_homework_lesson_ids or set()
     locked_ids = set()
     blocking_lesson = None
@@ -3069,13 +3070,13 @@ def _homework_locked_lesson_ids(lessons, completed_lesson_ids, submitted_homewor
 
 
 def _build_course_roadmap(sections, section_completed=None, section_is_locked=None, section_daily_locked=None):
-    """Kurs yo'l xaritasi (roadmap) uchun node holatlari va umumiy progressni qaytaradi.
+    """Kurs yöl xaritasi (roadmap) uçun node holatlari va umumiy progressni qaytaradi.
 
     Har bir node holati:
-      - 'completed' : bo'lim to'liq tugallangan
-      - 'active'    : birinchi tugallanmagan va ochiq bo'lim (foydalanuvchi shu yerda)
-      - 'locked'    : qulflangan yoki kunlik cheklov tufayli yopiq
-      - 'upcoming'  : navbatdagi ochiq bo'lim (hali boshlanmagan)
+      - 'completed' : bölim töliq tugallangan
+      - 'active'    : birinçi tugallanmagan va oçiq bölim (foydalanuvçi şu yerda)
+      - 'locked'    : qulflangan yoki kunlik çeklov tufayli yopiq
+      - 'upcoming'  : navbatdagi oçiq bölim (hali boşlanmagan)
     """
     section_completed = section_completed or {}
     section_is_locked = section_is_locked or {}
@@ -3127,7 +3128,7 @@ def _build_course_roadmap(sections, section_completed=None, section_is_locked=No
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
 
-    # O'quvchilar uchun PK orqali kirishni bloklash — token URL ga yo'naltirish
+    # Öquvçilar uçun PK orqali kirişni bloklaş — token URL ga yönaltiriş
     if request.user.is_authenticated and request.user.is_learner and not request.user.is_admin:
         from .models import StudentCourseToken
         ct = StudentCourseToken.get_or_create(request.user, profession)
@@ -3137,9 +3138,9 @@ def profession_detail(request, pk):
     enrollment_request = None
     unenroll_request = None
     
-    # Bloklangan kursga kirish cheklovi (faqat o'quvchilar uchun)
+    # Bloklangan kursga kiriş çeklovi (faqat öquvçilar uçun)
     if profession.is_blocked and request.user.is_student:
-        messages.warning(request, f"'{profession.name}' kursi vaqtincha bloklangan. {profession.blocked_reason or ''}")
+        messages.warning(request, f"'{profession.name}' kursi vaqtinça bloklangan. {profession.blocked_reason or ''}")
         return redirect('professions')
     
     is_teaching = False
@@ -3185,20 +3186,20 @@ def profession_detail(request, pk):
                 video__lesson__profession=profession
             ).values_list('video__lesson_id', flat=True)
             
-            # Test results - eng oxirgi natijani olish
+            # Test results - eng oxirgi natijani oliş
             test_results = TestResult.objects.filter(
                 student=request.user,
                 test__lesson__profession=profession
             ).order_by('test__lesson_id', '-completed_at')
 
-            # Har bir test uchun eng oxirgi natijani saqlash
+            # Har bir test uçun eng oxirgi natijani saqlaş
             latest_test_results = {}
             for tr in test_results:
                 if tr.test.lesson_id not in latest_test_results:
                     latest_test_results[tr.test.lesson_id] = tr
 
-            # Quiz Attempt natijalari (legacy_test_id bo'lmagan yangi quizlar uchun)
-            # TestResult yo'q bo'lgan test darslari uchun Attempt dan foydalanamiz
+            # Quiz Attempt natijalari (legacy_test_id bölmagan yangi quizlar uçun)
+            # TestResult yöq bölgan test darslari uçun Attempt dan foydalanamiz
             from quiz.models import Attempt as QuizAttempt
             quiz_attempts = QuizAttempt.objects.filter(
                 student=request.user,
@@ -3211,7 +3212,7 @@ def profession_detail(request, pk):
                 if lid and lid not in latest_quiz_attempts:
                     latest_quiz_attempts[lid] = qa
 
-            # Homework submissions - eng oxirgi topshiriqni olish
+            # Homework submissions - eng oxirgi topşiriqni oliş
             hw_submissions = HomeworkSubmission.objects.filter(
                 student=request.user,
                 homework__lesson__profession=profession
@@ -3221,7 +3222,7 @@ def profession_detail(request, pk):
             for hw in hw_submissions:
                 if hw.homework.lesson_id not in latest_hw_submissions:
                     latest_hw_submissions[hw.homework.lesson_id] = hw
-            # Topshirilgan vazifa darslari — test blokidan chiqarish uchun
+            # Topşirilgan vazifa darslari — test blokidan çiqariş uçun
             submitted_hw_lesson_ids = set(latest_hw_submissions.keys())
 
             for vid in watched_videos:
@@ -3236,7 +3237,7 @@ def profession_detail(request, pk):
                     'attempted': True,
                 }
 
-            # Yangi quizlar uchun Attempt natijasini qo'shish (TestResult bo'lmagan darslar)
+            # Yangi quizlar uçun Attempt natijasini qöşiş (TestResult bölmagan darslar)
             for lesson_id, qa in latest_quiz_attempts.items():
                 if lesson_id not in lesson_progress:
                     lesson_progress[lesson_id] = {
@@ -3278,14 +3279,14 @@ def profession_detail(request, pk):
                     'attempted': True,
                 }
         
-        # Kunlik bo'lim cheklovi ma'lumotlarini olish
+        # Kunlik bölim çeklovi ma'lumotlarini oliş
         daily_section_today = None
         daily_limit_section_name = None
         accessed_section_ids = set()
         if request.user.is_student and not request.user.is_admin and daily_limit_active(request.user, profession):
             from datetime import date
             today = date.today()
-            # Oldin kirilgan barcha bo'limlar (har qanday kunda)
+            # Oldin kirilgan barça bölimlar (har qanday kunda)
             accessed_section_ids = set(
                 DailySectionAccess.objects.filter(
                     user=request.user, profession=profession
@@ -3300,22 +3301,22 @@ def profession_detail(request, pk):
 
         section_is_locked = {}
         if request.user.is_student and not request.user.is_admin:
-            pass  # section lock dars darajasidan kelib chiqadi — pastda hisoblanadi
+            pass  # section lock dars darajasidan kelib çiqadi — pastda hisoblanadi
         else:
-            # Admin va o'qituvchi uchun barcha bo'limlar ochiq
+            # Admin va öqituvçi uçun barça bölimlar oçiq
             for section in sections:
                 section_is_locked[section.id] = False
             section_is_locked['no_section'] = False
             section_daily_locked = {s.id: False for s in sections}
     
-    # ===== BO'LIM DARAJASIDA QULFLASH MANTIGI =====
+    # ===== BÖLIM DARAJASIDA QULFLAŞ MANTIGI =====
     # Qoidalar:
-    #   1. Tugatilgan bo'limlar → har doim OCHIQ (takrorlash uchun)
-    #   2. Boshlangan bo'lim (kamida 1 dars bajarilgan) → OCHIQ (davom ettirish)
-    #   3. Yangi bo'lim (boshlanmagan, oldingi tugatilgan) → kunlik cheklash
-    #      - Bugun boshqa bo'limga kirilgan bo'lsa → ERTAGA ochiladi
-    #      - Kirilmagan bo'lsa → OCHIQ
-    #   4. Qolgan bo'limlar → QULFLANGAN (oldingi tugatilmagan)
+    #   1. Tugatilgan bölimlar → har doim OÇIQ (takrorlaş uçun)
+    #   2. Boşlangan bölim (kamida 1 dars bajarilgan) → OÇIQ (davom ettiriş)
+    #   3. Yangi bölim (boşlanmagan, oldingi tugatilgan) → kunlik çeklaş
+    #      - Bugun boşqa bölimga kirilgan bölsa → ERTAGA oçiladi
+    #      - Kirilmagan bölsa → OÇIQ
+    #   4. Qolgan bölimlar → QULFLANGAN (oldingi tugatilmagan)
     if request.user.is_student and not request.user.is_admin and (is_enrolled):
         from datetime import date
         today = date.today()
@@ -3325,7 +3326,7 @@ def profession_detail(request, pk):
 
         ordered_sections = list(sections)
 
-        # Har bir bo'lim holati
+        # Har bir bölim holati
         section_completed = {}
         section_started = {}
         for section in ordered_sections:
@@ -3349,15 +3350,15 @@ def profession_detail(request, pk):
         section_daily_locked = {}
         for idx, section in enumerate(ordered_sections):
             if section_completed[section.id]:
-                # 1. Tugatilgan → ochiq
+                # 1. Tugatilgan → oçiq
                 section_is_locked[section.id] = False
                 section_daily_locked[section.id] = False
             elif section_started[section.id]:
-                # 2. Boshlangan → ochiq
+                # 2. Boşlangan → oçiq
                 section_is_locked[section.id] = False
                 section_daily_locked[section.id] = False
             else:
-                # 3-4. Boshlanmagan bo'lim
+                # 3-4. Boşlanmagan bölim
                 prev_completed = (idx == 0) or section_completed[ordered_sections[idx - 1].id]
 
                 if not prev_completed:
@@ -3365,17 +3366,17 @@ def profession_detail(request, pk):
                     section_is_locked[section.id] = True
                     section_daily_locked[section.id] = False
                 else:
-                    # 3. Oldingi tugatilgan → kunlik cheklash
+                    # 3. Oldingi tugatilgan → kunlik çeklaş
                     if limit_on and today_section_access and today_section_access.section_id != section.id:
-                        # Bugun boshqa bo'limga kirilgan → ertaga
+                        # Bugun boşqa bölimga kirilgan → ertaga
                         section_is_locked[section.id] = False
                         section_daily_locked[section.id] = True
                     else:
-                        # Bugun hech narsaga kirilmagan yoki aynan shu bo'limga → ochiq
+                        # Bugun heç narsaga kirilmagan yoki aynan şu bölimga → oçiq
                         section_is_locked[section.id] = False
                         section_daily_locked[section.id] = False
 
-        # Darslar holati — bo'lim holatiga qarab
+        # Darslar holati — bölim holatiga qarab
         for section in ordered_sections:
             s_locked = section_is_locked.get(section.id)
             s_daily = section_daily_locked.get(section.id)
@@ -3389,8 +3390,8 @@ def profession_detail(request, pk):
                     lesson_is_locked[l.pk] = 'daily'
             else:
                 for l in section_lessons:
-                    # Bo'lim ochilgan bo'lsa, uning video, vazifa va oddiy testlari
-                    # birgalikda ochiladi. Keyingi bo'lim esa hammasi bajarilgach ochiladi.
+                    # Bölim oçilgan bölsa, uning video, vazifa va oddiy testlari
+                    # birgalikda oçiladi. Keyingi bölim esa hammasi bajarilgaç oçiladi.
                     lesson_is_locked[l.pk] = False
 
         # Daily limit banner
@@ -3398,7 +3399,7 @@ def profession_detail(request, pk):
             daily_section_today = today_section_access.section_id
             daily_limit_section_name = today_section_access.section.title
 
-        # Bo'limsiz darslar
+        # Bölimsiz darslar
         if lessons_without_section:
             no_sec_lessons = [l for l in lessons_without_section if l.lesson_type != 'dictionary']
             has_open = any(lesson_is_locked.get(l.pk) is False or lesson_is_locked.get(l.pk) is None for l in no_sec_lessons)
@@ -3406,7 +3407,7 @@ def profession_detail(request, pk):
         else:
             section_is_locked['no_section'] = False
 
-    # Kursdoshlar - shu kursga yozilgan o'quvchilar
+    # Kursdoşlar - şu kursga yozilgan öquvçilar
     classmates = []
     if is_enrolled or is_teaching or request.user.is_admin:
         classmates = CustomUser.objects.filter(
@@ -3416,13 +3417,13 @@ def profession_detail(request, pk):
     
     course_teachers = profession.teachers.all()
 
-    # Kurs tugatilganligini tekshirish va sertifikat so'rovi
+    # Kurs tugatilganligini tekşiriş va sertifikat sörovi
     course_completed = False
     certificate = None
     if is_enrolled and request.user.is_student:
-        # Barcha bo'limlardagi barcha darslar (lug'at bundan mustasno) tugatilganmi
+        # Barça bölimlardagi barça darslar (luğat bundan mustasno) tugatilganmi
         all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
-        # Bo'limlar mavjud lekin ichida dars yo'q bo'lsa — kurs tugallanmagan
+        # Bölimlar mavjud lekin içida dars yöq bölsa — kurs tugallanmagan
         course_sections = profession.sections.filter(is_active=True)
         has_empty_section = any(
             not s.lessons.exists() for s in course_sections
@@ -3437,7 +3438,7 @@ def profession_detail(request, pk):
         # Sertifikat mavjudmi
         certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
 
-    # Yakuniy testlar — alohida UI uchun
+    # Yakuniy testlar — alohida UI uçun
     final_test_lessons = []
     has_final_test = False
     if is_enrolled or is_teaching or request.user.is_admin:
@@ -3504,24 +3505,24 @@ def profession_detail(request, pk):
 
 
 def _course_statistics_data(profession, group_id=None):
-    """Kurs statistikasi ko'rsatkichlari (DRY — sahifa view va JSON API uchun).
+    """Kurs statistikasi körsatkiçlari (DRY — sahifa view va JSON API uçun).
 
-    ``group_id`` berilsa — reyting (leaderboard) faqat o'sha StudyGroup
-    a'zolari bo'yicha hisoblanadi; umumiy kurs ko'rsatkichlari (``overview``)
-    esa har doim butun kurs bo'yicha qaytariladi, shunda sahifada guruh va
-    umumiy statistika birga ko'rinadi.
+    ``group_id`` berilsa — reyting (leaderboard) faqat öşa StudyGroup
+    a'zolari böyiça hisoblanadi; umumiy kurs körsatkiçlari (``overview``)
+    esa har doim butun kurs böyiça qaytariladi, şunda sahifada guruh va
+    umumiy statistika birga körinadi.
 
-    ``total_score`` (umumiy ball) — 0..100 oralig'idagi kompozit foiz: test
-    o'rtacha bali va vazifa o'rtacha bahosining (10 balldan 100 ga keltirilgan)
-    o'rtachasi. Bu eski "barcha urinishlar % yig'indisi" hisobini almashtiradi
-    (u qayta urinishlarni qo'shib, 689 kabi ma'nosiz sonlar berardi)."""
+    ``total_score`` (umumiy ball) — 0..100 oraliğidagi kompozit foiz: test
+    örtaça bali va vazifa örtaça bahosining (10 balldan 100 ga keltirilgan)
+    örtaçasi. Bu eski "barça urinişlar % yiğindisi" hisobini almaştiradi
+    (u qayta urinişlarni qöşib, 689 kabi ma'nosiz sonlar berardi)."""
     from collections import defaultdict
     from django.utils import timezone
     from .models import StudyGroup
 
     completed_statuses = [Attempt.Status.SUBMITTED, Attempt.Status.GRADED]
 
-    # ── Umumiy: butun kurs bo'yicha ko'rsatkichlar ──
+    # ── Umumiy: butun kurs böyiça körsatkiçlar ──
     all_enrolled = CustomUser.objects.filter(
         enrollments__profession=profession, role='student'
     ).distinct()
@@ -3558,7 +3559,7 @@ def _course_statistics_data(profession, group_id=None):
         'avg_hw_grade': round(avg_hw_grade, 1),
     }
 
-    # ── Guruhlar ro'yxati (tanlagich uchun) ──
+    # ── Guruhlar röyxati (tanlagiç uçun) ──
     groups_qs = StudyGroup.objects.filter(profession=profession).order_by('name')
     groups = [
         {'id': g.id, 'name': g.name, 'count': g.students.filter(role='student').count()}
@@ -3572,9 +3573,9 @@ def _course_statistics_data(profession, group_id=None):
         grp = groups_qs.filter(pk=group_id).first()
         if grp:
             selected_group = {'id': grp.id, 'name': grp.name}
-            # Guruhga biriktirishning o'zi shu statistika uchun manba hisoblanadi.
-            # Eski/qo'lda biriktirilgan o'quvchida CourseEnrollment bo'lmasligi
-            # mumkin; all_enrolled bilan kesishish bunday a'zolarni yashirardi.
+            # Guruhga biriktirişning özi şu statistika uçun manba hisoblanadi.
+            # Eski/qölda biriktirilgan öquvçida CourseEnrollment bölmasligi
+            # mumkin; all_enrolled bilan kesişiş bunday a'zolarni yaşirardi.
             scope_students = grp.students.filter(role='student')
 
     scope_students = scope_students.order_by('-coins').distinct()
@@ -3643,12 +3644,12 @@ def _course_statistics_data(profession, group_id=None):
         completed = ts['passed'] + hs['accepted_count'] + vw
         progress = min(round(completed / total_possible * 100) if total_possible else 0, 100)
 
-        # ── To'g'ri umumiy ball: 0..100 kompozit ──
+        # ── Töğri umumiy ball: 0..100 kompozit ──
         components = []
         if ts['count'] > 0:
-            components.append(ts['avg_score'])          # test o'rtacha (0..100)
+            components.append(ts['avg_score'])          # test örtaça (0..100)
         if hs['graded_count'] > 0:
-            components.append(hs['graded_avg'] * 10)     # vazifa o'rtacha (0..10 → 0..100)
+            components.append(hs['graded_avg'] * 10)     # vazifa örtaça (0..10 → 0..100)
         overall_score = round(sum(components) / len(components)) if components else 0
 
         if progress >= 70:
@@ -3715,7 +3716,7 @@ def _course_statistics_data(profession, group_id=None):
 
 
 def _can_view_course_stats(user, profession):
-    """Statistikani ko'rish ruxsatini tekshiradi."""
+    """Statistikani köriş ruxsatini tekşiradi."""
     is_enrolled = CourseEnrollment.objects.filter(
         user=user, profession=profession
     ).exists() or user.profession == profession
@@ -3725,9 +3726,9 @@ def _can_view_course_stats(user, profession):
 def _resolve_stats_group(request, profession):
     """Tanlangan guruh id'sini aniqlaydi.
 
-    O'quvchi uchun URL'dagi ``?group=`` ga ishonilmaydi: doim uning shu
-    kursdagi guruhi olinadi. Shunda bir guruh a'zolari aynan bir xil statistik
-    doirani ko'radi. O'qituvchi/admin esa guruh filtrini erkin tanlay oladi.
+    Öquvçi uçun URL'dagi ``?group=`` ga işonilmaydi: doim uning şu
+    kursdagi guruhi olinadi. Şunda bir guruh a'zolari aynan bir xil statistik
+    doirani köradi. Öqituvchi/admin esa guruh filtrini erkin tanlay oladi.
     """
     user = request.user
     if getattr(user, 'role', None) == 'student':
@@ -3761,10 +3762,10 @@ def course_statistics(request, pk):
 
 @login_required
 def course_statistics_api(request, pk):
-    """Kurs statistikasi JSON API — jonli yangilanish, grafiklar va eksport uchun."""
+    """Kurs statistikasi JSON API — jonli yangilaniş, grafiklar va eksport uçun."""
     profession = get_object_or_404(Profession, pk=pk)
     if not _can_view_course_stats(request.user, profession):
-        return JsonResponse({'error': "Bu kursga ruxsatingiz yo'q"}, status=403)
+        return JsonResponse({'error': "Bu kursga ruxsatingiz yöq"}, status=403)
     group_id = _resolve_stats_group(request, profession)
     return JsonResponse(_course_statistics_data(profession, group_id=group_id or None))
 
@@ -3772,38 +3773,38 @@ def course_statistics_api(request, pk):
 @login_required
 def enroll_course(request, pk):
     if not request.user.is_learner:
-        messages.error(request, "Faqat o'quvchilar kursga yozilishi mumkin!")
+        messages.error(request, "Faqat öquvçilar kursga yozilişi mumkin!")
         return redirect('professions')
 
-    # Kursni tugatgan o'quvchilar yangi kurslarga yozila olmaydi
+    # Kursni tugatgan öquvçilar yangi kurslarga yozila olmaydi
     if request.user.is_finished:
-        messages.warning(request, "Siz kursni tugatgan o'quvchi sifatida belgilangansiz. Yangi kurslarga yozila olmaysiz. Iltimos, admin bilan bog'laning.")
+        messages.warning(request, "Siz kursni tugatgan öquvçi sifatida belgilangansiz. Yangi kurslarga yozila olmaysiz. Iltimos, admin bilan boğlaning.")
         return redirect('profession_detail', pk=pk)
     
     profession = get_object_or_404(Profession, pk=pk)
     
-    # Majburiy kurs — avtomatik yozilgan bo'lishi kerak
+    # Majburiy kurs — avtomatik yozilgan bölişi kerak
     if profession.is_mandatory:
         CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
         messages.info(request, f"'{profession.name}' majburiy kurs — siz avtomatik yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Allaqachon yozilganmi?
+    # Allaqaçon yozilganmi?
     if CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
-        messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
+        messages.info(request, f"Siz allaqaçon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
     from .course_membership import has_teachers, notify_new_enroll_request, notify_student_joined
 
-    # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST).
-    # Kursga o'qituvchi biriktirilgan bo'lsa — yozilishni o'qituvchi tasdiqlaydi.
+    # Bepul kurs - töğridan-töğri yoziş (GET yoki POST).
+    # Kursga öqituvçi biriktirilgan bölsa — yozilişni öqituvçi tasdiqlaydi.
     if not profession.is_paid and not has_teachers(profession):
-        # Eski so'rovlarni tozalash (qayta yozilishga to'sqinlik qilmasligi uchun)
+        # Eski sörovlarni tozalaş (qayta yozilişga tösqinlik qilmasligi uçun)
         CourseUnenrollRequest.objects.filter(user=request.user, profession=profession).delete()
         CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).delete()
         _, created = CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
         if created:
-            # Qayta yozilish bo'lsa — eski progressni tozalash
+            # Qayta yoziliş bölsa — eski progressni tozalaş
             _reset_course_progress(request.user, profession)
         notify_admins(
             f"📚 <b>Kursga yozildi!</b>\n\n"
@@ -3811,41 +3812,41 @@ def enroll_course(request, pk):
             f"📖 {profession.name}\n"
             f"💰 Bepul kurs"
         )
-        notify_student_joined(request.user, profession, how="Bepul kurs — o'zi yozildi")
-        messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! O'qishni boshlashingiz mumkin.")
+        notify_student_joined(request.user, profession, how="Bepul kurs — özi yozildi")
+        messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! Öqişni boşlaşingiz mumkin.")
         return redirect('profession_detail', pk=pk)
 
-    # Bir martalik to'lov - so'rov o'rniga Tezcheck to'lov sahifasi
+    # Bir martalik tölov - sörov örniga Tezcheck tölov sahifasi
     if profession.is_sold_once:
         from .course_payments import course_context, enroll_paid_student, has_paid_course
         if has_paid_course(request.user, profession):
             enroll_paid_student(request.user, profession)
-            messages.success(request, f"'{profession.name}' kursi sotib olingan — o'qishni davom ettirishingiz mumkin.")
+            messages.success(request, f"'{profession.name}' kursi sotib olingan — öqişni davom ettirişingiz mumkin.")
             return redirect('profession_detail', pk=pk)
         return render(request, 'accounts/course_checkout.html', {
             'profession': profession, **course_context(request.user, profession),
         })
 
-    # Pullik kurs - so'rov yuborish
+    # Pullik kurs - sörov yuboriş
     existing_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
     
     if existing_request:
         if existing_request.status == 'pending':
-            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz o'qituvchi/admin tomonidan ko'rib chiqilmoqda.")
+            messages.info(request, f"Sizning '{profession.name}' kursiga sörovingiz öqituvchi/admin tomonidan körib çiqilmoqda.")
             return redirect('profession_detail', pk=pk)
         elif existing_request.status in ('approved', 'rejected'):
-            # Eski so'rovni o'chirib, qayta so'rov yuborishga ruxsat berish
+            # Eski sörovni öçirib, qayta sörov yuborişga ruxsat beriş
             existing_request.delete()
     
     if request.method == 'POST':
         reason = request.POST.get('reason', '').strip()
         if not reason:
-            messages.error(request, "Iltimos, kursga yozilish sababini yozing!")
+            messages.error(request, "Iltimos, kursga yoziliş sababini yozing!")
             return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
-        messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! O'qituvchi yoki admin tasdiqlashini kuting.")
+        messages.success(request, f"'{profession.name}' kursiga yoziliş sörovi yuborildi! Öqituvçi yoki admin tasdiqlaşini kuting.")
         enroll_request = CourseEnrollmentRequest.objects.create(user=request.user, profession=profession, reason=reason)
         notify_admins(
-            f"📋 <b>Kursga yozilish so'rovi!</b>\n\n"
+            f"📋 <b>Kursga yoziliş sörovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📖 {profession.name}\n"
             f"{'💰 Pullik kurs' if profession.is_paid else '🆓 Bepul kurs'} — tasdiq kutilmoqda"
@@ -3859,7 +3860,7 @@ def enroll_course(request, pk):
 @login_required
 def unenroll_course(request, pk):
     if not request.user.is_learner:
-        messages.error(request, "Faqat o'quvchilar kursdan chiqishi mumkin!")
+        messages.error(request, "Faqat öquvçilar kursdan çiqişi mumkin!")
         return redirect('professions')
     
     profession = get_object_or_404(Profession, pk=pk)
@@ -3871,22 +3872,22 @@ def unenroll_course(request, pk):
         return redirect('professions')
     
     if profession.is_mandatory:
-        messages.error(request, f"'{profession.name}' majburiy kurs — undan chiqish mumkin emas!")
+        messages.error(request, f"'{profession.name}' majburiy kurs — undan çiqiş mumkin emas!")
         return redirect('profession_detail', pk=pk)
     
-    # Allaqachon kutilayotgan so'rov bormi?
+    # Allaqaçon kutilayotgan sörov bormi?
     existing = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
     if existing:
-        messages.info(request, "Sizning kursdan chiqish so'rovingiz allaqachon yuborilgan. O'qituvchi yoki admin tasdiqlashini kuting.")
+        messages.info(request, "Sizning kursdan çiqiş sörovingiz allaqaçon yuborilgan. Öqituvçi yoki admin tasdiqlaşini kuting.")
         return redirect('profession_detail', pk=pk)
     
     if request.method == 'POST':
         reason = request.POST.get('reason', '').strip()
         if not reason:
-            messages.error(request, "Iltimos, kursdan chiqish sababini yozing!")
+            messages.error(request, "Iltimos, kursdan çiqiş sababini yozing!")
             return redirect('profession_detail', pk=pk)
         
-        # Eski yakunlangan so'rovlarni o'chirish (rejected yoki approved)
+        # Eski yakunlangan sörovlarni öçiriş (rejected yoki approved)
         CourseUnenrollRequest.objects.filter(
             user=request.user, profession=profession
         ).exclude(status='pending').delete()
@@ -3899,12 +3900,12 @@ def unenroll_course(request, pk):
         from .course_membership import notify_new_unenroll_request
         notify_new_unenroll_request(unenroll_request)
         notify_admins(
-            f"🚪 <b>Kursdan chiqish so'rovi!</b>\n\n"
+            f"🚪 <b>Kursdan çiqiş sörovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📖 {profession.name}\n"
             f"📝 Sabab: {reason[:200]}"
         )
-        messages.success(request, f"Kursdan chiqish so'rovi yuborildi. O'qituvchi yoki admin ko'rib chiqishini kuting.")
+        messages.success(request, f"Kursdan çiqiş sörovi yuborildi. Öqituvçi yoki admin körib çiqişini kuting.")
         return redirect('profession_detail', pk=pk)
     
     return redirect('profession_detail', pk=pk)
@@ -3912,16 +3913,16 @@ def unenroll_course(request, pk):
 
 @login_required
 def request_certificate(request, pk):
-    """O'quvchi: Kursni tugatdim - sertifikat so'rovi yuborish"""
+    """Öquvçi: Kursni tugatdim - sertifikat sörovi yuboriş"""
     if not request.user.is_learner:
-        messages.error(request, "Faqat o'quvchilar sertifikat so'rovi yuborishi mumkin!")
+        messages.error(request, "Faqat öquvçilar sertifikat sörovi yuborişi mumkin!")
         return redirect('profession_detail', pk=pk)
     
     profession = get_object_or_404(Profession, pk=pk)
     
-    # Bu kurs uchun sertifikat joriy qilinmagan bo'lsa
+    # Bu kurs uçun sertifikat joriy qilinmagan bölsa
     if not profession.has_certificate:
-        messages.error(request, "Bu kurs uchun sertifikat joriy qilinmagan.")
+        messages.error(request, "Bu kurs uçun sertifikat joriy qilinmagan.")
         return redirect('profession_detail', pk=pk)
 
     if not Test.objects.filter(
@@ -3929,7 +3930,7 @@ def request_certificate(request, pk):
     ).exists():
         messages.error(
             request,
-            "Bu kursda yakuniy test mavjud emas. Sertifikat olish uchun yakuniy test bo'lishi kerak.",
+            "Bu kursda yakuniy test mavjud emas. Sertifikat oliş uçun yakuniy test bölişi kerak.",
         )
         return redirect('profession_detail', pk=pk)
     
@@ -3938,18 +3939,18 @@ def request_certificate(request, pk):
         messages.warning(request, "Siz bu kursga yozilmagansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Allaqachon sertifikat berilganmi
+    # Allaqaçon sertifikat berilganmi
     if Certificate.objects.filter(student=request.user, profession=profession).exists():
-        messages.info(request, "Sizga bu kurs uchun allaqachon sertifikat berilgan!")
+        messages.info(request, "Sizga bu kurs uçun allaqaçon sertifikat berilgan!")
         return redirect('profession_detail', pk=pk)
 
-    # Bo'limlar ichida dars yo'q bo'lsa — sertifikat olish mumkin emas
+    # Bölimlar içida dars yöq bölsa — sertifikat oliş mumkin emas
     course_sections = profession.sections.filter(is_active=True)
     if course_sections.exists() and any(not s.lessons.exists() for s in course_sections):
-        messages.error(request, "Kurs hali to'liq yuklanmagan. Ustoz barcha bo'limlarga dars qo'shishi kerak!")
+        messages.error(request, "Kurs hali töliq yuklanmagan. Ustoz barça bölimlarga dars qöşişi kerak!")
         return redirect('profession_detail', pk=pk)
     
-    # Kurs tugatilganligini tekshirish
+    # Kurs tugatilganligini tekşiriş
     all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
     if all_lessons.exists():
         watched_videos = set(VideoProgress.objects.filter(
@@ -3975,21 +3976,21 @@ def request_certificate(request, pk):
         
         for lesson in all_lessons:
             if lesson.pk not in completed_ids:
-                messages.error(request, "Kursni tugatish uchun barcha darslarni (video, test, vazifa) bajarishingiz kerak!")
+                messages.error(request, "Kursni tugatiş uçun barça darslarni (video, test, vazifa) bajarişingiz kerak!")
                 return redirect('profession_detail', pk=pk)
     
     if request.method == 'POST':
-        # 🎓 AVTOMATIK BERISH: so'rov o'rniga sertifikat darhol yaratiladi.
+        # 🎓 AVTOMATIK BERIŞ: sörov örniga sertifikat darhol yaratiladi.
         from .certificates import issue_course_certificate
         cert, error = issue_course_certificate(request.user, profession)
         if cert:
             messages.success(
                 request,
                 f"🎓 Tabriklaymiz! Sertifikatingiz tayyor (seriya: {cert.certificate_id}). "
-                f"Yuklab olishingiz mumkin!"
+                f"Yuklab olişingiz mumkin!"
             )
             return redirect('download_certificate', pk=cert.pk)
-        messages.error(request, error or "Sertifikat berishda xatolik yuz berdi.")
+        messages.error(request, error or "Sertifikat berişda xatolik yuz berdi.")
         return redirect('profession_detail', pk=pk)
 
     return redirect('profession_detail', pk=pk)
@@ -3997,19 +3998,19 @@ def request_certificate(request, pk):
 
 @login_required
 def download_certificate(request, pk):
-    """Sertifikat PDF faylini yuklab olish (egasi yoki admin)."""
+    """Sertifikat PDF faylini yuklab oliş (egasi yoki admin)."""
     cert = get_object_or_404(
         Certificate.objects.select_related('student', 'profession'), pk=pk
     )
     if not (request.user.is_admin or cert.student_id == request.user.pk):
-        messages.error(request, "Bu sertifikat sizga tegishli emas!")
+        messages.error(request, "Bu sertifikat sizga tegişli emas!")
         return redirect('home')
 
-    # Fayl yo'q yoki eskirgan bo'lsa — qayta yaratish
+    # Fayl yöq yoki eskirgan bölsa — qayta yaratiş
     from .certificates import regenerate_certificate_file
     if not cert.file:
         if not regenerate_certificate_file(cert):
-            messages.error(request, "Sertifikat faylini yaratishda xatolik. Keyinroq urinib ko'ring.")
+            messages.error(request, "Sertifikat faylini yaratişda xatolik. Keyinroq urinib köring.")
             return redirect('profession_detail', pk=cert.profession_id)
 
     try:
@@ -4019,13 +4020,13 @@ def download_certificate(request, pk):
         )
         return response
     except Exception:
-        messages.error(request, "Faylni o'qishda xatolik yuz berdi.")
+        messages.error(request, "Faylni öqişda xatolik yuz berdi.")
         return redirect('profession_detail', pk=cert.profession_id)
 
 
 @login_required
 def admin_certificate_settings(request):
-    """Admin: kurslar bo'yicha sertifikat seriyasi va muddatini sozlash."""
+    """Admin: kurslar böyiça sertifikat seriyasi va muddatini sozlaş."""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -4038,11 +4039,11 @@ def admin_certificate_settings(request):
         validity_years = min(50, max(1, validity_years))
 
         profession = get_object_or_404(Profession, pk=profession_id)
-        # Seriya kodi boshqa kursda ishlatilmaganini tekshirish
+        # Seriya kodi boşqa kursda işlatilmaganini tekşiriş
         if series_code and CertificateSettings.objects.filter(
             series_code=series_code
         ).exclude(profession=profession).exists():
-            messages.error(request, f"\"{series_code}\" seriyasi boshqa kursda ishlatilgan!")
+            messages.error(request, f"\"{series_code}\" seriyasi boşqa kursda işlatilgan!")
             return redirect('admin_certificates')
 
         from .models import CertificateDesign
@@ -4061,7 +4062,7 @@ def admin_certificate_settings(request):
             f"({series_code or 'seriyasiz'}, {validity_years} yil, "
             f"dizayn: {design.name if design else 'standart'})."
         )
-        # Dizayn almashgan bo'lsa — mavjud sertifikatlar PDF'i ham yangilanadi
+        # Dizayn almaşgan bölsa — mavjud sertifikatlar PDF'i ham yangilanadi
         if design_changed and request.POST.get('regenerate') == '1':
             from .certificate_designs import regenerate_certificates
             ok, fail = regenerate_certificates(profession.certificates.all())
@@ -4073,9 +4074,9 @@ def admin_certificate_settings(request):
 
 @login_required
 def admin_certificate_edit(request, pk):
-    """Admin: sertifikat ma'lumotlarini tahrirlash (holat, muddat, tavsif).
+    """Admin: sertifikat ma'lumotlarini tahrirlaş (holat, muddat, tavsif).
 
-    O'zgarishdan so'ng PDF avtomatik qayta yaratiladi — sertifikatdagi
+    Özgarişdan söng PDF avtomatik qayta yaratiladi — sertifikatdagi
     ma'lumotlar ham yangilanadi.
     """
     if not request.user.is_admin:
@@ -4095,28 +4096,28 @@ def admin_certificate_edit(request, pk):
                 from datetime import datetime as _dt
                 cert.valid_until = _dt.strptime(valid_until, '%Y-%m-%d').date()
             except ValueError:
-                messages.error(request, "Sana formati noto'g'ri!")
+                messages.error(request, "Sana formati notöğri!")
                 return redirect('admin_certificates')
         if description is not None:
             cert.description = description.strip()
         cert.save()
 
-        # PDF ni qayta yaratish — ma'lumotlar sertifikatda ham yangilanadi
+        # PDF ni qayta yaratiş — ma'lumotlar sertifikatda ham yangilanadi
         from .certificates import regenerate_certificate_file
         regenerate_certificate_file(cert)
 
-        # O'quvchiga xabar (platformadagi o'quvchi bo'lsa)
+        # Öquvçiga xabar (platformadagi öquvçi bölsa)
         if cert.student:
             Message.objects.create(
                 recipient=cert.student,
                 sender=request.user,
                 title="📋 Sertifikat ma'lumotlari yangilandi",
                 content=(
-                    f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz "
+                    f"Sizning \"{cert.profession.name}\" kursi böyiça sertifikatingiz "
                     f"ma'lumotlari yangilandi.\n\n"
                     f"🏅 Seriya: {cert.certificate_id}\n"
                     f"📌 Holat: {cert.get_status_display()}\n"
-                    f"⏳ Amal qilish muddati: "
+                    f"⏳ Amal qiliş muddati: "
                     f"{cert.valid_until.strftime('%d.%m.%Y') if cert.valid_until else '—'}"
                 ),
                 message_type='system',
@@ -4128,10 +4129,10 @@ def admin_certificate_edit(request, pk):
 
 @login_required
 def admin_certificate_manual(request):
-    """Admin: qo'lda sertifikat berish — ism-familiya + kurs => tayyor PDF.
+    """Admin: qölda sertifikat beriş — ism-familiya + kurs => tayyor PDF.
 
-    Ism erkin kiritiladi (platformada bo'lmagan odam uchun ham) yoki
-    mavjud o'quvchi tanlanadi.
+    Ism erkin kiritiladi (platformada bölmagan odam uçun ham) yoki
+    mavjud öquvçi tanlanadi.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -4180,7 +4181,7 @@ def admin_certificate_manual(request):
                 f"{profession.name} (seriya: {cert.certificate_id})"
             )
             return redirect('download_certificate', pk=cert.pk)
-        messages.error(request, error or "Sertifikat berishda xatolik yuz berdi.")
+        messages.error(request, error or "Sertifikat berişda xatolik yuz berdi.")
         return redirect('admin_certificate_manual')
 
     return render(request, 'accounts/admin/certificate_manual.html', {
@@ -4191,7 +4192,7 @@ def admin_certificate_manual(request):
 
 @login_required
 def admin_certificate_regenerate(request, pk):
-    """Admin: sertifikat PDF faylini qo'lda qayta yaratish."""
+    """Admin: sertifikat PDF faylini qölda qayta yaratiş."""
     if not request.user.is_admin:
         return redirect('home')
     cert = get_object_or_404(Certificate, pk=pk)
@@ -4199,13 +4200,13 @@ def admin_certificate_regenerate(request, pk):
     if regenerate_certificate_file(cert):
         messages.success(request, f"Sertifikat {cert.certificate_id} PDF fayli qayta yaratildi!")
     else:
-        messages.error(request, "PDF yaratishda xatolik yuz berdi.")
+        messages.error(request, "PDF yaratişda xatolik yuz berdi.")
     return redirect('admin_certificates')
 
 
 # Lesson views
 def _is_section_locked_for_student(user, section, profession):
-    """O'quvchi uchun bo'lim qulflanganmi - oldingi bo'limdagi barcha darslar bajarilganmi"""
+    """Öquvçi uçun bölim qulflanganmi - oldingi bölimdagi barça darslar bajarilganmi"""
     if not user.is_learner or user.is_teacher or user.is_admin:
         return False
     sections = profession.sections.filter(is_active=True).prefetch_related('lessons').order_by('order')
@@ -4216,7 +4217,7 @@ def _is_section_locked_for_student(user, section, profession):
         return False
     if section_idx == 0:
         return False
-    # Oldingi bo'limlardagi barcha darslarni tekshirish
+    # Oldingi bölimlardagi barça darslarni tekşiriş
     watched_videos = set(VideoProgress.objects.filter(
         user=user, watched=True,
         video__lesson__profession=profession
@@ -4257,7 +4258,7 @@ def lesson_view(request, pk):
         'video_timer_debug': settings.DEBUG,
     }
     
-    # Keyingi darsni topish
+    # Keyingi darsni topiş
     next_lesson = None
     if lesson.section:
         next_lesson = Lesson.objects.filter(
@@ -4287,13 +4288,13 @@ def lesson_view(request, pk):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-        # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
-        # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
+        # Sahifa render QILINIŞIDANOQ talab vaqti server tomonda yakuniy
+        # holatda bölişi kerak: aks holda birinçi heartbeat'da
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
         _ensure_gating_duration(video)
         _resolve_required_seconds(progress, video)
         start_watch_session(progress)
-        # AI maqola yaratish (birinchi marta) — faqat threadda, requestni bloklamaymiz
+        # AI maqola yaratiş (birinçi marta) — faqat threadda, requestni bloklamaymiz
         if not lesson.ai_article:
             import threading
             _lesson_id = lesson.pk
@@ -4319,13 +4320,13 @@ def lesson_view(request, pk):
         submission = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         context['homework'] = homework
         context['submission'] = submission
-        # Sidebar'dagi "Keyingi dars" kartasi shu bayroqqa qarab
-        # ko'rsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bo'lsa
-        # (pending/reviewing/revision) keyingi darsga o'tish tugmasi
-        # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
-        # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
-        # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
-        # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
+        # Sidebar'dagi "Keyingi dars" kartasi şu bayroqqa qarab
+        # körsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bölsa
+        # (pending/reviewing/revision) keyingi darsga ötiş tugmasi
+        # körinmaydi, chunki server tomonida ham xuddi şu qoida
+        # (student_lesson_view'dagi homework_locked_ids tekşiruvi) bilan
+        # bloklanadi -- ikkalasi bir xil holatni aks ettirişi kerak.
+        # Vazifa TOPŞIRILGAÇ keyingi darsga (test) ötiş kartasi oçiladi — tasdiqni kutmaydi
         context['homework_approved'] = bool(
             not next_lesson
             or next_lesson.section_id == lesson.section_id
@@ -4338,8 +4339,8 @@ def lesson_view(request, pk):
         quiz = getattr(lesson, 'quiz', None)
         test = getattr(lesson, 'test', None)
         is_staff = request.user.is_admin or request.user.is_assistant_admin or request.user.is_teacher
-        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi). O'quvchi faqat
-        # e'lon qilingan quizga yuboriladi; qoralama quizda eski test ochiladi.
+        # Yangi quiz tizimi (agar mavjud bölsa ustun turadi). Öquvçi faqat
+        # e'lon qilingan quizga yuboriladi; qoralama quizda eski test oçiladi.
         if quiz and is_staff:
             return redirect('quizui:quiz_edit', pk=quiz.pk)
         if quiz and quiz.status == Quiz.Status.PUBLISHED:
@@ -4361,7 +4362,7 @@ def lesson_view(request, pk):
                 return render(request, 'accounts/lessons/final_test_lesson.html', context)
             return render(request, 'accounts/lessons/test_lesson.html', context)
         if is_staff:
-            messages.warning(request, "Bu dars uchun quiz yaratilmagan. Quiz yarating.")
+            messages.warning(request, "Bu dars uçun quiz yaratilmagan. Quiz yarating.")
             return redirect('quizui:quiz_create')
         messages.error(request, "Bu test hali tayyor emas.")
         return redirect('profession_detail', pk=lesson.profession.pk)
@@ -4391,7 +4392,7 @@ def lesson_view(request, pk):
 
 @login_required
 def submit_speaking(request, pk):
-    """Speaking vazifani topshirish"""
+    """Speaking vazifani topşiriş"""
     speaking_task = get_object_or_404(SpeakingTask, pk=pk)
     redir = _redirect_student_to_token(request, speaking_task.lesson)
     if redir:
@@ -4402,7 +4403,7 @@ def submit_speaking(request, pk):
     
     existing = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
     if existing:
-        messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+        messages.info(request, "Siz bu vazifani allaqaçon topşirgansiz!")
         return redirect('lesson_view', pk=speaking_task.lesson.pk)
     
     audio_file = request.FILES.get('audio_file')
@@ -4416,59 +4417,59 @@ def submit_speaking(request, pk):
         audio_file=audio_file,
     )
     
-    # AI avtomatik tekshiruv
+    # AI avtomatik tekşiruv
     if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
-        # Audio transkripsiya + baholash 20–60 soniya oladi — fonda bajariladi.
+        # Audio transkripsiya + baholaş 20–60 soniya oladi — fonda bajariladi.
         from teacher.views import apply_ai_speaking_grade
         ai_jobs.submit(apply_ai_speaking_grade, submission.pk)
-        messages.success(request, "Speaking vazifa topshirildi! 🤖 AI uni bir necha daqiqada tekshiradi — natijani shu sahifada ko'rasiz.")
+        messages.success(request, "Speaking vazifa topşirildi! 🤖 AI uni bir neça daqiqada tekşiradi — natijani şu sahifada körasiz.")
     else:
-        messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+        messages.success(request, "Speaking vazifa muvaffaqiyatli topşirildi!")
     
     return redirect('lesson_view', pk=speaking_task.lesson.pk)
 
 
 def _video_watch_coin_amount(video, user):
-    """Har bir video daqiqasi uchun 1 coin, premium foydalanuvchiga 2x.
+    """Har bir video daqiqasi uçun 1 coin, premium foydalanuvçiga 2x.
 
-    `duration` (daqiqa) bo'sh bo'lishi mumkin — server aniqlagan davomiylikdan
-    hisoblaymiz, aks holda uzun video uchun 1 coin berilib qolardi.
+    `duration` (daqiqa) böş bölişi mumkin — server aniqlagan davomiylikdan
+    hisoblaymiz, aks holda uzun video uçun 1 coin berilib qolardi.
     """
     seconds = video.gating_duration_seconds
     minutes = max(1, round(seconds / 60)) if seconds else max(1, int(video.duration or 0))
     return minutes * (2 if user.is_premium else 1)
 
 
-# ── Server tomonlama ko'rish nazorati (v2: segment hisoboti) ─────────────────
+# ── Server tomonlama köriş nazorati (v2: segment hisoboti) ─────────────────
 # Arxitektura:
-#   • Brauzer pleerni har soniyada o'qib, haqiqatan ijro etilgan oraliqlarni
-#     ([start, end] segmentlar) O'ZI yozadi. Ekrandagi taymer faqat shu lokal
-#     segmentlardan hisoblanadi — tarmoq sekin yoki uzilgan bo'lsa ham to'xtamaydi.
+#   • Brauzer pleerni har soniyada öqib, haqiqatan ijro etilgan oraliqlarni
+#     ([start, end] segmentlar) ÖZI yozadi. Ekrandagi taymer faqat şu lokal
+#     segmentlardan hisoblanadi — tarmoq sekin yoki uzilgan bölsa ham töxtamaydi.
 #   • Har ~10 soniyada (va pauza/yakunda) hali tasdiqlanmagan segmentlar serverga
-#     yuboriladi. Javob yo'qolsa, mijoz ularni qayta yuboradi: segmentlar union
-#     qilinadi, shuning uchun takroriy yuborish ikki marta sanalmaydi.
-#   • Server mijozga ishonmaydi: har sinxronda qo'shiladigan YANGI unique
-#     soniyalar oldingi sinxrondan beri o'tgan REAL vaqt × SYNC_MAX_RATE dan
-#     oshmaydi. Shuning uchun 1 soatlik videoni yopish uchun baribir ~1 soat
-#     kerak; konsoldan soxta segment yuborish yoki so'rov spami yordam bermaydi.
-#   • Nonce zanjiri, pozitsiya sakrashi bo'yicha "jazo" va muddatli tekshiruvlar
-#     yo'q — aynan ular halol o'quvchida taymerni qotirib qo'yardi.
+#     yuboriladi. Javob yöqolsa, mijoz ularni qayta yuboradi: segmentlar union
+#     qilinadi, şuning uçun takroriy yuboriş ikki marta sanalmaydi.
+#   • Server mijozga işonmaydi: har sinxronda qöşiladigan YANGI unique
+#     soniyalar oldingi sinxrondan beri ötgan REAL vaqt × SYNC_MAX_RATE dan
+#     oşmaydi. Şuning uçun 1 soatlik videoni yopiş uçun baribir ~1 soat
+#     kerak; konsoldan soxta segment yuboriş yoki sörov spami yordam bermaydi.
+#   • Nonce zanjiri, pozitsiya sakraşi böyiça "jazo" va muddatli tekşiruvlar
+#     yöq — aynan ular halol öquvçida taymerni qotirib qöyardi.
 
 from .video_duration import schedule_verified_duration
 
-WATCH_REQUIRED_RATIO = 0.9   # video davomiyligining shuncha qismi ko'rilishi shart
-# Kredit real vaqtdan tez o'smaydi. 1.3 — tarmoq kechikishi va pleer jitteri
-# uchun zaxira. 2x tezlikda ko'rgan o'quvchining ortiqcha segmentlari
-# yo'qolmaydi: mijoz ularni navbatda saqlab, keyingi sinxronlarda yuboradi.
+WATCH_REQUIRED_RATIO = 0.9   # video davomiyligining şunça qismi körilişi şart
+# Kredit real vaqtdan tez ösmaydi. 1.3 — tarmoq keçikişi va pleer jitteri
+# uçun zaxira. 2x tezlikda körgan öquvçining ortiqça segmentlari
+# yöqolmaydi: mijoz ularni navbatda saqlab, keyingi sinxronlarda yuboradi.
 SYNC_MAX_RATE = 1.3
-# Byudjet shu soniyadan ortiq yig'ilmaydi (masalan, kecha ochilgan sahifa).
+# Byudjet şu soniyadan ortiq yiğilmaydi (masalan, keça oçilgan sahifa).
 SYNC_MAX_GAP = 300
 SYNC_MAX_SEGMENTS = 300
 
-# ── Tiriklik tekshiruvi (presence check) ──
-# Server tasodifiy vaqtda "Shu yerdamisiz?" tasdig'ini so'raydi. Muddat YO'Q:
-# javob kelguncha faqat kredit to'xtaydi, javob esa istalgan paytda qabul
-# qilinadi. Shu sababli kechikib bosilgan tugma taymerni abadiy qotirmaydi.
+# ── Tiriklik tekşiruvi (presence check) ──
+# Server tasodifiy vaqtda "Şu yerdamisiz?" tasdiğini söraydi. Muddat YÖQ:
+# javob kelgunça faqat kredit töxtaydi, javob esa istalgan paytda qabul
+# qilinadi. Şu sababli keçikib bosilgan tugma taymerni abadiy qotirmaydi.
 PRESENCE_FIRST_MIN    = 60
 PRESENCE_FIRST_MAX    = 120
 PRESENCE_INTERVAL_MIN = 180
@@ -4487,11 +4488,11 @@ def _schedule_next_presence(progress):
 
 
 def mark_presence_satisfied(user_id, video_id):
-    """Tiriklik tekshiruvini bajarilgan deb belgilaydi va navbatdagisini suradi.
+    """Tiriklik tekşiruvini bajarilgan deb belgilaydi va navbatdagisini suradi.
 
-    Video testiga javob berish — tirikligning eng ishonchli isboti, shuning
-    uchun o'quvchi ikki marta bezovta qilinmaydi.
-    `video_quiz.views.api_player_submit` dan chaqiriladi.
+    Video testiga javob beriş — tirikligning eng işonçli isboti, şuning
+    uçun öquvçi ikki marta bezovta qilinmaydi.
+    `video_quiz.views.api_player_submit` dan çaqiriladi.
     """
     with transaction.atomic():
         progress = (
@@ -4510,11 +4511,11 @@ def mark_presence_satisfied(user_id, video_id):
 
 
 def _unanswered_mid_quiz_count(user_id, video, required_seconds):
-    """Ko'rilishi SHART bo'lgan qismdagi javob berilmagan testlar soni.
+    """Körilişi ŞART bölgan qismdagi javob berilmagan testlar soni.
 
     `required_seconds`dan keyingi (video oxiridagi) testlar hisobga olinmaydi:
-    talab davomiylikning 90% i, shuning uchun oxirgi 10% dagi test darsni
-    yopishga to'sqinlik qilsa halol o'quvchi qulflanib qolardi.
+    talab davomiylikning 90% i, şuning uçun oxirgi 10% dagi test darsni
+    yopişga tösqinlik qilsa halol öquvçi qulflanib qolardi.
     """
     from video_quiz.models import VideoQuiz, VideoQuizAttempt
 
@@ -4543,7 +4544,7 @@ def _clean_seconds(value, limit=86400):
 
 
 def _merged_watch_segments(segments, new_segment=None, duration=0):
-    """Segmentlarni tozalab birlashtiradi va unique soniyalarni qaytaradi."""
+    """Segmentlarni tozalab birlaştiradi va unique soniyalarni qaytaradi."""
     cleaned = []
     for segment in list(segments or []) + ([new_segment] if new_segment else []):
         if not isinstance(segment, (list, tuple)) or len(segment) != 2:
@@ -4571,7 +4572,7 @@ def _merged_watch_segments(segments, new_segment=None, duration=0):
 
 
 def _uncovered_parts(start, end, merged):
-    """[start, end] oralig'ining `merged` segmentlar bilan qoplanmagan qismlari."""
+    """[start, end] oraliğining `merged` segmentlar bilan qoplanmagan qismlari."""
     parts = []
     cursor = start
     for s, e in merged:
@@ -4590,7 +4591,7 @@ def _uncovered_parts(start, end, merged):
 
 
 def _ensure_gating_duration(video):
-    """Ishonchli davomiylikni ta'minlaydi (tashqi HTTP — fon threadida)."""
+    """Işonçli davomiylikni ta'minlaydi (taşqi HTTP — fon threadida)."""
     if video.verified_duration_seconds:
         return video.verified_duration_seconds
     schedule_verified_duration(video)
@@ -4600,7 +4601,7 @@ def _ensure_gating_duration(video):
 def _resolve_required_seconds(progress, video):
     """Talab vaqtini server tasdiqlagan joriy davomiylik bilan sinxronlaydi.
 
-    Davomiylik FAQAT ishonchli manbadan olinadi (YouTube/Vimeo yoki admin).
+    Davomiylik FAQAT işonçli manbadan olinadi (YouTube/Vimeo yoki admin).
     Mijoz yuborgan davomiylik bu hisobga kirmaydi.
     """
     secs = video.gating_duration_seconds
@@ -4617,10 +4618,10 @@ def _resolve_required_seconds(progress, video):
 
 
 def _global_credit_cap(progress, now):
-    """Barcha videolar bo'yicha umumiy kredit chegarasi (None — chegara yo'q).
+    """Barça videolar böyiça umumiy kredit çegarasi (None — çegara yöq).
 
-    Odam bir vaqtda bitta videoni ko'radi: parallel tablarda bir nechta videoga
-    segment yuborib vaqtni ko'paytirib bo'lmaydi.
+    Odam bir vaqtda bitta videoni köradi: parallel tablarda bir neçta videoga
+    segment yuborib vaqtni köpaytirib bölmaydi.
     """
     last_other = VideoProgress.objects.filter(
         user_id=progress.user_id, last_credit_at__isnull=False
@@ -4636,10 +4637,10 @@ def _global_credit_cap(progress, now):
 
 
 def start_watch_session(progress):
-    """Dars sahifasi ochilganda kredit byudjeti shu paytdan boshlanadi.
+    """Dars sahifasi oçilganda kredit byudjeti şu paytdan boşlanadi.
 
-    Aks holda kecha qolgan `last_beat_at` sabab birinchi sinxronda bir necha
-    daqiqalik soxta segmentni darhol qabul qilib yuborish mumkin bo'lardi.
+    Aks holda keça qolgan `last_beat_at` sabab birinçi sinxronda bir neça
+    daqiqalik soxta segmentni darhol qabul qilib yuboriş mumkin bölardi.
     """
     if progress.watched:
         return
@@ -4647,7 +4648,7 @@ def start_watch_session(progress):
 
 
 def _parse_client_segments(raw, duration):
-    """Mijoz segmentlarini tozalaydi; noto'g'ri qiymatlar shunchaki tashlanadi."""
+    """Mijoz segmentlarini tozalaydi; notöğri qiymatlar şunçaki taşlanadi."""
     if not isinstance(raw, list):
         return []
     limit = duration if duration > 0 else 86400
@@ -4688,10 +4689,10 @@ def _watch_state_payload(progress, video, required):
 
 
 def _process_watch_beat(request, video, progress_pk):
-    """Mijoz yuborgan ko'rilgan segmentlarni real vaqt byudjeti bilan qabul qiladi.
+    """Mijoz yuborgan körilgan segmentlarni real vaqt byudjeti bilan qabul qiladi.
 
-    So'rov: {segments: [[s, e], ...], position, presence_token}
-    Javob:  server tasdiqlagan segmentlar, talab, can_complete, kerak bo'lsa
+    Sörov: {segments: [[s, e], ...], position, presence_token}
+    Javob:  server tasdiqlagan segmentlar, talab, can_complete, kerak bölsa
             presence tokeni va `budget_limited` (qolgan qism keyingi sinxronda).
     """
     try:
@@ -4705,7 +4706,7 @@ def _process_watch_beat(request, video, progress_pk):
     presence_reply = str(payload.get('presence_token') or '')[:32]
 
     now = timezone.now()
-    _ensure_gating_duration(video)   # tashqi HTTP — tranzaksiyadan TASHQARIDA
+    _ensure_gating_duration(video)   # taşqi HTTP — tranzaksiyadan TAŞQARIDA
     duration = float(video.gating_duration_seconds or 0)
     incoming = _parse_client_segments(payload.get('segments'), duration)
 
@@ -4716,14 +4717,14 @@ def _process_watch_beat(request, video, progress_pk):
         segments, unique_watched = _merged_watch_segments(
             progress.watched_segments, duration=duration,
         )
-        # Migratsiyadan oldingi progress yo'qolmasin.
+        # Migratsiyadan oldingi progress yöqolmasin.
         if not segments and progress.verified_seconds > 0:
             legacy_end = min(progress.verified_seconds, duration) if duration else progress.verified_seconds
             segments, unique_watched = _merged_watch_segments([], [0, legacy_end], duration=duration)
 
         blocked_by = None
 
-        # ── 1. Tiriklik tekshiruvi: javob istalgan paytda qabul qilinadi ──
+        # ── 1. Tiriklik tekşiruvi: javob istalgan paytda qabul qilinadi ──
         if progress.presence_token:
             if presence_reply and presence_reply == progress.presence_token:
                 progress.presence_token = ''
@@ -4743,7 +4744,7 @@ def _process_watch_beat(request, video, progress_pk):
         if cap is not None:
             budget = min(budget, cap)
 
-        # ── 3. Yangi (hali qoplanmagan) soniyalarni byudjet doirasida qo'shamiz ──
+        # ── 3. Yangi (hali qoplanmagan) soniyalarni byudjet doirasida qöşamiz ──
         credited = 0.0
         budget_limited = False
         if incoming and blocked_by is None:
@@ -4786,7 +4787,7 @@ def _process_watch_beat(request, video, progress_pk):
         if required and progress.requirement_met_at is None and progress.is_requirement_met:
             progress.requirement_met_at = now
 
-        # ── 4. Navbatdagi tiriklik tekshiruvi (faqat faol ko'rish paytida) ──
+        # ── 4. Navbatdagi tiriklik tekşiruvi (faqat faol köriş paytida) ──
         if progress.next_check_seconds <= 0:
             progress.next_check_seconds = progress.verified_seconds + random.uniform(
                 PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
@@ -4826,25 +4827,25 @@ def _watch_beat_response(request, video, progress):
 
 
 def _beat_rate_limited(request, video_key):
-    """Beat oqimini cheklaydi (429) — normal mijoz 15 soniyada bitta yuboradi.
+    """Beat oqimini çeklaydi (429) — normal mijoz 15 soniyada bitta yuboradi.
 
-    Faqat FOYDALANUVCHI+VIDEO bo'yicha cheklanadi, IP bo'yicha emas: kompyuter
-    xonasidagi o'nlab o'quvchi bitta tashqi IP orqali kiradi va `check_rate_limit`
-    IP chegarasi "strike" yozadi — 10 strike'dan keyin butun xona 6 soatga
-    bloklanardi. Beat so'rovi allaqachon `@login_required`, ya'ni kimligi aniq.
+    Faqat FOYDALANUVÇI+VIDEO böyiça çeklanadi, IP böyiça emas: kompyuter
+    xonasidagi önlab öquvçi bitta taşqi IP orqali kiradi va `check_rate_limit`
+    IP çegarasi "strike" yozadi — 10 strike'dan keyin butun xona 6 soatga
+    bloklanardi. Beat sörovi allaqaçon `@login_required`, ya'ni kimligi aniq.
     """
     key = f"video_watch_beat:{request.user.pk}:{video_key}"
     if is_rate_limited(key, limit=50, window_seconds=60):
         return JsonResponse({
             'ok': False,
-            'error': "Juda ko'p so'rov yuborildi. Biroz kutib turing.",
+            'error': "Juda köp sörov yuborildi. Biroz kutib turing.",
         }, status=429)
     return None
 
 
 @login_required
 def video_watch_beat(request, pk):
-    """Heartbeat: admin/o'qituvchi uchun (pk bo'yicha)."""
+    """Heartbeat: admin/öqituvchi uçun (pk böyiça)."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'POST only'}, status=405)
     limited = _beat_rate_limited(request, pk)
@@ -4857,7 +4858,7 @@ def video_watch_beat(request, pk):
 
 @login_required
 def student_video_watch_beat(request, token):
-    """Heartbeat: o'quvchi uchun (token URL bo'yicha)."""
+    """Heartbeat: öquvçi uçun (token URL böyiça)."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'POST only'}, status=405)
     limited = _beat_rate_limited(request, token)
@@ -4873,13 +4874,13 @@ def student_video_watch_beat(request, token):
 
 
 def _watch_requirement_error(progress, video):
-    """Talab bajarilmagan bo'lsa — JsonResponse, aks holda None."""
+    """Talab bajarilmagan bölsa — JsonResponse, aks holda None."""
     if progress.watched:
-        return None   # allaqachon yopilgan — keyin qo'shilgan test bloklamasin
+        return None   # allaqaçon yopilgan — keyin qöşilgan test bloklamasin
 
-    # Video ichidagi testlar javobsiz qolsa dars yopilmaydi: skript video
-    # mazmunini bilmaydi, shuning uchun testga javob berolmaydi. Faqat
-    # o'quvchida tekshiriladi — test modali boshqa rollarda ishlamaydi.
+    # Video içidagi testlar javobsiz qolsa dars yopilmaydi: skript video
+    # mazmunini bilmaydi, şuning uçun testga javob berolmaydi. Faqat
+    # öquvçida tekşiriladi — test modali boşqa rollarda işlamaydi.
     if getattr(progress.user, 'is_learner', False):
         pending = _unanswered_mid_quiz_count(
             progress.user_id, video, progress.required_seconds
@@ -4887,22 +4888,22 @@ def _watch_requirement_error(progress, video):
         if pending:
             return JsonResponse({
                 'success': False,
-                'error': f"Video ichidagi {pending} ta savol javobsiz qoldi. "
-                         f"Videoni ko'rish davomida savollarga javob bering.",
+                'error': f"Video içidagi {pending} ta savol javobsiz qoldi. "
+                         f"Videoni köriş davomida savollarga javob bering.",
                 'quiz_pending': pending,
             }, status=403)
 
     if progress.is_requirement_met:
         return None
 
-    # Hech qachon beat yubormagan bo'lsa talab hali qulflanmagan — shu yerda
-    # belgilaymiz, aks holda konsoldan to'g'ridan-to'g'ri so'rov yuborgan
-    # o'quvchiga "davomiylik aniqlanmadi" degan chalg'ituvchi xabar borardi.
+    # Heç qaçon beat yubormagan bölsa talab hali qulflanmagan — şu yerda
+    # belgilaymiz, aks holda konsoldan töğridan-töğri sörov yuborgan
+    # öquvçiga "davomiylik aniqlanmadi" degan çalğituvçi xabar borardi.
     required = _resolve_required_seconds(progress, video)
     if not required:
         return JsonResponse({
             'success': False,
-            'error': "Video davomiyligi aniqlanmadi — dars hozircha yopilmaydi. "
+            'error': "Video davomiyligi aniqlanmadi — dars hozirça yopilmaydi. "
                      "Administratorga xabar berildi.",
         }, status=400)
 
@@ -4910,7 +4911,7 @@ def _watch_requirement_error(progress, video):
     minutes, seconds = divmod(remaining, 60)
     return JsonResponse({
         'success': False,
-        'error': f"Videoni oxirigacha ko'rmadingiz. Yana {minutes}:{seconds:02d} ko'rish kerak.",
+        'error': f"Videoni oxirigaça körmadingiz. Yana {minutes}:{seconds:02d} köriş kerak.",
         'remaining': remaining,
         'verified_seconds': round(progress.verified_seconds, 1),
         'required_seconds': required,
@@ -4918,7 +4919,7 @@ def _watch_requirement_error(progress, video):
 
 
 def _complete_video_watch(request, video):
-    """Progressni qayta tekshirib, dars va coin mukofotini atomik yakunlaydi."""
+    """Progressni qayta tekşirib, dars va coin mukofotini atomik yakunlaydi."""
     coin_amount = _video_watch_coin_amount(video, request.user)
     awarded = False
     completed_now = False
@@ -4936,12 +4937,12 @@ def _complete_video_watch(request, video):
             progress.watched_at = timezone.now()
             completed_now = True
 
-        # Coin faqat birinchi completion so'rovida beriladi. Eski yozuvlarda
-        # watched=True bo'lib coin_awarded=False bo'lishi mumkin; qayta ochish
+        # Coin faqat birinçi completion sörovida beriladi. Eski yozuvlarda
+        # watched=True bölib coin_awarded=False bölişi mumkin; qayta oçiş
         # ularni orqaga qarab mukofotlamasligi kerak.
         if completed_now and not progress.coin_awarded:
             request.user.add_coins(
-                coin_amount, f"Video darslik ko'rildi: {video.lesson.title}",
+                coin_amount, f"Video darslik körildi: {video.lesson.title}",
             )
             progress.coin_awarded = True
             awarded = True
@@ -4971,7 +4972,7 @@ def mark_video_watched(request, pk):
         return JsonResponse({'success': False, 'error': 'POST only'})
 
     if request.user.is_student and not request.user.is_admin:
-        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin', 'use_token': True}, status=403)
+        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kiriş mumkin', 'use_token': True}, status=403)
 
     video = get_object_or_404(VideoLesson, pk=pk)
     _ensure_gating_duration(video)
@@ -4979,24 +4980,24 @@ def mark_video_watched(request, pk):
 
 
 def _notify_ai_graded(submission, ai_result):
-    """AI baholaganda o'quvchi, guruh va adminlarga xabar"""
+    """AI baholaganda öquvçi, guruh va adminlarga xabar"""
     student = submission.student
     profession = submission.homework.lesson.profession.name
     lesson = submission.homework.lesson.title
     grade = ai_result['grade']
     feedback = ai_result['feedback']
 
-    # Saytda shaxsiy xabar
+    # Saytda şaxsiy xabar
     Message.objects.create(
         recipient=student,
-        title=f"⏰ Tahrirlash muddati tugadi — vazifa baholandi",
-        content=f"'{lesson}' vazifangiz uchun 1 soatlik tahrirlash muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 AI izohi:\n{feedback}",
+        title=f"⏰ Tahrirlaş muddati tugadi — vazifa baholandi",
+        content=f"'{lesson}' vazifangiz uçun 1 soatlik tahrirlaş muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 AI izohi:\n{feedback}",
         message_type='system'
     )
 
     notify_user(
         student.telegram_id,
-        f"⏰ <b>Tahrirlash muddati tugadi!</b>\n"
+        f"⏰ <b>Tahrirlaş muddati tugadi!</b>\n"
         f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
         f"📚 {profession}\n"
         f"📖 {lesson}\n"
@@ -5013,25 +5014,25 @@ def _notify_ai_graded(submission, ai_result):
 
 
 def _notify_ai_revision(submission, ai_result):
-    """AI qayta ishlashga yuborganda o'quvchi, guruh va adminlarga xabar"""
+    """AI qayta işlaşga yuborganda öquvçi, guruh va adminlarga xabar"""
     student = submission.student
     profession = submission.homework.lesson.profession.name
     lesson = submission.homework.lesson.title
     grade = ai_result['grade']
     feedback = ai_result['feedback']
 
-    # Saytda shaxsiy xabar
+    # Saytda şaxsiy xabar
     Message.objects.create(
         recipient=student,
-        title=f"⏰ Tahrirlash muddati tugadi — vazifa qayta ishlash kerak",
-        content=f"'{lesson}' vazifangiz uchun 1 soatlik tahrirlash muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 Sabab:\n{feedback}\n\nIltimos, tuzatib qayta yuboring!",
+        title=f"⏰ Tahrirlaş muddati tugadi — vazifa qayta işlaş kerak",
+        content=f"'{lesson}' vazifangiz uçun 1 soatlik tahrirlaş muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 Sabab:\n{feedback}\n\nIltimos, tuzatib qayta yuboring!",
         message_type='warning'
     )
 
     notify_user(
         student.telegram_id,
-        f"⏰ <b>Tahrirlash muddati tugadi!</b>\n"
-        f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+        f"⏰ <b>Tahrirlaş muddati tugadi!</b>\n"
+        f"⚠️ <b>Vazifangiz qayta işlaş kerak!</b>\n\n"
         f"📚 {profession}\n"
         f"📖 {lesson}\n"
         f"🏆 Baho: <b>{grade}/10</b>\n\n"
@@ -5048,7 +5049,7 @@ def _notify_ai_revision(submission, ai_result):
 
 
 def _schedule_ai_check(submission_pk):
-    """O'quvchi vazifa yuborgandan 1 soat keyin AI tekshiruvini rejalashtirish"""
+    """Öquvçi vazifa yuborgandan 1 soat keyin AI tekşiruvini rejalaştiriş"""
     import threading
 
     def _run_ai_check(sub_pk):
@@ -5075,7 +5076,7 @@ def _schedule_ai_check(submission_pk):
             if sub.submission_type == 'file' and sub.file:
                 import os
                 if os.path.splitext(sub.file.name)[1].lower() == '.pdf':
-                    sub.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+                    sub.ai_feedback = "📄 Suniy Intellekt PDF formatni qöllab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekşira oladi."
             sub.ai_checked = True
             sub.save(update_fields=['ai_checked', 'ai_feedback'])
             return
@@ -5122,19 +5123,19 @@ def _schedule_ai_check(submission_pk):
 
 
 def _notify_homework_submitted(student, homework):
-    """Yangi vazifa yuborilganda faqat kurs o'qituvchilariga xabar"""
+    """Yangi vazifa yuborilganda faqat kurs öqituvçilariga xabar"""
     hw_text = homework.description[:50] if homework.description else ""
     profession = homework.lesson.profession
     lesson = homework.lesson.title
 
-    # Faqat shu kursga biriktirilgan o'qituvchilarga xabar yuborish
+    # Faqat şu kursga biriktirilgan öqituvçilarga xabar yuboriş
     teachers = profession.teachers.all()
     for teacher in teachers:
-        # Saytda shaxsiy xabar
+        # Saytda şaxsiy xabar
         Message.objects.create(
             recipient=teacher,
             title=f"📝 Yangi uy vazifasi: {lesson}",
-            content=f"{student.first_name} {student.last_name} '{profession.name}' kursining '{lesson}' darsiga uy vazifasini yubordi. Tekshirishni kutmoqda.",
+            content=f"{student.first_name} {student.last_name} '{profession.name}' kursining '{lesson}' darsiga uy vazifasini yubordi. Tekşirişni kutmoqda.",
             message_type='personal'
         )
         # Telegram xabar
@@ -5146,10 +5147,10 @@ def _notify_homework_submitted(student, homework):
                 f"📚 Kurs: {profession.name}\n"
                 f"📖 Dars: {lesson}\n"
                 f"📋 {hw_text}\n\n"
-                f"👨‍🏫 Tekshirishni unutmang!"
+                f"👨‍🏫 Tekşirişni unutmang!"
             )
 
-    # Agar kursga o'qituvchi biriktirilmagan bo'lsa, adminlarga xabar
+    # Agar kursga öqituvçi biriktirilmagan bölsa, adminlarga xabar
     if not teachers.exists():
         notify_admins(
             f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
@@ -5157,12 +5158,12 @@ def _notify_homework_submitted(student, homework):
             f"📚 Kurs: {profession.name}\n"
             f"📖 Dars: {lesson}\n"
             f"📋 {hw_text}\n\n"
-            f"⚠️ Bu kursga o'qituvchi biriktirilmagan!"
+            f"⚠️ Bu kursga öqituvçi biriktirilmagan!"
         )
 
 
 def _notify_homework_graded(grader, submission, grade):
-    """Vazifa baholanganda o'quvchi, guruh va adminlarga xabar"""
+    """Vazifa baholanganda öquvçi, guruh va adminlarga xabar"""
     student = submission.student
     profession = submission.homework.lesson.profession.name
     lesson = submission.homework.lesson.title
@@ -5187,7 +5188,7 @@ def _notify_homework_graded(grader, submission, grade):
 
 
 def _normalize_code(text):
-    """Kodni normallashtirish — bo'sh joylar, izohlar, katta-kichik harflarni tenglashtirish"""
+    """Kodni normallaştiriş — böş joylar, izohlar, katta-kichik harflarni tenglaştiriş"""
     import re
     lines = text.splitlines()
     cleaned = []
@@ -5195,12 +5196,12 @@ def _normalize_code(text):
         line = line.strip()
         if not line:
             continue
-        # Izohlarni olib tashlash
+        # Izohlarni olib taşlaş
         line = re.sub(r'#.*$', '', line).strip()
         line = re.sub(r'//.*$', '', line).strip()
         if not line:
             continue
-        # Bo'sh joylarni birlashtirish, kichik harfga
+        # Böş joylarni birlaştiriş, kiçik harfga
         line = re.sub(r'\s+', ' ', line).lower()
         cleaned.append(line)
     return '\n'.join(cleaned)
@@ -5210,7 +5211,7 @@ SIMILARITY_MAX_CHARS = 6000
 
 
 def _calculate_similarity(text1, text2):
-    """Ikki matnni solishtirish — SequenceMatcher + token-based"""
+    """Ikki matnni soliştiriş — SequenceMatcher + token-based"""
     from difflib import SequenceMatcher
     import re
 
@@ -5230,11 +5231,11 @@ def _calculate_similarity(text1, text2):
     if min_lines < 5:
         return 0
 
-    # 1. SequenceMatcher — umumiy o'xshashlik. Algoritm kvadratik: katta fayllarda
-    # soniyalab CPU ni band qilib (GIL), shu jarayondagi boshqa so'rovlarni sekinlatardi.
+    # 1. SequenceMatcher — umumiy öxşaşlik. Algoritm kvadratik: katta fayllarda
+    # soniyalab CPU ni band qilib (GIL), şu jarayondagi boşqa sörovlarni sekinlatardi.
     seq_ratio = SequenceMatcher(None, norm1[:SIMILARITY_MAX_CHARS], norm2[:SIMILARITY_MAX_CHARS]).ratio() * 100
 
-    # 2. Qator-bo'yicha taqqoslash — NOYOB qatorlar (print("salom") kabi umumiy qatorlarni filtrlash)
+    # 2. Qator-böyicha taqqoslaş — NOYOB qatorlar (print("salom") kabi umumiy qatorlarni filtrlaş)
     common_patterns = {
         'print(', 'input(', 'if ', 'else:', 'elif ', 'for ', 'while ',
         'def ', 'return', 'import ', 'class ', 'pass', 'break', 'continue',
@@ -5242,7 +5243,7 @@ def _calculate_similarity(text1, text2):
     }
     set1 = set(lines1)
     set2 = set(lines2)
-    # Umumiy pattern bo'lgan qatorlarni chiqarib tashlash
+    # Umumiy pattern bölgan qatorlarni çiqarib taşlaş
     unique1 = {l for l in set1 if not any(p in l for p in common_patterns)}
     unique2 = {l for l in set2 if not any(p in l for p in common_patterns)}
     if unique1 and unique2:
@@ -5260,10 +5261,10 @@ def _calculate_similarity(text1, text2):
     else:
         token_ratio = 0
 
-    # O'rtacha olish (max emas!) — bitta yuqori chiqsa ham boshqalari pasaytiradi
+    # Örtaça oliş (max emas!) — bitta yuqori çiqsa ham boşqalari pasaytiradi
     similarity = (seq_ratio + line_ratio + token_ratio) / 3
 
-    # Qisqa kodlarda similarity ni pasaytirish (10 qatordan kam bo'lsa 20% kamaytirish)
+    # Qisqa kodlarda similarity ni pasaytiriş (10 qatordan kam bölsa 20% kamaytiriş)
     if min_lines < 10:
         similarity *= 0.8
 
@@ -5271,7 +5272,7 @@ def _calculate_similarity(text1, text2):
 
 
 def _check_similarity_with_others(homework, current_submission, student_answer):
-    """Boshqa o'quvchilarning javoblari bilan o'xshashlikni tekshirish — lokal algoritm"""
+    """Boşqa öquvçilarning javoblari bilan öxşaşlikni tekşiriş — lokal algoritm"""
 
     other_submissions = HomeworkSubmission.objects.filter(
         homework=homework
@@ -5310,11 +5311,11 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
 
     sim_pct = int(best_match['similarity'])
     if sim_pct >= 95:
-        reason = f"Javob {best_match['student']} ning javobiga deyarli bir xil (faqat bo'sh joylar yoki o'zgaruvchi nomlari farq qiladi)"
+        reason = f"Javob {best_match['student']} ning javobiga deyarli bir xil (faqat böş joylar yoki özgaruvçi nomlari farq qiladi)"
     elif sim_pct >= 90:
-        reason = f"Javobning asosiy tuzilishi va mantiqi {best_match['student']} ning javobi bilan juda o'xshash"
+        reason = f"Javobning asosiy tuzilişi va mantiqi {best_match['student']} ning javobi bilan juda öxşaş"
     else:
-        reason = f"Javob {best_match['student']} ning javobiga o'xshash ko'rinadi"
+        reason = f"Javob {best_match['student']} ning javobiga öxşaş körinadi"
 
     return {
         'is_plagiat': True,
@@ -5325,7 +5326,7 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
 
 
 def _get_student_writing_profile(student, current_submission_pk=None):
-    """O'quvchining oldingi qabul qilingan javoblaridan yozish uslubini yig'ish"""
+    """Öquvçining oldingi qabul qilingan javoblaridan yoziş uslubini yiğiş"""
     previous_subs = HomeworkSubmission.objects.filter(
         student=student,
         status__in=['accepted', 'graded'],
@@ -5346,7 +5347,7 @@ def _get_student_writing_profile(student, current_submission_pk=None):
 
 
 def _get_student_academic_context(student, homework):
-    """O'quvchining o'quv faoliyatini yig'ish — AI adolatli qaror qabul qilishi uchun"""
+    """Öquvçining öquv faoliyatini yiğiş — AI adolatli qaror qabul qilişi uçun"""
     ctx = {
         'avg_grade': None,
         'total_graded': 0,
@@ -5356,7 +5357,7 @@ def _get_student_academic_context(student, homework):
         'course_passed_quizzes': 0,
     }
 
-    # Umumiy o'rtacha baho (oxirgi 30 ta baholangan vazifa)
+    # Umumiy örtaça baho (oxirgi 30 ta baholangan vazifa)
     graded_grades = list(
         HomeworkSubmission.objects.filter(
             student=student,
@@ -5369,14 +5370,14 @@ def _get_student_academic_context(student, homework):
         ctx['total_graded'] = len(graded_grades)
         ctx['is_strong_student'] = ctx['avg_grade'] >= 7.0
 
-    # Qayta ishlash tarixi — ko'p marta qayta ishlagan o'quvchi odatda halolroq
+    # Qayta işlaş tarixi — köp marta qayta işlagan öquvçi odatda halolroq
     rev_count = HomeworkSubmission.objects.filter(
         student=student, revision_count__gt=0
     ).count()
     ctx['revision_submissions_count'] = rev_count
     ctx['has_revision_history'] = rev_count > 0
 
-    # Kurs bo'yicha o'tilgan testlar soni
+    # Kurs böyiça ötilgan testlar soni
     try:
         from quiz.models import QuizAttempt
         ctx['course_passed_quizzes'] = QuizAttempt.objects.filter(
@@ -5391,7 +5392,7 @@ def _get_student_academic_context(student, homework):
 
 
 def _notify_ai_penalty(submission, penalty_coins, suspicion_reasons):
-    """AI jarima qo'yganda o'quvchiga saytda xabar va Telegram orqali bildirish"""
+    """AI jarima qöyganda öquvçiga saytda xabar va Telegram orqali bildiriş"""
     student = submission.student
     lesson = submission.homework.lesson.title
     profession = submission.homework.lesson.profession.name
@@ -5400,17 +5401,17 @@ def _notify_ai_penalty(submission, penalty_coins, suspicion_reasons):
     penalty_line = f"\n💸 Jarima: -{penalty_coins} coin ayirildi." if penalty_coins > 0 else ""
 
     content = (
-        f"⚠️ '{lesson}' darsiga uy vazifangizda shubhali belgilar aniqlandi.\n\n"
+        f"⚠️ '{lesson}' darsiga uy vazifangizda şubhali belgilar aniqlandi.\n\n"
         f"🔍 Sabab:\n{reasons_text}"
         f"{penalty_line}\n\n"
-        f"📝 Vazifangiz qayta ishlashga qaytarildi. "
-        f"Iltimos, vazifani O'ZINGIZ bajaring va qayta yuboring!\n\n"
-        f"💡 Eslatma: O'zingizning tushunishingiz eng muhim — AI nusxasi emas."
+        f"📝 Vazifangiz qayta işlaşga qaytarildi. "
+        f"Iltimos, vazifani ÖZINGIZ bajaring va qayta yuboring!\n\n"
+        f"💡 Eslatma: Özingizning tuşunişingiz eng muhim — AI nusxasi emas."
     )
 
     Message.objects.create(
         recipient=student,
-        title="⚠️ Vazifada shubhali belgilar — qayta ishlash kerak",
+        title="⚠️ Vazifada şubhali belgilar — qayta işlaş kerak",
         content=content,
         message_type='warning',
     )
@@ -5418,54 +5419,54 @@ def _notify_ai_penalty(submission, penalty_coins, suspicion_reasons):
     tg_penalty = f"\n💸 <b>Jarima:</b> -{penalty_coins} coin ayirildi" if penalty_coins > 0 else ""
     notify_user(
         student.telegram_id,
-        f"⚠️ <b>Vazifada shubhali belgilar aniqlandi!</b>\n\n"
+        f"⚠️ <b>Vazifada şubhali belgilar aniqlandi!</b>\n\n"
         f"📚 {profession}\n"
         f"📖 {lesson}\n\n"
         f"🔍 <b>Sabab:</b>\n{reasons_text}"
         f"{tg_penalty}\n\n"
-        f"📝 Vazifangiz qayta ishlashga qaytarildi. O'ZINGIZ bajaring!"
+        f"📝 Vazifangiz qayta işlaşga qaytarildi. ÖZINGIZ bajaring!"
     )
 
 
 def _check_ai_generated(homework_description, student_answer, student=None, current_submission_pk=None, academic_context=None):
-    """Javob suniy intellekt yordamida yozilganligini tekshirish — QATTIQ REJIM + o'quvchi profili"""
+    """Javob suniy intellekt yordamida yozilganligini tekşiriş — QATTIQ REJIM + öquvçi profili"""
     import json
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
         return None
 
-    # O'quvchining oldingi javoblarini yig'ish
+    # Öquvçining oldingi javoblarini yiğiş
     previous_answers = []
     if student:
         previous_answers = _get_student_writing_profile(student, current_submission_pk)
 
-    # Oldingi javoblar bo'limini tayyorlash
+    # Oldingi javoblar bölimini tayyorlaş
     profile_section = ""
     if previous_answers:
         profile_section = (
-            "\n\n📊 O'QUVCHINING OLDINGI QABUL QILINGAN JAVOBLARI (uslub namunasi):\n"
-            "Bu javoblar o'qituvchi tomonidan tekshirilgan va qabul qilingan — bu o'quvchining HAQIQIY yozish uslubi.\n"
-            "Hozirgi javobni SHU uslub bilan solishtiring!\n\n"
+            "\n\n📊 ÖQUVÇINING OLDINGI QABUL QILINGAN JAVOBLARI (uslub namunasi):\n"
+            "Bu javoblar öqituvçi tomonidan tekşirilgan va qabul qilingan — bu öquvçining HAQIQIY yoziş uslubi.\n"
+            "Hozirgi javobni ŞU uslub bilan soliştiring!\n\n"
         )
         for i, ans in enumerate(previous_answers, 1):
             profile_section += f"--- Oldingi javob #{i} ---\n{ans}\n\n"
         profile_section += (
             "🔑 MUHIM TAHLIL QOIDALARI:\n"
             "- Agar hozirgi javob oldingi javoblardan KESKIN FARQ QILSA (uslub, murakkablik, til, sifat) → bu AI belgisi!\n"
-            "- Agar o'quvchi oldin oddiy kod yozgan, endi birdan professional darajada yozsa → AI!\n"
-            "- Agar o'quvchi oldin o'zbekcha o'zgaruvchi ishlatgan, endi professional inglizcha → AI!\n"
-            "- Agar o'quvchi oldin izohsiz yozgan, endi har qatorga izoh yozgan → AI!\n"
-            "- Agar o'quvchi oldin xatolar qilgan, endi mukammal kod yozgan → AI!\n"
-            "- Agar uslub o'xshash bo'lsa va tabiiy rivojlanish ko'rinsa → bu AI EMAS\n"
+            "- Agar öquvçi oldin oddiy kod yozgan, endi birdan professional darajada yozsa → AI!\n"
+            "- Agar öquvçi oldin özbekça özgaruvçi işlatgan, endi professional inglizça → AI!\n"
+            "- Agar öquvçi oldin izohsiz yozgan, endi har qatorga izoh yozgan → AI!\n"
+            "- Agar öquvçi oldin xatolar qilgan, endi mukammal kod yozgan → AI!\n"
+            "- Agar uslub öxşaş bölsa va tabiiy rivojlaniş körinsa → bu AI EMAS\n"
         )
     else:
         profile_section = (
-            "\n\n⚠️ Bu o'quvchining BIRINCHI topshirig'i — oldingi javoblar mavjud emas.\n"
-            "Shuning uchun faqat AI belgilariga qarab tekshiring.\n"
+            "\n\n⚠️ Bu öquvçining BIRINÇI topşiriği — oldingi javoblar mavjud emas.\n"
+            "Şuning uçun faqat AI belgilariga qarab tekşiring.\n"
         )
 
-    # O'quvchining akademik faoliyati bo'limi
+    # Öquvçining akademik faoliyati bölimi
     academic_section = ""
     is_strong = False
     if academic_context:
@@ -5473,29 +5474,29 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
         total = academic_context.get('total_graded', 0)
         avg = academic_context.get('avg_grade')
         if total > 0 and avg is not None:
-            lines.append(f"- O'quvchi o'rtacha bahosi: {avg}/10 ({total} ta baholangan vazifa)")
+            lines.append(f"- Öquvçi örtaça bahosi: {avg}/10 ({total} ta baholangan vazifa)")
             if academic_context.get('is_strong_student'):
                 is_strong = True
-                lines.append("- ⭐ Bu KUCHLI o'quvchi — u o'z bilimi bilan yaxshi yozishi mumkin!")
+                lines.append("- ⭐ Bu KUÇLI öquvçi — u öz bilimi bilan yaxşi yozişi mumkin!")
         rev = academic_context.get('revision_submissions_count', 0)
         if academic_context.get('has_revision_history') and rev > 0:
-            lines.append(f"- Bu o'quvchi ilgari {rev} marta qayta ishlagan — bu HALOLLIK belgisi!")
+            lines.append(f"- Bu öquvçi ilgari {rev} marta qayta işlagan — bu HALOLLIK belgisi!")
         quizzes = academic_context.get('course_passed_quizzes', 0)
         if quizzes > 0:
-            lines.append(f"- Kurs bo'yicha {quizzes} ta testdan o'tgan (mavzuni biladi!)")
+            lines.append(f"- Kurs böyiça {quizzes} ta testdan ötgan (mavzuni biladi!)")
         if lines:
             academic_section = (
-                "\n\n📈 O'QUVCHINING O'QUV FAOLIYATI (adolatli baholash uchun):\n"
+                "\n\n📈 ÖQUVÇINING ÖQUV FAOLIYATI (adolatli baholaş uçun):\n"
                 + "\n".join(lines)
-                + "\n🔑 Agar o'quvchi kuchli va tarix halollikni ko'rsatsa — ishonch chegarasini OSHIRING!"
+                + "\n🔑 Agar öquvçi kuçli va tarix halollikni körsatsa — işonç çegarasini OŞIRING!"
             )
 
-    # Kuchli o'quvchilar uchun ishonch chegarasini oshirish (false positive kamaytirish)
+    # Kuçli öquvçilar uçun işonç çegarasini oşiriş (false positive kamaytiriş)
     confidence_note = ""
     if is_strong:
         confidence_note = (
-            "\n⭐ DIQQAT: Bu kuchli o'quvchi (avg >= 7). "
-            "Uning uchun is_ai=true deyish uchun confidence >= 85 bo'lishi KERAK (odatdagi 75 emas)!\n"
+            "\n⭐ DIQQAT: Bu kuçli öquvçi (avg >= 7). "
+            "Uning uçun is_ai=true deyiş uçun confidence >= 85 bölişi KERAK (odatdagi 75 emas)!\n"
         )
 
     try:
@@ -5507,55 +5508,55 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining AI tekshiruvchisisiz. "
-                        "Boshlang'ich dasturlash o'quvchilarining javoblarini tekshirasiz.\n\n"
-                        "🛡️ AYBSIZLIK PREZUMPSIYASI: O'quvchi standart holatda HALOL deb qabul qilinadi. "
-                        "Faqat 4+ ta ANIQ AI belgisi bir vaqtda bo'lgandagina flag qo'ying. "
-                        "Bitta yoki ikki belgi — bu AI EMAS. Shubha bo'lsa — HAR DOIM o'quvchi foydasiga hal qiling.\n"
-                        "⚠️ Noto'g'ri flag qo'yish o'quvchini nohaqdan jarimaga tortadi va o'qish motivatsiyasini yo'q qiladi!\n"
+                        "Siz öquv platformasining AI tekşiruvçisisiz. "
+                        "Boşlanğiç dasturlaş öquvçilarining javoblarini tekşirasiz.\n\n"
+                        "🛡️ AYBSIZLIK PREZUMPSIYASI: Öquvçi standart holatda HALOL deb qabul qilinadi. "
+                        "Faqat 4+ ta ANIQ AI belgisi bir vaqtda bölgandagina flag qöying. "
+                        "Bitta yoki ikki belgi — bu AI EMAS. Şubha bölsa — HAR DOIM öquvçi foydasiga hal qiling.\n"
+                        "⚠️ Notöğri flag qöyiş öquvçini nohaqdan jarimaga tortadi va öqiş motivatsiyasini yöq qiladi!\n"
                         f"{confidence_note}\n"
-                        "🔍 AI deb belgilash uchun quyidagi belgilardan KAMIDA 4 TASI bir vaqtda bo'lishi kerak:\n"
+                        "🔍 AI deb belgilaş uçun quyidagi belgilardan KAMIDA 4 TASI bir vaqtda bölişi kerak:\n"
                         "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'I'd be happy to', "
                         "'Let's break this down', 'Note that', 'Feel free', 'In this solution' iboralari\n"
-                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-va qadam raqamlangan tushuntirish, "
-                        "kod bloki tashqarisidagi mukammal tuzilgan xatboshi\n"
-                        "3. PROFESSIONAL INGLIZCHA IZOHLAR: Deyarli HAR QATORGA mukammal grammatik "
-                        "inglizcha comment yozilgan (kichik xatosiz)\n"
-                        "4. COPY-PASTE BELGILARI: Vazifaga umuman aloqasi yo'q import, funksiyalar yoki "
-                        "boshqa tildagi bo'laklar mavjud\n"
-                        "5. TO'LIQ KO'CHIRMA: Javob aniq ko'rinib turgan tarzda AI'dan olingan "
-                        "(masalan, 'Sure! Here is a Python solution...' bilan boshlanadi)\n"
-                        "6. USLUB SAKRASHI: Oldingi javoblariga qaraganda til, murakkablik va sifat "
-                        "sezilarli darajada YUQORI, tabiiy rivojlanish sifatida tushuntirib bo'lmaydigan\n\n"
-                        "✅ Bu AI EMAS — HAQIQIY o'quvchi belgilari (BULARNI AI DEB BELGILAMANG):\n"
-                        "- O'quvchi yaxshi/toza kod yozgan — o'rgangan yoki qobiliyatli\n"
-                        "- Javob qisqa va to'g'ri — bu AI degani emas, aksincha oddiy va tabiiy\n"
-                        "- try/except, class, list comprehension ishlatgan — darsda o'rgangan bo'lishi mumkin\n"
-                        "- O'zbekcha yoki inglizcha izohlar yozgan — bu yaxshi amaliyot\n"
-                        "- Oldingi javoblardan yaxshiroq yozgan — bu TABIIY rivojlanish\n"
-                        "- Kod stackoverflow'dan o'xshab ko'rinadi — bu keng tarqalgan pattern bo'lishi mumkin\n"
-                        "- Kichik xatolar, typo, notekis formatlash bor — HAQIQIY o'quvchi belgisi\n"
-                        "- O'zbekcha o'zgaruvchi nomlari ishlatgan — o'quvchining odati\n"
-                        "- f-string, dictionary, tuple ishlatgan — dasturlashning oddiy vositalari\n"
-                        "- Kod umumiy o'xshash, chunki vazifada bitta to'g'ri yechim bor\n\n"
+                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-va qadam raqamlangan tuşuntiriş, "
+                        "kod bloki taşqarisidagi mukammal tuzilgan xatboşi\n"
+                        "3. PROFESSIONAL INGLIZÇA IZOHLAR: Deyarli HAR QATORGA mukammal grammatik "
+                        "inglizça comment yozilgan (kiçik xatosiz)\n"
+                        "4. COPY-PASTE BELGILARI: Vazifaga umuman aloqasi yöq import, funksiyalar yoki "
+                        "boşqa tildagi bölaklar mavjud\n"
+                        "5. TÖLIQ KÖÇIRMA: Javob aniq körinib turgan tarzda AI'dan olingan "
+                        "(masalan, 'Sure! Here is a Python solution...' bilan boşlanadi)\n"
+                        "6. USLUB SAKRAŞI: Oldingi javoblariga qaraganda til, murakkablik va sifat "
+                        "sezilarli darajada YUQORI, tabiiy rivojlaniş sifatida tuşuntirib bölmaydigan\n\n"
+                        "✅ Bu AI EMAS — HAQIQIY öquvçi belgilari (BULARNI AI DEB BELGILAMANG):\n"
+                        "- Öquvçi yaxshi/toza kod yozgan — örgangan yoki qobiliyatli\n"
+                        "- Javob qisqa va töğri — bu AI degani emas, aksinça oddiy va tabiiy\n"
+                        "- try/except, class, list comprehension işlatgan — darsda örgangan bölişi mumkin\n"
+                        "- Özbekça yoki inglizça izohlar yozgan — bu yaxşi amaliyot\n"
+                        "- Oldingi javoblardan yaxşiroq yozgan — bu TABIIY rivojlaniş\n"
+                        "- Kod stackoverflow'dan öxşab körinadi — bu keng tarqalgan pattern bölişi mumkin\n"
+                        "- Kiçik xatolar, typo, notekis formatlaş bor — HAQIQIY öquvçi belgisi\n"
+                        "- Özbekça özgaruvçi nomlari işlatgan — öquvçining odati\n"
+                        "- f-string, dictionary, tuple işlatgan — dasturlaşning oddiy vositalari\n"
+                        "- Kod umumiy öxşaş, chunki vazifada bitta töğri yeçim bor\n\n"
                         "Faqat JSON formatda javob bering:\n"
-                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida sabab>", '
+                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<özbek tilida sabab>", '
                         '"style_match": "<oldingi javoblar bilan solishtirish>"}\n\n'
                         "CONFIDENCE QOIDALARI (juda muhim):\n"
-                        "- 0–60:  is_ai=false — belgi yo'q yoki juda kam\n"
-                        "- 61–84: is_ai=false — shubha bor, LEKIN aniq emas. Bu doim FALSE bo'lishi kerak\n"
-                        "- 85–94: is_ai=true — kuchli shubha bor, 4+ belgi mavjud\n"
+                        "- 0–60:  is_ai=false — belgi yöq yoki juda kam\n"
+                        "- 61–84: is_ai=false — şubha bor, LEKIN aniq emas. Bu doim FALSE bölişi kerak\n"
+                        "- 85–94: is_ai=true — kuçli şubha bor, 4+ belgi mavjud\n"
                         "- 95–100: is_ai=true — 5–6 ta belgi bilan yaqqol AI\n"
-                        "- Ikkilanayotgan bo'lsangiz — confidence ni PAST qiling va is_ai=false qo'ying\n"
-                        "- reason: O'zbek tilida qisqa izoh\n"
-                        "- style_match: Oldingi javoblar bilan solishtirish"
+                        "- Ikkilanayotgan bölsangiz — confidence ni PAST qiling va is_ai=false qöying\n"
+                        "- reason: Özbek tilida qisqa izoh\n"
+                        "- style_match: Oldingi javoblar bilan soliştiriş"
                     )
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Vazifa tavsifi:\n{homework_description}\n\n"
-                        f"O'quvchining hozirgi javobi:\n{student_answer}"
+                        f"Öquvçining hozirgi javobi:\n{student_answer}"
                         f"{profile_section}"
                         f"{academic_section}"
                     )
@@ -5583,7 +5584,7 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
 
 
 def _get_ai_homework_feedback(homework_description, student_answer):
-    """Premium foydalanuvchilar uchun AI xulosasi olish"""
+    """Premium foydalanuvçilar uçun AI xulosasi oliş"""
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
@@ -5597,20 +5598,20 @@ def _get_ai_homework_feedback(homework_description, student_answer):
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining AI tekshiruvchisisiz. O'zbek tilida javob bering. "
-                        "O'quvchining uyga vazifasini tekshiring va qisqa xulosa bering:\n"
-                        "1. Javob to'g'ri yoki noto'g'ri ekanligini ayting\n"
-                        "2. Qisqa tushuntirish bering (3-5 gap)\n"
-                        "3. Agar xato bo'lsa, to'g'ri yo'nalishni ko'rsating\n"
-                        "4. Rag'batlantiruvchi ohangda yozing\n"
-                        "Javobni 150 so'zdan oshirmang."
+                        "Siz öquv platformasining AI tekşiruvçisisiz. Özbek tilida javob bering. "
+                        "Öquvçining uyga vazifasini tekşiring va qisqa xulosa bering:\n"
+                        "1. Javob töğri yoki notöğri ekanligini ayting\n"
+                        "2. Qisqa tuşuntiriş bering (3-5 gap)\n"
+                        "3. Agar xato bölsa, töğri yönalişni körsating\n"
+                        "4. Rağbatlantiruvçi ohangda yozing\n"
+                        "Javobni 150 sözdan oşirmang."
                     )
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Vazifa tavsifi:\n{homework_description}\n\n"
-                        f"O'quvchining javobi:\n{student_answer}"
+                        f"Öquvçining javobi:\n{student_answer}"
                     )
                 }
             ],
@@ -5624,7 +5625,7 @@ def _get_ai_homework_feedback(homework_description, student_answer):
 
 
 def _get_ai_grade(homework_description, student_answer):
-    """AI yordamida vazifani baholash: ball, status va izoh qaytaradi"""
+    """AI yordamida vazifani baholaş: ball, status va izoh qaytaradi"""
     import json
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -5639,28 +5640,28 @@ def _get_ai_grade(homework_description, student_answer):
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining AI baholovchisisiz. O'quvchining uyga vazifasini tekshiring va baholang.\n\n"
-                        "Faqat JSON formatda javob bering, boshqa hech narsa yozmang:\n"
-                        '{"grade": <1-10 orasida son>, "status": "<graded yoki revision>", "feedback": "<o\'zbek tilida izoh>"}\n\n'
+                        "Siz öquv platformasining AI baholovçisisiz. Öquvçining uyga vazifasini tekşiring va baholang.\n\n"
+                        "Faqat JSON formatda javob bering, boşqa heç narsa yozmang:\n"
+                        '{"grade": <1-10 orasida son>, "status": "<graded yoki revision>", "feedback": "<özbek tilida izoh>"}\n\n'
                         "Qoidalar:\n"
-                        "- grade: 1 dan 10 gacha son. Vazifa sifatiga qarab adolatli baho qo'ying\n"
-                        "- status: FAQAT javob bo'sh, umuman noto'g'ri yoki vazifaga UMUMAN aloqasi bo'lmasa 'revision' qo'ying\n"
-                        "- status: agar javob qisman bo'lsa ham, to'g'ri yo'nalishda bo'lsa 'graded' qo'ying\n"
-                        "- feedback: O'zbek tilida 2-4 gapda izoh yozing. Nimasi yaxshi, nimasi yomon, qanday yaxshilash mumkinligini ayting\n"
-                        "- Agar javob bo'sh yoki umuman bog'liq bo'lmasa: grade=1, status=revision\n"
-                        "- Agar javob qisman to'g'ri bo'lsa: grade=4-6, status=graded\n"
-                        "- Agar javob yaxshi bo'lsa: grade=7-9, status=graded\n"
-                        "- Agar javob mukammal bo'lsa: grade=10, status=graded\n\n"
-                        "⚠️ MUHIM: 'revision' statusini JUDA KAM ishlating! Faqat javob BUTUNLAY noto'g'ri bo'lganda.\n"
-                        "Agar o'quvchi harakat qilgan va biror narsa yozgan bo'lsa — 'graded' qo'ying, past baho bering.\n"
-                        "Har safar bir xil javobga BIR XIL baho bering — izchil bo'ling!"
+                        "- grade: 1 dan 10 gaça son. Vazifa sifatiga qarab adolatli baho qöying\n"
+                        "- status: FAQAT javob böş, umuman notöğri yoki vazifaga UMUMAN aloqasi bölmasa 'revision' qöying\n"
+                        "- status: agar javob qisman bölsa ham, töğri yönalişda bölsa 'graded' qöying\n"
+                        "- feedback: Özbek tilida 2-4 gapda izoh yozing. Nimasi yaxşi, nimasi yomon, qanday yaxşilaş mumkinligini ayting\n"
+                        "- Agar javob böş yoki umuman boğliq bölmasa: grade=1, status=revision\n"
+                        "- Agar javob qisman töğri bölsa: grade=4-6, status=graded\n"
+                        "- Agar javob yaxşi bölsa: grade=7-9, status=graded\n"
+                        "- Agar javob mukammal bölsa: grade=10, status=graded\n\n"
+                        "⚠️ MUHIM: 'revision' statusini JUDA KAM işlating! Faqat javob BUTUNLAY notöğri bölganda.\n"
+                        "Agar öquvçi harakat qilgan va biror narsa yozgan bölsa — 'graded' qöying, past baho bering.\n"
+                        "Har safar bir xil javobga BIR XIL baho bering — izçil böling!"
                     )
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Vazifa tavsifi:\n{homework_description}\n\n"
-                        f"O'quvchining javobi:\n{student_answer}"
+                        f"Öquvçining javobi:\n{student_answer}"
                     )
                 }
             ],
@@ -5668,7 +5669,7 @@ def _get_ai_grade(homework_description, student_answer):
             temperature=0.1,
         )
         result_text = response.choices[0].message.content.strip()
-        # JSON ni parse qilish
+        # JSON ni parse qiliş
         if result_text.startswith('```'):
             result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         result = json.loads(result_text)
@@ -5684,7 +5685,7 @@ def _get_ai_grade(homework_description, student_answer):
 
 
 def _read_submission_content(submission):
-    """Submission mazmunini o'qish (matn, fayl yoki rasm)"""
+    """Submission mazmunini öqiş (matn, fayl yoki rasm)"""
     if submission.submission_type == 'text' and submission.text_content:
         from .web_homework import decode_project, project_source
         project = decode_project(submission.text_content)
@@ -5718,7 +5719,7 @@ def _read_submission_content(submission):
 
 
 def _read_image_with_ai(file_field):
-    """Rasm faylni OpenAI Vision orqali o'qib matn sifatida qaytarish"""
+    """Rasm faylni OpenAI Vision orqali öqib matn sifatida qaytariş"""
     import base64
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -5739,7 +5740,7 @@ def _read_image_with_ai(file_field):
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Bu rasmdagi barcha matn, kod yoki javoblarni aynan yoz. Faqat rasmdagi kontentni qaytar, boshqa hech narsa qo'shma."},
+                        {"type": "text", "text": "Bu rasmdagi barça matn, kod yoki javoblarni aynan yoz. Faqat rasmdagi kontentni qaytar, boşqa heç narsa qöşma."},
                         {"type": "image_url", "image_url": {"url": f"data:image/{ext};base64,{image_data}"}}
                     ]
                 }
@@ -5760,10 +5761,10 @@ def submit_homework(request, pk):
         return redir
     
     if request.method == 'POST':
-        # Agar oldin topshirilgan bo'lsa, qayta yaratmaslik
+        # Agar oldin topşirilgan bölsa, qayta yaratmaslik
         existing = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         if existing:
-            messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+            messages.info(request, "Siz bu vazifani allaqaçon topşirgansiz!")
             return redirect('lesson_view', pk=homework.lesson.pk)
         
         submission_type = request.POST.get('submission_type', 'file')
@@ -5773,7 +5774,7 @@ def submit_homework(request, pk):
         if homework.file_only:
             submission_type = 'file'
         
-        # Yozma topshirish rejimida faqat rasm fayl qabul qilinadi
+        # Yozma topşiriş rejimida faqat rasm fayl qabul qilinadi
         if homework.handwritten_only:
             submission_type = 'file'
             uploaded_file = request.FILES.get('file')
@@ -5806,9 +5807,9 @@ def submit_homework(request, pk):
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
                 _notify_homework_submitted(request.user, homework)
             else:
-                messages.error(request, "Matn kiritishingiz kerak!")
+                messages.error(request, "Matn kiritişingiz kerak!")
         
-        # AI tekshiruv — 1 soat tahrirlash muddati tugagandan keyin avtomatik ishlaydi
+        # AI tekşiruv — 1 soat tahrirlaş muddati tugagandan keyin avtomatik işlaydi
         if submission and homework.ai_check and homework.lesson.profession.ai_check_enabled:
             _schedule_ai_check(submission.pk)
     
@@ -5817,14 +5818,14 @@ def submit_homework(request, pk):
 
 @login_required
 def edit_homework(request, pk):
-    """Topshiriqni 1 soat ichida tahrirlash"""
+    """Topşiriqni 1 soat içida tahrirlaş"""
     submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
     redir = _redirect_student_to_token(request, submission.homework.lesson)
     if redir:
         return redir
     
     if not submission.can_edit:
-        messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
+        messages.error(request, "Tahrirlaş muddati tugagan (1 soat)!")
         return redirect('lesson_view', pk=submission.homework.lesson.pk)
     
     if request.method == 'POST':
@@ -5836,7 +5837,7 @@ def edit_homework(request, pk):
                 submission.file = new_file
                 submission.submission_type = 'file'
                 submission.save()
-                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+                messages.success(request, "Topşiriq muvaffaqiyatli tahrirlandi!")
             else:
                 messages.error(request, "Fayl tanlang!")
         else:
@@ -5845,7 +5846,7 @@ def edit_homework(request, pk):
                 submission.text_content = text_content
                 submission.submission_type = 'text'
                 submission.save()
-                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+                messages.success(request, "Topşiriq muvaffaqiyatli tahrirlandi!")
             else:
                 messages.error(request, "Matn kiriting!")
     
@@ -5865,17 +5866,17 @@ def start_test(request, pk):
     existing_result = TestResult.objects.filter(test=test, student=request.user).first()
     if existing_result:
         if test.test_type == 'final':
-            # Yakuniy test: qayta ishlash uchun tasdiqlangan to'lov kerak
+            # Yakuniy test: qayta işlaş uçun tasdiqlangan tölov kerak
             approved_payment = FinalTestPayment.objects.filter(
                 student=request.user, test=test, status='approved'
             ).first()
             if not approved_payment:
-                messages.info(request, "Yakuniy testni qayta ishlash uchun to'lov qilishingiz kerak (65,000 so'm).")
+                messages.info(request, "Yakuniy testni qayta işlaş uçun tölov qilişingiz kerak (65,000 söm).")
                 return redirect('final_test_payment', pk=test.pk)
-            # To'lovni ishlatilgan deb belgilash
+            # Tölovni işlatilgan deb belgilaş
             approved_payment.delete()
         elif not test.allow_retry:
-            messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
+            messages.info(request, "Siz bu testni allaqaçon topşirgansiz.")
             return redirect('test_result', pk=existing_result.pk)
     
     # Sessiya kalitlari
@@ -5884,19 +5885,19 @@ def start_test(request, pk):
     sa_key = f'test_{test.pk}_answer_order'
     token_key = f'test_{test.pk}_submit_token'
     
-    # Davom etayotgan test bormi? (sahifa yangilanganda qayta aralashtirmaslik)
+    # Davom etayotgan test bormi? (sahifa yangilanganda qayta aralaştirmaslik)
     active_question_ids = request.session.get(sq_key)
     submit_token = request.session.get(token_key)
     
     if active_question_ids and not submit_token:
-        # Test hali davom etmoqda — mavjud savollarni qayta yuklash
+        # Test hali davom etmoqda — mavjud savollarni qayta yuklaş
         questions_qs = TestQuestion.objects.filter(
             pk__in=active_question_ids
         ).prefetch_related('answers')
         question_map = {q.pk: q for q in questions_qs}
         questions = [question_map[qid] for qid in active_question_ids if qid in question_map]
         
-        # Javoblar tartibini tiklash
+        # Javoblar tartibini tiklaş
         answer_order = request.session.get(sa_key, {})
         for q in questions:
             ordered_ids = answer_order.get(str(q.pk))
@@ -5905,7 +5906,7 @@ def start_test(request, pk):
                 ordered_answers = [answer_map[aid] for aid in ordered_ids if aid in answer_map]
                 q._prefetched_objects_cache['answers'] = ordered_answers
         
-        # Qolgan vaqtni hisoblash
+        # Qolgan vaqtni hisoblaş
         start_time_str = request.session.get(st_key)
         remaining = test.time_limit * 60
         if start_time_str:
@@ -5918,7 +5919,7 @@ def start_test(request, pk):
                 pass
         
         if remaining <= 0:
-            # Vaqt tugagan — avtomatik yuborish uchun formga yo'naltirish
+            # Vaqt tugagan — avtomatik yuboriş uçun formga yönaltiriş
             request.session.pop(sq_key, None)
             request.session.pop(st_key, None)
             request.session.pop(sa_key, None)
@@ -5931,18 +5932,18 @@ def start_test(request, pk):
             'remaining_time': remaining,
         })
     
-    # ===== Yangi test boshlash =====
+    # ===== Yangi test boşlaş =====
     
-    # Qayta topshirish uchun coin yechish
+    # Qayta topşiriş uçun coin yeçiş
     if existing_result and test.allow_retry and test.test_type != 'final':
         retry_cost = 5 if request.user.is_premium else 10
-        request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
+        request.user.remove_coins(retry_cost, f"Test qayta topşiriş: {test.lesson.title}")
     
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
     
     import random
     
-    # Savollar sonini cheklash (question_count > 0 bo'lsa)
+    # Savollar sonini çeklaş (question_count > 0 bölsa)
     if test.question_count and test.question_count > 0 and len(all_questions) > test.question_count:
         questions = random.sample(all_questions, test.question_count)
     else:
@@ -5957,12 +5958,12 @@ def start_test(request, pk):
             random.shuffle(answers_list)
             q._prefetched_objects_cache['answers'] = answers_list
     
-    # Sessiyaga saqlash
+    # Sessiyaga saqlaş
     request.session[sq_key] = [q.pk for q in questions]
     request.session[st_key] = timezone.now().isoformat()
     request.session.pop(token_key, None)
     
-    # Javoblar tartibini saqlash
+    # Javoblar tartibini saqlaş
     answer_order = {}
     for q in questions:
         cached = getattr(q, '_prefetched_objects_cache', {}).get('answers')
@@ -5992,16 +5993,16 @@ def submit_test(request, pk):
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
     
-    # Takroriy yuborishni oldini olish (POST refresh)
+    # Takroriy yuborişni oldini oliş (POST refresh)
     submit_token = request.session.get(f'test_{test.pk}_submit_token')
     if submit_token:
-        # Allaqachon yuborilgan — oxirgi natijaga yo'naltirish
+        # Allaqaçon yuborilgan — oxirgi natijaga yönaltiriş
         last_result = TestResult.objects.filter(test=test, student=request.user).order_by('-id').first()
         if last_result:
             return redirect('test_result', pk=last_result.pk)
     request.session[f'test_{test.pk}_submit_token'] = True
     
-    # Sessiyani tozalash (qayta start_test ga kirganda yangi test boshlanishi uchun)
+    # Sessiyani tozalaş (qayta start_test ga kirganda yangi test boşlanişi uçun)
     request.session.pop(f'test_{test.pk}_answer_order', None)
     
     start_time = request.session.get(f'test_{test.pk}_start')
@@ -6010,14 +6011,14 @@ def submit_test(request, pk):
         from datetime import datetime
         started_at = datetime.fromisoformat(start_time)
         
-        # Server-side vaqt tekshiruvi — vaqt tugagan bo'lsa ham natijani qabul qilish
-        # lekin vaqt limitidan 60 sekund ko'p o'tgan bo'lsa ogohlantirish
+        # Server-side vaqt tekşiruvi — vaqt tugagan bölsa ham natijani qabul qiliş
+        # lekin vaqt limitidan 60 sekund köp ötgan bölsa ogohlantiriş
         elapsed_seconds = (timezone.now() - started_at).total_seconds()
         allowed_seconds = test.time_limit * 60 + 60  # 60 sekund tolerantlik (network delay)
         if elapsed_seconds > allowed_seconds:
-            messages.warning(request, "Vaqt chegarasi o'tgan! Natijalar server vaqti bilan tekshirildi.")
+            messages.warning(request, "Vaqt çegarasi ötgan! Natijalar server vaqti bilan tekşirildi.")
     
-    # Sessiyadan tanlangan savollarni olish
+    # Sessiyadan tanlangan savollarni oliş
     shown_question_ids = request.session.get(f'test_{test.pk}_questions')
     if shown_question_ids:
         questions = test.questions.filter(pk__in=shown_question_ids)
@@ -6064,7 +6065,7 @@ def submit_test(request, pk):
     result.passed = score >= test.passing_score
     result.save()
     
-    # Birinchi urinishmi yoki qayta topshirishmi tekshirish
+    # Birinçi urinişmi yoki qayta topşirişmi tekşiriş
     existing_results_count = TestResult.objects.filter(
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
@@ -6072,8 +6073,8 @@ def submit_test(request, pk):
     
     if result.passed:
         if is_first_attempt and correct > 0:
-            # Faqat birinchi urinishda coin beriladi
-            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+            # Faqat birinçi urinişda coin beriladi
+            request.user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {test.lesson.title}")
             result.coin_awarded = True
             result.save()
 
@@ -6081,15 +6082,15 @@ def submit_test(request, pk):
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
+            description=f"Test topşirdi: {test.lesson.title} - {correct}/{total} töğri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
         )
 
         if is_first_attempt and correct > 0:
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (töğri javoblar)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
 
-        # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+        # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
         if test.test_type == 'final' and request.user.is_learner:
             try:
                 from .certificates import issue_course_certificate
@@ -6100,20 +6101,20 @@ def submit_test(request, pk):
                     messages.success(
                         request,
                         "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
-                        "kurs sahifasidan yuklab olishingiz mumkin!"
+                        "kurs sahifasidan yuklab olişingiz mumkin!"
                     )
             except Exception:
                 pass
     else:
-        # Testdan o'tmadi - coin berilmaydi
+        # Testdan ötmadi - coin berilmaydi
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} to'g'ri"
+            description=f"Test topşirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} töğri"
         )
-        messages.warning(request, f"Testdan o'ta olmadingiz. {correct}/{total} to'g'ri javob.")
+        messages.warning(request, f"Testdan öta olmadingiz. {correct}/{total} töğri javob.")
     
-    # Avtomatik xabar yuborish
+    # Avtomatik xabar yuboriş
     from .notifications import on_test_completed
     on_test_completed(request.user, result)
     
@@ -6124,11 +6125,11 @@ def submit_test(request, pk):
         f"📊 <b>Test natijasi!</b>\n\n"
         f"📚 Kurs: {test.lesson.profession.name}\n"
         f"📖 Dars: {test.lesson.title}\n"
-        f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
+        f"✏️ Natija: {correct}/{total} töğri ({score}%)\n"
         f"{passed_text}"
     )
 
-    # AJAX / fetch() bilan chaqirilgan bo'lsa — JSON qaytarish
+    # AJAX / fetch() bilan çaqirilgan bölsa — JSON qaytariş
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         from django.urls import reverse
         import json as _json
@@ -6190,7 +6191,7 @@ def _get_token_or_404(user, token):
 
 @login_required
 def student_course_view(request, token):
-    """O'quvchi uchun tokenli kurs sahifasi"""
+    """Öquvçi uçun tokenli kurs sahifasi"""
     token_obj = get_object_or_404(
         StudentCourseToken.objects.select_related('profession'),
         token=token, student=request.user
@@ -6198,7 +6199,7 @@ def student_course_view(request, token):
     profession = token_obj.profession
 
     if profession.is_blocked:
-        messages.warning(request, f"'{profession.name}' kursi vaqtincha bloklangan. {profession.blocked_reason or ''}")
+        messages.warning(request, f"'{profession.name}' kursi vaqtinça bloklangan. {profession.blocked_reason or ''}")
         return redirect('professions')
 
     is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
@@ -6260,7 +6261,7 @@ def student_course_view(request, token):
                 'attempted': True,
             }
 
-        # Yangi quizlar uchun Attempt natijasini qo'shish (TestResult bo'lmagan darslar)
+        # Yangi quizlar uçun Attempt natijasini qöşiş (TestResult bölmagan darslar)
         from quiz.models import Attempt as QuizAttempt
         quiz_attempts = QuizAttempt.objects.filter(
             student=request.user,
@@ -6286,7 +6287,7 @@ def student_course_view(request, token):
         for hw in hw_submissions:
             if hw.homework.lesson_id not in latest_hw:
                 latest_hw[hw.homework.lesson_id] = hw
-        # Topshirilgan vazifa darslari — test blokidan chiqarish uchun
+        # Topşirilgan vazifa darslari — test blokidan çiqariş uçun
         submitted_hw_lesson_ids = set(latest_hw.keys())
         for lesson_id, hw in latest_hw.items():
             is_completed = hw.status in ('accepted', 'graded')
@@ -6371,11 +6372,11 @@ def student_course_view(request, token):
                     else:
                         section_daily_locked[section.id] = False
 
-        # Darslar holati — bo'lim holatiga qarab (profession_detail bilan bir xil
-        # mantiq). Bo'lim ochiq bo'lsa ham, tasdiqlanmagan (pending/revision)
-        # vazifadan keyingi darslar alohida qulflanadi -- shu joy avval
-        # to'ldirilmagan bo'sh lesson_is_locked qoldirilgani sabab vazifa
-        # rad etilgan taqdirda ham keyingi darsga o'tib bo'lardi.
+        # Darslar holati — bölim holatiga qarab (profession_detail bilan bir xil
+        # mantiq). Bölim oçiq bölsa ham, tasdiqlanmagan (pending/revision)
+        # vazifadan keyingi darslar alohida qulflanadi -- şu joy avval
+        # töldirilmagan böş lesson_is_locked qoldirilgani sabab vazifa
+        # rad etilgan taqdirda ham keyingi darsga ötib bölardi.
         for section in ordered_sections:
             s_locked = section_is_locked.get(section.id)
             s_daily = section_daily_locked.get(section.id)
@@ -6388,7 +6389,7 @@ def student_course_view(request, token):
                     lesson_is_locked[l.pk] = 'daily'
             else:
                 for l in section_lessons:
-                    # Bo'lim ochilgan bo'lsa, uning barcha dars turlari birga ochiladi.
+                    # Bölim oçilgan bölsa, uning barça dars turlari birga oçiladi.
                     lesson_is_locked[l.pk] = False
 
         # Classmates
@@ -6408,7 +6409,7 @@ def student_course_view(request, token):
 
         certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
 
-    # Yakuniy testlar — alohida UI uchun
+    # Yakuniy testlar — alohida UI uçun
     final_test_lessons = []
     has_final_test = False
     if is_enrolled:
@@ -6483,12 +6484,12 @@ def student_lesson_view(request, token):
             and not final_test_prerequisites_met(request.user, profession)):
         messages.warning(
             request,
-            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+            "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring!",
         )
         course_token = StudentCourseToken.get_or_create(request.user, profession)
         return redirect('student_course_view', token=course_token.token)
 
-    # Lug'at darslariga cheklovsiz kirish
+    # Luğat darslariga çeklovsiz kiriş
     if lesson.lesson_type != 'dictionary':
         from datetime import date
         today = date.today()
@@ -6541,7 +6542,7 @@ def student_lesson_view(request, token):
                             prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
                         )
                         if not prev_section_lessons.issubset(completed_lesson_ids):
-                            messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒")
+                            messages.warning(request, "Avval oldingi bölimdagi barça darslarni bajaring! 🔒")
                             ct = StudentCourseToken.get_or_create(request.user, profession)
                             return redirect('student_course_view', token=ct.token)
 
@@ -6550,7 +6551,7 @@ def student_lesson_view(request, token):
                             user=request.user, profession=profession, accessed_date=today
                         ).select_related('section').first()
                         if today_section_access and today_section_access.section_id != current_section.id:
-                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bölimini öqiyolasiz. Yangi bölimga ertaga kirişingiz mumkin! 📚")
                             ct = StudentCourseToken.get_or_create(request.user, profession)
                             return redirect('student_course_view', token=ct.token)
 
@@ -6564,7 +6565,7 @@ def student_lesson_view(request, token):
                             section=current_section, accessed_date=today
                         )
 
-    # Kurs tokenini olish (orqaga qaytish uchun)
+    # Kurs tokenini oliş (orqaga qaytiş uçun)
     course_token = StudentCourseToken.get_or_create(request.user, profession)
 
     context = {
@@ -6575,7 +6576,7 @@ def student_lesson_view(request, token):
         'video_timer_debug': settings.DEBUG,
     }
 
-    # Keyingi darsni topish
+    # Keyingi darsni topiş
     next_lesson = None
     if lesson.section:
         next_lesson = Lesson.objects.filter(
@@ -6598,8 +6599,8 @@ def student_lesson_view(request, token):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-        # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
-        # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
+        # Sahifa render QILINIŞIDANOQ talab vaqti server tomonda yakuniy
+        # holatda bölişi kerak: aks holda birinçi heartbeat'da
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
         _ensure_gating_duration(video)
         _resolve_required_seconds(progress, video)
@@ -6629,13 +6630,13 @@ def student_lesson_view(request, token):
         submission = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         context['homework'] = homework
         context['submission'] = submission
-        # Sidebar'dagi "Keyingi dars" kartasi shu bayroqqa qarab
-        # ko'rsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bo'lsa
-        # (pending/reviewing/revision) keyingi darsga o'tish tugmasi
-        # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
-        # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
-        # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
-        # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
+        # Sidebar'dagi "Keyingi dars" kartasi şu bayroqqa qarab
+        # körsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bölsa
+        # (pending/reviewing/revision) keyingi darsga ötiş tugmasi
+        # körinmaydi, chunki server tomonida ham xuddi şu qoida
+        # (student_lesson_view'dagi homework_locked_ids tekşiruvi) bilan
+        # bloklanadi -- ikkalasi bir xil holatni aks ettirişi kerak.
+        # Vazifa TOPŞIRILGAÇ keyingi darsga (test) ötiş kartasi oçiladi — tasdiqni kutmaydi
         context['homework_approved'] = bool(
             not next_lesson
             or next_lesson.section_id == lesson.section_id
@@ -6647,8 +6648,8 @@ def student_lesson_view(request, token):
     elif lesson.lesson_type == 'test':
         quiz = getattr(lesson, 'quiz', None)
         test = getattr(lesson, 'test', None)
-        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi). Qoralama quiz
-        # o'quvchini to'xtatib qo'ymasin — u holda eski test ochiladi.
+        # Yangi quiz tizimi (agar mavjud bölsa ustun turadi). Qoralama quiz
+        # öquvçini töxtatib qöymasin — u holda eski test oçiladi.
         if quiz and quiz.status == Quiz.Status.PUBLISHED:
             return redirect('quizui:quiz_take', pk=quiz.pk)
         # Eski test tizimi
@@ -6718,7 +6719,7 @@ def student_submit_homework(request, token):
     if request.method == 'POST':
         existing = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         if existing:
-            messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+            messages.info(request, "Siz bu vazifani allaqaçon topşirgansiz!")
             return redirect('student_lesson_view', token=token_obj.token)
 
         submission_type = request.POST.get('submission_type', 'file')
@@ -6757,7 +6758,7 @@ def student_submit_homework(request, token):
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
                 _notify_homework_submitted(request.user, homework)
             else:
-                messages.error(request, "Matn kiritishingiz kerak!")
+                messages.error(request, "Matn kiritişingiz kerak!")
 
         if submission and homework.ai_check and homework.lesson.profession.ai_check_enabled:
             _schedule_ai_check(submission.pk)
@@ -6772,7 +6773,7 @@ def student_edit_homework(request, token):
     submission = get_object_or_404(HomeworkSubmission, homework__lesson=lesson, student=request.user)
 
     if not submission.can_edit:
-        messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
+        messages.error(request, "Tahrirlaş muddati tugagan (1 soat)!")
         return redirect('student_lesson_view', token=token_obj.token)
 
     if request.method == 'POST':
@@ -6784,7 +6785,7 @@ def student_edit_homework(request, token):
                 submission.file = new_file
                 submission.submission_type = 'file'
                 submission.save()
-                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+                messages.success(request, "Topşiriq muvaffaqiyatli tahrirlandi!")
             else:
                 messages.error(request, "Fayl tanlang!")
         else:
@@ -6793,7 +6794,7 @@ def student_edit_homework(request, token):
                 submission.text_content = text_content
                 submission.submission_type = 'text'
                 submission.save()
-                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+                messages.success(request, "Topşiriq muvaffaqiyatli tahrirlandi!")
             else:
                 messages.error(request, "Matn kiriting!")
 
@@ -6811,7 +6812,7 @@ def student_submit_speaking(request, token):
 
     existing = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
     if existing:
-        messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+        messages.info(request, "Siz bu vazifani allaqaçon topşirgansiz!")
         return redirect('student_lesson_view', token=token_obj.token)
 
     audio_file = request.FILES.get('audio_file')
@@ -6824,12 +6825,12 @@ def student_submit_speaking(request, token):
     )
 
     if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
-        # Audio transkripsiya + baholash 20–60 soniya oladi — fonda bajariladi.
+        # Audio transkripsiya + baholaş 20–60 soniya oladi — fonda bajariladi.
         from teacher.views import apply_ai_speaking_grade
         ai_jobs.submit(apply_ai_speaking_grade, submission.pk)
-        messages.success(request, "Speaking vazifa topshirildi! 🤖 AI uni bir necha daqiqada tekshiradi — natijani shu sahifada ko'rasiz.")
+        messages.success(request, "Speaking vazifa topşirildi! 🤖 AI uni bir neça daqiqada tekşiradi — natijani şu sahifada körasiz.")
     else:
-        messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+        messages.success(request, "Speaking vazifa muvaffaqiyatli topşirildi!")
 
     return redirect('student_lesson_view', token=token_obj.token)
 
@@ -6849,7 +6850,7 @@ def student_start_test(request, token):
             and not final_test_prerequisites_met(request.user, profession)):
         messages.warning(
             request,
-            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+            "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring!",
         )
         course_token = StudentCourseToken.get_or_create(request.user, profession)
         return redirect('student_course_view', token=course_token.token)
@@ -6861,11 +6862,11 @@ def student_start_test(request, token):
                 student=request.user, test=test, status='approved'
             ).first()
             if not approved_payment:
-                messages.info(request, "Yakuniy testni qayta ishlash uchun to'lov qilishingiz kerak (65,000 so'm).")
+                messages.info(request, "Yakuniy testni qayta işlaş uçun tölov qilişingiz kerak (65,000 söm).")
                 return redirect('final_test_payment', pk=test.pk)
             approved_payment.delete()
         elif not test.allow_retry:
-            messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
+            messages.info(request, "Siz bu testni allaqaçon topşirgansiz.")
             return redirect('student_test_result', token=token_obj.token, result_pk=existing_result.pk)
 
     sq_key = f'test_{test.pk}_questions'
@@ -6916,7 +6917,7 @@ def student_start_test(request, token):
 
     if existing_result and test.allow_retry and test.test_type != 'final':
         retry_cost = 5 if request.user.is_premium else 10
-        request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
+        request.user.remove_coins(retry_cost, f"Test qayta topşiriş: {test.lesson.title}")
 
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
 
@@ -6970,7 +6971,7 @@ def student_submit_test(request, token):
             and not final_test_prerequisites_met(request.user, lesson.profession)):
         messages.warning(
             request,
-            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+            "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring!",
         )
         course_token = StudentCourseToken.get_or_create(request.user, lesson.profession)
         return redirect('student_course_view', token=course_token.token)
@@ -6996,7 +6997,7 @@ def student_submit_test(request, token):
         elapsed_seconds = (timezone.now() - started_at).total_seconds()
         allowed_seconds = test.time_limit * 60 + 60
         if elapsed_seconds > allowed_seconds:
-            messages.warning(request, "Vaqt chegarasi o'tgan! Natijalar server vaqti bilan tekshirildi.")
+            messages.warning(request, "Vaqt çegarasi ötgan! Natijalar server vaqti bilan tekşirildi.")
 
     shown_question_ids = request.session.get(f'test_{test.pk}_questions')
     if shown_question_ids:
@@ -7038,7 +7039,7 @@ def student_submit_test(request, token):
     result.passed = score >= test.passing_score
     result.save()
 
-    # Birinchi urinishmi yoki qayta topshirishmi tekshirish
+    # Birinçi urinişmi yoki qayta topşirişmi tekşiriş
     existing_results_count = TestResult.objects.filter(
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
@@ -7046,22 +7047,22 @@ def student_submit_test(request, token):
 
     if result.passed:
         if is_first_attempt and correct > 0:
-            # Faqat birinchi urinishda coin beriladi
-            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+            # Faqat birinçi urinişda coin beriladi
+            request.user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {test.lesson.title}")
             result.coin_awarded = True
             result.save()
 
         ActivityLog.objects.create(
             user=request.user, action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
+            description=f"Test topşirdi: {test.lesson.title} - {correct}/{total} töğri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
         )
 
         if is_first_attempt and correct > 0:
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (töğri javoblar)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
 
-        # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+        # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
         if test.test_type == 'final' and request.user.is_learner:
             try:
                 from .certificates import issue_course_certificate
@@ -7072,16 +7073,16 @@ def student_submit_test(request, token):
                     messages.success(
                         request,
                         "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
-                        "kurs sahifasidan yuklab olishingiz mumkin!"
+                        "kurs sahifasidan yuklab olişingiz mumkin!"
                     )
             except Exception:
                 pass
     else:
         ActivityLog.objects.create(
             user=request.user, action_type='submit_test',
-            description=f"Test topshirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} to'g'ri"
+            description=f"Test topşirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} töğri"
         )
-        messages.warning(request, f"Testdan o'ta olmadingiz. {correct}/{total} to'g'ri javob.")
+        messages.warning(request, f"Testdan öta olmadingiz. {correct}/{total} töğri javob.")
 
     from .notifications import on_test_completed
     on_test_completed(request.user, result)
@@ -7092,7 +7093,7 @@ def student_submit_test(request, token):
         f"📊 <b>Test natijasi!</b>\n\n"
         f"📚 Kurs: {test.lesson.profession.name}\n"
         f"📖 Dars: {test.lesson.title}\n"
-        f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
+        f"✏️ Natija: {correct}/{total} töğri ({score}%)\n"
         f"{passed_text}"
     )
 
@@ -7154,27 +7155,27 @@ def student_test_result(request, token, result_pk):
 
 @login_required
 def complete_profile(request):
-    """Profilni to'ldirish / akkauntni tasdiqlash (verify).
+    """Profilni töldiriş / akkauntni tasdiqlaş (verify).
 
-    Foydalanuvchi pasport yoki metrika kiritib profilni tasdiqlaydi. Formani
-    o'tkazib yuborishi (skip) mumkin — bunda joriy sessiyada davom etadi, ammo
-    keyingi login'da yana so'raladi (skip belgisi login'da tozalanadi).
+    Foydalanuvçi pasport yoki metrika kiritib profilni tasdiqlaydi. Formani
+    ötkazib yuborişi (skip) mumkin — bunda joriy sessiyada davom etadi, ammo
+    keyingi login'da yana söraladi (skip belgisi login'da tozalanadi).
     """
     from .forms import StudentProfileCompleteForm
 
-    # Agar profil to'liq to'ldirilgan (tug'ilgan sana bilan) bo'lsa
+    # Agar profil töliq töldirilgan (tuğilgan sana bilan) bölsa
     if request.user.is_profile_completed and request.user.birth_date:
         return redirect('home')
 
-    # ⏭️ "Keyinroq to'ldiraman" — shu sessiya uchun o'tkazib yuboriladi.
-    # Faqat tug'ilgan sanasi BOR o'quvchilar skip qilishi mumkin: sana
-    # yo'q bo'lsa keyingi kirishda yana so'raladi.
+    # ⏭️ "Keyinroq töldiraman" — şu sessiya uçun ötkazib yuboriladi.
+    # Faqat tuğilgan sanasi BOR öquvçilar skip qilişi mumkin: sana
+    # yöq bölsa keyingi kirişda yana söraladi.
     if request.method == 'POST' and request.POST.get('action') == 'skip':
         if request.user.birth_date:
             request.session['profile_verify_skipped'] = True
-            messages.info(request, "Profil to'ldirish keyinga qoldirildi. Keyingi kirishda yana so'raladi.")
+            messages.info(request, "Profil töldiriş keyinga qoldirildi. Keyingi kirişda yana söraladi.")
             return redirect('home')
-        messages.warning(request, "Tug'ilgan sana majburiy — iltimos formani to'ldiring!")
+        messages.warning(request, "Tuğilgan sana majburiy — iltimos formani töldiring!")
         return redirect('complete_profile')
 
     if request.method == 'POST':
@@ -7183,14 +7184,14 @@ def complete_profile(request):
             user = form.save(commit=False)
             if user.check_profile_completed():
                 user.is_profile_completed = True
-                user.is_verified = True  # hujjat to'ldirildi — akkaunt tasdiqlandi
+                user.is_verified = True  # hujjat töldirildi — akkaunt tasdiqlandi
             user.save()
             if user.is_profile_completed:
                 request.session.pop('profile_verify_skipped', None)
-                messages.success(request, "Profilingiz to'ldirildi va akkauntingiz tasdiqlandi! ✅")
+                messages.success(request, "Profilingiz töldirildi va akkauntingiz tasdiqlandi! ✅")
                 return redirect('home')
             else:
-                messages.warning(request, "Iltimos, barcha majburiy maydonlarni to'ldiring!")
+                messages.warning(request, "Iltimos, barça majburiy maydonlarni töldiring!")
     else:
         form = StudentProfileCompleteForm(instance=request.user)
 
@@ -7257,7 +7258,7 @@ def profile_view(request):
     total_homeworks_submitted = hw_submissions.count()
     avg_homework_grade = round(hw_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0, 1)
     
-    # XP / Daraja tizimi (bosh sahifa bilan bir xil): 100 XP = 1 daraja
+    # XP / Daraja tizimi (boş sahifa bilan bir xil): 100 XP = 1 daraja
     _xp = int(getattr(request.user, 'coins', 0) or 0)
     profile_level = _xp // 100 + 1
     profile_xp = _xp
@@ -7318,12 +7319,12 @@ def save_weather_effect(request):
 @login_required
 @require_POST
 def save_navigation_preferences(request):
-    """Navigatsiya ko'rinishi sozlamalarini akkauntga saqlash (JSON, CSRF bilan)."""
+    """Navigatsiya körinişi sozlamalarini akkauntga saqlaş (JSON, CSRF bilan)."""
     from .nav_preferences import clean, save_prefs
     try:
         data = json.loads(request.body or b'{}')
     except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse({'status': 'error', 'error': "Noto'g'ri so'rov"}, status=400)
+        return JsonResponse({'status': 'error', 'error': "Notöğri sörov"}, status=400)
     changes = clean(data)
     if not changes:
         return JsonResponse({'status': 'error', 'error': "Sozlama topilmadi"}, status=400)
@@ -7333,24 +7334,24 @@ def save_navigation_preferences(request):
 
 @login_required
 def classmates_view(request, pk):
-    """Kursdoshlar ro'yxati"""
+    """Kursdoşlar röyxati"""
     profession = get_object_or_404(Profession, pk=pk)
     
-    # O'qituvchi faqat o'zi tayinlangan kurslarga kirishi mumkin
+    # Öqituvçi faqat özi tayinlangan kurslarga kirişi mumkin
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     
-    # Faqat premium foydalanuvchilar, admin va o'qituvchilar kirishi mumkin
+    # Faqat premium foydalanuvçilar, admin va öqituvçilar kirişi mumkin
     if not request.user.is_admin and not request.user.is_teacher:
         if not request.user.is_premium:
-            messages.warning(request, "Kursdoshlar bo'limi faqat Premium foydalanuvchilar uchun! 💎")
+            messages.warning(request, "Kursdoşlar bölimi faqat Premium foydalanuvçilar uçun! 💎")
             return redirect('profession_detail', pk=pk)
         if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
             messages.error(request, "Avval kursga yoziling!")
             return redirect('profession_detail', pk=pk)
     
-    # Kursdoshlar
+    # Kursdoşlar
     classmates = CustomUser.objects.filter(
         enrollments__profession=profession,
         role='student'
@@ -7364,20 +7365,20 @@ def classmates_view(request, pk):
 
 @login_required
 def student_public_profile(request, pk):
-    """Boshqa o'quvchining umumiy profili"""
+    """Boşqa öquvçining umumiy profili"""
     student = get_object_or_404(CustomUser, pk=pk)
     
-    # Faqat o'quvchilar ko'rinishi mumkin
+    # Faqat öquvçilar körinişi mumkin
     if student.role != 'student':
         messages.error(request, "Bu sahifa mavjud emas!")
         return redirect('home')
     
-    # Bloklangan foydalanuvchi tekshiruvi
+    # Bloklangan foydalanuvçi tekşiruvi
     if hasattr(request.user, 'is_blocked') and request.user.is_blocked:
         messages.error(request, "Sizning akkauntingiz bloklangan!")
         return redirect('home')
     
-    # Bloklangan o'quvchi profili ko'rinmas
+    # Bloklangan öquvçi profili körinmas
     if student.is_blocked:
         messages.error(request, "Bu profil mavjud emas!")
         return redirect('home')
@@ -7397,7 +7398,7 @@ def student_public_profile(request, pk):
     # Tugallangan kurslar soni
     completed_count = certificates.count()
 
-    # Barcha kurslar (yozilgan)
+    # Barça kurslar (yozilgan)
     all_enrollments = student_enrollments
     
     # Ball statistika
@@ -7424,7 +7425,7 @@ def student_public_profile(request, pk):
 
 @login_required
 def teacher_public_profile(request, pk):
-    """O'qituvchining umumiy profili (o'quvchilar uchun)"""
+    """Öqituvçining umumiy profili (öquvçilar uçun)"""
     from teacher.models import TeacherCertificate
     teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
     courses = teacher.teaching_professions.all()
@@ -7451,9 +7452,9 @@ def profile_edit_view(request):
                 user.save()
                 if user.pending_email:
                     if send_verification(user, request):
-                        messages.info(request, 'Yangi emailga tasdiqlash havolasi yuborildi. Hali bog‘lanmagan.')
+                        messages.info(request, 'Yangi emailga tasdiqlaş havolasi yuborildi. Hali boğlanmagan.')
                     else:
-                        messages.warning(request, 'Tasdiqlash havolasi yuborilmadi. Qayta yuborishni bosing.')
+                        messages.warning(request, 'Tasdiqlaş havolasi yuborilmadi. Qayta yuborişni bosing.')
             else:
                 user.save()
             messages.success(request, "Profil muvaffaqiyatli yangilandi!")
@@ -7470,7 +7471,7 @@ def change_password_view(request):
         form = ChangePasswordForm(request.POST)
         if form.is_valid():
             if not request.user.check_password(form.cleaned_data['old_password']):
-                messages.error(request, "Joriy parol noto'g'ri!")
+                messages.error(request, "Joriy parol notöğri!")
             else:
                 request.user.set_password(form.cleaned_data['new_password1'])
                 request.user.save()
@@ -7480,7 +7481,7 @@ def change_password_view(request):
                 from .notifications import check_password_changed
                 check_password_changed(request.user)
                 
-                messages.success(request, "Parol muvaffaqiyatli o'zgartirildi!")
+                messages.success(request, "Parol muvaffaqiyatli özgartirildi!")
                 return redirect('profile')
     else:
         form = ChangePasswordForm()
@@ -7577,17 +7578,17 @@ def export_student_pdf(request, pk=None):
         ]))
         return t
     
-    elements.append(Paragraph(f"O'quvchi anketa: {student.full_name}", styles['Heading1']))
+    elements.append(Paragraph(f"Öquvçi anketa: {student.full_name}", styles['Heading1']))
     elements.append(Paragraph(f"Sana: {timezone.now().strftime('%d.%m.%Y')}", styles['Normal']))
     elements.append(Spacer(1, 16))
     
-    # Shaxsiy ma'lumotlar
-    elements.append(Paragraph("Shaxsiy ma'lumotlar", heading_style))
+    # Şaxsiy ma'lumotlar
+    elements.append(Paragraph("Şaxsiy ma'lumotlar", heading_style))
     personal_data = [
         ["Ma'lumot", 'Qiymat'],
         ['Ism', student.first_name or '-'],
         ['Familiya', student.last_name or '-'],
-        ["Tug'ilgan kuni", student.birth_date.strftime('%d.%m.%Y') if student.birth_date else '-'],
+        ["Tuğilgan kuni", student.birth_date.strftime('%d.%m.%Y') if student.birth_date else '-'],
         ['Jinsi', student.get_gender_display() if student.gender else '-'],
         ['Millati', student.nationality or '-'],
         ['Telefon', student.phone or '-'],
@@ -7602,7 +7603,7 @@ def export_student_pdf(request, pk=None):
         ["Ma'lumot", 'Qiymat'],
         ['Pasport seriyasi', student.passport_series or '-'],
         ['Pasport raqami', student.passport_number or '-'],
-        ['JSHSHIR (PINFL)', student.jshshir or '-'],
+        ['JŞŞIR (PINFL)', student.jshshir or '-'],
         ['Berilgan sana', student.passport_issued_date.strftime('%d.%m.%Y') if student.passport_issued_date else '-'],
     ]
     elements.append(make_table(passport_data))
@@ -7612,9 +7613,9 @@ def export_student_pdf(request, pk=None):
     elements.append(Paragraph("Ota ma'lumotlari", heading_style))
     father_data = [
         ["Ma'lumot", 'Qiymat'],
-        ["To'liq ismi", student.father_name or '-'],
+        ["Töliq ismi", student.father_name or '-'],
         ['Telefon raqami', student.father_phone or '-'],
-        ['Vafot etgan', 'Ha' if student.father_deceased else "Yo'q"],
+        ['Vafot etgan', 'Ha' if student.father_deceased else "Yöq"],
     ]
     elements.append(make_table(father_data))
     elements.append(Spacer(1, 12))
@@ -7623,9 +7624,9 @@ def export_student_pdf(request, pk=None):
     elements.append(Paragraph("Ona ma'lumotlari", heading_style))
     mother_data = [
         ["Ma'lumot", 'Qiymat'],
-        ["To'liq ismi", student.mother_name or '-'],
+        ["Töliq ismi", student.mother_name or '-'],
         ['Telefon raqami', student.mother_phone or '-'],
-        ['Vafot etgan', 'Ha' if student.mother_deceased else "Yo'q"],
+        ['Vafot etgan', 'Ha' if student.mother_deceased else "Yöq"],
     ]
     elements.append(make_table(mother_data))
     elements.append(Spacer(1, 12))
@@ -7650,13 +7651,13 @@ def export_student_pdf(request, pk=None):
     elements.append(Spacer(1, 16))
     
     # Statistika
-    elements.append(Paragraph("O'quv statistikasi", heading_style))
+    elements.append(Paragraph("Öquv statistikasi", heading_style))
     stats_data = [
-        ["Ko'rsatkich", 'Qiymat'],
+        ["Körsatkiç", 'Qiymat'],
         ['Jami coinlar', str(student.coins)],
-        ["Ko'rilgan videolar", str(VideoProgress.objects.filter(user=student, watched=True).count())],
+        ["Körilgan videolar", str(VideoProgress.objects.filter(user=student, watched=True).count())],
         ['Test natijalari', str(TestResult.objects.filter(student=student).count())],
-        ['Topshirilgan vazifalar', str(HomeworkSubmission.objects.filter(student=student).count())],
+        ['Topşirilgan vazifalar', str(HomeworkSubmission.objects.filter(student=student).count())],
     ]
     elements.append(make_table(stats_data))
     
@@ -7671,7 +7672,7 @@ def export_student_pdf(request, pk=None):
 @login_required
 def export_system_pdf(request):
     if not request.user.is_admin:
-        messages.error(request, "Bu sahifaga kirish huquqingiz yo'q!")
+        messages.error(request, "Bu sahifaga kiriş huquqingiz yöq!")
         return redirect('home')
     
     from reportlab.lib import colors
@@ -7710,7 +7711,7 @@ def export_system_pdf(request):
         ]))
         return table
     
-    # ===== FILTRLAR (yil / oy / kurs yo'nalishi) =====
+    # ===== FILTRLAR (yil / oy / kurs yönalişi) =====
     f = _parse_stats_filters(request)
     start_date, end_date, profession = f['start_date'], f['end_date'], f['profession']
     today = timezone.now().date()
@@ -7725,15 +7726,15 @@ def export_system_pdf(request):
 
     elements.append(Paragraph("Tizim Statistikasi - Umumiy Hisobot", styles['Title']))
     elements.append(Paragraph(f"Hisobot sanasi: {timezone.now().strftime('%d.%m.%Y %H:%M')}", styles['Normal']))
-    # Filtr yorlig'i
+    # Filtr yorliği
     period_style = ParagraphStyle(
         'PeriodStyle', parent=styles['Normal'],
         fontSize=11, textColor=colors.HexColor('#dc2626'), spaceBefore=4
     )
-    elements.append(Paragraph(f"Filtr (davr / yo'nalish): {f['label']}", period_style))
+    elements.append(Paragraph(f"Filtr (davr / yönaliş): {f['label']}", period_style))
     elements.append(Spacer(1, 20))
 
-    # ===== 1. Foydalanuvchilar =====
+    # ===== 1. Foydalanuvçilar =====
     users_qs = CustomUser.objects.all()
     students_qs = CustomUser.objects.filter(role='student')
     teachers_qs = CustomUser.objects.filter(role='teacher')
@@ -7754,12 +7755,12 @@ def export_system_pdf(request):
     total_teachers = teachers_qs.count()
     total_admins = CustomUser.objects.filter(role='admin').count()
     
-    elements.append(Paragraph("1. Foydalanuvchilar statistikasi", heading_style))
+    elements.append(Paragraph("1. Foydalanuvçilar statistikasi", heading_style))
     user_data = [
-        ["Ko'rsatkich", 'Soni'],
-        ['Jami foydalanuvchilar', str(total_users)],
-        ["O'quvchilar", str(total_students)],
-        ["O'qituvchilar", str(total_teachers)],
+        ["Körsatkiç", 'Soni'],
+        ['Jami foydalanuvçilar', str(total_users)],
+        ["Öquvçilar", str(total_students)],
+        ["Öqituvçilar", str(total_teachers)],
         ['Adminlar', str(total_admins)],
     ]
     elements.append(create_table(user_data))
@@ -7780,7 +7781,7 @@ def export_system_pdf(request):
     ).order_by('-student_count')
     
     elements.append(Paragraph("2. Kurslar va talabalar", heading_style))
-    course_data = [['Kurs nomi', "O'quvchilar soni"]]
+    course_data = [['Kurs nomi', "Öquvçilar soni"]]
     for course in courses_with_students[:10]:
         course_data.append([course.name[:40], str(course.student_count)])
     if total_courses > 10:
@@ -7805,7 +7806,7 @@ def export_system_pdf(request):
     
     elements.append(Paragraph("3. Dars materiallari", heading_style))
     lesson_data = [
-        ["Ko'rsatkich", 'Soni'],
+        ["Körsatkiç", 'Soni'],
         ['Jami darslar', str(total_lessons)],
         ['Videodarslar', str(total_videos)],
         ['Testlar', str(total_tests)],
@@ -7826,11 +7827,11 @@ def export_system_pdf(request):
     
     elements.append(Paragraph("4. Test natijalari", heading_style))
     test_data = [
-        ["Ko'rsatkich", 'Qiymat'],
-        ["Jami topshirilgan testlar", str(total_test_results)],
-        ["Muvaffaqiyatli o'tganlar", str(passed_tests)],
+        ["Körsatkiç", 'Qiymat'],
+        ["Jami topşirilgan testlar", str(total_test_results)],
+        ["Muvaffaqiyatli ötganlar", str(passed_tests)],
         ["Muvaffaqiyatsiz", str(failed_tests)],
-        ["O'rtacha ball", f"{avg_score:.1f}%"],
+        ["Örtaça ball", f"{avg_score:.1f}%"],
     ]
     elements.append(create_table(test_data))
     elements.append(Spacer(1, 15))
@@ -7847,16 +7848,16 @@ def export_system_pdf(request):
     
     elements.append(Paragraph("5. Uy vazifalari holati", heading_style))
     hw_data = [
-        ["Ko'rsatkich", 'Qiymat'],
-        ['Jami topshirilgan vazifalar', str(total_submissions)],
+        ["Körsatkiç", 'Qiymat'],
+        ['Jami topşirilgan vazifalar', str(total_submissions)],
         ['Baholanmagan (kutilmoqda)', str(pending_homeworks)],
         ['Baholangan', str(graded_homeworks)],
-        ["O'rtacha baho", f"{avg_grade:.1f}"],
+        ["Örtaça baho", f"{avg_grade:.1f}"],
     ]
     elements.append(create_table(hw_data))
     elements.append(Spacer(1, 15))
     
-    # ===== 6. Coin statistikasi (davr bo'yicha) =====
+    # ===== 6. Coin statistikasi (davr böyiça) =====
     coin_tx_qs = CoinTransaction.objects.filter(**date_range('created_at'))
     total_transactions = coin_tx_qs.count()
     total_coins = CustomUser.objects.aggregate(Sum('coins'))['coins__sum'] or 0
@@ -7864,30 +7865,30 @@ def export_system_pdf(request):
     
     elements.append(Paragraph("6. Coin statistikasi", heading_style))
     coin_data = [
-        ["Ko'rsatkich", 'Qiymat'],
+        ["Körsatkiç", 'Qiymat'],
         ['Jami mavjud coinlar', str(total_coins)],
         ['Coin tranzaksiyalari (davr)', str(total_transactions)],
-        ["Har bir foydalanuvchiga o'rtacha", f"{avg_coins_per_user:.1f}"],
+        ["Har bir foydalanuvçiga örtaça", f"{avg_coins_per_user:.1f}"],
     ]
     elements.append(create_table(coin_data))
     elements.append(Spacer(1, 15))
     
-    # ===== 7. Kursga yozilish =====
+    # ===== 7. Kursga yoziliş =====
     enroll_qs = CourseEnrollment.objects.all()
     if profession:
         enroll_qs = enroll_qs.filter(profession=profession)
     enroll_qs = enroll_qs.filter(**date_range('enrolled_at'))
     total_enrollments = enroll_qs.count()
     
-    elements.append(Paragraph("7. Kursga yozilish statistikasi", heading_style))
+    elements.append(Paragraph("7. Kursga yoziliş statistikasi", heading_style))
     enroll_data = [
-        ["Ko'rsatkich", 'Soni'],
-        ["Jami yozilishlar", str(total_enrollments)],
+        ["Körsatkiç", 'Soni'],
+        ["Jami yozilişlar", str(total_enrollments)],
     ]
     elements.append(create_table(enroll_data))
     elements.append(Spacer(1, 15))
     
-    # ===== 8. To'lovlar (davr bo'yicha) =====
+    # ===== 8. Tölovlar (davr böyiça) =====
     pay_qs = PaymentRecord.objects.all()
     if f['year'] and f['month']:
         pay_qs = pay_qs.filter(year=f['year'], month=f['month'])
@@ -7905,12 +7906,12 @@ def export_system_pdf(request):
     pay_unpaid = pay_qs.filter(is_paid=False).count()
     pay_revenue = pay_qs.aggregate(total=Sum('paid_amount'))['total'] or 0
     
-    elements.append(Paragraph(f"8. To'lovlar ({pay_label})", heading_style))
+    elements.append(Paragraph(f"8. Tölovlar ({pay_label})", heading_style))
     pay_data = [
-        ["Ko'rsatkich", 'Qiymat'],
-        ["To'langan", str(pay_paid)],
-        ["To'lanmagan", str(pay_unpaid)],
-        ["Yig'ilgan summa", f"{pay_revenue:,.0f} so'm"],
+        ["Körsatkiç", 'Qiymat'],
+        ["Tölangan", str(pay_paid)],
+        ["Tölanmagan", str(pay_unpaid)],
+        ["Yiğilgan summa", f"{pay_revenue:,.0f} söm"],
     ]
     elements.append(create_table(pay_data))
     elements.append(Spacer(1, 15))
@@ -7922,7 +7923,7 @@ def export_system_pdf(request):
             Q(enrollments__profession=profession) | Q(profession=profession)
         ).distinct()
     elements.append(Paragraph("9. Oxirgi 7 kunlik registratsiya", heading_style))
-    reg_data = [['Sana', "Yangi foydalanuvchilar"]]
+    reg_data = [['Sana', "Yangi foydalanuvçilar"]]
     for i in range(6, -1, -1):
         day = timezone.now().date() - timedelta(days=i)
         count = reg_base.filter(date_joined__date=day).count()
@@ -7946,7 +7947,7 @@ def leaderboard(request):
 # Messages views
 @login_required
 def messages_view(request):
-    # Shaxsiy xabarlar
+    # Şaxsiy xabarlar
     personal_messages = Message.objects.filter(recipient=request.user)
     
     # Umumiy xabarlar
@@ -7965,7 +7966,7 @@ def messages_view(request):
     
     all_messages = (personal_messages | general_messages).distinct().order_by('-created_at')
     
-    # O'qilmagan xabarlar sonini yangilash
+    # Öqilmagan xabarlar sonini yangilaş
     unread_count = all_messages.filter(is_read=False).count()
     
     read_count = personal_messages.filter(is_read=True).count()
@@ -7983,13 +7984,13 @@ def messages_view(request):
 def message_detail(request, pk):
     message = get_object_or_404(Message, pk=pk)
     
-    # Faqat o'ziga tegishli xabarlarni ko'rish
+    # Faqat öziga tegişli xabarlarni köriş
     if message.recipient and message.recipient != request.user:
         if not request.user.is_admin:
-            messages.error(request, "Bu xabarga kirish huquqingiz yo'q!")
+            messages.error(request, "Bu xabarga kiriş huquqingiz yöq!")
             return redirect('messages')
     
-    # O'qilgan deb belgilash
+    # Öqilgan deb belgilaş
     if not message.is_read and message.recipient == request.user:
         message.is_read = True
         message.save()
@@ -8025,9 +8026,9 @@ def delete_read_messages(request):
     if request.method == 'POST':
         mode = request.POST.get('mode', 'read')
         if mode == 'all':
-            # Shaxsiy xabarlarni o'chirish
+            # Şaxsiy xabarlarni öçiriş
             personal_deleted = Message.objects.filter(recipient=request.user).delete()[0]
-            # Umumiy xabarlarni ham o'chirish
+            # Umumiy xabarlarni ham öçiriş
             if request.user.is_student:
                 general_q = Q(message_type__in=['all', 'students'], recipient__isnull=True)
             elif request.user.is_teacher:
@@ -8036,10 +8037,10 @@ def delete_read_messages(request):
                 general_q = Q(message_type='all', recipient__isnull=True)
             general_deleted = Message.objects.filter(general_q).delete()[0]
             total = personal_deleted + general_deleted
-            messages.success(request, f"{total} ta xabar o'chirildi!")
+            messages.success(request, f"{total} ta xabar öçirildi!")
         else:
             deleted_count = Message.objects.filter(recipient=request.user, is_read=True).delete()[0]
-            messages.success(request, f"{deleted_count} ta o'qilgan xabar o'chirildi!")
+            messages.success(request, f"{deleted_count} ta öqilgan xabar öçirildi!")
     return redirect('messages')
 
 
@@ -8085,7 +8086,7 @@ def admin_send_message(request):
                         sender=request.user
                     )
             else:
-                # Barchaga
+                # Barçaga
                 users = CustomUser.objects.exclude(role='admin')
                 for user in users:
                     Message.objects.create(
@@ -8131,21 +8132,21 @@ def send_payment_reminder(request, pk):
     student = get_object_or_404(CustomUser, pk=pk, role='student')
     Message.objects.create(
         sender=request.user, recipient=student,
-        title="💳 To'lov eslatmasi",
-        content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+        title="💳 Tölov eslatmasi",
+        content=f"Hurmatli {student.full_name},\n\nSizning oylik tölovingiz muddati yaqinlaşmoqda. Iltimos, öz vaqtida tölov qilişni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
         message_type='payment'
     )
     notify_user(
         student.telegram_id,
-        f"💳 <b>To'lov eslatmasi</b>\n\n"
+        f"💳 <b>Tölov eslatmasi</b>\n\n"
         f"Hurmatli {student.full_name},\n\n"
-        f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
-        f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+        f"Sizning oylik tölovingiz muddati yaqinlaşmoqda.\n"
+        f"Iltimos, öz vaqtida tölov qilişni unutmang.\n\n"
         f"🏫 IT Creative jamoasi"
     )
     notify_group(
-        f"💳 <b>To'lov eslatmasi yuborildi</b>\n\n"
-        f"👤 {student.full_name}ga to'lov eslatmasi yuborildi."
+        f"💳 <b>Tölov eslatmasi yuborildi</b>\n\n"
+        f"👤 {student.full_name}ga tölov eslatmasi yuborildi."
     )
     messages.success(request, f"{student.full_name}ga eslatma yuborildi!")
     month = request.GET.get('month', '')
@@ -8166,8 +8167,8 @@ def send_bulk_payment_reminders(request):
         unpaid_ids = PaymentRecord.objects.filter(
             month=m, year=y, is_paid=False
         ).values_list('user_id', flat=True)
-        # Shartnoma rejimidagi va kursni tugatgan o'quvchilarga oylik to'lov
-        # eslatmasi yuborilmaydi — ular oylik to'lovga aloqador emas.
+        # Şartnoma rejimidagi va kursni tugatgan öquvçilarga oylik tölov
+        # eslatmasi yuborilmaydi — ular oylik tölovga aloqador emas.
         unpaid_students = CustomUser.objects.filter(
             pk__in=unpaid_ids, role='student', is_finished=False
         ).exclude(student_balance__is_contract=True)
@@ -8176,25 +8177,25 @@ def send_bulk_payment_reminders(request):
         for student in unpaid_students:
             Message.objects.create(
                 sender=request.user, recipient=student,
-                title="💳 To'lov eslatmasi",
-                content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+                title="💳 Tölov eslatmasi",
+                content=f"Hurmatli {student.full_name},\n\nSizning oylik tölovingiz muddati yaqinlaşmoqda. Iltimos, öz vaqtida tölov qilişni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                 message_type='payment'
             )
             notify_user(
                 student.telegram_id,
-                f"💳 <b>To'lov eslatmasi</b>\n\n"
+                f"💳 <b>Tölov eslatmasi</b>\n\n"
                 f"Hurmatli {student.full_name},\n\n"
-                f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
-                f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+                f"Sizning oylik tölovingiz muddati yaqinlaşmoqda.\n"
+                f"Iltimos, öz vaqtida tölov qilişni unutmang.\n\n"
                 f"🏫 IT Creative jamoasi"
             )
             count += 1
 
         notify_group(
-            f"💳 <b>Ommaviy to'lov eslatmasi</b>\n\n"
-            f"📊 {count} ta o'quvchiga to'lov eslatmasi yuborildi."
+            f"💳 <b>Ommaviy tölov eslatmasi</b>\n\n"
+            f"📊 {count} ta öquvçiga tölov eslatmasi yuborildi."
         )
-        messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
+        messages.success(request, f"{count} ta öquvçiga eslatma yuborildi!")
 
     return redirect(f'/dashboard/tolovlar/?month={m}&year={y}')
 
@@ -8213,18 +8214,18 @@ def admin_toggle_block_payment(request, pk):
         payment_status.auto_blocked = False
         payment_status.save()
         Message.objects.create(
-            title="✅ Hisobingiz ochildi",
-            content="Admin hisobingizni ochdi. O'qishingizni davom eting!",
+            title="✅ Hisobingiz oçildi",
+            content="Admin hisobingizni oçdi. Öqişingizni davom eting!",
             message_type='system', recipient=user, sender=request.user
         )
         if user.telegram_id:
             notify_user(
                 user.telegram_id,
-                f"✅ <b>Hisobingiz blokdan chiqarildi!</b>\n\n"
+                f"✅ <b>Hisobingiz blokdan çiqarildi!</b>\n\n"
                 f"👤 {user.full_name}\n\n"
-                f"🎉 Hisobingiz ochildi. O'qishingizni davom eting!"
+                f"🎉 Hisobingiz oçildi. Öqişingizni davom eting!"
             )
-        messages.success(request, f"{user.full_name} blokdan ochildi!")
+        messages.success(request, f"{user.full_name} blokdan oçildi!")
     else:
         user.is_blocked = True
         user.save()
@@ -8232,7 +8233,7 @@ def admin_toggle_block_payment(request, pk):
         payment_status.save()
         Message.objects.create(
             title="🚫 Hisobingiz bloklandi",
-            content="To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.",
+            content="Tölov qilinmaganligi sababli hisobingiz vaqtinça bloklandi.",
             message_type='payment', recipient=user, sender=request.user
         )
         if user.telegram_id:
@@ -8240,8 +8241,8 @@ def admin_toggle_block_payment(request, pk):
                 user.telegram_id,
                 f"🚫 <b>Hisobingiz bloklandi!</b>\n\n"
                 f"👤 {user.full_name}\n\n"
-                f"❌ To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.\n"
-                f"💳 To'lovni amalga oshiring yoki adminstratsiya bilan bog'laning."
+                f"❌ Tölov qilinmaganligi sababli hisobingiz vaqtinça bloklandi.\n"
+                f"💳 Tölovni amalga oşiring yoki adminstratsiya bilan boğlaning."
             )
         messages.warning(request, f"{user.full_name} bloklandi!")
 
@@ -8264,7 +8265,7 @@ def bulk_payment_action(request):
         year = request.POST.get('year', str(today.year))
 
         if not ids_str:
-            messages.warning(request, "Hech qanday o'quvchi tanlanmadi!")
+            messages.warning(request, "Heç qanday öquvçi tanlanmadi!")
             return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
         student_ids = [int(x) for x in ids_str.split(',') if x.strip().isdigit()]
@@ -8281,11 +8282,11 @@ def bulk_payment_action(request):
                     ps.save()
                     Message.objects.create(
                         title="🚫 Hisobingiz bloklandi",
-                        content="To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.",
+                        content="Tölov qilinmaganligi sababli hisobingiz vaqtinça bloklandi.",
                         message_type='payment', recipient=student, sender=request.user
                     )
                     count += 1
-            messages.warning(request, f"{count} ta o'quvchi bloklandi!")
+            messages.warning(request, f"{count} ta öquvçi bloklandi!")
 
         elif action == 'unblock':
             count = 0
@@ -8297,12 +8298,12 @@ def bulk_payment_action(request):
                     ps.auto_blocked = False
                     ps.save()
                     Message.objects.create(
-                        title="✅ Hisobingiz ochildi",
-                        content="Admin hisobingizni ochdi. O'qishingizni davom eting!",
+                        title="✅ Hisobingiz oçildi",
+                        content="Admin hisobingizni oçdi. Öqişingizni davom eting!",
                         message_type='system', recipient=student, sender=request.user
                     )
                     count += 1
-            messages.success(request, f"{count} ta o'quvchi blokdan ochildi!")
+            messages.success(request, f"{count} ta öquvçi blokdan oçildi!")
 
         elif action == 'set_fee':
             fee = _to_int(request.POST.get('monthly_fee'), 200000)
@@ -8315,19 +8316,19 @@ def bulk_payment_action(request):
                     user=student, month=int(month), year=int(year), is_paid=False
                 ).update(amount=fee)
                 count += 1
-            messages.success(request, f"{count} ta o'quvchiga {fee:,} so'm oylik belgilandi!")
+            messages.success(request, f"{count} ta öquvçiga {fee:,} söm oylik belgilandi!")
 
         elif action == 'remind':
             count = 0
             for student in students:
                 Message.objects.create(
                     sender=request.user, recipient=student,
-                    title="💳 To'lov eslatmasi",
-                    content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+                    title="💳 Tölov eslatmasi",
+                    content=f"Hurmatli {student.full_name},\n\nSizning oylik tölovingiz muddati yaqinlaşmoqda. Iltimos, öz vaqtida tölov qilişni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                     message_type='payment'
                 )
                 count += 1
-            messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
+            messages.success(request, f"{count} ta öquvçiga eslatma yuborildi!")
 
         return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
@@ -8354,7 +8355,7 @@ def admin_set_monthly_fee(request, pk):
                 user=user, month=int(month), year=int(year), is_paid=False
             ).update(amount=int(fee))
 
-        messages.success(request, f"{user.full_name} oylik to'lovi {int(fee):,} so'm qilib belgilandi!")
+        messages.success(request, f"{user.full_name} oylik tölovi {int(fee):,} söm qilib belgilandi!")
         return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
     month = request.GET.get('month', '')
@@ -8403,20 +8404,20 @@ def export_payments_pdf(request):
 
     heading = ParagraphStyle('PH', parent=styles['Heading2'], textColor=colors.HexColor('#0d6efd'), spaceAfter=6)
 
-    elements.append(Paragraph(f"To'lovlar hisoboti — {month_name} {selected_year}", styles['Title']))
+    elements.append(Paragraph(f"Tölovlar hisoboti — {month_name} {selected_year}", styles['Title']))
     elements.append(Paragraph(f"Hisobot sanasi: {today.strftime('%d.%m.%Y')}", styles['Normal']))
     elements.append(Spacer(1, 12))
 
     # Summary table
     elements.append(Paragraph("Umumiy ma'lumot", heading))
     summary_data = [
-        ["Ko'rsatkich", 'Qiymat'],
-        ['Jami o\'quvchilar', str(records.count())],
-        ['To\'langan', str(records.filter(is_paid=True).count())],
-        ['To\'lanmagan', str(records.filter(is_paid=False).count())],
-        ['Kutilgan summa', f"{total_expected:,.0f} so'm"],
-        ['Yig\'ilgan summa', f"{total_paid:,.0f} so'm"],
-        ['Jami qarz', f"{total_debt:,.0f} so'm"],
+        ["Körsatkiç", 'Qiymat'],
+        ['Jami öquvçilar', str(records.count())],
+        ['Tölangan', str(records.filter(is_paid=True).count())],
+        ['Tölanmagan', str(records.filter(is_paid=False).count())],
+        ['Kutilgan summa', f"{total_expected:,.0f} söm"],
+        ['Yiğilgan summa', f"{total_paid:,.0f} söm"],
+        ['Jami qarz', f"{total_debt:,.0f} söm"],
     ]
     t = Table(summary_data, colWidths=[200, 180])
     t.setStyle(TableStyle([
@@ -8431,8 +8432,8 @@ def export_payments_pdf(request):
     elements.append(Spacer(1, 16))
 
     # Detail table
-    elements.append(Paragraph("Batafsil to'lov jadvali", heading))
-    detail_data = [['#', 'Ism Familiya', 'Telefon', 'Oylik to\'lov', 'To\'langan', 'Qarz', 'Holat', 'Sana', 'Izoh']]
+    elements.append(Paragraph("Batafsil tölov jadvali", heading))
+    detail_data = [['#', 'Ism Familiya', 'Telefon', 'Oylik tölov', 'Tölangan', 'Qarz', 'Holat', 'Sana', 'Izoh']]
     col_widths = [25, 130, 90, 80, 80, 80, 70, 70, 120]
 
     for i, r in enumerate(records.order_by('user__first_name', 'user__last_name'), 1):
@@ -8443,7 +8444,7 @@ def export_payments_pdf(request):
             f"{r.amount:,.0f}",
             f"{r.paid_amount:,.0f}" if r.is_paid else '0',
             f"{max(0, r.amount - r.paid_amount):,.0f}" if not r.is_paid else '0',
-            'To\'langan' if r.is_paid else 'To\'lanmagan',
+            'Tölangan' if r.is_paid else 'Tölanmagan',
             r.paid_date.strftime('%d.%m.%Y') if r.paid_date else '-',
             (r.notes or '')[:30],
         ])
@@ -8483,13 +8484,13 @@ def export_payments_pdf(request):
 @login_required
 def manage_lessons(request, pk):
     if not (request.user.is_admin or request.user.is_teacher):
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     profession = get_object_or_404(Profession, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     sections = profession.sections.all().prefetch_related('lessons')
     lessons_without_section = profession.lessons.filter(section__isnull=True)
@@ -8509,16 +8510,16 @@ def add_lesson(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
 
     # ─── Mavzu (dars) limiti ───
-    # Kurs uchun topic_count belgilangan bo'lsa, undan ortiq dars qo'shib bo'lmaydi.
+    # Kurs uçun topic_count belgilangan bölsa, undan ortiq dars qöşib bölmaydi.
     if profession.is_lesson_limit_reached:
         messages.error(
             request,
-            f"Mavzu (dars) limiti to'ldi: {profession.topic_count} tadan {profession.lessons.count()} ta dars qo'shilgan. "
-            f"Yangi dars qo'shib bo'lmaydi. Limitni oshirish uchun kursni tahrirlang."
+            f"Mavzu (dars) limiti töldi: {profession.topic_count} tadan {profession.lessons.count()} ta dars qöşilgan. "
+            f"Yangi dars qöşib bölmaydi. Limitni oşiriş uçun kursni tahrirlang."
         )
         return redirect('profession_detail', pk=pk)
 
@@ -8550,22 +8551,22 @@ def add_lesson(request, pk):
                     lesson=lesson,
                     video_url=vimeo_url or None,
                     youtube_url=youtube_url or None,
-                    # 0 = server YouTube/Vimeo'dan o'zi aniqlaydi.
+                    # 0 = server YouTube/Vimeo'dan özi aniqlaydi.
                     duration=form.cleaned_data.get('duration') or 0,
                 )
-                # AI maqola yaratish
+                # AI maqola yaratiş
                 ai_article = _generate_ai_article(lesson.title, profession.name)
                 if ai_article:
                     lesson.ai_article = ai_article
                     lesson.save(update_fields=['ai_article'])
-                # Xabar yuborish
+                # Xabar yuboriş
                 send_course_notification(
                     profession=profession,
                     title=f"🎬 Yangi video dars: {lesson.title}",
-                    content=f"'{profession.name}' kursiga yangi video dars qo'shildi:\n\n📚 {lesson.title}\n\nDarsni ko'rish uchun kursga kiring!",
+                    content=f"'{profession.name}' kursiga yangi video dars qöşildi:\n\n📚 {lesson.title}\n\nDarsni köriş uçun kursga kiring!",
                     sender=request.user
                 )
-                messages.success(request, "Video darslik qo'shildi!")
+                messages.success(request, "Video darslik qöşildi!")
                 return redirect('profession_detail', pk=pk)
         
         elif lesson_type == 'homework':
@@ -8585,14 +8586,14 @@ def add_lesson(request, pk):
                     ai_check=form.cleaned_data.get('ai_check', False),
                     handwritten_only=form.cleaned_data.get('handwritten_only', False),
                 )
-                # Xabar yuborish
+                # Xabar yuboriş
                 send_course_notification(
                     profession=profession,
                     title=f"📝 Yangi uyga vazifa: {lesson.title}",
-                    content=f"'{profession.name}' kursiga yangi uyga vazifa qo'shildi:\n\n📚 {lesson.title}\n\nVazifani bajarish uchun kursga kiring!",
+                    content=f"'{profession.name}' kursiga yangi uyga vazifa qöşildi:\n\n📚 {lesson.title}\n\nVazifani bajariş uçun kursga kiring!",
                     sender=request.user
                 )
-                messages.success(request, "Uyga vazifa qo'shildi!")
+                messages.success(request, "Uyga vazifa qöşildi!")
                 return redirect('profession_detail', pk=pk)
         
         elif lesson_type == 'test':
@@ -8626,10 +8627,10 @@ def add_lesson(request, pk):
                 send_course_notification(
                     profession=profession,
                     title=f"Quiz: {lesson.title}",
-                    content=f"'{profession.name}' kursiga yangi quiz qo'shildi:\n\n{lesson.title}\n\nQuizni yechish uchun kursga kiring!",
+                    content=f"'{profession.name}' kursiga yangi quiz qöşildi:\n\n{lesson.title}\n\nQuizni yeçiş uçun kursga kiring!",
                     sender=request.user
                 )
-                messages.success(request, "Quiz qo'shildi! Endi savollarni qo'shing.")
+                messages.success(request, "Quiz qöşildi! Endi savollarni qöşing.")
                 return redirect('quizui:quiz_edit', pk=quiz.pk)
         
         elif lesson_type == 'dictionary':
@@ -8648,11 +8649,11 @@ def add_lesson(request, pk):
                 )
                 send_course_notification(
                     profession=profession,
-                    title=f"📖 Yangi lug'at: {lesson.title}",
-                    content=f"'{profession.name}' kursiga yangi lug'at qo'shildi:\n\n📚 {lesson.title}\n\nLug'atni ko'rish uchun kursga kiring!",
+                    title=f"📖 Yangi luğat: {lesson.title}",
+                    content=f"'{profession.name}' kursiga yangi luğat qöşildi:\n\n📚 {lesson.title}\n\nLuğatni köriş uçun kursga kiring!",
                     sender=request.user
                 )
-                messages.success(request, "Lug'at qo'shildi! Endi so'zlarni qo'shing.")
+                messages.success(request, "Luğat qöşildi! Endi sözlarni qöşing.")
                 return redirect('manage_dictionary', pk=lesson.dictionary.pk)
         
         elif lesson_type == 'speaking':
@@ -8702,7 +8703,7 @@ def add_lesson(request, pk):
             send_course_notification(
                 profession=profession,
                 title=f"🎤 Yangi Speaking vazifa: {title}",
-                content=f"'{profession.name}' kursiga yangi Speaking vazifa qo'shildi:\n\n🎤 {title}\n\nVazifani bajarish uchun kursga kiring!",
+                content=f"'{profession.name}' kursiga yangi Speaking vazifa qöşildi:\n\n🎤 {title}\n\nVazifani bajariş uçun kursga kiring!",
                 sender=request.user
             )
             messages.success(request, f"'{title}' speaking vazifasi yaratildi!")
@@ -8738,7 +8739,7 @@ def edit_lesson(request, pk):
     lesson = get_object_or_404(Lesson, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=lesson.profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     
     if request.method == 'POST':
@@ -8757,8 +8758,8 @@ def edit_lesson(request, pk):
 
                 manual_duration = form.cleaned_data.get('duration') or 0
                 if url_changed:
-                    # Boshqa video — eski davomiylik va u asosida qulflangan
-                    # ko'rish talabi endi to'g'ri kelmaydi, hammasini tozalaymiz.
+                    # Boşqa video — eski davomiylik va u asosida qulflangan
+                    # köriş talabi endi töğri kelmaydi, hammasini tozalaymiz.
                     lesson.video.duration = manual_duration
                     lesson.video.verified_duration_seconds = 0
                     lesson.video.duration_checked_at = None
@@ -8768,11 +8769,11 @@ def edit_lesson(request, pk):
                 elif manual_duration:
                     lesson.video.duration = manual_duration
                 lesson.video.save()
-                # Xabar yuborish
+                # Xabar yuboriş
                 send_course_notification(
                     profession=lesson.profession,
                     title=f"🔄 Video dars yangilandi: {lesson.title}",
-                    content=f"'{lesson.profession.name}' kursidagi video dars yangilandi:\n\n📚 {lesson.title}\n\nYangilangan darsni ko'rish uchun kursga kiring!",
+                    content=f"'{lesson.profession.name}' kursidagi video dars yangilandi:\n\n📚 {lesson.title}\n\nYangilangan darsni köriş uçun kursga kiring!",
                     sender=request.user
                 )
                 messages.success(request, "Dars yangilandi!")
@@ -8787,11 +8788,11 @@ def edit_lesson(request, pk):
                 lesson.homework.ai_check = form.cleaned_data.get('ai_check', False)
                 lesson.homework.handwritten_only = form.cleaned_data.get('handwritten_only', False)
                 lesson.homework.save()
-                # Xabar yuborish
+                # Xabar yuboriş
                 send_course_notification(
                     profession=lesson.profession,
                     title=f"🔄 Uyga vazifa yangilandi: {lesson.title}",
-                    content=f"'{lesson.profession.name}' kursidagi uyga vazifa yangilandi:\n\n📚 {lesson.title}\n\nVazifani ko'rish uchun kursga kiring!",
+                    content=f"'{lesson.profession.name}' kursidagi uyga vazifa yangilandi:\n\n📚 {lesson.title}\n\nVazifani köriş uçun kursga kiring!",
                     sender=request.user
                 )
                 messages.success(request, "Vazifa yangilandi!")
@@ -8837,7 +8838,7 @@ def delete_lesson(request, pk):
     lesson = get_object_or_404(Lesson, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=lesson.profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     profession = lesson.profession
     profession_pk = profession.pk
@@ -8845,17 +8846,17 @@ def delete_lesson(request, pk):
     lesson_type = lesson.lesson_type
     
     if request.method == 'POST':
-        # Xabar yuborish
-        type_names = {'video': 'Video dars', 'homework': 'Uyga vazifa', 'test': 'Test', 'dictionary': "Lug'at"}
+        # Xabar yuboriş
+        type_names = {'video': 'Video dars', 'homework': 'Uyga vazifa', 'test': 'Test', 'dictionary': "Luğat"}
         type_name = type_names.get(lesson_type, 'Dars')
         send_course_notification(
             profession=profession,
-            title=f"🗑️ {type_name} o'chirildi",
-            content=f"'{profession.name}' kursidan quyidagi dars o'chirildi:\n\n📚 {lesson_title}\n\nBu dars endi mavjud emas.",
+            title=f"🗑️ {type_name} öçirildi",
+            content=f"'{profession.name}' kursidan quyidagi dars öçirildi:\n\n📚 {lesson_title}\n\nBu dars endi mavjud emas.",
             sender=request.user
         )
         lesson.delete()
-        messages.success(request, "Dars o'chirildi!")
+        messages.success(request, "Dars öçirildi!")
         return redirect('manage_lessons', pk=profession_pk)
     
     return render(request, 'accounts/manage/delete_lesson.html', {'lesson': lesson})
@@ -8912,7 +8913,7 @@ def add_test_question(request, pk):
                     is_correct=(i == correct)
                 )
             
-            messages.success(request, "Savol qo'shildi!")
+            messages.success(request, "Savol qöşildi!")
             
             if 'add_another' in request.POST:
                 return redirect('add_test_question', pk=pk)
@@ -8936,7 +8937,7 @@ def delete_test_question(request, pk):
     
     if request.method == 'POST':
         question.delete()
-        messages.success(request, "Savol o'chirildi!")
+        messages.success(request, "Savol öçirildi!")
     
     return redirect('manage_test_questions', pk=test_pk)
 
@@ -8961,21 +8962,21 @@ def import_test_questions(request, pk):
             try:
                 import openpyxl
             except ImportError:
-                errors.append("openpyxl kutubxonasi o'rnatilmagan. pip install openpyxl")
+                errors.append("openpyxl kutubxonasi örnatilmagan. pip install openpyxl")
 
             if not errors:
                 try:
                     wb = openpyxl.load_workbook(file, read_only=True)
                     ws = wb.active
 
-                    headers = [str(cell.value or '').strip().lower() for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+                    headers = [to_new_alphabet(str(cell.value or '').strip().lower()) for cell in next(ws.iter_rows(min_row=1, max_row=1))]
 
                     required_cols = {
                         'savol': None,
                         'a': None,
                         'b': None,
                         'c': None,
-                        "to'g'ri javob": None,
+                        "töğri javob": None,
                     }
                     explanation_col = None
 
@@ -8988,9 +8989,9 @@ def import_test_questions(request, pk):
                             required_cols['b'] = i
                         elif h in ('c', 'option_c', 'variant_c', 'javob_c', '3-javob'):
                             required_cols['c'] = i
-                        elif h in ("to'g'ri javob", 'correct_option', 'correct', 'javob', "to'g'ri"):
-                            required_cols["to'g'ri javob"] = i
-                        elif h in ('izoh', 'explanation', 'tushuntirish'):
+                        elif h in ("töğri javob", 'correct_option', 'correct', 'javob', "töğri"):
+                            required_cols["töğri javob"] = i
+                        elif h in ('izoh', 'explanation', 'tuşuntiriş'):
                             explanation_col = i
 
                     missing = [k for k, v in required_cols.items() if v is None]
@@ -9013,7 +9014,7 @@ def import_test_questions(request, pk):
                             opt_a = str(row[required_cols['a']] or '').strip()
                             opt_b = str(row[required_cols['b']] or '').strip()
                             opt_c = str(row[required_cols['c']] or '').strip()
-                            correct = str(row[required_cols["to'g'ri javob"]] or '').strip().upper()
+                            correct = str(row[required_cols["töğri javob"]] or '').strip().upper()
 
                             explanation = ''
                             if explanation_col is not None:
@@ -9025,15 +9026,15 @@ def import_test_questions(request, pk):
                             row_errors = []
 
                             if not q_text:
-                                row_errors.append("savol bo'sh")
+                                row_errors.append("savol böş")
                             if not opt_a:
-                                row_errors.append("A varianti bo'sh")
+                                row_errors.append("A varianti böş")
                             if not opt_b:
-                                row_errors.append("B varianti bo'sh")
+                                row_errors.append("B varianti böş")
                             if not opt_c:
-                                row_errors.append("C varianti bo'sh")
+                                row_errors.append("C varianti böş")
                             if correct not in ('A', 'B', 'C'):
-                                row_errors.append(f"to'g'ri javob '{correct}' noto'g'ri (faqat A/B/C)")
+                                row_errors.append(f"töğri javob '{correct}' notöğri (faqat A/B/C)")
 
                             if row_errors:
                                 errors.append(f"Qator {row_num}: {', '.join(row_errors)}")
@@ -9048,7 +9049,7 @@ def import_test_questions(request, pk):
                                 })
 
                         if not questions_data and not errors:
-                            errors.append("Excelda hech qanday savol topilmadi.")
+                            errors.append("Excelda heç qanday savol topilmadi.")
 
                         if not errors:
                             existing_texts = set(
@@ -9088,13 +9089,13 @@ def import_test_questions(request, pk):
                                 success_count = len(unique_data)
                             msg = f"{success_count} ta savol muvaffaqiyatli import qilindi!"
                             if skipped:
-                                msg += f" ({skipped} ta takroriy savol o'tkazib yuborildi)"
+                                msg += f" ({skipped} ta takroriy savol ötkazib yuborildi)"
                             messages.success(request, msg)
                             return redirect('manage_test_questions', pk=test.pk)
 
                     wb.close()
                 except Exception as e:
-                    errors.append(f"Faylni o'qishda xatolik: {str(e)}")
+                    errors.append(f"Faylni öqişda xatolik: {str(e)}")
 
     return render(request, 'accounts/manage/import_questions.html', {
         'test': test,
@@ -9133,9 +9134,9 @@ def add_dictionary_word(request, pk):
                 example=example or None,
                 order=max_order + 1,
             )
-            messages.success(request, f"'{term}' so'zi qo'shildi!")
+            messages.success(request, f"'{term}' sözi qöşildi!")
         else:
-            messages.error(request, "So'z va tarjimani kiriting!")
+            messages.error(request, "Söz va tarjimani kiriting!")
     return redirect('manage_dictionary', pk=pk)
 
 
@@ -9147,7 +9148,7 @@ def delete_dictionary_word(request, pk):
     dict_pk = word.dictionary.pk
     if request.method == 'POST':
         word.delete()
-        messages.success(request, "So'z o'chirildi!")
+        messages.success(request, "Söz öçirildi!")
     return redirect('manage_dictionary', pk=dict_pk)
 
 
@@ -9169,20 +9170,20 @@ def import_dictionary_words(request, pk):
             try:
                 import openpyxl
             except ImportError:
-                errors.append("openpyxl kutubxonasi o'rnatilmagan.")
+                errors.append("openpyxl kutubxonasi örnatilmagan.")
 
             if not errors:
                 try:
                     wb = openpyxl.load_workbook(file, read_only=True)
                     ws = wb.active
-                    headers = [str(cell.value or '').strip().lower() for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+                    headers = [to_new_alphabet(str(cell.value or '').strip().lower()) for cell in next(ws.iter_rows(min_row=1, max_row=1))]
 
                     term_col = None
                     translation_col = None
                     example_col = None
 
                     for i, h in enumerate(headers):
-                        if h in ("so'z", 'soz', 'term', 'atama', 'word', "so'z / atama", 'yozilishi'):
+                        if h in ("söz", 'soz', 'term', 'atama', 'word', "söz / atama", 'yozilişi'):
                             term_col = i
                         elif h in ('tarjima', 'translation', "ma'no", "ma'nosi", "tarjima / ma'nosi", 'tarjimasi'):
                             translation_col = i
@@ -9190,7 +9191,7 @@ def import_dictionary_words(request, pk):
                             example_col = i
 
                     if term_col is None:
-                        errors.append("'So'z' ustuni topilmadi. Ustun nomi: so'z, term, atama, word")
+                        errors.append("'Söz' ustuni topilmadi. Ustun nomi: söz, term, atama, word")
                     if translation_col is None:
                         errors.append("'Tarjima' ustuni topilmadi. Ustun nomi: tarjima, translation, ma'no")
                     if errors:
@@ -9214,9 +9215,9 @@ def import_dictionary_words(request, pk):
                                 continue
 
                             if not term:
-                                errors.append(f"Qator {row_num}: so'z bo'sh")
+                                errors.append(f"Qator {row_num}: söz böş")
                             elif not translation:
-                                errors.append(f"Qator {row_num}: tarjima bo'sh")
+                                errors.append(f"Qator {row_num}: tarjima böş")
                             else:
                                 words_data.append({
                                     'term': term,
@@ -9225,7 +9226,7 @@ def import_dictionary_words(request, pk):
                                 })
 
                         if not words_data and not errors:
-                            errors.append("Excelda hech qanday so'z topilmadi.")
+                            errors.append("Excelda heç qanday söz topilmadi.")
 
                         if not errors:
                             with transaction.atomic():
@@ -9239,12 +9240,12 @@ def import_dictionary_words(request, pk):
                                         order=existing_count + i + 1,
                                     )
                                 success_count = len(words_data)
-                            messages.success(request, f"{success_count} ta so'z muvaffaqiyatli import qilindi!")
+                            messages.success(request, f"{success_count} ta söz muvaffaqiyatli import qilindi!")
                             return redirect('manage_dictionary', pk=dictionary.pk)
 
                     wb.close()
                 except Exception as e:
-                    errors.append(f"Faylni o'qishda xatolik: {str(e)}")
+                    errors.append(f"Faylni öqişda xatolik: {str(e)}")
 
     return render(request, 'accounts/manage/import_dictionary.html', {
         'dictionary': dictionary,
@@ -9259,13 +9260,13 @@ def ai_generate_dictionary(request, pk):
         return redirect('home')
 
     if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
-        messages.error(request, "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.")
+        messages.error(request, "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.")
         return redirect('manage_dictionary', pk=pk)
 
     dictionary = get_object_or_404(Dictionary, pk=pk)
 
     if request.method != 'POST':
-        messages.error(request, "Noto'g'ri so'rov turi.")
+        messages.error(request, "Notöğri sörov turi.")
         return redirect('manage_dictionary', pk=dictionary.pk)
 
     language = request.POST.get('language', '').strip()
@@ -9277,7 +9278,7 @@ def ai_generate_dictionary(request, pk):
     count = min(count, 50)
 
     if not language or not level:
-        messages.error(request, "Til va daraja ko'rsatilishi shart.")
+        messages.error(request, "Til va daraja körsatilişi şart.")
         return redirect('manage_dictionary', pk=dictionary.pk)
 
     from django.conf import settings
@@ -9295,17 +9296,17 @@ def ai_generate_dictionary(request, pk):
                 {
                     "role": "system",
                     "content": (
-                        "Siz tajribali til o'qituvchisisiz. "
-                        "Faqat JSON array formatida javob bering, boshqa hech qanday matn qo'shmang. "
-                        "Har bir element quyidagi formatda bo'lsin:\n"
-                        '{"term": "maqsad tildagi so\'z", '
-                        '"translation": "O\'zbek tilidagi tarjimasi", '
-                        '"example": "Maqsad tildagi misol gap | O\'zbek tilidagi tarjimasi"}'
+                        "Siz tajribali til öqituvçisisiz. "
+                        "Faqat JSON array formatida javob bering, boşqa heç qanday matn qöşmang. "
+                        "Har bir element quyidagi formatda bölsin:\n"
+                        '{"term": "maqsad tildagi söz", '
+                        '"translation": "Özbek tilidagi tarjimasi", '
+                        '"example": "Maqsad tildagi misol gap | Özbek tilidagi tarjimasi"}'
                     ),
                 },
                 {
                     "role": "user",
-                    "content": f"{language} tilidan {level} darajada {count} ta so'z yarat.",
+                    "content": f"{language} tilidan {level} darajada {count} ta söz yarat.",
                 },
             ],
             max_tokens=4000,
@@ -9321,7 +9322,7 @@ def ai_generate_dictionary(request, pk):
         words_data = json.loads(ai_text)
 
         if not isinstance(words_data, list):
-            messages.error(request, "AI noto'g'ri formatda javob qaytardi.")
+            messages.error(request, "AI notöğri formatda javob qaytardi.")
             return redirect('manage_dictionary', pk=dictionary.pk)
 
         with transaction.atomic():
@@ -9335,11 +9336,11 @@ def ai_generate_dictionary(request, pk):
                     order=existing_count + i + 1,
                 )
 
-        messages.success(request, f"AI yordamida {len(words_data)} ta so'z muvaffaqiyatli yaratildi!")
+        messages.success(request, f"AI yordamida {len(words_data)} ta söz muvaffaqiyatli yaratildi!")
     except json.JSONDecodeError:
-        messages.error(request, "AI javobini o'qishda xatolik yuz berdi. Qaytadan urinib ko'ring.")
+        messages.error(request, "AI javobini öqişda xatolik yuz berdi. Qaytadan urinib köring.")
     except Exception as e:
-        messages.error(request, safe_error(e, 'ai_generate_words', "AI so'z yaratishda xatolik yuz berdi."))
+        messages.error(request, safe_error(e, 'ai_generate_words', "AI söz yaratişda xatolik yuz berdi."))
 
     return redirect('manage_dictionary', pk=dictionary.pk)
 
@@ -9359,7 +9360,7 @@ def homework_submissions(request):
         'homework__lesson__profession', 'student'
     ).prefetch_related('messages')
     
-    # O'qituvchi faqat o'z kurslaridagi vazifalarni ko'rsin
+    # Öqituvçi faqat öz kurslaridagi vazifalarni körsin
     if request.user.is_teacher and not request.user.is_admin:
         teaching_ids = request.user.teaching_professions.values_list('pk', flat=True)
         submissions = submissions.filter(homework__lesson__profession_id__in=teaching_ids)
@@ -9396,7 +9397,7 @@ def homework_submissions(request):
     page = request.GET.get('page')
     submissions = paginator.get_page(page)
     
-    # O'qituvchi uchun faqat o'z kurslari bo'yicha statistika
+    # Öqituvçi uçun faqat öz kurslari böyiça statistika
     if request.user.is_teacher and not request.user.is_admin:
         hw_qs = HomeworkSubmission.objects.filter(homework__lesson__profession_id__in=teaching_ids)
         stats = {
@@ -9419,8 +9420,8 @@ def homework_submissions(request):
         }
         professions = Profession.objects.all()
     
-    # Kurslar bo'yicha vazifalar sonini hisoblash
-    # Faqat uyga vazifasi bor kurslarni ko'rsatish
+    # Kurslar böyiça vazifalar sonini hisoblaş
+    # Faqat uyga vazifasi bor kurslarni körsatiş
     if not professions.exists():
         profession_ids = HomeworkSubmission.objects.values_list(
             'homework__lesson__profession_id', flat=True
@@ -9428,7 +9429,7 @@ def homework_submissions(request):
         professions = Profession.objects.filter(pk__in=profession_ids)
     
     profession_stats = []
-    for prof in professions:
+    for prof in professions.prefetch_related('teachers'):
         base_qs = HomeworkSubmission.objects.filter(homework__lesson__profession=prof)
         p_pending = base_qs.filter(status='pending').count()
         p_total = base_qs.exclude(status='graded').count()
@@ -9436,15 +9437,19 @@ def homework_submissions(request):
             'profession': prof,
             'total': p_total,
             'pending': p_pending,
+            'teachers': [
+                t.get_full_name() or t.username
+                for t in prof.teachers.all() if t.role == 'teacher'
+            ],
         })
     
-    # AI ruxsatini tekshirish: admin har doim, o'qituvchi faqat ai_access_enabled bo'lsa
+    # AI ruxsatini tekşiriş: admin har doim, öqituvçi faqat ai_access_enabled bölsa
     if request.user.is_admin:
         user_ai_enabled = True
     else:
         user_ai_enabled = getattr(request.user, 'ai_access_enabled', False)
 
-    # Admin uchun: ustozga eslatma shablonlari (kurs tanlangan bo'lsa)
+    # Admin uçun: ustozga eslatma şablonlari (kurs tanlangan bölsa)
     reminder_templates = []
     course_teachers = []
     if request.user.is_admin and profession_filter:
@@ -9488,7 +9493,7 @@ def homework_submissions(request):
 
 
 def _run_admin_ai_grade(submission_pk, grader_pk):
-    """Admin "AI bilan baholash" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) ishlaydi."""
+    """Admin "AI bilan baholaş" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) işlaydi."""
     try:
         submission = HomeworkSubmission.objects.select_related(
             'homework__lesson', 'student').filter(pk=submission_pk).first()
@@ -9522,8 +9527,8 @@ def _run_admin_ai_grade(submission_pk, grader_pk):
             _notify_ai_graded(submission, ai_result)
         else:
             Message.objects.create(
-                title="Vazifani qayta ishlang",
-                content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
+                title="Vazifani qayta işlang",
+                content=f"'{submission.homework.lesson.title}' vazifangizni qayta işlaşingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
                 message_type='warning',
                 recipient=submission.student
             )
@@ -9540,19 +9545,19 @@ def grade_homework(request, pk):
     submission = get_object_or_404(HomeworkSubmission, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=submission.homework.lesson.profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     was_graded = submission.grade is not None
     chat_messages = submission.messages.all().order_by('created_at')
     revisions = submission.revisions.all()
     
-    # Xabarlarni o'qilgan deb belgilash
+    # Xabarlarni öqilgan deb belgilaş
     submission.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
     
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        # Xabar yuborish
+        # Xabar yuboriş
         if action == 'send_message':
             message_text = request.POST.get('message', '').strip()
             message_file = request.FILES.get('message_file')
@@ -9567,39 +9572,39 @@ def grade_homework(request, pk):
                 messages.success(request, "Xabar yuborildi!")
             return redirect('grade_homework', pk=pk)
         
-        # Status o'zgartirish
+        # Status özgartiriş
         elif action == 'set_reviewing':
             submission.status = 'reviewing'
             submission.save()
-            messages.info(request, "Status: Ko'rib chiqilmoqda")
+            messages.info(request, "Status: Körib çiqilmoqda")
             return redirect('grade_homework', pk=pk)
         
-        # Qayta ishlashga yuborish
+        # Qayta işlaşga yuboriş
         elif action == 'request_revision':
             revision_note = request.POST.get('revision_note', '')
             submission.status = 'revision'
             submission.feedback = revision_note
             submission.save()
             
-            # Xabar qoldirish
+            # Xabar qoldiriş
             from .models import HomeworkMessage
             HomeworkMessage.objects.create(
                 submission=submission,
                 sender=request.user,
-                message=f"⚠️ Qayta ishlash kerak: {revision_note}"
+                message=f"⚠️ Qayta işlaş kerak: {revision_note}"
             )
             
             # Notification
             Message.objects.create(
-                title="Vazifani qayta ishlang",
-                content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nIzoh: {revision_note}",
+                title="Vazifani qayta işlang",
+                content=f"'{submission.homework.lesson.title}' vazifangizni qayta işlaşingiz kerak.\n\nIzoh: {revision_note}",
                 message_type='warning',
                 recipient=submission.student
             )
             
             notify_user(
                 submission.student.telegram_id,
-                f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+                f"⚠️ <b>Vazifangiz qayta işlaş kerak!</b>\n\n"
                 f"📚 {submission.homework.lesson.profession.name}\n"
                 f"📖 {submission.homework.lesson.title}\n"
                 f"💬 Izoh: {revision_note}\n\n"
@@ -9607,7 +9612,7 @@ def grade_homework(request, pk):
             )
             notify_group(
                 f"🔄 <b>Uy vazifasi qaytarildi!</b>\n\n"
-                f"👤 O'quvchi: {submission.student.first_name} {submission.student.last_name}\n"
+                f"👤 Öquvçi: {submission.student.first_name} {submission.student.last_name}\n"
                 f"📚 Kurs: {submission.homework.lesson.profession.name}\n"
                 f"📖 Dars: {submission.homework.lesson.title}\n"
                 f"💬 Sabab: {revision_note}\n\n"
@@ -9620,30 +9625,30 @@ def grade_homework(request, pk):
                 f"💬 {revision_note}\n"
                 f"👨‍🏫 {request.user.first_name} {request.user.last_name}"
             )
-            messages.warning(request, "O'quvchiga qayta ishlash so'rovi yuborildi!")
+            messages.warning(request, "Öquvçiga qayta işlaş sörovi yuborildi!")
             return redirect('grade_homework', pk=pk)
         
-        # Qabul qilish
+        # Qabul qiliş
         elif action == 'accept':
             submission.status = 'accepted'
             submission.save()
             messages.success(request, "Vazifa qabul qilindi!")
             return redirect('grade_homework', pk=pk)
         
-        # Avtomatik baholash (qabul + 5 ball)
+        # Avtomatik baholaş (qabul + 5 ball)
         elif action == 'auto_grade':
             import random
             auto_feedbacks = [
-                "Barakalla! Juda yaxshi ishlagan ekansiz! 👏",
+                "Barakalla! Juda yaxşi işlagan ekansiz! 👏",
                 "Juda ajoyib! Davom eting! 🌟",
-                "Zo'r natija! Sizdan mamnunmiz! 💪",
-                "Hammasi joyida! Yaxshi ish! ✨",
+                "Zör natija! Sizdan mamnunmiz! 💪",
+                "Hammasi joyida! Yaxşi iş! ✨",
                 "A'lo darajada bajarilgan! Rahmat! 🎯",
-                "Ajoyib! Mehnatlaringiz uchun rahmat! 🏆",
-                "Juda chiroyli ishlangansiz! Davom eting! 🚀",
-                "Yaxshi qilgansiz! Buni ko'rib xursand bo'ldim! 😊",
-                "Super! Sizning sa'y-harakatlaringiz ko'rinib turibdi! 💫",
-                "Zo'r! Ishingiz hammaga o'rnak bo'ladi! 🎉",
+                "Ajoyib! Mehnatlaringiz uçun rahmat! 🏆",
+                "Juda çiroyli işlangansiz! Davom eting! 🚀",
+                "Yaxşi qilgansiz! Buni körib xursand böldim! 😊",
+                "Super! Sizning sa'y-harakatlaringiz körinib turibdi! 💫",
+                "Zör! Işingiz hammaga örnak böladi! 🎉",
             ]
             submission.status = 'graded'
             submission.grade = 5
@@ -9672,18 +9677,18 @@ def grade_homework(request, pk):
             messages.success(request, "Vazifa avtomatik baholandi: 5 ball!")
             return redirect('homework_submissions')
         
-        # AI bilan baholash
+        # AI bilan baholaş
         elif action == 'ai_grade':
             if not _read_submission_content(submission):
-                messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
+                messages.error(request, "AI bu fayl formatini tekşira olmaydi (faqat matn va kod fayllari).")
                 return redirect('grade_homework', pk=pk)
-            # AI javobi 10–30 soniya kutiladi — so'rov ichida emas, fonda bajariladi.
+            # AI javobi 10–30 soniya kutiladi — sörov içida emas, fonda bajariladi.
             if cache.add(f'ai-grade-hw:{submission.pk}', 1, 600):
                 ai_jobs.submit(_run_admin_ai_grade, submission.pk, request.user.pk)
-            messages.info(request, "🤖 AI tekshiruvi boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
+            messages.info(request, "🤖 AI tekşiruvi boşlandi. Natija 1 daqiqa içida çiqadi — sahifani yangilang.")
             return redirect('homework_submissions')
 
-        # Baholash
+        # Baholaş
         elif action == 'grade':
             grade = request.POST.get('grade')
             feedback = request.POST.get('feedback', '')
@@ -9699,7 +9704,7 @@ def grade_homework(request, pk):
                 submission.graded_at = timezone.now()
                 submission.save()
                 
-                # Coin berish (faqat birinchi baholashda: revision_count == 0)
+                # Coin beriş (faqat birinçi baholaşda: revision_count == 0)
                 if not submission.coin_awarded and submission.revision_count == 0:
                     coin_amount = submission.calculate_coin_reward()
 
@@ -9741,16 +9746,16 @@ def grade_homework(request, pk):
 @login_required
 @ai_offload
 def bulk_ai_grade(request):
-    """Kurs bo'yicha barcha kutilayotgan vazifalarni AI bilan ommaviy baholash"""
+    """Kurs böyiça barça kutilayotgan vazifalarni AI bilan ommaviy baholaş"""
     if not (request.user.is_admin or request.user.is_teacher):
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': 'Ruxsat yöq'}, status=403)
 
     if request.user.is_teacher and not request.user.is_admin:
         if not getattr(request.user, 'ai_access_enabled', False):
-            return JsonResponse({'error': 'Sizda AI funksiyasidan foydalanish ruxsati yo\'q'}, status=403)
+            return JsonResponse({'error': 'Sizda AI funksiyasidan foydalaniş ruxsati yöq'}, status=403)
 
     if request.method != 'POST':
-        return JsonResponse({'error': 'POST so\'rovi kerak'}, status=405)
+        return JsonResponse({'error': 'POST sörovi kerak'}, status=405)
 
     profession_id = request.POST.get('profession_id', '').strip()
     if not profession_id:
@@ -9758,7 +9763,7 @@ def bulk_ai_grade(request):
 
     if request.user.is_teacher and not request.user.is_admin:
         if not request.user.teaching_professions.filter(pk=profession_id).exists():
-            return JsonResponse({'error': 'Sizda bu kursga kirish huquqi yo\'q'}, status=403)
+            return JsonResponse({'error': 'Sizda bu kursga kiriş huquqi yöq'}, status=403)
 
     submissions = HomeworkSubmission.objects.filter(
         homework__lesson__profession_id=profession_id,
@@ -9804,8 +9809,8 @@ def bulk_ai_grade(request):
             graded_count += 1
         else:
             Message.objects.create(
-                title="Vazifani qayta ishlang",
-                content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
+                title="Vazifani qayta işlang",
+                content=f"'{submission.homework.lesson.title}' vazifangizni qayta işlaşingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
                 message_type='warning',
                 recipient=submission.student
             )
@@ -9821,9 +9826,9 @@ def bulk_ai_grade(request):
 
 
 def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
-    """Ustozga eslatma uchun tayyor rasmiy shablon matnlar.
+    """Ustozga eslatma uçun tayyor rasmiy şablon matnlar.
 
-    {ustoz} — yuborishda har bir o'qituvchining ism-familiyasi bilan almashtiriladi.
+    {ustoz} — yuborişda har bir öqituvçining ism-familiyasi bilan almaştiriladi.
     """
     return [
         {
@@ -9832,37 +9837,37 @@ def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
             'text': (
                 f"Hurmatli {{ustoz}}!\n\n"
                 f"\"{course_name}\" kursida {pending_count} ta uy vazifasi "
-                f"tekshirilishini kutmoqda. O'quvchilar Sizning bahoyingiz va "
-                f"izohlaringizni intiqlik bilan kutishmoqda.\n\n"
-                f"Iltimos, imkon qadar tezroq ko'rib chiqishingizni so'raymiz.\n\n"
+                f"tekşirilişini kutmoqda. Öquvçilar Sizning bahoyingiz va "
+                f"izohlaringizni intiqlik bilan kutişmoqda.\n\n"
+                f"Iltimos, imkon qadar tezroq körib çiqişingizni söraymiz.\n\n"
                 f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
         {
             'key': 'daily',
-            'label': "1 kundan oshgan vazifalar",
+            'label': "1 kundan oşgan vazifalar",
             'text': (
                 f"Hurmatli {{ustoz}}!\n\n"
-                f"\"{course_name}\" kursida 1 kundan buyon tekshirilmagan uy "
+                f"\"{course_name}\" kursida 1 kundan buyon tekşirilmagan uy "
                 f"vazifalari mavjud (jami {pending_count} ta, eng eskisi "
                 f"{oldest_hours} soatdan buyon kutmoqda).\n\n"
-                f"O'quv jarayonining sifatini ta'minlash maqsadida vazifalarni "
-                f"o'z vaqtida tekshirish muhim ekanligini eslatib o'tamiz.\n\n"
+                f"Öquv jarayonining sifatini ta'minlaş maqsadida vazifalarni "
+                f"öz vaqtida tekşiriş muhim ekanligini eslatib ötamiz.\n\n"
                 f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
         {
             'key': 'warning',
-            'label': "Rasmiy ogohlantirish",
+            'label': "Rasmiy ogohlantiriş",
             'text': (
                 f"Hurmatli {{ustoz}}!\n\n"
-                f"\"{course_name}\" kursidagi uy vazifalari muntazam ravishda o'z "
-                f"vaqtida tekshirilmayotgani ma'lum bo'ldi ({pending_count} ta "
+                f"\"{course_name}\" kursidagi uy vazifalari muntazam ravişda öz "
+                f"vaqtida tekşirilmayotgani ma'lum böldi ({pending_count} ta "
                 f"vazifa kutmoqda).\n\n"
-                f"Ushbu holat mehnat majburiyatlariga rioya etmaslik sifatida "
-                f"baholanishi va tegishli choralar (jarima) qo'llanilishi "
+                f"Uşbu holat mehnat majburiyatlariga rioya etmaslik sifatida "
+                f"baholanişi va tegişli çoralar (jarima) qöllanilişi "
                 f"mumkinligini rasman ma'lum qilamiz.\n\n"
-                f"Iltimos, ishga mas'uliyat bilan yondashing.\n\n"
+                f"Iltimos, işga mas'uliyat bilan yondaşing.\n\n"
                 f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
@@ -9871,19 +9876,19 @@ def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
 
 @login_required
 def notify_teacher_homework(request):
-    """Admin: kurs ustoz(lar)iga tekshirilmagan vazifalar bo'yicha eslatma yuborish.
+    """Admin: kurs ustoz(lar)iga tekşirilmagan vazifalar böyiça eslatma yuboriş.
 
-    Ichki chat (Message) + Telegram orqali yuboriladi. Faqat admin uchun.
+    Içki çat (Message) + Telegram orqali yuboriladi. Faqat admin uçun.
     """
     if not request.user.is_admin:
-        return JsonResponse({'error': "Faqat admin uchun ruxsat etilgan"}, status=403)
+        return JsonResponse({'error': "Faqat admin uçun ruxsat etilgan"}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'error': "POST so'rovi kerak"}, status=405)
+        return JsonResponse({'error': "POST sörovi kerak"}, status=405)
 
     profession_id = request.POST.get('profession_id', '').strip()
     text = request.POST.get('text', '').strip()
     if not profession_id or not text:
-        return JsonResponse({'error': "Kurs va xabar matni kiritilishi shart"}, status=400)
+        return JsonResponse({'error': "Kurs va xabar matni kiritilişi şart"}, status=400)
     if len(text) > 3000:
         return JsonResponse({'error': "Xabar matni juda uzun (maks. 3000 belgi)"}, status=400)
 
@@ -9892,7 +9897,7 @@ def notify_teacher_homework(request):
     profession = get_object_or_404(Profession, pk=profession_id)
     teachers = [t for t in profession.teachers.all() if t.role == 'teacher']
     if not teachers:
-        return JsonResponse({'error': "Bu kursga o'qituvchi biriktirilmagan"}, status=400)
+        return JsonResponse({'error': "Bu kursga öqituvçi biriktirilmagan"}, status=400)
 
     site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
     sent_chat = 0
@@ -9901,7 +9906,7 @@ def notify_teacher_homework(request):
         teacher_name = teacher.get_full_name() or teacher.username
         personal_text = text.replace('{ustoz}', teacher_name)
 
-        # 1) Ichki chat xabari
+        # 1) Içki çat xabari
         try:
             Message.objects.create(
                 title=f"📌 Eslatma: {profession.name} kursi vazifalari",
@@ -9919,13 +9924,13 @@ def notify_teacher_homework(request):
             tg_text = (
                 f"📌 <b>MA'MURIYATDAN ESLATMA</b> ✨\n\n"
                 f"{personal_text}\n\n"
-                f"🔗 Vazifalarni tekshirish: "
+                f"🔗 Vazifalarni tekşiriş: "
                 f"{site_url}/homework-submissions/?profession={profession.pk}"
             )
             notify_user(teacher.telegram_id, tg_text)
             sent_telegram += 1
 
-    # Audit jurnaliga yozish
+    # Audit jurnaliga yoziş
     try:
         from .models import AssistantActionLog
         AssistantActionLog.objects.create(
@@ -9949,18 +9954,18 @@ def notify_teacher_homework(request):
 
 @login_required
 def homework_chat(request, pk):
-    """O'quvchi uchun vazifa chat sahifasi"""
+    """Öquvçi uçun vazifa çat sahifasi"""
     submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
     chat_messages = submission.messages.all().order_by('created_at')
     revisions = submission.revisions.all()
     
-    # Xabarlarni o'qilgan deb belgilash
+    # Xabarlarni öqilgan deb belgilaş
     submission.messages.filter(is_read=False).exclude(sender=request.user).update(is_read=True)
     
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        # Xabar yuborish
+        # Xabar yuboriş
         if action == 'send_message':
             message_text = request.POST.get('message', '').strip()
             message_file = request.FILES.get('message_file')
@@ -9975,7 +9980,7 @@ def homework_chat(request, pk):
                 messages.success(request, "Xabar yuborildi!")
             return redirect('homework_chat', pk=pk)
         
-        # Qayta topshirish
+        # Qayta topşiriş
         elif action == 'resubmit':
             new_file = request.FILES.get('new_file')
             new_text = request.POST.get('new_text_content', '').strip()
@@ -9984,17 +9989,17 @@ def homework_chat(request, pk):
             has_new_content = new_file or new_text
             
             if has_new_content:
-                # Qayta topshirish uchun belgilangan jarimani yechish
+                # Qayta topşiriş uçun belgilangan jarimani yeçiş
                 resubmit_cost = (
                     HomeworkSubmission.RESUBMIT_COIN_PENALTY // 2
                     if request.user.is_premium
                     else HomeworkSubmission.RESUBMIT_COIN_PENALTY
                 )
-                request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
+                request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topşiriş: {submission.homework.lesson.title}")
                 
                 submission.archive_current_version(note=f"Versiya {submission.version}")
                 
-                # Yangi kontentni yuklash
+                # Yangi kontentni yuklaş
                 if new_file:
                     submission.file = new_file
                     submission.text_content = None
@@ -10017,9 +10022,9 @@ def homework_chat(request, pk):
                 submission.submitted_at = timezone.now()
                 submission.save()
                 
-                # Xabar qoldirish
+                # Xabar qoldiriş
                 from .models import HomeworkMessage
-                msg_text = f"📎 Qayta ishlangan versiya yuklandi (v{submission.version})."
+                msg_text = f"📎 Qayta işlangan versiya yuklandi (v{submission.version})."
                 if note:
                     msg_text += f" {note}"
                 HomeworkMessage.objects.create(
@@ -10028,49 +10033,49 @@ def homework_chat(request, pk):
                     message=msg_text
                 )
                 
-                # O'qituvchi va adminlarga xabar yuborish (Telegram + sayt)
+                # Öqituvçi va adminlarga xabar yuboriş (Telegram + sayt)
                 hw = submission.homework
                 profession = hw.lesson.profession
                 student = request.user
                 
                 # Sayt xabari — adminlarga
                 notify_admins(
-                    f"🔄 <b>Vazifa qayta topshirildi!</b>\n\n"
+                    f"🔄 <b>Vazifa qayta topşirildi!</b>\n\n"
                     f"👤 {student.first_name} {student.last_name}\n"
                     f"📚 {profession.name} / {hw.lesson.title}\n"
                     f"📎 Versiya: v{submission.version}\n"
                     f"{'💬 Izoh: ' + note[:150] if note else ''}"
                 )
                 
-                # Kurs o'qituvchilariga xabar
+                # Kurs öqituvçilariga xabar
                 course_teachers = profession.teachers.filter(
                     telegram_id__isnull=False
                 )
                 for teacher in course_teachers:
                     notify_user(
                         teacher.telegram_id,
-                        f"🔄 <b>Vazifa qayta topshirildi!</b>\n\n"
-                        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+                        f"🔄 <b>Vazifa qayta topşirildi!</b>\n\n"
+                        f"👤 Öquvçi: {student.first_name} {student.last_name}\n"
                         f"📚 Kurs: {profession.name}\n"
                         f"📖 Dars: {hw.lesson.title}\n"
                         f"📎 Versiya: v{submission.version}\n"
                         f"{'💬 Izoh: ' + note[:150] if note else ''}\n\n"
-                        f"👨‍🏫 Tekshirishni kutmoqda!"
+                        f"👨‍🏫 Tekşirişni kutmoqda!"
                     )
                 
-                # Saytda xabar yaratish (o'qituvchilar va adminlar ko'rishi uchun)
+                # Saytda xabar yaratiş (öqituvçilar va adminlar körişi uçun)
                 Message.objects.create(
                     recipient=None,
-                    title=f"🔄 Vazifa qayta topshirildi: {hw.lesson.title}",
+                    title=f"🔄 Vazifa qayta topşirildi: {hw.lesson.title}",
                     content=(
                         f"{student.first_name} {student.last_name} '{profession.name}' kursining "
-                        f"'{hw.lesson.title}' darsiga vazifani qayta topshirdi (v{submission.version}). "
-                        f"Tekshirishni kutmoqda."
+                        f"'{hw.lesson.title}' darsiga vazifani qayta topşirdi (v{submission.version}). "
+                        f"Tekşirişni kutmoqda."
                     ),
                     message_type='all'
                 )
                 
-                messages.success(request, "Vazifa qayta topshirildi!")
+                messages.success(request, "Vazifa qayta topşirildi!")
             else:
                 messages.error(request, "Fayl yoki matn kiriting!")
             return redirect('homework_chat', pk=pk)
@@ -10091,7 +10096,7 @@ def homework_chat(request, pk):
 
 @login_required
 def my_test_results(request):
-    """O'quvchining barcha test natijalari (bugungi + barchasi, paginator bilan)"""
+    """Öquvçining barça test natijalari (bugungi + barçasi, paginator bilan)"""
     from django.core.paginator import Paginator
     from datetime import date
 
@@ -10123,7 +10128,7 @@ def my_test_results(request):
 
 @login_required
 def my_homework_list(request):
-    """O'quvchining barcha vazifalari"""
+    """Öquvçining barça vazifalari"""
     submissions = HomeworkSubmission.objects.filter(student=request.user).select_related(
         'homework__lesson__profession'
     ).prefetch_related('messages').order_by('-submitted_at')
@@ -10161,7 +10166,7 @@ def admin_test_analytics(request):
     avg_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     pass_rate = round((total_passed / total_attempts * 100) if total_attempts > 0 else 0, 1)
     
-    # Bugun ishlangan testlar
+    # Bugun işlangan testlar
     from datetime import date
     today = date.today()
     today_results = TestResult.objects.filter(
@@ -10220,7 +10225,7 @@ def admin_test_analytics(request):
                 'worst_score': test_results.order_by('score').first(),
             }
             
-            # Savol bo'yicha tahlil
+            # Savol böyiça tahlil
             question_analysis = []
             for question in selected_test.questions.prefetch_related('answers').all():
                 total_answered = TestUserAnswer.objects.filter(
@@ -10258,7 +10263,7 @@ def admin_test_analytics(request):
                     'answer_stats': answer_stats,
                 })
             
-            # Eng ko'p xato qilingan savollarni birinchi qo'yish
+            # Eng köp xato qilingan savollarni birinçi qöyiş
             question_analysis.sort(key=lambda x: x['error_rate'], reverse=True)
             
             # Also get profession_tests for this profession
@@ -10292,7 +10297,7 @@ def admin_test_analytics(request):
 
 @login_required
 def admin_test_result_detail(request, pk):
-    """Admin/Teacher: O'quvchining test natijasi - savol-javob tahlili"""
+    """Admin/Teacher: Öquvçining test natijasi - savol-javob tahlili"""
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
@@ -10300,18 +10305,18 @@ def admin_test_result_detail(request, pk):
         'test__lesson__profession', 'student'
     ), pk=pk)
     
-    # Teacher faqat o'z kurslaridagi natijalarni ko'ra olsin
+    # Teacher faqat öz kurslaridagi natijalarni köra olsin
     if request.user.is_teacher and not request.user.is_admin:
         teaching_ids = request.user.teaching_professions.values_list('pk', flat=True)
         if result.test.lesson.profession_id not in teaching_ids:
-            messages.error(request, "Sizda bu natijani ko'rish huquqi yo'q!")
+            messages.error(request, "Sizda bu natijani köriş huquqi yöq!")
             return redirect('home')
     
     user_answers = result.user_answers.all().select_related(
         'question', 'selected_answer'
     ).order_by('question__order')
     
-    # Har bir savol uchun to'g'ri javobni ham olish
+    # Har bir savol uçun töğri javobni ham oliş
     answer_details = []
     for ua in user_answers:
         correct_answer = ua.question.answers.filter(is_correct=True).first()
@@ -10364,7 +10369,7 @@ def issue_certificate(request, pk):
             cert.issued_by = request.user
             cert.save()
             
-            # O'quvchiga chiroyli tabrik xabari yuborish
+            # Öquvçiga çiroyli tabrik xabari yuboriş
             Message.objects.create(
                 recipient=student,
                 sender=request.user,
@@ -10372,35 +10377,35 @@ def issue_certificate(request, pk):
                 content=(
                     f"🌟🌟🌟 TABRIKLAYMIZ! 🌟🌟🌟\n\n"
                     f"Hurmatli {student.full_name}!\n\n"
-                    f"🎓 Sizga \"{profession.name}\" yo'nalishi bo'yicha SERTIFIKAT berildi!\n\n"
+                    f"🎓 Sizga \"{profession.name}\" yönalişi böyiça SERTIFIKAT berildi!\n\n"
                     f"📋 Ma'lumotlar:\n"
                     f"   🆔 ID raqam: {student.id}\n"
-                    f"   📚 Yo'nalish: {profession.name}\n"
+                    f"   📚 Yönaliş: {profession.name}\n"
                     f"   🏅 Sertifikat ID: {cert.certificate_id}\n"
                     f"   📅 Berilgan sana: {cert.valid_from}\n"
                     f"   ✅ Holat: {cert.get_status_display()}\n\n"
-                    f"🎊 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
-                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
-                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.\n\n"
+                    f"🎊 Siz bu yönalişni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada köproq bilim va tajriba taqdim etişga tayyor.\n\n"
+                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bölimida körişingiz mumkin.\n\n"
                     f"💜 Hurmat bilan,\nIT Creative Academy jamoasi"
                 ),
                 message_type='achievement'
             )
             
-            # Telegram orqali chiroyli tabrik xabari
+            # Telegram orqali çiroyli tabrik xabari
             if student.telegram_id:
                 telegram_text = (
                     f"🎓🎉🎊 <b>TABRIKLAYMIZ!</b> 🎊🎉🎓\n\n"
                     f"Hurmatli <b>{student.full_name}</b>!\n\n"
-                    f"✨ Sizga <b>«{profession.name}»</b> yo'nalishi bo'yicha <b>SERTIFIKAT</b> berildi!\n\n"
+                    f"✨ Sizga <b>«{profession.name}»</b> yönalişi böyiça <b>SERTIFIKAT</b> berildi!\n\n"
                     f"📋 <b>Ma'lumotlar:</b>\n"
                     f"┌ 🆔 ID raqam: <b>{student.id}</b>\n"
-                    f"├ 📚 Yo'nalish: <b>{profession.name}</b>\n"
+                    f"├ 📚 Yönaliş: <b>{profession.name}</b>\n"
                     f"├ 🏅 Sertifikat: <b>{cert.certificate_id}</b>\n"
                     f"└ 📅 Sana: <b>{cert.valid_from}</b>\n\n"
-                    f"🌟 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🌟 Siz bu yönalişni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
                     f"🚀 <b>Yangi kurslarda ham kutib qolamiz!</b>\n"
-                    f"IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"IT Creative Academy sizga yanada köproq bilim va tajriba taqdim etişga tayyor.\n\n"
                     f"💜 <i>IT Creative Academy jamoasi</i>"
                 )
                 notify_user(student.telegram_id, telegram_text)
@@ -10408,8 +10413,8 @@ def issue_certificate(request, pk):
             # Adminlarga xabar
             notify_admins(
                 f"🎓 <b>Sertifikat berildi!</b>\n\n"
-                f"👤 O'quvchi: <b>{student.full_name}</b>\n"
-                f"📚 Yo'nalish: <b>{profession.name}</b>\n"
+                f"👤 Öquvçi: <b>{student.full_name}</b>\n"
+                f"📚 Yönaliş: <b>{profession.name}</b>\n"
                 f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
             )
             
@@ -10417,7 +10422,7 @@ def issue_certificate(request, pk):
             notify_group(
                 f"🎓🎉 <b>TABRIKLAYMIZ!</b> 🎉🎓\n\n"
                 f"🌟 <b>{student.full_name}</b> 🌟\n\n"
-                f"<b>«{profession.name}»</b> yo'nalishini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
+                f"<b>«{profession.name}»</b> yönalişini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
                 f"🎊 Tabriklaymiz va yangi kurslarda kutib qolamiz! 🚀\n\n"
                 f"💜 <b>IT Creative Academy</b>"
             )
@@ -10435,7 +10440,7 @@ def issue_certificate(request, pk):
 
 
 def verify_certificate(request):
-    """Sertifikatni tekshirish - login talab qilinmaydi"""
+    """Sertifikatni tekşiriş - login talab qilinmaydi"""
     certificate = None
     searched = False
     error = None
@@ -10451,7 +10456,7 @@ def verify_certificate(request):
             profession = certificate.profession
 
             if student is None:
-                # Qo'lda berilgan sertifikat — o'quvchi natijalari mavjud emas
+                # Qölda berilgan sertifikat — öquvçi natijalari mavjud emas
                 return render(request, 'accounts/verify_certificate.html', {
                     'certificate': certificate,
                     'searched': searched,
@@ -10491,7 +10496,7 @@ def verify_certificate(request):
             speaking_count = speaking_subs.count()
             avg_speaking_grade = speaking_subs.aggregate(avg=Avg('grade'))['avg'] or 0
             
-            # Umumiy o'rtacha ball hisoblash
+            # Umumiy örtaça ball hisoblaş
             all_scores = []
             if tests_taken > 0:
                 all_scores.append(avg_test_score)
@@ -10530,7 +10535,7 @@ def verify_certificate(request):
 @login_required
 def admin_dashboard(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda admin paneliga kirish huquqi yo'q!")
+        messages.error(request, "Sizda admin paneliga kiriş huquqi yöq!")
         return redirect('home')
     
     dash_stats = get_performance_cache().get('admin_dash_stats')
@@ -10634,7 +10639,7 @@ def admin_dashboard(request):
     # Texnik xizmat rejimi
     maintenance = MaintenanceMode.get_instance()
 
-    # ============ MOLIYA VA O'SISH KO'RSATKICHLARI (aniq hisob) ============
+    # ============ MOLIYA VA ÖSIŞ KÖRSATKIÇLARI (aniq hisob) ============
     _now = timezone.now()
     _cur_m, _cur_y = _now.month, _now.year
     if _cur_m == 1:
@@ -10692,7 +10697,7 @@ def admin_dashboard(request):
         }
         get_performance_cache().set('admin_growth_stats', growth, 300)
 
-    # Kurslar samaradorligi jadvali (top 10, o'quvchilar soni bo'yicha)
+    # Kurslar samaradorligi jadvali (top 10, öquvçilar soni böyiça)
     course_perf = get_performance_cache().get('admin_course_perf')
     if course_perf is None:
         _perf_qs = Profession.objects.annotate(
@@ -10764,9 +10769,9 @@ def admin_dashboard(request):
 
 @login_required
 def admin_export_report(request):
-    """Admin: tizim hisobotini Excel (.xlsx) ko'rinishida yuklab olish.
+    """Admin: tizim hisobotini Excel (.xlsx) körinişida yuklab oliş.
 
-    4 varaq: Umumiy, Kurslar, To'lovlar (joriy yil), O'qituvchilar.
+    4 varaq: Umumiy, Kurslar, Tölovlar (joriy yil), Öqituvçilar.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -10792,21 +10797,21 @@ def admin_export_report(request):
     # ---- 1) Umumiy ----
     ws1 = wb.active
     ws1.title = "Umumiy"
-    ws1.append(["Ko'rsatkich", 'Qiymat'])
+    ws1.append(["Körsatkiç", 'Qiymat'])
     _style_header(ws1)
     general_rows = [
-        ("Jami foydalanuvchilar", CustomUser.objects.count()),
-        ("O'quvchilar", CustomUser.objects.filter(role='student').count()),
-        ("O'qituvchilar", CustomUser.objects.filter(role='teacher').count()),
-        ("Yordamchi adminlar", CustomUser.objects.filter(role='assistant_admin').count()),
-        ("Bloklangan foydalanuvchilar", CustomUser.objects.filter(is_blocked=True).count()),
+        ("Jami foydalanuvçilar", CustomUser.objects.count()),
+        ("Öquvçilar", CustomUser.objects.filter(role='student').count()),
+        ("Öqituvçilar", CustomUser.objects.filter(role='teacher').count()),
+        ("Yordamçi adminlar", CustomUser.objects.filter(role='assistant_admin').count()),
+        ("Bloklangan foydalanuvçilar", CustomUser.objects.filter(is_blocked=True).count()),
         ("Kurslar", Profession.objects.count()),
         ("Darslar", Lesson.objects.count()),
         ("Video darslar", VideoLesson.objects.count()),
         ("Testlar", Test.objects.count()),
-        ("Kursga yozilishlar", CourseEnrollment.objects.count()),
+        ("Kursga yozilişlar", CourseEnrollment.objects.count()),
         ("Sertifikatlar", Certificate.objects.count()),
-        ("Tekshirilmagan vazifalar", HomeworkSubmission.objects.filter(status='pending').count()),
+        ("Tekşirilmagan vazifalar", HomeworkSubmission.objects.filter(status='pending').count()),
     ]
     for row in general_rows:
         ws1.append(list(row))
@@ -10814,7 +10819,7 @@ def admin_export_report(request):
 
     # ---- 2) Kurslar ----
     ws2 = wb.create_sheet("Kurslar")
-    ws2.append(['#', 'Kurs', "O'quvchilar", 'Darslar', 'Tekshirilmagan vazifa', "O'rtacha test bali (%)", "O'qituvchilar"])
+    ws2.append(['#', 'Kurs', "Öquvçilar", 'Darslar', 'Tekşirilmagan vazifa', "Örtaça test bali (%)", "Öqituvçilar"])
     _style_header(ws2)
     profs = Profession.objects.annotate(
         student_total=Count('enrollments', filter=Q(enrollments__user__role='student'), distinct=True),
@@ -10844,9 +10849,9 @@ def admin_export_report(request):
         ])
     _fit_columns(ws2)
 
-    # ---- 3) To'lovlar (joriy yil, oylar bo'yicha) ----
-    ws3 = wb.create_sheet("To'lovlar")
-    ws3.append(['Oy', "To'langan (so'm)", "To'lovlar soni", "To'lanmagan (so'm)", "Qarzdorlar soni"])
+    # ---- 3) Tölovlar (joriy yil, oylar böyiça) ----
+    ws3 = wb.create_sheet("Tölovlar")
+    ws3.append(['Oy', "Tölangan (söm)", "Tölovlar soni", "Tölanmagan (söm)", "Qarzdorlar soni"])
     _style_header(ws3)
     year = timezone.now().year
     month_names = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
@@ -10878,10 +10883,10 @@ def admin_export_report(request):
         cell.font = Font(bold=True)
     _fit_columns(ws3)
 
-    # ---- 4) O'qituvchilar ----
-    ws4 = wb.create_sheet("O'qituvchilar")
-    ws4.append(['#', 'Ism-familiya', 'Telefon', 'Kurslari', "O'quvchilari",
-                'Tekshirilmagan vazifa', 'Baholagan vazifalari'])
+    # ---- 4) Öqituvçilar ----
+    ws4 = wb.create_sheet("Öqituvçilar")
+    ws4.append(['#', 'Ism-familiya', 'Telefon', 'Kurslari', "Öquvçilari",
+                'Tekşirilmagan vazifa', 'Baholagan vazifalari'])
     _style_header(ws4)
     teachers = CustomUser.objects.filter(role='teacher').prefetch_related('teaching_professions')
     for i, t in enumerate(teachers, 1):
@@ -10913,7 +10918,7 @@ def admin_export_report(request):
 
 @login_required
 def toggle_maintenance(request):
-    """Texnik xizmat rejimini yoqish/o'chirish"""
+    """Texnik xizmat rejimini yoqish/öchirish"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -10931,7 +10936,7 @@ def toggle_maintenance(request):
     if maintenance.is_active:
         notify_group(
             f"🔧 <b>Texnik xizmat rejimi yoqildi!</b>\n\n"
-            f"⚠️ Sayt vaqtincha ishlamaydi.\n"
+            f"⚠️ Sayt vaqtinça işlamaydi.\n"
             f"📝 {maintenance.message}\n\n"
             f"👤 Admin: <b>{request.user.full_name}</b>"
         )
@@ -10939,26 +10944,26 @@ def toggle_maintenance(request):
             notify_user(
                 u.telegram_id,
                 f"🔧 <b>Texnik xizmat rejimi yoqildi!</b>\n\n"
-                f"⚠️ Sayt vaqtincha ishlamaydi.\n"
+                f"⚠️ Sayt vaqtinça işlamaydi.\n"
                 f"📝 {maintenance.message}\n\n"
-                f"⏳ Iltimos, keyinroq urinib ko'ring."
+                f"⏳ Iltimos, keyinroq urinib köring."
             )
     else:
         notify_group(
-            f"✅ <b>Sayt yana ishlayapti!</b>\n\n"
-            f"🎉 Texnik xizmat rejimi o'chirildi.\n"
-            f"🚀 Saytga kirishingiz mumkin!\n\n"
+            f"✅ <b>Sayt yana işlayapti!</b>\n\n"
+            f"🎉 Texnik xizmat rejimi öçirildi.\n"
+            f"🚀 Saytga kirişingiz mumkin!\n\n"
             f"👤 Admin: <b>{request.user.full_name}</b>"
         )
         for u in CustomUser.objects.filter(telegram_id__isnull=False, is_blocked=False):
             notify_user(
                 u.telegram_id,
-                f"✅ <b>Sayt yana ishlayapti!</b>\n\n"
-                f"🎉 Texnik ishlar tugadi.\n"
-                f"🚀 Saytga kirishingiz mumkin!"
+                f"✅ <b>Sayt yana işlayapti!</b>\n\n"
+                f"🎉 Texnik işlar tugadi.\n"
+                f"🚀 Saytga kirişingiz mumkin!"
             )
     
-    status = "yoqildi" if maintenance.is_active else "o'chirildi"
+    status = "yoqildi" if maintenance.is_active else "öçirildi"
     messages.success(request, f"Texnik xizmat rejimi {status}!")
     return redirect('admin_dashboard')
 
@@ -10979,7 +10984,7 @@ def admin_professions(request):
 
 
 def _enroll_all_students_mandatory(profession):
-    """Majburiy kursga barcha o'quvchilarni avtomatik yozish"""
+    """Majburiy kursga barça öquvçilarni avtomatik yoziş"""
     students = CustomUser.objects.filter(role='student')
     created_count = 0
     for student in students:
@@ -10991,13 +10996,13 @@ def _enroll_all_students_mandatory(profession):
                     student.telegram_id,
                     f"📌 <b>Majburiy kurs tayinlandi!</b>\n\n"
                     f"📖 <b>{profession.name}</b>\n\n"
-                    f"📚 Siz ushbu kursga avtomatik yozildingiz. O'qishni boshlang!"
+                    f"📚 Siz uşbu kursga avtomatik yozildingiz. Öqişni boşlang!"
                 )
     if created_count:
         notify_admins(
             f"📌 <b>Majburiy kurs belgilandi!</b>\n\n"
             f"📖 {profession.name}\n"
-            f"👥 {created_count} ta o'quvchi avtomatik yozildi"
+            f"👥 {created_count} ta öquvçi avtomatik yozildi"
         )
 
 
@@ -11012,12 +11017,12 @@ def admin_profession_add(request):
             profession = form.save()
             if profession.is_mandatory:
                 _enroll_all_students_mandatory(profession)
-            messages.success(request, "Kasb muvaffaqiyatli qo'shildi!")
+            messages.success(request, "Kasb muvaffaqiyatli qöşildi!")
             return redirect('admin_professions')
     else:
         form = ProfessionForm()
     
-    return render(request, 'accounts/admin/profession_form.html', {'form': form, 'title': "Kasb qo'shish"})
+    return render(request, 'accounts/admin/profession_form.html', {'form': form, 'title': "Kasb qöşiş"})
 
 
 @login_required
@@ -11039,7 +11044,7 @@ def admin_profession_edit(request, pk):
     else:
         form = ProfessionForm(instance=profession)
     
-    return render(request, 'accounts/admin/profession_form.html', {'form': form, 'title': "Kasbni tahrirlash", 'profession': profession})
+    return render(request, 'accounts/admin/profession_form.html', {'form': form, 'title': "Kasbni tahrirlaş", 'profession': profession})
 
 
 @login_required
@@ -11051,7 +11056,7 @@ def admin_profession_delete(request, pk):
     
     if request.method == 'POST':
         profession.delete()
-        messages.success(request, "Kasb muvaffaqiyatli o'chirildi!")
+        messages.success(request, "Kasb muvaffaqiyatli öçirildi!")
         return redirect('admin_professions')
     
     return render(request, 'accounts/admin/profession_delete.html', {'profession': profession})
@@ -11059,7 +11064,7 @@ def admin_profession_delete(request, pk):
 
 @login_required
 def admin_profession_toggle_block(request, pk):
-    """Kasbni bloklash/blokdan chiqarish"""
+    """Kasbni bloklash/blokdan çiqariş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -11068,11 +11073,11 @@ def admin_profession_toggle_block(request, pk):
     if request.method == 'POST':
         profession.is_blocked = not profession.is_blocked
         if profession.is_blocked:
-            profession.blocked_reason = request.POST.get('blocked_reason', '').strip() or "Vaqtincha to'xtatilgan"
+            profession.blocked_reason = request.POST.get('blocked_reason', '').strip() or "Vaqtinça töxtatilgan"
             messages.warning(request, f"'{profession.name}' kursi bloklandi!")
         else:
             profession.blocked_reason = None
-            messages.success(request, f"'{profession.name}' kursi blokdan chiqarildi!")
+            messages.success(request, f"'{profession.name}' kursi blokdan çiqarildi!")
         profession.save()
     
     return redirect('admin_professions')
@@ -11080,7 +11085,7 @@ def admin_profession_toggle_block(request, pk):
 
 @login_required
 def admin_profession_toggle_certificate(request, pk):
-    """Kursga sertifikat joriy qilish / olib tashlash"""
+    """Kursga sertifikat joriy qiliş / olib taşlaş"""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -11090,16 +11095,16 @@ def admin_profession_toggle_certificate(request, pk):
         profession.has_certificate = not profession.has_certificate
         profession.save(update_fields=['has_certificate'])
         if profession.has_certificate:
-            messages.success(request, f"'{profession.name}' uchun sertifikat joriy qilindi! 🎓 Endi o'quvchilar sertifikat so'rovi yubora oladi.")
+            messages.success(request, f"'{profession.name}' uçun sertifikat joriy qilindi! 🎓 Endi öquvçilar sertifikat sörovi yubora oladi.")
         else:
-            messages.warning(request, f"'{profession.name}' uchun sertifikat olib tashlandi. Endi o'quvchilar sertifikat so'rovi yubora olmaydi.")
+            messages.warning(request, f"'{profession.name}' uçun sertifikat olib taşlandi. Endi öquvçilar sertifikat sörovi yubora olmaydi.")
 
     return redirect('admin_professions')
 
 
 @login_required
 def admin_profession_toggle_daily_limit(request, pk):
-    """Kunlik bo'lim cheklovini yoqish/o'chirish"""
+    """Kunlik bölim çeklovini yoqish/öchirish"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -11109,18 +11114,18 @@ def admin_profession_toggle_daily_limit(request, pk):
         profession.daily_section_limit = not profession.daily_section_limit
         profession.save()
         if profession.daily_section_limit:
-            messages.success(request, f"'{profession.name}' uchun kunlik bo'lim cheklovi yoqildi! 🔒")
+            messages.success(request, f"'{profession.name}' uçun kunlik bölim çeklovi yoqildi! 🔒")
         else:
-            messages.success(request, f"'{profession.name}' uchun kunlik bo'lim cheklovi o'chirildi! 🔓")
+            messages.success(request, f"'{profession.name}' uçun kunlik bölim çeklovi öçirildi! 🔓")
     
     return redirect('admin_professions')
 
 
 @login_required
 def admin_user_daily_limit(request, user_pk, profession_pk):
-    """O'quvchining shaxsiy kunlik cheklov holatini o'zgartirish.
+    """Öquvçining şaxsiy kunlik çeklov holatini özgartiriş.
 
-    mode: inherit (kurs sozlamasi), on (majburan yoqish), off (majburan o'chirish)
+    mode: inherit (kurs sozlamasi), on (majburan yoqiş), off (majburan öçiriş)
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -11138,7 +11143,7 @@ def admin_user_daily_limit(request, user_pk, profession_pk):
             label = "yoqildi 🔒"
         elif mode == 'off':
             enrollment.daily_limit_override = False
-            label = "o'chirildi 🔓"
+            label = "öçirildi 🔓"
         else:
             enrollment.daily_limit_override = None
             label = "kurs sozlamasiga qaytarildi"
@@ -11146,7 +11151,7 @@ def admin_user_daily_limit(request, user_pk, profession_pk):
 
         messages.success(
             request,
-            f"{user.full_name} uchun '{profession.name}' kursida kunlik cheklov {label}.",
+            f"{user.full_name} uçun '{profession.name}' kursida kunlik çeklov {label}.",
         )
 
     return redirect('admin_user_view', pk=user_pk)
@@ -11167,7 +11172,7 @@ def admin_remove_student_from_course(request, profession_pk, user_pk):
             if student.profession == profession:
                 student.profession = None
                 student.save(update_fields=['profession'])
-            messages.success(request, f"{student.full_name} '{profession.name}' kursidan chiqarildi!")
+            messages.success(request, f"{student.full_name} '{profession.name}' kursidan çiqarildi!")
         else:
             messages.warning(request, f"{student.full_name} bu kursga yozilmagan!")
     
@@ -11176,7 +11181,7 @@ def admin_remove_student_from_course(request, profession_pk, user_pk):
 
 @login_required
 def admin_add_student_to_course(request, profession_pk):
-    """Admin: O'quvchini kursga qo'shish"""
+    """Admin: Öquvçini kursga qöşiş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -11189,15 +11194,15 @@ def admin_add_student_to_course(request, profession_pk):
                 CustomUser, pk=user_pk, role__in=('student', 'assistant_admin')
             )
             if CourseEnrollment.objects.filter(user=student, profession=profession).exists():
-                messages.info(request, f"{student.full_name} allaqachon '{profession.name}' kursiga yozilgan!")
+                messages.info(request, f"{student.full_name} allaqaçon '{profession.name}' kursiga yozilgan!")
             else:
                 CourseEnrollment.objects.create(user=student, profession=profession)
-                # Eski so'rovlarni tozalash (qayta yozilishga to'sqinlik qilmasligi uchun)
+                # Eski sörovlarni tozalaş (qayta yozilişga tösqinlik qilmasligi uçun)
                 CourseEnrollmentRequest.objects.filter(user=student, profession=profession).delete()
                 CourseUnenrollRequest.objects.filter(user=student, profession=profession).delete()
-                # Qayta yozilish bo'lsa — eski progressni tozalash
+                # Qayta yoziliş bölsa — eski progressni tozalaş
                 _reset_course_progress(student, profession)
-                messages.success(request, f"{student.full_name} '{profession.name}' kursiga muvaffaqiyatli qo'shildi!")
+                messages.success(request, f"{student.full_name} '{profession.name}' kursiga muvaffaqiyatli qöşildi!")
     
     return redirect('admin_professions')
 
@@ -11224,10 +11229,10 @@ def admin_users(request):
         'role', 'is_blocked', 'is_finished', 'is_premium', 'last_activity', 'date_joined',
         'is_superuser', 'student_id', 'birth_date', 'gender',
     ).prefetch_related(
-        # Ro'yxatda har bir o'quvchining guruh(lar)ini ko'rsatish uchun
+        # Röyxatda har bir öquvçining guruh(lar)ini körsatiş uçun
         Prefetch('study_groups', queryset=StudyGroup.objects.only('id', 'name', 'color'))
     ).annotate(
-        # Shartnoma rejimidagi o'quvchilarni belgilash uchun
+        # Şartnoma rejimidagi öquvçilarni belgilaş uçun
         has_contract=Exists(
             StudentBalance.objects.filter(user_id=OuterRef('pk'), is_contract=True)
         )
@@ -11251,10 +11256,10 @@ def admin_users(request):
     elif status_filter == 'active':
         users = users.filter(is_blocked=False)
     if group_filter == 'none':
-        # Hech qanday guruhga biriktirilmagan o'quvchilar
+        # Heç qanday guruhga biriktirilmagan öquvçilar
         users = users.filter(role='student', study_groups__isnull=True)
     elif group_filter:
-        # Guruh a'zolari (o'quvchilar) bo'yicha filtrlash — StudyGroup.students M2M
+        # Guruh a'zolari (öquvçilar) böyiça filtrlaş — StudyGroup.students M2M
         users = users.filter(study_groups__id=group_filter).distinct()
     if payment_filter == 'contract':
         users = users.filter(has_contract=True)
@@ -11327,7 +11332,7 @@ def admin_users(request):
 
 @login_required
 def admin_export_students(request):
-    """O'quvchilar ma'lumotlarini Excel ga export qilish - maydonlarni tanlash"""
+    """Öquvçilar ma'lumotlarini Excel ga export qiliş - maydonlarni tanlaş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -11338,12 +11343,12 @@ def admin_export_students(request):
         'last_name': "Familiya",
         'phone': "Telefon",
         'email': "Email",
-        'birth_date': "Tug'ilgan kuni",
+        'birth_date': "Tuğilgan kuni",
         'gender': "Jinsi",
         'nationality': "Millati",
         'passport_series': "Pasport seriyasi",
         'passport_number': "Pasport raqami",
-        'jshshir': "JSHSHIR (PINFL)",
+        'jshshir': "JŞŞIR (PINFL)",
         'passport_issued_date': "Pasport berilgan sana",
         'father_name': "Otasining ismi",
         'father_phone': "Otasining telefoni",
@@ -11355,14 +11360,14 @@ def admin_export_students(request):
         'school_name': "Maktab nomi",
         'school_number': "Maktab raqami",
         'address': "Manzil",
-        'profession__name': "Yo'nalish",
+        'profession__name': "Yönaliş",
         'role': "Rol",
         'coins': "Coinlar",
-        'date_joined': "Ro'yxatdan o'tgan",
+        'date_joined': "Röyxatdan ötgan",
         'last_activity': "Oxirgi faollik",
         'is_blocked': "Bloklangan",
         'is_premium': "Premium",
-        'is_profile_completed': "Profil to'liq",
+        'is_profile_completed': "Profil töliq",
         'telegram_username': "Telegram",
     }
     
@@ -11385,7 +11390,7 @@ def admin_export_students(request):
         # Filter: only valid fields
         valid_fields = [f for f in selected_fields if f in EXPORT_FIELDS]
         if not valid_fields:
-            messages.error(request, "Noto'g'ri maydonlar tanlandi!")
+            messages.error(request, "Notöğri maydonlar tanlandi!")
             return redirect('admin_export_students')
 
         return _generate_students_excel(valid_fields, EXPORT_FIELDS, group_id=selected_group or None)
@@ -11398,10 +11403,10 @@ def admin_export_students(request):
 
 
 def _generate_students_excel(selected_fields, field_labels, group_id=None):
-    """Tanlangan maydonlar asosida Excel fayl yaratish.
+    """Tanlangan maydonlar asosida Excel fayl yaratiş.
 
-    ``group_id`` berilsa — faqat o'sha guruh (StudyGroup) a'zolari eksport
-    qilinadi; aks holda barcha o'quvchilar."""
+    ``group_id`` berilsa — faqat öşa guruh (StudyGroup) a'zolari eksport
+    qilinadi; aks holda barça öquvçilar."""
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
@@ -11414,7 +11419,7 @@ def _generate_students_excel(selected_fields, field_labels, group_id=None):
     
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "O'quvchilar"
+    ws.title = "Öquvçilar"
     
     # Styles
     header_font = Font(name='Arial', bold=True, size=12, color='FFFFFF')
@@ -11458,7 +11463,7 @@ def _generate_students_excel(selected_fields, field_labels, group_id=None):
             elif field == 'passport_issued_date':
                 value = student.passport_issued_date.strftime('%d.%m.%Y') if student.passport_issued_date else '-'
             elif field in ('is_blocked', 'is_premium', 'is_profile_completed', 'father_deceased', 'mother_deceased'):
-                value = 'Ha' if getattr(student, field, False) else "Yo'q"
+                value = 'Ha' if getattr(student, field, False) else "Yöq"
             elif field == 'gender':
                 value = student.get_gender_display() if student.gender else '-'
             elif field == 'role':
@@ -11499,7 +11504,7 @@ def admin_user_view(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     certificates = Certificate.objects.filter(student=user)
     
-    # O'quvchi tahlili
+    # Öquvçi tahlili
     analysis_data = []
     
     if user.role == 'student':
@@ -11544,11 +11549,11 @@ def admin_user_view(request, pk):
             total_items = total_videos + Test.objects.filter(lesson__profession=profession).count() + total_homeworks
             overall_progress = (completed_items / total_items * 100) if total_items > 0 else 0
             
-            # Qaysi darslarda to'xtab qolgan
+            # Qaysi darslarda töxtab qolgan
             stuck_lessons = []
             lessons = Lesson.objects.filter(profession=profession).order_by('section__order', 'order')
             for lesson in lessons:
-                # Video lesson uchun tekshirish (OneToOne relation)
+                # Video lesson uçun tekşiriş (OneToOne relation)
                 has_video = hasattr(lesson, 'video') and lesson.video is not None
                 lesson_videos = 1 if has_video else 0
                 watched = VideoProgress.objects.filter(user=user, video__lesson=lesson, watched=True).count()
@@ -11557,7 +11562,7 @@ def admin_user_view(request, pk):
                 has_hw = Homework.objects.filter(lesson=lesson).exists()
                 hw_submitted = HomeworkSubmission.objects.filter(student=user, homework__lesson=lesson).exists()
                 
-                # Agar video ko'rilmagan yoki test topshirilmagan bo'lsa
+                # Agar video körilmagan yoki test topşirilmagan bölsa
                 if (lesson_videos > 0 and watched < lesson_videos) or (has_test and not test_passed) or (has_hw and not hw_submitted):
                     stuck_lessons.append({
                         'lesson': lesson,
@@ -11584,7 +11589,7 @@ def admin_user_view(request, pk):
                 'stuck_lessons': stuck_lessons[:5],  # Oxirgi 5 ta
             })
     
-    # Kunlik limit boshqaruvi (o'quvchi o'qiyotgan kurslar bo'yicha)
+    # Kunlik limit boşqaruvi (öquvçi öqiyotgan kurslar böyiça)
     from .exam_admin import final_exam_summary
     daily_limit_courses = []
     if user.role == 'student':
@@ -11621,10 +11626,10 @@ def admin_user_view(request, pk):
     recent_activities = ActivityLog.objects.filter(user=user).order_by('-created_at')[:10]
     login_locations = Paginator(user.login_locations.all(), 10).get_page(request.GET.get('locations_page', 1))
 
-    # Startup / g'oya xulosasi. Lokal import — `accounts` app'i `startup` ga
-    # modul darajasida bog'lanib qolmasin (aylanma importdan himoya).
-    # Rol bo'yicha filtr yo'q: funksiya startup ham, a'zolik ham bo'lmasa
-    # `None` qaytaradi, ya'ni shablon tab'ni o'zi chizmaydi.
+    # Startup / ğoya xulosasi. Lokal import — `accounts` app'i `startup` ga
+    # modul darajasida boğlanib qolmasin (aylanma importdan himoya).
+    # Rol böyiça filtr yöq: funksiya startup ham, a'zolik ham bölmasa
+    # `None` qaytaradi, ya'ni şablon tab'ni özi çizmaydi.
     from startup.services import student_startup_summary
     startup_summary = student_startup_summary(user)
 
@@ -11643,7 +11648,7 @@ def admin_user_view(request, pk):
 
 @login_required
 def admin_add_teacher(request):
-    """O'qituvchi qo'shish"""
+    """Öqituvçi qöşiş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -11659,19 +11664,19 @@ def admin_add_teacher(request):
         
         # Validation
         if not all([first_name, last_name, username, phone, password]):
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            messages.error(request, "Barça maydonlarni töldiring!")
             return render(request, 'accounts/admin/add_teacher.html', {
                 'professions': professions,
             })
         
         if CustomUser.objects.filter(username=username).exists():
-            messages.error(request, "Bu username allaqachon band!")
+            messages.error(request, "Bu username allaqaçon band!")
             return render(request, 'accounts/admin/add_teacher.html', {
                 'professions': professions,
             })
         
         if CustomUser.objects.filter(phone=phone).exists():
-            messages.error(request, "Bu telefon raqam allaqachon ro'yxatdan o'tgan!")
+            messages.error(request, "Bu telefon raqam allaqaçon röyxatdan ötgan!")
             return render(request, 'accounts/admin/add_teacher.html', {
                 'professions': professions,
             })
@@ -11705,7 +11710,7 @@ def admin_add_teacher(request):
                         file=file,
                     )
         
-        messages.success(request, f"O'qituvchi {teacher.full_name} muvaffaqiyatli qo'shildi!")
+        messages.success(request, f"Öqituvçi {teacher.full_name} muvaffaqiyatli qöşildi!")
         return redirect('admin_users')
     
     return render(request, 'accounts/admin/add_teacher.html', {
@@ -11715,7 +11720,7 @@ def admin_add_teacher(request):
 
 @login_required
 def admin_add_assistant_admin(request):
-    """Yordamchi admin (assistant_admin) qo'shish - faqat admin uchun"""
+    """Yordamçi admin (assistant_admin) qöşiş - faqat admin uçun"""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -11733,19 +11738,19 @@ def admin_add_assistant_admin(request):
         role_id = request.POST.get('assistant_role', '').strip()
 
         if not all([first_name, last_name, username, phone, password]):
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            messages.error(request, "Barça maydonlarni töldiring!")
             return render(request, 'accounts/admin/add_assistant_admin.html', context)
 
         if len(password) < 6:
-            messages.error(request, "Parol kamida 6 belgi bo'lishi kerak!")
+            messages.error(request, "Parol kamida 6 belgi bölişi kerak!")
             return render(request, 'accounts/admin/add_assistant_admin.html', context)
 
         if CustomUser.objects.filter(username=username).exists():
-            messages.error(request, "Bu username allaqachon band!")
+            messages.error(request, "Bu username allaqaçon band!")
             return render(request, 'accounts/admin/add_assistant_admin.html', context)
 
         if CustomUser.objects.filter(phone=phone).exists():
-            messages.error(request, "Bu telefon raqam allaqachon ro'yxatdan o'tgan!")
+            messages.error(request, "Bu telefon raqam allaqaçon röyxatdan ötgan!")
             return render(request, 'accounts/admin/add_assistant_admin.html', context)
 
         assistant_role_obj = None
@@ -11761,7 +11766,7 @@ def admin_add_assistant_admin(request):
             role='assistant_admin',
             assistant_role=assistant_role_obj,
         )
-        messages.success(request, f"Yordamchi admin {assistant.full_name} muvaffaqiyatli qo'shildi!")
+        messages.success(request, f"Yordamçi admin {assistant.full_name} muvaffaqiyatli qöşildi!")
         return redirect('admin_users')
 
     return render(request, 'accounts/admin/add_assistant_admin.html', context)
@@ -11769,15 +11774,15 @@ def admin_add_assistant_admin(request):
 
 @login_required
 def assistant_admin_dashboard(request):
-    """Yordamchi admin uchun alohida boshqaruv sahifasi.
+    """Yordamçi admin uçun alohida boşqaruv sahifasi.
 
-    Sahifa API orqali (api/assistant/...) ma'lumotlarni yuklab boshqaradi.
+    Sahifa API orqali (api/assistant/...) ma'lumotlarni yuklab boşqaradi.
     Faqat admin yoki assistant_admin kira oladi.
     """
     if not (request.user.is_admin or request.user.is_assistant_admin):
         return redirect('home')
 
-    # API uchun token tayyorlash
+    # API uçun token tayyorlaş
     from rest_framework.authtoken.models import Token
     token, _ = Token.objects.get_or_create(user=request.user)
 
@@ -11808,12 +11813,12 @@ def admin_user_edit(request, pk):
             if changed_fields:
                 user.save(update_fields=changed_fields)
             
-            # O'qituvchi kurslarini yangilash
+            # Öqituvçi kurslarini yangilaş
             if user.role == 'teacher':
                 selected_professions = request.POST.getlist('teaching_professions')
                 user.teaching_professions.set(selected_professions)
             
-            messages.success(request, "Foydalanuvchi muvaffaqiyatli yangilandi!")
+            messages.success(request, "Foydalanuvçi muvaffaqiyatli yangilandi!")
             return redirect('admin_users')
     else:
         form = AdminUserEditForm(instance=user)
@@ -11839,8 +11844,8 @@ def admin_user_block(request, pk):
 
     if user.is_admin:
         if is_ajax:
-            return JsonResponse({'success': False, 'error': "Admin foydalanuvchini bloklash mumkin emas!"}, status=403)
-        messages.error(request, "Admin foydalanuvchini bloklash mumkin emas!")
+            return JsonResponse({'success': False, 'error': "Admin foydalanuvçini bloklaş mumkin emas!"}, status=403)
+        messages.error(request, "Admin foydalanuvçini bloklaş mumkin emas!")
         return redirect('admin_users')
     
     user.is_blocked = not user.is_blocked
@@ -11848,7 +11853,7 @@ def admin_user_block(request, pk):
     
     if user.is_blocked:
         notify_group(
-            f"🚫 <b>Foydalanuvchi bloklandi!</b>\n\n"
+            f"🚫 <b>Foydalanuvçi bloklandi!</b>\n\n"
             f"👤 {user.full_name}\n"
             f"📋 Role: {user.get_role_display()}\n"
             f"🔒 Admin <b>{request.user.full_name}</b> tomonidan bloklandi."
@@ -11860,21 +11865,21 @@ def admin_user_block(request, pk):
                 f"👤 {user.full_name}\n"
                 f"📋 Rol: {user.get_role_display()}\n\n"
                 f"❌ Sizning hisobingiz admin tomonidan bloklandi.\n"
-                f"📞 Qo'shimcha ma'lumot uchun adminstratsiya bilan bog'laning."
+                f"📞 Qöşimça ma'lumot uçun adminstratsiya bilan boğlaning."
             )
     else:
         notify_group(
-            f"✅ <b>Foydalanuvchi blokdan chiqarildi!</b>\n\n"
+            f"✅ <b>Foydalanuvçi blokdan çiqarildi!</b>\n\n"
             f"👤 {user.full_name}\n"
             f"📋 Role: {user.get_role_display()}\n"
-            f"🔓 Admin <b>{request.user.full_name}</b> tomonidan blokdan chiqarildi."
+            f"🔓 Admin <b>{request.user.full_name}</b> tomonidan blokdan çiqarildi."
         )
         if user.telegram_id:
             notify_user(
                 user.telegram_id,
-                f"✅ <b>Hisobingiz blokdan chiqarildi!</b>\n\n"
+                f"✅ <b>Hisobingiz blokdan çiqarildi!</b>\n\n"
                 f"👤 {user.full_name}\n\n"
-                f"🎉 Hisobingiz ochildi. Endi tizimdan foydalanishingiz mumkin."
+                f"🎉 Hisobingiz oçildi. Endi tizimdan foydalanişingiz mumkin."
             )
     
     if is_ajax:
@@ -11890,16 +11895,16 @@ def admin_user_block(request, pk):
 
 @login_required
 def admin_unlink_telegram(request, pk):
-    """Admin tomonidan foydalanuvchining Telegram ulanishini KODSIZ uzish.
+    """Admin tomonidan foydalanuvçining Telegram ulanişini KODSIZ uziş.
 
-    Oddiy uzish (profil sahifasidan) tasdiqlash kodini aynan ulangan
-    Telegram akkauntiga yuboradi. Agar foydalanuvchi shu Telegram
-    akkauntiga endi kira olmasa (yo'qotgan, almashtirgan va h.k.), kodni
-    olishning iloji bo'lmaydi — shu sabab faqat admin panel orqali,
-    kodsiz, majburiy uzish imkoniyati beriladi.
+    Oddiy uziş (profil sahifasidan) tasdiqlaş kodini aynan ulangan
+    Telegram akkauntiga yuboradi. Agar foydalanuvçi şu Telegram
+    akkauntiga endi kira olmasa (yöqotgan, almaştirgan va h.k.), kodni
+    olişning iloji bölmaydi — şu sabab faqat admin panel orqali,
+    kodsiz, majburiy uziş imkoniyati beriladi.
     """
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        messages.error(request, "Sizda bu amalni bajariş huquqi yöq!")
         return redirect('home')
 
     if request.method != 'POST':
@@ -11908,12 +11913,12 @@ def admin_unlink_telegram(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
 
     if not user.telegram_id:
-        messages.error(request, "Bu foydalanuvchida ulangan Telegram yo'q!")
+        messages.error(request, "Bu foydalanuvçida ulangan Telegram yöq!")
         return redirect('admin_user_view', pk=pk)
 
     old_username = user.telegram_username
 
-    # Foydalanuvchining eski (agar bo'lsa) tasdiqlash kodi keshini ham tozalaymiz
+    # Foydalanuvçining eski (agar bölsa) tasdiqlaş kodi keşini ham tozalaymiz
     cache.delete(f'tg_unlink_code_{user.id}')
 
     user.telegram_id = None
@@ -11926,17 +11931,17 @@ def admin_unlink_telegram(request, pk):
         f"📋 Role: {user.get_role_display()}\n"
         f"📎 Avvalgi username: {'@' + old_username if old_username else '—'}\n"
         f"🛠 Admin: {request.user.full_name}\n"
-        f"❗ Tasdiqlash kodisiz, admin panel orqali uzildi."
+        f"❗ Tasdiqlaş kodisiz, admin panel orqali uzildi."
     )
 
-    messages.success(request, f"{user.full_name} ning Telegram ulanishi muvaffaqiyatli uzildi! 🔓")
+    messages.success(request, f"{user.full_name} ning Telegram ulanişi muvaffaqiyatli uzildi! 🔓")
     return redirect('admin_user_view', pk=pk)
 
 
 @login_required
 def admin_user_finished(request, pk):
-    """O'quvchini 'tugatgan' deb belgilash/qaytarish.
-    Tugatgan o'quvchilar yangi kurslarga yozila olmaydi va to'lovlar sahifasida ko'rinmaydi.
+    """Öquvçini 'tugatgan' deb belgilash/qaytarish.
+    Tugatgan öquvçilar yangi kurslarga yozila olmaydi va tölovlar sahifasida körinmaydi.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -11947,23 +11952,23 @@ def admin_user_finished(request, pk):
     )
 
     if user.role != 'student':
-        messages.error(request, "Faqat o'quvchini tugatgan deb belgilash mumkin!")
+        messages.error(request, "Faqat öquvçini tugatgan deb belgilaş mumkin!")
         return redirect('admin_users')
 
     user.is_finished = not user.is_finished
     user.save(update_fields=['is_finished'])
 
     if user.is_finished:
-        messages.success(request, f"{user.full_name} 'kursni tugatgan' deb belgilandi. Endi yangi kurslarga yozila olmaydi va to'lovlar ro'yxatida ko'rinmaydi.")
+        messages.success(request, f"{user.full_name} 'kursni tugatgan' deb belgilandi. Endi yangi kurslarga yozila olmaydi va tölovlar röyxatida körinmaydi.")
         if user.telegram_id:
             notify_user(
                 user.telegram_id,
                 f"🎓 <b>Kursni tugatgan deb belgilandingiz!</b>\n\n"
                 f"👤 {user.full_name}\n\n"
-                f"✅ Tabriklaymiz! Endi siz yangi kurslarga yozila olmaysiz va to'lovlar ro'yxatidan chiqarildingiz."
+                f"✅ Tabriklaymiz! Endi siz yangi kurslarga yozila olmaysiz va tölovlar röyxatidan çiqarildingiz."
             )
     else:
-        messages.success(request, f"{user.full_name} 'tugatgan' belgisi olib tashlandi. Endi yana yangi kurslarga yozilishi va to'lovlar sahifasida ko'rinishi mumkin.")
+        messages.success(request, f"{user.full_name} 'tugatgan' belgisi olib taşlandi. Endi yana yangi kurslarga yozilişi va tölovlar sahifasida körinişi mumkin.")
 
     return redirect('admin_users')
 
@@ -11976,12 +11981,12 @@ def admin_user_delete(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     
     if user.is_admin:
-        messages.error(request, "Admin foydalanuvchini o'chirish mumkin emas!")
+        messages.error(request, "Admin foydalanuvçini öçiriş mumkin emas!")
         return redirect('admin_users')
     
     if request.method == 'POST':
         user.delete()
-        messages.success(request, "Foydalanuvchi o'chirildi!")
+        messages.success(request, "Foydalanuvçi öçirildi!")
         return redirect('admin_users')
     
     return render(request, 'accounts/admin/user_delete.html', {'user_obj': user})
@@ -11994,8 +11999,8 @@ MONTH_NAMES_UZ = [
 
 
 def _parse_stats_filters(request):
-    """Analitika sahifasi uchun yil / oy / kurs yo'nalishi (profession) filtrlarini
-    GET parametrlaridan o'qib, sana oralig'ini hisoblaydi.
+    """Analitika sahifasi uçun yil / oy / kurs yönalişi (profession) filtrlarini
+    GET parametrlaridan öqib, sana oraliğini hisoblaydi.
 
     Qaytaradi: dict(year, month, profession_id, profession, start_date, end_date,
                     label, query_string)
@@ -12023,7 +12028,7 @@ def _parse_stats_filters(request):
         if not profession:
             profession_id = None
 
-    # ── Sana oralig'i (start <= x < end) ──
+    # ── Sana oraliği (start <= x < end) ──
     start_date = end_date = None
     if year and month:
         start_date = date(year, month, 1)
@@ -12036,7 +12041,7 @@ def _parse_stats_filters(request):
         start_date = date(y, month, 1)
         end_date = date(y + 1, 1, 1) if month == 12 else date(y, month + 1, 1)
 
-    # ── Inson o'qiy oladigan yorliq ──
+    # ── Inson öqiy oladigan yorliq ──
     label_parts = []
     if profession:
         label_parts.append(profession.name)
@@ -12046,9 +12051,9 @@ def _parse_stats_filters(request):
         label_parts.append(str(year))
     elif month:
         label_parts.append(str(today.year))
-    label = " · ".join(label_parts) if label_parts else "Umumiy (barcha davr)"
+    label = " · ".join(label_parts) if label_parts else "Umumiy (barça davr)"
 
-    # ── PDF havolasi uchun query string ──
+    # ── PDF havolasi uçun query string ──
     qs_parts = []
     if year:
         qs_parts.append(f"year={year}")
@@ -12071,7 +12076,7 @@ def _parse_stats_filters(request):
 
 
 def _filter_options(selected):
-    """Filtr dropdownlari uchun yil / oy / kurs ro'yxatini tayyorlaydi."""
+    """Filtr dropdownlari uçun yil / oy / kurs röyxatini tayyorlaydi."""
     today = timezone.now().date()
 
     years = set()
@@ -12125,10 +12130,10 @@ def admin_export_pdf(request):
     total_students = CustomUser.objects.filter(role='student').count()
     
     stats_data = [
-        ['Ko\'rsatkich', 'Soni'],
-        ['Jami foydalanuvchilar', str(total_users)],
-        ['O\'quvchilar', str(total_students)],
-        ['O\'qituvchilar', str(total_teachers)],
+        ['Körsatkiç', 'Soni'],
+        ['Jami foydalanuvçilar', str(total_users)],
+        ['Öquvçilar', str(total_students)],
+        ['Öqituvçilar', str(total_teachers)],
     ]
     
     table = Table(stats_data, colWidths=[250, 150])
@@ -12157,7 +12162,7 @@ def add_section(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     
     if request.method == 'POST':
@@ -12166,7 +12171,7 @@ def add_section(request, pk):
             section = form.save(commit=False)
             section.profession = profession
             section.save()
-            messages.success(request, "Bo'lim muvaffaqiyatli qo'shildi!")
+            messages.success(request, "Bölim muvaffaqiyatli qöşildi!")
             return redirect('manage_lessons', pk=pk)
     else:
         form = SectionForm()
@@ -12185,14 +12190,14 @@ def edit_section(request, pk):
     section = get_object_or_404(Section, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=section.profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     
     if request.method == 'POST':
         form = SectionForm(request.POST, instance=section)
         if form.is_valid():
             form.save()
-            messages.success(request, "Bo'lim muvaffaqiyatli yangilandi!")
+            messages.success(request, "Bölim muvaffaqiyatli yangilandi!")
             return redirect('manage_lessons', pk=section.profession.pk)
     else:
         form = SectionForm(instance=section)
@@ -12211,14 +12216,14 @@ def delete_section(request, pk):
     section = get_object_or_404(Section, pk=pk)
     
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=section.profession.pk).exists():
-        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu kursga kiriş huquqi yöq!")
         return redirect('professions')
     
     profession_pk = section.profession.pk
     
     if request.method == 'POST':
         section.delete()
-        messages.success(request, "Bo'lim o'chirildi!")
+        messages.success(request, "Bölim öçirildi!")
         return redirect('manage_lessons', pk=profession_pk)
     
     return render(request, 'accounts/manage/delete_section.html', {'section': section})
@@ -12273,7 +12278,7 @@ def admin_section_add(request):
                 order=int(order),
                 is_active=is_active
             )
-            messages.success(request, "Bo'lim qo'shildi!")
+            messages.success(request, "Bölim qöşildi!")
             return redirect('admin_sections')
     
     professions = Profession.objects.all()
@@ -12294,7 +12299,7 @@ def admin_section_edit(request, pk):
         section.order = int(request.POST.get('order', 0))
         section.is_active = 'is_active' in request.POST
         section.save()
-        messages.success(request, "Bo'lim yangilandi!")
+        messages.success(request, "Bölim yangilandi!")
         return redirect('admin_sections')
     
     professions = Profession.objects.all()
@@ -12313,13 +12318,13 @@ def admin_section_delete(request, pk):
     
     if request.method == 'POST':
         section.delete()
-        messages.success(request, "Bo'lim o'chirildi!")
+        messages.success(request, "Bölim öçirildi!")
         return redirect('admin_sections')
     
     return render(request, 'accounts/admin/section_delete.html', {'section': section})
 
 
-# ==================== COIN BOSHQARUVI ====================
+# ==================== COIN BOŞQARUVI ====================
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.shortcuts import render, redirect
@@ -12331,7 +12336,7 @@ def admin_manage_coins(request):
 
     # 🔐 Admin check
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     # 📌 Studentlar queryset
@@ -12392,7 +12397,7 @@ def admin_manage_coins(request):
             if amount <= 0:
                 raise ValueError("Amount must be positive")
 
-            # Guruhga coin berish
+            # Guruhga coin beriş
             if bulk_ids and action in ('add', 'remove'):
                 with transaction.atomic():
                     bulk_users = CustomUser.objects.filter(pk__in=bulk_ids).select_for_update()
@@ -12418,7 +12423,7 @@ def admin_manage_coins(request):
                             text += f"\n\nSabab: {reason}"
                         Message.objects.create(
                             sender=request.user, recipient=u,
-                            title="Coin rag'batlantirish" if action == 'add' else "Coin ayirildi",
+                            title="Coin rağbatlantiriş" if action == 'add' else "Coin ayirildi",
                             content=text, message_type='system'
                         )
                         count += 1
@@ -12427,11 +12432,11 @@ def admin_manage_coins(request):
                     reason_text = f"\n📝 Sabab: {reason}" if reason else ""
                     coin_msg = (
                         f"{emoji} <b>Coin {verb}!</b>\n\n"
-                        f"👥 {count} ta o'quvchiga {amount} coin {verb}{reason_text}"
+                        f"👥 {count} ta öquvçiga {amount} coin {verb}{reason_text}"
                     )
                     notify_admins(coin_msg)
                     notify_group(coin_msg)
-                    messages.success(request, f"{count} ta o'quvchiga {amount} coin {verb}!")
+                    messages.success(request, f"{count} ta öquvçiga {amount} coin {verb}!")
 
             elif user_id:
                 with transaction.atomic():
@@ -12445,12 +12450,12 @@ def admin_manage_coins(request):
                             action='add',
                             reason=reason or "Admin tomonidan coin berildi",
                         )
-                        text = f"Sizga {amount} coin rag'batlantirish sifatida berildi!"
+                        text = f"Sizga {amount} coin rağbatlantiriş sifatida berildi!"
                         if reason:
                             text += f"\n\nSabab: {reason}"
                         Message.objects.create(
                             sender=request.user, recipient=user,
-                            title="Coin rag'batlantirish", content=text, message_type='system'
+                            title="Coin rağbatlantiriş", content=text, message_type='system'
                         )
                         coin_msg = (
                             f"🎁 <b>Coin berildi!</b>\n\n"
@@ -12492,7 +12497,7 @@ def admin_manage_coins(request):
         except (ValueError, CustomUser.DoesNotExist):
             messages.error(request, "Xatolik yuz berdi!")
 
-        # 🔥 Qaysi sahifada bo‘lsa o‘sha sahifaga qaytadi
+        # 🔥 Qaysi sahifada bölsa öşa sahifaga qaytadi
         params = request.GET.urlencode()
         if params:
             return redirect(f"{request.path}?{params}")
@@ -12538,7 +12543,7 @@ def admin_manage_coins(request):
     return render(request, 'accounts/admin/manage_coins.html', context)
 
 
-# ==================== YORDAM SO'ROVLARI ====================
+# ==================== YORDAM SÖROVLARI ====================
 
 @login_required
 def help_page(request):
@@ -12563,7 +12568,7 @@ def submit_help_request(request):
         logger.info(f"Help Request Received - User: {request.user.username}, Subject: {subject}, Image: {image}")
 
         if not subject or not message:
-            return JsonResponse({'success': False, 'error': "Mavzu va xabar to'ldirilishi shart!"})
+            return JsonResponse({'success': False, 'error': "Mavzu va xabar töldirilişi şart!"})
 
         # Backend Debounce: Check for recent duplicate
         recent_duplicate = HelpRequest.objects.filter(
@@ -12584,7 +12589,7 @@ def submit_help_request(request):
             image=image
         )
         notify_admins(
-            f"🆘 <b>Yangi yordam so'rovi!</b>\n\n"
+            f"🆘 <b>Yangi yordam sörovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📌 {subject}\n"
             f"💬 {message[:100]}"
@@ -12594,13 +12599,13 @@ def submit_help_request(request):
         
         return JsonResponse({'success': True, 'message': "Xabaringiz yuborildi! Tez orada javob beramiz."})
     
-    return JsonResponse({'success': False, 'error': 'Noto\'g\'ri so\'rov'})
+    return JsonResponse({'success': False, 'error': 'Notöğri sörov'})
 
 
 @login_required
 def admin_help_requests(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     status_filter = request.GET.get('status', '')
@@ -12620,7 +12625,7 @@ def admin_help_requests(request):
 @login_required
 def admin_help_request_detail(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     help_request = get_object_or_404(HelpRequest, pk=pk)
@@ -12635,18 +12640,18 @@ def admin_help_request_detail(request, pk):
             help_request.admin_response = admin_response
         help_request.save()
         
-        messages.success(request, "So'rov yangilandi!")
+        messages.success(request, "Sörov yangilandi!")
         return redirect('admin_help_request_detail', pk=pk)
     
     return render(request, 'accounts/admin/help_request_detail.html', {'help_request': help_request})
 
 
-# ==================== TO'LOV ESLATMASI ====================
+# ==================== TÖLOV ESLATMASI ====================
 
 @login_required
 def send_payment_reminder(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     student = get_object_or_404(CustomUser, pk=pk, role='student')
@@ -12654,31 +12659,31 @@ def send_payment_reminder(request, pk):
     Message.objects.create(
         sender=request.user,
         recipient=student,
-        title="To'lov eslatmasi",
-        content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+        title="Tölov eslatmasi",
+        content=f"Hurmatli {student.full_name},\n\nSizning oylik tölovingiz muddati yaqinlaşmoqda. Iltimos, öz vaqtida tölov qilişni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
         message_type='payment'
     )
     notify_user(
         student.telegram_id,
-        f"💳 <b>To'lov eslatmasi</b>\n\n"
+        f"💳 <b>Tölov eslatmasi</b>\n\n"
         f"Hurmatli {student.full_name},\n\n"
-        f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
-        f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+        f"Sizning oylik tölovingiz muddati yaqinlaşmoqda.\n"
+        f"Iltimos, öz vaqtida tölov qilişni unutmang.\n\n"
         f"🏫 IT Creative jamoasi"
     )
     notify_group(
-        f"💳 <b>To'lov eslatmasi yuborildi</b>\n\n"
-        f"👤 {student.full_name}ga to'lov eslatmasi yuborildi."
+        f"💳 <b>Tölov eslatmasi yuborildi</b>\n\n"
+        f"👤 {student.full_name}ga tölov eslatmasi yuborildi."
     )
     
-    messages.success(request, f"{student.full_name}ga to'lov eslatmasi yuborildi!")
+    messages.success(request, f"{student.full_name}ga tölov eslatmasi yuborildi!")
     return redirect('admin_payments')
 
 
 @login_required
 def send_bulk_payment_reminders(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     if request.method == 'POST':
@@ -12691,35 +12696,35 @@ def send_bulk_payment_reminders(request):
             Message.objects.create(
                 sender=request.user,
                 recipient=student,
-                title="To'lov eslatmasi",
-                content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+                title="Tölov eslatmasi",
+                content=f"Hurmatli {student.full_name},\n\nSizning oylik tölovingiz muddati yaqinlaşmoqda. Iltimos, öz vaqtida tölov qilişni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                 message_type='payment'
             )
             notify_user(
                 student.telegram_id,
-                f"💳 <b>To'lov eslatmasi</b>\n\n"
+                f"💳 <b>Tölov eslatmasi</b>\n\n"
                 f"Hurmatli {student.full_name},\n\n"
-                f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
-                f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+                f"Sizning oylik tölovingiz muddati yaqinlaşmoqda.\n"
+                f"Iltimos, öz vaqtida tölov qilişni unutmang.\n\n"
                 f"🏫 IT Creative jamoasi"
             )
             count += 1
         
         notify_group(
-            f"💳 <b>Ommaviy to'lov eslatmasi</b>\n\n"
-            f"📊 {count} ta o'quvchiga to'lov eslatmasi yuborildi."
+            f"💳 <b>Ommaviy tölov eslatmasi</b>\n\n"
+            f"📊 {count} ta öquvçiga tölov eslatmasi yuborildi."
         )
-        messages.success(request, f"{count} ta o'quvchiga to'lov eslatmasi yuborildi!")
+        messages.success(request, f"{count} ta öquvçiga tölov eslatmasi yuborildi!")
     
     return redirect('admin_payments')
 
 
-# ==================== CHEGIRMALAR (SKIDKALAR) ====================
+# ==================== ÇEGIRMALAR (SKIDKALAR) ====================
 
 @login_required
 def admin_discounts(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     from coin.discount_management import manage
@@ -12745,7 +12750,7 @@ def admin_discounts(request):
     from .course_pricing import discounted_price
     discounts = list(discounts)
     for d in discounts:
-        # Ro'yxatda "90 000 → 50 000" ko'rinishi uchun.
+        # Röyxatda "90 000 → 50 000" körinişi uçun.
         if d.profession and d.profession.is_sold_once:
             d.price_preview = (d.profession.one_time_price, discounted_price(int(d.profession.one_time_price), d))
     
@@ -12771,7 +12776,7 @@ def _course_discount_form(request, discount=None):
                 saved = form.save()
                 if form.cleaned_data.get('announce') and saved.is_valid:
                     announce(saved, request.user)
-            messages.success(request, "Chegirma saqlandi!" if discount else "Chegirma muvaffaqiyatli qo'shildi!")
+            messages.success(request, "Çegirma saqlandi!" if discount else "Çegirma muvaffaqiyatli qöşildi!")
             return redirect('admin_discounts')
     else:
         form = CourseDiscountForm(instance=discount, initial=None if discount else {
@@ -12785,7 +12790,7 @@ def _course_discount_form(request, discount=None):
 @login_required
 def admin_discount_add(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     return _course_discount_form(request)
 
@@ -12793,7 +12798,7 @@ def admin_discount_add(request):
 @login_required
 def admin_discount_edit(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     return _course_discount_form(request, get_object_or_404(Discount, pk=pk))
 
@@ -12801,14 +12806,14 @@ def admin_discount_edit(request, pk):
 @login_required
 def admin_discount_delete(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     discount = get_object_or_404(Discount, pk=pk)
     
     if request.method == 'POST':
         discount.delete()
-        messages.success(request, "Chegirma o'chirildi!")
+        messages.success(request, "Çegirma öçirildi!")
         return redirect('admin_discounts')
     
     return render(request, 'accounts/admin/discount_delete.html', {'discount': discount})
@@ -12819,7 +12824,7 @@ def admin_discount_delete(request, pk):
 @login_required
 def admin_lesson_statistics(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     profession_id = request.GET.get('profession')
@@ -12842,7 +12847,7 @@ def admin_lesson_statistics(request):
         except:
             date_to = None
 
-    # Yil / Oy filterlar (Yil+Oy tanlansa oy oralig'iga; faqat yil bo'lsa yil oralig'iga)
+    # Yil / Oy filterlar (Yil+Oy tanlansa oy oraliğiga; faqat yil bölsa yil oraliğiga)
     year_int = _to_int(year_param, 0) or None
     month_int = _to_int(month_param, 0) or None
     today = timezone.now().date()
@@ -12875,7 +12880,7 @@ def admin_lesson_statistics(request):
         except ValueError:
             pass
     elif month_int and not year_int:
-        # Faqat oy tanlansa, joriy yilning shu oyi
+        # Faqat oy tanlansa, joriy yilning şu oyi
         try:
             date_from = date(today.year, month_int, 1)
             if month_int == 12:
@@ -12891,7 +12896,7 @@ def admin_lesson_statistics(request):
     total_test_lessons = Lesson.objects.filter(lesson_type='test').count()
     total_homework_lessons = Lesson.objects.filter(lesson_type='homework').count()
     
-    # Faol o'quvchilar (oxirgi 7 kunda)
+    # Faol öquvçilar (oxirgi 7 kunda)
     week_ago = timezone.now() - timedelta(days=7)
     active_students = CustomUser.objects.filter(
         role='student', 
@@ -12900,12 +12905,12 @@ def admin_lesson_statistics(request):
     ).count()
     total_students = CustomUser.objects.filter(role='student', is_blocked=False).count()
     
-    # Ko'rilgan darslar soni
+    # Körilgan darslar soni
     total_video_views = VideoProgress.objects.filter(watched=True).count()
     total_test_attempts = TestResult.first_attempts().count()
     total_homework_submissions = HomeworkSubmission.objects.count()
     
-    # O'rtacha test bali
+    # Örtaça test bali
     avg_test_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     
     # Tugallangan darslar foizi
@@ -12913,7 +12918,7 @@ def admin_lesson_statistics(request):
     completion_percent = (total_video_views / total_possible_views * 100) if total_possible_views > 0 else 0
     
     # ==================== KUNLIK FAOLLIK (dinamik davr) ====================
-    # Filter bo'lsa - shu davr uchun, aks holda oxirgi 30 kun
+    # Filter bölsa - şu davr uçun, aks holda oxirgi 30 kun
     if date_from and date_to:
         chart_start = date_from
         chart_end = date_to
@@ -12922,13 +12927,13 @@ def admin_lesson_statistics(request):
         chart_start = today - timedelta(days=29)
 
     chart_days = (chart_end - chart_start).days + 1
-    # Agar davr juda uzun bo'lsa (>120 kun), oy bo'yicha guruhla
+    # Agar davr juda uzun bölsa (>120 kun), oy böyiça guruhla
     daily_activity = []
     activity_period_label = ""
 
     if chart_days > 120:
-        # Oylar bo'yicha guruhlash
-        activity_period_label = f"{chart_start.strftime('%d.%m.%Y')} - {chart_end.strftime('%d.%m.%Y')} (oylar bo'yicha)"
+        # Oylar böyiça guruhlaş
+        activity_period_label = f"{chart_start.strftime('%d.%m.%Y')} - {chart_end.strftime('%d.%m.%Y')} (oylar böyiça)"
         cursor = date(chart_start.year, chart_start.month, 1)
         end_cursor = date(chart_end.year, chart_end.month, 1)
         while cursor <= end_cursor:
@@ -12972,7 +12977,7 @@ def admin_lesson_statistics(request):
                 'total': videos_watched + tests_taken + homeworks_sent
             })
     
-    # ==================== BARCHA DARSLAR ====================
+    # ==================== BARÇA DARSLAR ====================
     lessons = Lesson.objects.select_related('profession', 'section').all()
     if profession_id:
         lessons = lessons.filter(profession_id=profession_id)
@@ -12998,7 +13003,7 @@ def admin_lesson_statistics(request):
             not_watched = total_enrolled - watched_count
             completion_rate = (watched_count / total_enrolled * 100) if total_enrolled > 0 else 0
             
-            # Kim ko'rmagan
+            # Kim körmagan
             watched_user_ids = video_progress_qs.filter(watched=True).values_list('user_id', flat=True)
             not_watched_users = CustomUser.objects.filter(
                 enrollments__profession=lesson.profession
@@ -13044,18 +13049,18 @@ def admin_lesson_statistics(request):
             failed_count = results_qs.filter(passed=False).count()
             pass_rate = (passed_count / total_attempts * 100) if total_attempts > 0 else 0
             
-            # Qayta topshirganlar
+            # Qayta topşirganlar
             retry_students = results_qs.values('student').annotate(
                 attempt_count=Count('id')
             ).filter(attempt_count__gt=1).count()
             
-            # Kim yechmagan
+            # Kim yeçmagan
             completed_user_ids = results_qs.values_list('student_id', flat=True)
             not_completed_users = CustomUser.objects.filter(
                 enrollments__profession=lesson.profession
             ).exclude(pk__in=completed_user_ids)[:5]
             
-            # Kim o'ta olmadi
+            # Kim öta olmadi
             failed_users = CustomUser.objects.filter(
                 test_results__test=test,
                 test_results__passed=False
@@ -13120,7 +13125,7 @@ def admin_lesson_statistics(request):
             pending_count = submissions_qs.filter(status='pending').count()
             graded_count = submissions_qs.filter(status='graded').count()
             
-            # Kim topshirmagan
+            # Kim topşirmagan
             submitted_user_ids = submissions_qs.values_list('student_id', flat=True)
             not_submitted_users = CustomUser.objects.filter(
                 enrollments__profession=lesson.profession
@@ -13143,8 +13148,8 @@ def admin_lesson_statistics(request):
     
     homework_stats_sorted = sorted(homework_stats, key=lambda x: x['completion_rate'])
     
-    # ==================== O'QUVCHILAR FAOLLIGI ====================
-    # Passiv o'quvchilar - oxirgi 7 kunda faollik ko'rsatmaganlar
+    # ==================== ÖQUVÇILAR FAOLLIGI ====================
+    # Passiv öquvçilar - oxirgi 7 kunda faollik körsatmaganlar
     passive_students = CustomUser.objects.filter(
         role='student',
         is_blocked=False
@@ -13152,7 +13157,7 @@ def admin_lesson_statistics(request):
         Q(last_activity__lt=week_ago) | Q(last_activity__isnull=True)
     ).order_by('last_activity')[:20]
     
-    # Qiynalayotgan o'quvchilar - testlardan past ball olganlar
+    # Qiynalayotgan öquvçilar - testlardan past ball olganlar
     struggling_students = CustomUser.objects.filter(
         role='student',
         test_results__score__lt=50
@@ -13165,7 +13170,7 @@ def admin_lesson_statistics(request):
     top_video_lessons = sorted(video_stats, key=lambda x: x['watched'], reverse=True)[:10]
     top_test_lessons = sorted(test_stats, key=lambda x: x['total_attempts'], reverse=True)[:10]
     
-    # ==================== SERTIFIKATGA YAQIN O'QUVCHILAR ====================
+    # ==================== SERTIFIKATGA YAQIN ÖQUVÇILAR ====================
     near_certificate_students = []
     for profession in Profession.objects.all():
         total_lessons_in_course = profession.lessons.exclude(lesson_type='dictionary').count()
@@ -13209,49 +13214,49 @@ def admin_lesson_statistics(request):
     # ==================== SMART ALERTS ====================
     alerts = []
     
-    # 7 kun kirmagan o'quvchilar
+    # 7 kun kirmagan öquvçilar
     inactive_count = passive_students.count()
     if inactive_count > 0:
         alerts.append({
             'type': 'warning',
             'icon': 'bi-clock-history',
-            'title': f'{inactive_count} ta o\'quvchi 7+ kun kirmagan',
-            'description': 'Bu o\'quvchilarga eslatma yuborishni o\'ylab ko\'ring.',
+            'title': f'{inactive_count} ta öquvçi 7+ kun kirmagan',
+            'description': 'Bu öquvçilarga eslatma yuborişni öylab köring.',
         })
     
-    # Testdan o'ta olmayotganlar
+    # Testdan öta olmayotganlar
     struggling_count = struggling_students.count()
     if struggling_count > 0:
         alerts.append({
             'type': 'danger',
             'icon': 'bi-exclamation-triangle',
-            'title': f'{struggling_count} ta o\'quvchi testlardan qiynalmoqda',
-            'description': 'Bu o\'quvchilarga qo\'shimcha yordam kerak bo\'lishi mumkin.',
+            'title': f'{struggling_count} ta öquvçi testlardan qiynalmoqda',
+            'description': 'Bu öquvçilarga qöşimça yordam kerak bölişi mumkin.',
         })
     
-    # Past tugallash darajasidagi darslar
+    # Past tugallaş darajasidagi darslar
     low_completion_lessons = [v for v in video_stats if v['completion_rate'] < 30]
     if len(low_completion_lessons) > 0:
         alerts.append({
             'type': 'info',
             'icon': 'bi-camera-video-off',
-            'title': f'{len(low_completion_lessons)} ta video dars kam ko\'rilmoqda',
-            'description': 'Bu darslar kontentini tekshirib ko\'ring.',
+            'title': f'{len(low_completion_lessons)} ta video dars kam körilmoqda',
+            'description': 'Bu darslar kontentini tekşirib köring.',
         })
     
-    # Tekshirilmagan uy vazifalari
+    # Tekşirilmagan uy vazifalari
     pending_hw_count = HomeworkSubmission.objects.filter(status='pending').count()
     if pending_hw_count > 0:
         alerts.append({
             'type': 'primary',
             'icon': 'bi-journal-text',
-            'title': f'{pending_hw_count} ta uy vazifasi tekshirilmagan',
-            'description': 'Uy vazifalarini baholash kutilmoqda.',
+            'title': f'{pending_hw_count} ta uy vazifasi tekşirilmagan',
+            'description': 'Uy vazifalarini baholaş kutilmoqda.',
         })
     
     professions = Profession.objects.all()
 
-    # Yil ro'yxati: eng eski yozilish/dars sanasidan hozirgi yilgacha
+    # Yil röyxati: eng eski yozilish/dars sanasidan hozirgi yilgaça
     from django.db.models import Min as _Min
     first_enrollment = CourseEnrollment.objects.aggregate(min=_Min('enrolled_at'))['min']
     if first_enrollment:
@@ -13265,16 +13270,16 @@ def admin_lesson_statistics(request):
         (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
     ]
 
-    # Faol filterlar ro'yxati (chip'lar uchun)
+    # Faol filterlar röyxati (chip'lar uçun)
     def _remove_url(remove_key):
-        """Berilgan parametrni olib tashlab, qolgan filterlar bilan URL yasaydi."""
+        """Berilgan parametrni olib taşlab, qolgan filterlar bilan URL yasaydi."""
         params = request.GET.copy()
         if remove_key in params:
             params.pop(remove_key)
         qs = params.urlencode()
         return '?' + qs if qs else '?'
 
-    # Quick range chips URL - boshqa filterlarni saqlash bilan
+    # Quick range chips URL - boşqa filterlarni saqlaş bilan
     def _range_url(range_key):
         params = request.GET.copy()
         # date_from/date_to va year/month ni tozalaymiz, chunki range ular bilan konflikt qiladi
@@ -13307,12 +13312,12 @@ def admin_lesson_statistics(request):
         month_name = dict(month_choices).get(month_int, str(month_int))
         active_filters.append({'label': f"Oy: {month_name}", 'remove_url': _remove_url('month')})
     if quick_range:
-        range_labels = {'today': 'Bugun', 'week': '7 kun', 'month': 'Shu oy', 'year': 'Shu yil'}
+        range_labels = {'today': 'Bugun', 'week': '7 kun', 'month': 'Şu oy', 'year': 'Şu yil'}
         active_filters.append({'label': f"Davr: {range_labels.get(quick_range, quick_range)}", 'remove_url': _remove_url('range')})
     if request.GET.get('date_from'):
         active_filters.append({'label': f"Dan: {request.GET.get('date_from')}", 'remove_url': _remove_url('date_from')})
     if request.GET.get('date_to'):
-        active_filters.append({'label': f"Gacha: {request.GET.get('date_to')}", 'remove_url': _remove_url('date_to')})
+        active_filters.append({'label': f"Gaça: {request.GET.get('date_to')}", 'remove_url': _remove_url('date_to')})
 
     context = {
         # Umumiy statistika
@@ -13338,7 +13343,7 @@ def admin_lesson_statistics(request):
         'homework_stats': homework_stats_sorted,
         'hardest_questions': hardest_questions,
 
-        # O'quvchilar
+        # Öquvçilar
         'passive_students': passive_students,
         'struggling_students': struggling_students,
         'near_certificate_students': near_certificate_students,
@@ -13368,7 +13373,7 @@ def admin_lesson_statistics(request):
     return render(request, 'accounts/admin/lesson_statistics.html', context)
 
 
-# ==================== QURILMALAR BOSHQARUVI ====================
+# ==================== QURILMALAR BOŞQARUVI ====================
 
 @login_required
 def my_devices(request):
@@ -13404,7 +13409,7 @@ def logout_session(request, pk):
     session = get_object_or_404(UserSession, pk=pk, user=request.user)
     current_session_key = request.session.session_key
     if session.session_key == current_session_key:
-        messages.warning(request, "Joriy sessionni bu yerdan tugatib bo'lmaydi.")
+        messages.warning(request, "Joriy sessionni bu yerdan tugatib bölmaydi.")
         return redirect('my_devices')
     try:
         DjangoSession.objects.filter(session_key=session.session_key).delete()
@@ -13428,7 +13433,7 @@ def remove_device(request, pk):
     is_current = device.sessions.filter(session_key=current_session_key, is_active=True).exists()
     
     if is_current:
-        messages.error(request, "Joriy qurilmani o'chirib bo'lmaydi!")
+        messages.error(request, "Joriy qurilmani öçirib bölmaydi!")
         return redirect('my_devices')
     
     # Delete all sessions for this device (so user gets logged out)
@@ -13445,7 +13450,7 @@ def remove_device(request, pk):
     device.is_active = False
     device.save()
     
-    messages.success(request, f"'{device.device_name}' qurilmasi o'chirildi!")
+    messages.success(request, f"'{device.device_name}' qurilmasi öçirildi!")
     return redirect('my_devices')
 
 
@@ -13461,7 +13466,7 @@ def logout_device(request, pk):
     is_current = device.sessions.filter(session_key=current_session_key, is_active=True).exists()
     
     if is_current:
-        messages.error(request, "Joriy qurilmadan chiqish uchun 'Chiqish' tugmasini ishlating!")
+        messages.error(request, "Joriy qurilmadan çiqiş uçun 'Çiqiş' tugmasini işlating!")
         return redirect('my_devices')
     
     # Delete all active sessions for this device (so user gets logged out)
@@ -13476,7 +13481,7 @@ def logout_device(request, pk):
     # Update custom sessions
     device.sessions.filter(is_active=True).update(is_active=False)
     
-    messages.success(request, f"'{device.device_name}' qurilmasidan chiqildi!")
+    messages.success(request, f"'{device.device_name}' qurilmasidan çiqildi!")
     return redirect('my_devices')
 
 
@@ -13487,9 +13492,9 @@ def trust_device(request, pk):
     device.save()
     
     if device.is_trusted:
-        messages.success(request, f"'{device.device_name}' ishonchli qurilma sifatida belgilandi!")
+        messages.success(request, f"'{device.device_name}' işonçli qurilma sifatida belgilandi!")
     else:
-        messages.success(request, f"'{device.device_name}' ishonchli qurilmalar ro'yxatidan chiqarildi!")
+        messages.success(request, f"'{device.device_name}' işonçli qurilmalar röyxatidan çiqarildi!")
     
     return redirect('my_devices')
 
@@ -13508,30 +13513,30 @@ def logout_all_devices(request):
         Session.objects.filter(session_key__in=keys_to_kill).delete()
         sessions_to_kill.update(is_active=False)
         
-        messages.success(request, "Barcha boshqa qurilmalardan chiqildi!")
+        messages.success(request, "Barça boşqa qurilmalardan çiqildi!")
     
     return redirect('my_devices')
 
 
 @login_required
 def remove_all_devices(request):
-    """Joriy qurilmadan tashqari barcha qurilmalarni o'chirish"""
+    """Joriy qurilmadan taşqari barça qurilmalarni öçiriş"""
     if request.method == 'POST':
         from django.contrib.sessions.models import Session
         current_session_key = request.session.session_key
         
-        # Joriy qurilmani aniqlash
+        # Joriy qurilmani aniqlaş
         current_session = UserSession.objects.filter(
             user=request.user, session_key=current_session_key, is_active=True
         ).select_related('device').first()
         current_device = current_session.device if current_session else None
         
-        # Boshqa qurilmalarni olish
+        # Boşqa qurilmalarni oliş
         other_devices = UserDevice.objects.filter(user=request.user, is_active=True)
         if current_device:
             other_devices = other_devices.exclude(pk=current_device.pk)
         
-        # Sessiyalarni o'chirish
+        # Sessiyalarni öçiriş
         for device in other_devices:
             session_keys = list(device.sessions.filter(is_active=True).values_list('session_key', flat=True))
             Session.objects.filter(session_key__in=session_keys).delete()
@@ -13540,24 +13545,24 @@ def remove_all_devices(request):
         count = other_devices.count()
         other_devices.update(is_active=False)
         
-        messages.success(request, f"{count} ta qurilma o'chirildi!")
+        messages.success(request, f"{count} ta qurilma öçirildi!")
     
     return redirect('my_devices')
 
 
 @login_required
 def bulk_remove_devices(request):
-    """Tanlangan qurilmalarni o'chirish"""
+    """Tanlangan qurilmalarni öçiriş"""
     if request.method == 'POST':
         from django.contrib.sessions.models import Session
         current_session_key = request.session.session_key
         device_ids = request.POST.getlist('device_ids')
         
         if not device_ids:
-            messages.error(request, "Hech qanday qurilma tanlanmadi!")
+            messages.error(request, "Heç qanday qurilma tanlanmadi!")
             return redirect('my_devices')
         
-        # Joriy qurilmani aniqlash
+        # Joriy qurilmani aniqlaş
         current_session = UserSession.objects.filter(
             user=request.user, session_key=current_session_key, is_active=True
         ).select_related('device').first()
@@ -13570,7 +13575,7 @@ def bulk_remove_devices(request):
             except (UserDevice.DoesNotExist, ValueError):
                 continue
             
-            # Joriy qurilmani o'chirib bo'lmaydi
+            # Joriy qurilmani öçirib bölmaydi
             if current_device_pk and device.pk == current_device_pk:
                 continue
             
@@ -13582,9 +13587,9 @@ def bulk_remove_devices(request):
             removed += 1
         
         if removed:
-            messages.success(request, f"{removed} ta qurilma o'chirildi!")
+            messages.success(request, f"{removed} ta qurilma öçirildi!")
         else:
-            messages.error(request, "Joriy qurilmani o'chirib bo'lmaydi!")
+            messages.error(request, "Joriy qurilmani öçirib bölmaydi!")
     
     return redirect('my_devices')
 
@@ -13594,7 +13599,7 @@ def bulk_remove_devices(request):
 @login_required
 def admin_user_devices(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     user = get_object_or_404(CustomUser, pk=pk)
@@ -13611,26 +13616,26 @@ def admin_user_devices(request, pk):
 @login_required
 def admin_logout_user_device(request, user_pk, device_pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     device = get_object_or_404(UserDevice, pk=device_pk, user_id=user_pk)
     device.sessions.filter(is_active=True).update(is_active=False)
     
-    messages.success(request, f"'{device.device_name}' qurilmasidan chiqildi!")
+    messages.success(request, f"'{device.device_name}' qurilmasidan çiqildi!")
     return redirect('admin_user_devices', pk=user_pk)
 
 
 @login_required
 def admin_logout_all_user_devices(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     if request.method == 'POST':
         user = get_object_or_404(CustomUser, pk=pk)
         UserSession.objects.filter(user=user, is_active=True).update(is_active=False)
-        messages.success(request, f"{user.full_name}ning barcha qurilmalaridan chiqildi!")
+        messages.success(request, f"{user.full_name}ning barça qurilmalaridan çiqildi!")
     
     return redirect('admin_user_devices', pk=pk)
 
@@ -13641,7 +13646,7 @@ def admin_logout_all_user_devices(request, pk):
 
 
 def generate_report_pdf(report):
-    """Hisobot uchun PDF yaratish"""
+    """Hisobot uçun PDF yaratiş"""
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -13685,14 +13690,14 @@ def generate_report_pdf(report):
     elements.append(Paragraph(f"Yaratilgan: {report.created_at.strftime('%d.%m.%Y %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 20))
     
-    # 1. Foydalanuvchilar
-    elements.append(Paragraph("1. Foydalanuvchilar statistikasi", heading_style))
+    # 1. Foydalanuvçilar
+    elements.append(Paragraph("1. Foydalanuvçilar statistikasi", heading_style))
     user_data = [
-        ["Ko'rsatkich", 'Soni'],
-        ['Jami foydalanuvchilar', str(report.total_users)],
-        ["O'quvchilar", str(report.total_students)],
-        ["O'qituvchilar", str(report.total_teachers)],
-        ['Yangi foydalanuvchilar (davr)', str(report.new_users)],
+        ["Körsatkiç", 'Soni'],
+        ['Jami foydalanuvçilar', str(report.total_users)],
+        ["Öquvçilar", str(report.total_students)],
+        ["Öqituvçilar", str(report.total_teachers)],
+        ['Yangi foydalanuvçilar (davr)', str(report.new_users)],
     ]
     elements.append(create_table(user_data))
     elements.append(Spacer(1, 15))
@@ -13700,7 +13705,7 @@ def generate_report_pdf(report):
     # 2. Kurslar
     elements.append(Paragraph("2. Kurslar va darslar", heading_style))
     course_data = [
-        ["Ko'rsatkich", 'Soni'],
+        ["Körsatkiç", 'Soni'],
         ['Jami kurslar', str(report.total_courses)],
         ['Jami darslar', str(report.total_lessons)],
         ['Videodarslar', str(report.total_videos)],
@@ -13713,11 +13718,11 @@ def generate_report_pdf(report):
     # 3. Davr faoliyati
     elements.append(Paragraph("3. Davr faoliyati", heading_style))
     activity_data = [
-        ["Ko'rsatkich", 'Soni'],
-        ['Yangi yozilishlar', str(report.new_enrollments)],
-        ['Test topshiruvlar', str(report.test_submissions)],
-        ['Vazifa topshiruvlar', str(report.homework_submissions)],
-        ["Video ko'rishlar", str(report.video_views)],
+        ["Körsatkiç", 'Soni'],
+        ['Yangi yozilişlar', str(report.new_enrollments)],
+        ['Test topşiruvlar', str(report.test_submissions)],
+        ['Vazifa topşiruvlar', str(report.homework_submissions)],
+        ["Video körişlar", str(report.video_views)],
         ['Jami harakatlar', str(report.total_activities)],
     ]
     elements.append(create_table(activity_data))
@@ -13726,9 +13731,9 @@ def generate_report_pdf(report):
     # 4. Coinlar
     elements.append(Paragraph("4. Coin statistikasi", heading_style))
     coin_data = [
-        ["Ko'rsatkich", 'Qiymat'],
+        ["Körsatkiç", 'Qiymat'],
         ['Jami coinlar (hozir)', str(report.total_coins)],
-        ['Ishlangan coinlar (davr)', str(report.coins_earned)],
+        ['Işlangan coinlar (davr)', str(report.coins_earned)],
         ['Sarflangan coinlar (davr)', str(report.coins_spent)],
     ]
     elements.append(create_table(coin_data))
@@ -13737,7 +13742,7 @@ def generate_report_pdf(report):
     # 5. Sertifikatlar
     elements.append(Paragraph("5. Sertifikatlar", heading_style))
     cert_data = [
-        ["Ko'rsatkich", 'Soni'],
+        ["Körsatkiç", 'Soni'],
         ['Jami sertifikatlar', str(report.total_certificates)],
         ['Yangi sertifikatlar (davr)', str(report.new_certificates)],
     ]
@@ -13745,7 +13750,7 @@ def generate_report_pdf(report):
     
     doc.build(elements)
     
-    # PDF faylni saqlash
+    # PDF faylni saqlaş
     pdf_content = buffer.getvalue()
     buffer.close()
     
@@ -13760,13 +13765,13 @@ def generate_report_pdf(report):
 
 
 
-# ============ KURSGA YOZILISH SO'ROVLARI ============
+# ============ KURSGA YOZILIŞ SÖROVLARI ============
 
 @login_required
 def admin_enrollment_requests(request):
-    """Admin: Kursga yozilish so'rovlarini ko'rish"""
+    """Admin: Kursga yoziliş sörovlarini köriş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     status_filter = request.GET.get('status', 'pending')
@@ -13790,7 +13795,7 @@ def admin_enrollment_requests(request):
             Q(user__phone__icontains=search)
         )
     
-    # Kursdan chiqish so'rovlari
+    # Kursdan çiqiş sörovlari
     unenroll_qs = CourseUnenrollRequest.objects.select_related('user', 'profession')
     if status_filter:
         unenroll_qs = unenroll_qs.filter(status=status_filter)
@@ -13832,9 +13837,9 @@ def admin_enrollment_requests(request):
 
 @login_required
 def approve_enrollment_request(request, pk):
-    """Admin: So'rovni qabul qilish"""
+    """Admin: Sörovni qabul qiliş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
@@ -13844,16 +13849,16 @@ def approve_enrollment_request(request, pk):
         if approve_enrollment(enrollment_request, request.user):
             messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
         else:
-            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
     
     return redirect('admin_enrollment_requests')
 
 
 @login_required
 def reject_enrollment_request(request, pk):
-    """Admin: So'rovni rad etish"""
+    """Admin: Sörovni rad etiş"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     
     enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
@@ -13862,18 +13867,18 @@ def reject_enrollment_request(request, pk):
         from .course_membership import reject_enrollment
         admin_message = request.POST.get('admin_message', '').strip()
         if reject_enrollment(enrollment_request, request.user, admin_message):
-            messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
+            messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} sörovi rad etildi!")
         else:
-            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
     
     return redirect('admin_enrollment_requests')
 
 
 @login_required
 def admin_unenroll_requests(request):
-    """Admin: Kursdan chiqish so'rovlari"""
+    """Admin: Kursdan çiqiş sörovlari"""
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     status_filter = request.GET.get('status', 'pending')
@@ -13898,7 +13903,7 @@ def admin_unenroll_requests(request):
 
 @login_required
 def approve_unenroll_request(request, pk):
-    """Admin: Kursdan chiqish so'rovini tasdiqlash"""
+    """Admin: Kursdan çiqiş sörovini tasdiqlaş"""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -13908,17 +13913,17 @@ def approve_unenroll_request(request, pk):
         from .course_membership import approve_unenroll
         total_coins_earned = approve_unenroll(unenroll_req, request.user)
         if total_coins_earned is None:
-            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
         else:
             coin_msg = f" ({total_coins_earned} coin ayirildi)" if total_coins_earned > 0 else ""
-            messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!{coin_msg}")
+            messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan çiqarildi!{coin_msg}")
 
     return redirect('admin_unenroll_requests')
 
 
 @login_required
 def reject_unenroll_request(request, pk):
-    """Admin: Kursdan chiqish so'rovini rad etish"""
+    """Admin: Kursdan çiqiş sörovini rad etiş"""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -13928,9 +13933,9 @@ def reject_unenroll_request(request, pk):
         from .course_membership import reject_unenroll
         admin_message = request.POST.get('admin_message', '').strip()
         if reject_unenroll(unenroll_req, request.user, admin_message):
-            messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
+            messages.warning(request, f"{unenroll_req.user.full_name} - çiqiş sörovi rad etildi!")
         else:
-            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
 
     return redirect('admin_unenroll_requests')
 
@@ -13995,13 +14000,13 @@ def admin_parent_add(request):
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
 
-        # Ilgari hech qanday parol siyosati yo'q edi — admin "123" ham qo'ya olardi.
+        # Ilgari heç qanday parol siyosati yöq edi — admin "123" ham qöya olardi.
         policy_error = validate_parent_password(password)
 
         if Parent.objects.filter(username=username).exists():
-            messages.error(request, "Bu username allaqachon mavjud!")
+            messages.error(request, "Bu username allaqaçon mavjud!")
         elif Parent.objects.filter(phone=phone).exists():
-            messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+            messages.error(request, "Bu telefon raqam allaqaçon mavjud!")
         elif policy_error:
             messages.error(request, policy_error)
         else:
@@ -14017,13 +14022,13 @@ def admin_parent_add(request):
             if children_ids:
                 parent.children.set(children_ids)
             
-            messages.success(request, "Ota-ona muvaffaqiyatli qo'shildi!")
+            messages.success(request, "Ota-ona muvaffaqiyatli qöşildi!")
             return redirect('admin_parents')
     
     context = {
         'children': students,
         'selected_children': [],
-        'title': "Ota-ona qo'shish",
+        'title': "Ota-ona qöşiş",
     }
     
     return render(request, 'accounts/admin/parent_form.html', context)
@@ -14046,13 +14051,13 @@ def admin_parent_edit(request, pk):
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
 
-        # Bo'sh parol = "o'zgartirmang", shuning uchun faqat berilganda tekshiriladi.
+        # Böş parol = "özgartirmang", şuning uçun faqat berilganda tekşiriladi.
         policy_error = validate_parent_password(password) if password else ''
 
         if Parent.objects.filter(username=username).exclude(pk=pk).exists():
-            messages.error(request, "Bu username allaqachon mavjud!")
+            messages.error(request, "Bu username allaqaçon mavjud!")
         elif Parent.objects.filter(phone=phone).exclude(pk=pk).exists():
-            messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+            messages.error(request, "Bu telefon raqam allaqaçon mavjud!")
         elif policy_error:
             messages.error(request, policy_error)
         else:
@@ -14075,7 +14080,7 @@ def admin_parent_edit(request, pk):
         'parent': parent,
         'children': students,
         'selected_children': list(parent.children.values_list('id', flat=True)),
-        'title': "Ota-onani tahrirlash",
+        'title': "Ota-onani tahrirlaş",
     }
     
     return render(request, 'accounts/admin/parent_form.html', context)
@@ -14161,7 +14166,7 @@ def admin_parent_toggle(request, pk):
         parent.is_active = not parent.is_active
         parent.save()
         
-        status_text = "faollashtirildi" if parent.is_active else "o'chirildi"
+        status_text = "faollaştirildi" if parent.is_active else "öçirildi"
         messages.success(request, f"{parent.full_name} {status_text}!")
     
     return redirect('admin_parents')
@@ -14177,7 +14182,7 @@ def admin_parent_delete(request, pk):
     if request.method == 'POST':
         parent_name = parent.full_name
         parent.delete()
-        messages.success(request, f"{parent_name} muvaffaqiyatli o'chirildi!")
+        messages.success(request, f"{parent_name} muvaffaqiyatli öçirildi!")
         return redirect('admin_parents')
     
     return redirect('admin_parents')
@@ -14198,7 +14203,7 @@ def admin_book_requests(request):
 
 @login_required
 def admin_books(request):
-    """Kitoblar ro'yxati"""
+    """Kitoblar röyxati"""
     if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
@@ -14211,7 +14216,7 @@ def admin_books(request):
             Q(title__icontains=search) | Q(author__icontains=search)
         )
     
-    # Saralash
+    # Saralaş
     sort = request.GET.get('sort', 'title')
     sort_map = {
         'title': 'title',
@@ -14244,14 +14249,14 @@ def admin_books(request):
 @login_required
 @require_GET
 def book_check_duplicate(request):
-    """Kitob duplicate tekshiruvi — oddiy Django JSON view (DRF yoki token kerak emas)."""
+    """Kitob duplicate tekşiruvi — oddiy Django JSON view (DRF yoki token kerak emas)."""
     from django.http import JsonResponse
     from django.db.models import Q as _DQ
 
     title      = request.GET.get('title', '').strip()
     author     = request.GET.get('author', '').strip()
     isbn       = request.GET.get('isbn', '').strip()
-    exclude_id = request.GET.get('exclude_id', '').strip()  # tahrirlashda o'zini chiqarib tashlaydi
+    exclude_id = request.GET.get('exclude_id', '').strip()  # tahrirlaşda özini çiqarib taşlaydi
 
     empty = JsonResponse({'has_exact_duplicate': False, 'duplicate_reason': None, 'exact': None, 'similar_books': []})
     if not title and not isbn:
@@ -14278,13 +14283,13 @@ def book_check_duplicate(request):
             qs = qs.exclude(pk=exclude_pk)
         return qs
 
-    # Exact: ISBN ustuvori, so'ng nom+muallif
+    # Exact: ISBN ustuvori, söng nom+muallif
     isbn_exact  = base_qs().filter(isbn__iexact=isbn).first() if isbn else None
     title_exact = base_qs().filter(title__iexact=title, author__iexact=author).first() if (title and author) else None
     primary = isbn_exact or title_exact
     duplicate_reason = 'isbn' if isbn_exact else ('title_author' if title_exact else None)
 
-    # O'xshash kitoblar (icontains, title YOKI author)
+    # Öxşaş kitoblar (icontains, title YOKI author)
     similar_list = []
     if title or author:
         q = _DQ()
@@ -14307,7 +14312,7 @@ def book_check_duplicate(request):
 
 @login_required
 def admin_book_add(request):
-    """Yangi kitob qo'shish"""
+    """Yangi kitob qöşiş"""
     if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
@@ -14319,7 +14324,7 @@ def admin_book_add(request):
         total_copies = int(request.POST.get('total_copies', 1))
         cover_image = request.FILES.get('cover_image')
 
-        # Duplicate tekshiruv: bir xil nom+muallif YOKI bir xil ISBN
+        # Duplicate tekşiruv: bir xil nom+muallif YOKI bir xil ISBN
         from django.db.models import Q as _Q2
         dup_q = _Q2(title__iexact=title, author__iexact=author)
         if isbn:
@@ -14327,12 +14332,12 @@ def admin_book_add(request):
         existing = Book.objects.filter(dup_q).first()
         if existing:
             if isbn and existing.isbn and existing.isbn.lower() == isbn.lower():
-                reason = f"ISBN «{isbn}» allaqachon mavjud"
+                reason = f"ISBN «{isbn}» allaqaçon mavjud"
             else:
                 reason = f"Nom va muallif bir xil"
             messages.error(
                 request,
-                f"Bu kitob allaqachon kutubxonada bor! ({reason}): «{existing.title}» — {existing.author}"
+                f"Bu kitob allaqaçon kutubxonada bor! ({reason}): «{existing.title}» — {existing.author}"
             )
             return render(request, 'accounts/admin/book_form.html', {
                 'action': 'add',
@@ -14349,7 +14354,7 @@ def admin_book_add(request):
             cover_image=cover_image,
         )
 
-        messages.success(request, f"'{book.title}' kitobi muvaffaqiyatli qo'shildi!")
+        messages.success(request, f"'{book.title}' kitobi muvaffaqiyatli qöşildi!")
         return redirect('admin_books')
     
     return render(request, 'accounts/admin/book_form.html', {'action': 'add'})
@@ -14357,7 +14362,7 @@ def admin_book_add(request):
 
 @login_required
 def admin_book_edit(request, pk):
-    """Kitobni tahrirlash"""
+    """Kitobni tahrirlaş"""
     if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
@@ -14370,7 +14375,7 @@ def admin_book_edit(request, pk):
         book.description = request.POST.get('description', '')
         new_total = int(request.POST.get('total_copies', 1))
         
-        # Mavjud nusxalarni yangilash
+        # Mavjud nusxalarni yangilaş
         difference = new_total - book.total_copies
         book.total_copies = new_total
         book.available_copies = max(0, book.available_copies + difference)
@@ -14391,7 +14396,7 @@ def admin_book_edit(request, pk):
 
 @login_required
 def admin_book_delete(request, pk):
-    """Kitobni o'chirish"""
+    """Kitobni öçiriş"""
     if not (request.user.is_admin or request.user.role == 'assistant_admin'):
         return redirect('home')
     
@@ -14400,14 +14405,14 @@ def admin_book_delete(request, pk):
     if request.method == 'POST':
         title = book.title
         book.delete()
-        messages.success(request, f"'{title}' kitobi o'chirildi!")
+        messages.success(request, f"'{title}' kitobi öçirildi!")
     
     return redirect('admin_books')
 
 
 @login_required
 def admin_book_rentals(request):
-    """Kitob ijaralari ro'yxati"""
+    """Kitob ijaralari röyxati"""
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
@@ -14426,7 +14431,7 @@ def admin_book_rentals(request):
             Q(student__last_name__icontains=search)
         )
     
-    # Saralash
+    # Saralaş
     sort = request.GET.get('sort', 'newest')
     sort_map = {
         'newest': '-created_at',
@@ -14459,7 +14464,7 @@ def admin_book_rentals(request):
 
 @login_required
 def admin_give_book(request):
-    """O'quvchiga kitob berish"""
+    """Öquvçiga kitob beriş"""
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
@@ -14476,7 +14481,7 @@ def admin_give_book(request):
             messages.error(request, f"'{book.title}' kitobi hozirda mavjud emas!")
             return redirect('admin_give_book')
         
-        # Ijara yaratish
+        # Ijara yaratiş
         rental = BookRental.objects.create(
             book=book,
             student=student,
@@ -14485,49 +14490,49 @@ def admin_give_book(request):
             notes=notes
         )
         
-        # Mavjud nusxani kamaytirish
+        # Mavjud nusxani kamaytiriş
         book.available_copies -= 1
         book.save()
         
-        # O'quvchiga xabar yuborish: "Ijaraga shu kitob berildi, qaytarish sanasi kelmoqda"
+        # Öquvçiga xabar yuboriş: "Ijaraga şu kitob berildi, qaytariş sanasi kelmoqda"
         from datetime import datetime
         return_date_str = datetime.strptime(return_date, '%Y-%m-%d').strftime('%d.%m.%Y')
         Message.objects.create(
             sender=request.user,
             recipient=student,
             title="📚 Kitob ijarasi",
-            content=f"Sizga '{book.title}' ({book.author}) kitobi ijaraga berildi. Qaytarish sanasi kelmoqda: {return_date_str}\n\nIltimos, kitobni o'z vaqtida kutubxonaga qaytaring!",
+            content=f"Sizga '{book.title}' ({book.author}) kitobi ijaraga berildi. Qaytariş sanasi kelmoqda: {return_date_str}\n\nIltimos, kitobni öz vaqtida kutubxonaga qaytaring!",
             message_type='system'
         )
         
-        # Ota-onalarga xabar: farzandining ijaradagi kitobi va qaytarish sanasi
+        # Ota-onalarga xabar: farzandining ijaradagi kitobi va qaytariş sanasi
         for parent in student.parents.filter(is_active=True):
             ParentMessage.objects.create(
                 parent=parent,
                 child=student,
                 subject="📚 Farzandingiz kitob oldi",
                 sender_type='system',
-                message=f"Farzandingiz {student.full_name} '{book.title}' ({book.author}) kitobini ijaraga oldi.\n\nQaytarish sanasi: {return_date_str}\n\nIltimos, farzandingizga kitobni o'z vaqtida qaytarishni eslatib qo'ying!"
+                message=f"Farzandingiz {student.full_name} '{book.title}' ({book.author}) kitobini ijaraga oldi.\n\nQaytariş sanasi: {return_date_str}\n\nIltimos, farzandingizga kitobni öz vaqtida qaytarişni eslatib qöying!"
             )
         
         notify_admins(
             f"📚 <b>Kitob ijaraga berildi!</b>\n\n"
             f"📖 {book.title} ({book.author})\n"
             f"👤 {student.full_name}\n"
-            f"📅 Qaytarish: {return_date_str}\n"
+            f"📅 Qaytariş: {return_date_str}\n"
             f"👨‍💼 Berdi: {request.user.full_name}"
         )
         notify_group(
             f"📚 <b>Kutubxona yangiligi</b>\n\n"
             f"📖 «{book.title}» kitobi {student.full_name}ga ijaraga berildi.\n"
-            f"📅 Qaytarish sanasi: {return_date_str}"
+            f"📅 Qaytariş sanasi: {return_date_str}"
         )
         notify_user(
             student.telegram_id,
             f"📚 Sizga kitob ijaraga berildi!\n\n"
             f"📖 <b>{book.title}</b> ({book.author})\n"
-            f"📅 Qaytarish sanasi: {return_date_str}\n\n"
-            f"⏰ Iltimos, kitobni o'z vaqtida qaytaring!"
+            f"📅 Qaytariş sanasi: {return_date_str}\n\n"
+            f"⏰ Iltimos, kitobni öz vaqtida qaytaring!"
         )
         messages.success(request, f"'{book.title}' kitobi {student.full_name}ga berildi!")
         return redirect('admin_book_rentals')
@@ -14546,7 +14551,7 @@ def admin_give_book(request):
 
 @login_required
 def admin_return_book(request, pk):
-    """Kitobni qaytarilgan deb belgilash"""
+    """Kitobni qaytarilgan deb belgilaş"""
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
@@ -14555,7 +14560,7 @@ def admin_return_book(request, pk):
     if request.method == 'POST':
         rental.mark_returned(request.user)
         
-        # O'quvchiga xabar
+        # Öquvçiga xabar
         Message.objects.create(
             sender=request.user,
             recipient=rental.student,
@@ -14579,22 +14584,22 @@ def admin_return_book(request, pk):
     return redirect('admin_book_rentals')
 
 
-# O'quvchi uchun
+# Öquvçi uçun
 @login_required
 def my_book_rentals(request):
-    """O'quvchining ijaradagi kitoblari (eski URL — library sahifasiga yo'naltiradi)"""
+    """Öquvçining ijaradagi kitoblari (eski URL — library sahifasiga yönaltiradi)"""
     from django.shortcuts import redirect
     return redirect('student_library')
 
 
 @login_required
 def student_library(request):
-    """O'quvchilar uchun kutubxona sahifasi — API orqali ishlaydi"""
+    """Öquvçilar uçun kutubxona sahifasi — API orqali işlaydi"""
     return render(request, 'accounts/library.html')
 
 
 def send_book_reminders():
-    """Kitob qaytarish eslatmalari - cron job yoki management command orqali chaqiriladi"""
+    """Kitob qaytariş eslatmalari - cron job yoki management command orqali çaqiriladi"""
     from datetime import date, timedelta
     
     today = date.today()
@@ -14608,22 +14613,22 @@ def send_book_reminders():
     )
     
     for rental in rentals_3days:
-        # O'quvchiga xabar: "Iltimos ushbu yozuvchini shu nomli kitobini kutubxonaga qaytaring"
+        # Öquvçiga xabar: "Iltimos uşbu yozuvçini şu nomli kitobini kutubxonaga qaytaring"
         Message.objects.create(
             recipient=rental.student,
-            title="⏰ Kitob qaytarish eslatmasi",
-            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini qaytarish muddati 3 kun qoldi.\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}",
+            title="⏰ Kitob qaytariş eslatmasi",
+            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini qaytariş muddati 3 kun qoldi.\n\nIltimos, uşbu {rental.book.author} yozuvçining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!\n\nQaytariş sanasi: {rental.return_date.strftime('%d.%m.%Y')}",
             message_type='system'
         )
         
-        # Ota-onaga xabar: farzandining ijaradagi kitobi qaytarish sanasi
+        # Ota-onaga xabar: farzandining ijaradagi kitobi qaytariş sanasi
         for parent in rental.student.parents.filter(is_active=True):
             ParentMessage.objects.create(
                 parent=parent,
                 child=rental.student,
-                subject="⏰ Kitob qaytarish eslatmasi (3 kun qoldi)",
+                subject="⏰ Kitob qaytariş eslatmasi (3 kun qoldi)",
                 sender_type='system',
-                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini ijaraga olgan. Qaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb farzandingizga aytib qo'ying!"
+                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini ijaraga olgan. Qaytariş sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, uşbu {rental.book.author} yozuvçining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb farzandingizga aytib qöying!"
             )
         
         rental.reminder_sent_3days = True
@@ -14637,35 +14642,35 @@ def send_book_reminders():
     )
     
     for rental in rentals_today:
-        # O'quvchiga xabar: "Iltimos ushbu yozuvchini shu nomli kitobini kutubxonaga qaytaring"
+        # Öquvçiga xabar: "Iltimos uşbu yozuvçini şu nomli kitobini kutubxonaga qaytaring"
         Message.objects.create(
             recipient=rental.student,
             title="🚨 Kitobni bugun qaytaring!",
-            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarishingiz kerak!\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!",
+            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarişingiz kerak!\n\nIltimos, uşbu {rental.book.author} yozuvçining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!",
             message_type='system'
         )
         
-        # Ota-onaga xabar: farzandining ijaradagi kitobi bugun qaytarish kerak
+        # Ota-onaga xabar: farzandining ijaradagi kitobi bugun qaytariş kerak
         for parent in rental.student.parents.filter(is_active=True):
             ParentMessage.objects.create(
                 parent=parent,
                 child=rental.student,
                 subject="🚨 Kitobni bugun qaytaring!",
                 sender_type='system',
-                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarishi kerak!\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb aytib qo'ying!"
+                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarişi kerak!\n\nIltimos, uşbu {rental.book.author} yozuvçining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb aytib qöying!"
             )
         
         rental.reminder_sent_today = True
         rental.save()
     
-    # Muddati o'tganlarni belgilash
+    # Muddati ötganlarni belgilaş
     BookRental.objects.filter(
         status='active',
         return_date__lt=today
     ).update(status='overdue')
 
 
-# ============== ADMIN: OTA-ONA PAROL SO'ROVLARI ==============
+# ============== ADMIN: OTA-ONA PAROL SÖROVLARI ==============
 
 @login_required
 def admin_parent_password_requests(request):
@@ -14697,7 +14702,7 @@ def approve_parent_password_reset(request, pk):
     reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
 
     if reset_request.status == 'pending':
-        # `new_password` so'rov paytida hashlangan — qayta hashlamaymiz.
+        # `new_password` sörov paytida haşlangan — qayta haşlamaymiz.
         reset_request.parent.password = reset_request.new_password
         reset_request.parent.save(update_fields=['password'])
 
@@ -14726,7 +14731,7 @@ def reject_parent_password_reset(request, pk):
         reset_request.reviewed_at = timezone.now()
         reset_request.save()
         
-        messages.info(request, f"{reset_request.parent.full_name} parol so'rovi rad etildi.")
+        messages.info(request, f"{reset_request.parent.full_name} parol sörovi rad etildi.")
     
     return redirect('admin_parent_password_requests')
 
@@ -14734,7 +14739,7 @@ def reject_parent_password_reset(request, pk):
 @login_required
 def admin_premium_management(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     tab = request.GET.get('tab', 'requests')
@@ -14797,7 +14802,7 @@ def admin_premium_management(request):
                         sender=request.user,
                         recipient=user,
                         title="Premium berildi ✅",
-                        content=f"Sizga admin tomonidan {plan_name} Premium obuna berildi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha.",
+                        content=f"Sizga admin tomonidan {plan_name} Premium obuna berildi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gaça.",
                         message_type='system'
                     )
                     messages.success(request, f"{user.full_name}ga {plan_name} Premium berildi!")
@@ -14813,14 +14818,14 @@ def admin_premium_management(request):
                         Message.objects.create(
                             sender=request.user,
                             recipient=user,
-                            title="Premium olib tashlandi",
-                            content="Sizning Premium obunangiz admin tomonidan olib tashlandi.",
+                            title="Premium olib taşlandi",
+                            content="Sizning Premium obunangiz admin tomonidan olib taşlandi.",
                             message_type='system'
                         )
-                        messages.success(request, f"{user.full_name}dan Premium olib tashlandi!")
+                        messages.success(request, f"{user.full_name}dan Premium olib taşlandi!")
 
         except CustomUser.DoesNotExist:
-            messages.error(request, "Foydalanuvchi topilmadi!")
+            messages.error(request, "Foydalanuvçi topilmadi!")
 
         return redirect(f"{request.path}?tab={tab}&filter={filter_type}&search={search}")
 
@@ -14862,7 +14867,7 @@ def approve_premium_request(request, pk):
     prem_req = get_object_or_404(PremiumRequest, pk=pk)
 
     if prem_req.status != 'pending':
-        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
         return redirect('admin_premium_management')
 
     with transaction.atomic():
@@ -14888,11 +14893,11 @@ def approve_premium_request(request, pk):
             sender=request.user,
             recipient=user,
             title="Premium tasdiqlandi ✅",
-            content=f"Sizning {prem_req.get_plan_display()} Premium so'rovingiz tasdiqlandi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha amal qiladi.",
+            content=f"Sizning {prem_req.get_plan_display()} Premium sörovingiz tasdiqlandi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gaça amal qiladi.",
             message_type='system'
         )
 
-    messages.success(request, f"{prem_req.user.full_name}ning Premium so'rovi tasdiqlandi!")
+    messages.success(request, f"{prem_req.user.full_name}ning Premium sörovi tasdiqlandi!")
     return redirect('admin_premium_management')
 
 
@@ -14904,17 +14909,17 @@ def reject_premium_request(request, pk):
     prem_req = get_object_or_404(PremiumRequest, pk=pk)
 
     if prem_req.status != 'pending':
-        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
         return redirect('admin_premium_management')
 
     with transaction.atomic():
-        # Holatni shartli UPDATE bilan band qilamiz: tugma ikki marta bosilsa
-        # yoki so'rov takrorlansa, coin ikki marta qaytarilmasin.
+        # Holatni şartli UPDATE bilan band qilamiz: tugma ikki marta bosilsa
+        # yoki sörov takrorlansa, coin ikki marta qaytarilmasin.
         claimed = PremiumRequest.objects.filter(pk=prem_req.pk, status='pending').update(
             status='rejected', reviewed_by=request.user, reviewed_at=timezone.now()
         )
         if not claimed:
-            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
             return redirect('admin_premium_management')
         prem_req.refresh_from_db()
 
@@ -14927,18 +14932,18 @@ def reject_premium_request(request, pk):
             user=user,
             amount=prem_req.price,
             action='add',
-            reason=f"Premium so'rov rad etildi - {prem_req.price} coin qaytarildi"
+            reason=f"Premium sörov rad etildi - {prem_req.price} coin qaytarildi"
         )
 
         Message.objects.create(
             sender=request.user,
             recipient=user,
-            title="Premium so'rov rad etildi",
-            content=f"Sizning {prem_req.get_plan_display()} Premium so'rovingiz rad etildi.\n{prem_req.price} coin hisobingizga qaytarildi.",
+            title="Premium sörov rad etildi",
+            content=f"Sizning {prem_req.get_plan_display()} Premium sörovingiz rad etildi.\n{prem_req.price} coin hisobingizga qaytarildi.",
             message_type='system'
         )
 
-    messages.success(request, f"{prem_req.user.full_name}ning Premium so'rovi rad etildi. Coinlar qaytarildi.")
+    messages.success(request, f"{prem_req.user.full_name}ning Premium sörovi rad etildi. Coinlar qaytarildi.")
     return redirect('admin_premium_management')
 
 
@@ -14946,17 +14951,17 @@ def reject_premium_request(request, pk):
 
 @login_required
 def admin_sections_management(request):
-    """Bo'limlar boshqaruvi - saytdagi barcha bo'limlarni bloklab/yoqlab qo'yish"""
+    """Bölimlar boşqaruvi - saytdagi barça bölimlarni bloklab/yoqlab qöyiş"""
     if not request.user.is_admin:
         return redirect('home')
     
-    # Database dan bloklangan bo'limlarni o'qish
+    # Database dan bloklangan bölimlarni öqiş
     blocked_db = BlockedSection.objects.all()
     
-    # Har bo'lim uchun default dict yaratish
+    # Har bölim uçun default dict yaratiş
     sections_dict = {}
     
-    # Barcha bo'limlar uchun default status qo'yish
+    # Barça bölimlar uçun default status qöyiş
     for section_code, section_name in BlockedSection.SECTION_CHOICES:
         sections_dict[section_code] = {
             'is_blocked': False,
@@ -14965,7 +14970,7 @@ def admin_sections_management(request):
             'blocked_at': None,
         }
     
-    # Database dan bloklangan bo'limlarni update qilish
+    # Database dan bloklangan bölimlarni update qiliş
     for bs in blocked_db:
         sections_dict[bs.section] = {
             'is_blocked': bs.is_blocked,
@@ -14974,13 +14979,13 @@ def admin_sections_management(request):
             'blocked_at': bs.blocked_at,
         }
     
-    # Template uchun underscore kalit bilan ham saqlash (hyphenli kalitlar template da ishlamaydi)
+    # Template uçun underscore kalit bilan ham saqlaş (hyphenli kalitlar template da işlamaydi)
     sections_dict_safe = {}
     for key, value in sections_dict.items():
         safe_key = key.replace('-', '_')
         sections_dict_safe[safe_key] = value
     
-    # Statistika hisoblash
+    # Statistika hisoblaş
     total_sections = len(BlockedSection.SECTION_CHOICES)
     blocked_count = BlockedSection.objects.filter(is_blocked=True).count()
     active_count = total_sections - blocked_count
@@ -14997,7 +15002,7 @@ def admin_sections_management(request):
 
 @login_required
 def toggle_section_block(request, section):
-    """Bo'limni bloklab yoki yoqlab qo'yish - DATABASE ga saqlash"""
+    """Bölimni bloklab yoki yoqlab qöyiş - DATABASE ga saqlaş"""
     import sys
     print(f"DEBUG: toggle_section_block called - User: {request.user}, Admin: {request.user.is_admin}", file=sys.stderr)
     
@@ -15007,35 +15012,35 @@ def toggle_section_block(request, section):
     
     if request.method != 'POST':
         print(f"DEBUG: Not POST - Method: {request.method}", file=sys.stderr)
-        return JsonResponse({'error': 'POST so\'rovi kerak'}, status=400)
+        return JsonResponse({'error': 'POST sörovi kerak'}, status=400)
     
     try:
-        # Database dan bloklangan bo'limni topib yoki yaratib
+        # Database dan bloklangan bölimni topib yoki yaratib
         blocked_section, created = BlockedSection.objects.get_or_create(section=section)
         
-        reason = request.POST.get('reason', 'Tuzatish ishlari olib borilmoqda')
+        reason = request.POST.get('reason', 'Tuzatiş işlari olib borilmoqda')
         
         # Toggle status
         if blocked_section.is_blocked:
-            # Yoqib qo'yish
+            # Yoqib qöyiş
             blocked_section.is_blocked = False
             blocked_section.reason = ''
             blocked = False
             message = f"{section} yoqildi"
         else:
-            # Bloklab qo'yish
+            # Bloklab qöyiş
             blocked_section.is_blocked = True
             blocked_section.reason = reason
             blocked_section.blocked_by = request.user
             blocked = True
             message = f"{section} bloklandi: {reason}"
         
-        # Database ga saqlash
+        # Database ga saqlaş
         blocked_section.save()
         
         # Aktivligi log - faqat action_type va description field lar
         # ActivityLog model 'action' emas 'action_type' field boradi
-        # va 'details' field yo'q, faqat description bo'ladi
+        # va 'details' field yöq, faqat description böladi
         try:
             ActivityLog.objects.create(
                 user=request.user,
@@ -15071,7 +15076,7 @@ def clear_ai_ad(request):
     return JsonResponse({'ok': True})
 
 
-# ============ ADMIN: O'QITUVCHILAR BOSHQARUVI ============
+# ============ ADMIN: ÖQITUVÇILAR BOŞQARUVI ============
 
 @login_required
 def admin_teachers(request):
@@ -15202,8 +15207,8 @@ def admin_teacher_earnings(request):
     teachers = CustomUser.objects.filter(role='teacher').order_by('first_name', 'last_name')
     teacher_earnings = []
     
-    # Video/test/vazifa narxlari har kasb uchun alohida (Profession'da) —
-    # daromad accounts.earnings orqali kasb stavkalari bo'yicha hisoblanadi.
+    # Video/test/vazifa narxlari har kasb uçun alohida (Profession'da) —
+    # daromad accounts.earnings orqali kasb stavkalari böyiça hisoblanadi.
     from accounts.earnings import period_summary
 
     for teacher in teachers:
@@ -15231,7 +15236,7 @@ def admin_teacher_earnings(request):
         if teacher_filter and str(teacher.id) != teacher_filter:
             continue  # Skip this teacher if not the selected one
         
-        # Kontentdan daromad — har kasbning o'z stavkasi bo'yicha
+        # Kontentdan daromad — har kasbning öz stavkasi böyiça
         summary = period_summary(professions, start=month_start, end=month_end)
         video_count = summary['video']['count']
         video_total = summary['video']['total']
@@ -15263,7 +15268,7 @@ def admin_teacher_earnings(request):
             prev_month_start = date(now.year, now.month - 1, 1)
             prev_month_end = date(now.year, now.month, 1)
         
-        # Joriy oy daromadi — kasb stavkalari bo'yicha
+        # Joriy oy daromadi — kasb stavkalari böyiça
         current_summary = period_summary(
             professions, start=current_month_start, end=current_month_end)
         current_video = current_summary['video']['count']
@@ -15273,7 +15278,7 @@ def admin_teacher_earnings(request):
                                   current_summary['test']['total'] +
                                   current_summary['homework']['total'])
 
-        # O'tgan oy daromadi — kasb stavkalari bo'yicha
+        # Ötgan oy daromadi — kasb stavkalari böyiça
         prev_summary = period_summary(
             professions, start=prev_month_start, end=prev_month_end)
         prev_video = prev_summary['video']['count']
@@ -15503,27 +15508,27 @@ def export_teachers_pdf(request):
         'Small', parent=styles['Normal'], fontSize=7, leading=9,
     )
 
-    elements.append(Paragraph("O'qituvchilar statistikasi - To'liq hisobot", styles['Title']))
+    elements.append(Paragraph("Öqituvçilar statistikasi - Töliq hisobot", styles['Title']))
     elements.append(Paragraph(f"Sana: {now.strftime('%d.%m.%Y %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 15))
 
     # Summary table
     header = [
-        Paragraph('O\'qituvchi', small_style),
+        Paragraph('Öqituvçi', small_style),
         Paragraph('Kurslar', small_style),
-        Paragraph('O\'quv.', small_style),
+        Paragraph('Öquv.', small_style),
         Paragraph('Darslar', small_style),
         Paragraph('Hafta/Oy', small_style),
-        Paragraph('Vazifa teksh.', small_style),
+        Paragraph('Vazifa tekş.', small_style),
         Paragraph('Hafta/Oy', small_style),
         Paragraph('Kutilmoqda', small_style),
         Paragraph('Speaking', small_style),
         Paragraph('Videolar', small_style),
         Paragraph('Testlar', small_style),
-        Paragraph('Lug\'at', small_style),
+        Paragraph('Luğat', small_style),
         Paragraph('Login H/O', small_style),
         Paragraph('Online (daq)', small_style),
-        Paragraph('Daromad (so\'m)', small_style),
+        Paragraph('Daromad (söm)', small_style),
     ]
     data = [header]
 
@@ -15593,14 +15598,14 @@ def export_teachers_pdf(request):
 
 @login_required
 def admin_teacher_ai_toggle(request, pk):
-    """O'qituvchining AI funksiyasidan foydalanish ruxsatini yoqish/o'chirish (AJAX yoki POST)."""
+    """Öqituvçining AI funksiyasidan foydalaniş ruxsatini yoqish/öchirish (AJAX yoki POST)."""
     if not request.user.is_admin:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': 'Ruxsat yo\'q'}, status=403)
+            return JsonResponse({'success': False, 'error': 'Ruxsat yöq'}, status=403)
         return redirect('home')
 
     if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': "POST so'rov kerak"}, status=405)
+        return JsonResponse({'success': False, 'error': "POST sörov kerak"}, status=405)
 
     teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
     teacher.ai_access_enabled = not teacher.ai_access_enabled
@@ -15608,7 +15613,7 @@ def admin_teacher_ai_toggle(request, pk):
 
     new_state = teacher.ai_access_enabled
     msg = (
-        f"{teacher.full_name} uchun AI funksiyasi "
+        f"{teacher.full_name} uçun AI funksiyasi "
         f"{'yoqildi' if new_state else 'bloklandi'}."
     )
 
@@ -15681,13 +15686,13 @@ def admin_teacher_certificate_add(request):
         issued_date = request.POST.get('issued_date') or None
         file = request.FILES.get('file')
         if not title or not file or not teacher_id:
-            messages.error(request, "O'qituvchi, nom va faylni kiriting.")
+            messages.error(request, "Öqituvçi, nom va faylni kiriting.")
             return render(request, 'accounts/admin/teacher_certificate_form.html', {'teachers': teachers})
         teacher = get_object_or_404(CustomUser, pk=teacher_id, role='teacher')
         TeacherCertificate.objects.create(
             teacher=teacher, title=title, description=description, issued_date=issued_date, file=file,
         )
-        messages.success(request, f"{teacher.full_name}ga sertifikat qo'shildi!")
+        messages.success(request, f"{teacher.full_name}ga sertifikat qöşildi!")
         return redirect('admin_teacher_certificates')
     return render(request, 'accounts/admin/teacher_certificate_form.html', {'teachers': teachers})
 
@@ -15700,12 +15705,12 @@ def admin_teacher_certificate_delete(request, pk):
     cert = get_object_or_404(TeacherCertificate, pk=pk)
     if request.method == 'POST':
         cert.delete()
-        messages.success(request, "Sertifikat o'chirildi!")
+        messages.success(request, "Sertifikat öçirildi!")
     return redirect('admin_teacher_certificates')
 
 
 def ariza_view(request):
-    """Kursga yozilish arizasi — ochiq sahifa"""
+    """Kursga yoziliş arizasi — oçiq sahifa"""
     professions = Profession.objects.filter(is_blocked=False)
     success = False
     
@@ -15732,7 +15737,7 @@ def ariza_view(request):
                 f"👤 {first_name} {last_name}\n"
                 f"📱 {phone}\n"
                 f"📚 Kurs: {course_interest or 'Belgilanmagan'}\n\n"
-                f"📞 Tez orada bog'laning!"
+                f"📞 Tez orada boğlaning!"
             )
             success = True
 
@@ -15748,7 +15753,7 @@ def ariza_view(request):
 
 @login_required
 def admin_applications(request):
-    """Admin: Arizalar ro'yxati"""
+    """Admin: Arizalar röyxati"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -15804,7 +15809,7 @@ def admin_applications(request):
 
 @login_required
 def admin_application_status(request, pk):
-    """Admin: Ariza statusini o'zgartirish"""
+    """Admin: Ariza statusini özgartiriş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -15829,7 +15834,7 @@ def admin_application_status(request, pk):
 
 @login_required
 def admin_certificates(request):
-    """Admin: O'quvchi sertifikatlarini boshqarish"""
+    """Admin: Öquvçi sertifikatlarini boşqariş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -15865,7 +15870,7 @@ def admin_certificates(request):
     professions = Profession.objects.all()
     students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
 
-    # Kurslar bo'yicha seriya/muddat sozlamalari (avtomatik berish uchun)
+    # Kurslar böyiça seriya/muddat sozlamalari (avtomatik beriş uçun)
     from .models import CertificateSettings, CertificateDesign
     _settings_map = {
         s.profession_id: s for s in CertificateSettings.objects.all()
@@ -15906,7 +15911,7 @@ def admin_certificates(request):
 
 @login_required
 def admin_certificate_issue(request):
-    """Admin: Yangi sertifikat berish"""
+    """Admin: Yangi sertifikat beriş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -15927,7 +15932,7 @@ def admin_certificate_issue(request):
             cert.issued_by = request.user
             cert.save()
             
-            # O'quvchiga chiroyli tabrik xabari yuborish
+            # Öquvçiga çiroyli tabrik xabari yuboriş
             Message.objects.create(
                 recipient=student,
                 sender=request.user,
@@ -15935,35 +15940,35 @@ def admin_certificate_issue(request):
                 content=(
                     f"🌟🌟🌟 TABRIKLAYMIZ! 🌟🌟🌟\n\n"
                     f"Hurmatli {student.full_name}!\n\n"
-                    f"🎓 Sizga \"{profession.name}\" yo'nalishi bo'yicha SERTIFIKAT berildi!\n\n"
+                    f"🎓 Sizga \"{profession.name}\" yönalişi böyiça SERTIFIKAT berildi!\n\n"
                     f"📋 Ma'lumotlar:\n"
                     f"   🆔 ID raqam: {student.id}\n"
-                    f"   📚 Yo'nalish: {profession.name}\n"
+                    f"   📚 Yönaliş: {profession.name}\n"
                     f"   🏅 Sertifikat ID: {cert.certificate_id}\n"
                     f"   📅 Berilgan sana: {cert.valid_from}\n"
                     f"   ✅ Holat: {cert.get_status_display()}\n\n"
-                    f"🎊 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
-                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
-                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.\n\n"
+                    f"🎊 Siz bu yönalişni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada köproq bilim va tajriba taqdim etişga tayyor.\n\n"
+                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bölimida körişingiz mumkin.\n\n"
                     f"💜 Hurmat bilan,\nIT Creative Academy jamoasi"
                 ),
                 message_type='achievement'
             )
             
-            # Telegram orqali chiroyli tabrik xabari
+            # Telegram orqali çiroyli tabrik xabari
             if student.telegram_id:
                 telegram_text = (
                     f"🎓🎉🎊 <b>TABRIKLAYMIZ!</b> 🎊🎉🎓\n\n"
                     f"Hurmatli <b>{student.full_name}</b>!\n\n"
-                    f"✨ Sizga <b>«{profession.name}»</b> yo'nalishi bo'yicha <b>SERTIFIKAT</b> berildi!\n\n"
+                    f"✨ Sizga <b>«{profession.name}»</b> yönalişi böyiça <b>SERTIFIKAT</b> berildi!\n\n"
                     f"📋 <b>Ma'lumotlar:</b>\n"
                     f"┌ 🆔 ID raqam: <b>{student.id}</b>\n"
-                    f"├ 📚 Yo'nalish: <b>{profession.name}</b>\n"
+                    f"├ 📚 Yönaliş: <b>{profession.name}</b>\n"
                     f"├ 🏅 Sertifikat: <b>{cert.certificate_id}</b>\n"
                     f"└ 📅 Sana: <b>{cert.valid_from}</b>\n\n"
-                    f"🌟 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🌟 Siz bu yönalişni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
                     f"🚀 <b>Yangi kurslarda ham kutib qolamiz!</b>\n"
-                    f"IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"IT Creative Academy sizga yanada köproq bilim va tajriba taqdim etişga tayyor.\n\n"
                     f"💜 <i>IT Creative Academy jamoasi</i>"
                 )
                 notify_user(student.telegram_id, telegram_text)
@@ -15971,8 +15976,8 @@ def admin_certificate_issue(request):
             # Adminlarga xabar
             notify_admins(
                 f"🎓 <b>Sertifikat berildi!</b>\n\n"
-                f"👤 O'quvchi: <b>{student.full_name}</b>\n"
-                f"📚 Yo'nalish: <b>{profession.name}</b>\n"
+                f"👤 Öquvçi: <b>{student.full_name}</b>\n"
+                f"📚 Yönaliş: <b>{profession.name}</b>\n"
                 f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
             )
             
@@ -15980,7 +15985,7 @@ def admin_certificate_issue(request):
             notify_group(
                 f"🎓🎉 <b>TABRIKLAYMIZ!</b> 🎉🎓\n\n"
                 f"🌟 <b>{student.full_name}</b> 🌟\n\n"
-                f"<b>«{profession.name}»</b> yo'nalishini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
+                f"<b>«{profession.name}»</b> yönalişini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
                 f"🎊 Tabriklaymiz va yangi kurslarda kutib qolamiz! 🚀\n\n"
                 f"💜 <b>IT Creative Academy</b>"
             )
@@ -15988,7 +15993,7 @@ def admin_certificate_issue(request):
             messages.success(request, f"Sertifikat muvaffaqiyatli berildi! ID: {cert.certificate_id}")
             return redirect('admin_certificates')
         else:
-            messages.error(request, "Iltimos, barcha maydonlarni to'ldiring!")
+            messages.error(request, "Iltimos, barça maydonlarni töldiring!")
     else:
         form = CertificateForm()
     
@@ -16002,7 +16007,7 @@ def admin_certificate_issue(request):
 
 @login_required
 def admin_certificate_status(request, pk):
-    """Admin: Sertifikat holatini o'zgartirish"""
+    """Admin: Sertifikat holatini özgartiriş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -16015,32 +16020,32 @@ def admin_certificate_status(request, pk):
             cert.status = new_status
             cert.save()
 
-            # PDF ni qayta yaratish — holat sertifikat faylida ham aks etadi
+            # PDF ni qayta yaratiş — holat sertifikat faylida ham aks etadi
             try:
                 from .certificates import regenerate_certificate_file
                 regenerate_certificate_file(cert)
             except Exception:
                 pass
 
-            # O'quvchiga xabar (platformadagi o'quvchi bo'lsa)
+            # Öquvçiga xabar (platformadagi öquvçi bölsa)
             status_display = cert.get_status_display()
             if cert.student:
                 Message.objects.create(
                     recipient=cert.student,
                     sender=request.user,
-                    title="📋 Sertifikat holati o'zgardi",
-                    content=f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz holati o'zgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
+                    title="📋 Sertifikat holati özgardi",
+                    content=f"Sizning \"{cert.profession.name}\" kursi böyiça sertifikatingiz holati özgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
                     message_type='system'
                 )
             
-            messages.success(request, f"Sertifikat holati \"{status_display}\" ga o'zgartirildi!")
+            messages.success(request, f"Sertifikat holati \"{status_display}\" ga özgartirildi!")
     
     return redirect('admin_certificates')
 
 
 @login_required
 def admin_certificate_delete(request, pk):
-    """Admin: Sertifikatni o'chirish"""
+    """Admin: Sertifikatni öçiriş"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -16048,26 +16053,26 @@ def admin_certificate_delete(request, pk):
     
     if request.method == 'POST':
         cert.delete()
-        messages.success(request, "Sertifikat o'chirildi!")
+        messages.success(request, "Sertifikat öçirildi!")
     
     return redirect('admin_certificates')
 
 
 @login_required
 def final_test_payment(request, pk):
-    """Yakuniy test uchun to'lov cheki yuklash"""
+    """Yakuniy test uçun tölov çeki yuklaş"""
     test = get_object_or_404(Test, pk=pk, test_type='final')
     from quiz.models import Quiz
     migrated = Quiz.objects.filter(lesson=test.lesson).first()
     if migrated:
         return redirect('quizui:quiz_retry_payment_request', pk=migrated.pk)
     
-    # Birinchi marta bo'lsa — bepul
+    # Birinçi marta bölsa — bepul
     existing_result = TestResult.objects.filter(test=test, student=request.user).exists()
     if not existing_result:
         return redirect('start_test', pk=test.pk)
     
-    # Allaqachon kutilayotgan to'lov bormi
+    # Allaqaçon kutilayotgan tölov bormi
     pending_payment = FinalTestPayment.objects.filter(
         student=request.user, test=test, status='pending'
     ).first()
@@ -16080,16 +16085,16 @@ def final_test_payment(request, pk):
                 test=test,
                 receipt_image=receipt,
             )
-            messages.success(request, "To'lov cheki yuklandi! Admin tasdiqlashini kuting.")
+            messages.success(request, "Tölov çeki yuklandi! Admin tasdiqlaşini kuting.")
             return redirect('lesson_view', pk=test.lesson.pk)
         else:
-            messages.error(request, "Iltimos, to'lov chekini yuklang.")
+            messages.error(request, "Iltimos, tölov çekini yuklang.")
     
     approved_payment = FinalTestPayment.objects.filter(
         student=request.user, test=test, status='approved'
     ).exists()
 
-    # Oxirgi rad etilgan to'lov — o'quvchiga sababini ko'rsatish uchun
+    # Oxirgi rad etilgan tölov — öquvçiga sababini körsatiş uçun
     rejected_payment = None
     if not pending_payment and not approved_payment:
         rejected_payment = FinalTestPayment.objects.filter(
@@ -16109,7 +16114,7 @@ def final_test_payment(request, pk):
 
 @login_required
 def admin_final_test_payments(request):
-    """Admin panel: Yakuniy test to'lovlarini boshqarish"""
+    """Admin panel: Yakuniy test tölovlarini boşqariş"""
     if request.user.role not in ('admin', 'teacher'):
         return redirect('home')
     
@@ -16119,7 +16124,7 @@ def admin_final_test_payments(request):
     if status_filter:
         payments = payments.filter(status=status_filter)
     
-    # O'qituvchi faqat o'z kurslaridagi testlarni ko'radi
+    # Öqituvçi faqat öz kurslaridagi testlarni köradi
     if request.user.role == 'teacher':
         professions = request.user.teaching_professions.all()
         payments = payments.filter(test__lesson__profession__in=professions)
@@ -16137,17 +16142,17 @@ def admin_final_test_payments(request):
 
 @login_required
 def approve_final_test_payment(request, pk):
-    """Yakuniy test to'lovini tasdiqlash"""
+    """Yakuniy test tölovini tasdiqlaş"""
     if request.user.role not in ('admin', 'teacher'):
         return redirect('home')
     
     payment = get_object_or_404(FinalTestPayment, pk=pk)
     
-    # O'qituvchi faqat o'z kursi
+    # Öqituvçi faqat öz kursi
     if request.user.role == 'teacher':
         professions = request.user.teaching_professions.all()
         if payment.test.lesson.profession not in professions:
-            messages.error(request, "Sizda bu to'lovni tasdiqlash huquqi yo'q.")
+            messages.error(request, "Sizda bu tölovni tasdiqlaş huquqi yöq.")
             return redirect('admin_final_test_payments')
     
     if request.method == 'POST':
@@ -16155,14 +16160,14 @@ def approve_final_test_payment(request, pk):
         payment.reviewed_by = request.user
         payment.reviewed_at = timezone.now()
         payment.save()
-        messages.success(request, f"{payment.student.full_name}ning to'lovi tasdiqlandi!")
+        messages.success(request, f"{payment.student.full_name}ning tölovi tasdiqlandi!")
     
     return redirect('admin_final_test_payments')
 
 
 @login_required
 def reject_final_test_payment(request, pk):
-    """Yakuniy test to'lovini rad etish"""
+    """Yakuniy test tölovini rad etiş"""
     if request.user.role not in ('admin', 'teacher'):
         return redirect('home')
     
@@ -16171,7 +16176,7 @@ def reject_final_test_payment(request, pk):
     if request.user.role == 'teacher':
         professions = request.user.teaching_professions.all()
         if payment.test.lesson.profession not in professions:
-            messages.error(request, "Sizda bu to'lovni rad etish huquqi yo'q.")
+            messages.error(request, "Sizda bu tölovni rad etiş huquqi yöq.")
             return redirect('admin_final_test_payments')
     
     if request.method == 'POST':
@@ -16180,14 +16185,14 @@ def reject_final_test_payment(request, pk):
         payment.reviewed_at = timezone.now()
         payment.reject_reason = request.POST.get('reason', '')
         payment.save()
-        messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
+        messages.success(request, f"{payment.student.full_name}ning tölovi rad etildi.")
     
     return redirect('admin_final_test_payments')
 
 
 @login_required
 def admin_ai_checker(request):
-    """AI Tekshiruvchi vazifalar boshqaruvi"""
+    """AI Tekşiruvçi vazifalar boşqaruvi"""
     if not request.user.is_admin:
         return redirect('home')
     
@@ -16218,7 +16223,7 @@ def admin_ai_checker(request):
     ai_on_sp = speaking_tasks.filter(ai_check=True).count()
     ai_off_sp = total_sp - ai_on_sp
     
-    # Kurslar bo'yicha guruhlab
+    # Kurslar böyiça guruhlab
     from collections import OrderedDict
     hw_by_course = OrderedDict()
     for hw in homeworks:
@@ -16257,9 +16262,9 @@ def admin_ai_checker(request):
 
 @login_required
 def admin_ai_checker_toggle(request):
-    """AI tekshiruvchini yoqish/o'chirish (AJAX)"""
+    """AI tekşiruvçini yoqish/öchirish (AJAX)"""
     if not request.user.is_admin:
-        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+        return JsonResponse({'error': "Ruxsat yöq"}, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
@@ -16285,29 +16290,29 @@ def admin_ai_checker_toggle(request):
         hw_updated = hw_qs.update(ai_check=new_val)
         sp_updated = sp_qs.update(ai_check=new_val)
         
-        status_word = "yoqildi" if new_val else "o'chirildi"
+        status_word = "yoqildi" if new_val else "öçirildi"
         return JsonResponse({
             'success': True,
-            'message': f"Barcha vazifalar AI tekshiruvi {status_word} ({hw_updated + sp_updated} ta)",
+            'message': f"Barça vazifalar AI tekşiruvi {status_word} ({hw_updated + sp_updated} ta)",
             'new_state': new_val,
         })
     
     try:
         task_id = int(task_id)
     except (ValueError, TypeError):
-        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+        return JsonResponse({'error': "Notöğri ID"}, status=400)
     
     if task_type == 'homework':
         obj = get_object_or_404(Homework, pk=task_id)
     elif task_type == 'speaking':
         obj = get_object_or_404(SpeakingTask, pk=task_id)
     else:
-        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
+        return JsonResponse({'error': "Notöğri tur"}, status=400)
     
     obj.ai_check = action == 'on'
     obj.save(update_fields=['ai_check'])
     
-    status_text = "Yoqildi" if obj.ai_check else "O'chirildi"
+    status_text = "Yoqildi" if obj.ai_check else "Öçirildi"
     return JsonResponse({
         'success': True,
         'new_state': obj.ai_check,
@@ -16317,9 +16322,9 @@ def admin_ai_checker_toggle(request):
 
 @login_required
 def admin_ai_course_toggle(request):
-    """Kurs uchun AI tekshiruvchini yoqish/o'chirish (Admin override)"""
+    """Kurs uçun AI tekşiruvçini yoqish/öchirish (Admin override)"""
     if not request.user.is_admin:
-        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+        return JsonResponse({'error': "Ruxsat yöq"}, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
@@ -16333,19 +16338,19 @@ def admin_ai_course_toggle(request):
     profession.ai_check_enabled = not profession.ai_check_enabled
     profession.save(update_fields=['ai_check_enabled'])
     
-    status_text = "yoqildi" if profession.ai_check_enabled else "o'chirildi"
+    status_text = "yoqildi" if profession.ai_check_enabled else "öçirildi"
     return JsonResponse({
         'success': True,
         'new_state': profession.ai_check_enabled,
-        'message': f"'{profession.name}' kursi uchun AI tekshiruvchi {status_text}",
+        'message': f"'{profession.name}' kursi uçun AI tekşiruvçi {status_text}",
     })
 
 
 @login_required
 def admin_file_only_toggle(request):
-    """Faqat fayl qabul qilishni yoqish/o'chirish (AJAX)"""
+    """Faqat fayl qabul qilişni yoqish/öchirish (AJAX)"""
     if not request.user.is_admin and request.user.role != 'teacher':
-        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+        return JsonResponse({'error': "Ruxsat yöq"}, status=403)
 
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
@@ -16354,7 +16359,7 @@ def admin_file_only_toggle(request):
     try:
         hw_id = int(hw_id)
     except (ValueError, TypeError):
-        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+        return JsonResponse({'error': "Notöğri ID"}, status=400)
 
     if request.user.is_admin:
         hw = get_object_or_404(Homework, pk=hw_id)
@@ -16365,7 +16370,7 @@ def admin_file_only_toggle(request):
     hw.file_only = not hw.file_only
     hw.save(update_fields=['file_only'])
 
-    status_text = "yoqildi" if hw.file_only else "o'chirildi"
+    status_text = "yoqildi" if hw.file_only else "öçirildi"
     return JsonResponse({
         'success': True,
         'new_state': hw.file_only,
@@ -16374,11 +16379,11 @@ def admin_file_only_toggle(request):
 
 
 # ============================================
-# SO'ROVNOMALAR BOSHQARUVI (ADMIN)
+# SÖROVNOMALAR BOŞQARUVI (ADMIN)
 # ============================================
 
 def _survey_audience_count(target_role):
-    """So'rovnoma mo'ljallangan faol foydalanuvchilar soni."""
+    """Sörovnoma möljallangan faol foydalanuvçilar soni."""
     users = CustomUser.objects.filter(is_active=True)
     if target_role in ('student', 'teacher'):
         users = users.filter(role=target_role)
@@ -16436,7 +16441,7 @@ def admin_survey_create(request):
         target_role = request.POST.get('target_role', 'all')
         
         if not title:
-            messages.error(request, "Forma nomi kiritilishi shart! ⚠️")
+            messages.error(request, "Forma nomi kiritilişi şart! ⚠️")
             return render(request, 'accounts/admin/surveys/survey_form.html', {'mode': 'create'})
         
         survey = SurveyForm.objects.create(
@@ -16448,7 +16453,7 @@ def admin_survey_create(request):
             target_role=target_role,
         )
         
-        # Savollarni saqlash
+        # Savollarni saqlaş
         question_texts = request.POST.getlist('question_text')
         question_types = request.POST.getlist('question_type')
         question_choices = request.POST.getlist('question_choices')
@@ -16465,7 +16470,7 @@ def admin_survey_create(request):
                     order=i,
                 )
         
-        messages.success(request, f"'{survey.title}' so'rovnomasi yaratildi! ✅")
+        messages.success(request, f"'{survey.title}' sörovnomasi yaratildi! ✅")
         return redirect('admin_surveys')
     
     return render(request, 'accounts/admin/surveys/survey_form.html', {'mode': 'create'})
@@ -16487,14 +16492,14 @@ def admin_survey_edit(request, pk):
         survey.target_role = request.POST.get('target_role', 'all')
         
         if not survey.title:
-            messages.error(request, "Forma nomi kiritilishi shart! ⚠️")
+            messages.error(request, "Forma nomi kiritilişi şart! ⚠️")
             return render(request, 'accounts/admin/surveys/survey_form.html', {
                 'mode': 'edit', 'survey': survey
             })
         
         survey.save()
         
-        # Eski savollarni o'chirish va yangilarini saqlash
+        # Eski savollarni öçiriş va yangilarini saqlaş
         survey.questions.all().delete()
         
         question_texts = request.POST.getlist('question_text')
@@ -16534,14 +16539,14 @@ def admin_survey_delete(request, pk):
     if request.method == 'POST':
         title = survey.title
         survey.delete()
-        messages.success(request, f"'{title}' o'chirildi! 🗑️")
+        messages.success(request, f"'{title}' öçirildi! 🗑️")
         return redirect('admin_surveys')
     
     return render(request, 'accounts/admin/surveys/survey_delete.html', {'survey': survey})
 
 
 def _survey_question_stats(questions, responses):
-    """Har bir savol bo'yicha jamlanma statistika."""
+    """Har bir savol böyiça jamlanma statistika."""
     total = len(responses)
     grouped = {question.id: [] for question in questions}
     for response in responses:
@@ -16663,7 +16668,7 @@ def admin_survey_responses_excel(request, pk):
     worksheet.title = "Javoblar"
     worksheet.freeze_panes = 'A2'
 
-    headers = ["Ism", "Familiya", "To'ldirgan vaqti"] + [
+    headers = ["Ism", "Familiya", "Töldirgan vaqti"] + [
         question.question_text for question in questions
     ]
     header_fill = PatternFill(fill_type='solid', fgColor='6366F1')
@@ -16725,7 +16730,7 @@ def admin_survey_toggle(request, pk):
     survey = get_object_or_404(SurveyForm, pk=pk)
     survey.is_active = not survey.is_active
     survey.save(update_fields=['is_active'])
-    state = "faollashtirildi" if survey.is_active else "to'xtatildi"
+    state = "faollaştirildi" if survey.is_active else "töxtatildi"
     messages.success(request, f"'{survey.title}' {state}!")
     return redirect('admin_surveys')
 
@@ -16735,9 +16740,9 @@ def fill_survey(request, pk):
     from .models import SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer
     survey = get_object_or_404(SurveyForm, pk=pk, is_active=True)
 
-    # Allaqachon to'ldirilgan bo'lsa
+    # Allaqaçon töldirilgan bölsa
     if SurveyResponse.objects.filter(survey=survey, user=request.user).exists():
-        messages.info(request, "Siz bu so'rovnomani allaqachon to'ldirgansiz.")
+        messages.info(request, "Siz bu sörovnomani allaqaçon töldirgansiz.")
         return redirect('home')
 
     questions = survey.questions.all()
@@ -16758,7 +16763,7 @@ def fill_survey(request, pk):
                     question=question,
                     answer_text=answer_text or None,
                 )
-        messages.success(request, "Javoblaringiz uchun rahmat! ✅")
+        messages.success(request, "Javoblaringiz uçun rahmat! ✅")
         return redirect('home')
 
     return render(request, 'accounts/fill_survey.html', {
@@ -16773,38 +16778,38 @@ def fill_survey(request, pk):
 @login_required
 def payment_wall(request):
     """
-    O'quvchining to'lov sahifasi; kerak bo'lsa balans orqali akkauntni ochadi.
+    Öquvçining tölov sahifasi; kerak bölsa balans orqali akkauntni oçadi.
     """
     from .models import StudentBalance, PaymentStatus, BalanceTopUp
     user = request.user
 
-    # To'lov sahifasi barcha o'quvchilarga ochiq bo'lishi kerak. Oldingi
-    # tekshiruv bloklanmagan o'quvchini /tolov/ dan chiqarib yuborib,
-    # online payment formiga yetib kelishiga yo'l qo'ymas edi.
+    # Tölov sahifasi barça öquvçilarga oçiq bölişi kerak. Oldingi
+    # tekşiruv bloklanmagan öquvçini /tolov/ dan çiqarib yuborib,
+    # online payment formiga yetib kelişiga yöl qöymas edi.
     if (not user.is_learner and not request.GET.get('preview')
             and request.resolver_match.url_name != 'student_payments'):
-        messages.error(request, "To'lov sahifasi faqat o'quvchilar uchun mavjud.")
+        messages.error(request, "Tölov sahifasi faqat öquvçilar uçun mavjud.")
         return redirect('home')
 
-    # Balans va to'lov holati
+    # Balans va tölov holati
     balance, _ = StudentBalance.objects.get_or_create(user=user)
     ps, _ = PaymentStatus.objects.get_or_create(user=user)
 
-    # To'liq yoki qisman to'lov urinishi — POST orqali yoki avtomatik
+    # Töliq yoki qisman tölov urinişi — POST orqali yoki avtomatik
     if request.method == 'POST' and request.POST.get('action') == 'pay':
         from django.db import transaction
         with transaction.atomic():
             if _auto_deduct_and_unblock(user):
-                messages.success(request, "✅ To'lov muvaffaqiyatli amalga oshirildi! Akkauntingiz faollashtirildi.")
+                messages.success(request, "✅ Tölov muvaffaqiyatli amalga oşirildi! Akkauntingiz faollaştirildi.")
                 return redirect('home')
             else:
                 daily_min = int(round((ps.monthly_fee or 200000) / 30))
-                messages.error(request, f"❌ Balans yetarli emas. Kamida 1 kunlik mablag' ({daily_min:,} so'm) bo'lishi kerak.".replace(',', ' '))
+                messages.error(request, f"❌ Balans yetarli emas. Kamida 1 kunlik mablag' ({daily_min:,} söm) bölişi kerak.".replace(',', ' '))
 
     # Top-up tarixi (oxirgi 10)
     topups = BalanceTopUp.objects.filter(student=user).select_related('added_by')[:10]
 
-    # Oylik to'lov tarixi
+    # Oylik tölov tarixi
     from .models import PaymentRecord
     pay_records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')[:12]
     from .models import TezCheckPaymentOrder
@@ -16862,10 +16867,10 @@ def payment_wall(request):
 
 def _balance_sweep_overdue():
     """
-    Muddati o'tgan (next_payment_date <= bugun) shartnoma emas o'quvchilarning
-    to'lovini balansdan avtomatik yechib, sanani keyingi oyga suradi.
-    Shu tufayli "iyun" belgilangan sana o'z-o'zidan "iyul"ga o'tadi.
-    Har bir jarayonda ko'p marta ishlamasligi uchun cache-lock bilan cheklangan.
+    Muddati ötgan (next_payment_date <= bugun) şartnoma emas öquvçilarning
+    tölovini balansdan avtomatik yeçib, sanani keyingi oyga suradi.
+    Şu tufayli "iyun" belgilangan sana öz-özidan "iyul"ga ötadi.
+    Har bir jarayonda köp marta işlamasligi uçun cache-lock bilan çeklangan.
     """
     from django.core.cache import cache
     from .models import StudentBalance
@@ -16892,10 +16897,10 @@ def _balance_sweep_overdue():
         except Exception:
             pass
     if charged_any:
-        # Dashboard moliya keshini yangilaymiz — qarzdorlik darhol to'g'ri chiqsin
+        # Dashboard moliya keşini yangilaymiz — qarzdorlik darhol töğri çiqsin
         get_performance_cache().delete('admin_finance_stats')
 
-    # Har kuni o'quvchilarga to'lov sanasidan 3, 2, 1 kun oldin Telegram botdan eslatma yuborish
+    # Har kuni öquvçilarga tölov sanasidan 3, 2, 1 kun oldin Telegram botdan eslatma yuboriş
     try:
         from telegram_bot.utils import notify_payment_reminders
         notify_payment_reminders()
@@ -16905,21 +16910,21 @@ def _balance_sweep_overdue():
 
 def _balance_management_context(request):
     """
-    Balans Boshqaruvi sahifasi uchun umumiy kontekst (admin + yordamchi).
-    Filtr, saralash va shartnoma ko'rinishini boshqaradi.
+    Balans Boşqaruvi sahifasi uçun umumiy kontekst (admin + yordamçi).
+    Filtr, saralaş va şartnoma körinişini boşqaradi.
     """
     from .models import StudentBalance, BalanceTopUp
     from django.db.models import Sum
     from datetime import date as _date, timedelta as _td
 
     today = _date.today()
-    SOON_DAYS = 7  # shuncha kun ichida to'lov -> "yaqinlashgan"
+    SOON_DAYS = 7  # şunça kun içida tölov -> "yaqinlaşgan"
 
     search = request.GET.get('q', '').strip()
     view = request.GET.get('view', 'active')      # 'active' | 'contract'
     flt = request.GET.get('filter', '')           # '', 'no_date', 'soon', 'overdue', 'blocked'
 
-    # Muddati o'tgan to'lovlarni keyingi oyga surish (iyun -> iyul)
+    # Muddati ötgan tölovlarni keyingi oyga suriş (iyun -> iyul)
     if view != 'contract':
         _balance_sweep_overdue()
 
@@ -16952,7 +16957,7 @@ def _balance_management_context(request):
 
     students_list = list(students_qs)
 
-    # Har bir studentga to'lov holati (days_left / pay_state) qo'shamiz
+    # Har bir studentga tölov holati (days_left / pay_state) qöşamiz
     for s in students_list:
         bal = getattr(s, 'student_balance', None)
         npd = bal.next_payment_date if bal else None
@@ -16969,7 +16974,7 @@ def _balance_management_context(request):
             else:
                 s.pay_state = 'ok'
 
-    # Filtrlar (faqat active ko'rinishida)
+    # Filtrlar (faqat active körinişida)
     if view != 'contract':
         if flt == 'no_date':
             students_list = [s for s in students_list if s.pay_state == 'nodate']
@@ -16980,7 +16985,7 @@ def _balance_management_context(request):
         elif flt == 'blocked':
             students_list = [s for s in students_list if s.is_blocked]
 
-    # Saralash: sanasi belgilanmagan (0) va yaqin/o'tgan sanalar TEPADA
+    # Saralaş: sanasi belgilanmagan (0) va yaqin/ötgan sanalar TEPADA
     def _sort_key(s):
         grp = 0 if s.days_left is None else 1
         dl = 0 if s.days_left is None else s.days_left
@@ -16990,12 +16995,12 @@ def _balance_management_context(request):
     paginator = Paginator(students_list, 25)
     students = paginator.get_page(request.GET.get('page'))
 
-    # Statistics (faqat faol o'quvchilar)
+    # Statistics (faqat faol öquvçilar)
     total_balance = StudentBalance.objects.filter(
         is_contract=False, user__role='student', user__is_finished=False
     ).aggregate(t=Sum('amount'))['t'] or 0
 
-    # Shartnomalardan keladigan umumiy summa
+    # Şartnomalardan keladigan umumiy summa
     total_contract_sum = StudentBalance.objects.filter(
         is_contract=True, user__is_finished=False
     ).aggregate(t=Sum('contract_amount'))['t'] or 0
@@ -17047,9 +17052,9 @@ def _balance_management_context(request):
 @login_required
 def admin_balance_management(request):
     """
-    Admin — o'quvchilarga balans qo'shish va tarix ko'rish.
-    Kursni tugatgan o'quvchilar ko'rinmaydi; shartnoma rejimidagilar alohida
-    ko'rinishda (view=contract) ko'rinadi.
+    Admin — öquvçilarga balans qöşiş va tarix köriş.
+    Kursni tugatgan öquvçilar körinmaydi; şartnoma rejimidagilar alohida
+    körinişda (view=contract) körinadi.
     """
     if not request.user.is_admin_or_assistant:
         return redirect('home')
@@ -17060,8 +17065,8 @@ def admin_balance_management(request):
 @login_required
 def yordamchi_balance_management(request):
     """
-    Yordamchi admin uchun alohida Balans Boshqaruvi sahifasi.
-    Xuddi admin_balance_management mantiqini bajaradi, lekin yordamchi panelida ochiladi.
+    Yordamçi admin uçun alohida Balans Boşqaruvi sahifasi.
+    Xuddi admin_balance_management mantiqini bajaradi, lekin yordamçi panelida oçiladi.
     """
     if not request.user.is_admin_or_assistant:
         return redirect('home')
@@ -17072,17 +17077,17 @@ def yordamchi_balance_management(request):
 @login_required
 def admin_balance_topup(request, student_id):
     """
-    Bitta o'quvchiga balans qo'shish (AJAX yoki oddiy POST).
+    Bitta öquvçiga balans qöşiş (AJAX yoki oddiy POST).
     """
     if not request.user.is_admin_or_assistant:
         from django.http import JsonResponse
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': 'Ruxsat yöq'}, status=403)
 
     from .models import StudentBalance, BalanceTopUp
     from django.db import transaction
 
     student = get_object_or_404(CustomUser, pk=student_id, role='student')
-    # Pul operatsiyasi audit izi — IP soxtalashtirilmasligi kerak.
+    # Pul operatsiyasi audit izi — IP soxtalaştirilmasligi kerak.
     ip = get_client_ip(request) or ''
 
     if request.method == 'POST':
@@ -17090,9 +17095,9 @@ def admin_balance_topup(request, student_id):
             amount_raw = request.POST.get('amount', '0').replace(' ', '').replace(',', '')
             amount = int(float(amount_raw))
             if amount <= 0:
-                raise ValueError("Noto'g'ri miqdor")
+                raise ValueError("Notöğri miqdor")
             if amount > 50_000_000:
-                raise ValueError("Maksimal miqdor 50,000,000 so'm")
+                raise ValueError("Maksimal miqdor 50,000,000 söm")
             note = request.POST.get('note', '').strip()[:500]
         except (ValueError, TypeError) as e:
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -17114,28 +17119,28 @@ def admin_balance_topup(request, student_id):
                 note=note,
                 ip_address=ip[:45] if ip else None,
             )
-            # Premium o'quvchiga to'ldirilgan summaning 15% i bonus tanga.
+            # Premium öquvçiga töldirilgan summaning 15% i bonus tanga.
             from .premium_bonus import award_topup_bonus
             bonus = award_topup_bonus(student, amount, source='admin', reference=f'topup:{topup.pk}')
 
-            # Bloklangan bo'lsa → unblock + fee yechish + next_payment_date o'rnatish
-            # Bloklanmagan lekin next_payment_date yo'q bo'lsa ham → birinchi aktivatsiya
+            # Bloklangan bölsa → unblock + fee yeçiş + next_payment_date örnatiş
+            # Bloklanmagan lekin next_payment_date yöq bölsa ham → birinçi aktivatsiya
             auto_unblocked = False
             balance.refresh_from_db()
             if student.is_blocked:
                 auto_unblocked = _auto_deduct_and_unblock(student)
             elif not balance.is_contract and not balance.next_payment_date:
-                # Birinchi marta balans to'ldirildi — oylik to'lovni yechib, sanani belgilaymiz
+                # Birinçi marta balans töldirildi — oylik tölovni yeçib, sanani belgilaymiz
                 _auto_deduct_and_unblock(student)
             elif not balance.is_contract and balance.next_payment_date:
-                # Muddati o'tgan bo'lsa — balansdan yechib keyingi oyga suramiz
-                # (iyun -> iyul). Muddat kelmagan bo'lsa hech narsa qilmaydi.
+                # Muddati ötgan bölsa — balansdan yeçib keyingi oyga suramiz
+                # (iyun -> iyul). Muddat kelmagan bölsa heç narsa qilmaydi.
                 try:
                     balance.advance_due_payment()
                 except Exception:
                     pass
 
-        # O'quvchiga Telegram orqali hisob to'ldirilgani haqida xabar yuboramiz
+        # Öquvçiga Telegram orqali hisob töldirilgani haqida xabar yuboramiz
         try:
             from telegram_bot.utils import notify_balance_topup
             balance.refresh_from_db()
@@ -17160,11 +17165,11 @@ def admin_balance_topup(request, student_id):
             })
 
         if bonus:
-            messages.info(request, f"💎 Premium bonus: {student.full_name} ga {bonus:,} tanga qo'shildi.".replace(',', ' '))
+            messages.info(request, f"💎 Premium bonus: {student.full_name} ga {bonus:,} tanga qöşildi.".replace(',', ' '))
         if auto_unblocked:
-            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi va unblock bo'ldi!")
+            messages.success(request, f"✅ {student.full_name} ga {amount:,} söm qöşildi va unblock böldi!")
         else:
-            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi.")
+            messages.success(request, f"✅ {student.full_name} ga {amount:,} söm qöşildi.")
         return redirect('admin_balance_management')
 
     from django.http import JsonResponse
@@ -17173,7 +17178,7 @@ def admin_balance_topup(request, student_id):
 
 @login_required
 def admin_balance_deduct(request, student_id):
-    """Faqat admin o'quvchi balansidan mablag' ayirishi mumkin."""
+    """Faqat admin öquvçi balansidan mablag' ayirişi mumkin."""
     from django.db import transaction
     from django.http import JsonResponse
     from .models import BalanceTopUp, StudentBalance
@@ -17188,16 +17193,16 @@ def admin_balance_deduct(request, student_id):
         amount_raw = request.POST.get('amount', '0').replace(' ', '').replace(',', '')
         amount = int(float(amount_raw))
         if amount <= 0:
-            raise ValueError("Noto'g'ri miqdor")
+            raise ValueError("Notöğri miqdor")
         if amount > 50_000_000:
-            raise ValueError("Maksimal miqdor 50,000,000 so'm")
+            raise ValueError("Maksimal miqdor 50,000,000 söm")
         note = request.POST.get('note', '').strip()[:500]
         if not note:
-            raise ValueError("Ayirish sababini kiriting")
+            raise ValueError("Ayiriş sababini kiriting")
     except (ValueError, TypeError) as exc:
         return JsonResponse({'error': str(exc)}, status=400)
 
-    # Pul operatsiyasi audit izi — IP soxtalashtirilmasligi kerak.
+    # Pul operatsiyasi audit izi — IP soxtalaştirilmasligi kerak.
     ip = get_client_ip(request) or ''
 
     with transaction.atomic():
@@ -17205,8 +17210,8 @@ def admin_balance_deduct(request, student_id):
         if balance.amount < amount:
             return JsonResponse({
                 'error': (
-                    "Balansda yetarli mablag' yo'q. "
-                    f"Joriy balans: {int(balance.amount):,} so'm".replace(',', ' ')
+                    "Balansda yetarli mablag' yöq. "
+                    f"Joriy balans: {int(balance.amount):,} söm".replace(',', ' ')
                 )
             }, status=400)
 
@@ -17233,20 +17238,20 @@ def admin_balance_deduct(request, student_id):
 
 @login_required
 def admin_balance_history(request, student_id):
-    """O'quvchining balans o'zgarishlari va oylik to'lov tarixini ko'rish (AJAX)."""
+    """Öquvçining balans özgarişlari va oylik tölov tarixini köriş (AJAX)."""
     from django.http import JsonResponse
     if not request.user.is_admin_or_assistant:
-        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+        return JsonResponse({'error': "Ruxsat yöq"}, status=403)
     from .models import BalanceTopUp, StudentBalance, PaymentRecord, PaymentStatus
 
     student = get_object_or_404(CustomUser, pk=student_id)
     balance, _ = StudentBalance.objects.get_or_create(user=student)
     ps, _ = PaymentStatus.objects.get_or_create(user=student, defaults={'monthly_fee': 200000})
 
-    # Balans to'ldirishlar (oxirgi 50 ta)
+    # Balans töldirişlar (oxirgi 50 ta)
     topups = BalanceTopUp.objects.filter(student=student).select_related('added_by').order_by('-created_at')[:50]
 
-    # Oylik to'lovlar (PaymentRecord)
+    # Oylik tölovlar (PaymentRecord)
     records = PaymentRecord.objects.filter(user=student).order_by('-year', '-month')[:24]
 
     MONTH_NAMES = {
@@ -17299,7 +17304,7 @@ def admin_balance_history(request, student_id):
 
 @login_required
 def admin_balance_set_fee(request, student_id):
-    """O'quvchining oylik tolov miqdori, rejim va keyingi tolov sanasini ozgartirish (AJAX POST)."""
+    """Öquvçining oylik tolov miqdori, rejim va keyingi tolov sanasini ozgartiriş (AJAX POST)."""
     from django.http import JsonResponse
     from django.views.decorators.http import require_POST
     if not request.user.is_admin_or_assistant:
@@ -17330,8 +17335,8 @@ def admin_balance_set_fee(request, student_id):
         balance.next_payment_date = None
         balance.save(update_fields=['is_contract', 'contract_name', 'contract_amount', 'next_payment_date', 'updated_at'])
         ps.save()
-        # Shartnoma rejimidagi o'quvchining oylik to'lovga umuman aloqasi
-        # bo'lmasligi kerak. To'lanmagan oylik yozuvlarini o'chiramiz.
+        # Şartnoma rejimidagi öquvçining oylik tölovga umuman aloqasi
+        # bölmasligi kerak. Tölanmagan oylik yozuvlarini öçiramiz.
         from .models import PaymentRecord
         PaymentRecord.objects.filter(user=student, is_paid=False).delete()
         return JsonResponse({
@@ -17346,14 +17351,14 @@ def admin_balance_set_fee(request, student_id):
     # mode == 'amount'
     fee_raw = request.POST.get('fee') or request.POST.get('monthly_fee', '')
     if not fee_raw:
-        return JsonResponse({'success': False, 'error': "Oylik to'lov summasi kiritilmadi"}, status=400)
+        return JsonResponse({'success': False, 'error': "Oylik tölov summasi kiritilmadi"}, status=400)
 
     try:
         fee = int(str(fee_raw).replace(' ', '').replace(',', ''))
         if fee < 0:
             raise ValueError
     except (ValueError, TypeError):
-        return JsonResponse({'success': False, 'error': "Noto'g'ri summa kiritildi"}, status=400)
+        return JsonResponse({'success': False, 'error': "Notöğri summa kiritildi"}, status=400)
 
     ps.monthly_fee = fee
     ps.save()
@@ -17459,7 +17464,7 @@ def admin_security_events(request):
 
 @login_required
 def admin_security_block_ip(request):
-    """IP manzilni bloklash (AJAX POST)."""
+    """IP manzilni bloklaş (AJAX POST)."""
     from django.http import JsonResponse
     if not request.user.is_admin:
         return JsonResponse({'error': 'Ruxsat yoq'}, status=403)
@@ -17476,14 +17481,14 @@ def admin_security_block_ip(request):
         event_type='ip_blocked',
         severity='high',
         ip_address=ip,
-        detail=f"Admin {request.user.username} tomonidan qo'lda bloklandi",
+        detail=f"Admin {request.user.username} tomonidan qölda bloklandi",
         user=request.user,
     )
     return JsonResponse({'success': True, 'ip': ip})
 
 
 # ══════════════════════════════════════════════════════════════
-#  YORDAMCHI ADMIN — OYLIK TO'LOVLAR
+#  YORDAMÇI ADMIN — OYLIK TÖLOVLAR
 # ══════════════════════════════════════════════════════════════
 
 
@@ -17493,11 +17498,11 @@ def admin_security_block_ip(request):
 
 
 # ============================================================
-# CHAT - Guruh chati, Shaxsiy chat, Inbox (sahifalar)
+# ÇAT - Guruh çati, Şaxsiy çat, Inbox (sahifalar)
 # ============================================================
 
 def _chat_can_access_group(user, profession):
-    """Kursga yozilgan o'quvchi YOKI biriktirilgan o'qituvchi YOKI admin."""
+    """Kursga yozilgan öquvçi YOKI biriktirilgan öqituvçi YOKI admin."""
     if user.is_admin or user.is_admin_or_assistant:
         return True
     if profession.teachers.filter(pk=user.pk).exists():
@@ -17511,10 +17516,10 @@ def _chat_is_admin(user):
 
 @login_required
 def group_chat_view(request, pk):
-    """Kurs (guruh) chat xonasi — unified Messenger-style sahifa."""
+    """Kurs (guruh) çat xonasi — unified Messenger-style sahifa."""
     profession = get_object_or_404(Profession, pk=pk)
     if not _chat_can_access_group(request.user, profession):
-        messages.error(request, "Bu guruh chatiga ruxsatingiz yo'q!")
+        messages.error(request, "Bu guruh çatiga ruxsatingiz yöq!")
         return redirect('profession_detail', pk=pk)
 
     members_count = CourseEnrollment.objects.filter(profession=profession).count()
@@ -17532,7 +17537,7 @@ def group_chat_view(request, pk):
 
 @login_required
 def direct_chat_view(request, pk):
-    """Ikki foydalanuvchi o'rtasidagi shaxsiy chat xonasi — unified Messenger-style sahifa."""
+    """Ikki foydalanuvçi örtasidagi şaxsiy çat xonasi — unified Messenger-style sahifa."""
     from accounts.api.chat_views import _online_sub
 
     other = get_object_or_404(CustomUser, pk=pk)
@@ -17550,7 +17555,7 @@ def direct_chat_view(request, pk):
 
 @login_required
 def chat_inbox_view(request):
-    """Suhbatlar — unified Messenger-style sahifa (shaxsiy filtri faol)."""
+    """Suhbatlar — unified Messenger-style sahifa (şaxsiy filtri faol)."""
     return render(request, 'accounts/chat/messenger.html', {
         'is_admin_global': _chat_is_admin(request.user),
         'initial_filter': 'dm',
@@ -17559,7 +17564,7 @@ def chat_inbox_view(request):
 
 @login_required
 def my_group_chats_view(request):
-    """Guruh chatlari — unified Messenger-style sahifa (guruh filtri faol)."""
+    """Guruh çatlari — unified Messenger-style sahifa (guruh filtri faol)."""
     return render(request, 'accounts/chat/messenger.html', {
         'is_admin_global': _chat_is_admin(request.user),
         'initial_filter': 'group',
@@ -17568,7 +17573,7 @@ def my_group_chats_view(request):
 
 @login_required
 def admin_group_chats(request):
-    """Admin panel: barcha guruh chatlari."""
+    """Admin panel: barça guruh çatlari."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
         return redirect('home')
     from django.db.models import Count as _Count
@@ -17581,20 +17586,20 @@ def admin_group_chats(request):
     })
 
 
-# Shaxsiy chat monitoring: admin/yordamchi-admin o'z shaxsiy xabarlarini
-# maxfiy saqlaydi — ular qatnashgan suhbatlar ro'yxatda ko'rinmaydi.
-# O'quvchi va o'qituvchilar o'rtasidagi barcha shaxsiy suhbatlar (o'quvchi<->o'quvchi,
-# o'quvchi<->o'qituvchi, o'qituvchi<->o'qituvchi) ko'rsatiladi.
+# Şaxsiy çat monitoring: admin/yordamchi-admin öz şaxsiy xabarlarini
+# maxfiy saqlaydi — ular qatnaşgan suhbatlar röyxatda körinmaydi.
+# Öquvçi va öqituvçilar örtasidagi barça şaxsiy suhbatlar (öquvçi<->öquvçi,
+# öquvçi<->öqituvçi, öqituvçi<->öqituvçi) körsatiladi.
 _PRIVATE_CHAT_ROLES = ('admin', 'assistant_admin')
 
 
 @login_required
 def admin_direct_chats(request):
-    """Admin panel: o'quvchi/o'qituvchilar o'rtasidagi shaxsiy (1:1) suhbatlar ro'yxati.
+    """Admin panel: öquvchi/öqituvchilar örtasidagi şaxsiy (1:1) suhbatlar röyxati.
 
-    Faqat ko'rish uchun (investigatsiya) — admin bu yerdan xabar yubora yoki
-    o'chira olmaydi. Admin/yordamchi-admin ishtirokidagi shaxsiy xabarlar
-    maxfiy qoladi va bu ro'yxatda ko'rsatilmaydi."""
+    Faqat köriş uçun (investigatsiya) — admin bu yerdan xabar yubora yoki
+    öçira olmaydi. Admin/yordamchi-admin iştirokidagi şaxsiy xabarlar
+    maxfiy qoladi va bu röyxatda körsatilmaydi."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
         return redirect('home')
 
@@ -17606,8 +17611,8 @@ def admin_direct_chats(request):
     if active_filter not in ('all', 'today', 'week', 'deleted'):
         active_filter = 'all'
 
-    # Eslatma: is_deleted bo'yicha FILTR YO'Q — foydalanuvchi o'chirgan
-    # xabarlar ham admin monitoringida ko'rinib turishi kerak.
+    # Eslatma: is_deleted böyiça FILTR YÖQ — foydalanuvçi öçirgan
+    # xabarlar ham admin monitoringida körinib turişi kerak.
     pairs = (
         DirectMessage.objects
         .exclude(sender__role__in=_PRIVATE_CHAT_ROLES)
@@ -17671,7 +17676,7 @@ def admin_direct_chats(request):
     paginator = Paginator(conversations, 25)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    # Joriy sahifadagi suhbatlarning oxirgi xabarlarini BITTa so'rovda olish
+    # Joriy sahifadagi suhbatlarning oxirgi xabarlarini BITTa sörovda oliş
     last_ids = [c['last_id'] for c in page_obj.object_list if c.get('last_id')]
     last_msgs = DirectMessage.objects.in_bulk(last_ids) if last_ids else {}
     for c in page_obj.object_list:
@@ -17680,7 +17685,7 @@ def admin_direct_chats(request):
         if lm:
             c['last_msg_sender_is_u1'] = (lm.sender_id == c['u1'].pk)
 
-    # AI tahlil paneli + statistika kartalar uchun qo'shimcha ma'lumotlar
+    # AI tahlil paneli + statistika kartalar uçun qöşimça ma'lumotlar
     from .chat_ai import ai_available
     base_msgs = (
         DirectMessage.objects
@@ -17710,14 +17715,14 @@ def admin_direct_chats(request):
 @login_required
 @ai_offload
 def admin_direct_chats_ai(request):
-    """AI Chat Tahlilchi — admin savoliga chatlar bazasidan javob (AJAX, POST).
+    """AI Çat Tahlilçi — admin savoliga çatlar bazasidan javob (AJAX, POST).
 
-    OpenAI kaliti bo'lsa function-calling agent ishlaydi, bo'lmasa offline
-    qoidaviy tahlilchi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
+    OpenAI kaliti bölsa function-calling agent işlaydi, bölmasa offline
+    qoidaviy tahlilçi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
-        return JsonResponse({'ok': False, 'answer': "Ruxsat yo'q.", 'links': []}, status=403)
+        return JsonResponse({'ok': False, 'answer': "Ruxsat yöq.", 'links': []}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'ok': False, 'answer': "Faqat POST so'rovi qabul qilinadi.", 'links': []}, status=405)
+        return JsonResponse({'ok': False, 'answer': "Faqat POST sörovi qabul qilinadi.", 'links': []}, status=405)
 
     question = (request.POST.get('question') or '').strip()[:600]
     if len(question) < 3:
@@ -17731,13 +17736,13 @@ def admin_direct_chats_ai(request):
     except ValueError:
         history = []
 
-    # Oddiy rate-limit: soatiga 40 ta so'rov (admin boshiga)
+    # Oddiy rate-limit: soatiga 40 ta sörov (admin boşiga)
     rl_key = f"chat_ai_rl:{request.user.pk}"
     used = cache.get(rl_key, 0)
     if used >= 40:
         return JsonResponse({
             'ok': False,
-            'answer': "⏳ Soatlik AI so'rovlar limitingiz tugadi (40 ta). Birozdan so'ng urinib ko'ring.",
+            'answer': "⏳ Soatlik AI sörovlar limitingiz tugadi (40 ta). Birozdan söng urinib köring.",
             'links': [],
         }, status=429)
     cache.set(rl_key, used + 1, 3600)
@@ -17758,16 +17763,16 @@ def admin_direct_chats_ai(request):
 @login_required
 @ai_offload
 def admin_users_ai(request):
-    """AI Foydalanuvchi Boshqaruvchisi — foydalanuvchilar bazasiga savol va
-    buyruqlar (bloklash, blokdan chiqarish, ismlarni tuzatish...) uchun
+    """AI Foydalanuvçi Boşqaruvçisi — foydalanuvçilar bazasiga savol va
+    buyruqlar (bloklaş, blokdan çiqariş, ismlarni tuzatiş...) uçun
     AJAX endpoint (POST).
 
-    OpenAI kaliti bo'lsa function-calling agent ishlaydi, bo'lmasa offline
-    qoidaviy yordamchi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
+    OpenAI kaliti bölsa function-calling agent işlaydi, bölmasa offline
+    qoidaviy yordamçi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
     if not request.user.is_admin:
-        return JsonResponse({'ok': False, 'answer': "Ruxsat yo'q.", 'links': []}, status=403)
+        return JsonResponse({'ok': False, 'answer': "Ruxsat yöq.", 'links': []}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'ok': False, 'answer': "Faqat POST so'rovi qabul qilinadi.", 'links': []}, status=405)
+        return JsonResponse({'ok': False, 'answer': "Faqat POST sörovi qabul qilinadi.", 'links': []}, status=405)
 
     question = (request.POST.get('question') or '').strip()[:600]
     if len(question) < 3:
@@ -17781,13 +17786,13 @@ def admin_users_ai(request):
     except ValueError:
         history = []
 
-    # Oddiy rate-limit: soatiga 40 ta so'rov (admin boshiga)
+    # Oddiy rate-limit: soatiga 40 ta sörov (admin boşiga)
     rl_key = f"users_ai_rl:{request.user.pk}"
     used = cache.get(rl_key, 0)
     if used >= 40:
         return JsonResponse({
             'ok': False,
-            'answer': "⏳ Soatlik AI so'rovlar limitingiz tugadi (40 ta). Birozdan so'ng urinib ko'ring.",
+            'answer': "⏳ Soatlik AI sörovlar limitingiz tugadi (40 ta). Birozdan söng urinib köring.",
             'links': [],
         }, status=429)
     cache.set(rl_key, used + 1, 3600)
@@ -17807,9 +17812,9 @@ def admin_users_ai(request):
 
 @login_required
 def admin_direct_chat_detail(request, u1_pk, u2_pk):
-    """Admin panel: ikkita foydalanuvchi o'rtasidagi shaxsiy suhbatni ko'rish (faqat o'qish).
+    """Admin panel: ikkita foydalanuvçi örtasidagi şaxsiy suhbatni köriş (faqat öqiş).
 
-    Admin/yordamchi-admin ishtirokidagi suhbatlarga kirish taqiqlanadi (maxfiy)."""
+    Admin/yordamchi-admin iştirokidagi suhbatlarga kiriş taqiqlanadi (maxfiy)."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
         return redirect('home')
     if u1_pk == u2_pk:
@@ -17822,8 +17827,8 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
     if u1.role in _PRIVATE_CHAT_ROLES or u2.role in _PRIVATE_CHAT_ROLES:
         return redirect('admin_direct_chats')
 
-    # is_deleted bo'yicha filtr YO'Q: o'chirilgan xabarlar ham admin
-    # monitoringida (maxsus belgi bilan) ko'rsatiladi. Tahrir tarixi esa
+    # is_deleted böyiça filtr YÖQ: öçirilgan xabarlar ham admin
+    # monitoringida (maxsus belgi bilan) körsatiladi. Tahrir tarixi esa
     # DirectMessageEditHistory orqali prefetch qilinadi.
     thread = (
         DirectMessage.objects
@@ -17854,7 +17859,7 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
 # ==================== GURUHLAR & DARS JADVALI ====================
 
 def _parse_days_from_request(request):
-    """POST'dan tanlangan kunlarni ('days' massivi) o'qib, bit-mask qaytaradi."""
+    """POST'dan tanlangan kunlarni ('days' massivi) öqib, bit-mask qaytaradi."""
     days = request.POST.getlist('days')
     mask = 0
     for d in days:
@@ -17882,7 +17887,7 @@ def _parse_time(value):
 
 
 def _study_group_panel_context(user):
-    """Guruh sahifalarini foydalanuvchining o'z panelida ochish sozlamalari."""
+    """Guruh sahifalarini foydalanuvçining öz panelida oçiş sozlamalari."""
     if user.is_assistant_admin:
         return {
             'study_groups_base': 'accounts/yordamchi/base_yordamchi.html',
@@ -17902,9 +17907,9 @@ def _study_group_panel_context(user):
 
 @login_required
 def admin_study_groups(request):
-    """Guruhlar & Dars jadvali ro'yxati."""
+    """Guruhlar & Dars jadvali röyxati."""
     if not request.user.is_admin_or_assistant:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_groups':
@@ -17939,7 +17944,7 @@ def admin_study_groups(request):
 
     groups = groups.order_by('start_time', 'name')
 
-    # Haftalik ko'rinish uchun kunlar bo'yicha guruhlash — list of dicts
+    # Haftalik köriniş uçun kunlar böyiça guruhlaş — list of dicts
     weekly_by_day = []
     for d_num, d_name in StudyGroup.DAYS_OF_WEEK:
         day_groups = [g for g in groups if g.has_day(d_num)]
@@ -17975,7 +17980,7 @@ def admin_study_groups(request):
 @login_required
 def admin_study_group_create(request):
     if not request.user.is_admin_or_assistant:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_create':
@@ -17997,13 +18002,13 @@ def admin_study_group_create(request):
 
         errors = []
         if not name:
-            errors.append("Guruh nomi kiritilishi shart.")
+            errors.append("Guruh nomi kiritilişi şart.")
         if not profession_id:
             errors.append("Kurs tanlang.")
         if not start_time or not end_time:
-            errors.append("Dars vaqtini to'g'ri kiriting.")
+            errors.append("Dars vaqtini töğri kiriting.")
         if start_time and end_time and start_time >= end_time:
-            errors.append("Tugash vaqti boshlanishdan katta bo'lishi kerak.")
+            errors.append("Tugaş vaqti boşlanişdan katta bölişi kerak.")
         if not days_mask:
             errors.append("Kamida bitta kun tanlang.")
 
@@ -18050,7 +18055,7 @@ def admin_study_group_create(request):
 @login_required
 def admin_study_group_edit(request, pk):
     if not request.user.is_admin_or_assistant:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_edit':
@@ -18075,13 +18080,13 @@ def admin_study_group_edit(request, pk):
 
         errors = []
         if not name:
-            errors.append("Guruh nomi kiritilishi shart.")
+            errors.append("Guruh nomi kiritilişi şart.")
         if not profession_id:
             errors.append("Kurs tanlang.")
         if not start_time or not end_time:
-            errors.append("Dars vaqtini to'g'ri kiriting.")
+            errors.append("Dars vaqtini töğri kiriting.")
         if start_time and end_time and start_time >= end_time:
-            errors.append("Tugash vaqti boshlanishdan katta bo'lishi kerak.")
+            errors.append("Tugaş vaqti boşlanişdan katta bölişi kerak.")
         if not days_mask:
             errors.append("Kamida bitta kun tanlang.")
 
@@ -18126,7 +18131,7 @@ def admin_study_group_edit(request, pk):
 @login_required
 def admin_study_group_delete(request, pk):
     if not request.user.is_admin_or_assistant:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_delete':
         return redirect('yordamchi_study_group_delete', pk=pk)
@@ -18136,7 +18141,7 @@ def admin_study_group_delete(request, pk):
     if request.method == 'POST':
         name = group.name
         group.delete()
-        messages.success(request, f"'{name}' guruhi o'chirildi.")
+        messages.success(request, f"'{name}' guruhi öçirildi.")
         return redirect(panel_context['study_groups_url'])
     return render(request, 'accounts/admin/study_group_delete.html', {
         'group': group,
@@ -18147,7 +18152,7 @@ def admin_study_group_delete(request, pk):
 # ==================== STUDENT & TEACHER — DARS JADVALIM ====================
 
 def _build_weekly_schedule(groups_qs):
-    """Guruhlar QuerySet'idan haftalik jadvalni list ko'rinishida hosil qiladi.
+    """Guruhlar QuerySet'idan haftalik jadvalni list körinişida hosil qiladi.
 
     Har bir element: { 'day_num', 'day_name', 'lessons', 'is_today' }
     """
@@ -18168,7 +18173,7 @@ def _build_weekly_schedule(groups_qs):
 def _get_today_and_next_lesson(groups_qs):
     """Bugungi darslar va keyingi darsni topadi."""
     now = timezone.localtime()
-    weekday_uz = now.isoweekday()  # 1=Du..7=Yakshanba
+    weekday_uz = now.isoweekday()  # 1=Du..7=Yakşanba
 
     today_lessons = []
     next_lesson = None
@@ -18179,18 +18184,18 @@ def _get_today_and_next_lesson(groups_qs):
 
     today_lessons.sort(key=lambda x: x.start_time)
 
-    # Keyingi dars — bugundan boshlab
+    # Keyingi dars — bugundan boşlab
     now_time = now.time()
     for g in today_lessons:
         if g.start_time > now_time:
             next_lesson = g
             break
 
-    # Bugun dars qolmagan bo'lsa — keyingi kunlardan qidiramiz
+    # Bugun dars qolmagan bölsa — keyingi kunlardan qidiramiz
     if next_lesson is None:
         for offset in range(1, 8):
             check_day = ((weekday_uz - 1 + offset) % 7) + 1
-            if check_day == 7:  # Yakshanba
+            if check_day == 7:  # Yakşanba
                 continue
             for g in groups_qs:
                 if g.has_day(check_day):
@@ -18204,7 +18209,7 @@ def _get_today_and_next_lesson(groups_qs):
 
 @login_required
 def my_study_schedule(request):
-    """O'quvchi yoki o'qituvchining shaxsiy dars jadvali."""
+    """Öquvçi yoki öqituvçining şaxsiy dars jadvali."""
     user = request.user
     if user.role == 'student':
         groups = StudyGroup.objects.filter(students=user, is_active=True)
@@ -18213,7 +18218,7 @@ def my_study_schedule(request):
         groups = StudyGroup.objects.filter(teacher=user, is_active=True)
         role_label = 'teacher'
     else:
-        # Admin uchun ham ko'rsatiladi, lekin admin panelga yo'naltirilishi ma'qul
+        # Admin uçun ham körsatiladi, lekin admin panelga yönaltirilişi ma'qul
         return redirect('admin_study_groups')
 
     groups = groups.select_related('profession', 'teacher').prefetch_related('students').order_by('start_time')
@@ -18224,7 +18229,7 @@ def my_study_schedule(request):
     now = timezone.localtime()
     now_time = now.time()
 
-    # Bugungi darslarni holatlar bilan boyitish (kelayotgan/ketmoqda/tugagan + progress)
+    # Bugungi darslarni holatlar bilan boyitiş (kelayotgan/ketmoqda/tugagan + progress)
     today_lessons_enriched = []
     for g in today_lessons:
         if now_time < g.start_time:
@@ -18247,7 +18252,7 @@ def my_study_schedule(request):
             'progress': progress,
         })
 
-    # Keyingi darsgacha sanoq
+    # Keyingi darsgaça sanoq
     next_lesson_countdown = None
     if next_lesson:
         today_date = now.date()
@@ -18278,7 +18283,7 @@ def my_study_schedule(request):
                 'target_iso': target_datetime.isoformat(),
             }
 
-    # Student uchun davomat statistikasi (oxirgi 30 kun)
+    # Student uçun davomat statistikasi (oxirgi 30 kun)
     attendance_summary = None
     if role_label == 'student':
         month_ago = timezone.localdate() - timedelta(days=30)
@@ -18315,13 +18320,13 @@ def my_study_schedule(request):
     return render(request, template_name, context)
 
 
-# ==================== O'QUVCHILAR DAVOMATI ====================
+# ==================== ÖQUVÇILAR DAVOMATI ====================
 
 def _can_mark_attendance(user, group):
-    """Foydalanuvchi guruh uchun davomat qo'yishi mumkinmi?
+    """Foydalanuvçi guruh uçun davomat qöyişi mumkinmi?
 
     - Admin/Assistant admin: hamma guruhda
-    - Teacher: faqat o'zi biriktirilgan guruhda
+    - Teacher: faqat özi biriktirilgan guruhda
     """
     if not user.is_authenticated:
         return False
@@ -18334,10 +18339,10 @@ def _can_mark_attendance(user, group):
 
 @login_required
 def attendance_home(request):
-    """Davomat bosh sahifasi — foydalanuvchi bemalol guruh tanlaydi va davomat qiladi."""
+    """Davomat boş sahifasi — foydalanuvçi bemalol guruh tanlaydi va davomat qiladi."""
     user = request.user
     if not (user.is_admin_or_assistant or user.role == 'teacher'):
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
     if user.role == 'teacher':
@@ -18350,7 +18355,7 @@ def attendance_home(request):
     today = timezone.localdate()
     weekday_today = today.isoweekday()
 
-    # Bugun dars bo'lgan guruhlar
+    # Bugun dars bölgan guruhlar
     today_groups = [g for g in groups if g.has_day(weekday_today)]
 
     # Umumiy statistika (oxirgi 7 kun)
@@ -18365,7 +18370,7 @@ def attendance_home(request):
         present_count = recent_attendances.filter(status='present').count()
         present_pct = round(present_count / total_marked * 100, 1)
 
-    # Har bir guruh uchun bugungi davomat ushbu holati
+    # Har bir guruh uçun bugungi davomat uşbu holati
     group_status_map = {}
     for g in groups:
         today_att = StudentAttendance.objects.filter(group=g, date=today)
@@ -18400,12 +18405,12 @@ def attendance_home(request):
 
 @login_required
 def attendance_mark(request, group_pk):
-    """Guruh uchun bir sana davomatini belgilash — oson bir sahifada."""
+    """Guruh uçun bir sana davomatini belgilaş — oson bir sahifada."""
     user = request.user
     group = get_object_or_404(StudyGroup, pk=group_pk)
 
     if not _can_mark_attendance(user, group):
-        messages.error(request, "Sizda bu guruh uchun davomat qo'yish huquqi yo'q!")
+        messages.error(request, "Sizda bu guruh uçun davomat qöyiş huquqi yöq!")
         return redirect('attendance_home')
 
     # Sana - GET dan yoki bugungi
@@ -18437,7 +18442,7 @@ def attendance_mark(request, group_pk):
                 },
             )
             saved += 1
-        messages.success(request, f"{saved} ta o'quvchi davomati saqlandi.")
+        messages.success(request, f"{saved} ta öquvçi davomati saqlandi.")
         return redirect(f"{reverse('attendance_mark', args=[group.pk])}?date={selected_date.strftime('%Y-%m-%d')}")
 
     # Statistika
@@ -18450,7 +18455,7 @@ def attendance_mark(request, group_pk):
         else:
             stats['unmarked'] += 1
 
-    # Har bir o'quvchining oxirgi 30 kunlik statistikasi
+    # Har bir öquvçining oxirgi 30 kunlik statistikasi
     month_ago = selected_date - timedelta(days=30)
     student_month_stats = {}
     month_atts = StudentAttendance.objects.filter(
@@ -18465,7 +18470,7 @@ def attendance_mark(request, group_pk):
     prev_date = selected_date - timedelta(days=1)
     next_date = selected_date + timedelta(days=1)
 
-    # Oxirgi 7 kun sanoq (button'lar uchun)
+    # Oxirgi 7 kun sanoq (button'lar uçun)
     recent_days = []
     for i in range(7):
         d = timezone.localdate() - timedelta(days=i)
@@ -18478,7 +18483,7 @@ def attendance_mark(request, group_pk):
         })
     recent_days.reverse()
 
-    # Shu kuni saytga kirganlar (o'qituvchi belgisi bilan birga ko'rinsin)
+    # Şu kuni saytga kirganlar (öqituvçi belgisi bilan birga körinsin)
     from .models import StudentDailyVisit
     from .attendance_auto import AUTO_NOTE
     visits = dict(StudentDailyVisit.objects.filter(
@@ -18521,7 +18526,7 @@ def attendance_mark(request, group_pk):
 
 
 def _build_attendance_report_data(group, year, month):
-    """Davomat sahifasi va Excel eksporti uchun bir xil oylik hisobotni tayyorlaydi."""
+    """Davomat sahifasi va Excel eksporti uçun bir xil oylik hisobotni tayyorlaydi."""
     today = timezone.localdate()
     if month < 1 or month > 12:
         month = today.month
@@ -18533,7 +18538,7 @@ def _build_attendance_report_data(group, year, month):
 
     students = list(group.students.filter(is_blocked=False).order_by('first_name', 'last_name'))
 
-    # Faqat guruh dars kunlarini olish (masalan, du, ch, ju bo'lsa faqat shular)
+    # Faqat guruh dars kunlarini oliş (masalan, du, ç, ju bölsa faqat şular)
     day_dates = []
     for d in range(1, days_in_month + 1):
         try:
@@ -18543,7 +18548,7 @@ def _build_attendance_report_data(group, year, month):
         except ValueError:
             pass
 
-    # Attendance ma'lumotlarini olish
+    # Attendance ma'lumotlarini oliş
     attendances = StudentAttendance.objects.filter(
         group=group, date__year=year, date__month=month
     ).select_related('student')
@@ -18552,7 +18557,7 @@ def _build_attendance_report_data(group, year, month):
     for a in attendances:
         att_map[(a.student_id, a.date)] = a
 
-    # Har bir o'quvchi uchun jadval
+    # Har bir öquvçi uçun jadval
     rows = []
     for s in students:
         cells = []
@@ -18566,7 +18571,7 @@ def _build_attendance_report_data(group, year, month):
                 'date': d,
                 'attendance': a,
             })
-        # Ballli hisoblash: present + late = 100, sick/excused=80, absent=0
+        # Ballli hisoblaş: present + late = 100, sick/excused=80, absent=0
         score_total = 0
         for d in day_dates:
             a = att_map.get((s.pk, d))
@@ -18605,12 +18610,12 @@ def _build_attendance_report_data(group, year, month):
 
 @login_required
 def attendance_report(request, group_pk):
-    """Guruh davomati bo'yicha oy/yil bo'yicha hisobot."""
+    """Guruh davomati böyiça oy/yil böyiça hisobot."""
     user = request.user
     group = get_object_or_404(StudyGroup, pk=group_pk)
 
     if not _can_mark_attendance(user, group):
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('attendance_home')
 
     today = timezone.localdate()
@@ -18631,14 +18636,14 @@ def attendance_report(request, group_pk):
 
 @login_required
 def attendance_report_excel(request, group_pk):
-    """Admin va yordamchi admin uchun guruh davomatini Excel ko'rinishida yuklash."""
+    """Admin va yordamçi admin uçun guruh davomatini Excel körinişida yuklaş."""
     user = request.user
     group = get_object_or_404(
         StudyGroup.objects.select_related('profession', 'teacher'),
         pk=group_pk,
     )
     if not user.is_admin_or_assistant:
-        messages.error(request, "Excel hisobotini yuklab olish huquqingiz yo'q!")
+        messages.error(request, "Excel hisobotini yuklab oliş huquqingiz yöq!")
         return redirect('attendance_report', group_pk=group.pk)
 
     today = timezone.localdate()
@@ -18656,13 +18661,13 @@ def attendance_report_excel(request, group_pk):
     ws.title = 'Davomat'
     ws.sheet_view.showGridLines = False
 
-    headers = ["№", "O'quvchi"]
+    headers = ["№", "Öquvçi"]
     headers.extend(d.strftime('%d.%m') for d in report['day_dates'])
-    headers.extend(['Kelgan', 'Kelmagan', 'Kechikkan', 'Kasal', 'Sababli', 'Ball (%)'])
+    headers.extend(['Kelgan', 'Kelmagan', 'Keçikkan', 'Kasal', 'Sababli', 'Ball (%)'])
     last_column = get_column_letter(len(headers))
 
     ws.merge_cells(f'A1:{last_column}1')
-    ws['A1'] = f"{group.name} — o'quvchilar davomati"
+    ws['A1'] = f"{group.name} — öquvçilar davomati"
     ws['A1'].font = Font(size=16, bold=True, color='FFFFFF')
     ws['A1'].fill = PatternFill('solid', fgColor='4F46E5')
     ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
@@ -18673,9 +18678,9 @@ def attendance_report_excel(request, group_pk):
         teacher_name = group.teacher.get_full_name() or group.teacher.username
     ws.merge_cells(f'A2:{last_column}2')
     ws['A2'] = (
-        f"Kurs: {group.profession.name} | O'qituvchi: {teacher_name} | "
+        f"Kurs: {group.profession.name} | Öqituvçi: {teacher_name} | "
         f"Davr: {report['month_name']} {report['year']} | "
-        f"O'quvchilar: {report['total_students']}"
+        f"Öquvçilar: {report['total_students']}"
     )
     ws['A2'].font = Font(italic=True, color='475569')
     ws['A2'].alignment = Alignment(horizontal='center')

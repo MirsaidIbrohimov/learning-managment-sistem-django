@@ -48,13 +48,13 @@ class ProfileCompleteSerializer(serializers.ModelSerializer):
                           father_name, mother_name, parent_phone, school_name, school_number, address]
 
         if not all(required_fields):
-            raise serializers.ValidationError("Barcha majburiy maydonlarni to'ldiring.")
+            raise serializers.ValidationError("Barça majburiy maydonlarni töldiring.")
 
         id_card = data.get('id_card', getattr(instance, 'id_card', None))
         birth_certificate = data.get('birth_certificate', getattr(instance, 'birth_certificate', None))
 
         if not id_card and not birth_certificate:
-            raise serializers.ValidationError("Pasport yoki tug'ilganlik guvohnomasidan kamida bittasini yuklang.")
+            raise serializers.ValidationError("Pasport yoki tuğilganlik guvohnomasidan kamida bittasini yuklang.")
 
         return data
 
@@ -109,7 +109,7 @@ class CertificateSerializer(serializers.ModelSerializer):
 
 
 class StudentListSerializer(serializers.ModelSerializer):
-    """Admin uchun o'quvchilar ro'yxati — faqat admin foydalanuvchilariga ochiq"""
+    """Admin uçun öquvçilar röyxati — faqat admin foydalanuvçilariga oçiq"""
     full_name = serializers.CharField(read_only=True)
     profession_name = serializers.CharField(source='profession.name', read_only=True, default=None)
 

@@ -1,10 +1,10 @@
 """
-AI-driven question generator — wraps the OpenAI chat API with strict output
+AI-driven question generator — wraps the OpenAI çat API with strict output
 validation. The caller (a DRF view) gets back the same uniform question dict
 shape `quiz/importers.py` produces, so the AI preview UI and the import preview
 UI can render identical previews and reuse the same commit code path.
 
-Design choices (per user request — "AI orqali yaratishda o'ta ehtiyotkor bo'laylik"):
+Design choices (per user request — "AI orqali yaratişda öta ehtiyotkor bölaylik"):
 
 1. The generator NEVER touches the database. It only returns parsed,
    schema-checked questions. Commit is an explicit second call from the UI.
@@ -81,7 +81,7 @@ def generate_questions(
     try:
         from openai import OpenAI
     except ImportError:
-        return [], ["`openai` paket o'rnatilmagan."]
+        return [], ["`openai` paket örnatilmagan."]
 
     client = OpenAI(api_key=api_key.strip(), timeout=120)
     prompt = _build_prompt(
@@ -99,14 +99,14 @@ def generate_questions(
         # one retry with stricter prompt
         retry_prompt = prompt + [{
             'role': 'user',
-            'content': "Oldingi javob noto'g'ri formatda edi. FAQAT toza JSON array qaytar — markdown, izoh yoki boshqa matn YO'Q.",
+            'content': "Oldingi javob notöğri formatda edi. FAQAT toza JSON array qaytar — markdown, izoh yoki boşqa matn YÖQ.",
         }]
         ai_text2, call_error2 = _call_openai(client, retry_prompt)
         if call_error2:
             return [], [parse_error, call_error2]
         raw_questions, parse_error = _parse_ai_response(ai_text2)
         if parse_error:
-            return [], [f"AI javobini parse qilib bo'lmadi: {parse_error}"]
+            return [], [f"AI javobini parse qilib bölmadi: {parse_error}"]
 
     questions = []
     for idx, raw in enumerate(raw_questions, start=1):
@@ -121,15 +121,15 @@ def generate_questions(
 def _build_prompt(*, topic, count, difficulty, options_per_question,
                   question_type, context, language) -> List[Dict[str, str]]:
     type_hint = {
-        'single_choice': "har bir savol uchun aynan BITTA to'g'ri javob bo'lsin",
-        'multiple_choice': "har bir savol uchun KAMIDA IKKITA, ammo barchasi emas, to'g'ri javob bo'lsin",
-        'true_false': "har bir savol shunchaki To'g'ri/Noto'g'ri javob talab qilsin (variantlar: 'To'g'ri' va 'Noto'g'ri')",
+        'single_choice': "har bir savol uçun aynan BITTA töğri javob bölsin",
+        'multiple_choice': "har bir savol uçun KAMIDA IKKITA, ammo barçasi emas, töğri javob bölsin",
+        'true_false': "har bir savol şunçaki Töğri/Notöğri javob talab qilsin (variantlar: 'Töğri' va 'Notöğri')",
     }[question_type]
 
     difficulty_hint = {
-        'easy': "boshlovchi darajadagi, sodda formulalar",
-        'medium': "o'rtacha — bazaviy tushuncha + amaliy misol",
-        'hard': "qiyin — chuqur tushuncha, kichik chalg'ituvchi xatolar bilan",
+        'easy': "boşlovçi darajadagi, sodda formulalar",
+        'medium': "örtaça — bazaviy tuşunça + amaliy misol",
+        'hard': "qiyin — çuqur tuşunça, kiçik çalğituvçi xatolar bilan",
     }[difficulty]
 
     if question_type == 'true_false':
@@ -139,7 +139,7 @@ def _build_prompt(*, topic, count, difficulty, options_per_question,
         "questions": [
             {
                 "text": "Savol matni",
-                "explanation": "Javobning qisqa tushuntirishi (1-2 gap)",
+                "explanation": "Javobning qisqa tuşuntirişi (1-2 gap)",
                 "options": [
                     {"text": "Variant matni", "is_correct": True}
                     for _ in range(options_per_question)
@@ -149,26 +149,26 @@ def _build_prompt(*, topic, count, difficulty, options_per_question,
     }
 
     system = (
-        "Sen IT/dasturlash bo'yicha tajribali ustozsan. Senga test savollari yaratish topshiriladi. "
-        f"O'zbek tilida yoz. Faqat toza JSON object qaytar, boshqa hech narsa yozma.\n\n"
+        "Sen IT/dasturlash böyiça tajribali ustozsan. Senga test savollari yaratiş topşiriladi. "
+        f"Özbek tilida yoz. Faqat toza JSON object qaytar, boşqa heç narsa yozma.\n\n"
         f"Talablar:\n"
         f"- Aynan {count} ta savol yarat.\n"
-        f"- Har bir savol uchun {options_per_question} ta javob varianti.\n"
+        f"- Har bir savol uçun {options_per_question} ta javob varianti.\n"
         f"- {type_hint}.\n"
         f"- Qiyinlik darajasi: {difficulty_hint}.\n"
-        f"- Variantlar bir-biridan FARQLI bo'lsin, takror matn YO'Q.\n"
-        f"- Hech qachon \"yuqoridagilarning barchasi\" / \"hech qaysi\" kabi tanbal variantlar ishlatma.\n"
-        f"- Har bir savol uchun qisqa (1-2 gap) izoh ber.\n"
-        f"- Savol matnida AI haqida yoki o'zing haqingda gapirma; xolis va aniq formula bilan yoz.\n\n"
+        f"- Variantlar bir-biridan FARQLI bölsin, takror matn YÖQ.\n"
+        f"- Heç qaçon \"yuqoridagilarning barçasi\" / \"heç qaysi\" kabi tanbal variantlar işlatma.\n"
+        f"- Har bir savol uçun qisqa (1-2 gap) izoh ber.\n"
+        f"- Savol matnida AI haqida yoki özing haqingda gapirma; xolis va aniq formula bilan yoz.\n\n"
         "JSON sxemasi:\n"
         + json.dumps(schema, ensure_ascii=False, indent=2) + "\n\n"
-        "MUHIM: Faqat JSON. Markdown ```json``` ham qo'shma."
+        "MUHIM: Faqat JSON. Markdown ```json``` ham qöşma."
     )
 
     user_lines = [f"Mavzu: {topic}"]
     if context and context.strip():
-        user_lines.append(f"Qo'shimcha kontekst: {context.strip()}")
-    user_lines.append(f"Shu mavzu bo'yicha {count} ta savol yarat.")
+        user_lines.append(f"Qöşimça kontekst: {context.strip()}")
+    user_lines.append(f"Şu mavzu böyiça {count} ta savol yarat.")
 
     return [
         {'role': 'system', 'content': system},
@@ -188,7 +188,7 @@ def _call_openai(client, messages) -> Tuple[str, Optional[str]]:
         )
         return response.choices[0].message.content or '', None
     except Exception as e:  # OpenAI's exceptions are many — catch broadly
-        return '', f"AI bilan bog'lanishda xatolik: {e}"
+        return '', f"AI bilan boğlanişda xatolik: {e}"
 
 
 _CODEFENCE_RE = re.compile(r'^```[a-zA-Z]*\s*|\s*```$', re.MULTILINE)
@@ -197,7 +197,7 @@ _CODEFENCE_RE = re.compile(r'^```[a-zA-Z]*\s*|\s*```$', re.MULTILINE)
 def _parse_ai_response(text: str) -> Tuple[List[Dict[str, Any]], Optional[str]]:
     """Try hard to extract a list of question dicts from AI text."""
     if not text or not text.strip():
-        return [], "AI bo'sh javob qaytardi."
+        return [], "AI böş javob qaytardi."
 
     cleaned = _CODEFENCE_RE.sub('', text).strip()
     # Sometimes the model prefixes prose — find the first { or [.
@@ -220,10 +220,10 @@ def _parse_ai_response(text: str) -> Tuple[List[Dict[str, Any]], Optional[str]]:
     elif isinstance(data, list):
         items = data
     else:
-        return [], "AI javobi ro'yxat ham, obyekt ham emas."
+        return [], "AI javobi röyxat ham, obyekt ham emas."
 
     if not isinstance(items, list):
-        return [], "'questions' ro'yxat bo'lishi kerak."
+        return [], "'questions' röyxat bölişi kerak."
     return items, None
 
 
@@ -235,7 +235,7 @@ def _normalise_ai_question(raw: Any, idx: int, default_type: str, difficulty: st
         return {
             'text': '', 'type': default_type, 'difficulty': difficulty,
             'explanation': '', 'options': [], '_row': idx,
-            '_errors': [f"#{idx}-savol noto'g'ri formatda."],
+            '_errors': [f"#{idx}-savol notöğri formatda."],
         }
 
     text = str(raw.get('text') or raw.get('question') or '').strip()

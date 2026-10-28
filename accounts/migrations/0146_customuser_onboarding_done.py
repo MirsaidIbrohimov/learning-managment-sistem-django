@@ -4,8 +4,8 @@ from django.db import migrations, models
 
 
 def mark_existing_users(apps, schema_editor):
-    # Qo'llanma faqat yangi ro'yxatdan o'tganlarga avtomatik chiqadi;
-    # mavjud foydalanuvchilar uni profil menyusidan qayta ochishlari mumkin.
+    # Qöllanma faqat yangi röyxatdan ötganlarga avtomatik çiqadi;
+    # mavjud foydalanuvçilar uni profil menyusidan qayta oçişlari mumkin.
     apps.get_model('accounts', 'CustomUser').objects.update(onboarding_done=True)
 
 
@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='onboarding_done',
-            field=models.BooleanField(default=False, help_text="Saytga birinchi kirishdagi o'quvchi qo'llanmasi ko'rsatilganmi.", verbose_name="Qo'llanmani ko'rgan"),
+            field=models.BooleanField(default=False, help_text="Saytga birinçi kirişdagi öquvçi qöllanmasi körsatilganmi.", verbose_name="Qöllanmani körgan"),
         ),
         migrations.RunPython(mark_existing_users, migrations.RunPython.noop),
     ]

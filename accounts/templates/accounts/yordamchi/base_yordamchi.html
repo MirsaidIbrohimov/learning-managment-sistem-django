@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <script src="{% static 'js/ai-jobs.js' %}?v=20261027"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Yordamchi admin paneli{% endblock %} — LMS</title>
+    <title>{% block title %}Yordamçi admin paneli{% endblock %} — LMS</title>
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="icon" href="{% static 'img/fav.ico' %}">
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
 
     <script>
-        // Temani flashsiz oldindan o'rnatish
+        // Temani flashsiz oldindan örnatiş
         (function(){
             var t = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', t);
@@ -25,7 +25,7 @@
 
     <style>
     /* ============================================================
-       YORDAMCHI ADMIN — "EMERALD GLASS" DESIGN SYSTEM
+       YORDAMÇI ADMIN — "EMERALD GLASS" DESIGN SYSTEM
        Glassmorphism · emerald identity · light/dark adaptiv
        ============================================================ */
 
@@ -47,7 +47,7 @@
         --glow-2:rgba(20,184,166,.14);
         --glow-3:rgba(110,231,183,.18);
 
-        /* shisha yuzalar */
+        /* şişa yuzalar */
         --glass:rgba(255,255,255,.72);
         --glass-strong:rgba(255,255,255,.85);
         --glass-2:rgba(255,255,255,.55);
@@ -66,8 +66,8 @@
 
         --radius:18px; --radius-sm:12px; --radius-pill:999px;
 
-        /* Orqaga-muvofiqlik: eski sahifalardagi --yo-* o'zgaruvchilar
-           (var() ishlatish paytida hisoblanadi — temaga avtomatik moslashadi) */
+        /* Orqaga-muvofiqlik: eski sahifalardagi --yo-* özgaruvçilar
+           (var() işlatiş paytida hisoblanadi — temaga avtomatik moslaşadi) */
         --bg-color:var(--page-bg);
         --card-bg:var(--glass);
         --text-color:var(--text);
@@ -258,7 +258,7 @@
     @keyframes yoFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
     /* ============================================================
-       GLASS KARTALAR (Bootstrap .card global qayta stillash)
+       GLASS KARTALAR (Bootstrap .card global qayta stillaş)
        ============================================================ */
     .card{
         position:relative;border:1px solid var(--border)!important;border-radius:var(--radius)!important;
@@ -267,7 +267,7 @@
         box-shadow:var(--shadow)!important;overflow:hidden;
         transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
     }
-    .card::before{ /* yuqori yorug'lik chizig'i */
+    .card::before{ /* yuqori yoruğlik çiziği */
         content:'';position:absolute;top:0;left:0;right:0;height:1px;
         background:linear-gradient(90deg,transparent,var(--hi),transparent);
     }
@@ -299,7 +299,7 @@
     .table td{vertical-align:middle}
 
     /* ============================================================
-       TUGMALAR — emerald primary (panelda btn-warning ishlatiladi)
+       TUGMALAR — emerald primary (panelda btn-warning işlatiladi)
        ============================================================ */
     .btn{border-radius:11px;font-weight:600;transition:transform .15s,box-shadow .15s,filter .15s}
     .btn:active{transform:translateY(1px)}
@@ -392,7 +392,7 @@
     .text-muted{color:var(--text-muted)!important}
     a{color:var(--accent)}
 
-    /* Bootstrap utilita klasslarini temaga moslashtirish (eski sahifalar uchun) */
+    /* Bootstrap utilita klasslarini temaga moslaştiriş (eski sahifalar uçun) */
     .bg-white{background:var(--glass)!important}
     .bg-light{background:var(--accent-soft)!important}
     .text-dark,.text-black{color:var(--text)!important}
@@ -402,7 +402,7 @@
     hr{border-color:var(--border);opacity:.5}
 
     /* ============================================================
-       QAYTA ISHLATILADIGAN UTILITALAR (sahifalar uchun)
+       QAYTA IŞLATILADIGAN UTILITALAR (sahifalar uçun)
        ============================================================ */
     .yo-page-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;justify-content:space-between;margin-bottom:1.25rem}
     .yo-page-head h2{font-size:1.3rem;font-weight:800;margin:0;letter-spacing:-.02em;display:flex;align-items:center;gap:.55rem}
@@ -459,37 +459,37 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body>
-<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
 
 <aside class="yo-sidebar" id="yoSidebar">
     <div class="yo-brand">
         <div class="yo-brand-icon"><i class="bi bi-person-fill-gear"></i></div>
-        <div class="yo-brand-text">Yordamchi<small>Admin paneli</small></div>
+        <div class="yo-brand-text">Yordamçi<small>Admin paneli</small></div>
     </div>
 
     <nav class="yo-nav">
         <div class="yo-nav-label">Asosiy</div>
         <a href="{% url 'yordamchi_dashboard' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_dashboard' %}active{% endif %}">
-            <i class="bi bi-speedometer2"></i> <span>Boshqaruv paneli</span>
+            <i class="bi bi-speedometer2"></i> <span>Boşqaruv paneli</span>
         </a>
         <a href="{% url 'home' %}" class="yo-nav-link">
-            <i class="bi bi-house-fill"></i> <span>Bosh sahifa</span>
+            <i class="bi bi-house-fill"></i> <span>Boş sahifa</span>
         </a>
 
-        <div class="yo-nav-label">Foydalanuvchilar</div>
+        <div class="yo-nav-label">Foydalanuvçilar</div>
         <a href="{% url 'yordamchi_students' %}" class="yo-nav-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-mortarboard"></i> <span>O'quvchilar</span>
+            <i class="bi bi-mortarboard"></i> <span>Öquvçilar</span>
         </a>
         <a href="{% url 'yordamchi_teachers' %}" class="yo-nav-link {% if 'teacher' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-person-video3"></i> <span>O'qituvchilar</span>
+            <i class="bi bi-person-video3"></i> <span>Öqituvçilar</span>
         </a>
         <a href="{% url 'yordamchi_parents' %}" class="yo-nav-link {% if 'parents' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-people"></i> <span>Ota-onalar</span>
         </a>
 
-        <div class="yo-nav-label">O'quv jarayoni</div>
+        <div class="yo-nav-label">Öquv jarayoni</div>
         <a href="{% url 'yordamchi_homework' %}" class="yo-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-list-task"></i> <span>Vazifalar (ko'rish)</span>
+            <i class="bi bi-list-task"></i> <span>Vazifalar (köriş)</span>
         </a>
         <a href="{% url 'yordamchi_tests' %}" class="yo-nav-link {% if 'tests' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-clipboard-check"></i> <span>Test natijalari</span>
@@ -501,10 +501,10 @@
             <i class="bi bi-calendar2-week"></i> <span>Guruhlar & Jadval</span>
         </a>
         <a href="{% url 'attendance_home' %}" class="yo-nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-clipboard-check"></i> <span>O'quvchilar davomati</span>
+            <i class="bi bi-clipboard-check"></i> <span>Öquvçilar davomati</span>
         </a>
         <a href="{% url 'yordamchi_certificates' %}" class="yo-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-award"></i> <span>Sertifikat so'rovlari</span>
+            <i class="bi bi-award"></i> <span>Sertifikat sörovlari</span>
         </a>
 
         <div class="yo-nav-label">Kutubxona</div>
@@ -518,12 +518,12 @@
             <i class="bi bi-journal-bookmark"></i> <span>Ijaralar</span>
         </a>
         <a href="{% url 'yordamchi_rentals_overdue' %}" class="yo-nav-link {% if 'overdue' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-exclamation-triangle"></i> <span>Kechikkan ijaralar</span>
+            <i class="bi bi-exclamation-triangle"></i> <span>Keçikkan ijaralar</span>
         </a>
 
-        <div class="yo-nav-label">So'rovlar & yordam</div>
+        <div class="yo-nav-label">Sörovlar & yordam</div>
         <a href="{% url 'yordamchi_requests' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_requests' %}active{% endif %}">
-            <i class="bi bi-arrow-down-up"></i> <span>Kurs / Premium so'rovlari</span>
+            <i class="bi bi-arrow-down-up"></i> <span>Kurs / Premium sörovlari</span>
         </a>
         <a href="{% url 'yordamchi_help' %}" class="yo-nav-link {% if 'help' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-question-circle"></i> <span>Yordam xatlari</span>
@@ -534,7 +534,7 @@
 
         <div class="yo-nav-label">Moliya</div>
         <a href="{% url 'yordamchi_balance_management' %}" class="yo-nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}">
-            <i class="bi bi-wallet2"></i> <span>Balans boshqaruvi</span>
+            <i class="bi bi-wallet2"></i> <span>Balans boşqaruvi</span>
         </a>
 
 
@@ -546,7 +546,7 @@
             <i class="bi bi-person-circle"></i> <span>Profilim & ruxsatlar</span>
         </a>
         <a href="{% url 'logout' %}" class="yo-nav-link">
-            <i class="bi bi-box-arrow-right"></i> <span>Tizimdan chiqish</span>
+            <i class="bi bi-box-arrow-right"></i> <span>Tizimdan çiqiş</span>
         </a>
     </nav>
 
@@ -555,7 +555,7 @@
         <div class="yo-user-info">
             <div class="yo-user-name">{{ request.user.full_name }}</div>
             <div class="yo-user-role">
-                {% if request.user.assistant_role %}{{ request.user.assistant_role.name }}{% else %}Yordamchi admin{% endif %}
+                {% if request.user.assistant_role %}{{ request.user.assistant_role.name }}{% else %}Yordamçi admin{% endif %}
             </div>
         </div>
     </div>
@@ -566,14 +566,14 @@
 <header class="yo-topbar">
     <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
         <button class="yo-toggle" onclick="yoOpenSidebar()" aria-label="Menu"><i class="bi bi-list"></i></button>
-        <h1 class="yo-page-title">{% block page_title %}Boshqaruv paneli{% endblock %}</h1>
+        <h1 class="yo-page-title">{% block page_title %}Boşqaruv paneli{% endblock %}</h1>
     </div>
     <div class="yo-topbar-actions">
-        <button class="yo-icon-btn" id="yoThemeBtn" onclick="yoToggleTheme()" title="Tema o'zgartirish" aria-label="Tema">
+        <button class="yo-icon-btn" id="yoThemeBtn" onclick="yoToggleTheme()" title="Tema özgartiriş" aria-label="Tema">
             <i class="bi bi-moon-stars-fill" id="yoThemeIcon"></i>
         </button>
         <a href="{% url 'yordamchi_profile_edit' %}" class="yo-topbar-btn" aria-label="Profilim"><i class="bi bi-pencil-square"></i> <span>Profilim</span></a>
-        <a href="{% url 'logout' %}" class="yo-topbar-btn danger" aria-label="Chiqish"><i class="bi bi-box-arrow-right"></i> <span>Chiqish</span></a>
+        <a href="{% url 'logout' %}" class="yo-topbar-btn danger" aria-label="Çiqiş"><i class="bi bi-box-arrow-right"></i> <span>Çiqiş</span></a>
     </div>
 </header>
 
@@ -583,7 +583,7 @@
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
                     {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopish"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopiş"></button>
                 </div>
             {% endfor %}
         {% endif %}

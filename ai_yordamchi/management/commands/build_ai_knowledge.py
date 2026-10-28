@@ -48,7 +48,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--rebuild', action='store_true',
-                            help="Avvalgi bilim bazasini tozalab, boshidan quradi.")
+                            help="Avvalgi bilim bazasini tozalab, boşidan quradi.")
 
     def handle(self, *args, **options):
         if options['rebuild']:
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             vectors = embed_texts(pending_texts)
             if not vectors:
                 self.stderr.write(self.style.ERROR(
-                    "Embedding olinmadi. OPENAI_API_KEY sozlanganini tekshiring."))
+                    "Embedding olinmadi. OPENAI_API_KEY sozlanganini tekşiring."))
                 return False
             rows = [
                 KnowledgeChunk(
@@ -109,4 +109,4 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(self.style.SUCCESS(
-            f"Tayyor: {total} ta bo'lak indekslandi. ({skipped} ta dars matnsiz o'tkazib yuborildi.)"))
+            f"Tayyor: {total} ta bölak indekslandi. ({skipped} ta dars matnsiz ötkazib yuborildi.)"))

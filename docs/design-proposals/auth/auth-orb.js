@@ -1,4 +1,4 @@
-/* IT Creative — auth sahifalari uchun 3D "Reactive Orb".
+/* IT Creative — auth sahifalari uçun 3D "Reactive Orb".
  * Klassik skript: Three.js sahifadagi importmap orqali dinamik import qilinadi.
  * Natija: window.AuthOrb = { pulse(), setSecret(bool), setTint(hex|null), burst(), spin(), theme() }
  */
@@ -27,7 +27,7 @@
     const l1 = new THREE.PointLight(0x22d3ee, 40, 30); l1.position.set(4, 3, 4); scene.add(l1);
     const l2 = new THREE.PointLight(0xa78bfa, 40, 30); l2.position.set(-4, -2, 3); scene.add(l2);
 
-    // Fon zarrachalari
+    // Fon zarraçalari
     const PN = small ? 600 : 1400, pos = new Float32Array(PN * 3);
     for (let i = 0; i < PN; i++) {
       const r = 6 + Math.random() * 10, t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1);
@@ -37,7 +37,7 @@
     const pMat = new THREE.PointsMaterial({ size: .035, transparent: true, depthWrite: false });
     const stars = new THREE.Points(pGeo, pMat); scene.add(stars);
 
-    // Orb: Fibonacci shar bo'ylab joylashgan kichik sharlar
+    // Orb: Fibonacci şar böylab joylaşgan kiçik şarlar
     const N = small ? 450 : 820, R = 1.55, ga = Math.PI * (3 - Math.sqrt(5));
     const g = new THREE.Group(); scene.add(g);
     const im = new THREE.InstancedMesh(new THREE.SphereGeometry(.075, 16, 12),
@@ -64,9 +64,9 @@
     }
     theme();
 
-    // Orbni sahna (stage) elementi markaziga joylashtirish
+    // Orbni sahna (stage) elementi markaziga joylaştiriş
     function place() {
-      // Matn bloki (stage-copy) egallagan joydan tashqaridagi bo'sh joyga joylashadi
+      // Matn bloki (stage-copy) egallagan joydan taşqaridagi böş joyga joylaşadi
       const r = stage.getBoundingClientRect(), copy = stage.querySelector('.stage-copy');
       const copyH = copy && copy.offsetParent ? copy.offsetHeight + 24 : 0, freeH = r.height - copyH;
       const halfH = Math.tan(THREE.MathUtils.degToRad(22.5)) * 8, halfW = halfH * camera.aspect;
@@ -95,7 +95,7 @@
       for (let i = 0; i < N; i++) {
         const p = P[i];
         let target = h ? Math.max(0, 1 - p.distanceTo(loc) / .9) : 0;
-        for (const rp of ripples) {             // klaviatura bosilganda tarqaladigan to'lqin
+        for (const rp of ripples) {             // klaviatura bosilganda tarqaladigan tölqin
           const front = (t - rp.t0) * 2.6, dd = p.distanceTo(rp.p) - front;
           target = Math.max(target, Math.exp(-dd * dd * 9) * (1 - (t - rp.t0) / 2.2) * .9);
         }

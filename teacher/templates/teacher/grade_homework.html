@@ -1,8 +1,8 @@
 {% extends 'teacher/base_teacher.html' %}
 {% load custom_filters %}
 
-{% block title %}Vazifani baholash - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Vazifani baholash{% endblock %}
+{% block title %}Vazifani baholaş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Vazifani baholaş{% endblock %}
 
 {% block teacher_content %}
 <style>
@@ -66,14 +66,14 @@
 
 <div class="t-grade-page">
     <a href="{% url 'teacher:homeworks' %}" class="t-grade-back">
-        <i class="bi bi-arrow-left"></i> Vazifalar ro'yxatiga qaytish
+        <i class="bi bi-arrow-left"></i> Vazifalar röyxatiga qaytiş
     </a>
 
     <!-- Student & Homework info -->
     <div class="t-grade-info">
         <div class="t-grade-info-grid">
             <div class="t-grade-info-item">
-                <label>O'quvchi</label>
+                <label>Öquvçi</label>
                 <div>{{ submission.student.full_name }}</div>
             </div>
             <div class="t-grade-info-item">
@@ -85,7 +85,7 @@
                 <div>{{ submission.homework.lesson.profession.name }}</div>
             </div>
             <div class="t-grade-info-item">
-                <label>Topshirilgan sana</label>
+                <label>Topşirilgan sana</label>
                 <div>{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
             </div>
             <div class="t-grade-info-item">
@@ -108,24 +108,24 @@
     <!-- Submitted content -->
     <div class="t-grade-submission">
         <div class="t-grade-submission-head">
-            <i class="bi bi-file-earmark-text" style="color: #3b82f6;"></i> Topshirilgan ish
+            <i class="bi bi-file-earmark-text" style="color: #3b82f6;"></i> Topşirilgan iş
         </div>
         <div class="t-grade-submission-body">
             {% if submission.file %}
             <a href="{{ submission.file.url }}" target="_blank" class="t-btn t-btn-outline" style="margin-bottom: 1rem;">
-                <i class="bi bi-download"></i> Faylni yuklab olish
+                <i class="bi bi-download"></i> Faylni yuklab oliş
             </a>
             {% endif %}
             {% if submission.text_content %}
             <div class="t-grade-text-toolbar">
-                <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
-                <button type="button" class="t-copy-btn" onclick="tgCopyAnswer(this)"><i class="bi bi-clipboard"></i> Nusxalash</button>
+                <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} söz</span>
+                <button type="button" class="t-copy-btn" onclick="tgCopyAnswer(this)"><i class="bi bi-clipboard"></i> Nusxalaş</button>
             </div>
             <div class="t-grade-text-content">{{ submission.text_content|submission_plain }}</div>
 {% include 'accounts/includes/homework_code_review.html' %}
             {% endif %}
             {% if not submission.file and not submission.text_content %}
-            <p style="color: var(--bs-secondary-color);">Topshiriq fayli yoki matni mavjud emas.</p>
+            <p style="color: var(--bs-secondary-color);">Topşiriq fayli yoki matni mavjud emas.</p>
             {% endif %}
         </div>
     </div>
@@ -148,7 +148,7 @@
                 </div>
                 {% if rev.file %}
                 <a href="{{ rev.file.url }}" target="_blank" class="t-btn t-btn-outline">
-                    <i class="bi bi-download"></i> Oldingi faylni ochish
+                    <i class="bi bi-download"></i> Oldingi faylni oçiş
                 </a>
                 {% elif rev.text_content %}
                 <div class="t-grade-text-content">{{ rev.text_content|submission_plain }}</div>
@@ -164,10 +164,10 @@
     </div>
     {% endif %}
 
-    <!-- AI bilan baholash -->
+    <!-- AI bilan baholaş -->
     <div style="background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden; animation: fadeInUp 0.58s ease;">
         <div style="padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color); font-weight: 700; display: flex; align-items: center; gap: .5rem;">
-            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholash
+            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholaş
         </div>
         <div style="padding: 24px;">
             {% if request.user.is_teacher and not request.user.ai_access_enabled %}
@@ -175,7 +175,7 @@
                 <i class="bi bi-shield-lock-fill" style="font-size:1.4rem;color:#ef4444;flex-shrink:0;margin-top:2px;"></i>
                 <div style="font-size:.88rem;line-height:1.5;color:var(--bs-body-color);">
                     <strong style="color:#ef4444;">AI funksiyasi bloklangan</strong><br>
-                    AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.
+                    AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.
                 </div>
             </div>
             <button type="button" class="t-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; width: 100%; justify-content: center; color:#fff; cursor:not-allowed;" onclick="showAiBlockedNotice()">
@@ -183,13 +183,13 @@
             </button>
             {% else %}
             <p style="font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 1rem;">
-                AI o'quvchining javobini tekshirib, avtomatik baho (1-10), holat va izoh beradi.
+                AI öquvçining javobini tekşirib, avtomatik baho (1-10), holat va izoh beradi.
             </p>
             <form method="POST" id="aiGradeForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="ai_grade">
-                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
-                    <i class="bi bi-robot"></i> AI bilan baholash
+                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekşirmoqda...'; this.form.submit();">
+                    <i class="bi bi-robot"></i> AI bilan baholaş
                 </button>
             </form>
             {% endif %}
@@ -199,7 +199,7 @@
     <!-- Grade form -->
     <div class="t-grade-form">
         <div class="t-grade-form-head">
-            <i class="bi bi-pencil-square" style="color: var(--t-primary);"></i> Baholash
+            <i class="bi bi-pencil-square" style="color: var(--t-primary);"></i> Baholaş
         </div>
         <div class="t-grade-form-body">
             <form method="POST" enctype="multipart/form-data">
@@ -213,14 +213,14 @@
                         <label class="t-label">Holat *</label>
                         <select name="status" class="t-input">
                             <option value="graded" {% if submission.status == 'graded' %}selected{% endif %}>Baholangan</option>
-                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta ishlash kerak</option>
+                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta işlaş kerak</option>
                             <option value="accepted" {% if submission.status == 'accepted' %}selected{% endif %}>Qabul qilindi</option>
                         </select>
                     </div>
                 </div>
                 <div class="t-grade-field">
                     <label class="t-label">Izoh</label>
-                    <textarea name="feedback" class="t-input" rows="4" placeholder="O'quvchiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
+                    <textarea name="feedback" class="t-input" rows="4" placeholder="Öquvçiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
                 </div>
                 <div class="t-grade-field">
                     <label class="t-label">Izoh fayli (ixtiyoriy)</label>
@@ -228,10 +228,10 @@
                 </div>
                 <div class="t-grade-actions">
                     <a href="{% url 'teacher:homeworks' %}" class="t-btn t-btn-outline">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </a>
                     <button type="submit" class="t-btn t-btn-primary">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                 </div>
             </form>
@@ -242,13 +242,13 @@
     function tgCopyAnswer(btn) {
         var box = btn.parentElement.parentElement.querySelector('.t-grade-text-content');
         if (!box) return;
-        var txt = box.innerText, done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash'; }, 1600); };
+        var txt = box.innerText, done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalaş'; }, 1600); };
         if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(function () {}); }
         else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
     }
 
     function showAiBlockedNotice(customMsg) {
-        const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.";
+        const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.";
         let backdrop = document.getElementById('aiBlockedBackdrop');
         if (!backdrop) {
             backdrop = document.createElement('div');
@@ -262,7 +262,7 @@
                     <h3 style="margin:0 0 .5rem;font-size:1.2rem;font-weight:800;">AI funksiyasi bloklangan</h3>
                     <p id="aiBlockedMsg" style="margin:0 0 1.25rem;font-size:.92rem;color:var(--bs-secondary-color,#666);line-height:1.5;"></p>
                     <button type="button" onclick="document.getElementById('aiBlockedBackdrop').remove()" style="padding:.7rem 1.5rem;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);">
-                        Tushunarli
+                        Tuşunarli
                     </button>
                 </div>`;
             document.body.appendChild(backdrop);

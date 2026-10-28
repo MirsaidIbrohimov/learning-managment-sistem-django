@@ -1,4 +1,4 @@
-"""Chrome CDP orqali admin startup sahifalarini tekshirish (vaqtinchalik skript)."""
+"""Chrome CDP orqali admin startup sahifalarini tekşiriş (vaqtinçalik skript)."""
 import json
 import sys
 import time
@@ -49,7 +49,7 @@ class Chrome:
             if self.eval('document.readyState') == 'complete':
                 break
             time.sleep(0.25)
-        time.sleep(1.2)  # Chart.js chizishi uchun
+        time.sleep(1.2)  # Chart.js çizişi uçun
 
     def shot(self, path):
         data = self.send('Page.captureScreenshot', format='png', captureBeyondViewport=True)
@@ -106,7 +106,7 @@ check('/dashboard/startups/import/', 'import', 'dark')
 check('/dashboard/startups/?status=archived', 'filter', 'light')
 check('/dashboard/users/1/', 'profile', 'light')
 
-# Mobil: statistika 1 ustunga tushishi va jadval scroll qilishi
+# Mobil: statistika 1 ustunga tuşişi va jadval scroll qilişi
 chrome.send('Emulation.setDeviceMetricsOverride', width=390, height=844,
             deviceScaleFactor=2, mobile=True)
 mobile = check('/dashboard/startups/', 'list-mobile', 'light')
@@ -117,5 +117,5 @@ for name, theme, info in report:
     for key, value in info.items():
         print(f'    {key}: {value}')
 
-# JS xatolarini yig'ish
+# JS xatolarini yiğiş
 print('\nJS console xatolari:', chrome.eval('window.__saErrors ? window.__saErrors.length : "kuzatilmadi"'))

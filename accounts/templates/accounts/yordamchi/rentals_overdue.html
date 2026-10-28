@@ -1,11 +1,11 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
-{% block title %}Kechikkan ijaralar{% endblock %}
-{% block page_title %}Kechikkan ijaralar ({{ total_count }}){% endblock %}
+{% block title %}Keçikkan ijaralar{% endblock %}
+{% block page_title %}Keçikkan ijaralar ({{ total_count }}){% endblock %}
 
 {% block content %}
 <div class="alert alert-warning">
     <i class="bi bi-exclamation-triangle me-2"></i>
-    Quyidagi o'quvchilar kitoblarni belgilangan muddatda qaytarmagan. Bugun: <strong>{{ today|date:"d.m.Y" }}</strong>
+    Quyidagi öquvçilar kitoblarni belgilangan muddatda qaytarmagan. Bugun: <strong>{{ today|date:"d.m.Y" }}</strong>
 </div>
 
 <div class="card border-0 shadow-sm">
@@ -14,7 +14,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead style="background:rgba(239,68,68,0.06);">
-                    <tr><th>Kitob</th><th>O'quvchi</th><th>Telefon</th><th>Qaytarilishi kerak edi</th><th>Kechikish</th>{% if can_return %}<th class="text-end">Amal</th>{% endif %}</tr>
+                    <tr><th>Kitob</th><th>Öquvçi</th><th>Telefon</th><th>Qaytarilişi kerak edi</th><th>Keçikiş</th>{% if can_return %}<th class="text-end">Amal</th>{% endif %}</tr>
                 </thead>
                 <tbody>
                 {% for r in rentals %}
@@ -26,7 +26,7 @@
                         <td><span class="badge bg-danger">{{ r.return_date|timesince }} oldin</span></td>
                         {% if can_return %}
                         <td class="text-end">
-                            <form method="post" action="{% url 'yordamchi_rental_return' r.pk %}" style="display:inline;" onsubmit="return confirm('Qaytarib olishni tasdiqlaysizmi?');">
+                            <form method="post" action="{% url 'yordamchi_rental_return' r.pk %}" style="display:inline;" onsubmit="return confirm('Qaytarib olişni tasdiqlaysizmi?');">
                                 {% csrf_token %}
                                 <button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle"></i> Qaytarib oldim</button>
                             </form>
@@ -38,7 +38,7 @@
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-check2-circle text-success" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">Kechikkan ijaralar yo'q!</p></div>{% endif %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-check2-circle text-success" style="font-size:2.5rem;"></i><p class="mt-2 mb-0">Keçikkan ijaralar yöq!</p></div>{% endif %}
     </div>
 </div>
 {% endblock %}

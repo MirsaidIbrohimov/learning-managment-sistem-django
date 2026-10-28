@@ -3,8 +3,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     """
-    0093 migration ustunni DB dan o'chirdi, lekin state bilan nomuvofiqlik qoldi.
-    Bu migration state'ni DB bilan moslashtiradi — DB'ga tegmaydi.
+    0093 migration ustunni DB dan öçirdi, lekin state bilan nomuvofiqlik qoldi.
+    Bu migration state'ni DB bilan moslaştiradi — DB'ga tegmaydi.
     """
 
     dependencies = [
@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Avval state'ga qo'shamiz (0093 uni state'dan olgan edi)
+        # Avval state'ga qöşamiz (0093 uni state'dan olgan edi)
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
             ],
             database_operations=[],
         ),
-        # Keyin state'dan o'chiramiz (DB'da ustun yo'q — tegmaymiz)
+        # Keyin state'dan öçiramiz (DB'da ustun yöq — tegmaymiz)
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.RemoveField(

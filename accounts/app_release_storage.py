@@ -1,11 +1,11 @@
-"""Ilova o'rnatuvchilari (APK/EXE/MSI) uchun yopiq saqlash joyi.
+"""Ilova örnatuvçilari (APK/EXE/MSI) uçun yopiq saqlaş joyi.
 
 NEGA ALOHIDA: umumiy `SafeMediaStorage` `.exe`/`.msi` ni ataylab `.txt` ga
-aylantiradi va `media/` ommaviy `/media/` orqali beriladi. O'rnatuvchilar esa
-`private_media/app_releases/` da turadi — hech qanday URL'ga ulanmagan, faqat
-`app_releases.download` ko'rinishi (login + e'lon qilingan versiya) orqali
-`attachment` bo'lib uzatiladi. Kengaytma va fayl imzosi (magic bytes)
-`accounts.app_releases.validate_upload` da tekshiriladi.
+aylantiradi va `media/` ommaviy `/media/` orqali beriladi. Örnatuvçilar esa
+`private_media/app_releases/` da turadi — heç qanday URL'ga ulanmagan, faqat
+`app_releases.download` körinişi (login + e'lon qilingan versiya) orqali
+`attachment` bölib uzatiladi. Kengaytma va fayl imzosi (magic bytes)
+`accounts.app_releases.validate_upload` da tekşiriladi.
 """
 import posixpath
 import uuid
@@ -25,7 +25,7 @@ class PrivateAppStorage(FileSystemStorage):
         return _safe_filename(name)
 
     def url(self, name):
-        raise NotImplementedError("Ilova fayllari to'g'ridan-to'g'ri URL orqali berilmaydi")
+        raise NotImplementedError("Ilova fayllari töğridan-töğri URL orqali berilmaydi")
 
 
 def app_release_storage():

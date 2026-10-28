@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homework',
             name='file_only',
-            field=models.BooleanField(default=False, verbose_name="Faqat fayl qabul qilish"),
+            field=models.BooleanField(default=False, verbose_name="Faqat fayl qabul qiliş"),
         ),
     ]

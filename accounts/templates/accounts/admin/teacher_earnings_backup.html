@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}O'qituvchilar Daromadlari - Admin Panel{% endblock %}
-{% block topbar_title %}O'qituvchilar Daromadlari{% endblock %}
+{% block title %}Öqituvçilar Daromadlari - Admin Panel{% endblock %}
+{% block topbar_title %}Öqituvçilar Daromadlari{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -1079,11 +1079,11 @@
 <div class="hero-dashboard">
     <div class="hero-top">
         <div>
-            <h1 class="hero-title">💰 O'qituvchilar Daromadlari</h1>
-            <p class="hero-subtitle">{{ prev_month_name }} → {{ current_month_name }} {{ current_year }} oylik taqqoslash</p>
+            <h1 class="hero-title">💰 Öqituvçilar Daromadlari</h1>
+            <p class="hero-subtitle">{{ prev_month_name }} → {{ current_month_name }} {{ current_year }} oylik taqqoslaş</p>
         </div>
         <button class="hero-btn" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
-            <i class="bi bi-plus-circle"></i> To'lov qo'shish
+            <i class="bi bi-plus-circle"></i> Tölov qöşiş
         </button>
     </div>
     
@@ -1100,7 +1100,7 @@
                 <i class="bi bi-check2-all"></i>
             </div>
             <div class="hero-stat-value">{{ total_paid|floatformat:0 }}</div>
-            <div class="hero-stat-label">To'langan</div>
+            <div class="hero-stat-label">Tölangan</div>
         </div>
         <div class="hero-stat">
             <div class="hero-stat-icon">
@@ -1120,17 +1120,17 @@
     <form method="GET" class="mb-0">
         <div class="filter-grid">
             <input type="text" class="form-control filter-input" name="q" value="{{ search_query }}" 
-                   placeholder="🔍 O'qituvchi ismi yoki username...">
+                   placeholder="🔍 Öqituvçi ismi yoki username...">
             
             <select class="form-select filter-input" name="teacher">
-                <option value="">👨‍🏫 Barcha o'qituvchilar</option>
+                <option value="">👨‍🏫 Barça öqituvçilar</option>
                 {% for teacher in teachers %}
                 <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>{{ teacher.full_name }}</option>
                 {% endfor %}
             </select>
             
             <select class="form-select filter-input" name="month">
-                <option value="">📅 Barcha oylar</option>
+                <option value="">📅 Barça oylar</option>
                 <option value="1" {% if month_filter == '1' %}selected{% endif %}>Yanvar</option>
                 <option value="2" {% if month_filter == '2' %}selected{% endif %}>Fevral</option>
                 <option value="3" {% if month_filter == '3' %}selected{% endif %}>Mart</option>
@@ -1151,10 +1151,10 @@
         
         <div class="filter-actions">
             <button type="submit" class="btn btn-filter btn-filter-primary">
-                <i class="bi bi-search"></i> Qidirish
+                <i class="bi bi-search"></i> Qidiriş
             </button>
             <a href="{% url 'admin_teacher_earnings' %}" class="btn btn-filter btn-filter-secondary">
-                <i class="bi bi-arrow-clockwise"></i> Tozalash
+                <i class="bi bi-arrow-clockwise"></i> Tozalaş
             </a>
         </div>
     </form>
@@ -1164,10 +1164,10 @@
 <div class="section-header">
     <h3 class="section-title">
         <span class="section-title-icon"><i class="bi bi-people-fill"></i></span>
-        O'qituvchilar daromadi
+        Öqituvçilar daromadi
     </h3>
     {% if teacher_earnings %}
-    <span class="section-badge">{{ teacher_earnings|length }} ta o'qituvchi</span>
+    <span class="section-badge">{{ teacher_earnings|length }} ta öqituvçi</span>
     {% endif %}
 </div>
 
@@ -1259,11 +1259,11 @@
         <div class="t-total-row">
             <div class="t-total-item">
                 <span class="t-total-label">Hisoblangan:</span>
-                <span class="t-total-value t-total-calc">{{ earning.calculated_earnings|floatformat:0 }} so'm</span>
+                <span class="t-total-value t-total-calc">{{ earning.calculated_earnings|floatformat:0 }} söm</span>
             </div>
             <div class="t-total-item">
-                <span class="t-total-label">To'langan:</span>
-                <span class="t-total-value t-total-paid">{{ earning.paid_amount|floatformat:0 }} so'm</span>
+                <span class="t-total-label">Tölangan:</span>
+                <span class="t-total-value t-total-paid">{{ earning.paid_amount|floatformat:0 }} söm</span>
             </div>
         </div>
 
@@ -1292,7 +1292,7 @@
                     <i class="bi bi-dash-lg"></i>
                 </div>
                 <div class="t-activity-info">
-                    <div class="t-activity-title" style="color: var(--bs-secondary-color, #94a3b8);">Hali dars qo'shmagan</div>
+                    <div class="t-activity-title" style="color: var(--bs-secondary-color, #94a3b8);">Hali dars qöşmagan</div>
                     <div class="t-activity-meta">Faollik topilmadi</div>
                 </div>
             {% endif %}
@@ -1302,13 +1302,13 @@
         <div class="t-card-foot">
             <span class="t-balance {% if earning.balance > 0 %}t-bal-pos{% elif earning.balance < 0 %}t-bal-neg{% else %}t-bal-zero{% endif %}">
                 <i class="bi bi-wallet2"></i>
-                {{ earning.balance|floatformat:0 }} so'm
+                {{ earning.balance|floatformat:0 }} söm
             </span>
             <div class="t-actions">
                 <button class="t-action-btn t-btn-view" onclick="viewEarnings('{{ earning.teacher.id }}')" title="Batafsil">
                     <i class="bi bi-eye"></i>
                 </button>
-                <button class="t-action-btn t-btn-pay" onclick="addPayment('{{ earning.teacher.id }}')" title="To'lov qo'shish">
+                <button class="t-action-btn t-btn-pay" onclick="addPayment('{{ earning.teacher.id }}')" title="Tölov qöşiş">
                     <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
@@ -1322,7 +1322,7 @@
         <i class="bi bi-cash-stack"></i>
     </div>
     <h4 class="empty-title">Daromat ma'lumotlari topilmadi</h4>
-    <p class="empty-desc">Berilgan filterlar bo'yicha hech qanday daromat yozuvi mavjud emas.</p>
+    <p class="empty-desc">Berilgan filterlar böyiça heç qanday daromat yozuvi mavjud emas.</p>
 </div>
 {% endif %}
 
@@ -1333,7 +1333,7 @@
         <span class="section-title-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
             <i class="bi bi-receipt"></i>
         </span>
-        To'lov Yozuvlari
+        Tölov Yozuvlari
     </h3>
     <span class="section-badge">{{ salaries|length }} ta yozuv</span>
 </div>
@@ -1343,12 +1343,12 @@
         <table class="pay-table">
             <thead>
                 <tr>
-                    <th>O'qituvchi</th>
+                    <th>Öqituvçi</th>
                     <th>Oy / Yil</th>
                     <th>Turi</th>
                     <th>Summa</th>
                     <th>Holati</th>
-                    <th>Chek</th>
+                    <th>Çek</th>
                     <th>Sana</th>
                     <th>Amallar</th>
                 </tr>
@@ -1376,12 +1376,12 @@
                         </span>
                     </td>
                     <td>
-                        <span class="pay-amount">{{ salary.amount|floatformat:0 }} so'm</span>
+                        <span class="pay-amount">{{ salary.amount|floatformat:0 }} söm</span>
                     </td>
                     <td>
                         <span class="pay-badge {% if salary.is_paid %}pay-badge-paid{% else %}pay-badge-unpaid{% endif %}">
                             {% if salary.is_paid %}
-                                <i class="bi bi-check-circle-fill"></i> To'langan
+                                <i class="bi bi-check-circle-fill"></i> Tölangan
                             {% else %}
                                 <i class="bi bi-clock-fill"></i> Kutilmoqda
                             {% endif %}
@@ -1390,7 +1390,7 @@
                     <td>
                         {% if salary.receipt %}
                             <a href="{{ salary.receipt.url }}" target="_blank" class="pay-receipt">
-                                <i class="bi bi-file-earmark-pdf"></i> Ko'rish
+                                <i class="bi bi-file-earmark-pdf"></i> Köriş
                             </a>
                         {% else %}
                             <span style="color: var(--bs-secondary-color, #94a3b8); font-size: 0.82rem;">—</span>
@@ -1404,15 +1404,15 @@
                     </td>
                     <td>
                         <div class="pay-actions">
-                            <button class="pay-action-btn pay-btn-edit" onclick="editPayment('{{ salary.id }}')" title="Tahrirlash">
+                            <button class="pay-action-btn pay-btn-edit" onclick="editPayment('{{ salary.id }}')" title="Tahrirlaş">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             {% if not salary.is_paid %}
-                            <button class="pay-action-btn pay-btn-check" onclick="markAsPaid('{{ salary.id }}')" title="To'langan">
+                            <button class="pay-action-btn pay-btn-check" onclick="markAsPaid('{{ salary.id }}')" title="Tölangan">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                             {% endif %}
-                            <button class="pay-action-btn pay-btn-del" onclick="deletePayment('{{ salary.id }}')" title="O'chirish">
+                            <button class="pay-action-btn pay-btn-del" onclick="deletePayment('{{ salary.id }}')" title="Öçiriş">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -1430,7 +1430,7 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>To'lov qo'shish</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Tölov qöşiş</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{% url 'admin_teacher_earnings' %}" enctype="multipart/form-data">
@@ -1438,9 +1438,9 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">O'qituvchi</label>
+                            <label class="form-label fw-bold">Öqituvçi</label>
                             <select class="form-select filter-input" name="teacher" required>
-                                <option value="">O'qituvchini tanlang</option>
+                                <option value="">Öqituvçini tanlang</option>
                                 {% for teacher in teachers %}
                                 <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
                                 {% endfor %}
@@ -1449,19 +1449,19 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Turi</label>
                             <select class="form-select filter-input" name="salary_type" required>
-                                <option value="oylik">Oylik maosh</option>
+                                <option value="oylik">Oylik maoş</option>
                                 <option value="kpi">KPI bonus</option>
                                 <option value="bayram">Bayram puli</option>
                                 <option value="bonus">Bonus</option>
                                 <option value="jarima">Jarima</option>
-                                <option value="boshqa">Boshqa</option>
+                                <option value="boshqa">Boşqa</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Summa (so'm)</label>
+                            <label class="form-label fw-bold">Summa (söm)</label>
                             <input type="number" class="form-control filter-input" name="amount" 
                                    placeholder="0" min="0" step="1000" required>
                         </div>
@@ -1496,31 +1496,31 @@
                             <div class="form-text">PDF, JPG yoki PNG (maks: 5MB)</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">To'langan</label>
+                            <label class="form-label fw-bold">Tölangan</label>
                             <select class="form-select filter-input" name="is_paid">
                                 <option value="0">Kutilmoqda</option>
-                                <option value="1">To'langan</option>
+                                <option value="1">Tölangan</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">To'langan sana</label>
+                        <label class="form-label fw-bold">Tölangan sana</label>
                         <input type="date" class="form-control filter-input" name="paid_date">
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold">Izoh</label>
                         <textarea class="form-control filter-input" name="description" rows="3" 
-                                  placeholder="Qo'shimcha izoh..." style="border-radius: 14px;"></textarea>
+                                  placeholder="Qöşimça izoh..." style="border-radius: 14px;"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-filter btn-filter-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </button>
                     <button type="submit" class="btn btn-filter btn-filter-primary">
-                        <i class="bi bi-check-circle"></i> Saqlash
+                        <i class="bi bi-check-circle"></i> Saqlaş
                     </button>
                 </div>
             </form>
@@ -1546,13 +1546,13 @@ function editPayment(paymentId) {
 }
 
 function markAsPaid(paymentId) {
-    if (confirm('Ushbu to\'lovni to\'langan deb belgilashni istaysizmi?')) {
+    if (confirm('Uşbu tölovni tölangan deb belgilaşni istaysizmi?')) {
         console.log('Mark as paid:', paymentId);
     }
 }
 
 function deletePayment(paymentId) {
-    if (confirm('Ushbu to\'lov yozuvini o\'chirishni istaysizmi?')) {
+    if (confirm('Uşbu tölov yozuvini öçirişni istaysizmi?')) {
         console.log('Delete payment:', paymentId);
     }
 }

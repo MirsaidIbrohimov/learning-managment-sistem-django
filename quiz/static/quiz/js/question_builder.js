@@ -26,7 +26,7 @@
 
     const RULES = {
         single_choice: { requiresOptions: true, minOptions: 2, correctRule: 'exactly_one' },
-        true_false: { requiresOptions: true, minOptions: 2, maxOptions: 2, correctRule: 'exactly_one', fixedLabels: ["To'g'ri", "Noto'g'ri"] },
+        true_false: { requiresOptions: true, minOptions: 2, maxOptions: 2, correctRule: 'exactly_one', fixedLabels: ["Töğri", "Notöğri"] },
         multiple_choice: { requiresOptions: true, minOptions: 2, correctRule: 'at_least_one' },
         short_answer: { requiresOptions: false },
         essay: { requiresOptions: false },
@@ -103,7 +103,7 @@
             return "Faqat .jpg, .jpeg, .png fayllar qabul qilinadi.";
         }
         if (file.size > MAX_IMAGE_SIZE) {
-            return "Rasm hajmi 5 MB dan oshmasligi kerak.";
+            return "Rasm hajmi 5 MB dan oşmasligi kerak.";
         }
         return null;
     }
@@ -187,9 +187,9 @@
         els.addOptionBtn.disabled = !canAddMore;
 
         if (rules.correctRule === 'exactly_one') {
-            els.optionsHint.textContent = "Faqat bitta variant to'g'ri javob sifatida belgilanishi kerak.";
+            els.optionsHint.textContent = "Faqat bitta variant töğri javob sifatida belgilanişi kerak.";
         } else if (rules.correctRule === 'at_least_one') {
-            els.optionsHint.textContent = "Kamida bitta variant to'g'ri javob sifatida belgilanishi kerak.";
+            els.optionsHint.textContent = "Kamida bitta variant töğri javob sifatida belgilanişi kerak.";
         } else {
             els.optionsHint.textContent = '';
         }
@@ -270,7 +270,7 @@
 
     // ── Quick-add mode (create-only) ───────────────────────────────────────
     function updateQuickUI() {
-        els.quickCounter.textContent = `Qo'shildi: ${quickCount}`;
+        els.quickCounter.textContent = `Qöşildi: ${quickCount}`;
         els.quickCounter.classList.toggle('d-none', quickCount === 0);
         els.quickFinishBtn.classList.toggle('d-none', quickCount === 0);
     }
@@ -321,18 +321,18 @@
     }
 
     function clientSideValidate(payload) {
-        if (!payload.text) return "Savol matni bo'sh bo'lishi mumkin emas.";
+        if (!payload.text) return "Savol matni böş bölişi mumkin emas.";
         const rules = currentRules();
         if (rules.requiresOptions) {
             if (payload.options.length < rules.minOptions) {
-                return `Kamida ${rules.minOptions} ta javob variant kiritilishi kerak.`;
+                return `Kamida ${rules.minOptions} ta javob variant kiritilişi kerak.`;
             }
             const correctCount = payload.options.filter((o) => o.is_correct).length;
             if (rules.correctRule === 'exactly_one' && correctCount !== 1) {
-                return "Aniq bitta variant to'g'ri javob sifatida belgilanishi kerak.";
+                return "Aniq bitta variant töğri javob sifatida belgilanişi kerak.";
             }
             if (rules.correctRule === 'at_least_one' && correctCount < 1) {
-                return "Kamida bitta variant to'g'ri javob sifatida belgilanishi kerak.";
+                return "Kamida bitta variant töğri javob sifatida belgilanişi kerak.";
             }
             const texts = payload.options.map((o) => o.text.toLowerCase());
             if (new Set(texts).size !== texts.length) {
@@ -340,7 +340,7 @@
             }
         }
         if (els.type.value === 'short_answer' && !(payload.metadata.correct_answers || []).length) {
-            return "Kamida bitta to'g'ri javob kiritilishi kerak.";
+            return "Kamida bitta töğri javob kiritilişi kerak.";
         }
         return null;
     }
@@ -349,7 +349,7 @@
         if (!isEdit) return;
         try {
             const question = await window.QuizApi.get(`questions/${questionId}/`);
-            els.title.textContent = "Savolni tahrirlash";
+            els.title.textContent = "Savolni tahrirlaş";
             els.text.value = question.text;
             els.explanation.value = question.explanation || '';
             els.type.value = question.type;
@@ -398,11 +398,11 @@
                 const created = await window.QuizApi.post('questions/', payload);
                 quickCount += 1;
                 if (els.quickMode.checked) {
-                    const attachedMsg = quizId ? ' va testga qo\'shildi' : '';
+                    const attachedMsg = quizId ? ' va testga qöşildi' : '';
                     window.QuizApi.toast(`Savol saqlandi${attachedMsg} (${quickCount}-ta). Keyingisini kiriting.`);
                     resetFormForNext();
                 } else {
-                    window.QuizApi.toast(quizId ? "Savol yaratildi va testga qo'shildi." : 'Savol yaratildi.');
+                    window.QuizApi.toast(quizId ? "Savol yaratildi va testga qöşildi." : 'Savol yaratildi.');
                     setTimeout(() => {
                         window.location.href = quizId ? backTarget() : `/quiz/questions/${created.id}/edit/`;
                     }, 600);
@@ -423,7 +423,7 @@
     els.saveBtn.addEventListener('click', save);
 
     if (!isEdit && quizId) {
-        els.saveBtn.innerHTML = '<i class="bi bi-check2"></i> Saqlash va testga qo\'shish';
+        els.saveBtn.innerHTML = '<i class="bi bi-check2"></i> Saqlaş va testga qöşiş';
     }
 
     syncImageBlockVisibility();

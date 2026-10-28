@@ -466,7 +466,7 @@ function initContactForm() {
             if (response.ok) {
                 if (messageDiv) {
                     messageDiv.className = 'form-message success';
-                    messageDiv.textContent = "Arizangiz qabul qilindi! Tez orada siz bilan bog'lanamiz. ✅";
+                    messageDiv.textContent = "Arizangiz qabul qilindi! Tez orada siz bilan boğlanamiz. ✅";
                     messageDiv.style.display = 'block';
                 }
                 form.reset();
@@ -476,7 +476,7 @@ function initContactForm() {
         } catch (error) {
             if (messageDiv) {
                 messageDiv.className = 'form-message success';
-                messageDiv.textContent = "Rahmat! Ma'lumotlaringiz qabul qilindi. Tez orada bog'lanamiz! ✅";
+                messageDiv.textContent = "Rahmat! Ma'lumotlaringiz qabul qilindi. Tez orada boğlanamiz! ✅";
                 messageDiv.style.display = 'block';
             }
             form.reset();
@@ -576,7 +576,7 @@ function initTypingEffect() {
     const el = document.querySelector('.typing-text');
     if (!el) return;
 
-    const words = ['Dasturlash', 'Web Development', 'Mobile Apps', 'AI & ML', 'Design'];
+    const words = ['Dasturlaş', 'Web Development', 'Mobile Apps', 'AI & ML', 'Design'];
     let wordIndex = 0;
     let charIndex = 0;
     let isDeleting = false;

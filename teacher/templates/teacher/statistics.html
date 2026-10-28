@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Statistika - O'qituvchi paneli{% endblock %}
+{% block title %}Statistika - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Statistika{% endblock %}
 
 {% block extra_css %}
@@ -137,37 +137,37 @@
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
         <div class="ts-val">{{ total_students }}</div>
-        <div class="ts-lbl">Jami o'quvchi</div>
+        <div class="ts-lbl">Jami öquvçi</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(13, 110, 253,.12);color:#0d6efd;"><i class="bi bi-person-check-fill"></i></div>
         <div class="ts-val">{{ active_students }}</div>
-        <div class="ts-lbl">Faol o'quvchilar</div>
+        <div class="ts-lbl">Faol öquvçilar</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;"><i class="bi bi-check2-circle"></i></div>
         <div class="ts-val">{{ students_with_submissions }}</div>
-        <div class="ts-lbl">Vazifa topshirgan</div>
+        <div class="ts-lbl">Vazifa topşirgan</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(239,68,68,.12);color:#ef4444;"><i class="bi bi-x-circle-fill"></i></div>
         <div class="ts-val">{{ students_without_submissions }}</div>
-        <div class="ts-lbl">Topshirmagan</div>
+        <div class="ts-lbl">Topşirmagan</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;"><i class="bi bi-star-fill"></i></div>
         <div class="ts-val">{{ avg_grade_percent }}%</div>
-        <div class="ts-lbl">O'rtacha ball</div>
+        <div class="ts-lbl">Örtaça ball</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(168,85,247,.12);color:#a855f7;"><i class="bi bi-mortarboard-fill"></i></div>
         <div class="ts-val">{{ test_pass_percent }}%</div>
-        <div class="ts-lbl">Test o'tish %</div>
+        <div class="ts-lbl">Test ötiş %</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9;"><i class="bi bi-clipboard-data-fill"></i></div>
         <div class="ts-val">{{ test_avg }}%</div>
-        <div class="ts-lbl">O'rtacha test</div>
+        <div class="ts-lbl">Örtaça test</div>
     </div>
     <div class="ts-top-card">
         <div class="ts-icon" style="background:rgba(34,197,94,.12);color:#22c55e;"><i class="bi bi-lightning-charge-fill"></i></div>
@@ -181,7 +181,7 @@
     <div class="ts-filter-group">
         <label>Kurs</label>
         <select name="profession" onchange="this.form.submit()">
-            <option value="">Barchasi</option>
+            <option value="">Barçasi</option>
             {% for p in professions %}
             <option value="{{ p.id }}" {% if filter_profession == p.id|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
             {% endfor %}
@@ -190,10 +190,10 @@
     <div class="ts-filter-group">
         <label>Holat</label>
         <select name="status" onchange="this.form.submit()">
-            <option value="">Barchasi</option>
+            <option value="">Barçasi</option>
             <option value="faol" {% if filter_status == 'faol' %}selected{% endif %}>Faol</option>
             <option value="top" {% if filter_status == 'top' %}selected{% endif %}>Top</option>
-            <option value="ortacha" {% if filter_status == 'ortacha' %}selected{% endif %}>O'rtacha</option>
+            <option value="ortacha" {% if filter_status == 'ortacha' %}selected{% endif %}>Örtaça</option>
             <option value="sust" {% if filter_status == 'sust' %}selected{% endif %}>Sust</option>
             <option value="xavfli" {% if filter_status == 'xavfli' %}selected{% endif %}>Xavfli</option>
         </select>
@@ -201,14 +201,14 @@
     <div class="ts-filter-group">
         <label>Vazifa</label>
         <select name="homework" onchange="this.form.submit()">
-            <option value="">Barchasi</option>
-            <option value="topshirgan" {% if filter_homework == 'topshirgan' %}selected{% endif %}>Topshirganlar</option>
-            <option value="topshirmagan" {% if filter_homework == 'topshirmagan' %}selected{% endif %}>Topshirmaganlar</option>
+            <option value="">Barçasi</option>
+            <option value="topshirgan" {% if filter_homework == 'topshirgan' %}selected{% endif %}>Topşirganlar</option>
+            <option value="topshirmagan" {% if filter_homework == 'topshirmagan' %}selected{% endif %}>Topşirmaganlar</option>
         </select>
     </div>
     {% if filter_profession or filter_status or filter_homework %}
     <a href="{% url 'teacher:statistics' %}" class="t-btn t-btn-outline" style="height:36px;padding:6px 14px;font-size:.8rem;">
-        <i class="bi bi-x-lg"></i> Tozalash
+        <i class="bi bi-x-lg"></i> Tozalaş
     </a>
     {% endif %}
 </form>
@@ -218,7 +218,7 @@
 <div class="ts-accordion open" id="sec-alerts">
     <div class="ts-acc-header" onclick="toggleAcc('sec-alerts')">
         <div class="ts-acc-icon" style="background:rgba(239,68,68,.12);color:#ef4444;"><i class="bi bi-bell-fill"></i></div>
-        Ogohlantirishlar
+        Ogohlantirişlar
         <span class="ts-acc-badge" style="background:rgba(239,68,68,.12);color:#ef4444;">{{ alerts|length }}</span>
         <i class="bi bi-chevron-down ts-acc-arrow"></i>
     </div>
@@ -233,11 +233,11 @@
 </div>
 {% endif %}
 
-<!-- ===== O'QUVCHILAR JADVALI ===== -->
+<!-- ===== ÖQUVÇILAR JADVALI ===== -->
 <div class="ts-accordion" id="sec-students">
     <div class="ts-acc-header" onclick="toggleAcc('sec-students')">
         <div class="ts-acc-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
-        O'quvchilar jadvali
+        Öquvçilar jadvali
         <span class="ts-acc-badge">{{ students_data|length }} ta</span>
         <i class="bi bi-chevron-down ts-acc-arrow"></i>
     </div>
@@ -249,10 +249,10 @@
                         <th>#</th>
                         <th>F.I.Sh</th>
                         <th>Guruh</th>
-                        <th>Oxirgi kirish</th>
+                        <th>Oxirgi kiriş</th>
                         <th>Darslar</th>
                         <th>Vazifalar</th>
-                        <th>Topshirmagan</th>
+                        <th>Topşirmagan</th>
                         <th>Testlar</th>
                         <th>Test %</th>
                         <th>Umumiy</th>
@@ -287,7 +287,7 @@
                             <span class="ts-status ts-status-{{ s.status }}">
                                 {% if s.status == 'faol' %}<i class="bi bi-check-circle-fill"></i> Faol
                                 {% elif s.status == 'top' %}<i class="bi bi-trophy-fill"></i> Top
-                                {% elif s.status == 'ortacha' %}<i class="bi bi-dash-circle-fill"></i> O'rtacha
+                                {% elif s.status == 'ortacha' %}<i class="bi bi-dash-circle-fill"></i> Örtaça
                                 {% elif s.status == 'sust' %}<i class="bi bi-exclamation-circle-fill"></i> Sust
                                 {% elif s.status == 'xavfli' %}<i class="bi bi-exclamation-triangle-fill"></i> Xavfli
                                 {% endif %}
@@ -318,12 +318,12 @@
                 <thead>
                     <tr>
                         <th>Vazifa</th>
-                        <th>Topshirgan</th>
-                        <th>Topshirmagan</th>
-                        <th>O'rtacha</th>
+                        <th>Topşirgan</th>
+                        <th>Topşirmagan</th>
+                        <th>Örtaça</th>
                         <th>Yuqori</th>
                         <th>Past</th>
-                        <th>Tekshirilgan</th>
+                        <th>Tekşirilgan</th>
                         <th>Kutilmoqda</th>
                         <th>Deadline</th>
                     </tr>
@@ -367,15 +367,15 @@
             <div class="ts-test-stats">
                 <div class="ts-test-stat">
                     <div class="ts-test-stat-val">{{ t.attempts }}</div>
-                    <div class="ts-test-stat-lbl">Urinish</div>
+                    <div class="ts-test-stat-lbl">Uriniş</div>
                 </div>
                 <div class="ts-test-stat">
                     <div class="ts-test-stat-val" style="color:{% if t.avg_score >= 70 %}#0d6efd{% elif t.avg_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.avg_score }}%</div>
-                    <div class="ts-test-stat-lbl">O'rtacha</div>
+                    <div class="ts-test-stat-lbl">Örtaça</div>
                 </div>
                 <div class="ts-test-stat">
                     <div class="ts-test-stat-val" style="color:{% if t.pass_rate >= 70 %}#0d6efd{% elif t.pass_rate >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.pass_rate }}%</div>
-                    <div class="ts-test-stat-lbl">O'tish %</div>
+                    <div class="ts-test-stat-lbl">Ötiş %</div>
                 </div>
             </div>
             {% if t.best_result or t.worst_result %}
@@ -407,7 +407,7 @@
 <div class="ts-accordion" id="sec-attendance">
     <div class="ts-acc-header" onclick="toggleAcc('sec-attendance')">
         <div class="ts-acc-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9;"><i class="bi bi-calendar-check-fill"></i></div>
-        Davomat va kirish faolligi
+        Davomat va kiriş faolligi
         <i class="bi bi-chevron-down ts-acc-arrow"></i>
     </div>
     <div class="ts-acc-body">
@@ -432,11 +432,11 @@
     </div>
 </div>
 
-<!-- ===== DARS KO'RISH ===== -->
+<!-- ===== DARS KÖRIŞ ===== -->
 <div class="ts-accordion" id="sec-lessons">
     <div class="ts-acc-header" onclick="toggleAcc('sec-lessons')">
         <div class="ts-acc-icon" style="background:rgba(34,197,94,.12);color:#22c55e;"><i class="bi bi-play-circle-fill"></i></div>
-        Dars ko'rish statistikasi
+        Dars köriş statistikasi
         <span class="ts-acc-badge">{{ lessons_data|length }}</span>
         <i class="bi bi-chevron-down ts-acc-arrow"></i>
     </div>
@@ -445,7 +445,7 @@
         <div class="ts-table-wrap">
             <table class="t-table">
                 <thead>
-                    <tr><th>#</th><th>Dars</th><th>Kurs</th><th>Ko'rganlar</th><th>%</th><th>Progress</th></tr>
+                    <tr><th>#</th><th>Dars</th><th>Kurs</th><th>Körganlar</th><th>%</th><th>Progress</th></tr>
                 </thead>
                 <tbody>
                     {% for l in lessons_data %}
@@ -485,11 +485,11 @@
                 <canvas id="dailyChart" height="180"></canvas>
             </div>
             <div class="ts-chart-card">
-                <div class="ts-chart-title"><i class="bi bi-pie-chart-fill" style="color:#a855f7;"></i> O'quvchi holatlari</div>
+                <div class="ts-chart-title"><i class="bi bi-pie-chart-fill" style="color:#a855f7;"></i> Öquvçi holatlari</div>
                 <canvas id="statusChart" height="180"></canvas>
             </div>
             <div class="ts-chart-card">
-                <div class="ts-chart-title"><i class="bi bi-bar-chart-fill" style="color:#f59e0b;"></i> Vazifa topshirish</div>
+                <div class="ts-chart-title"><i class="bi bi-bar-chart-fill" style="color:#f59e0b;"></i> Vazifa topşiriş</div>
                 <canvas id="hwChart" height="180"></canvas>
             </div>
             <div class="ts-chart-card">
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
-            labels: ['Faol', 'Top', 'O\'rtacha', 'Sust', 'Xavfli'],
+            labels: ['Faol', 'Top', 'Örtaça', 'Sust', 'Xavfli'],
             datasets: [{ data: [statusData.faol, statusData.top, statusData.ortacha, statusData.sust, statusData.xavfli], backgroundColor: ['#0d6efd', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } } }, cutout: '65%' }
@@ -544,8 +544,8 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(document.getElementById('hwChart'), {
             type: 'bar',
             data: { labels: hwLabels, datasets: [
-                { label: 'Topshirgan', data: hwSubmitted, backgroundColor: '#0d6efd', borderRadius: 4, barPercentage: .7 },
-                { label: 'Topshirmagan', data: hwNot, backgroundColor: '#ef4444', borderRadius: 4, barPercentage: .7 }
+                { label: 'Topşirgan', data: hwSubmitted, backgroundColor: '#0d6efd', borderRadius: 4, barPercentage: .7 },
+                { label: 'Topşirmagan', data: hwNot, backgroundColor: '#ef4444', borderRadius: 4, barPercentage: .7 }
             ] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } } }, scales: { y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
         });

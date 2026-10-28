@@ -40,7 +40,7 @@
   function start(container, options, receive) {
     if (!Object.hasOwn(versions, options.version) || typeof options.code !== 'string' ||
         options.code.length > 150000 || typeof options.stdin !== 'string' || options.stdin.length > 20000) {
-      throw new Error('Python kodi yoki kirish ma\u2019lumotlari formati noto\u2018g\u2018ri.');
+      throw new Error('Python kodi yoki kiriş ma\u2019lumotlari formati notöğri.');
     }
     const frame = document.createElement('iframe');
     frame.hidden = true; frame.title = 'Python runtime'; frame.setAttribute('sandbox','allow-scripts');
@@ -55,7 +55,7 @@
     // A classic worker can dynamically import the ESM Pyodide runtime.
     const bootstrap = 'const reportError=e=>parent.postMessage({pythonToken:' + serialize(token) + ',type:"error",text:e.message || String(e)},"*");try{const worker = new Worker(URL.createObjectURL(new Blob([' + serialize(workerCode) + '],{type:"text/javascript"})),{});' +
       'const channel=new MessageChannel();channel.port1.onmessage=e=>parent.postMessage({pythonToken:' + serialize(token) + ',...e.data},"*");' +
-      'worker.onerror=e=>parent.postMessage({pythonToken:' + serialize(token) + ',type:"error",text:e.message || "Python jarayoni yuklanmadi. Tarmoq yoki brauzer cheklovini tekshiring."},"*");' +
+      'worker.onerror=e=>parent.postMessage({pythonToken:' + serialize(token) + ',type:"error",text:e.message || "Python jarayoni yuklanmadi. Tarmoq yoki brauzer çeklovini tekşiring."},"*");' +
       'worker.postMessage(' + serialize(config) + ',[channel.port2]);}catch(e){reportError(e)}';
     // Only the pinned interpreter distribution is reachable, never LMS APIs or arbitrary CDNs.
     const policy = "default-src 'none'; script-src " + config.base + " 'unsafe-inline' 'wasm-unsafe-eval'; worker-src blob:; connect-src " + config.base + "; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none';";
@@ -71,13 +71,13 @@
     };
     const expire = () => {
       stop();
-      receive({type: 'error', text: running ? 'Bajarish vaqti tugadi (15 soniya).' : 'Python yuklash vaqti tugadi. Qayta urinib ko\u2018ring.'});
+      receive({type: 'error', text: running ? 'Bajariş vaqti tugadi (15 soniya).' : 'Python yuklaş vaqti tugadi. Qayta urinib köring.'});
     };
     const listener = e => {
       if (stopped || e.source !== frame.contentWindow || !e.data || e.data.pythonToken !== token) return;
       const {type, text} = e.data;
       if (!['status', 'running', 'stdout', 'stderr', 'done', 'error'].includes(type) || typeof text !== 'string') return;
-      if (++count > 550 || remaining <= 0) { stop(); receive({type:'error', text:'Natija hajmi limitdan oshdi.'}); return; }
+      if (++count > 550 || remaining <= 0) { stop(); receive({type:'error', text:'Natija hajmi limitdan oşdi.'}); return; }
       if (type === 'running') {
         if (running) return;
         running = true;

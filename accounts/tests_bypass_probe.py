@@ -1,8 +1,8 @@
-"""Konsoldan video timerini chetlab o'tish urinishlari (v2 segment protokoli).
+"""Konsoldan video timerini çetlab ötiş urinişlari (v2 segment protokoli).
 
 40 daqiqalik video ustida hujumlar simulyatsiya qilinadi. Eng muhimi —
-"mukammal hujumchi": protokolni to'liq biladigan skript ham darsni yopish
-uchun kamida (talab / SYNC_MAX_RATE) real vaqt sarflashi shart.
+"mukammal hujumçi": protokolni töliq biladigan skript ham darsni yopiş
+uçun kamida (talab / SYNC_MAX_RATE) real vaqt sarflaşi şart.
 """
 import json
 from datetime import timedelta
@@ -20,7 +20,7 @@ from accounts.views import SYNC_MAX_RATE, video_watch_beat, mark_video_watched
 
 
 class _Clock:
-    """Boshqariladigan soat: real vaqt o'tishini aniq simulyatsiya qiladi."""
+    """Boşqariladigan soat: real vaqt ötişini aniq simulyatsiya qiladi."""
 
     def __init__(self, start):
         self.t = start
@@ -106,7 +106,7 @@ class ConsoleBypassProbe(TestCase):
         self.assertEqual(self._progress().verified_seconds, before)
 
     def test_attack_4_perfect_attacker_real_time_floor(self):
-        """Protokolni to'liq bajaradigan skript uchun minimal real vaqt."""
+        """Protokolni töliq bajaradigan skript uçun minimal real vaqt."""
         clock = _Clock(timezone.now())
         step = 120.0
         pos = 0.0
@@ -124,5 +124,5 @@ class ConsoleBypassProbe(TestCase):
                     break
         required = self._progress().required_seconds
         self.assertTrue(result['can_complete'])
-        # Real vaqt talabning 1/SYNC_MAX_RATE qismidan kam bo'lishi mumkin emas.
+        # Real vaqt talabning 1/SYNC_MAX_RATE qismidan kam bölişi mumkin emas.
         self.assertGreaterEqual(clock.elapsed, required / SYNC_MAX_RATE - step)

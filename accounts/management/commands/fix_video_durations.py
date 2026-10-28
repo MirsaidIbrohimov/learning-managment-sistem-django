@@ -1,31 +1,31 @@
 """
-VideoLesson.duration maydonlarini haqiqiy qiymat bilan to'g'irlash.
+VideoLesson.duration maydonlarini haqiqiy qiymat bilan töğirlaş.
 
-Sabab: DB'dagi `duration` (daqiqada) ustoz tomonidan qo'lda kiritilgan va
-ko'p hollarda noto'g'ri (masalan, 5:03 li videoga 10 daqiqa yozilgan).
+Sabab: DB'dagi `duration` (daqiqada) ustoz tomonidan qölda kiritilgan va
+köp hollarda notöğri (masalan, 5:03 li videoga 10 daqiqa yozilgan).
 Bu esa mid-quiz timeline'ni, video darsdagi timerni va progress hisobini
-noto'g'ri ko'rsatadi.
+notöğri körsatadi.
 
 Manbalar:
     • YouTube — video_quiz.transcript.fetch_transcript_by_id() dan snippetlar
-      oxirgi start+duration = video tugash vaqti (soniya)
+      oxirgi start+duration = video tugaş vaqti (soniya)
     • Vimeo   — oEmbed API (https://vimeo.com/api/oembed.json) — autentifikatsiya
       talab qilmaydi, `duration` maydonini soniyada qaytaradi.
 
-Foydalanish:
-    # Barcha videolarni tekshirish (hech nima yozmaydi, faqat ko'rsatadi):
+Foydalaniş:
+    # Barça videolarni tekşiriş (heç nima yozmaydi, faqat körsatadi):
     python manage.py fix_video_durations --dry-run
 
-    # Barcha videolarni to'g'irlash:
+    # Barça videolarni töğirlaş:
     python manage.py fix_video_durations
 
-    # Faqat duration=0 bo'lganlarini:
+    # Faqat duration=0 bölganlarini:
     python manage.py fix_video_durations --only-empty
 
     # Bitta dars:
     python manage.py fix_video_durations --lesson-id 42
 
-    # Farq >= 1 daqiqa bo'lganlarni ko'rsatish (default 0):
+    # Farq >= 1 daqiqa bölganlarni körsatiş (default 0):
     python manage.py fix_video_durations --min-diff 1
 """
 from __future__ import annotations
@@ -42,28 +42,28 @@ from accounts.models import VideoLesson
 
 
 class Command(BaseCommand):
-    help = "VideoLesson.duration ni real (pleerdagi) qiymatga to'g'irlaydi."
+    help = "VideoLesson.duration ni real (pleerdagi) qiymatga töğirlaydi."
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--dry-run', action='store_true',
-            help="DB'ga yozmasdan faqat farqni ko'rsatadi.",
+            help="DB'ga yozmasdan faqat farqni körsatadi.",
         )
         parser.add_argument(
             '--only-empty', action='store_true',
-            help="Faqat duration=0 (yoki NULL) bo'lgan videolarni tekshiradi.",
+            help="Faqat duration=0 (yoki NULL) bölgan videolarni tekşiradi.",
         )
         parser.add_argument(
             '--lesson-id', type=int, default=None,
-            help="Faqat berilgan Lesson pk uchun VideoLesson.",
+            help="Faqat berilgan Lesson pk uçun VideoLesson.",
         )
         parser.add_argument(
             '--min-diff', type=int, default=0,
-            help="Log'da faqat DB va real farqi >= shu daqiqa bo'lganlarni ko'rsatadi.",
+            help="Log'da faqat DB va real farqi >= şu daqiqa bölganlarni körsatadi.",
         )
         parser.add_argument(
             '--sleep', type=float, default=0.35,
-            help="Har videolar orasidagi kutish (soniyada) — API rate-limit'dan qochish.",
+            help="Har videolar orasidagi kutiş (soniyada) — API rate-limit'dan qoçiş.",
         )
 
     def handle(self, *args, **opts):
@@ -85,7 +85,7 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(self.style.NOTICE(
-            f"Tekshirilyapti: {total} ta video. dry_run={dry_run}"
+            f"Tekşirilyapti: {total} ta video. dry_run={dry_run}"
         ))
 
         updated = skipped = failed = 0
@@ -95,12 +95,12 @@ class Command(BaseCommand):
 
             if not video.has_video:
                 failed += 1
-                self.stdout.write(f"  [{idx}/{total}] ⚠️  {title}: video URL yo'q — o'tkazildi")
+                self.stdout.write(f"  [{idx}/{total}] ⚠️  {title}: video URL yöq — ötkazildi")
                 continue
 
             try:
                 real_sec = self._fetch_real_duration(video)
-            except Exception as e:                  # noqa: BLE001 — barcha xatolarni yig'ib log qilamiz
+            except Exception as e:                  # noqa: BLE001 — barça xatolarni yiğib log qilamiz
                 failed += 1
                 self.stdout.write(self.style.ERROR(
                     f"  [{idx}/{total}] ❌ {title}: {e}"
@@ -146,11 +146,11 @@ class Command(BaseCommand):
 
         self.stdout.write("")
         self.stdout.write(self.style.SUCCESS(
-            f"Bajarildi. Yangilangan: {updated}, o'zgarmadi: {skipped}, xato: {failed}."
+            f"Bajarildi. Yangilangan: {updated}, özgarmadi: {skipped}, xato: {failed}."
         ))
         if dry_run and updated:
             self.stdout.write(self.style.WARNING(
-                "DRY-RUN — hech narsa yozilmadi. Yozish uchun --dry-run olib tashlang."
+                "DRY-RUN — heç narsa yozilmadi. Yoziş uçun --dry-run olib taşlang."
             ))
 
     # ── Manbalar ─────────────────────────────────────────────────────────
@@ -167,12 +167,12 @@ class Command(BaseCommand):
         video_id = video.get_video_id()
         if not video_id:
             return None
-        # Reuse the project's existing helper — u tillar bo'yicha fallback qiladi.
+        # Reuse the project's existing helper — u tillar böyiça fallback qiladi.
         from video_quiz.transcript import fetch_transcript_by_id
         _text, err, snips = fetch_transcript_by_id(video_id)
         if err or not snips:
-            # Subtitr yo'q — YouTube oEmbed fallback (title beradi lekin durationni bermaydi).
-            # Bu holatda None qaytariladi va foydalanuvchi ko'lda tuzatadi.
+            # Subtitr yöq — YouTube oEmbed fallback (title beradi lekin durationni bermaydi).
+            # Bu holatda None qaytariladi va foydalanuvçi kölda tuzatadi.
             return None
         last = snips[-1]
         end = float(last.get('start', 0) or 0) + float(last.get('duration', 0) or 0)
@@ -200,5 +200,5 @@ class Command(BaseCommand):
 
 
 # Bu fayl: `python manage.py fix_video_durations` — VideoLesson.duration
-# maydonlarini real qiymatga to'g'irlaydi (YouTube/Vimeo uchun). Idempotent:
-# takroriy ishlatilganda hech narsa buzilmaydi.
+# maydonlarini real qiymatga töğirlaydi (YouTube/Vimeo uçun). Idempotent:
+# takroriy işlatilganda heç narsa buzilmaydi.

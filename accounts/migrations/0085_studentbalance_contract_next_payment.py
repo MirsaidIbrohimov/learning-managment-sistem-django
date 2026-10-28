@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='studentbalance',
             name='is_contract',
-            field=models.BooleanField(default=False, verbose_name='Shartnoma rejimi'),
+            field=models.BooleanField(default=False, verbose_name='Şartnoma rejimi'),
         ),
         migrations.AddField(
             model_name='studentbalance',
             name='next_payment_date',
-            field=models.DateField(blank=True, null=True, verbose_name="Keyingi to'lov sanasi"),
+            field=models.DateField(blank=True, null=True, verbose_name="Keyingi tölov sanasi"),
         ),
     ]

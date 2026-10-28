@@ -8,9 +8,9 @@
 <style>
 /* ============================================================
    JUMANJI — "Modern Glass Trail"
-   Dark glassmorphism uslubi: to'q ko'k-fuşya gradiyent fon,
-   shisha (frosted) panellar, neon aksentlar va silliq soyalar.
-   Kataklar yog'och lavha emas — toza shisha kartalar.
+   Dark glassmorphism uslubi: töq kök-fuşya gradiyent fon,
+   şişa (frosted) panellar, neon aksentlar va silliq soyalar.
+   Kataklar yoğoç lavha emas — toza şişa kartalar.
    ============================================================ */
 
 .jm-page {
@@ -26,17 +26,17 @@
     letter-spacing: 0.2px;
 }
 
-/* base.css dagi .main-container sahifani 1180px bilan bo'g'adi va faqat
+/* base.css dagi .main-container sahifani 1180px bilan böğadi va faqat
    1921px'dan keng ekranda kengayadi — ya'ni 1600/1920px monitorda ham doskaga
-   ~470px qolardi. Jumanji doskasi asosiy narsa, shuning uchun bu sahifada
-   cheklovni olib tashlaymiz (ariza.html va qabul sahifasida ham shunday). */
+   ~470px qolardi. Jumanji doskasi asosiy narsa, şuning uçun bu sahifada
+   çeklovni olib taşlaymiz (ariza.html va qabul sahifasida ham şunday). */
 .main-container {
     max-width: none !important;
     margin: 0.6rem auto !important;
     padding: 0 !important;
 }
 
-/* --- Modrn ko'k-fuşya fon --- */
+/* --- Modrn kök-fuşya fon --- */
 .jm-jungle {
     position: fixed; inset: 0; z-index: -1;
     background:
@@ -103,7 +103,7 @@
 .jm-sound:hover { background: rgba(255,255,255,0.18); transform: scale(1.08); }
 .jm-sound.off { opacity: 0.5; }
 
-/* --- Uch ustunli tartib --- */
+/* --- Uç ustunli tartib --- */
 .jm-grid {
     display: grid;
     grid-template-columns: 272px minmax(0, 1fr) 350px;
@@ -146,14 +146,14 @@
 }
 
 /* ============================================================
-   DOSKA — neon so'qmoq
+   DOSKA — neon söqmoq
    ============================================================ */
 .jm-board {
     position: relative;
     width: 100%;
-    /* Doska bo'yi = kenglik × aspect (42–71%). Kenglikni cheklab, doska
-       to'liq ekranga sig'ib turishini kafolatlaymiz — pastini ko'rish uchun
-       o'qituvchi sahifani aylantirmasin. */
+    /* Doska böyi = kenglik × aspect (42–71%). Kenglikni çeklab, doska
+       töliq ekranga siğib turişini kafolatlaymiz — pastini köriş uçun
+       öqituvçi sahifani aylantirmasin. */
     max-width: calc(68vh * 100 / var(--jm-aspect, 60));
     margin-inline: auto;
     border-radius: 28px;
@@ -170,9 +170,9 @@
         0 28px 70px rgba(0,0,0,0.55);
     overflow: hidden;
 }
-/* Yuqoridan sekin o'tib turadigan nur — doska "jonli" ko'rinadi.
-   Kataklar va toshlar ustiga chiqmasligi uchun .jm-board-inner ichida
-   past z-index bilan turadi (kataklar z-index:3, toshlar z-index:6). */
+/* Yuqoridan sekin ötib turadigan nur — doska "jonli" körinadi.
+   Kataklar va toşlar ustiga çiqmasligi uçun .jm-board-inner içida
+   past z-index bilan turadi (kataklar z-index:3, toşlar z-index:6). */
 .jm-board-inner::before {
     content: '';
     position: absolute; inset: -40%;
@@ -199,7 +199,7 @@
 
 .jm-board-inner { position: absolute; inset: 0; }
 
-/* Neon yo'l chizig'i */
+/* Neon yöl çiziği */
 .jm-trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .jm-trail .rope { fill: none; stroke: rgba(139,92,246,0.55); stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(139,92,246,0.6)); }
 .jm-trail .rope-in { fill: none; stroke: rgba(34,211,238,0.5); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(34,211,238,0.6)); }
@@ -209,8 +209,8 @@
 .jm-trail .arc-ladder { fill: none; stroke: rgba(251,191,36,0.85); stroke-width: 3.5; stroke-dasharray: 3 9; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(251,191,36,0.7)); }
 
 /* ------------------------------------------------------------
-   KATAK — shisha karta.
-   Effekt ohangi shisha chetining porlashi va ikonka rangidan bilinadi.
+   KATAK — şişa karta.
+   Effekt ohangi şişa çetining porlaşi va ikonka rangidan bilinadi.
    ------------------------------------------------------------ */
 .jm-cell {
     --w1: #eef2ff; --w2: #e0e7ff; --w3: #c7d2fe;
@@ -234,19 +234,19 @@
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
-/* Har karta bir oz qiyshiq — tabiiy his */
+/* Har karta bir oz qiyşiq — tabiiy his */
 .jm-cell:nth-child(3n)   { --tilt: -2.2deg; }
 .jm-cell:nth-child(3n+1) { --tilt: 1.7deg; }
 .jm-cell:nth-child(4n+2) { --tilt: -1deg; }
 
-/* Shisha ichki yorqinlik */
+/* Şişa içki yorqinlik */
 .jm-cell::before {
     content: ''; position: absolute; inset: 4%;
     pointer-events: none; z-index: 1;
     border-radius: inherit;
     background: linear-gradient(160deg, rgba(255,255,255,0.5) 0%, transparent 55%);
 }
-/* Shisha cheti va pastki nur */
+/* Şişa çeti va pastki nur */
 .jm-cell::after {
     content: ''; position: absolute; inset: 0; z-index: 1;
     border-radius: inherit; pointer-events: none;
@@ -260,7 +260,7 @@
     font-size: clamp(0.4rem, 0.7vw, 0.56rem); font-weight: 900; letter-spacing: 0.5px;
     color: rgba(30,27,75,0.8); text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
-/* Bo'sh kartada raqam markazda va yirik */
+/* Böş kartada raqam markazda va yirik */
 .jm-cell.plain .num {
     top: 50%; transform: translate(-50%, -50%);
     font-size: clamp(0.6rem, 1.15vw, 1.05rem);
@@ -272,7 +272,7 @@
     filter: drop-shadow(0 1px 0 rgba(255,255,255,0.4)) drop-shadow(0 2px 5px rgba(0,0,0,0.5));
     display: flex; align-items: center; justify-content: center;
 }
-/* Yozuv — to'q, shisha ustida o'qiladi */
+/* Yozuv — töq, şişa ustida öqiladi */
 .jm-cell .lbl, .jm-cell .cap {
     position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
     font-weight: 900; line-height: 1.05; text-transform: uppercase;
@@ -287,8 +287,8 @@
     color: rgba(30,27,75,0.95); text-shadow: 0 1px 0 rgba(255,255,255,0.55);
 }
 
-/* Lavha o'lchami doska kattaligiga qarab o'zgaradi — yozuvlar ham
-   ekran emas, lavha balandligiga (cqh) bog'lansa mutanosib qoladi. */
+/* Lavha ölçami doska kattaligiga qarab özgaradi — yozuvlar ham
+   ekran emas, lavha balandligiga (cqh) boğlansa mutanosib qoladi. */
 @supports (container-type: size) {
     .jm-cell { container-type: size; }
     .jm-cell .num        { font-size: clamp(0.42rem, 21cqh, 0.72rem); }
@@ -298,7 +298,7 @@
     .jm-cell .cap        { font-size: clamp(0.36rem, 22cqh, 0.62rem); }
 }
 
-/* Effekt ohangi — neon porlash */
+/* Effekt ohangi — neon porlaş */
 .jm-cell[data-tone="good"]    { --accent: rgba(52,211,153,0.65); border-color: rgba(52,211,153,0.55); }
 .jm-cell[data-tone="bad"]     { --accent: rgba(244,63,94,0.65); border-color: rgba(244,63,94,0.55); }
 .jm-cell[data-tone="neutral"] { --accent: rgba(251,191,36,0.65); border-color: rgba(251,191,36,0.55); }
@@ -331,7 +331,7 @@
     100% { transform: translate(-50%,-50%) rotate(var(--tilt)) scale(1); }
 }
 
-/* --- O'yinchi toshlari (doska ustida suzadi) --- */
+/* --- Öyinçi toşlari (doska ustida suzadi) --- */
 .jm-token {
     position: absolute;
     width: calc(var(--jm-cell) * 0.52); aspect-ratio: 1 / 1;
@@ -355,11 +355,11 @@
 }
 
 /* ============================================================
-   O'RTADAGI ZAR — rune portal ichida dumalaydigan 3D kub.
-   Kub 6 yuzli haqiqiy geometriya (preserve-3d), shu tufayli
-   qiymat "aylanib to'xtadi" degan taassurot beradi. Qo'sh zarbada
-   (qiymat 6 dan katta) kub asl toshda to'xtaydi, jami esa lavhada
-   ×2 belgisi bilan ko'rsatiladi.
+   ÖRTADAGI ZAR — rune portal içida dumalaydigan 3D kub.
+   Kub 6 yuzli haqiqiy geometriya (preserve-3d), şu tufayli
+   qiymat "aylanib töxtadi" degan taassurot beradi. Qöş zarbada
+   (qiymat 6 dan katta) kub asl toşda töxtaydi, jami esa lavhada
+   ×2 belgisi bilan körsatiladi.
    ============================================================ */
 .jm-dicestage {
     position: absolute; inset: 0; z-index: 20;
@@ -374,8 +374,8 @@
     background: radial-gradient(closest-side at 50% 50%, rgba(20,16,50,0.45) 0%, rgba(8,8,30,0.9) 78%);
     transition: opacity 0.45s ease;
 }
-/* Kub to'xtagach parda va halqalar ochiladi — o'yinchi toshining
-   katakma-katak yurishi natija lavhasi ostida ko'rinib turadi. */
+/* Kub töxtagaç parda va halqalar oçiladi — öyinçi toşining
+   katakma-katak yurişi natija lavhasi ostida körinib turadi. */
 .jm-dicestage.land .jm-dice-veil { opacity: 0; }
 
 .jm-dice-portal {
@@ -384,9 +384,9 @@
     position: relative;
     display: flex; flex-direction: column; align-items: center;
 }
-/* Doska juda pasak bo'lishi mumkin (masalan 30 katak 9 ustunda) — o'sha holda
-   portal doskadan chiqib ketmasin, shuning uchun kub doska balandligiga
-   bog'lanadi. Butun portal ~2.9 × --die, ya'ni balandlikning ~93 %'i. */
+/* Doska juda pasak bölişi mumkin (masalan 30 katak 9 ustunda) — öşa holda
+   portal doskadan çiqib ketmasin, şuning uçun kub doska balandligiga
+   boğlanadi. Butun portal ~2.9 × --die, ya'ni balandlikning ~93 %'i. */
 @supports (container-type: size) {
     .jm-board-inner { container-type: size; }
     .jm-dice-portal { --die: clamp(34px, min(8.6vw, 32cqh), 92px); }
@@ -399,7 +399,7 @@
     perspective: 780px;
 }
 
-/* Qarshi yo'nalishda aylanuvchi rune halqalar */
+/* Qarşi yönalişda aylanuvçi rune halqalar */
 .jm-dice-runes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity 0.5s ease; }
 .jm-dicestage.land .jm-dice-runes { opacity: 0; }
 .jm-dice-runes circle {
@@ -411,7 +411,7 @@
 .jm-dice-runes .r3 { stroke: rgba(253,230,138,0.25); stroke-width: 7; stroke-dasharray: 1 22; animation: jmRuneSpin 17s linear infinite; }
 @keyframes jmRuneSpin { to { transform: rotate(360deg); } }
 
-/* Tosh tushgan zahoti tarqaladigan zarba to'lqini */
+/* Toş tuşgan zahoti tarqaladigan zarba tölqini */
 .jm-dice-wave {
     position: absolute; left: 50%; top: 50%;
     width: calc(var(--die) * 2.5); height: calc(var(--die) * 2.5);
@@ -513,7 +513,7 @@
 .jm-lg .tone-neutral { color: #fcd34d; }
 
 /* ============================================================
-   TOPSHIRIQ PANELI (o'ng ustun)
+   TOPŞIRIQ PANELI (öng ustun)
    ============================================================ */
 .jm-quest {
     background: rgba(255,255,255,0.07);
@@ -618,7 +618,7 @@
 .jm-btn.big { flex: 1 1 46%; padding: 0.85rem 1rem; font-size: 1rem; }
 
 /* ============================================================
-   O'YINCHILAR RO'YXATI
+   ÖYINÇILAR RÖYXATI
    ============================================================ */
 .jm-roster { display: flex; flex-direction: column; gap: 0.45rem; max-height: 440px; overflow-y: auto; }
 .jm-rp {
@@ -665,7 +665,7 @@
 .jm-ev.hot { border-left-color: #fcd34d; background: rgba(251,191,36,0.12); }
 .jm-ev.bad { border-left-color: #f43f5e; background: rgba(244,63,94,0.12); }
 
-/* G'olib pardasi */
+/* Ğolib pardasi */
 .jm-win {
     position: fixed; inset: 0; z-index: 3000; display: none;
     align-items: center; justify-content: center;
@@ -701,7 +701,7 @@
 .jm-toast.err { background: rgba(136,19,55,0.92); border-color: rgba(244,63,94,0.5); }
 
 /* ============================================================
-   TO'LIQ EKRAN
+   TÖLIQ EKRAN
    ============================================================ */
 .jm-page:fullscreen, .jm-page:-webkit-full-screen {
     max-width: none; width: 100vw; height: 100vh;
@@ -715,7 +715,7 @@
 .jm-page:fullscreen .jm-roster { max-height: 52vh; }
 
 /* ============================================================
-   EFFEKT BILDIRGISI — ekran o'rtasida katta xabar
+   EFFEKT BILDIRGISI — ekran örtasida katta xabar
    ============================================================ */
 .jm-shout {
     position: fixed; inset: 0; z-index: 2600;
@@ -764,7 +764,7 @@
 .jm-shout-card.neutral { border-color: rgba(253,230,138,0.7); }
 .jm-shout-card.neutral .ic, .jm-shout-card.neutral .big { color: #fcd34d; }
 
-/* Bomba — portlash */
+/* Bomba — portlaş */
 .jm-shout-card.boom { border-color: rgba(251,146,60,0.85); animation: jmBoomShake 0.6s ease-out; }
 .jm-shout-card.boom .ic, .jm-shout-card.boom .big { color: #fb923c; }
 @keyframes jmBoomShake {
@@ -783,8 +783,8 @@
 @keyframes jmBoomRing {
     to { width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax; border-width: 2px; opacity: 0; }
 }
-/* Portlashda faqat panellar silkinadi — .jm-page ning o'zi qimirlasa,
-   uning ichidagi position:fixed qoplamalar joyidan siljib ketardi. */
+/* Portlaşda faqat panellar silkinadi — .jm-page ning özi qimirlasa,
+   uning içidagi position:fixed qoplamalar joyidan siljib ketardi. */
 .jm-grid.shake { animation: jmPageShake 0.5s ease-out; }
 @keyframes jmPageShake {
     0%,100% { transform: translate(0,0); }
@@ -795,9 +795,9 @@
 }
 
 /* ============================================================
-   O'QUVCHINING TOSH AYLANTIRISH TUGMASI — o'rtadagi kub bilan
-   bir xil suyak-oq yuza va nuqtalar, shu tufayli bosgan tosh
-   doska o'rtasida dumalayotgani darhol tushunarli bo'ladi.
+   ÖQUVÇINING TOŞ AYLANTIRIŞ TUGMASI — örtadagi kub bilan
+   bir xil suyak-oq yuza va nuqtalar, şu tufayli bosgan toş
+   doska örtasida dumalayotgani darhol tuşunarli böladi.
    ============================================================ */
 .jm-rollbox { text-align: center; padding: 0.3rem 0 0.2rem; }
 .jm-rollbox .cue { font-size: 0.86rem; color: #a5f3fc; font-weight: 700; margin-bottom: 0.7rem; }
@@ -872,7 +872,7 @@
      data-seconds="{{ question_seconds }}">
 
     <div class="jm-top">
-        <a href="{% url 'games:games_list' %}" class="jm-back"><i class="bi bi-arrow-left"></i> O'yinlar</a>
+        <a href="{% url 'games:games_list' %}" class="jm-back"><i class="bi bi-arrow-left"></i> Öyinlar</a>
         <div>
             <h1 class="jm-logo">JUMANJI</h1>
             <div class="jm-sub">{{ competition.title }}</div>
@@ -880,19 +880,19 @@
         <span class="jm-pill {{ session.status }}" id="jmStatus">{{ session.get_status_display }}</span>
         <span class="jm-pill paused d-none" id="jmPaused"><i class="bi bi-pause-fill"></i> Pauza</span>
         <span class="jm-pill count" id="jmCount"><i class="bi bi-people-fill"></i> {{ session.players.count }}</span>
-        <button type="button" class="jm-sound" id="jmSound" title="Ovozni yoqish/o'chirish"><i class="bi bi-volume-up-fill"></i></button>
-        <button type="button" class="jm-sound ms-2" id="jmFull" title="To'liq ekran (F)"><i class="bi bi-arrows-fullscreen"></i></button>
+        <button type="button" class="jm-sound" id="jmSound" title="Ovozni yoqish/öchirish"><i class="bi bi-volume-up-fill"></i></button>
+        <button type="button" class="jm-sound ms-2" id="jmFull" title="Töliq ekran (F)"><i class="bi bi-arrows-fullscreen"></i></button>
     </div>
 
     <div class="jm-grid" id="jmGrid">
-        <!-- ===== CHAP: o'yinchilar ===== -->
+        <!-- ===== ÇAP: öyinçilar ===== -->
         <aside class="jm-side">
             <div class="jm-card">
-                <h6>O'yinchilar</h6>
+                <h6>Öyinçilar</h6>
                 <div class="jm-roster" id="jmRoster">
                     <div class="text-muted small">Yuklanmoqda…</div>
                 </div>
-                {# Tugmalar clientda chiziladi: qo'shilish/chiqish sahifani yangilamasdan ko'rinsin #}
+                {# Tugmalar clientda çiziladi: qöshilish/chiqish sahifani yangilamasdan körinsin #}
                 <div id="jmLobbyBtns"></div>
             </div>
 
@@ -907,7 +907,7 @@
             {{ links|json_script:"jmLinks" }}
             {{ geometry.points|json_script:"jmPoints" }}
 
-            {# uz lokali kasrni vergul bilan yozadi ("10,92%") — CSS buni tushunmaydi #}
+            {# uz lokali kasrni vergul bilan yozadi ("10,92%") — CSS buni tuşunmaydi #}
             {% localize off %}
             <div class="jm-board" id="jmBoard"
                  style="--jm-cell: {{ geometry.cell }}%; --jm-aspect: {{ geometry.aspect }}; padding-top: {{ geometry.aspect }}%;">
@@ -971,10 +971,10 @@
             </div>
         </main>
 
-        <!-- ===== O'NG: topshiriq paneli ===== -->
+        <!-- ===== ÖNG: topşiriq paneli ===== -->
         <section class="jm-quest">
             <div class="jm-quest-head">
-                <span class="t">Topshiriq</span>
+                <span class="t">Topşiriq</span>
                 <span class="jm-pill count ms-auto" id="jmPhase">—</span>
             </div>
             <div class="jm-quest-body" id="jmStage">
@@ -986,14 +986,14 @@
         </section>
     </div>
 
-    {# Qoplamalar .jm-page ichida: to'liq ekran rejimida ham ko'rinib turadi #}
+    {# Qoplamalar .jm-page içida: töliq ekran rejimida ham körinib turadi #}
     <div class="jm-win" id="jmWin">
         <div class="jm-win-card">
             <div class="cup"><i class="bi bi-trophy-fill"></i></div>
             <h3 class="fw-bold mt-2 mb-1" id="jmWinName">—</h3>
-            <p style="color:#86efac;" class="mb-0">Jumanji g'olibi!</p>
+            <p style="color:#86efac;" class="mb-0">Jumanji ğolibi!</p>
             <div class="jm-standings" id="jmStandings"></div>
-            <a href="{% url 'games:games_list' %}" class="jm-btn go mt-4 d-inline-flex">O'yinlarga qaytish</a>
+            <a href="{% url 'games:games_list' %}" class="jm-btn go mt-4 d-inline-flex">Öyinlarga qaytiş</a>
         </div>
     </div>
 
@@ -1071,26 +1071,26 @@
     var busy = false;
     var timerId = null;
     var seenWinner = false;
-    var answerHidden = false;   // boshqaruvchi doskani o'quvchilarga ko'rsatganda
-                                // to'g'ri javob yashirin turishi uchun
-    var lastStatus = null;      // status o'zgarishini aniqlash uchun
+    var answerHidden = false;   // boşqaruvçi doskani öquvçilarga körsatganda
+                                // töğri javob yaşirin turişi uçun
+    var lastStatus = null;      // status özgarişini aniqlaş uçun
     var boardPainted = LINKS.length > 0;
     var needFull = false;
-    var primed = false;      // birinchi javobdan keyin animatsiya/ovoz yoqiladi
-    var walkers = {};        // o'yinchi id → yurish taymeri
-    var starters = {};       // o'yinchi id → yurishni boshlash kechikishi
+    var primed = false;      // birinçi javobdan keyin animatsiya/ovoz yoqiladi
+    var walkers = {};        // öyinçi id → yuriş taymeri
+    var starters = {};       // öyinçi id → yurişni boşlaş keçikişi
     var tokenNodes = {};
-    var nameId = {};         // hodisadagi ism → o'yinchi id (yurish uchun)
-    var walking = {};        // o'yinchi id → hozir yuryapti (toshga tegmaslik)
-    var pendingEffect = {};  // o'yinchi id → zarba yurishidan keyin qo'llanadigan effekt
-    var polling = false;     // bir vaqtda faqat bitta so'rov — navbat yig'ilmaydi
+    var nameId = {};         // hodisadagi ism → öyinçi id (yuriş uçun)
+    var walking = {};        // öyinçi id → hozir yuryapti (toşga tegmaslik)
+    var pendingEffect = {};  // öyinçi id → zarba yurişidan keyin qöllanadigan effekt
+    var polling = false;     // bir vaqtda faqat bitta sörov — navbat yiğilmaydi
     var pollTimer = null;
-    var idleRounds = 0;      // ketma-ket o'zgarishsiz javoblar soni
-    var diceUntil = 0;       // zarba animatsiyasi shu vaqtgacha davom etadi
+    var idleRounds = 0;      // ketma-ket özgarişsiz javoblar soni
+    var diceUntil = 0;       // zarba animatsiyasi şu vaqtgaça davom etadi
 
     // ============================================================
-    // OVOZ — fayl yuklanmaydi, WebAudio to'lqinlari sintez qilinadi.
-    // Shu tufayli sahifa og'irlashmaydi va 404 xavfi yo'q.
+    // OVOZ — fayl yuklanmaydi, WebAudio tölqinlari sintez qilinadi.
+    // Şu tufayli sahifa oğirlaşmaydi va 404 xavfi yöq.
     // ============================================================
     var audio = (function () {
         var ctx = null;
@@ -1153,8 +1153,8 @@
             neutral: function () { blip({ from: 440, to: 620, dur: 0.22, type: 'triangle', vol: 0.13 }); },
             tick: function () { blip({ from: 1300, dur: 0.05, type: 'square', vol: 0.06 }); },
             open: function () { blip({ from: 400, to: 800, dur: 0.2, type: 'triangle', vol: 0.13 }); },
-            /* Portlash: shovqin portlashi + pastga tushuvchi past ton.
-               Bomba katagida o'quvchi darhol sezishi uchun ataylab baland. */
+            /* Portlaş: şovqin portlaşi + pastga tuşuvçi past ton.
+               Bomba katagida öquvçi darhol sezişi uçun ataylab baland. */
             boom: function () {
                 if (!on) { return; }
                 var c = context();
@@ -1193,13 +1193,13 @@
         el.soundBtn.innerHTML = on ? SOUND_ON_ICON : SOUND_OFF_ICON;
         el.soundBtn.classList.toggle('off', !on);
     });
-    // Brauzerlar ovozni faqat foydalanuvchi harakatidan keyin ochadi.
+    // Brauzerlar ovozni faqat foydalanuvçi harakatidan keyin oçadi.
     document.addEventListener('click', function once() {
         audio.unlock();
         document.removeEventListener('click', once);
     });
 
-    // ---------- yordamchilar ----------
+    // ---------- yordamçilar ----------
     function csrf() {
         var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
         return m ? decodeURIComponent(m[1]) : '';
@@ -1244,7 +1244,7 @@
                 return;
             }
             node.dataset.tone = cell.effect.tone;
-            // Sarlavhada nomi ham, izohi ham — o'quvchi katakda nima borligini biladi
+            // Sarlavhada nomi ham, izohi ham — öquvçi katakda nima borligini biladi
             node.title = cell.effect.label + ' — ' + cell.effect.hint;
             if (!fx) {
                 fx = document.createElement('span');
@@ -1261,8 +1261,8 @@
         });
     }
 
-    // Ilon/narvon yoylari — koordinatalar serverdan kelgani uchun
-    // o'lchov (getBoundingClientRect) kerak emas, resize'da qayta chizilmaydi.
+    // Ilon/narvon yoylari — koordinatalar serverdan kelgani uçun
+    // ölçov (getBoundingClientRect) kerak emas, resize'da qayta çizilmaydi.
     function drawArcs() {
         el.arcs.innerHTML = LINKS.map(function (link) {
             var a = point(link.from);
@@ -1296,15 +1296,15 @@
         cell.classList.add('pop');
     }
 
-    /* Toshni katakma-katak yurgizadi. Har yurish alohida CSS o'tishi —
-       shu tufayli brauzer layout'ni qayta hisoblamaydi va o'yin qotmaydi.
-       `delay` — zarba animatsiyasi tugashini kutish uchun (avval tosh
-       tushadi, keyin o'yinchi yuradi). `done` — yurish tugagach chaqiriladi
-       (ilon/narvon/bomba effekti yurishini zanjirlash uchun).
+    /* Toşni katakma-katak yurgizadi. Har yuriş alohida CSS ötişi —
+       şu tufayli brauzer layout'ni qayta hisoblamaydi va öyin qotmaydi.
+       `delay` — zarba animatsiyasi tugaşini kutiş uçun (avval toş
+       tuşadi, keyin öyinçi yuradi). `done` — yuriş tugagaç çaqiriladi
+       (ilon/narvon/bomba effekti yurişini zanjirlaş uçun).
 
-       Avval tosh ZARBA tushgan katakka boradi, keyin effekt (agar bo'lsa)
-       uni yakuniy katakka sudraydi. Shu tufayli o'yinchi "14 ga keldi-yu
-       12 ga tushdi" deb adashmaydi — harakat ketma-ket ko'rinadi.
+       Avval toş ZARBA tuşgan katakka boradi, keyin effekt (agar bölsa)
+       uni yakuniy katakka sudraydi. Şu tufayli öyinçi "14 ga keldi-yu
+       12 ga tuşdi" deb adaşmaydi — harakat ketma-ket körinadi.
     */
     function walkPlayer(pid, to, delay, done) {
         clearInterval(walkers[pid]);
@@ -1318,7 +1318,7 @@
         var distance = Math.abs(to - from);
 
         function begin() {
-            if (distance > 8) {  // Bomba almashuvi / uzun ilon - sakrab otadi
+            if (distance > 8) {  // Bomba almaşuvi / uzun ilon - sakrab otadi
                 node.style.transitionDuration = '0.8s';
                 placeToken(node, to);
                 node.dataset.at = to;
@@ -1355,7 +1355,7 @@
         }
     }
 
-    /* Effekt yurishi: bomba (o'rin almashuv)da qurbon ham alohida yuradi. */
+    /* Effekt yurişi: bomba (örin almaşuv)da qurbon ham alohida yuradi. */
     function doEffectWalk(pid, p) {
         var to = p.to != null ? p.to : (p.at != null ? p.at : null);
         if (to != null) { walkPlayer(pid, to, 0); }
@@ -1367,7 +1367,7 @@
 
     function renderTokens(players) {
         var seen = {};
-        // bir katakda bir nechta tosh bo'lsa — yelpig'ich shaklida suriladi
+        // bir katakda bir neçta toş bölsa — yelpiğiç şaklida suriladi
         var stack = {};
         players.forEach(function (p) {
             stack[p.position] = (stack[p.position] || 0) + 1;
@@ -1382,8 +1382,8 @@
                 node.className = 'jm-token';
                 node.dataset.player = p.id;
                 node.dataset.at = p.position;
-                // DOM'ga qo'shishdan oldin joylashtiriladi — aks holda tosh
-                // burchakdan sirg'alib kelayotgandek ko'rinadi.
+                // DOM'ga qöşişdan oldin joylaştiriladi — aks holda toş
+                // burçakdan sirğalib kelayotgandek körinadi.
                 placeToken(node, p.position);
                 el.tokens.appendChild(node);
                 tokenNodes[p.id] = node;
@@ -1403,28 +1403,28 @@
 
             var count = stack[p.position] || 1;
             used[p.position] = (used[p.position] || 0) + 1;
-            // Yelpig'ich surilishi cheksiz o'smasin: aks holda bitta katakdagi
-            // ko'p tosh boshqa kataklar ustiga tushib, toshlar doskadan
-            // "chiqib ketayotgandek" ko'rinardi.
+            // Yelpiğiç surilişi çeksiz ösmasin: aks holda bitta katakdagi
+            // köp toş boşqa kataklar ustiga tuşib, toşlar doskadan
+            // "çiqib ketayotgandek" körinardi.
             var px = point(p.position).x;
-            // Tosh va katak o'lchami (doska kengligi %'ida) — fan-out qadami
-            // katak o'lchamiga bog'lanadi, shunda toshlar katak doirasida
-            // yelpig'ich bo'lib tarqaladi (doska kengligi emas).
+            // Toş va katak ölçami (doska kengligi %'ida) — fan-out qadami
+            // katak ölçamiga boğlanadi, şunda toşlar katak doirasida
+            // yelpiğiç bölib tarqaladi (doska kengligi emas).
             var cellPct = parseFloat(getComputedStyle(el.board).getPropertyValue('--jm-cell')) || 8;
             var tokenPct = cellPct * 0.52;
-            var step = cellPct * 0.28; // har bir qo'shimcha tosh uchun siljish
+            var step = cellPct * 0.28; // har bir qöşimça toş uçun siljiş
             var offset = (count > 1 ? (used[p.position] - (count + 1) / 2) : 0) * step;
             offset = Math.max(-tokenPct * 1.5, Math.min(tokenPct * 1.5, offset));
-            // Tosh to'liq doska ichida qolsin: markaz [radius, 100-radius].
+            // Toş töliq doska içida qolsin: markaz [radius, 100-radius].
             var tr = tokenPct / 2;
             var minOff = tr - px;
             var maxOff = (100 - tr) - px;
             offset = Math.max(minOff, Math.min(maxOff, offset));
             node.style.marginLeft = offset.toFixed(1) + '%';
 
-            // Hozir yurib turgan toshga tegmaymiz — harakat hodisalar oqimi
-            // orqali boshqariladi. Aks holda render yakuniy holatni oraliq
-            // holatning ustiga yozib, tosh "orqaga tushayotgandek" ko'rinardi.
+            // Hozir yurib turgan toşga tegmaymiz — harakat hodisalar oqimi
+            // orqali boşqariladi. Aks holda render yakuniy holatni oraliq
+            // holatning ustiga yozib, toş "orqaga tuşayotgandek" körinardi.
             if (walking[p.id]) { return; }
             var at = parseInt(node.dataset.at, 10);
             if (at !== p.position) {
@@ -1443,9 +1443,9 @@
 
     /* ============================================================
        3D KUB — 6 yuzli haqiqiy geometriya.
-       Kub aylanishi jamlanib boradi (spinX/spinY faqat o'sadi), shu
-       tufayli har tashlashda qayta o'rnatish kerak emas: brauzer
-       o'zi bir necha to'liq aylanishdan keyin kerakli yuzda to'xtatadi.
+       Kub aylanişi jamlanib boradi (spinX/spinY faqat ösadi), şu
+       tufayli har taşlaşda qayta örnatiş kerak emas: brauzer
+       özi bir neça töliq aylanişdan keyin kerakli yuzda töxtatadi.
        ============================================================ */
     var PIP_MAP = {
         1: [5], 2: [1, 9], 3: [1, 5, 9],
@@ -1461,7 +1461,7 @@
         return html;
     }
 
-    // Kubning qaysi yuzi ko'rinishi uchun kerakli burilish (rotateX, rotateY).
+    // Kubning qaysi yuzi körinişi uçun kerakli buriliş (rotateX, rotateY).
     var DIE_FACE_ROT = { 1: [0, 0], 2: [90, 0], 3: [0, -90], 4: [0, 90], 5: [-90, 0], 6: [0, 180] };
     var spinX = 0, spinY = 0;
 
@@ -1473,15 +1473,15 @@
         el.die.innerHTML = html;
     }
 
-    // Kub dumalab to'xtaguncha shu vaqt ketadi — tosh tushmasdan o'yinchi yurmaydi.
+    // Kub dumalab töxtagunça şu vaqt ketadi — toş tuşmasdan öyinçi yurmaydi.
     var DICE_ROLL_MS = 1150;
-    var DICE_HOLD_MS = 1250;   // natija lavhasi shuncha vaqt ko'rinib turadi
-    var skipDiceSound = false; // toshni o'zi bosganda ovoz takrorlanmasin
+    var DICE_HOLD_MS = 1250;   // natija lavhasi şunça vaqt körinib turadi
+    var skipDiceSound = false; // toşni özi bosganda ovoz takrorlanmasin
 
     function rollDice(value, who) {
         var total = Math.max(1, parseInt(value, 10) || 1);
-        // Qo'sh zarbada server jamini yuboradi (asl tosh × 2) — kub asl
-        // toshda to'xtaydi, jami esa lavhada ×2 belgisi bilan ko'rsatiladi.
+        // Qöş zarbada server jamini yuboradi (asl toş × 2) — kub asl
+        // toşda töxtaydi, jami esa lavhada ×2 belgisi bilan körsatiladi.
         var doubled = total > 6;
         var face = Math.min(6, Math.max(1, doubled ? Math.round(total / 2) : total));
 
@@ -1496,7 +1496,7 @@
             'rotateX(' + (spinX + DIE_FACE_ROT[face][0]) + 'deg) ' +
             'rotateY(' + (spinY + DIE_FACE_ROT[face][1]) + 'deg)';
 
-        // Kub dumalayotganda raqam ham chalkashib turadi — natija oxirida qulflanadi.
+        // Kub dumalayotganda raqam ham çalkaşib turadi — natija oxirida qulflanadi.
         var ceiling = doubled ? 12 : 6;
         clearInterval(rollDice.scramble);
         rollDice.scramble = setInterval(function () {
@@ -1521,9 +1521,9 @@
     }
 
     /* ============================================================
-       EFFEKT BILDIRGISI — o'quvchi katak effektini sezmay qolmasligi
-       uchun ekran o'rtasida katta xabar + ovoz. Bomba katagida
-       qo'shimcha portlash to'lqini va sahifa silkinishi bo'ladi.
+       EFFEKT BILDIRGISI — öquvçi katak effektini sezmay qolmasligi
+       uçun ekran örtasida katta xabar + ovoz. Bomba katagida
+       qöşimça portlaş tölqini va sahifa silkinişi böladi.
        ============================================================ */
     var shoutTimers = [];
     function shout(p) {
@@ -1534,26 +1534,26 @@
         var tone = boom ? 'boom' : (p.blocked_by_shield ? 'good' : (p.tone || 'neutral'));
 
         el.shoutIcon.className = 'ic bi ' + (p.blocked_by_shield ? 'bi-shield-fill-check' : (p.icon || 'bi-stars'));
-        // Bomba (o'rin almashuv)da qurbon ham birdan orqaga tushayotgani
-        // xato emasligi tushunarli bo'lsin — ikki ism ham ko'rsatiladi.
+        // Bomba (örin almaşuv)da qurbon ham birdan orqaga tuşayotgani
+        // xato emasligi tuşunarli bölsin — ikki ism ham körsatiladi.
         var isSwap = p.code === 'swap' && p.swapped_with && !p.blocked_by_shield;
         el.shoutWho.textContent = isSwap
             ? (p.player + ' \u2194 ' + p.swapped_with)
             : (p.player || '');
         el.shoutBig.textContent = isSwap
-            ? 'O\'RIN ALMASHILDI!'
+            ? 'ÖRIN ALMAŞILDI!'
             : (p.blocked_by_shield
                 ? 'QALQON HIMOYA QILDI!'
                 : (p.shout || p.label || ''));
         el.shoutHint.textContent = isSwap
-            ? ('Bomba! ' + p.player + ' va ' + p.swapped_with + ' o\'rin almashdi.')
+            ? ('Bomba! ' + p.player + ' va ' + p.swapped_with + ' örin almaşdi.')
             : (p.blocked_by_shield
-                ? (p.label || '') + " ta'sir qilmadi — qalqon ishlatildi."
+                ? (p.label || '') + " ta'sir qilmadi — qalqon işlatildi."
                 : (p.hint || ''));
 
         el.shoutCard.className = 'jm-shout-card ' + tone;
         el.shout.classList.add('show');
-        // qayta ishga tushirish uchun animatsiyani majburan tiklaymiz
+        // qayta işga tuşiriş uçun animatsiyani majburan tiklaymiz
         void el.shoutCard.offsetWidth;
         el.shoutCard.className = 'jm-shout-card ' + tone;
 
@@ -1580,10 +1580,10 @@
         }, 2550));
     }
 
-    // ---------- o'yinchilar ro'yxati ----------
+    // ---------- öyinçilar röyxati ----------
     function renderRoster(players, status) {
         if (!players.length) {
-            el.roster.innerHTML = '<div class="text-muted small">Hali hech kim qo\'shilmagan.</div>';
+            el.roster.innerHTML = '<div class="text-muted small">Hali heç kim qöşilmagan.</div>';
             return;
         }
         var canKick = CFG.isController && status === 'lobby';
@@ -1604,12 +1604,12 @@
                         '<div class="nm">' + esc(p.name) + ' <span class="badges">' + badges + '</span></div>' +
                         '<div class="meta"><span><i class="bi bi-check-circle-fill" style="color:#86efac;"></i> ' + p.correct + '</span>' +
                             '<span><i class="bi bi-x-circle-fill" style="color:#fca5a5;"></i> ' + p.wrong + '</span>' +
-                            (p.rank ? '<span><i class="bi bi-award-fill" style="color:#fde68a;"></i> ' + p.rank + '-o\'rin</span>' : '') + '</div>' +
+                            (p.rank ? '<span><i class="bi bi-award-fill" style="color:#fde68a;"></i> ' + p.rank + '-örin</span>' : '') + '</div>' +
                         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
                     '</span>' +
                     (canKick
                         ? '<button class="jm-kick" data-act="kick" data-player="' + p.id + '" ' +
-                          'title="Lobbydan chiqarish"><i class="bi bi-x-lg"></i></button>'
+                          'title="Lobbydan çiqariş"><i class="bi bi-x-lg"></i></button>'
                         : '<span class="pos">' + p.position + '</span>') +
                 '</div>';
         }).join('');
@@ -1617,12 +1617,12 @@
 
     // ---------- jonli lenta va animatsiya ----------
     var EVENT_TEXT = {
-        lobby_open: function (p) { return '<i class="bi bi-door-open-fill"></i> Lobby ochildi (' + esc(p.by || '') + ')'; },
-        join: function (p) { return '<i class="bi bi-plus-circle-fill" style="color:#86efac;"></i> ' + esc(p.player) + ' qo\'shildi'; },
-        leave: function (p) { return '<i class="bi bi-dash-circle-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' chiqdi'; },
-        kicked: function (p) { return '<i class="bi bi-x-octagon-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' chiqarildi'; },
-        start: function (p) { return '<i class="bi bi-play-fill"></i> O\'yin boshlandi — ' + (p.players || []).length + ' o\'yinchi'; },
-        question: function (p) { return '<i class="bi bi-question-circle-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' uchun savol ochildi'; },
+        lobby_open: function (p) { return '<i class="bi bi-door-open-fill"></i> Lobby oçildi (' + esc(p.by || '') + ')'; },
+        join: function (p) { return '<i class="bi bi-plus-circle-fill" style="color:#86efac;"></i> ' + esc(p.player) + ' qöşildi'; },
+        leave: function (p) { return '<i class="bi bi-dash-circle-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' çiqdi'; },
+        kicked: function (p) { return '<i class="bi bi-x-octagon-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' çiqarildi'; },
+        start: function (p) { return '<i class="bi bi-play-fill"></i> Öyin boşlandi — ' + (p.players || []).length + ' öyinçi'; },
+        question: function (p) { return '<i class="bi bi-question-circle-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' uçun savol oçildi'; },
         dice: function (p) { return '<i class="bi bi-dice-5-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' — ' + p.dice + ' → ' + p.to + '-katak'; },
         verdict: function (p) { return (p.verdict === 'wrong'
             ? '<i class="bi bi-x-circle-fill" style="color:#fca5a5;"></i> '
@@ -1633,23 +1633,23 @@
                 (p.blocked_by_shield ? ' <span style="color:#86efac;">(qalqon)</span>' : '');
         },
         shield_block: function (p) { return '<i class="bi bi-shield-fill-check" style="color:#86efac;"></i> ' + esc(p.player) + ' qalqon bilan himoyalandi'; },
-        task_result: function (p) { return '<i class="bi bi-lightning-charge-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' — shart ' + (p.completed ? 'bajarildi' : 'bajarilmadi'); },
-        skipped: function (p) { return '<i class="bi bi-snow" style="color:#93c5fd;"></i> ' + esc(p.player) + ' navbatini o\'tkazdi'; },
-        paused: function () { return '<i class="bi bi-pause-fill"></i> O\'yin pauzaga olindi'; },
-        resumed: function () { return '<i class="bi bi-play-fill"></i> O\'yin davom etmoqda'; },
-        cancelled: function (p) { return '<i class="bi bi-stop-fill" style="color:#fca5a5;"></i> O\'yin bekor qilindi (' + esc(p.by || '') + ')'; },
-        finish: function (p) { return '<i class="bi bi-trophy-fill" style="color:#fde68a;"></i> G\'olib: ' + esc(p.winner); }
+        task_result: function (p) { return '<i class="bi bi-lightning-charge-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' — şart ' + (p.completed ? 'bajarildi' : 'bajarilmadi'); },
+        skipped: function (p) { return '<i class="bi bi-snow" style="color:#93c5fd;"></i> ' + esc(p.player) + ' navbatini ötkazdi'; },
+        paused: function () { return '<i class="bi bi-pause-fill"></i> Öyin pauzaga olindi'; },
+        resumed: function () { return '<i class="bi bi-play-fill"></i> Öyin davom etmoqda'; },
+        cancelled: function (p) { return '<i class="bi bi-stop-fill" style="color:#fca5a5;"></i> Öyin bekor qilindi (' + esc(p.by || '') + ')'; },
+        finish: function (p) { return '<i class="bi bi-trophy-fill" style="color:#fde68a;"></i> Ğolib: ' + esc(p.winner); }
     };
 
-    /* Animatsiya va ovoz hodisalar oqimidan boshqariladi: har bir hodisa
-       `seq` bilan kelgani uchun hech narsa ikki marta ijro etilmaydi va
-       barcha ekranlarda bir xil ketma-ketlik ko'rinadi. */
+    /* Animatsiya va ovoz hodisalar oqimidan boşqariladi: har bir hodisa
+       `seq` bilan kelgani uçun heç narsa ikki marta ijro etilmaydi va
+       barça ekranlarda bir xil ketma-ketlik körinadi. */
     function playEvent(kind, p) {
         if (kind === 'dice') {
             rollDice(p.dice, p.player);
-            // Tosh yerga tushgach zarba katagiga yuradi. Agar bu o'yinchida
-            // keyin effekt (ilon/narvon/bomba) bo'lsa, u shu yurish tugagach
-            // zanjirlanadi — shu tufayli "14 ga yetib, keyin 12 ga" ko'rinadi.
+            // Toş yerga tuşgaç zarba katagiga yuradi. Agar bu öyinçida
+            // keyin effekt (ilon/narvon/bomba) bölsa, u şu yuriş tugagaç
+            // zanjirlanadi — şu tufayli "14 ga yetib, keyin 12 ga" körinadi.
             var pid = nameId[p.player];
             if (pid != null) {
                 var delay = Math.max(0, diceUntil - Date.now());
@@ -1666,7 +1666,7 @@
         } else if (kind === 'question') {
             audio.open();
         } else if (kind === 'effect') {
-            // Katak effekti tosh yetib borgandan keyin porillaydi
+            // Katak effekti toş yetib borgandan keyin porillaydi
             var wait = Math.max(0, diceUntil - Date.now());
             setTimeout(function () {
                 popCell(p.at != null ? p.at : p.to);
@@ -1674,9 +1674,9 @@
             }, wait);
             var pid2 = nameId[p.player];
             if (pid2 != null) {
-                // Zarba yurishi davom etayotgan bo'lsa — keyin zanjirlaymiz,
+                // Zarba yurişi davom etayotgan bölsa — keyin zanjirlaymiz,
                 // aks holda darhol yakuniy katakka yuramiz. (walkPlayer
-                // `walking` bayrog'ini o'zi boshqaradi.)
+                // `walking` bayroğini özi boşqaradi.)
                 if (walking[pid2]) {
                     pendingEffect[pid2] = p;
                 } else {
@@ -1708,7 +1708,7 @@
         });
     }
 
-    // ---------- topshiriq paneli ----------
+    // ---------- topşiriq paneli ----------
     var PHASE_TEXT = {
         lobby: 'Lobby', waiting_turn: 'Navbat', question: 'Savol',
         dice: 'Zarba', effect: 'Katak', finished: 'Yakun'
@@ -1721,7 +1721,7 @@
         if (data.status === 'lobby') { return renderLobby(data); }
         if (data.status === 'cancelled') {
             el.stage.innerHTML = '<div class="text-center py-4"><div style="font-size:2.4rem;color:#fca5a5;"><i class="bi bi-stop-circle-fill"></i></div>' +
-                '<h5 class="fw-bold mt-2">O\'yin bekor qilindi</h5></div>';
+                '<h5 class="fw-bold mt-2">Öyin bekor qilindi</h5></div>';
             return;
         }
         if (data.status === 'finished') { return renderFinished(data); }
@@ -1735,34 +1735,34 @@
         return renderWaiting(data, current);
     }
 
-    /* Zarba bosqichi — toshni O'QUVCHINING O'ZI aylantiradi.
+    /* Zarba bosqiçi — toşni ÖQUVÇINING ÖZI aylantiradi.
        Qiymat serverda hisoblanadi, bu tugma faqat "bosdim" deb yuboradi;
-       natija esa hodisalar oqimi orqali barcha ekranlarda (o'qituvchida ham)
-       bir xil ko'rinadi. */
+       natija esa hodisalar oqimi orqali barça ekranlarda (öqituvçida ham)
+       bir xil körinadi. */
     function renderDice(data, current) {
         var mine = data.me.is_current;
         var wait = data.dice_wait;
-        var html = whoBlock(current, mine ? 'Tosh sizda — aylantiring!' : 'tosh tashlashini kutmoqda');
+        var html = whoBlock(current, mine ? 'Toş sizda — aylantiring!' : 'toş taşlaşini kutmoqda');
 
         html += '<div class="jm-rollbox">';
         if (mine) {
-            html += '<div class="cue">Toshni bosing va aylantiring</div>' +
+            html += '<div class="cue">Toşni bosing va aylantiring</div>' +
                 '<button type="button" class="jm-cube" id="jmCube">' +
                 '<span class="jm-pipface">' + pipCells(5) + '</span></button>';
         } else {
-            html += '<div class="cue">' + esc(current ? current.name : "O'yinchi") +
-                ' toshni aylantirmoqda…</div>' +
+            html += '<div class="cue">' + esc(current ? current.name : "Öyinçi") +
+                ' toşni aylantirmoqda…</div>' +
                 '<div class="jm-cube-wait"><span class="jm-pipface">' + pipCells(3) + '</span></div>';
         }
         if (wait != null && wait > 0) {
             html += '<div style="font-size:0.8rem;color:#94a3b8;">' +
-                (mine ? 'Avtomatik tashlanadi: ' : 'Kutish: ') + wait + ' s</div>';
+                (mine ? 'Avtomatik taşlanadi: ' : 'Kutiş: ') + wait + ' s</div>';
         }
         html += '</div>';
 
         if (CFG.isController) {
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ghost sm" id="jmCubeForce"><i class="bi bi-dice-5-fill"></i> O\'zim tashlayman</button>' +
+                '<button class="jm-btn ghost sm" id="jmCubeForce"><i class="bi bi-dice-5-fill"></i> Özim taşlayman</button>' +
                 (data.is_paused
                     ? '<button class="jm-btn ok sm" data-act="resume"><i class="bi bi-play-fill"></i> Davom</button>'
                     : '<button class="jm-btn ghost sm" data-act="pause"><i class="bi bi-pause-fill"></i> Pauza</button>') +
@@ -1771,8 +1771,8 @@
         el.stage.innerHTML = html;
     }
 
-    /* Toshni aylantirish so'rovi. Bosilgan zahoti animatsiya boshlanadi —
-       tarmoq javobini kutib turmaydi, shu tufayli "qotdi" degan his bo'lmaydi. */
+    /* Toşni aylantiriş sörovi. Bosilgan zahoti animatsiya boşlanadi —
+       tarmoq javobini kutib turmaydi, şu tufayli "qotdi" degan his bölmaydi. */
     var rolling = false;
     var SPIN_MS = 950;   // .jm-cube.spin animatsiyasi bilan bir xil
     function sendRoll(button) {
@@ -1797,13 +1797,13 @@
         })
             .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
             .then(function (res) {
-                // 409 — tosh allaqachon tashlangan (ikki marta bosildi yoki
-                // avtomatik tashlandi). Bu xato emas, shunchaki holatni yangilaymiz.
+                // 409 — toş allaqaçon taşlangan (ikki marta bosildi yoki
+                // avtomatik taşlandi). Bu xato emas, şunçaki holatni yangilaymiz.
                 if (!res.data.ok && res.status !== 409) {
-                    toast(res.data.error || 'Tosh tashlanmadi', true);
+                    toast(res.data.error || 'Toş taşlanmadi', true);
                 }
-                // Tosh aylanib bo'lgach natija ko'rsatiladi — server javobi tez
-                // kelsa ham animatsiya yarim yo'lda uzilib qolmaydi.
+                // Toş aylanib bölgaç natija körsatiladi — server javobi tez
+                // kelsa ham animatsiya yarim yölda uzilib qolmaydi.
                 var left = Math.max(0, spunAt + SPIN_MS - Date.now());
                 setTimeout(function () {
                     rolling = false;
@@ -1814,7 +1814,7 @@
             })
             .catch(function () {
                 rolling = false;
-                toast('Tarmoq xatosi — qayta urinib ko\'ring', true);
+                toast('Tarmoq xatosi — qayta urinib köring', true);
                 schedule(500);
             });
     }
@@ -1835,39 +1835,39 @@
         var enough = data.players.length >= CFG.minPlayers;
         var html = '<div class="text-center py-2">' +
             '<div style="font-size:2.6rem;color:#fde68a;"><i class="bi bi-dice-5-fill"></i></div>' +
-            '<h5 class="fw-bold mt-2 mb-1">O\'yinchilar kutilmoqda</h5>' +
-            '<p style="color:#bbf7d0;font-size:0.88rem;" class="mb-0">' + data.players.length + ' ta o\'yinchi' +
+            '<h5 class="fw-bold mt-2 mb-1">Öyinçilar kutilmoqda</h5>' +
+            '<p style="color:#bbf7d0;font-size:0.88rem;" class="mb-0">' + data.players.length + ' ta öyinçi' +
             (enough ? '' : ' — kamida ' + CFG.minPlayers + ' ta kerak') + '</p></div>';
 
         if (CFG.isController) {
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ok big" data-act="start"' + (enough ? '' : ' disabled') + '><i class="bi bi-play-fill"></i> Boshlash</button>' +
+                '<button class="jm-btn ok big" data-act="start"' + (enough ? '' : ' disabled') + '><i class="bi bi-play-fill"></i> Boşlaş</button>' +
                 '<button class="jm-btn no big" data-act="cancel"><i class="bi bi-stop-fill"></i> Bekor</button>' +
                 '</div>';
         } else {
             html += '<p class="text-center mb-0 mt-2" style="color:#bbf7d0;font-size:0.85rem;">' +
-                'O\'qituvchi o\'yinni boshlashini kuting…</p>';
+                'Öqituvçi öyinni boşlaşini kuting…</p>';
         }
         el.stage.innerHTML = html;
     }
 
     function renderWaiting(data, current) {
         var soon = data.open_in;
-        var html = whoBlock(current, 'Navbat shu o\'yinchida');
+        var html = whoBlock(current, 'Navbat şu öyinçida');
 
         if (soon != null) {
             html += '<div class="jm-speak"><span class="big"><i class="bi bi-hourglass-split"></i></span>' +
-                'Savol avtomatik ochiladi' + (soon > 0 ? ' — ' + soon + ' s' : '…') + '</div>';
+                'Savol avtomatik oçiladi' + (soon > 0 ? ' — ' + soon + ' s' : '…') + '</div>';
         }
 
         if (CFG.isController) {
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn go big" data-act="open_question"' + (data.is_paused ? ' disabled' : '') + '><i class="bi bi-question-circle-fill"></i> Hozir ochish</button>' +
+                '<button class="jm-btn go big" data-act="open_question"' + (data.is_paused ? ' disabled' : '') + '><i class="bi bi-question-circle-fill"></i> Hozir oçiş</button>' +
                 '<button class="jm-btn ghost big" data-act="next_turn"><i class="bi bi-skip-forward-fill"></i> Keyingi</button>' +
                 (data.is_paused
                     ? '<button class="jm-btn ok sm" data-act="resume"><i class="bi bi-play-fill"></i> Davom</button>'
                     : '<button class="jm-btn ghost sm" data-act="pause"><i class="bi bi-pause-fill"></i> Pauza</button>') +
-                '<button class="jm-btn go sm" data-act="finish"><i class="bi bi-flag-fill"></i> Yakunlash</button>' +
+                '<button class="jm-btn go sm" data-act="finish"><i class="bi bi-flag-fill"></i> Yakunlaş</button>' +
                 '<button class="jm-btn no sm" data-act="cancel"><i class="bi bi-stop-fill"></i> Bekor</button>' +
                 '</div>';
         } else if (soon == null) {
@@ -1891,34 +1891,34 @@
                 '<circle class="fg" cx="30" cy="30" r="26" stroke-dasharray="163.4" stroke-dashoffset="0"></circle>' +
             '</svg><span class="jm-ring-num" id="jmRingNum">' + q.remaining + '</span></span>';
 
-        var html = whoBlock(current, 'og\'zaki javob bermoqda', timer);
+        var html = whoBlock(current, 'oğzaki javob bermoqda', timer);
         html += '<div class="jm-qtext">' + esc(q.text) + '</div>';
         if (q.image) { html += '<img src="' + encodeURI(q.image) + '" class="jm-qimg" alt="Savol rasmi">'; }
 
         if (CFG.isController) {
             if (q.correct_text) {
-                // To'g'ri javob boshqaruvchiga ko'rinadi, lekin o'qituvchi doskani
-                // o'quvchilarga to'liq ekranda ochganida javob yashirin tursin.
-                // Tugma orqali ko'rsatiladi/yashiriladi.
+                // Töğri javob boşqaruvçiga körinadi, lekin öqituvçi doskani
+                // öquvçilarga töliq ekranda oçganida javob yaşirin tursin.
+                // Tugma orqali körsatiladi/yashiriladi.
                 html += '<div class="jm-answer" id="jmAnswer"' +
                     (answerHidden ? ' style="display:none;"' : '') + '>' +
-                    '<span class="lbl">To\'g\'ri javob — faqat siz ko\'rasiz</span>' +
+                    '<span class="lbl">Töğri javob — faqat siz körasiz</span>' +
                     esc(q.correct_text) + '</div>';
                 html += '<button type="button" class="jm-btn ghost sm" id="jmAnswerToggle" style="margin-top:0.6rem;">' +
                     '<i class="bi bi-' + (answerHidden ? 'eye' : 'eye-slash') + '-fill"></i> ' +
-                    (answerHidden ? 'Ko\'rsatish' : 'Yashirish') + '</button>';
+                    (answerHidden ? 'Körsatiş' : 'Yaşiriş') + '</button>';
             }
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ok big" data-act="verdict" data-verdict="correct"><i class="bi bi-check-lg"></i> To\'g\'ri</button>' +
-                '<button class="jm-btn no big" data-act="verdict" data-verdict="wrong"><i class="bi bi-x-lg"></i> Noto\'g\'ri</button>' +
+                '<button class="jm-btn ok big" data-act="verdict" data-verdict="correct"><i class="bi bi-check-lg"></i> Töğri</button>' +
+                '<button class="jm-btn no big" data-act="verdict" data-verdict="wrong"><i class="bi bi-x-lg"></i> Notöğri</button>' +
                 '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="timeout"><i class="bi bi-stopwatch-fill"></i> Vaqt tugadi</button>' +
-                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="skipped"><i class="bi bi-skip-forward-fill"></i> O\'tkazish</button>' +
+                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="skipped"><i class="bi bi-skip-forward-fill"></i> Ötkaziş</button>' +
                 '</div>';
         } else if (data.me.is_current) {
-            html += '<div class="jm-speak"><span class="big"><i class="bi bi-mic-fill"></i></span>Javobni ovoz chiqarib ayting!</div>';
+            html += '<div class="jm-speak"><span class="big"><i class="bi bi-mic-fill"></i></span>Javobni ovoz çiqarib ayting!</div>';
         } else {
             html += '<div class="jm-speak"><span class="big"><i class="bi bi-volume-mute-fill"></i></span>' +
-                esc(current ? current.name : 'O\'yinchi') + ' javob bermoqda</div>';
+                esc(current ? current.name : 'Öyinçi') + ' javob bermoqda</div>';
         }
 
         el.stage.innerHTML = html;
@@ -1926,14 +1926,14 @@
     }
 
     function renderTask(data, current) {
-        var html = whoBlock(current, 'Shart bajarishi kerak');
+        var html = whoBlock(current, 'Şart bajarişi kerak');
         html += '<div class="jm-fx neutral"><span class="ic"><i class="bi bi-lightning-charge-fill"></i></span>' +
-            '<span><strong>Shart katagi!</strong><br><span style="font-size:0.82rem;color:#fde68a;">' +
-            'Boshqaruvchi og\'zaki shart beradi. Bajarilsa +2 katak.</span></span></div>';
+            '<span><strong>Şart katagi!</strong><br><span style="font-size:0.82rem;color:#fde68a;">' +
+            'Boşqaruvçi oğzaki şart beradi. Bajarilsa +2 katak.</span></span></div>';
 
         if (CFG.isController) {
             html += '<input type="text" class="form-control mt-3" id="jmTaskNote" maxlength="200" ' +
-                'placeholder="Shart matni (ixtiyoriy)" ' +
+                'placeholder="Şart matni (ixtiyoriy)" ' +
                 'style="border-radius:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.18);color:#ecfdf5;">';
             html += '<div class="jm-controls">' +
                 '<button class="jm-btn ok big" data-act="resolve_task" data-completed="1"><i class="bi bi-check-lg"></i> Bajardi</button>' +
@@ -1959,8 +1959,8 @@
         });
         el.stage.innerHTML = '<div class="text-center py-2">' +
             '<div style="font-size:2.6rem;color:#fde68a;"><i class="bi bi-trophy-fill"></i></div>' +
-            '<h5 class="fw-bold mt-2 mb-1">O\'yin yakunlandi</h5>' +
-            '<p style="color:#bbf7d0;">G\'olib: <strong>' + esc(data.winner ? data.winner.name : '—') + '</strong></p>' +
+            '<h5 class="fw-bold mt-2 mb-1">Öyin yakunlandi</h5>' +
+            '<p style="color:#bbf7d0;">Ğolib: <strong>' + esc(data.winner ? data.winner.name : '—') + '</strong></p>' +
             '<div class="jm-standings">' + standingsHtml(ranked) + '</div></div>';
 
         if (!seenWinner) {
@@ -2008,10 +2008,10 @@
         el.paused.classList.toggle('d-none', !data.is_paused);
         el.count.innerHTML = '<i class="bi bi-people-fill"></i> ' + data.players.length;
 
-        // O'yin boshlangach server doska effektlarini (ilon/narvon) muhrlaydi.
-        // Bu o'zgarish FAQAT `full=1` so'rovida keladi, shuning uchun status
-        // 'lobby' -> 'running' ga o'tganda albatta to'liq doskani so'raymiz —
-        // aks holda effektlar sahifani qo'lda yangilamaguncha ko'rinmas edi.
+        // Öyin boşlangaç server doska effektlarini (ilon/narvon) muhrlaydi.
+        // Bu özgariş FAQAT `full=1` sörovida keladi, şuning uçun status
+        // 'lobby' -> 'running' ga ötganda albatta töliq doskani söraymiz —
+        // aks holda effektlar sahifani qölda yangilamagunça körinmas edi.
         var statusChanged = lastStatus !== data.status;
         lastStatus = data.status;
 
@@ -2024,7 +2024,7 @@
             needFull = true;
         }
 
-        // Hodisalardagi ismni o'yinchi id'iga bog'laymiz (tosh harakati uchun).
+        // Hodisalardagi ismni öyinçi id'iga boğlaymiz (toş harakati uçun).
         nameId = {};
         data.players.forEach(function (pl) { nameId[pl.name] = pl.id; });
 
@@ -2036,14 +2036,14 @@
         primed = true;
     }
 
-    /* Doimiy 2s interval o'rniga o'zini qayta rejalashtiruvchi tsikl: sekin
-       tarmoqda so'rovlar ustma-ust yig'ilmaydi (aynan shu narsa "qotish"ga
-       olib keladi), harakat bo'lganda esa yangilanish deyarli darhol keladi. */
+    /* Doimiy 2s interval örniga özini qayta rejalaştiruvçi tsikl: sekin
+       tarmoqda sörovlar ustma-ust yiğilmaydi (aynan şu narsa "qotiş"ga
+       olib keladi), harakat bölganda esa yangilaniş deyarli darhol keladi. */
     function pollDelay() {
         if (document.hidden) { return 6000; }
-        if (idleRounds < 4) { return 700; }     // yaqinda o'zgarish bo'ldi — tez tekshir
+        if (idleRounds < 4) { return 700; }     // yaqinda özgariş böldi — tez tekşir
         if (idleRounds < 15) { return 1400; }
-        return 2500;                            // uzoq tinchlik (savol o'qilmoqda)
+        return 2500;                            // uzoq tinçlik (savol öqilmoqda)
     }
 
     function schedule(delay) {
@@ -2053,8 +2053,8 @@
 
     function poll(full) {
         if (polling) { return; }
-        // Tosh aylanayotganda holat almashtirilmaydi — aks holda tugma
-        // animatsiya o'rtasida yo'qolib qolardi.
+        // Toş aylanayotganda holat almaştirilmaydi — aks holda tugma
+        // animatsiya örtasida yöqolib qolardi.
         if (rolling) { schedule(300); return; }
         polling = true;
         var wantFull = full === true || needFull;
@@ -2093,25 +2093,25 @@
                 else {
                     toast(res.data.error || 'Amal bajarilmadi', true);
                 }
-                // Bosishdan keyin holat o'zgardi — boshqa ekranlar tez ilg'ashi uchun
+                // Bosişdan keyin holat özgardi — boşqa ekranlar tez ilğaşi uçun
                 idleRounds = 0;
                 schedule(250);
             })
-            .catch(function () { toast('Tarmoq xatosi — qayta urinib ko\'ring', true); })
+            .catch(function () { toast('Tarmoq xatosi — qayta urinib köring', true); })
             .finally(function () { busy = false; });
     }
 
     // ---------- hodisalar ----------
     el.stage.addEventListener('click', function (event) {
-        // To'g'ri javobni ko'rsatish/yashirish — doskani o'quvchilarga ochganda
-        // javob tasodifan ko'rinib qolmasligi uchun.
+        // Töğri javobni körsatish/yashirish — doskani öquvçilarga oçganda
+        // javob tasodifan körinib qolmasligi uçun.
         var answerToggle = event.target.closest('#jmAnswerToggle');
         if (answerToggle) {
             answerHidden = !answerHidden;
             var answer = document.getElementById('jmAnswer');
             if (answer) { answer.style.display = answerHidden ? 'none' : ''; }
             answerToggle.innerHTML = '<i class="bi bi-' + (answerHidden ? 'eye' : 'eye-slash') + '-fill"></i> ' +
-                (answerHidden ? 'Ko\'rsatish' : 'Yashirish');
+                (answerHidden ? 'Körsatiş' : 'Yaşiriş');
             return;
         }
 
@@ -2125,8 +2125,8 @@
         if (!button || button.disabled) { return; }
         var action = button.dataset.act;
 
-        if (action === 'cancel' && !confirm("O'yin bekor qilinsinmi? Bu amalni qaytarib bo'lmaydi.")) { return; }
-        if (action === 'finish' && !confirm("O'yin hozir yakunlansinmi? Natijalar va coinlar shu holat bo'yicha beriladi.")) { return; }
+        if (action === 'cancel' && !confirm("Öyin bekor qilinsinmi? Bu amalni qaytarib bölmaydi.")) { return; }
+        if (action === 'finish' && !confirm("Öyin hozir yakunlansinmi? Natijalar va coinlar şu holat böyiça beriladi.")) { return; }
 
         var extra = {};
         if (action === 'verdict') { extra.verdict = button.dataset.verdict; }
@@ -2141,12 +2141,12 @@
     el.roster.addEventListener('click', function (event) {
         var button = event.target.closest('[data-act="kick"]');
         if (!button || button.disabled) { return; }
-        if (!confirm("Bu o'yinchi lobbydan chiqarilsinmi?")) { return; }
+        if (!confirm("Bu öyinçi lobbydan çiqarilsinmi?")) { return; }
         send('kick', { player_id: button.dataset.player });
     });
 
-    /* Lobby tugmalari serverda emas, shu yerda chiziladi: o'quvchi qo'shilgan
-       yoki chiqib ketgan zahoti sahifani yangilamasdan ko'rinadi. */
+    /* Lobby tugmalari serverda emas, şu yerda çiziladi: öquvçi qöşilgan
+       yoki çiqib ketgan zahoti sahifani yangilamasdan körinadi. */
     var lobbyState = '';
     function renderLobbyButtons(me, status) {
         var want = status === 'lobby'
@@ -2156,10 +2156,10 @@
         lobbyState = want;
         if (want === 'join') {
             el.lobbyBtns.innerHTML = '<button type="button" class="jm-btn ok" data-lobby="join">' +
-                '<i class="bi bi-box-arrow-in-right"></i> O\'yinga qo\'shilish</button>';
+                '<i class="bi bi-box-arrow-in-right"></i> Öyinga qöşiliş</button>';
         } else if (want === 'leave') {
             el.lobbyBtns.innerHTML = '<button type="button" class="jm-btn ghost" data-lobby="leave">' +
-                '<i class="bi bi-box-arrow-left"></i> Lobbydan chiqish</button>';
+                '<i class="bi bi-box-arrow-left"></i> Lobbydan çiqiş</button>';
         } else {
             el.lobbyBtns.innerHTML = '';
         }
@@ -2169,7 +2169,7 @@
         var button = event.target.closest('[data-lobby]');
         if (!button || button.disabled) { return; }
         var kind = button.dataset.lobby;
-        if (kind === 'leave' && !confirm('Lobbydan chiqasizmi?')) { return; }
+        if (kind === 'leave' && !confirm('Lobbydan çiqasizmi?')) { return; }
         button.disabled = true;
 
         fetch(kind === 'join' ? CFG.join : CFG.leave, {
@@ -2183,18 +2183,18 @@
                     button.disabled = false;
                     return;
                 }
-                toast(kind === 'join' ? "O'yinga qo'shildingiz!" : 'Lobbydan chiqdingiz.');
-                lobbyState = '';   // holat o'zgardi — tugma qayta chizilsin
+                toast(kind === 'join' ? "Öyinga qöşildingiz!" : 'Lobbydan çiqdingiz.');
+                lobbyState = '';   // holat özgardi — tugma qayta çizilsin
                 idleRounds = 0;
                 poll(true);
             })
             .catch(function () {
-                toast('Tarmoq xatosi — qayta urinib ko\'ring', true);
+                toast('Tarmoq xatosi — qayta urinib köring', true);
                 button.disabled = false;
             });
     });
 
-    // ---------- to'liq ekran ----------
+    // ---------- töliq ekran ----------
     function isFull() {
         return !!(document.fullscreenElement || document.webkitFullscreenElement);
     }
@@ -2212,14 +2212,14 @@
         el.fullBtn.innerHTML = isFull()
             ? '<i class="bi bi-fullscreen-exit"></i>'
             : '<i class="bi bi-arrows-fullscreen"></i>';
-        el.fullBtn.title = isFull() ? "To'liq ekrandan chiqish (F)" : "To'liq ekran (F)";
+        el.fullBtn.title = isFull() ? "Töliq ekrandan çiqiş (F)" : "Töliq ekran (F)";
     }
 
     el.fullBtn.addEventListener('click', toggleFullscreen);
     document.addEventListener('fullscreenchange', syncFullIcon);
     document.addEventListener('webkitfullscreenchange', syncFullIcon);
 
-    // F — to'liq ekran, S — ovoz. Matn kiritilayotganda ishlamaydi.
+    // F — töliq ekran, S — ovoz. Matn kiritilayotganda işlamaydi.
     document.addEventListener('keydown', function (event) {
         if (event.ctrlKey || event.altKey || event.metaKey) { return; }
         var tag = (event.target.tagName || '').toLowerCase();
@@ -2231,12 +2231,12 @@
 
     el.win.addEventListener('click', function () { el.win.classList.remove('show'); });
 
-    // ---------- ishga tushirish ----------
+    // ---------- işga tuşiriş ----------
     buildDie();
     drawArcs();
     poll(true);
 
-    // Boshqa oynadan qaytganda darhol yangilanadi — ekran eskirgan qolmaydi.
+    // Boşqa oynadan qaytganda darhol yangilanadi — ekran eskirgan qolmaydi.
     document.addEventListener('visibilitychange', function () {
         if (!document.hidden) { idleRounds = 0; schedule(0); }
     });

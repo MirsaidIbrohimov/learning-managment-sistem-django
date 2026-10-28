@@ -32,44 +32,44 @@ def _message_context(notification):
     url_name, args = 'login', []
     if notification.kind == 'login':
         subject = 'Hisobingizga kirildi / Вход в аккаунт'
-        headings = ('Hisobingizga yangi kirish', 'Новый вход в ваш аккаунт')
+        headings = ('Hisobingizga yangi kiriş', 'Новый вход в ваш аккаунт')
         paragraphs = (
-            "Hisobingizga quyidagi qurilmadan kirildi. Agar bu siz bo‘lmasangiz, parolingizni darhol almashtiring va administrator bilan bog‘laning. Ma’lumotlar brauzer bergan qiymatlardir; aniq model, seriya raqami va IMEI brauzerdan olinmaydi. Windows NT 10.0 Windows 10 yoki 11 bo‘lishi mumkin.",
+            "Hisobingizga quyidagi qurilmadan kirildi. Agar bu siz bölmasangiz, parolingizni darhol almaştiring va administrator bilan boğlaning. Ma’lumotlar brauzer bergan qiymatlardir; aniq model, seriya raqami va IMEI brauzerdan olinmaydi. Windows NT 10.0 Windows 10 yoki 11 bölişi mumkin.",
             'В ваш аккаунт выполнен вход. Если это были не вы, немедленно смените пароль и свяжитесь с администратором. Данные предоставлены браузером; точная модель, серийный номер и IMEI недоступны. Windows NT 10.0 может означать Windows 10 или 11.',
         )
         details = [('Username / Логин', user.username)] + [
             (label, data.get(key, 'Aniqlanmadi')) for key, label in (
                 ('device', 'Qurilma / Устройство'), ('device_type', 'Qurilma turi / Тип устройства'),
                 ('os', 'Operatsion tizim / ОС'), ('browser', 'Brauzer / Браузер'),
-                ('ip', 'IP manzil / IP-адрес'), ('time', 'Kirish vaqti / Время входа'),
+                ('ip', 'IP manzil / IP-адрес'), ('time', 'Kiriş vaqti / Время входа'),
                 ('user_agent', 'User-Agent'),
             )
         ]
-        labels = ('Hisobni ochish', 'Открыть аккаунт')
+        labels = ('Hisobni oçiş', 'Открыть аккаунт')
     elif notification.kind == 'welcome':
-        subject = 'Xush kelibsiz! / Добро пожаловать!'
-        headings = ('IT Creative Academy oilasiga xush kelibsiz!', 'Добро пожаловать в IT Creative Academy!')
-        paragraphs = ('Ro‘yxatdan muvaffaqiyatli o‘tdingiz. Yangi bilim va yutuqlar sari ilk qadamingiz bilan tabriklaymiz!', 'Вы успешно зарегистрировались. Поздравляем с первым шагом к новым знаниям и достижениям!')
+        subject = 'Xuş kelibsiz! / Добро пожаловать!'
+        headings = ('IT Creative Academy oilasiga xuş kelibsiz!', 'Добро пожаловать в IT Creative Academy!')
+        paragraphs = ('Röyxatdan muvaffaqiyatli ötdingiz. Yangi bilim va yutuqlar sari ilk qadamingiz bilan tabriklaymiz!', 'Вы успешно зарегистрировались. Поздравляем с первым шагом к новым знаниям и достижениям!')
         details = [('Username / Логин', user.username)]
-        labels = ('O‘qishni boshlash', 'Начать обучение')
+        labels = ('Öqişni boşlaş', 'Начать обучение')
     elif notification.kind == 'payment_reminder':
         balance = StudentBalance.objects.filter(user=user, is_contract=False).first()
         if not balance or not balance.next_payment_date or balance.next_payment_date.isoformat() != data.get('due_date') or user.is_finished or user.is_blocked or data.get('reminder_date') != timezone.localdate().isoformat():
             return None
-        subject = 'To‘lov eslatmasi / Напоминание об оплате'
+        subject = 'Tölov eslatmasi / Напоминание об оплате'
         days = data['days_left']
-        headings = (f'To‘lov kunigacha {days} kun qoldi', f'До даты оплаты: {days} дн.')
-        paragraphs = ('O‘qishni uzluksiz davom ettirish uchun to‘lovni muddatida amalga oshiring. To‘lagan bo‘lsangiz, saytdagi to‘lov holatini tekshiring.', 'Чтобы продолжить обучение без перерыва, внесите оплату вовремя. Если вы уже оплатили, проверьте статус платежа на сайте.')
-        details = [('To‘lov sanasi / Дата оплаты', balance.next_payment_date.strftime('%d.%m.%Y')), ('Oylik to‘lov / Ежемесячный платёж', data['amount'] + ' so‘m / сум')]
-        labels = ('To‘lov sahifasini ochish', 'Перейти к оплате')
+        headings = (f'Tölov kunigaça {days} kun qoldi', f'До даты оплаты: {days} дн.')
+        paragraphs = ('Öqişni uzluksiz davom ettiriş uçun tölovni muddatida amalga oşiring. Tölagan bölsangiz, saytdagi tölov holatini tekşiring.', 'Чтобы продолжить обучение без перерыва, внесите оплату вовремя. Если вы уже оплатили, проверьте статус платежа на сайте.')
+        details = [('Tölov sanasi / Дата оплаты', balance.next_payment_date.strftime('%d.%m.%Y')), ('Oylik tölov / Ежемесячный платёж', data['amount'] + ' söm / сум')]
+        labels = ('Tölov sahifasini oçiş', 'Перейти к оплате')
         url_name = 'student_payments'
     elif notification.kind == 'blocked':
         if not user.is_blocked:
             return None
         subject = 'Akkaunt holati / Статус аккаунта'
         headings = ('Akkauntingiz bloklandi', 'Ваш аккаунт заблокирован')
-        paragraphs = ('Akkauntingizga kirish cheklangan. Agar sabab to‘lov bo‘lsa, to‘lov sahifasida holatni tekshiring. Boshqa holatlarda administrator bilan bog‘laning.', 'Доступ к аккаунту ограничен. Если причина связана с оплатой, проверьте статус на странице платежей. В остальных случаях свяжитесь с администратором.')
-        labels = ('To‘lov holatini ko‘rish', 'Проверить оплату')
+        paragraphs = ('Akkauntingizga kiriş çeklangan. Agar sabab tölov bölsa, tölov sahifasida holatni tekşiring. Boşqa holatlarda administrator bilan boğlaning.', 'Доступ к аккаунту ограничен. Если причина связана с оплатой, проверьте статус на странице платежей. В остальных случаях свяжитесь с администратором.')
+        labels = ('Tölov holatini köriş', 'Проверить оплату')
         url_name = 'student_payments'
     elif notification.kind == 'certificate':
         certificate = Certificate.objects.filter(pk=data.get('certificate_id'), student=user, status='active').first()
@@ -77,14 +77,14 @@ def _message_context(notification):
             return None
         subject = 'Sertifikatingiz tayyor! / Ваш сертификат готов!'
         headings = ('Tabriklaymiz, sertifikatingiz tayyor!', 'Поздравляем, ваш сертификат готов!')
-        paragraphs = ('Bilim olish yo‘lidagi mehnatingiz o‘z samarasini berdi. Yangi yutug‘ingiz bilan tabriklaymiz va keyingi bosqichlarda omad tilaymiz!', 'Ваш труд и стремление к знаниям принесли результат. Поздравляем с достижением и желаем успехов на следующем этапе!')
+        paragraphs = ('Bilim oliş yölidagi mehnatingiz öz samarasini berdi. Yangi yutuğingiz bilan tabriklaymiz va keyingi bosqiçlarda omad tilaymiz!', 'Ваш труд и стремление к знаниям принесли результат. Поздравляем с достижением и желаем успехов на следующем этапе!')
         details = [('Kurs / Курс', certificate.profession.name), ('Sertifikat raqami / Номер сертификата', certificate.certificate_id)]
-        labels = ('Sertifikatni yuklab olish', 'Скачать сертификат')
+        labels = ('Sertifikatni yuklab oliş', 'Скачать сертификат')
         url_name, args = 'download_certificate', [certificate.pk]
     else:
         return None
     sections = [{'language': language, 'heading': headings[index], 'greeting': greeting + name + '!', 'paragraph': paragraphs[index], 'button': labels[index]}
-        for index, (language, greeting) in enumerate([('O‘ZBEKCHA', 'Assalomu alaykum, '), ('РУССКИЙ', 'Здравствуйте, ')])]
+        for index, (language, greeting) in enumerate([('ÖZBEKÇA', 'Assalomu alaykum, '), ('РУССКИЙ', 'Здравствуйте, ')])]
     return {'subject': subject, 'sections': sections, 'details': details,
             'action_url': getattr(settings, 'SITE_URL', '').rstrip('/') + reverse(url_name, args=args)}
 

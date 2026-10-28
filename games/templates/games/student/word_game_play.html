@@ -963,7 +963,7 @@
     <div class="play-container">
         <!-- Tab Warning -->
         <div class="tab-warning" id="tabWarning">
-            ⚠️ Ogohlantirish! Tab almashish aniqlandi (<span id="tabCount">0</span>/3)
+            ⚠️ Ogohlantiriş! Tab almaşiş aniqlandi (<span id="tabCount">0</span>/3)
         </div>
 
         <!-- Message Toast -->
@@ -990,7 +990,7 @@
                 </div>
                 <div class="play-stat">
                     <div class="value" id="wordsDisplay">0/{{ total_words }}</div>
-                    <div class="label">So'zlar</div>
+                    <div class="label">Sözlar</div>
                 </div>
             </div>
         </div>
@@ -1019,26 +1019,26 @@
 
             <!-- Action Buttons -->
             <div class="word-actions">
-                <button class="btn-shuffle" id="shuffleBtn" title="Aralashtirish">
+                <button class="btn-shuffle" id="shuffleBtn" title="Aralaştiriş">
                     <i class="bi bi-shuffle"></i>
                 </button>
                 <button class="btn-clear" id="clearBtn">
-                    <i class="bi bi-x-lg"></i> Tozalash
+                    <i class="bi bi-x-lg"></i> Tozalaş
                 </button>
                 <button class="btn-check-word" id="checkBtn" disabled>
-                    <i class="bi bi-check-lg"></i> Tekshirish
+                    <i class="bi bi-check-lg"></i> Tekşiriş
                 </button>
             </div>
 
             <!-- Found Words -->
             <div class="found-section">
                 <div class="found-header">
-                    <h5><i class="bi bi-check2-circle text-success"></i> Topilgan so'zlar</h5>
+                    <h5><i class="bi bi-check2-circle text-success"></i> Topilgan sözlar</h5>
                     <span class="found-count" id="foundCountLabel">0 ta</span>
                 </div>
                 <div class="found-words-list" id="foundWordsList">
                     <div class="found-empty" id="foundEmpty">
-                        <i class="bi bi-lightbulb"></i> Harflardan so'zlar yasang!
+                        <i class="bi bi-lightbulb"></i> Harflardan sözlar yasang!
                     </div>
                 </div>
             </div>
@@ -1056,7 +1056,7 @@
             </a>
             {% endif %}
             <button class="btn btn-danger" id="finishBtn" style="border-radius: 14px; font-weight: 600;">
-                <i class="bi bi-stop-circle"></i> Tugatish
+                <i class="bi bi-stop-circle"></i> Tugatiş
             </button>
         </div>
     </div>
@@ -1072,7 +1072,7 @@
         <div class="result-detail">
             <div class="item">
                 <div class="val" id="resultWords">0/0</div>
-                <div class="lbl">So'zlar</div>
+                <div class="lbl">Sözlar</div>
             </div>
             <div class="item">
                 <div class="val" id="resultTime">0s</div>
@@ -1085,11 +1085,11 @@
         </div>
         <div class="d-flex gap-2 justify-content-center mt-3 flex-wrap">
             <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-primary" style="border-radius: 14px; font-weight: 600;">
-                <i class="bi bi-arrow-left"></i> O'yin sahifasi
+                <i class="bi bi-arrow-left"></i> Öyin sahifasi
             </a>
             {% if not competition %}
             <a href="{% url 'games:word_game_play' game.slug %}" class="btn btn-primary" style="border-radius: 14px; font-weight: 600;">
-                <i class="bi bi-arrow-repeat"></i> Qayta o'ynash
+                <i class="bi bi-arrow-repeat"></i> Qayta öynaş
             </a>
             {% endif %}
         </div>
@@ -1103,12 +1103,12 @@
 <div class="suggest-overlay" id="suggestOverlay">
     <div class="suggest-card">
         <div class="suggest-emoji">💡</div>
-        <h4 class="fw-bold mb-1">So'z topilmadi</h4>
-        <p class="suggest-message">Bu so'z tizimda yo'q. Tizimga qo'shishga taklif berasizmi?</p>
+        <h4 class="fw-bold mb-1">Söz topilmadi</h4>
+        <p class="suggest-message">Bu söz tizimda yöq. Tizimga qöşişga taklif berasizmi?</p>
         <div class="suggest-word-display" id="suggestWord"></div>
         <div class="suggest-actions mt-3">
             <button class="btn-suggest-ok" id="suggestOkBtn">Ha, taklif beraman ✅</button>
-            <button class="btn-suggest-cancel" id="suggestCancelBtn">Bekor qilish</button>
+            <button class="btn-suggest-cancel" id="suggestCancelBtn">Bekor qiliş</button>
         </div>
     </div>
 </div>
@@ -1120,9 +1120,9 @@
         <div class="back-modal-icon">
             <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
-        <h4>Musobaqadan chiqasizmi?</h4>
+        <h4>Musobaqadan çiqasizmi?</h4>
         <p class="back-modal-text">
-            Agar hozir chiqsangiz, bu urinish sarflanadi va natijangiz saqlanmaydi!
+            Agar hozir çiqsangiz, bu uriniş sarflanadi va natijangiz saqlanmaydi!
         </p>
         <div class="back-modal-attempts">
             <i class="bi bi-heart-fill"></i>
@@ -1130,10 +1130,10 @@
         </div>
         <div class="back-modal-actions">
             <button class="back-btn-stay" id="backStayBtn">
-                <i class="bi bi-play-fill"></i> Yo'q, davom etaman
+                <i class="bi bi-play-fill"></i> Yöq, davom etaman
             </button>
             <button class="back-btn-leave" id="backLeaveBtn">
-                <i class="bi bi-box-arrow-left"></i> Ha, chiqaman
+                <i class="bi bi-box-arrow-left"></i> Ha, çiqaman
             </button>
         </div>
     </div>
@@ -1158,14 +1158,14 @@
     var _csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     // ===== Server-side time authority =====
-    // Asl funksiyalarni himoyalash (console orqali o'zgartirib bo'lmaydi)
+    // Asl funksiyalarni himoyalaş (console orqali özgartirib bölmaydi)
     var _origDateNow = Date.now;
     var _origPerfNow = (window.performance && window.performance.now) ? window.performance.now.bind(window.performance) : null;
     var _serverStartTime = _origDateNow.call(Date);
     var _perfStartTime = _origPerfNow ? _origPerfNow() : null;
     var _frozenTimeLimit = _timeLimit;
 
-    // Xavfsiz vaqt hisoblash - performance.now yoki Date.now dan foydalanadi
+    // Xavfsiz vaqt hisoblaş - performance.now yoki Date.now dan foydalanadi
     function getServerElapsed() {
         if (_origPerfNow && _perfStartTime !== null) {
             return (_origPerfNow() - _perfStartTime) / 1000;
@@ -1181,7 +1181,7 @@
     var _originalSetInterval = window.setInterval.bind(window);
     var _originalClearInterval = window.clearInterval.bind(window);
 
-    // ===== State (closure ichida himoyalangan) =====
+    // ===== State (closure içida himoyalangan) =====
     var _state = {
         selectedIndices: [],
         foundWords: [],
@@ -1194,7 +1194,7 @@
         suspiciousCount: 0
     };
 
-    // Tashqi kod uchun o'qish mumkin bo'lgan alias
+    // Taşqi kod uçun öqiş mumkin bölgan alias
     var letters = _letters;
     var gameToken = _gameToken;
     var timeLimit = _frozenTimeLimit;
@@ -1237,7 +1237,7 @@
         if (delta > 0 && delta < MIN_KEY_INTERVAL) {
             suspiciousCount++;
             if (suspiciousCount >= MAX_SUSPICIOUS) {
-                showMessage("⚠️ Shubhali harakat aniqlandi!", 'error');
+                showMessage("⚠️ Şubhali harakat aniqlandi!", 'error');
                 return false;
             }
         }
@@ -1264,7 +1264,7 @@
     const comboBadge = document.getElementById('comboBadge');
     const comboText = document.getElementById('comboText');
 
-    // ===== Combo / streak multiplier (faqat vizual — server ballini o'zgartirmaydi) =====
+    // ===== Combo / streak multiplier (faqat vizual — server ballini özgartirmaydi) =====
     var _combo = 0;
     function bumpCombo() {
         _combo++;
@@ -1272,7 +1272,7 @@
             comboText.textContent = 'x' + _combo;
             comboBadge.classList.add('show');
             comboBadge.classList.remove('bump');
-            void comboBadge.offsetWidth;   // reflow — animatsiyani qayta ishga tushirish
+            void comboBadge.offsetWidth;   // reflow — animatsiyani qayta işga tuşiriş
             comboBadge.classList.add('bump');
         }
     }
@@ -1368,7 +1368,7 @@
     function checkWord() {
         if (gameEnded || checking || selectedIndices.length < 3) return;
 
-        // Vaqt tugaganligini tekshirish (server vaqti bo'yicha)
+        // Vaqt tugaganligini tekşiriş (server vaqti böyiça)
         if (getTimeLeft() <= 0) {
             endGame();
             return;
@@ -1380,7 +1380,7 @@
         checkBtn.disabled = true;
 
         if (suspiciousCount >= MAX_SUSPICIOUS) {
-            showMessage("⛔ Avto-yozish aniqlandi! O'yin to'xtatildi.", 'error');
+            showMessage("⛔ Avto-yozish aniqlandi! Öyin töxtatildi.", 'error');
             endGame();
             return;
         }
@@ -1438,18 +1438,18 @@
                 var comboMsg = _combo >= 2 ? '  🔥 x' + _combo + ' ketma-ket' : '';
                 showMessage(data.word + ' ✓  +' + data.points + ' ball' + comboMsg, 'success');
             } else {
-                // So'z qabul qilinmadi
+                // Söz qabul qilinmadi
                 resetCombo();
                 wordDisplay.classList.add('wrong-flash');
                 setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
 
                 if (data.already_suggested) {
-                    showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
+                    showMessage("Bu söz allaqaçon taklif qilingan!", 'warning');
                 } else if (data.message && !data.not_in_system) {
-                    // Kamida 3 harf, allaqachon topilgan, va h.k.
+                    // Kamida 3 harf, allaqaçon topilgan, va h.k.
                     showMessage(data.message, 'error');
                 } else {
-                    // Bazada yo'q - taklif qilish modali
+                    // Bazada yöq - taklif qiliş modali
                     showSuggestModal(submittedWord);
                 }
             }
@@ -1461,7 +1461,7 @@
         .catch(function(err) {
             checking = false;
             console.error('Word check error:', err);
-            // Server xatosi bo'lsa ham taklif modalni ko'rsat
+            // Server xatosi bölsa ham taklif modalni körsat
             wordDisplay.classList.add('wrong-flash');
             setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
             showSuggestModal(submittedWord);
@@ -1502,19 +1502,25 @@
             return;
         }
 
-        // Type letter by keyboard (A-Z va o', g' uchun apostrof)
+        // Klaviaturadan harf (A-Z, Ö Ğ Ş Ç va apostrof). Klaviaturada Ö/Ğ/Ş/Ç
+        // bölmasa O/G/S/C bosilganda ham şu harf tanlanadi.
         var key = e.key.toUpperCase();
-        var matchKey = (e.key === "'" || e.key === "\u2018" || e.key === "\u2019") ? "'" : key;
-        if (key.length === 1 && ((key >= 'A' && key <= 'Z') || e.key === "'" || e.key === "\u2018" || e.key === "\u2019" || e.key === "`")) {
+        var matchKey = (e.key === "'" || e.key === "‘" || e.key === "’") ? "'" : key;
+        var altKey = {O: 'Ö', G: 'Ğ', S: 'Ş', C: 'Ç'}[key];
+        if (key.length === 1 && ((key >= 'A' && key <= 'Z') || 'ÖĞŞÇ'.indexOf(key) !== -1 || e.key === "'" || e.key === "‘" || e.key === "’" || e.key === "`")) {
             e.preventDefault();
-            for (var i = 0; i < letters.length; i++) {
-                if (letters[i] === matchKey && selectedIndices.indexOf(i) === -1) {
-                    selectedIndices.push(i);
-                    updateWordDisplay();
-                    renderLetters();
-                    break;
+            [matchKey, altKey].some(function (want) {
+                if (!want) return false;
+                for (var i = 0; i < letters.length; i++) {
+                    if (letters[i] === want && selectedIndices.indexOf(i) === -1) {
+                        selectedIndices.push(i);
+                        updateWordDisplay();
+                        renderLetters();
+                        return true;
+                    }
                 }
-            }
+                return false;
+            });
         }
     });
 
@@ -1720,7 +1726,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
             if (data.success) {
-                showMessage(data.message || "So'z taklif qilindi! ✅", 'success');
+                showMessage(data.message || "Söz taklif qilindi! ✅", 'success');
             } else {
                 showMessage(data.error || data.message || "Xatolik yuz berdi!", 'error');
             }

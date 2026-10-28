@@ -30,7 +30,7 @@ class PublicPageCacheTests(SimpleTestCase):
             )
             key = get_cache_key(factory.get('/robots.txt', HTTP_HOST='one.example'),
                                 key_prefix='public-robots-v1')
-            self.assertIsNotNone(key, 'robots_txt cache metama’lumoti yozilmadi; config/views.py versiyasini tekshiring.')
+            self.assertIsNotNone(key, 'robots_txt cache metama’lumoti yozilmadi; config/views.py versiyasini tekşiring.')
             self.assertIsNotNone(cache.get(key), 'robots_txt javobi cachega yozilmadi.')
             again = robots_txt(factory.get('/robots.txt', HTTP_HOST='one.example'))
             two = robots_txt(factory.get('/robots.txt', HTTP_HOST='two.example'))

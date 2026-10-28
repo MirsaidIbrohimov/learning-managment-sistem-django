@@ -1,16 +1,16 @@
 """
-Tekshirilmagan uy vazifalari uchun avtomatik Telegram bildirishnomalari.
+Tekşirilmagan uy vazifalari uçun avtomatik Telegram bildirişnomalari.
 
 Qoidalar:
-  - 5+ soat tekshirilmagan vazifa -> kurs ustoz(lar)iga soatlik eskalatsiya:
+  - 5+ soat tekşirilmagan vazifa -> kurs ustoz(lar)iga soatlik eskalatsiya:
       5 soat  -> 1-bildirishnoma
       6 soat  -> 2-bildirishnoma
       ...
-      14 soat -> 10-bildirishnoma (SO'NGGI OGOHLANTIRISH, jarima haqida)
+      14 soat -> 10-bildirishnoma (SÖNGGI OGOHLANTIRIŞ, jarima haqida)
       undan keyin yuborilmaydi.
-  - 3+ soat tekshirilmagan vazifa -> umumiy guruhga bir martalik xabar.
+  - 3+ soat tekşirilmagan vazifa -> umumiy guruhga bir martalik xabar.
 
-Ishga tushirish (soatlik cron):
+Işga tuşiriş (soatlik cron):
     python manage.py send_homework_reminders
 """
 import logging
@@ -26,33 +26,33 @@ GROUP_START_HOURS = 3     # 3-soatda guruhga
 
 def _final_warning_text(teacher_name, course_name, student_name, lesson_title, hours):
     return (
-        f"🚨 <b>10-BILDIRISHNOMA — SO'NGGI OGOHLANTIRISH!</b> 🚨\n\n"
+        f"🚨 <b>10-BILDIRISHNOMA — SÖNGGI OGOHLANTIRIŞ!</b> 🚨\n\n"
         f"Hurmatli <b>{teacher_name}</b>!\n\n"
         f"📚 Kurs: <b>{course_name}</b>\n"
-        f"👤 O'quvchi: {student_name}\n"
+        f"👤 Öquvçi: {student_name}\n"
         f"📝 Dars: {lesson_title}\n"
-        f"⏰ Vazifa <b>{hours} soatdan</b> buyon tekshirilmagan!\n\n"
-        f"❗️ Siz ishga nisbatan mas'uliyatsizlik qilmoqdasiz va "
-        f"<b>jarimaga tortilishingiz mumkin</b>.\n"
-        f"Iltimos, ishga mas'uliyatli bo'ling va vazifani darhol tekshiring!\n\n"
+        f"⏰ Vazifa <b>{hours} soatdan</b> buyon tekşirilmagan!\n\n"
+        f"❗️ Siz işga nisbatan mas'uliyatsizlik qilmoqdasiz va "
+        f"<b>jarimaga tortilişingiz mumkin</b>.\n"
+        f"Iltimos, işga mas'uliyatli böling va vazifani darhol tekşiring!\n\n"
         f"— <i>IT Creative ma'muriyati</i>"
     )
 
 
 def _teacher_reminder_text(level, teacher_name, course_name, student_name, lesson_title, hours):
-    """Ustoz uchun eskalatsion bildirishnoma matni (1..10)."""
+    """Ustoz uçun eskalatsion bildirişnoma matni (1..10)."""
     if level >= MAX_TEACHER_LEVEL:
         return _final_warning_text(teacher_name, course_name, student_name, lesson_title, hours)
 
     if level <= 3:
-        tone = "Iltimos, imkon qadar tezroq tekshirib chiqing. ✨"
+        tone = "Iltimos, imkon qadar tezroq tekşirib çiqing. ✨"
         icon = "🔔"
     elif level <= 6:
-        tone = "O'quvchi javobingizni kutmoqda. Iltimos, e'tiborsiz qoldirmang! ⚠️"
+        tone = "Öquvçi javobingizni kutmoqda. Iltimos, e'tiborsiz qoldirmang! ⚠️"
         icon = "⏰"
     else:
         tone = (
-            "Vazifa haddan tashqari uzoq kutmoqda! Bu holat ma'muriyat "
+            "Vazifa haddan taşqari uzoq kutmoqda! Bu holat ma'muriyat "
             "nazoratiga olinadi. ❗️"
         )
         icon = "🔥"
@@ -61,9 +61,9 @@ def _teacher_reminder_text(level, teacher_name, course_name, student_name, lesso
         f"{icon} <b>{level}-BILDIRISHNOMA</b>\n\n"
         f"Hurmatli <b>{teacher_name}</b>!\n\n"
         f"📚 Kurs: <b>{course_name}</b>\n"
-        f"👤 O'quvchi: {student_name}\n"
+        f"👤 Öquvçi: {student_name}\n"
         f"📝 Dars: {lesson_title}\n"
-        f"⏰ Topshirilganiga: <b>{hours} soat</b>\n\n"
+        f"⏰ Topşirilganiga: <b>{hours} soat</b>\n\n"
         f"{tone}\n\n"
         f"— <i>IT Creative ma'muriyati</i>"
     )
@@ -72,22 +72,22 @@ def _teacher_reminder_text(level, teacher_name, course_name, student_name, lesso
 def _group_text(course_name, student_name, lesson_title, teacher_names, hours):
     teachers = ", ".join(teacher_names) if teacher_names else "biriktirilmagan"
     return (
-        f"📢 <b>TEKSHIRILMAGAN VAZIFA!</b>\n\n"
+        f"📢 <b>TEKŞIRILMAGAN VAZIFA!</b>\n\n"
         f"📚 Kurs: <b>{course_name}</b>\n"
-        f"👤 O'quvchi: {student_name}\n"
+        f"👤 Öquvçi: {student_name}\n"
         f"📝 Dars: {lesson_title}\n"
         f"⏰ Kutmoqda: <b>{hours} soatdan</b> buyon\n"
         f"👨‍🏫 Mas'ul ustoz: <b>{teachers}</b>\n\n"
-        f"Iltimos, vazifani tezroq tekshirib chiqing! 🔥"
+        f"Iltimos, vazifani tezroq tekşirib çiqing! 🔥"
     )
 
 
 def send_homework_reminders():
-    """Soatlik cron: tekshirilmagan vazifalar bo'yicha bildirishnomalar.
+    """Soatlik cron: tekşirilmagan vazifalar böyiça bildirişnomalar.
 
     Returns: (teacher_sent, group_sent) — yuborilgan xabarlar soni.
     """
-    # Import shu yerda — Django to'liq yuklangach ishlaydi
+    # Import şu yerda — Django töliq yuklangaç işlaydi
     from accounts.models import HomeworkSubmission, HomeworkReminder
     from telegram_bot.utils import notify_user, notify_group
 

@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Topshiriqlar - {{ game.title }} | Admin{% endblock %}
+{% block title %}Topşiriqlar - {{ game.title }} | Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -173,12 +173,12 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold mb-0"><i class="bi bi-card-text text-primary"></i> Topshiriq matnlari</h2>
+            <h2 class="fw-bold mb-0"><i class="bi bi-card-text text-primary"></i> Topşiriq matnlari</h2>
             <p class="text-muted mb-0 small">{{ game.title }}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'games:admin_games' %}" class="btn btn-outline-secondary btn-back">
-                <i class="bi bi-arrow-left"></i> O'yinlar
+                <i class="bi bi-arrow-left"></i> Öyinlar
             </a>
             <button type="button" class="btn btn-xlsx" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bi bi-file-earmark-excel"></i> Excel import
@@ -200,11 +200,11 @@
         </div>
         <div class="pstat practice">
             <span class="ic"><i class="bi bi-joystick"></i></span>
-            <span><span class="num">{{ stats.practice }}</span><div class="lbl">Mashqda chiqadi</div></span>
+            <span><span class="num">{{ stats.practice }}</span><div class="lbl">Maşqda çiqadi</div></span>
         </div>
         <div class="pstat competition">
             <span class="ic"><i class="bi bi-trophy"></i></span>
-            <span><span class="num">{{ stats.competition }}</span><div class="lbl">Musobaqada chiqadi</div></span>
+            <span><span class="num">{{ stats.competition }}</span><div class="lbl">Musobaqada çiqadi</div></span>
         </div>
         <div class="pstat active">
             <span class="ic"><i class="bi bi-check-circle"></i></span>
@@ -218,7 +218,7 @@
             <a href="?{% if current_difficulty %}difficulty={{ current_difficulty }}&{% endif %}{% if search_query %}q={{ search_query|urlencode }}{% endif %}"
                class="usage-tab {% if not current_usage %}active{% endif %}">Hammasi</a>
             <a href="?usage=practice{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
-               class="usage-tab {% if current_usage == 'practice' %}active{% endif %}">Mashq</a>
+               class="usage-tab {% if current_usage == 'practice' %}active{% endif %}">Maşq</a>
             <a href="?usage=competition{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
                class="usage-tab {% if current_usage == 'competition' %}active{% endif %}">Musobaqa</a>
             <a href="?usage=both{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
@@ -228,11 +228,11 @@
         <select name="difficulty" class="form-select" style="width: auto;" onchange="this.form.submit()">
             <option value="">Qiyinlik: hammasi</option>
             <option value="easy" {% if current_difficulty == 'easy' %}selected{% endif %}>Oson</option>
-            <option value="medium" {% if current_difficulty == 'medium' %}selected{% endif %}>O'rta</option>
+            <option value="medium" {% if current_difficulty == 'medium' %}selected{% endif %}>Örta</option>
             <option value="hard" {% if current_difficulty == 'hard' %}selected{% endif %}>Qiyin</option>
         </select>
         <div class="d-flex gap-2 flex-grow-1" style="min-width: 200px;">
-            <input type="text" name="q" class="form-control" placeholder="Matn bo'yicha qidirish…" value="{{ search_query }}">
+            <input type="text" name="q" class="form-control" placeholder="Matn böyiça qidiriş…" value="{{ search_query }}">
             <button type="submit" class="btn btn-outline-primary" style="border-radius: 11px;"><i class="bi bi-search"></i></button>
         </div>
     </form>
@@ -246,7 +246,7 @@
                         <tr>
                             <th>#</th>
                             <th>Matn</th>
-                            <th>So'zlar</th>
+                            <th>Sözlar</th>
                             <th>Qiyinlik</th>
                             <th>Rejim</th>
                             <th>Holat</th>
@@ -258,19 +258,19 @@
                         <tr>
                             <td class="text-muted">{{ prompt.order }}</td>
                             <td title="{{ prompt.text }}">{{ prompt.text|truncatewords:12 }}</td>
-                            <td><span class="word-chip">{{ prompt.word_count }} so'z</span></td>
+                            <td><span class="word-chip">{{ prompt.word_count }} söz</span></td>
                             <td>
                                 {% if prompt.difficulty == 'easy' %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Oson</span>
                                 {% elif prompt.difficulty == 'medium' %}
-                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">O'rta</span>
+                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">Örta</span>
                                 {% else %}
                                 <span class="badge bg-danger" style="border-radius: 8px;">Qiyin</span>
                                 {% endif %}
                             </td>
                             <td>
                                 {% if prompt.usage == 'practice' %}
-                                <span class="usage-badge practice"><i class="bi bi-joystick"></i> Mashq</span>
+                                <span class="usage-badge practice"><i class="bi bi-joystick"></i> Maşq</span>
                                 {% elif prompt.usage == 'competition' %}
                                 <span class="usage-badge competition"><i class="bi bi-trophy"></i> Musobaqa</span>
                                 {% else %}
@@ -298,7 +298,7 @@
                             <td colspan="7" class="text-center py-4 text-muted">
                                 <i class="bi bi-card-text" style="font-size: 2rem; opacity: 0.4;"></i>
                                 <p class="mt-2 mb-1">Matnlar topilmadi</p>
-                                <small>Excel import orqali bir vaqtda ko'plab matn qo'shishingiz mumkin</small>
+                                <small>Excel import orqali bir vaqtda köplab matn qöşişingiz mumkin</small>
                             </td>
                         </tr>
                         {% endfor %}
@@ -313,10 +313,10 @@
         {% for prompt in prompts %}
         <div class="prompt-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
             <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
-                <span class="text-muted small">#{{ prompt.order }} · {{ prompt.word_count }} so'z</span>
+                <span class="text-muted small">#{{ prompt.order }} · {{ prompt.word_count }} söz</span>
                 <div class="d-flex gap-1 flex-wrap">
                     {% if prompt.usage == 'practice' %}
-                    <span class="usage-badge practice">Mashq</span>
+                    <span class="usage-badge practice">Maşq</span>
                     {% elif prompt.usage == 'competition' %}
                     <span class="usage-badge competition">Musobaqa</span>
                     {% else %}
@@ -325,7 +325,7 @@
                     {% if prompt.difficulty == 'easy' %}
                     <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Oson</span>
                     {% elif prompt.difficulty == 'medium' %}
-                    <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.7rem;">O'rta</span>
+                    <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.7rem;">Örta</span>
                     {% else %}
                     <span class="badge bg-danger" style="border-radius: 8px; font-size: 0.7rem;">Qiyin</span>
                     {% endif %}
@@ -361,31 +361,31 @@
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel'dan import</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopiş"></button>
                 </div>
                 <div class="modal-body">
                     <p class="text-muted small mb-3">
-                        Ustunlar: <strong>Matn</strong> (majburiy) · Qiyinlik (Oson/O'rta/Qiyin) ·
-                        Rejim (Mashq/Musobaqa/Ikkalasi) · Faol (Ha/Yo'q) · Tartib.
-                        <a href="{% url 'games:admin_prompts_template' game.pk %}">Tayyor shablonni yuklab oling</a>.
+                        Ustunlar: <strong>Matn</strong> (majburiy) · Qiyinlik (Oson/Örta/Qiyin) ·
+                        Rejim (Mashq/Musobaqa/Ikkalasi) · Faol (Ha/Yöq) · Tartib.
+                        <a href="{% url 'games:admin_prompts_template' game.pk %}">Tayyor şablonni yuklab oling</a>.
                     </p>
                     <label class="import-drop d-block mb-3" id="importDrop">
                         <input type="file" name="file" id="importFile" accept=".xlsx" required>
                         <i class="bi bi-cloud-arrow-up" style="font-size: 1.8rem; color: #6366f1;"></i>
                         <div class="mt-1 import-file-name" id="importFileName">.xlsx faylni tanlang</div>
-                        <small class="text-muted">Maksimal 5 MB · 2000 tagacha matn</small>
+                        <small class="text-muted">Maksimal 5 MB · 2000 tagaça matn</small>
                     </label>
                     <div class="form-check">
                         <input type="checkbox" name="replace_all" class="form-check-input" id="replaceAll">
                         <label class="form-check-label small" for="replaceAll">
-                            Eski matnlarni o'chirib, faqat fayldan import qilish
-                            <span class="text-danger">(ehtiyot bo'ling!)</span>
+                            Eski matnlarni öçirib, faqat fayldan import qiliş
+                            <span class="text-danger">(ehtiyot böling!)</span>
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qilish</button>
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qiliş</button>
+                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qiliş</button>
                 </div>
             </form>
         </div>

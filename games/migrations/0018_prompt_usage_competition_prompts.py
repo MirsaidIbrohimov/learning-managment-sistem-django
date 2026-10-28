@@ -12,10 +12,10 @@ class Migration(migrations.Migration):
             model_name='prompt',
             name='usage',
             field=models.CharField(
-                choices=[('practice', 'Mashq'), ('competition', 'Musobaqa'), ('both', 'Ikkalasi')],
+                choices=[('practice', 'Maşq'), ('competition', 'Musobaqa'), ('both', 'Ikkalasi')],
                 default='both',
                 max_length=15,
-                verbose_name='Qayerda ishlatiladi',
+                verbose_name='Qayerda işlatiladi',
             ),
         ),
         migrations.AddField(
@@ -23,10 +23,10 @@ class Migration(migrations.Migration):
             name='prompts',
             field=models.ManyToManyField(
                 blank=True,
-                help_text="Tanlansa, musobaqada faqat shu matnlar chiqadi. Bo'sh qolsa — 'Musobaqa' rejimidagi matnlar ishlatiladi.",
+                help_text="Tanlansa, musobaqada faqat şu matnlar çiqadi. Böş qolsa — 'Musobaqa' rejimidagi matnlar işlatiladi.",
                 related_name='competitions',
                 to='games.prompt',
-                verbose_name='Maxsus topshiriqlar',
+                verbose_name='Maxsus topşiriqlar',
             ),
         ),
     ]

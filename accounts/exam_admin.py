@@ -49,11 +49,11 @@ def admin_grant_exam_retry(request, user_pk, profession_pk, quiz_pk):
     attempts = Attempt.objects.filter(student=student, quiz=quiz)
     result = attempts.filter(status__in=[Attempt.Status.SUBMITTED, Attempt.Status.GRADED]).order_by('-started_at', '-pk').first()
     if not settings_ or not settings_.retry_payment_required or not result or result.passed:
-        messages.error(request, "Bu imtihon uchun qo'shimcha imkon berib bo'lmaydi.")
+        messages.error(request, "Bu imtihon uçun qöşimça imkon berib bölmaydi.")
     elif attempts.filter(status=Attempt.Status.IN_PROGRESS).exists():
-        messages.info(request, "O'quvchining davom etayotgan urinishi mavjud.")
+        messages.info(request, "Öquvçining davom etayotgan urinişi mavjud.")
     elif QuizRetryPayment.objects.filter(student=student, quiz=quiz, status='approved').exists():
-        messages.info(request, "O'quvchiga qayta urinish imkoniyati allaqachon berilgan.")
+        messages.info(request, "Öquvçiga qayta uriniş imkoniyati allaqaçon berilgan.")
     else:
         # The existing exam entry flow consumes one approved grant per retry.
         # Zero amount distinguishes this permission from a received payment.
@@ -61,6 +61,6 @@ def admin_grant_exam_retry(request, user_pk, profession_pk, quiz_pk):
             student=student, quiz=quiz, amount=0, status='approved',
             reviewed_by=request.user, reviewed_at=timezone.now(),
         )
-        messages.success(request, "Yakuniy imtihonga bitta bepul qayta urinish berildi.")
+        messages.success(request, "Yakuniy imtihonga bitta bepul qayta uriniş berildi.")
     from django.urls import reverse
     return redirect(reverse('admin_user_view', args=[student.pk]) + '#tab-daily-limit')

@@ -1,10 +1,10 @@
-"""Kirillcha (UTF-8) nomli media fayllarni diskdan topish.
+"""Kirillça (UTF-8) nomli media fayllarni diskdan topiş.
 
-Hosting serverlarida Python fayl tizimi kodlashi har doim ham UTF-8 emas.
-Natijada "Снимок_экрана.png" diskda bor bo'lsa ham oddiy `str` yo'l bilan
-topilmaydi, yoki fayl yuklash paytida "ikki marta kodlangan" nom bilan
-yozilgan bo'ladi ("Ð¡Ð½Ð¸Ð¼Ð¾Ðº..."). Bu yerda yo'l baytlar darajasida
-qidiriladi — fayl tizimi kodlash sozlamasiga bog'liq emas.
+Hosting serverlarida Python fayl tizimi kodlaşi har doim ham UTF-8 emas.
+Natijada "Снимок_экрана.png" diskda bor bölsa ham oddiy `str` yöl bilan
+topilmaydi, yoki fayl yuklaş paytida "ikki marta kodlangan" nom bilan
+yozilgan böladi ("Ð¡Ð½Ð¸Ð¼Ð¾Ðº..."). Bu yerda yöl baytlar darajasida
+qidiriladi — fayl tizimi kodlaş sozlamasiga boğliq emas.
 """
 import os
 import posixpath
@@ -14,12 +14,12 @@ from django.conf import settings
 
 
 def _name_variants(part):
-    """Bitta yo'l bo'lagi diskda qanday baytlar bilan yozilgan bo'lishi mumkin."""
+    """Bitta yöl bölagi diskda qanday baytlar bilan yozilgan bölişi mumkin."""
     variants = []
     for form in ('NFC', 'NFD'):
         raw = unicodedata.normalize(form, part).encode('utf-8')
         variants.append(raw)
-        try:  # UTF-8 baytlari latin-1 deb o'qilib, qayta UTF-8 ga yozilgan holat.
+        try:  # UTF-8 baytlari latin-1 deb öqilib, qayta UTF-8 ga yozilgan holat.
             variants.append(raw.decode('latin-1').encode('utf-8'))
         except UnicodeError:
             pass
@@ -31,7 +31,7 @@ def media_root_bytes():
 
 
 def find_media_file(path):
-    """MEDIA_ROOT ichidagi faylning haqiqiy bayt-yo'li yoki None."""
+    """MEDIA_ROOT içidagi faylning haqiqiy bayt-yöli yoki None."""
     clean = posixpath.normpath(str(path).replace('\\', '/')).lstrip('/')
     parts = clean.split('/')
     if not clean or clean == '.' or any(p in ('', '.', '..') for p in parts):

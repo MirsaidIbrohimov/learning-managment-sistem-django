@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='is_premium',
-            field=models.BooleanField(default=False, verbose_name='Premium foydalanuvchi'),
+            field=models.BooleanField(default=False, verbose_name='Premium foydalanuvçi'),
         ),
         migrations.AddField(
             model_name='customuser',

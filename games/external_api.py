@@ -2,11 +2,11 @@
 External Game Integration API
 ==============================
 
-LMS bilan tashqi (3rd-party) o'yinlar o'rtasidagi integratsiya uchun:
+LMS bilan taşqi (3rd-party) öyinlar örtasidagi integratsiya uçun:
   1. SSO (Single Sign-On): LMS HMAC-imzolangan launch token yaratadi va
-     foydalanuvchini tashqi o'yin URL'iga yo'naltiradi.
-  2. Verify: Tashqi o'yin token bo'yicha foydalanuvchi ma'lumotlarini oladi.
-  3. Result: Tashqi o'yin tugaganda natijani LMS'ga yuboradi
+     foydalanuvçini taşqi öyin URL'iga yönaltiradi.
+  2. Verify: Taşqi öyin token böyiça foydalanuvçi ma'lumotlarini oladi.
+  3. Result: Taşqi öyin tugaganda natijani LMS'ga yuboradi
      (GameAttempt sifatida saqlanadi).
 
 Token formati:
@@ -28,31 +28,31 @@ from django.views.decorators.http import require_POST
 from .models import Game, GameAttempt, BoardMatch
 
 
-# Launch token amal qilish vaqti (sekund).
-# MUHIM: multiplayer o'yin (va uni sinxronlab turuvchi 2 soniyalik polling) 30
-# daqiqadan uzoq davom etishi mumkin. Token muddati o'yin davomida tugasa, barcha
-# mp/state va mp/move so'rovlari 403 qaytaradi — natijada taxta "Raqib yurmoqda"da
-# qotib qoladi (client 403 ni jimgina e'tiborsiz qoldiradi). Shu sabab TTL o'yin
-# seansidan ancha uzun qilib belgilangan.
+# Launch token amal qiliş vaqti (sekund).
+# MUHIM: multiplayer öyin (va uni sinxronlab turuvçi 2 soniyalik polling) 30
+# daqiqadan uzoq davom etişi mumkin. Token muddati öyin davomida tugasa, barça
+# mp/state va mp/move sörovlari 403 qaytaradi — natijada taxta "Raqib yurmoqda"da
+# qotib qoladi (client 403 ni jimgina e'tiborsiz qoldiradi). Şu sabab TTL öyin
+# seansidan ança uzun qilib belgilangan.
 LAUNCH_TOKEN_TTL = 60 * 60 * 12  # 12 soat
 
-# Replay attack himoyasi uchun used nonce cache prefiksi
+# Replay attack himoyasi uçun used nonce cache prefiksi
 NONCE_CACHE_PREFIX = 'ext_game_used_nonce:'
 
-# Coin tikib o'ynalganda g'oliblikdan ushlab qolinadigan xizmat haqi (foizda).
-# Har bir o'yin uchun config.service_fee_percent orqali o'zgartirilishi mumkin.
+# Coin tikib öynalganda ğoliblikdan uşlab qolinadigan xizmat haqi (foizda).
+# Har bir öyin uçun config.service_fee_percent orqali özgartirilişi mumkin.
 SERVICE_FEE_PERCENT = 15
 
-# Multiplayer matchda harakatsizlik chegarasi (daqiqa). Shu vaqtdan ortiq
-# hech qanday yurish bo'lmasa, match "zombie" hisoblanadi va avtomatik
-# yakunlanadi — aks holda u "active" bo'lib qolib, jonli o'yinlar
-# ro'yxatida abadiy ko'rinib turadi (aslida tugagan bo'lsa ham).
+# Multiplayer matchda harakatsizlik çegarasi (daqiqa). Şu vaqtdan ortiq
+# heç qanday yuriş bölmasa, match "zombie" hisoblanadi va avtomatik
+# yakunlanadi — aks holda u "active" bölib qolib, jonli öyinlar
+# röyxatida abadiy körinib turadi (aslida tugagan bölsa ham).
 MP_INACTIVITY_MINUTES = 5
 
 
 def _get_secret(game: Game) -> bytes:
-    """O'yin uchun HMAC kalit. Game.config'da 'secret' bo'lsa undan, aks holda
-    settings.SECRET_KEY ishlatiladi."""
+    """Öyin uçun HMAC kalit. Game.config'da 'secret' bölsa undan, aks holda
+    settings.SECRET_KEY işlatiladi."""
     cfg = game.config or {}
     secret = cfg.get('secret') or settings.SECRET_KEY
     return str(secret).encode('utf-8')
@@ -68,7 +68,7 @@ def _b64decode(s: str) -> bytes:
 
 
 def issue_launch_token(user, game: Game) -> str:
-    """Foydalanuvchi uchun tashqi o'yinga kirish tokeni yaratadi."""
+    """Foydalanuvçi uçun taşqi öyinga kiriş tokeni yaratadi."""
     now = int(time.time())
     nonce = hashlib.sha256(f'{user.pk}-{game.pk}-{now}-{settings.SECRET_KEY}'.encode()).hexdigest()[:16]
 
@@ -103,7 +103,7 @@ def issue_launch_token(user, game: Game) -> str:
 
 
 def verify_launch_token(token: str, game: Game) -> dict | None:
-    """Token to'g'riligini tekshiradi. To'g'ri bo'lsa payload dict qaytaradi."""
+    """Token töğriligini tekşiradi. Töğri bölsa payload dict qaytaradi."""
     try:
         payload_b64, sig_b64 = token.split('.', 1)
     except ValueError:
@@ -132,7 +132,7 @@ def verify_launch_token(token: str, game: Game) -> dict | None:
 
 
 def _cors_headers(response, request):
-    """CORS sarlavhalarini qo'shadi (tashqi domendan so'rovlar uchun)."""
+    """CORS sarlavhalarini qöşadi (taşqi domendan sörovlar uçun)."""
     origin = request.META.get('HTTP_ORIGIN', '*')
     response['Access-Control-Allow-Origin'] = origin
     response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
@@ -171,13 +171,13 @@ def verify(request):
     try:
         game = Game.objects.get(slug=slug, game_type='external', is_active=True)
     except Game.DoesNotExist:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "O'yin topilmadi"}, status=404), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin topilmadi"}, status=404), request)
 
     payload = verify_launch_token(token, game)
     if not payload:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz yoki muddati o'tgan token"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz yoki muddati ötgan token"}, status=403), request)
 
-    # Foydalanuvchining joriy coin balansi (wager UI uchun)
+    # Foydalanuvçining joriy coin balansi (wager UI uçun)
     user_coins = 0
     try:
         from accounts.models import CustomUser
@@ -185,8 +185,8 @@ def verify(request):
     except Exception:
         user_coins = 0
 
-    # Musobaqa (ixtiyoriy) — urinishlar holatini qaytaramiz, shunda klient
-    # urinishlar tugagan bo'lsa o'yinni boshlamaydi.
+    # Musobaqa (ixtiyoriy) — urinişlar holatini qaytaramiz, şunda klient
+    # urinişlar tugagan bölsa öyinni boşlamaydi.
     competition_info = None
     comp_id = data.get('competition_id')
     if comp_id:
@@ -227,7 +227,7 @@ def verify(request):
             'max_wager': int(cfg.get('max_wager', 5000)),
             'ai_coin_rewards': cfg.get('ai_coin_rewards') or {'easy': 25, 'medium': 35, 'hard': 50},
             'service_fee_percent': int(cfg.get('service_fee_percent', SERVICE_FEE_PERCENT)),
-            # Coin (tikilish / AI mukofoti) faqat shaxmatda yoqilgan
+            # Coin (tikiliş / AI mukofoti) faqat şaxmatda yoqilgan
             'coin_enabled': _is_chess_game(game),
         },
         'competition': competition_info,
@@ -268,42 +268,42 @@ def submit_result(request):
     try:
         game = Game.objects.get(slug=slug, game_type='external', is_active=True)
     except Game.DoesNotExist:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "O'yin topilmadi"}, status=404), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin topilmadi"}, status=404), request)
 
     payload = verify_launch_token(token, game)
     if not payload:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz yoki muddati o'tgan token"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz yoki muddati ötgan token"}, status=403), request)
 
-    # Replay attack himoyasi: bitta nonce uchun faqat bitta natija
+    # Replay attack himoyasi: bitta nonce uçun faqat bitta natija
     nonce = payload.get('nonce', '')
     cache_key = f'{NONCE_CACHE_PREFIX}{nonce}'
     if cache.get(cache_key):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Bu sessiya natijasi allaqachon yuborilgan"}, status=409), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Bu sessiya natijasi allaqaçon yuborilgan"}, status=409), request)
 
-    # Foydalanuvchini topish
+    # Foydalanuvçini topiş
     from accounts.models import CustomUser
     try:
         user = CustomUser.objects.get(pk=payload['uid'])
     except CustomUser.DoesNotExist:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Foydalanuvchi topilmadi"}, status=404), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Foydalanuvçi topilmadi"}, status=404), request)
 
-    # O'chirilgan akkaunt token muddati tugagunicha natija yozishda davom
-    # eta olmasin — token allaqachon berilgan bo'lsa ham.
+    # Öçirilgan akkaunt token muddati tugaguniça natija yozişda davom
+    # eta olmasin — token allaqaçon berilgan bölsa ham.
     if not user.is_active:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Akkaunt faol emas"}, status=403), request)
 
     # Natija validatsiyasi
     result = str(data.get('result', '')).lower()
     if result not in ('win', 'lose', 'draw'):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "result win|lose|draw bo'lishi kerak"}, status=400), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "result win|lose|draw bölişi kerak"}, status=400), request)
 
     try:
         score = float(data.get('score', 0))
         time_spent = float(data.get('time_spent', 0))
     except (TypeError, ValueError):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "score/time_spent raqam bo'lishi kerak"}, status=400), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "score/time_spent raqam bölişi kerak"}, status=400), request)
 
-    # Server tomonidan yana bir bor sanity check + chegaralash
+    # Server tomonidan yana bir bor sanity check + çegaralaş
     cfg = game.config or {}
     max_score = float(cfg.get('max_score', 1000))
     min_time = float(cfg.get('min_time_seconds', 5))
@@ -312,9 +312,9 @@ def submit_result(request):
     if score > max_score:
         score = max_score
     if time_spent < min_time:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "O'yin juda tez tugadi (anti-cheat)"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin juda tez tugadi (anti-cheat)"}, status=403), request)
 
-    # Metadata (move history va boshqalar) — typed_text maydoniga JSON sifatida
+    # Metadata (move history va boşqalar) — typed_text maydoniga JSON sifatida
     meta = data.get('meta') or {}
 
     # Musobaqa (ixtiyoriy)
@@ -327,26 +327,26 @@ def submit_result(request):
         except (TypeError, ValueError):
             competition = None
 
-    # Musobaqada urinishlar tugagan bo'lsa — natijani musobaqaga biriktirmaymiz
-    # (urinish hisoblanmasligi uchun va max_attempts cheklovini chetlab o'tmaslik uchun)
+    # Musobaqada urinişlar tugagan bölsa — natijani musobaqaga biriktirmaymiz
+    # (uriniş hisoblanmasligi uçun va max_attempts çeklovini çetlab ötmaslik uçun)
     if competition and not competition.can_user_play(user):
         used = competition.user_attempts_count(user)
         return _cors_headers(JsonResponse({
             'ok': False,
-            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Natija saqlanmadi.",
+            'error': f"Musobaqada urinişlar tugadi ({used}/{competition.max_attempts}). Natija saqlanmadi.",
             'attempts_used': used,
             'attempts_left': 0,
             'max_attempts': competition.max_attempts,
             'can_play': False,
         }, status=403), request)
 
-    # ===== AI bilan o'ynalganda g'alaba uchun COIN MUKOFOTI =====
+    # ===== AI bilan öynalganda ğalaba uçun COIN MUKOFOTI =====
     coins_awarded = 0
     coin_reason = ''
     engine = str(cfg.get('engine', '')).lower()
 
-    # Faqat shaxmat (chess) AI g'alabasi uchun coin beriladi — boshqa barcha
-    # o'yinlarda (shashka va h.k.) coin umuman berilmaydi.
+    # Faqat şaxmat (chess) AI ğalabasi uçun coin beriladi — boşqa barça
+    # öyinlarda (şaşka va h.k.) coin umuman berilmaydi.
     if result == 'win' and meta.get('mode') == 'ai' and engine == 'chess':
         difficulty = str(meta.get('difficulty', 'medium')).lower()
         rewards = (cfg.get('ai_coin_rewards') or {})
@@ -354,18 +354,18 @@ def submit_result(request):
         defaults = {'easy': 25, 'medium': 35, 'hard': 50}
         coins_awarded = int(rewards.get(difficulty, defaults.get(difficulty, 0)))
 
-        # Bloklangan (to'lov qarzi bor) o'quvchi o'yin o'ynay oladi, lekin
-        # coin ishlab olmasin — coin marketda pul o'rnida ishlatiladi.
+        # Bloklangan (tölov qarzi bor) öquvçi öyin öynay oladi, lekin
+        # coin işlab olmasin — coin marketda pul örnida işlatiladi.
         if getattr(user, 'is_blocked', False):
             coins_awarded = 0
             coin_reason = "Akkaunt bloklangan — coin berilmadi"
 
-        # Shaxmat uchun kunlik 3 ta o'yin limiti
+        # Şaxmat uçun kunlik 3 ta öyin limiti
         DAILY_AI_COIN_LIMIT = int(cfg.get('daily_ai_coin_limit', 3))
         if engine == 'chess' and coins_awarded > 0:
             from django.utils import timezone
             today = timezone.localdate()
-            # Bugungi AI g'alabalari soni
+            # Bugungi AI ğalabalari soni
             today_ai_wins = GameAttempt.objects.filter(
                 user=user,
                 game=game,
@@ -375,10 +375,10 @@ def submit_result(request):
             ).count()
             if today_ai_wins >= DAILY_AI_COIN_LIMIT:
                 coins_awarded = 0
-                coin_reason = f"Kunlik {DAILY_AI_COIN_LIMIT} ta o'yin limiti tugadi — coin berilmadi"
+                coin_reason = f"Kunlik {DAILY_AI_COIN_LIMIT} ta öyin limiti tugadi — coin berilmadi"
 
         if coins_awarded > 0:
-            coin_reason = f"{game.title} ({difficulty}) g'olibi"
+            coin_reason = f"{game.title} ({difficulty}) ğolibi"
             user.add_coins(coins_awarded, coin_reason)
 
     from accounts.security import get_client_ip
@@ -403,7 +403,7 @@ def submit_result(request):
         score=round(score, 2),
     )
 
-    # Nonce'ni "ishlatilgan" deb belgilash
+    # Nonce'ni "işlatilgan" deb belgilaş
     ttl = max(60, int(payload.get('exp', 0)) - int(time.time()) + 60)
     cache.set(cache_key, 1, ttl)
 
@@ -425,10 +425,10 @@ def submit_result(request):
     return _cors_headers(JsonResponse(resp), request)
 
 
-# ============== MULTIPLAYER (Shashka) ENDPOINTS ==============
+# ============== MULTIPLAYER (Şaşka) ENDPOINTS ==============
 
 def _initial_shashka_board():
-    """8x8 shashka dastlabki holati. None — bo'sh, dict — donacha."""
+    """8x8 şaşka dastlabki holati. None — böş, dict — donaça."""
     board = [[None] * 8 for _ in range(8)]
     for r in range(3):
         for c in range(8):
@@ -442,7 +442,7 @@ def _initial_shashka_board():
 
 
 def _initial_chess_board():
-    """8x8 shaxmat dastlabki holati. type: 'p'/'r'/'n'/'b'/'q'/'k'."""
+    """8x8 şaxmat dastlabki holati. type: 'p'/'r'/'n'/'b'/'q'/'k'."""
     back = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r']
     board = [[None] * 8 for _ in range(8)]
     for c in range(8):
@@ -469,7 +469,7 @@ def _is_xo_game(game):
 
 
 def _is_chess_game(game):
-    """Faqat shaxmat (chess) o'yini coin tikilishiga ruxsat etiladi."""
+    """Faqat şaxmat (chess) öyini coin tikilişiga ruxsat etiladi."""
     engine = ((game.config or {}).get('engine') or game.slug).lower()
     return 'chess' in engine or 'shaxmat' in engine
 
@@ -526,7 +526,7 @@ def _xo_check_winner(board, size):
 
 
 def _count_pieces(board):
-    """Shashka uchun oq/qora dona sonlari (chess uchun ham foydali)."""
+    """Şaşka uçun oq/qora dona sonlari (chess uçun ham foydali)."""
     w = b = 0
     for row in board:
         for cell in row:
@@ -539,7 +539,7 @@ def _count_pieces(board):
 
 
 def _mp_resolve_user_and_game(request, data):
-    """Token va o'yindan user/game ni topib qaytaradi yoki xato dict."""
+    """Token va öyindan user/game ni topib qaytaradi yoki xato dict."""
     token = (data.get('token') or '').strip()
     slug = (data.get('game') or '').strip()
     if not token or not slug:
@@ -547,7 +547,7 @@ def _mp_resolve_user_and_game(request, data):
     try:
         game = Game.objects.get(slug=slug, game_type='external', is_active=True)
     except Game.DoesNotExist:
-        return None, None, _cors_headers(JsonResponse({'ok': False, 'error': "O'yin topilmadi"}, status=404), request)
+        return None, None, _cors_headers(JsonResponse({'ok': False, 'error': "Öyin topilmadi"}, status=404), request)
     payload = verify_launch_token(token, game)
     if not payload:
         return None, None, _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz token"}, status=403), request)
@@ -555,12 +555,12 @@ def _mp_resolve_user_and_game(request, data):
     try:
         user = CustomUser.objects.get(pk=payload['uid'])
     except CustomUser.DoesNotExist:
-        return None, None, _cors_headers(JsonResponse({'ok': False, 'error': "Foydalanuvchi topilmadi"}, status=404), request)
+        return None, None, _cors_headers(JsonResponse({'ok': False, 'error': "Foydalanuvçi topilmadi"}, status=404), request)
     return user, game, None
 
 
 def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
-    """Match ma'lumotini JSON shakliga aylantiradi."""
+    """Match ma'lumotini JSON şakliga aylantiradi."""
     board_size = _xo_match_size(match) if _is_xo_game(match.game) else None
     return {
         'id': match.id,
@@ -592,18 +592,18 @@ def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
 
 
 def expire_stale_match(match: 'BoardMatch') -> bool:
-    """Agar match 'active' bo'lsa va MP_INACTIVITY_MINUTES'dan ortiq vaqt
-    davomida hech qanday harakat bo'lmasa — uni avtomatik "durang" bilan
-    yakunlaydi (coinlar bo'lsa qaytariladi, GameAttempt yoziladi).
+    """Agar match 'active' bölsa va MP_INACTIVITY_MINUTES'dan ortiq vaqt
+    davomida heç qanday harakat bölmasa — uni avtomatik "durang" bilan
+    yakunlaydi (coinlar bölsa qaytariladi, GameAttempt yoziladi).
 
-    Bu funksiya chaqirilmasa, ikkala o'yinchi ham sahifani yopib ketganda
-    match doim "active" bo'lib qolaveradi — chunki holatni faqat
-    o'yinchilarning o'zi polling qilganda tekshiramiz. Natijada bunday
-    "zombie" matchlar jonli o'yinlar ro'yxatida tugamagandek ko'rinib
-    turadi. Shu sabab bu tekshiruv ro'yxat/spectate sahifalarida ham
-    proaktiv chaqiriladi (faqat ishtirokchi poll qilgandagina emas).
+    Bu funksiya çaqirilmasa, ikkala öyinçi ham sahifani yopib ketganda
+    match doim "active" bölib qolaveradi — chunki holatni faqat
+    öyinçilarning özi polling qilganda tekşiramiz. Natijada bunday
+    "zombie" matchlar jonli öyinlar röyxatida tugamagandek körinib
+    turadi. Şu sabab bu tekşiruv röyxat/spectate sahifalarida ham
+    proaktiv çaqiriladi (faqat iştirokçi poll qilgandagina emas).
 
-    Qaytaradi: True — match shu chaqiruvda yakunlangan bo'lsa.
+    Qaytaradi: True — match şu çaqiruvda yakunlangan bölsa.
     """
     if match.status != 'active':
         return False
@@ -637,11 +637,11 @@ def expire_stale_match(match: 'BoardMatch') -> bool:
 
 
 def expire_stale_matches(game=None):
-    """Barcha 'active' deb belgilangan, lekin aslida harakatsiz qolgan
-    (zombie) matchlarni topib yakunlaydi. Jonli o'yinlar ro'yxati va
-    matchmaking har safar ishlatilishidan oldin chaqiriladi — shunda
-    foydalanuvchilarga faqat haqiqatan davom etayotgan o'yinlar
-    ko'rsatiladi."""
+    """Barça 'active' deb belgilangan, lekin aslida harakatsiz qolgan
+    (zombie) matchlarni topib yakunlaydi. Jonli öyinlar röyxati va
+    matchmaking har safar işlatilişidan oldin çaqiriladi — şunda
+    foydalanuvçilarga faqat haqiqatan davom etayotgan öyinlar
+    körsatiladi."""
     from django.utils import timezone
     from datetime import timedelta
 
@@ -661,8 +661,8 @@ def mp_find(request):
     POST /api/v1/games/external/mp/find/
     Body: {token, game}
     Logika:
-      - Faol kutayotgan match topilsa (boshqa user ochgan) → unga BLACK bo'lib qo'shiladi
-      - Yo'q bo'lsa → yangi match yaratiladi, WHITE bo'ladi va kutadi
+      - Faol kutayotgan match topilsa (boşqa user oçgan) → unga BLACK bölib qöşiladi
+      - Yöq bölsa → yangi match yaratiladi, WHITE böladi va kutadi
     """
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
@@ -688,19 +688,19 @@ def mp_find(request):
         except (TypeError, ValueError):
             competition = None
 
-    # Musobaqada urinishlar tugaganini tekshirish
+    # Musobaqada urinişlar tugaganini tekşiriş
     if competition and not competition.can_user_play(user):
         used = competition.user_attempts_count(user)
         return _cors_headers(JsonResponse({
             'ok': False,
-            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Yangi o'yin boshlay olmaysiz."
+            'error': f"Musobaqada urinişlar tugadi ({used}/{competition.max_attempts}). Yangi öyin boşlay olmaysiz."
         }, status=403), request)
 
     # Rejim va wager
     mode = str(data.get('mode', 'casual')).lower()
     if mode not in ('casual', 'coin'):
         mode = 'casual'
-    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    # Coin tikiliş faqat şaxmatda ruxsat etiladi — boşqa öyinlar casual'ga ötadi
     if mode == 'coin' and not _is_chess_game(game):
         mode = 'casual'
     try:
@@ -717,16 +717,16 @@ def mp_find(request):
     min_wager = int(cfg.get('min_wager', 5))
     if mode == 'coin':
         if wager < min_wager:
-            return _cors_headers(JsonResponse({'ok': False, 'error': f"Minimal tikilish: {min_wager} coin"}, status=400), request)
+            return _cors_headers(JsonResponse({'ok': False, 'error': f"Minimal tikiliş: {min_wager} coin"}, status=400), request)
         if wager > max_wager:
-            return _cors_headers(JsonResponse({'ok': False, 'error': f"Maksimal tikilish: {max_wager} coin"}, status=400), request)
+            return _cors_headers(JsonResponse({'ok': False, 'error': f"Maksimal tikiliş: {max_wager} coin"}, status=400), request)
         if user.coins < wager:
             return _cors_headers(JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (sizda: {user.coins})"}, status=400), request)
 
     is_xo = _is_xo_game(game)
     board_size = _normalize_xo_size(data.get('board_size')) if is_xo else None
 
-    # Initial board (XO, shashka yoki shaxmat)
+    # Initial board (XO, şaşka yoki şaxmat)
     init_board = _initial_xo_board(board_size) if is_xo else _initial_board_for(game)
 
     from django.db.models import Q
@@ -734,14 +734,14 @@ def mp_find(request):
     from django.utils import timezone
     from datetime import timedelta
 
-    # Avval shu o'yin bo'yicha "zombie" (texnik faol, aslida tashlab
-    # ketilgan) matchlarni yakunlaymiz. Aks holda quyidagi "o'z matchi"
-    # qidiruvi eski, allaqachon tashlab ketilgan matchni topib, foydalanuvchini
-    # yangi o'yin o'rniga eski/raqibsiz matchga qaytarib yuborishi mumkin —
-    # aynan shu narsa o'yinlarni "chalkashtirib yuborish" hissini beradi.
+    # Avval şu öyin böyiça "zombie" (texnik faol, aslida taşlab
+    # ketilgan) matchlarni yakunlaymiz. Aks holda quyidagi "öz matchi"
+    # qidiruvi eski, allaqaçon taşlab ketilgan matchni topib, foydalanuvçini
+    # yangi öyin örniga eski/raqibsiz matchga qaytarib yuborişi mumkin —
+    # aynan şu narsa öyinlarni "çalkaştirib yuboriş" hissini beradi.
     expire_stale_matches(game=game)
 
-    # 1. Foydalanuvchining hali tugamagan o'z matchi bormi?
+    # 1. Foydalanuvçining hali tugamagan öz matchi bormi?
     own = BoardMatch.objects.filter(
         game=game, status__in=['waiting', 'active'],
     ).filter(Q(white_player=user) | Q(black_player=user)).order_by('-created_at').first()
@@ -760,19 +760,19 @@ def mp_find(request):
         own.save(update_fields=['status', 'ended_at', 'coins_settled'])
         own = None
 
-    # Eski waiting'larni tozalash
+    # Eski waiting'larni tozalaş
     cutoff = timezone.now() - timedelta(minutes=5)
     abandoned = BoardMatch.objects.filter(
         game=game, status='waiting', last_activity_at__lt=cutoff
     )
     for m in abandoned:
         if m.mode == 'coin' and m.wager_coins > 0 and not m.coins_settled:
-            m.white_player.add_coins(m.wager_coins, f"Tashlab ketilgan {game.title} matchi — coin qaytarildi")
+            m.white_player.add_coins(m.wager_coins, f"Taşlab ketilgan {game.title} matchi — coin qaytarildi")
             m.coins_settled = True
             m.save(update_fields=['coins_settled'])
     abandoned.update(status='abandoned')
 
-    # 2. Mos kutayotgan match topish — mode/wager mos kelishi kerak
+    # 2. Mos kutayotgan match topiş — mode/wager mos kelişi kerak
     with transaction.atomic():
         waiting_qs = BoardMatch.objects.select_for_update().filter(
             game=game, status='waiting', black_player__isnull=True,
@@ -791,7 +791,7 @@ def mp_find(request):
             if mode == 'coin':
                 if user.coins < wager:
                     return _cors_headers(JsonResponse({'ok': False, 'error': "Coinlaringiz yetarli emas"}, status=400), request)
-                user.remove_coins(wager, f"{game.title} matchi (tikilish)")
+                user.remove_coins(wager, f"{game.title} matchi (tikiliş)")
             waiting.black_player = user
             waiting.status = 'active'
             waiting.started_at = timezone.now()
@@ -800,18 +800,18 @@ def mp_find(request):
                 'ok': True, 'match': _serialize_match(waiting, 'black')
             }), request)
 
-        # 3. Foydalanuvchining o'zining waiting matchi bo'lsa (va shu rejim/wager bilan) — qaytaramiz
+        # 3. Foydalanuvçining özining waiting matchi bölsa (va şu rejim/wager bilan) — qaytaramiz
         if own and own.status == 'waiting' and own.mode == mode and own.wager_coins == wager:
             return _cors_headers(JsonResponse({
                 'ok': True, 'match': _serialize_match(own, 'white')
             }), request)
 
-        # 4. Yangi match yaratish (white = current user)
+        # 4. Yangi match yaratiş (white = current user)
         if mode == 'coin':
             user.refresh_from_db()
             if user.coins < wager:
                 return _cors_headers(JsonResponse({'ok': False, 'error': "Coinlaringiz yetarli emas"}, status=400), request)
-            user.remove_coins(wager, f"{game.title} matchi (tikilish)")
+            user.remove_coins(wager, f"{game.title} matchi (tikiliş)")
 
         new_match = BoardMatch.objects.create(
             game=game,
@@ -858,9 +858,9 @@ def mp_state(request):
 
     role = match.player_role(user)
     if not role:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu o'yin ishtirokchisi emassiz"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu öyin iştirokçisi emassiz"}, status=403), request)
 
-    # ── Inactivity timeout: harakatsiz qolgan matchni avtomatik yakunlash ──
+    # ── Inactivity timeout: harakatsiz qolgan matchni avtomatik yakunlaş ──
     expire_stale_match(match)
 
     return _cors_headers(JsonResponse({
@@ -869,10 +869,10 @@ def mp_state(request):
 
 
 def _save_match_retry(match, attempts=4):
-    """SQLite qulflanganda (ko'p o'yinchi bir vaqtda yozganda) yozuvni bir necha
-    marta qayta urinadi. Aks holda yurish saqlanmay qolib, raqib 'Raqib yurmoqda'da
-    qotib qolardi. busy_timeout allaqachon kutadi; bu esa qulf darrov 'locked'
-    bersa qo'shimcha himoya."""
+    """SQLite qulflanganda (köp öyinçi bir vaqtda yozganda) yozuvni bir neça
+    marta qayta urinadi. Aks holda yuriş saqlanmay qolib, raqib 'Raqib yurmoqda'da
+    qotib qolardi. busy_timeout allaqaçon kutadi; bu esa qulf darrov 'locked'
+    bersa qöşimça himoya."""
     import time as _t
     from django.db import OperationalError
     for i in range(attempts):
@@ -892,11 +892,11 @@ def mp_ping(request):
     POST /api/v1/games/external/mp/ping/
     Body: {token, game, match_id}
 
-    Ultra-yengil holat tekshiruvi — faqat move_count/status/turn/winner qaytaradi
-    (to'liq taxta YO'Q, JOIN yo'q). Client tez-tez shuni so'raydi; biror narsa
-    o'zgarsa (mc/status/turn), keyin BIR MARTA to'liq mp_state oladi. Bu SQLite
-    o'qish qulfini juda qisqartiradi → ko'p o'yinchi bir vaqtda o'ynaganda ham
-    yozuvlar (yurishlar) tez tarqaladi.
+    Ultra-yengil holat tekşiruvi — faqat move_count/status/turn/winner qaytaradi
+    (töliq taxta YÖQ, JOIN yöq). Client tez-tez şuni söraydi; biror narsa
+    özgarsa (mc/status/turn), keyin BIR MARTA töliq mp_state oladi. Bu SQLite
+    öqiş qulfini juda qisqartiradi → köp öyinçi bir vaqtda öynaganda ham
+    yozuvlar (yurişlar) tez tarqaladi.
     """
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
@@ -918,7 +918,7 @@ def mp_ping(request):
     if not row:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Match topilmadi"}, status=404), request)
     if user.pk not in (row['white_player_id'], row['black_player_id']):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Ruxsat yo'q"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Ruxsat yöq"}, status=403), request)
 
     return _cors_headers(JsonResponse({
         'ok': True,
@@ -934,8 +934,8 @@ def mp_move(request):
     """
     POST /api/v1/games/external/mp/move/
     Body: {token, game, match_id, board, last_move, captured, became_king}
-    Client ko'p yeyish (multi-jump) sodir bo'lganda butun ketma-ketlikning OXIRGI
-    board holatini yuboradi. Server turn'ni almashtiradi.
+    Client köp yeyiş (multi-jump) sodir bölganda butun ketma-ketlikning OXIRGI
+    board holatini yuboradi. Server turn'ni almaştiradi.
     """
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
@@ -959,11 +959,11 @@ def mp_move(request):
 
     role = match.player_role(user)
     if not role:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu o'yin ishtirokchisi emassiz"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu öyin iştirokçisi emassiz"}, status=403), request)
     if match.status != 'active':
-        return _cors_headers(JsonResponse({'ok': False, 'error': f"O'yin holati: {match.status}"}, status=409), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': f"Öyin holati: {match.status}"}, status=409), request)
     if match.current_turn != role:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Bu sizning yurishingiz emas"}, status=409), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Bu sizning yurişingiz emas"}, status=409), request)
 
     if _is_xo_game(game):
         size = _xo_match_size(match)
@@ -974,7 +974,7 @@ def mp_move(request):
         except (TypeError, ValueError):
             return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz katak"}, status=400), request)
         if position < 0 or position >= len(board):
-            return _cors_headers(JsonResponse({'ok': False, 'error': "Katak chegaradan tashqarida"}, status=400), request)
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Katak çegaradan taşqarida"}, status=400), request)
         if board[position]:
             return _cors_headers(JsonResponse({'ok': False, 'error': "Bu katak band"}, status=409), request)
 
@@ -1008,14 +1008,14 @@ def mp_move(request):
 
     new_board = data.get('board')
     if not isinstance(new_board, list) or len(new_board) != 8 or any(len(row) != 8 for row in new_board):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz board formati (8x8 bo'lishi kerak)"}, status=400), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz board formati (8x8 bölişi kerak)"}, status=400), request)
 
     match.board_state = new_board
     match.last_move = data.get('last_move') or {}
     match.move_count += 1
     match.current_turn = 'black' if role == 'white' else 'white'
 
-    # O'yin tugaganini avtomatik aniqlash
+    # Öyin tugaganini avtomatik aniqlaş
     from django.utils import timezone
     engine = ((game.config or {}).get('engine') or game.slug).lower()
     is_chess = 'chess' in engine or 'shaxmat' in engine
@@ -1025,7 +1025,7 @@ def mp_move(request):
         match.winner = data.get('winner') or 'draw'
         match.ended_at = timezone.now()
     elif not is_chess:
-        # Shashka uchun: 0 dona = mag'lubiyat
+        # Şaşka uçun: 0 dona = mağlubiyat
         w_count, b_count = _count_pieces(new_board)
         if w_count == 0:
             match.status = 'ended'
@@ -1035,11 +1035,11 @@ def mp_move(request):
             match.status = 'ended'
             match.winner = 'white'
             match.ended_at = timezone.now()
-    # Chess uchun: client checkmate/stalemate'ni aniqlaydi va game_over yuboradi
+    # Chess uçun: client checkmate/stalemate'ni aniqlaydi va game_over yuboradi
 
     _save_match_retry(match)
 
-    # Tugagan bo'lsa, ikkala o'yinchi uchun GameAttempt yaratish
+    # Tugagan bölsa, ikkala öyinçi uçun GameAttempt yaratiş
     if match.status == 'ended':
         _save_mp_attempts(match)
 
@@ -1073,13 +1073,13 @@ def mp_resign(request):
 
     role = match.player_role(user)
     if not role:
-        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu o'yin ishtirokchisi emassiz"}, status=403), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu öyin iştirokçisi emassiz"}, status=403), request)
     if match.status not in ('waiting', 'active'):
-        return _cors_headers(JsonResponse({'ok': False, 'error': "O'yin allaqachon tugagan"}, status=409), request)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin allaqaçon tugagan"}, status=409), request)
 
     from django.utils import timezone
     if match.status == 'waiting':
-        # Hech kim qo'shilmagan — wager bo'lsa, yaratuvchiga qaytarish
+        # Heç kim qöşilmagan — wager bölsa, yaratuvçiga qaytariş
         if match.mode == 'coin' and match.wager_coins > 0 and not match.coins_settled:
             match.white_player.add_coins(match.wager_coins, f"{game.title} matchi bekor qilindi — coin qaytarildi")
             match.coins_settled = True
@@ -1100,9 +1100,9 @@ def mp_resign(request):
     }), request)
 
 
-# ============== PRIVATE ROOM (kod orqali do'st bilan o'ynash) ==============
+# ============== PRIVATE ROOM (kod orqali döst bilan öynaş) ==============
 
-# Chalkashmaydigan belgilar (0/O, 1/I/L olib tashlangan)
+# Çalkaşmaydigan belgilar (0/O, 1/I/L olib taşlangan)
 _ROOM_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 _ROOM_CODE_LEN = 5
 
@@ -1122,7 +1122,7 @@ def _resolve_mode_wager(data, game, user):
     mode = str(data.get('mode', 'casual')).lower()
     if mode not in ('casual', 'coin'):
         mode = 'casual'
-    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    # Coin tikiliş faqat şaxmatda ruxsat etiladi — boşqa öyinlar casual'ga ötadi
     if mode == 'coin' and not _is_chess_game(game):
         mode = 'casual'
     try:
@@ -1139,9 +1139,9 @@ def _resolve_mode_wager(data, game, user):
     min_wager = int(cfg.get('min_wager', 5))
     if mode == 'coin':
         if wager < min_wager:
-            return None, None, JsonResponse({'ok': False, 'error': f"Minimal tikilish: {min_wager} coin"}, status=400)
+            return None, None, JsonResponse({'ok': False, 'error': f"Minimal tikiliş: {min_wager} coin"}, status=400)
         if wager > max_wager:
-            return None, None, JsonResponse({'ok': False, 'error': f"Maksimal tikilish: {max_wager} coin"}, status=400)
+            return None, None, JsonResponse({'ok': False, 'error': f"Maksimal tikiliş: {max_wager} coin"}, status=400)
         if user.coins < wager:
             return None, None, JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (sizda: {user.coins})"}, status=400)
     return mode, wager, None
@@ -1153,10 +1153,10 @@ def mp_room(request):
     POST /api/v1/games/external/mp/room/
     Body: {token, game, action: 'create'|'join', code?, board_size?, mode?, wager?}
 
-      - action='create' -> yangi shaxsiy xona (waiting) yaratadi, user WHITE bo'ladi,
-        takrorlanmaydigan room_code qaytaradi. Raqib kod orqali qo'shilguncha kutadi.
-      - action='join'   -> kod bo'yicha kutayotgan xonani topadi, user BLACK bo'lib
-        qo'shiladi va match 'active' holatga o'tadi.
+      - action='create' -> yangi şaxsiy xona (waiting) yaratadi, user WHITE böladi,
+        takrorlanmaydigan room_code qaytaradi. Raqib kod orqali qöşilgunça kutadi.
+      - action='join'   -> kod böyiça kutayotgan xonani topadi, user BLACK bölib
+        qöşiladi va match 'active' holatga ötadi.
     """
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
@@ -1199,7 +1199,7 @@ def mp_room(request):
             user.refresh_from_db()
             if user.coins < wager:
                 return _cors_headers(JsonResponse({'ok': False, 'error': "Coinlaringiz yetarli emas"}, status=400), request)
-            user.remove_coins(wager, f"{game.title} xonasi (tikilish)")
+            user.remove_coins(wager, f"{game.title} xonasi (tikiliş)")
 
         init_board = _initial_xo_board(board_size) if is_xo else _initial_board_for(game)
         match = BoardMatch.objects.create(
@@ -1231,7 +1231,7 @@ def mp_room(request):
                 active = BoardMatch.objects.filter(game=game, room_code=code, status='active').first()
                 if active and active.player_role(user):
                     return _cors_headers(JsonResponse({'ok': True, 'match': _serialize_match(active, active.player_role(user))}), request)
-                return _cors_headers(JsonResponse({'ok': False, 'error': "Bunday xona topilmadi yoki allaqachon to'lgan"}, status=404), request)
+                return _cors_headers(JsonResponse({'ok': False, 'error': "Bunday xona topilmadi yoki allaqaçon tölgan"}, status=404), request)
 
             if match.white_player_id == user.pk:
                 return _cors_headers(JsonResponse({'ok': True, 'match': _serialize_match(match, 'white')}), request)
@@ -1240,7 +1240,7 @@ def mp_room(request):
                 user.refresh_from_db()
                 if user.coins < match.wager_coins:
                     return _cors_headers(JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (kerak: {match.wager_coins})"}, status=400), request)
-                user.remove_coins(match.wager_coins, f"{game.title} xonasi (tikilish)")
+                user.remove_coins(match.wager_coins, f"{game.title} xonasi (tikiliş)")
 
             match.black_player = user
             match.status = 'active'
@@ -1254,7 +1254,7 @@ def mp_room(request):
 
 
 def _save_mp_attempts(match: BoardMatch):
-    """Multiplayer match tugagach: coin transferi (wager bo'lsa) va GameAttempt'lar."""
+    """Multiplayer match tugagaç: coin transferi (wager bölsa) va GameAttempt'lar."""
     if not match.black_player_id or match.coins_settled:
         return
 
@@ -1275,21 +1275,21 @@ def _save_mp_attempts(match: BoardMatch):
     if match.mode == 'coin' and match.wager_coins > 0:
         wager = match.wager_coins
         pot = wager * 2
-        # Xizmat haqi (service fee): g'oliblikdan ushlab qolinadi (default 15%)
+        # Xizmat haqi (service fee): ğoliblikdan uşlab qolinadi (default 15%)
         fee_percent = int((match.game.config or {}).get('service_fee_percent', SERVICE_FEE_PERCENT))
         fee = (pot * fee_percent) // 100
-        payout = pot - fee  # g'olibga beriladigan summa (o'z tikilishi + yutuq - xizmat haqi)
+        payout = pot - fee  # ğolibga beriladigan summa (öz tikilişi + yutuq - xizmat haqi)
         if match.winner == 'white':
-            # Black'ning tikilishi white'ga o'tadi, lekin {fee_percent}% xizmat haqi ushlab qolinadi
-            match.white_player.add_coins(payout, f"Match #{match.id} g'olibi (tikilish: {wager}, xizmat haqi {fee_percent}%: -{fee})")
+            # Black'ning tikilişi white'ga ötadi, lekin {fee_percent}% xizmat haqi uşlab qolinadi
+            match.white_player.add_coins(payout, f"Match #{match.id} ğolibi (tikiliş: {wager}, xizmat haqi {fee_percent}%: -{fee})")
             coin_delta = {'white': payout - wager, 'black': -wager}
         elif match.winner == 'black':
-            match.black_player.add_coins(payout, f"Match #{match.id} g'olibi (tikilish: {wager}, xizmat haqi {fee_percent}%: -{fee})")
+            match.black_player.add_coins(payout, f"Match #{match.id} ğolibi (tikiliş: {wager}, xizmat haqi {fee_percent}%: -{fee})")
             coin_delta = {'white': -wager, 'black': payout - wager}
         else:
             # Durang yoki abandoned — ikkalasiga qaytariladi
-            match.white_player.add_coins(wager, f"Match #{match.id} durang — tikilish qaytarildi")
-            match.black_player.add_coins(wager, f"Match #{match.id} durang — tikilish qaytarildi")
+            match.white_player.add_coins(wager, f"Match #{match.id} durang — tikiliş qaytarildi")
+            match.black_player.add_coins(wager, f"Match #{match.id} durang — tikiliş qaytarildi")
 
     def _score(role):
         if is_xo:
@@ -1299,7 +1299,7 @@ def _save_mp_attempts(match: BoardMatch):
         pieces = w_count if role == 'white' else b_count
         bonus = 0
         if match.mode == 'coin':
-            bonus = match.wager_coins  # tikilish ko'p bo'lsa ball ham ko'p
+            bonus = match.wager_coins  # tikiliş köp bölsa ball ham köp
         if match.winner == 'draw':
             return 50 + pieces * 3 + bonus // 2
         if match.winner == role:
@@ -1343,7 +1343,7 @@ def _save_mp_attempts(match: BoardMatch):
 
 # ============================================================
 # GAMIFICATION ENDPOINTS — XP / level / streak / achievements / leaderboard
-# Token bilan himoyalangan (iframe ichidagi o'yin uchun).
+# Token bilan himoyalangan (iframe içidagi öyin uçun).
 # ============================================================
 
 _XP_MODE_MULT = {
@@ -1379,7 +1379,7 @@ def _gx_profile_payload(user, game):
 
 @csrf_exempt
 def gx_profile(request):
-    """POST {token, game} -> foydalanuvchining gamifikatsiya profili."""
+    """POST {token, game} -> foydalanuvçining gamifikatsiya profili."""
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
     if request.method != 'POST':
@@ -1397,9 +1397,9 @@ def gx_profile(request):
 @csrf_exempt
 def gx_complete(request):
     """POST {token, game, score, mode, level_id, time_spent, achievements:[codes]}
-    XP qo'shadi, streak'ni yangilaydi, yutuqlarni saqlaydi. Coin BERMAYDI —
-    coin faqat shaxmatda submit_result() orqali beriladi.
-    XP server tomonda hisoblanadi (clientga ishonilmaydi)."""
+    XP qöşadi, streak'ni yangilaydi, yutuqlarni saqlaydi. Coin BERMAYDI —
+    coin faqat şaxmatda submit_result() orqali beriladi.
+    XP server tomonda hisoblanadi (clientga işonilmaydi)."""
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
     if request.method != 'POST':
@@ -1447,10 +1447,10 @@ def gx_complete(request):
     except Exception:
         pass
 
-    # Coin faqat shaxmatda (AI g'alabasi, submit_result orqali) beriladi.
-    # gx_complete har qanday "external" o'yin uchun chaqirilishi mumkin
+    # Coin faqat şaxmatda (AI ğalabasi, submit_result orqali) beriladi.
+    # gx_complete har qanday "external" öyin uçun çaqirilişi mumkin
     # (xo, memory-card, html-builder, bilim-arena, shashka/shaxmat — Gamify.onResult
-    # orqali har bir o'yin tugaganda), shuning uchun bu yerda coin UMUMAN berilmaydi —
+    # orqali har bir öyin tugaganda), şuning uçun bu yerda coin UMUMAN berilmaydi —
     # faqat XP/streak/achievements hisoblanadi.
     coins_earned = 0
 
@@ -1479,7 +1479,7 @@ def gx_complete(request):
 
 @csrf_exempt
 def gx_leaderboard(request):
-    """POST {token, game, limit?} -> XP bo'yicha top o'yinchilar + joriy foydalanuvchi o'rni."""
+    """POST {token, game, limit?} -> XP böyiça top öyinçilar + joriy foydalanuvçi örni."""
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
     if request.method != 'POST':

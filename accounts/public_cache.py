@@ -19,7 +19,7 @@ def landing_data():
         visible = Profession.objects.filter(is_blocked=False)
         data = {
             'professions': list(visible[:12]),
-            # Bir martalik to'lov bilan sotiladigan kurslar (Profession.is_sold_once bilan bir xil shart)
+            # Bir martalik tölov bilan sotiladigan kurslar (Profession.is_sold_once bilan bir xil şart)
             'paid_courses': list(visible.filter(is_paid=True, one_time_payment=True, one_time_price__gt=0)[:3]),
             'posts': list(Post.objects.filter(is_published=True)[:3]),
             'total_students': CustomUser.objects.filter(role='student').count(),

@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Darsni tahrirlash - LMS{% endblock %}
+{% block title %}Darsni tahrirlaş - LMS{% endblock %}
 
 {% block extra_css %}
 {% if lesson.lesson_type == 'homework' %}
@@ -32,7 +32,7 @@
             <div class="card">
                 <div class="card-header" style="background: transparent;">
                     <h4 style="color: var(--primary-blue); margin: 0;">
-                        <i class="bi bi-pencil me-2"></i>Darsni tahrirlash
+                        <i class="bi bi-pencil me-2"></i>Darsni tahrirlaş
                     </h4>
                 </div>
                 <div class="card-body p-4">
@@ -64,7 +64,7 @@
                         <div class="mb-3">
                             <label class="form-label" style="color: var(--text-color);"><i class="bi bi-stopwatch me-1"></i>Davomiyligi (daqiqa)</label>
                             {{ form.duration }}
-                            <small class="text-muted d-block mt-1">Bo'sh qoldiring — server o'zi aniqlaydi. Faqat "davomiylik aniqlanmadi" xabari kelsa to'ldiring.</small>
+                            <small class="text-muted d-block mt-1">Böş qoldiring — server özi aniqlaydi. Faqat "davomiylik aniqlanmadi" xabari kelsa töldiring.</small>
                         </div>
                         <div class="alert alert-info py-2 mb-3">
                             <i class="bi bi-info-circle me-2"></i>Vimeo YOKI YouTube havolasidan birini kiriting
@@ -86,11 +86,11 @@
                             <button type="button" id="generateArticleBtn" onclick="generateAiArticle()"
                                     style="display: block; width: 100%; margin-bottom: 0.75rem; padding: 0.75rem; border-radius: 12px; border: 2px dashed rgba(139,92,246,0.3); background: linear-gradient(135deg, rgba(139,92,246,0.05), rgba(59,130,246,0.05)); color: #8b5cf6; font-weight: 600; cursor: pointer; transition: all 0.3s;">
                                 <i class="bi bi-robot me-2"></i>
-                                {% if lesson.ai_article %}🔄 AI maqolani qayta yaratish{% else %}🤖 AI maqola yaratish{% endif %}
+                                {% if lesson.ai_article %}🔄 AI maqolani qayta yaratiş{% else %}🤖 AI maqola yaratiş{% endif %}
                             </button>
                             {% endif %}
                             <textarea name="ai_article" id="aiArticleTextarea" class="form-control" rows="10" placeholder="AI maqola hali yaratilmagan..." style="font-family: monospace; font-size: 0.85rem;">{{ lesson.ai_article|default:'' }}</textarea>
-                            <small class="text-muted d-block mt-1">Video tagida ko'rinadigan maqola. HTML formatda. O'zgartirishingiz mumkin.</small>
+                            <small class="text-muted d-block mt-1">Video tagida körinadigan maqola. HTML formatda. Özgartirişingiz mumkin.</small>
                         </div>
                         {% elif lesson.lesson_type == 'homework' %}
                         <div class="mb-3">
@@ -99,35 +99,35 @@
                             <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
                         </div>
                         
-                        <!-- AI tekshirish -->
+                        <!-- AI tekşiriş -->
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check" style="cursor:pointer;" {% if form.ai_check.value %}checked{% endif %}>
                                 <label class="form-check-label" for="id_ai_check" style="cursor:pointer;">
-                                    <i class="bi bi-robot me-1"></i> AI orqali tekshirish
+                                    <i class="bi bi-robot me-1"></i> AI orqali tekşiriş
                                 </label>
                             </div>
-                            <small class="text-muted">Yoqilsa, vazifalar avtomatik AI tomonidan tekshiriladi va baholanadi</small>
+                            <small class="text-muted">Yoqilsa, vazifalar avtomatik AI tomonidan tekşiriladi va baholanadi</small>
                         </div>
 
-                        <!-- Yozma topshirish -->
+                        <!-- Yozma topşiriş -->
                         <div class="mb-3">
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" name="handwritten_only" id="id_handwritten_only" style="cursor:pointer;" {% if form.handwritten_only.value %}checked{% endif %}>
                                 <label class="form-check-label" for="id_handwritten_only" style="cursor:pointer;">
-                                    <i class="bi bi-pencil-square me-1"></i> Faqat yozma topshirish (rasm)
+                                    <i class="bi bi-pencil-square me-1"></i> Faqat yozma topşiriş (rasm)
                                 </label>
                             </div>
-                            <small class="text-muted">Til kurslari uchun: o'quvchilar daftarda yozib, rasm ko'rinishida yuboradi</small>
+                            <small class="text-muted">Til kurslari uçun: öquvçilar daftarda yozib, rasm körinişida yuboradi</small>
                         </div>
                         {% endif %}
                         
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary" id="submitBtn">
-                                <i class="bi bi-check-lg me-2"></i>Saqlash
+                                <i class="bi bi-check-lg me-2"></i>Saqlaş
                             </button>
                             <a href="{% url 'manage_lessons' lesson.profession.pk %}" class="btn btn-outline-secondary">
-                                Bekor qilish
+                                Bekor qiliş
                             </a>
                         </div>
                     </form>
@@ -176,13 +176,13 @@ function generateAiArticle() {
     .then(data => {
         if (data.success) {
             textarea.value = data.article;
-            btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Maqola yaratildi! Saqlash tugmasini bosing';
+            btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Maqola yaratildi! Saqlaş tugmasini bosing';
             btn.style.background = 'linear-gradient(135deg, rgba(40,167,69,0.1), rgba(32,201,151,0.1))';
             btn.style.color = '#28a745';
             btn.style.borderColor = 'rgba(40,167,69,0.3)';
             setTimeout(() => {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-robot me-2"></i>🔄 AI maqolani qayta yaratish';
+                btn.innerHTML = '<i class="bi bi-robot me-2"></i>🔄 AI maqolani qayta yaratiş';
                 btn.style.background = '';
                 btn.style.color = '#8b5cf6';
                 btn.style.borderColor = '';

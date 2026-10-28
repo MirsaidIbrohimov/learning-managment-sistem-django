@@ -151,7 +151,7 @@
   <div class="dv-hdr">
     <div class="dv-hdr-left">
       <h2 class="dv-title"><i class="bi bi-cpu-fill"></i> Qurilmalarim</h2>
-      <p class="dv-subtitle">Hisobingizga ulangan barcha qurilmalar va faol sessionlar</p>
+      <p class="dv-subtitle">Hisobingizga ulangan barça qurilmalar va faol sessionlar</p>
     </div>
     <div class="dv-hdr-actions">
       <a href="{% url 'profile' %}" class="btn-dv">
@@ -186,7 +186,7 @@
   <!-- ── Info Banner ── -->
   <div class="dv-banner">
     <i class="bi bi-info-circle-fill"></i>
-    <span>Har bir sessiya <strong>2 soat</strong> davom etadi. Faollik bo'lmasa avtomatik tugatiladi. Istalgan qurilmaning sesssiyasini bu yerdan tugatish mumkin.</span>
+    <span>Har bir sessiya <strong>2 soat</strong> davom etadi. Faollik bölmasa avtomatik tugatiladi. Istalgan qurilmaning sesssiyasini bu yerdan tugatiş mumkin.</span>
   </div>
 
   {% if devices %}
@@ -195,21 +195,21 @@
     {% csrf_token %}
     <div class="dv-toolbar">
       <div class="dv-toolbar-l">
-        <input type="checkbox" class="cb-all" id="selectAll" title="Hammasini tanlash">
+        <input type="checkbox" class="cb-all" id="selectAll" title="Hammasini tanlaş">
         <span class="sel-count" id="selectCount">0 ta tanlangan</span>
       </div>
       <div class="dv-toolbar-r">
         <button type="submit" class="btn-dv red" id="btnBulkRemove" style="display:none;">
-          <i class="bi bi-trash3"></i> Tanlanganlarni o'chirish
+          <i class="bi bi-trash3"></i> Tanlanganlarni öçiriş
         </button>
         {% if devices|length > 1 %}
         <button type="button" class="btn-dv red"
-            onclick="showModal('{% url 'remove_all_devices' %}', 'Barchasini o\'chirish', 'Joriy qurilmadan tashqari barcha qurilmalar va sessionlar o\'chiriladi.', 'remove')">
-          <i class="bi bi-trash3"></i> Barchasini o'chirish
+            onclick="showModal('{% url 'remove_all_devices' %}', 'Barçasini öçiriş', 'Joriy qurilmadan taşqari barça qurilmalar va sessionlar öçiriladi.', 'remove')">
+          <i class="bi bi-trash3"></i> Barçasini öçiriş
         </button>
         <button type="button" class="btn-dv ind"
-            onclick="showModal('{% url 'logout_all_devices' %}', 'Barchasidan chiqish', 'Joriy qurilmadan tashqari barcha qurilmalardan chiqiladi.', 'logout')">
-          <i class="bi bi-box-arrow-right"></i> Barchasidan chiqish
+            onclick="showModal('{% url 'logout_all_devices' %}', 'Barçasidan çiqiş', 'Joriy qurilmadan taşqari barça qurilmalardan çiqiladi.', 'logout')">
+          <i class="bi bi-box-arrow-right"></i> Barçasidan çiqiş
         </button>
         {% endif %}
       </div>
@@ -234,7 +234,7 @@
               <span class="badge-current"><i class="bi bi-circle-fill" style="font-size:.4rem;"></i> Joriy</span>
             {% endif %}
             {% if device.is_trusted %}
-              <span class="badge-trusted"><i class="bi bi-shield-check"></i> Ishonchli</span>
+              <span class="badge-trusted"><i class="bi bi-shield-check"></i> Işonçli</span>
             {% endif %}
           </div>
 
@@ -280,22 +280,22 @@
         {% if device != current_device %}
           <a href="{% url 'trust_device' device.pk %}" class="btn-dv {% if device.is_trusted %}amb{% else %}grn{% endif %}">
             {% if device.is_trusted %}
-              <i class="bi bi-shield-x"></i> Ishonchsiz qilish
+              <i class="bi bi-shield-x"></i> Işonçsiz qiliş
             {% else %}
-              <i class="bi bi-shield-check"></i> Ishonchli belgilash
+              <i class="bi bi-shield-check"></i> Işonçli belgilaş
             {% endif %}
           </a>
           <button type="button" class="btn-dv ind"
-              onclick="showModal('{% url 'logout_device' device.pk %}', 'Qurilmadan chiqish', '&laquo;{{ device.device_name|escapejs }}&raquo; qurilmasidagi barcha sessionlar tugatiladi.', 'logout')">
-            <i class="bi bi-box-arrow-right"></i> Chiqish
+              onclick="showModal('{% url 'logout_device' device.pk %}', 'Qurilmadan çiqiş', '&laquo;{{ device.device_name|escapejs }}&raquo; qurilmasidagi barça sessionlar tugatiladi.', 'logout')">
+            <i class="bi bi-box-arrow-right"></i> Çiqiş
           </button>
           <button type="button" class="btn-dv red"
-              onclick="showModal('{% url 'remove_device' device.pk %}', 'Qurilmani o\'chirish', '&laquo;{{ device.device_name|escapejs }}&raquo; qurilmasi butunlay o\'chiriladi.', 'remove')">
-            <i class="bi bi-trash3"></i> O'chirish
+              onclick="showModal('{% url 'remove_device' device.pk %}', 'Qurilmani öçiriş', '&laquo;{{ device.device_name|escapejs }}&raquo; qurilmasi butunlay öçiriladi.', 'remove')">
+            <i class="bi bi-trash3"></i> Öçiriş
           </button>
         {% else %}
           <span class="dv-current-note">
-            <i class="bi bi-check-circle-fill"></i> Hozir shu qurilmadan foydalanmoqdasiz
+            <i class="bi bi-check-circle-fill"></i> Hozir şu qurilmadan foydalanmoqdasiz
           </span>
         {% endif %}
       </div>
@@ -316,7 +316,7 @@
             <div class="sess-info">
               <div class="sess-ip">{{ sess.ip_address|default:"IP noma'lum" }}</div>
               <div class="sess-time">
-                Boshlangan: {{ sess.started_at|date:"d.m.Y, H:i" }} &nbsp;·&nbsp;
+                Boşlangan: {{ sess.started_at|date:"d.m.Y, H:i" }} &nbsp;·&nbsp;
                 Oxirgi: {{ sess.last_activity|date:"H:i" }}
               </div>
             </div>
@@ -325,8 +325,8 @@
             {% else %}
               <form method="POST" action="{% url 'logout_session' sess.pk %}" style="margin:0;">
                 {% csrf_token %}
-                <button type="submit" class="btn-dv red sm" title="Bu sessionni tugatish">
-                  <i class="bi bi-x-circle"></i> Tugatish
+                <button type="submit" class="btn-dv red sm" title="Bu sessionni tugatiş">
+                  <i class="bi bi-x-circle"></i> Tugatiş
                 </button>
               </form>
             {% endif %}
@@ -344,7 +344,7 @@
   <div class="dv-empty">
     <div class="dv-empty-icon"><i class="bi bi-laptop"></i></div>
     <h5>Qurilmalar topilmadi</h5>
-    <p>Qayta login qiling — qurilmangiz bu yerda ko'rinadi.</p>
+    <p>Qayta login qiling — qurilmangiz bu yerda körinadi.</p>
   </div>
   {% endif %}
 
@@ -356,13 +356,13 @@
     <div class="modal-content">
       <div class="modal-body">
         <div class="mc-icon" id="mcIcon"><i id="mcIconI" class="bi bi-box-arrow-right"></i></div>
-        <h5 id="mcTitle">Tasdiqlash</h5>
-        <p id="mcText">Ishonchingiz komilmi?</p>
+        <h5 id="mcTitle">Tasdiqlaş</h5>
+        <p id="mcText">Işonçingiz komilmi?</p>
         <form id="confirmForm" method="post">
           {% csrf_token %}
           <div class="mc-actions">
-            <button type="button" class="mc-cancel" data-bs-dismiss="modal">Bekor qilish</button>
-            <button type="submit" class="mc-confirm" id="mcBtn">Tasdiqlash</button>
+            <button type="button" class="mc-cancel" data-bs-dismiss="modal">Bekor qiliş</button>
+            <button type="submit" class="mc-confirm" id="mcBtn">Tasdiqlaş</button>
           </div>
         </form>
       </div>
@@ -385,9 +385,9 @@ function showModal(url, title, text, type) {
   document.getElementById('mcText').innerHTML = text;
 
   const map = {
-    logout:  { cls: 'logout',  icon: 'bi bi-box-arrow-right', btnCls: 'mc-confirm c-logout',  btnTxt: 'Chiqish' },
-    remove:  { cls: 'remove',  icon: 'bi bi-trash3',          btnCls: 'mc-confirm c-remove',  btnTxt: "O'chirish" },
-    session: { cls: 'session', icon: 'bi bi-x-circle',        btnCls: 'mc-confirm c-session', btnTxt: 'Tugatish' },
+    logout:  { cls: 'logout',  icon: 'bi bi-box-arrow-right', btnCls: 'mc-confirm c-logout',  btnTxt: 'Çiqiş' },
+    remove:  { cls: 'remove',  icon: 'bi bi-trash3',          btnCls: 'mc-confirm c-remove',  btnTxt: "Öçiriş" },
+    session: { cls: 'session', icon: 'bi bi-x-circle',        btnCls: 'mc-confirm c-session', btnTxt: 'Tugatiş' },
   };
   const m = map[type] || map.logout;
   icon.className = 'mc-icon ' + m.cls;
@@ -436,7 +436,7 @@ function toggleSessions(btn) {
   document.getElementById('bulkForm').addEventListener('submit', function (e) {
     const checked = [...checkboxes].filter(c => c.checked);
     if (!checked.length) { e.preventDefault(); return; }
-    if (!confirm(checked.length + ' ta qurilma o\'chirilsinmi?')) e.preventDefault();
+    if (!confirm(checked.length + ' ta qurilma öçirilsinmi?')) e.preventDefault();
   });
 })();
 </script>

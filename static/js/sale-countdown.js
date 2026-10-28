@@ -1,4 +1,4 @@
-// Chegirma tugashigacha qolgan vaqt: <span data-sale-ends="ISO">server matni</span>
+// Çegirma tugaşigaça qolgan vaqt: <span data-sale-ends="ISO">server matni</span>
 (() => {
   'use strict';
   const items = [...document.querySelectorAll('[data-sale-ends]')]
@@ -11,8 +11,8 @@
     for (const {el, end} of items) {
       const left = Math.max(0, Math.floor((end - now) / 1000));
       if (!left) {
-        el.textContent = 'Chegirma tugadi';
-        // To'lov sahifasi yangi narxni serverdan oladi.
+        el.textContent = 'Çegirma tugadi';
+        // Tölov sahifasi yangi narxni serverdan oladi.
         if (el.hasAttribute('data-sale-reload') && !el.dataset.reloaded) { el.dataset.reloaded = '1'; setTimeout(() => location.reload(), 1500); }
         continue;
       }

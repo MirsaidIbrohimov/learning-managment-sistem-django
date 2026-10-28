@@ -92,13 +92,13 @@ def apply_coin_payment(order, data):
             or locked.currency != 'UZS' or data.get('environment') != 'live'
             or not isinstance(payment_id, str) or not payment_id or len(payment_id) > 100):
         locked.status = 'review'
-        locked.last_error = 'Summa, valyuta, tranzaksiya yoki to‘lov muhiti mos emas.'
+        locked.last_error = 'Summa, valyuta, tranzaksiya yoki tölov muhiti mos emas.'
         locked.save(update_fields=['status', 'last_error', 'updated_at'])
         order.refresh_from_db()
         return
     if Order.objects.filter(coin_payment_key=payment_id).exclude(pk=locked.pk).exists():
         locked.status = 'review'
-        locked.last_error = 'Bu tranzaksiya boshqa tanga buyurtmasiga tegishli.'
+        locked.last_error = 'Bu tranzaksiya boşqa tanga buyurtmasiga tegişli.'
         locked.save(update_fields=['status', 'last_error', 'updated_at'])
         order.refresh_from_db()
         return
@@ -137,7 +137,7 @@ def reconcile_coin_order(order, data):
         if (str(bill.get('id') or '') != locked.bill_id
                 or bill.get('external_reference') != locked.external_reference):
             locked.status = 'review'
-            locked.last_error = 'Tezchek hisob raqami buyurtmaga mos emas.'
+            locked.last_error = 'Tezçek hisob raqami buyurtmaga mos emas.'
         elif bill.get('paid') is True and payment.get('state') == 'succeeded':
             apply_coin_payment(locked, {
                 'payment_id': payment.get('id'), 'amount_minor': payment.get('amount_minor'),
@@ -155,11 +155,11 @@ def reconcile_coin_order(order, data):
 @require_POST
 @transaction.atomic
 def buy_coins_with_balance(request):
-    """Oylik to'lovdan ortgan pul balansi bilan tanga sotib olish (darhol)."""
+    """Oylik tölovdan ortgan pul balansi bilan tanga sotib oliş (darhol)."""
     from django.core import signing
     from accounts.balance_spend import BalanceError, spend_balance, spendable_balance
     if not request.user.is_learner:
-        return JsonResponse({'error': 'Faqat o‘quvchilar balansdan tanga sotib oladi.'}, status=403)
+        return JsonResponse({'error': 'Faqat öquvçilar balansdan tanga sotib oladi.'}, status=403)
     raw = (request.POST.get('amount') or '').strip().replace(' ', ' ').replace(' ', ' ')
     if len(raw) > 20 or not re.fullmatch(r'[0-9]+(?: [0-9]{3})*', raw):
         return JsonResponse({'error': 'Musbat butun tanga miqdorini kiriting.'}, status=400)
@@ -171,9 +171,9 @@ def buy_coins_with_balance(request):
         if signing.loads(request.POST.get('pricing_token', ''), salt='coin-pricing') != pricing:
             raise signing.BadSignature
     except signing.BadSignature:
-        return JsonResponse({'error': 'Coin narxi yoki chegirma o‘zgardi. Sahifani yangilang.'}, status=409)
+        return JsonResponse({'error': 'Coin narxi yoki çegirma özgardi. Sahifani yangilang.'}, status=409)
     payable = quote(amount, pricing)['payable']
-    # Bir o'quvchining parallel xaridlarini ketma-ket bajarish.
+    # Bir öquvçining parallel xaridlarini ketma-ket bajariş.
     CustomUser.objects.select_for_update().get(pk=request.user.pk)
     try:
         left = spend_balance(request.user, payable, f'Tanga xaridi: {amount} tanga')
@@ -181,7 +181,7 @@ def buy_coins_with_balance(request):
         return JsonResponse({'error': str(exc), 'money_balance': spendable_balance(request.user)}, status=400)
     CustomUser.objects.filter(pk=request.user.pk).update(coins=F('coins') + amount)
     CoinTransaction.objects.create(user_id=request.user.pk, amount=amount, action='add',
-                                   reason=f'Balansdan tanga xaridi ({payable} so‘m)')
+                                   reason=f'Balansdan tanga xaridi ({payable} söm)')
     coins = CustomUser.objects.values_list('coins', flat=True).get(pk=request.user.pk)
     return JsonResponse({'ok': True, 'coins': amount, 'balance': coins, 'money_balance': left, 'paid': payable})
 
@@ -195,7 +195,7 @@ def create_coin_checkout(request):
         payload = json.loads(response.content)
         if response.status_code == 200 and payload.get('payment_url'):
             return redirect(payload['payment_url'])
-        messages.error(request, payload.get('error', 'To‘lov yaratilmadi. Qayta urinib ko‘ring.'))
+        messages.error(request, payload.get('error', 'Tölov yaratilmadi. Qayta urinib köring.'))
         return redirect(reverse('coin:market_list') + '#coin-topup')
     return response
 
@@ -203,7 +203,7 @@ def create_coin_checkout(request):
 @transaction.atomic
 def _create_coin_checkout(request):
     if not checkout_ready():
-        return JsonResponse({'error': 'Tanga to‘lovi sozlanmoqda. Administratorga murojaat qiling.'}, status=503)
+        return JsonResponse({'error': 'Tanga tölovi sozlanmoqda. Administratorga murojaat qiling.'}, status=503)
     raw = (request.POST.get('amount') or request.POST.get('package', '')).strip()
     raw = raw.replace('\u00a0', ' ').replace('\u202f', ' ')
     if len(raw) > 20 or not re.fullmatch(r'[0-9]+(?: [0-9]{3})*', raw):
@@ -214,7 +214,7 @@ def _create_coin_checkout(request):
     try:
         token = str(uuid.UUID(request.POST.get('token', '')))
     except (ValueError, TypeError, AttributeError):
-        return JsonResponse({'error': 'Sahifani yangilang va qayta urinib ko‘ring.'}, status=400)
+        return JsonResponse({'error': 'Sahifani yangilang va qayta urinib köring.'}, status=400)
     try:
         method, gateway = selected_method(request)
     except TezCheckError as exc:
@@ -232,11 +232,11 @@ def _create_coin_checkout(request):
         reference = existing.external_reference
         previous_coins = existing.coin_quantity if existing.coin_quantity is not None else existing.amount_som
         if previous_coins != amount:
-            return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
+            return JsonResponse({'error': 'Miqdor özgardi. Sahifani yangilang.'}, status=409)
         payable = existing.amount_som
         snapshot = existing.coin_pricing_snapshot
         if existing.coin_transaction_id or existing.status in ('paid', 'refunded', 'review'):
-            return JsonResponse({'error': 'Bu buyurtma yakunlangan yoki tekshirilmoqda. Market sahifasini yangilang.'}, status=409)
+            return JsonResponse({'error': 'Bu buyurtma yakunlangan yoki tekşirilmoqda. Market sahifasini yangilang.'}, status=409)
         if existing.bill_id:
             state = {}
             try:
@@ -248,9 +248,9 @@ def _create_coin_checkout(request):
             except TezCheckError as exc:
                 return JsonResponse({'error': str(exc)}, status=502)
             if existing.coin_transaction_id or existing.status in ('paid', 'review'):
-                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+                return JsonResponse({'error': 'Oldingi tölov holati yangilandi. Market sahifasini yangilang.'}, status=409)
             if bill.get('paid') is True or (state.get('payment') or {}).get('state') == 'succeeded':
-                return JsonResponse({'error': 'Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang.'}, status=409)
+                return JsonResponse({'error': 'Oldingi tölov tasdiği kutilmoqda. Qayta tölov qilmang.'}, status=409)
         else:
             bill = {}
         if existing.status != 'pending' or existing.gateway != gateway or checkout_expired(existing, bill):
@@ -259,7 +259,7 @@ def _create_coin_checkout(request):
             except TezCheckError as exc:
                 return JsonResponse({'error': str(exc)}, status=502)
             if not retired:
-                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+                return JsonResponse({'error': 'Oldingi tölov holati yangilandi. Market sahifasini yangilang.'}, status=409)
             reference = root_reference + '-R' + str(chain.count())
             existing = None
     else:
@@ -271,11 +271,11 @@ def _create_coin_checkout(request):
             except signing.BadSignature:
                 matches = False
             if not matches:
-                return JsonResponse({'error': 'Coin narxi yoki chegirma o‘zgardi. Sahifani yangilang.'}, status=409)
+                return JsonResponse({'error': 'Coin narxi yoki çegirma özgardi. Sahifani yangilang.'}, status=409)
         payable = purchase['payable']
         low, high = payment_limits()
         if not low <= payable <= high:
-            return JsonResponse({'error': f'To‘lov {low:,} va {high:,} so‘m orasida bo‘lishi kerak.'.replace(',', ' ')}, status=400)
+            return JsonResponse({'error': f'Tölov {low:,} va {high:,} söm orasida bölişi kerak.'.replace(',', ' ')}, status=400)
     today = timezone.localdate()
     # User-scoped unique checkout token makes retries reuse the provider idempotency key.
     order, _ = Order.objects.get_or_create(
@@ -286,7 +286,7 @@ def _create_coin_checkout(request):
                   'gateway': gateway, 'payment_method': method},
     )
     if (order.coin_quantity if order.coin_quantity is not None else order.amount_som) != amount:
-        return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
+        return JsonResponse({'error': 'Miqdor özgardi. Sahifani yangilang.'}, status=409)
     if order.coin_transaction_id or order.status != 'pending':
         return JsonResponse({'error': 'Bu buyurtma yakunlangan. Sahifani yangilang.'}, status=409)
     if order.payment_url and order.bill_id:
@@ -298,9 +298,9 @@ def _create_coin_checkout(request):
             if store_bill(order, result):
                 return JsonResponse({'payment_url': order.payment_url})
             if not retire_checkout(order):
-                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+                return JsonResponse({'error': 'Oldingi tölov holati yangilandi. Market sahifasini yangilang.'}, status=409)
             if attempt == 1:
-                raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
+                raise TezCheckError('Yangi tölov havolasini hozir oçib bölmadi. Qayta urinib köring.')
             order, _ = Order.objects.get_or_create(
                 external_reference=f'COIN-{request.user.pk}-{token}-R{chain.count()}',
                 defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,

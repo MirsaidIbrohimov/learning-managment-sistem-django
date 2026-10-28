@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('telegram_id', models.BigIntegerField(verbose_name='Telegram ID')),
                 ('code', models.CharField(max_length=6, unique=True, verbose_name='Login kodi')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('is_used', models.BooleanField(default=False, verbose_name='Ishlatilgan')),
+                ('is_used', models.BooleanField(default=False, verbose_name='Işlatilgan')),
             ],
             options={
                 'verbose_name': 'Telegram login kodi',
@@ -38,8 +38,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='telegram_link_tokens', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': 'Telegram ulash tokeni',
-                'verbose_name_plural': 'Telegram ulash tokenlari',
+                'verbose_name': 'Telegram ulaş tokeni',
+                'verbose_name_plural': 'Telegram ulaş tokenlari',
             },
         ),
     ]

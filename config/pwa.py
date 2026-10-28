@@ -1,7 +1,7 @@
-"""PWA va Android TWA uchun ommaviy fayllar: manifest, service worker, Digital Asset Links.
+"""PWA va Android TWA uçun ommaviy fayllar: manifest, service worker, Digital Asset Links.
 
-Hech biri foydalanuvchi ma'lumotini o'z ichiga olmaydi (middleware'lar ularni
-statik fayl kabi o'tkazadi — accounts/middleware.py `_PWA_PUBLIC_PATHS`).
+Heç biri foydalanuvçi ma'lumotini öz içiga olmaydi (middleware'lar ularni
+statik fayl kabi ötkazadi — accounts/middleware.py `_PWA_PUBLIC_PATHS`).
 """
 import json
 import os
@@ -28,7 +28,7 @@ def manifest_data():
         'id': '/',
         'name': APP_NAME,
         'short_name': APP_NAME,
-        'description': "IT Creative Academy o‘quv platformasi: darslar, vazifalar, testlar va sertifikatlar.",
+        'description': "IT Creative Academy öquv platformasi: darslar, vazifalar, testlar va sertifikatlar.",
         'lang': 'uz',
         'dir': 'ltr',
         'start_url': '/',
@@ -51,13 +51,13 @@ def manifest(request):
 
 
 def service_worker(request):
-    """`static/pwa/sw.js` ni ildiz (`/`) doirasida beradi — butun saytni nazorat qilishi uchun."""
+    """`static/pwa/sw.js` ni ildiz (`/`) doirasida beradi — butun saytni nazorat qilişi uçun."""
     path = finders.find('pwa/sw.js')
     if not path:
         return HttpResponse(status=404)
     with open(path, encoding='utf-8') as fh:
         response = HttpResponse(fh.read(), content_type='application/javascript; charset=utf-8')
-    # Yangilanish darhol yetib borishi uchun brauzer har safar tekshiradi
+    # Yangilaniş darhol yetib borişi uçun brauzer har safar tekşiradi
     response['Cache-Control'] = 'no-cache'
     response['Service-Worker-Allowed'] = '/'
     return response
@@ -65,9 +65,9 @@ def service_worker(request):
 
 @cache_control(public=True, max_age=3600)
 def assetlinks(request):
-    """Android TWA domen tasdig'i. Server .env: ANDROID_APP_SHA256 (vergul bilan), ANDROID_APP_PACKAGE.
+    """Android TWA domen tasdiği. Server .env: ANDROID_APP_SHA256 (vergul bilan), ANDROID_APP_PACKAGE.
 
-    Barmoq izi sozlanmagan bo'lsa 404 — noto'g'ri/bo'sh tasdiq berilmaydi.
+    Barmoq izi sozlanmagan bölsa 404 — notöğri/bösh tasdiq berilmaydi.
     """
     package = os.getenv('ANDROID_APP_PACKAGE', ANDROID_PACKAGE_DEFAULT).strip() or ANDROID_PACKAGE_DEFAULT
     fingerprints = [

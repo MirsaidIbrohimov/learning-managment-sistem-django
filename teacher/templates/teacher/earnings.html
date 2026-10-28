@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Daromadlarim - O'qituvchi paneli{% endblock %}
+{% block title %}Daromadlarim - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Daromadlarim{% endblock %}
 
 {% block teacher_content %}
@@ -224,7 +224,7 @@
 <div class="e-header">
     <div>
         <h1><i class="bi bi-cash-coin" style="color: var(--t-primary, #0d6efd);"></i> Daromadlarim</h1>
-        <div class="e-sub">Video, test va vazifalardan tushgan daromad hamda maosh to'lovlari</div>
+        <div class="e-sub">Video, test va vazifalardan tuşgan daromad hamda maoş tölovlari</div>
     </div>
 </div>
 
@@ -233,27 +233,27 @@
     <div class="e-hero-grid">
         <div class="e-hero-main">
             <div class="e-hero-label"><i class="bi bi-calendar-check"></i> {{ current_month_name }} {{ current_year }} — joriy oy daromadi</div>
-            <div class="e-hero-value">{{ current_data.grand_total|floatformat:0 }} <small>so'm</small></div>
+            <div class="e-hero-value">{{ current_data.grand_total|floatformat:0 }} <small>söm</small></div>
             {% if change_pct > 0 %}
-            <span class="e-change e-change-up"><i class="bi bi-arrow-up-short"></i> +{{ change_pct }}% o'tgan oyga nisbatan</span>
+            <span class="e-change e-change-up"><i class="bi bi-arrow-up-short"></i> +{{ change_pct }}% ötgan oyga nisbatan</span>
             {% elif change_pct < 0 %}
-            <span class="e-change e-change-down"><i class="bi bi-arrow-down-short"></i> {{ change_pct }}% o'tgan oyga nisbatan</span>
+            <span class="e-change e-change-down"><i class="bi bi-arrow-down-short"></i> {{ change_pct }}% ötgan oyga nisbatan</span>
             {% else %}
-            <span class="e-change e-change-zero"><i class="bi bi-dash"></i> O'zgarishsiz</span>
+            <span class="e-change e-change-zero"><i class="bi bi-dash"></i> Özgarişsiz</span>
             {% endif %}
         </div>
         <div class="e-hero-divider">
-            <div class="e-hero-label"><i class="bi bi-check-circle"></i> Jami to'langan</div>
-            <div class="e-hero-mini">{{ total_paid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">so'm</small></div>
+            <div class="e-hero-label"><i class="bi bi-check-circle"></i> Jami tölangan</div>
+            <div class="e-hero-mini">{{ total_paid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">söm</small></div>
         </div>
         <div>
-            <div class="e-hero-label"><i class="bi bi-hourglass-split"></i> To'lanmagan</div>
-            <div class="e-hero-mini">{{ total_unpaid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">so'm</small></div>
+            <div class="e-hero-label"><i class="bi bi-hourglass-split"></i> Tölanmagan</div>
+            <div class="e-hero-mini">{{ total_unpaid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">söm</small></div>
         </div>
     </div>
 </div>
 
-<!-- Price reference — har kasb uchun alohida stavkalar -->
+<!-- Price reference — har kasb uçun alohida stavkalar -->
 <div class="e-prices" style="flex-direction:column; align-items:stretch; gap:.5rem;">
     {% for pr in profession_rates %}
     <span class="e-price-chip" style="justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
@@ -265,11 +265,11 @@
         </span>
     </span>
     {% endfor %}
-    <span class="e-price-chip"><i class="bi bi-patch-question-fill" style="color: #0d9488;"></i> Video test (5+ savol) <b>{{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm / video</b></span>
+    <span class="e-price-chip"><i class="bi bi-patch-question-fill" style="color: #0d9488;"></i> Video test (5+ savol) <b>{{ VIDEO_QUIZ_PRICE|floatformat:0 }} söm / video</b></span>
 </div>
 
 <!-- Month comparison -->
-<h2 class="e-section-title"><i class="bi bi-bar-chart-line"></i> Oylik taqqoslash</h2>
+<h2 class="e-section-title"><i class="bi bi-bar-chart-line"></i> Oylik taqqoslaş</h2>
 <div class="e-compare-grid">
     <!-- Current month -->
     <div class="e-month-card e-month-current">
@@ -280,32 +280,32 @@
         <div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(13,148,136,.12); color: #0d9488;"><i class="bi bi-patch-question-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har bir video (5+ savol) {{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har bir video (5+ savol) {{ VIDEO_QUIZ_PRICE|floatformat:0 }} söm</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.vq_count }}</div><div class="e-stat-count-label">video</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.vq_total|floatformat:0 }}</div></div>
             </div>
         </div>
         <div class="e-stat-total">
             <span class="e-stat-total-label">Jami ({{ current_data.total_items }} ta)</span>
-            <span class="e-stat-total-value">{{ current_data.grand_total|floatformat:0 }} so'm</span>
+            <span class="e-stat-total-value">{{ current_data.grand_total|floatformat:0 }} söm</span>
         </div>
     </div>
 
@@ -313,37 +313,37 @@
     <div class="e-month-card e-month-prev">
         <div class="e-month-header">
             <span><i class="bi bi-calendar3 me-1"></i> {{ prev_month_name }} {{ prev_year }}</span>
-            <span class="e-month-badge">O'tgan oy</span>
+            <span class="e-month-badge">Ötgan oy</span>
         </div>
         <div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} söm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(13,148,136,.12); color: #0d9488;"><i class="bi bi-patch-question-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har bir video (5+ savol) {{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har bir video (5+ savol) {{ VIDEO_QUIZ_PRICE|floatformat:0 }} söm</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.vq_count }}</div><div class="e-stat-count-label">video</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.vq_total|floatformat:0 }}</div></div>
             </div>
         </div>
         <div class="e-stat-total">
             <span class="e-stat-total-label">Jami ({{ prev_data.total_items }} ta)</span>
-            <span class="e-stat-total-value">{{ prev_data.grand_total|floatformat:0 }} so'm</span>
+            <span class="e-stat-total-value">{{ prev_data.grand_total|floatformat:0 }} söm</span>
         </div>
     </div>
 </div>
@@ -351,7 +351,7 @@
 <!-- Current month detailed list -->
 <div class="e-card">
     <div class="e-card-head">
-        <i class="bi bi-list-ul"></i> {{ current_month_name }} — batafsil ro'yxat
+        <i class="bi bi-list-ul"></i> {{ current_month_name }} — batafsil röyxat
         <span class="e-count-pill">{{ current_data.total_items }} ta</span>
     </div>
     {% if current_data.video_list or current_data.test_list or current_data.hw_list or current_data.vq_list %}
@@ -373,7 +373,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-video"><i class="bi bi-play-circle"></i> Video</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} söm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.test_list %}
@@ -382,7 +382,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-test"><i class="bi bi-clipboard-check"></i> Test</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} söm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.hw_list %}
@@ -391,7 +391,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-hw"><i class="bi bi-journal-text"></i> Vazifa</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} söm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.vq_list %}
@@ -400,7 +400,7 @@
                     <td>{{ item.video__lesson__profession__name }}</td>
                     <td><span class="e-type-badge" style="background:rgba(13,148,136,.12);color:#0d9488;"><i class="bi bi-patch-question"></i> Video test</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ item.amount|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.amount|floatformat:0 }} söm</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -410,27 +410,27 @@
     <div style="padding: 1.4rem;">
         <div class="e-empty">
             <i class="bi bi-inbox"></i>
-            Bu oy hali hech narsa qo'shilmagan
+            Bu oy hali heç narsa qöşilmagan
         </div>
     </div>
     {% endif %}
 </div>
 
 <!-- Payments overview -->
-<h2 class="e-section-title"><i class="bi bi-cash-stack"></i> To'lovlar va cheklar</h2>
+<h2 class="e-section-title"><i class="bi bi-cash-stack"></i> Tölovlar va çeklar</h2>
 <div class="e-pay-grid">
     <div class="e-pay-card">
         <div class="e-pay-icon" style="background: rgba(16,185,129,.12); color: var(--e-paid);"><i class="bi bi-check-circle-fill"></i></div>
         <div>
-            <div class="e-pay-label">Jami to'langan pul</div>
-            <div class="e-pay-value" style="color: var(--e-paid);">{{ total_paid_amount|floatformat:0 }} <small>so'm</small></div>
+            <div class="e-pay-label">Jami tölangan pul</div>
+            <div class="e-pay-value" style="color: var(--e-paid);">{{ total_paid_amount|floatformat:0 }} <small>söm</small></div>
         </div>
     </div>
     <div class="e-pay-card">
         <div class="e-pay-icon" style="background: rgba(245,158,11,.12); color: var(--e-unpaid);"><i class="bi bi-clock-fill"></i></div>
         <div>
-            <div class="e-pay-label">To'lanishi kerak</div>
-            <div class="e-pay-value" style="color: var(--e-unpaid);">{{ total_unpaid_amount|floatformat:0 }} <small>so'm</small></div>
+            <div class="e-pay-label">Tölanişi kerak</div>
+            <div class="e-pay-value" style="color: var(--e-unpaid);">{{ total_unpaid_amount|floatformat:0 }} <small>söm</small></div>
         </div>
     </div>
 </div>
@@ -439,7 +439,7 @@
 {% if paid_salaries %}
 <div class="e-card">
     <div class="e-card-head" style="color: var(--e-paid);">
-        <i class="bi bi-check-circle-fill" style="color: var(--e-paid);"></i> To'langan maoshlar
+        <i class="bi bi-check-circle-fill" style="color: var(--e-paid);"></i> Tölangan maoşlar
         <span class="e-count-pill">{{ paid_salaries|length }} ta</span>
     </div>
     <div class="e-table-wrap">
@@ -450,8 +450,8 @@
                     <th>Turi</th>
                     <th style="text-align:right;">Summa</th>
                     <th>Izoh</th>
-                    <th>Chek</th>
-                    <th>To'langan sana</th>
+                    <th>Çek</th>
+                    <th>Tölangan sana</th>
                 </tr>
             </thead>
             <tbody>
@@ -459,11 +459,11 @@
                 <tr>
                     <td style="font-weight:600;">{{ salary.get_month_display }} {{ salary.year }}</td>
                     <td><span class="e-type-badge e-type-paid">{{ salary.get_salary_type_display }}</span></td>
-                    <td class="e-amount-cell" style="text-align:right; color: var(--e-paid);">{{ salary.amount|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-paid);">{{ salary.amount|floatformat:0 }} söm</td>
                     <td>{{ salary.description|default:"-" }}</td>
                     <td>
                         {% if salary.receipt %}
-                            <a href="{{ salary.receipt.url }}" target="_blank" class="e-receipt-link"><i class="bi bi-file-earmark-pdf"></i> Chek</a>
+                            <a href="{{ salary.receipt.url }}" target="_blank" class="e-receipt-link"><i class="bi bi-file-earmark-pdf"></i> Çek</a>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}
@@ -481,7 +481,7 @@
 {% if unpaid_salaries %}
 <div class="e-card">
     <div class="e-card-head" style="color: var(--e-unpaid);">
-        <i class="bi bi-clock-fill" style="color: var(--e-unpaid);"></i> To'lanmagan maoshlar
+        <i class="bi bi-clock-fill" style="color: var(--e-unpaid);"></i> Tölanmagan maoşlar
         <span class="e-count-pill">{{ unpaid_salaries|length }} ta</span>
     </div>
     <div class="e-table-wrap">
@@ -500,7 +500,7 @@
                 <tr>
                     <td style="font-weight:600;">{{ salary.get_month_display }} {{ salary.year }}</td>
                     <td><span class="e-type-badge e-type-hw">{{ salary.get_salary_type_display }}</span></td>
-                    <td class="e-amount-cell" style="text-align:right; color: var(--e-unpaid);">{{ salary.amount|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-unpaid);">{{ salary.amount|floatformat:0 }} söm</td>
                     <td>{{ salary.description|default:"-" }}</td>
                     <td>{{ salary.created_at|date:"d.m.Y" }}</td>
                 </tr>
@@ -514,7 +514,7 @@
 {% if not paid_salaries and not unpaid_salaries %}
 <div class="e-empty" style="margin-bottom: 2rem;">
     <i class="bi bi-cash-stack"></i>
-    Hali hech qanday to'lov ma'lumoti yo'q
+    Hali heç qanday tölov ma'lumoti yöq
 </div>
 {% endif %}
 
@@ -522,7 +522,7 @@
 {% if admin_receipts %}
 <div class="e-card">
     <div class="e-card-head">
-        <i class="bi bi-file-earmark-text"></i> Admin tomonidan yuklangan cheklar
+        <i class="bi bi-file-earmark-text"></i> Admin tomonidan yuklangan çeklar
         <span class="e-count-pill">{{ admin_receipts|length }} ta</span>
     </div>
     <div class="e-table-wrap">
@@ -532,7 +532,7 @@
                     <th>Oy/Yil</th>
                     <th>Turi</th>
                     <th style="text-align:right;">Summa</th>
-                    <th>Chek</th>
+                    <th>Çek</th>
                     <th>Yuklangan sana</th>
                     <th>Yukladi</th>
                 </tr>
@@ -542,10 +542,10 @@
                 <tr>
                     <td style="font-weight:600;">{{ receipt.get_month_display }} {{ receipt.year }}</td>
                     <td><span class="e-type-badge e-type-info">{{ receipt.get_salary_type_display }}</span></td>
-                    <td class="e-amount-cell" style="text-align:right; color: var(--e-test);">{{ receipt.amount|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-test);">{{ receipt.amount|floatformat:0 }} söm</td>
                     <td>
                         {% if receipt.receipt %}
-                            <a href="{{ receipt.receipt.url }}" target="_blank" class="e-receipt-link" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-file-earmark-pdf"></i> Chek</a>
+                            <a href="{{ receipt.receipt.url }}" target="_blank" class="e-receipt-link" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-file-earmark-pdf"></i> Çek</a>
                         {% else %}
                             <span class="text-muted">—</span>
                         {% endif %}

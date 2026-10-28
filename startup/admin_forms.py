@@ -1,9 +1,9 @@
 """Admin panel formalari.
 
 `forms.py` ataylab `owner`, `status`, `progress`, `total_xp`, `current_stage`
-maydonlarini chiqarib tashlagan (mass assignment himoyasi). Admin ularning
-ikkitasini — `owner` va `status` — boshqarishi kerak, shuning uchun kengaytirish
-shu alohida modulda: student formasi hech qachon bu maydonlarni ko'rmaydi.
+maydonlarini çiqarib taşlagan (mass assignment himoyasi). Admin ularning
+ikkitasini — `owner` va `status` — boşqarişi kerak, şuning uçun kengaytiriş
+şu alohida modulda: student formasi heç qaçon bu maydonlarni körmaydi.
 """
 
 from django import forms
@@ -36,7 +36,7 @@ class StartupAdminForm(StartupForm):
         status = cleaned.get('status')
 
         # `Startup.Meta.constraints` da `startup_one_active_per_owner` bor —
-        # bu yerda tekshirmasak, saqlashda IntegrityError → 500 bo'lardi.
+        # bu yerda tekşirmasak, saqlaşda IntegrityError → 500 bölardi.
         if owner and status == 'active':
             clash = Startup.objects.filter(owner=owner, status='active')
             if self.instance.pk:
@@ -44,14 +44,14 @@ class StartupAdminForm(StartupForm):
             existing = clash.first()
             if existing:
                 self.add_error('status', forms.ValidationError(
-                    f'Bu oʻquvchida allaqachon faol startup bor: "{existing.name}". '
-                    f'Avval uni toʻxtatilgan yoki arxivlangan holatga oʻtkazing.'
+                    f'Bu öquvçida allaqaçon faol startup bor: "{existing.name}". '
+                    f'Avval uni töxtatilgan yoki arxivlangan holatga ötkazing.'
                 ))
         return cleaned
 
 
 class ManualXPForm(forms.Form):
-    """Adminning qo'lda XP tuzatishi — izoh majburiy (audit uchun)."""
+    """Adminning qölda XP tuzatişi — izoh majburiy (audit uçun)."""
 
     amount = forms.IntegerField(min_value=1, max_value=10000, label='XP miqdori',
                                 widget=forms.NumberInput(attrs={'class': 'form-control'}))

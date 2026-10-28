@@ -23,7 +23,7 @@ _phone_counter = itertools.count(1)
 
 
 def make_user(username, role='student'):
-    # phone unique — har bir test foydalanuvchisiga alohida raqam
+    # phone unique — har bir test foydalanuvçisiga alohida raqam
     return CustomUser.objects.create_user(
         username=username, password='x', role=role, first_name=username.title(),
         phone=f'+9989{next(_phone_counter):07d}',
@@ -31,7 +31,7 @@ def make_user(username, role='student'):
 
 
 class JumanjiBoardTests(TestCase):
-    """Doska generatsiyasi adolat cheklovlariga rioya qiladimi."""
+    """Doska generatsiyasi adolat çeklovlariga rioya qiladimi."""
 
     def test_first_cells_are_clean(self):
         layout = jumanji.build_board(30, rng=random.Random(1))
@@ -69,7 +69,7 @@ class JumanjiBoardTests(TestCase):
 
 
 class JumanjiGeometryTests(TestCase):
-    """So'qmoq koordinatalari doska ichida va ustma-ust tushmasligi kerak."""
+    """Söqmoq koordinatalari doska içida va ustma-ust tuşmasligi kerak."""
 
     SIZES = (1, 2, 5, 8, 12, 20, 30, 45, 60, 90, 120)
 
@@ -91,7 +91,7 @@ class JumanjiGeometryTests(TestCase):
         for size in self.SIZES:
             geometry = jumanji.board_geometry(size)
             points = geometry['points']
-            # y foizi konteyner balandligiga nisbatan — kenglik birligiga o'tkazamiz
+            # y foizi konteyner balandligiga nisbatan — kenglik birligiga ötkazamiz
             scale = geometry['aspect'] / 100
             for first, second in zip(points, points[1:]):
                 distance = math.hypot(
@@ -105,7 +105,7 @@ class JumanjiGeometryTests(TestCase):
 
 
 class JumanjiSessionTestCase(TestCase):
-    """Umumiy fixture: o'yin, musobaqa, savollar, 3 o'yinchi."""
+    """Umumiy fixture: öyin, musobaqa, savollar, 3 öyinçi."""
 
     def setUp(self):
         self.game = Game.objects.create(
@@ -148,7 +148,7 @@ class JumanjiStartTests(JumanjiSessionTestCase):
         self.session.players.all().delete()
         ok, reason = jumanji.can_start(self.session)
         self.assertFalse(ok)
-        self.assertIn('o\'yinchi', reason)
+        self.assertIn('öyinçi', reason)
 
     def test_cannot_start_without_questions(self):
         self.session.question_pool = []
@@ -170,7 +170,7 @@ class JumanjiStartTests(JumanjiSessionTestCase):
         self.assertFalse(ok)
 
     def test_cell_step_label_shows_direction(self):
-        """Katak raqami yonida turgani uchun qadam soni belgi bilan ko'rsatiladi."""
+        """Katak raqami yonida turgani uçun qadam soni belgi bilan körsatiladi."""
         jumanji.start_session(self.session, rng=random.Random(3))
         cells = jumanji.board_cells(self.refresh())
         labelled = 0
@@ -198,7 +198,7 @@ class JumanjiTurnFlowTests(JumanjiSessionTestCase):
         self.assertEqual(session.pool_cursor, 1)
 
     def test_correct_answer_waits_for_student_to_roll(self):
-        """To'g'ri javob toshni O'ZI tashlamaydi — o'quvchi bosishini kutadi."""
+        """Töğri javob toşni ÖZI taşlamaydi — öquvçi bosişini kutadi."""
         turn = jumanji.open_question(self.session, self.teacher)
         start_position = turn.player.position
         result = jumanji.judge_turn(self.session, 'correct', self.teacher)
@@ -262,7 +262,7 @@ class JumanjiEffectTests(JumanjiSessionTestCase):
         self.session.refresh_from_db()
 
     def _turn_at(self, position, effect, **entry):
-        """O'yinchini berilgan katakka qo'yib, o'sha katakka effekt biriktiradi."""
+        """Öyinçini berilgan katakka qöyib, öşa katakka effekt biriktiradi."""
         turn = jumanji.open_question(self.session, self.teacher)
         turn.player.position = position
         turn.player.save()
@@ -359,7 +359,7 @@ class JumanjiEffectTests(JumanjiSessionTestCase):
         self.assertEqual(self.refresh().phase, 'waiting_turn')
 
     def test_effect_does_not_chain(self):
-        """Narvon bilan tushilgan yangi katak effekti qo'llanmasligi kerak."""
+        """Narvon bilan tuşilgan yangi katak effekti qöllanmasligi kerak."""
         turn = self._turn_at(10, 'ladder', steps=3)
         layout = dict(self.session.board_layout)
         layout['13'] = {'effect': 'snake', 'steps': 5}
@@ -463,7 +463,7 @@ class JumanjiFinishTests(JumanjiSessionTestCase):
             player.user.refresh_from_db()
             self.assertEqual(player.user.coins, amount)
 
-        # Ikkinchi chaqiruv takror to'lamaydi
+        # Ikkinçi çaqiruv takror tölamaydi
         jumanji.award_coins(self.refresh())
         self.players[0].user.refresh_from_db()
         self.assertEqual(self.players[0].user.coins, 30)
@@ -483,13 +483,13 @@ class JumanjiPermissionTests(TestCase):
 
 
 @modify_settings(MIDDLEWARE={'remove': [
-    # Test client'da UserSession qatori bo'lmagani uchun bu ikkisi login'ga
-    # yo'naltirib yuboradi — view mantiqiga aloqasi yo'q.
+    # Test client'da UserSession qatori bölmagani uçun bu ikkisi login'ga
+    # yönaltirib yuboradi — view mantiqiga aloqasi yöq.
     'accounts.middleware.DeviceLimitMiddleware',
     'accounts.middleware.ProfileCompletionMiddleware',
 ]})
 class JumanjiViewTests(JumanjiSessionTestCase):
-    """View qatlami: sahifa render bo'ladimi, API to'g'ri javob beradimi."""
+    """View qatlami: sahifa render böladimi, API töğri javob beradimi."""
 
     def urls(self):
         pk = self.session.pk
@@ -522,13 +522,13 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.client.force_login(self.teacher)
         response = self.client.get(self.urls()['room'])
         self.assertEqual(response.status_code, 200)
-        # Egilgan yo'l, kataklar va FINISH katagi chizilgan
+        # Egilgan yöl, kataklar va FINISH katagi çizilgan
         self.assertContains(response, 'jm-trail')
         self.assertContains(response, 'jm-cell')
         self.assertContains(response, 'FINISH')
 
     def test_room_cell_coordinates_use_css_decimals(self):
-        """uz lokali kasrni vergul bilan yozadi — CSS uni tushunmaydi."""
+        """uz lokali kasrni vergul bilan yozadi — CSS uni tuşunmaydi."""
         jumanji.start_session(self.session, rng=random.Random(5))
         self.client.force_login(self.teacher)
         html = self.client.get(self.urls()['room']).content.decode()
@@ -546,7 +546,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertNotIn(',', size.group(0))
 
     def test_room_shows_cell_contents_with_icons_not_emoji(self):
-        """O'quvchi katakda nima borligini ikonka + qisqa nomdan ko'radi."""
+        """Öquvçi katakda nima borligini ikonka + qisqa nomdan köradi."""
         jumanji.start_session(self.session, rng=random.Random(5))
         self.client.force_login(self.players[0].user)
         html = self.client.get(self.urls()['room']).content.decode()
@@ -555,14 +555,14 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertRegex(html, r'<span class="fx"><i class="bi bi-[a-z0-9-]+">')
         self.assertRegex(html, r'<span class="lbl">[^<]+</span>')
 
-        # Effekt nomlari emoji bilan emas, ikonka bilan ko'rsatiladi
+        # Effekt nomlari emoji bilan emas, ikonka bilan körsatiladi
         for spec in jumanji.EFFECT_SPECS.values():
             self.assertTrue(spec['icon'].startswith('bi-'), spec)
             for char in spec['label'] + spec['short'] + spec['shout']:
                 self.assertLess(ord(char), 0x2100, f"{spec['label']}: emoji")
 
     def test_room_has_fullscreen_shout_and_dice_widgets(self):
-        """To'liq ekran tugmasi, bildirgi oynasi va tosh joyi sahifada bor."""
+        """Töliq ekran tugmasi, bildirgi oynasi va toş joyi sahifada bor."""
         jumanji.start_session(self.session, rng=random.Random(5))
         self.client.force_login(self.players[0].user)
         html = self.client.get(self.urls()['room']).content.decode()
@@ -620,7 +620,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertEqual(len(data['cells']), self.session.board_size + 1)
 
     def test_state_full_includes_links_after_start(self):
-        """Lobbyda ochilgan sahifa doskani polling orqali qayta chizadi."""
+        """Lobbyda oçilgan sahifa doskani polling orqali qayta çizadi."""
         self.client.force_login(self.teacher)
         lobby = self.client.get(self.urls()['state'], {'full': '1'}).json()
         self.assertEqual(lobby['links'], [])
@@ -641,7 +641,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertTrue(player.is_online)
 
     def test_heartbeat_is_throttled_to_avoid_sqlite_locks(self):
-        """Har polling'da yozilsa SQLite butun bazani qulflaydi va o'yin qotadi."""
+        """Har polling'da yozilsa SQLite butun bazani qulflaydi va öyin qotadi."""
         player = self.players[0]
         self.client.force_login(player.user)
         url = self.urls()['state']
@@ -669,7 +669,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
                 self.client.get(url)
                 self.assertEqual(
                     len(player_writes()), 1,
-                    'eskirgan heartbeat yangilanishi kerak',
+                    'eskirgan heartbeat yangilanişi kerak',
                 )
         player.refresh_from_db()
         self.assertTrue(player.is_online)
@@ -731,7 +731,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.client.force_login(self.teacher)
         self.control('start')
         self.control('open_question')
-        # phase == 'question' — ACTION_PHASES tekshiruvi to'sadi
+        # phase == 'question' — ACTION_PHASES tekşiruvi tösadi
         self.assertEqual(self.control('open_question').status_code, 409)
 
     def test_wrong_verdict_advances_turn(self):
@@ -748,7 +748,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertTrue(data['ok'])
 
     def test_correct_verdict_stops_at_dice_phase(self):
-        """Tosh o'quvchiniki — baho bergan zahoti o'yinchi surilmasligi kerak."""
+        """Toş öquvçiniki — baho bergan zahoti öyinçi surilmasligi kerak."""
         self.client.force_login(self.teacher)
         self.control('start')
         self.control('open_question')
@@ -793,7 +793,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertEqual(mover.position, 0)
 
     def test_roll_value_is_not_taken_from_client(self):
-        """Client 99 deb yuborsa ham server o'z toshini tashlaydi."""
+        """Client 99 deb yuborsa ham server öz toşini taşlaydi."""
         self.client.force_login(self.teacher)
         self.control('start')
         self.control('open_question')
@@ -880,7 +880,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.control('start')
         self.control('open_question')
         mover = self.refresh().current_player
-        # FINISH dan bir zarba narida — har qanday tosh yetadi
+        # FINISH dan bir zarba narida — har qanday toş yetadi
         mover.position = self.session.board_size - 1
         mover.save(update_fields=['position'])
 
@@ -896,7 +896,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
     # ---------- avtomatik qadamlar ----------
 
     def _age_phase(self, seconds):
-        """Bosqich boshlanishini orqaga suradi — server soatini imitatsiya qiladi."""
+        """Bosqiç boşlanişini orqaga suradi — server soatini imitatsiya qiladi."""
         JumanjiSession.objects.filter(pk=self.session.pk).update(
             phase_started_at=timezone.now() - timezone.timedelta(seconds=seconds),
         )
@@ -928,7 +928,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertEqual(self.refresh().phase, 'waiting_turn')
 
     def test_dice_rolls_automatically_if_student_never_presses(self):
-        """O'quvchining aloqasi uzilsa o'yin `dice` bosqichida qotib qolmaydi."""
+        """Öquvçining aloqasi uzilsa öyin `dice` bosqiçida qotib qolmaydi."""
         self.client.force_login(self.teacher)
         self.control('start')
         self.control('open_question')
@@ -943,7 +943,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertNotEqual(self.refresh().phase, 'dice')
 
     def test_state_reports_join_ability_for_live_lobby(self):
-        """Lobby tugmalari clientda chiziladi — sahifani yangilash shart emas."""
+        """Lobby tugmalari clientda çiziladi — sahifani yangilaş şart emas."""
         outsider = self.players[0].user
         self.players[0].delete()
 
@@ -978,7 +978,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
     'accounts.middleware.ProfileCompletionMiddleware',
 ]})
 class JumanjiAdminPageTests(JumanjiSessionTestCase):
-    """Jumanji admin/o'quvchi sahifalariga ulanganmi."""
+    """Jumanji admin/öquvchi sahifalariga ulanganmi."""
 
     def setUp(self):
         super().setUp()

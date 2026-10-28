@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Sertifikat berish - LMS{% endblock %}
+{% block title %}Sertifikat beriş - LMS{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -36,13 +36,13 @@
             <small style="opacity:.7">@{{ student.username }}</small>
         </div>
         <div class="ic-body">
-            <h6 class="mb-3 fw-bold"><i class="bi bi-award me-2 text-primary"></i>Sertifikat berish</h6>
+            <h6 class="mb-3 fw-bold"><i class="bi bi-award me-2 text-primary"></i>Sertifikat beriş</h6>
             
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 
                 <div class="ic-field">
-                    <label>Yo'nalish</label>
+                    <label>Yönaliş</label>
                     <select name="profession" class="form-select" required>
                         <option value="">Tanlang...</option>
                         {% for profession in professions %}
@@ -54,7 +54,7 @@
                 <div class="ic-field">
                     <label>Sertifikat ID raqami</label>
                     {{ form.certificate_id }}
-                    <small class="text-muted d-block mt-1">Bo'sh qoldirilsa avtomatik yaratiladi</small>
+                    <small class="text-muted d-block mt-1">Böş qoldirilsa avtomatik yaratiladi</small>
                     {% if form.certificate_id.errors %}
                     <small class="text-danger fw-bold">{{ form.certificate_id.errors.0 }}</small>
                     {% endif %}
@@ -91,7 +91,7 @@
                 </div>
                 
                 <button type="submit" class="ic-btn">
-                    <i class="bi bi-check-lg me-2"></i>Sertifikat berish
+                    <i class="bi bi-check-lg me-2"></i>Sertifikat beriş
                 </button>
             </form>
         </div>

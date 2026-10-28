@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='homework',
             name='ai_check',
-            field=models.BooleanField(default=True, verbose_name='AI tekshirsin'),
+            field=models.BooleanField(default=True, verbose_name='AI tekşirsin'),
         ),
         migrations.AlterField(
             model_name='speakingtask',
             name='ai_check',
-            field=models.BooleanField(default=True, verbose_name='AI tekshirsin'),
+            field=models.BooleanField(default=True, verbose_name='AI tekşirsin'),
         ),
     ]

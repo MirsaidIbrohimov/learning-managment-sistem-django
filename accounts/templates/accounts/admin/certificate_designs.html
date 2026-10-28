@@ -29,7 +29,7 @@
         <a href="{% url 'admin_certificates' %}" class="cd-back"><i class="bi bi-arrow-left"></i></a>
         <div>
             <h4 style="font-weight:800;margin:0;">🎨 Sertifikat dizaynlari</h4>
-            <small class="cd-muted">Har bir kurs uchun alohida ko'rinish. Dizayn biriktirilmagan kurs — standart dizaynda beriladi.</small>
+            <small class="cd-muted">Har bir kurs uçun alohida köriniş. Dizayn biriktirilmagan kurs — standart dizaynda beriladi.</small>
         </div>
     </div>
 
@@ -40,15 +40,15 @@
             <div style="font-weight:800;margin-bottom:.8rem;"><i class="bi bi-plus-circle" style="color:#6366f1;"></i> Yangi dizayn</div>
             <div class="mb-2">
                 <label class="form-label fw-bold" style="font-size:.8rem;">Nomi</label>
-                <input type="text" name="name" class="form-control form-control-sm" maxlength="120" placeholder="Masalan: Python kursi — ko'k" required>
+                <input type="text" name="name" class="form-control form-control-sm" maxlength="120" placeholder="Masalan: Python kursi — kök" required>
             </div>
             <div class="mb-2">
                 <label class="form-label fw-bold" style="font-size:.8rem;">Fon rasmi (PNG/JPG/WEBP, ≤10 MB)</label>
                 <input type="file" name="background" accept=".png,.jpg,.jpeg,.webp" class="form-control form-control-sm" required>
-                <small class="cd-muted">Matnsiz, albom formatdagi bo'sh shablon. Tavsiya: 2400×1697 px.</small>
+                <small class="cd-muted">Matnsiz, albom formatdagi böş şablon. Tavsiya: 2400×1697 px.</small>
             </div>
             <button type="submit" class="btn btn-primary btn-sm w-100" style="border-radius:10px;font-weight:800;">
-                <i class="bi bi-upload"></i> Yuklash va tahrirlash
+                <i class="bi bi-upload"></i> Yuklaş va tahrirlaş
             </button>
         </form>
 
@@ -57,7 +57,7 @@
             <div class="cd-thumb" style="background-image:url('{% static 'certificates/cert_template.png' %}')"><span class="tag">STANDART</span></div>
             <div class="cd-body">
                 <div class="cd-name">Standart dizayn</div>
-                <div class="cd-muted">Dizayn tanlanmagan barcha kurslar shu ko'rinishda sertifikat oladi.</div>
+                <div class="cd-muted">Dizayn tanlanmagan barça kurslar şu körinişda sertifikat oladi.</div>
             </div>
         </div>
 
@@ -67,13 +67,13 @@
             <div class="cd-body">
                 <div class="cd-name">{{ d.name }}</div>
                 <div class="cd-courses">
-                    {% for s in d.course_settings.all %}<span>{{ s.profession.name }}</span>{% empty %}<em class="cd-muted">Hech bir kursga biriktirilmagan</em>{% endfor %}
+                    {% for s in d.course_settings.all %}<span>{{ s.profession.name }}</span>{% empty %}<em class="cd-muted">Heç bir kursga biriktirilmagan</em>{% endfor %}
                 </div>
                 <div class="cd-actions">
-                    <a href="{% url 'admin_certificate_design_edit' d.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                    <a href="{% url 'admin_certificate_design_edit' d.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Tahrirlaş</a>
                     <a href="{% url 'admin_certificate_design_preview' d.pk %}" target="_blank" class="btn btn-outline-secondary"><i class="bi bi-eye"></i> Namuna</a>
                     <form method="post" action="{% url 'admin_certificate_design_delete' d.pk %}" style="display:contents;"
-                          onsubmit="return confirm('Dizaynni o\'chirmoqchimisiz? Biriktirilgan kurslar standart dizaynga qaytadi.')">
+                          onsubmit="return confirm('Dizaynni öçirmoqçimisiz? Biriktirilgan kurslar standart dizaynga qaytadi.')">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-outline-danger" style="flex:0 0 42px;"><i class="bi bi-trash"></i></button>
                     </form>
@@ -85,7 +85,7 @@
 
     <p class="cd-muted" style="margin-top:1.4rem;">
         <i class="bi bi-info-circle"></i>
-        Dizaynni kursga biriktirish: <a href="{% url 'admin_certificates' %}">Sertifikatlar → Sozlamalar</a> jadvalidagi "Dizayn" ustuni.
+        Dizaynni kursga biriktiriş: <a href="{% url 'admin_certificates' %}">Sertifikatlar → Sozlamalar</a> jadvalidagi "Dizayn" ustuni.
     </p>
 </div>
 {% endblock %}

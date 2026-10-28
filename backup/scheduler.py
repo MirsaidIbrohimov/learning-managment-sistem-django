@@ -56,7 +56,7 @@ def main():
         if not args.run_now and marker.exists() and marker.read_text().strip() == today:
             return 0
         env = dict(os.environ, BACKUP_DIR=args.backup_dir)
-        log.info('Backup boshlandi: %s, timezone=%s', today, args.timezone)
+        log.info('Backup boşlandi: %s, timezone=%s', today, args.timezone)
         # send_backup already redacts errors. Bound the log and avoid collecting
         # arbitrary Django startup output, which may include unrelated secrets.
         try:
@@ -66,10 +66,10 @@ def main():
                 timeout=7200,
             )
         except (OSError, subprocess.TimeoutExpired):
-            log.error('Backup ishga tushmadi yoki scheduler timeout (7200s).')
+            log.error('Backup işga tuşmadi yoki scheduler timeout (7200s).')
             return 1
         if result.returncode:
-            log.error('Backup muvaffaqiyatsiz, exit=%s. Telegram xabari va send_backup sozlamalarini tekshiring.',
+            log.error('Backup muvaffaqiyatsiz, exit=%s. Telegram xabari va send_backup sozlamalarini tekşiring.',
                       result.returncode)
             return 1
         marker.write_text(today)

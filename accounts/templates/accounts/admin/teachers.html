@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
-{% block title %}O'qituvchilar - Admin Panel{% endblock %}
-{% block topbar_title %}O'qituvchilar{% endblock %}
+{% block title %}Öqituvçilar - Admin Panel{% endblock %}
+{% block topbar_title %}Öqituvçilar{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -148,10 +148,10 @@
 
 <div class="tp-page">
     <div class="tp-header">
-        <h1><i class="bi bi-person-workspace"></i> O'qituvchilar</h1>
+        <h1><i class="bi bi-person-workspace"></i> Öqituvçilar</h1>
         <div class="tp-header-actions">
-            <a href="{% url 'export_teachers_pdf' %}" class="tp-btn tp-btn-pdf"><i class="bi bi-file-earmark-pdf"></i> PDF yuklash</a>
-            <a href="{% url 'admin_add_teacher' %}" class="tp-btn tp-btn-add"><i class="bi bi-plus-lg"></i> O'qituvchi qo'shish</a>
+            <a href="{% url 'export_teachers_pdf' %}" class="tp-btn tp-btn-pdf"><i class="bi bi-file-earmark-pdf"></i> PDF yuklaş</a>
+            <a href="{% url 'admin_add_teacher' %}" class="tp-btn tp-btn-add"><i class="bi bi-plus-lg"></i> Öqituvçi qöşiş</a>
         </div>
     </div>
 
@@ -159,7 +159,7 @@
         <i class="bi bi-search tp-search-icon"></i>
         <input type="text" name="q" class="tp-search-input" placeholder="Ism, username yoki telefon..." value="{{ search_query }}">
     </form>
-    <div class="tp-count"><i class="bi bi-people-fill me-1"></i> {{ total_count }} ta o'qituvchi</div>
+    <div class="tp-count"><i class="bi bi-people-fill me-1"></i> {{ total_count }} ta öqituvçi</div>
 
     {% if teachers_data %}
     <div class="tp-grid">
@@ -183,7 +183,7 @@
                         {% if td.last_activity %}
                             Oxirgi faollik: {{ td.last_activity|timesince }} oldin
                         {% else %}
-                            Hali faollik yo'q
+                            Hali faollik yöq
                         {% endif %}
                     </div>
                     <div style="margin-top:4px;">
@@ -203,7 +203,7 @@
                 </div>
                 <div class="tp-stat">
                     <div class="tp-stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
-                    <div><div class="tp-stat-val">{{ td.students_count }}</div><div class="tp-stat-lbl">O'quvchilar</div></div>
+                    <div><div class="tp-stat-val">{{ td.students_count }}</div><div class="tp-stat-lbl">Öquvçilar</div></div>
                 </div>
                 <div class="tp-stat">
                     <div class="tp-stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="bi bi-award-fill"></i></div>
@@ -221,7 +221,7 @@
                     <div class="tp-stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="bi bi-check2-square"></i></div>
                     <div>
                         <div class="tp-stat-val">{{ td.hw_graded_total }}</div>
-                        <div class="tp-stat-lbl">Vazifa teksh.</div>
+                        <div class="tp-stat-lbl">Vazifa tekş.</div>
                         <div class="tp-stat-sub">H:{{ td.hw_graded_week }} O:{{ td.hw_graded_month }}</div>
                     </div>
                 </div>
@@ -254,8 +254,8 @@
                         <div class="tp-detail-title"><i class="bi bi-collection me-1"></i> Kontent</div>
                         <div class="tp-detail-item"><span>Videolar</span><span>{{ td.videos_count }}</span></div>
                         <div class="tp-detail-item"><span>Testlar</span><span>{{ td.tests_count }}</span></div>
-                        <div class="tp-detail-item"><span>Lug'at so'zlari</span><span>{{ td.dict_words_total }}</span></div>
-                        <div class="tp-detail-item"><span>Speaking teksh.</span><span>{{ td.sp_graded_total }}</span></div>
+                        <div class="tp-detail-item"><span>Luğat sözlari</span><span>{{ td.dict_words_total }}</span></div>
+                        <div class="tp-detail-item"><span>Speaking tekş.</span><span>{{ td.sp_graded_total }}</span></div>
                         <div class="tp-detail-item"><span>Speaking (oy)</span><span>{{ td.sp_graded_month }}</span></div>
                     </div>
                 </div>
@@ -263,32 +263,32 @@
                     <!-- Finance -->
                     <div class="tp-detail-box">
                         <div class="tp-detail-title"><i class="bi bi-cash-stack me-1"></i> Moliyaviy</div>
-                        <div class="tp-detail-item"><span>Jami daromad</span><span class="tp-money-green">{{ td.salary_total|floatformat:0 }} so'm</span></div>
-                        <div class="tp-detail-item"><span>Shu oy</span><span class="tp-money-blue">{{ td.salary_month|floatformat:0 }} so'm</span></div>
-                        <div class="tp-detail-item"><span>To'lanmagan</span><span class="tp-money-red">{{ td.salary_unpaid|floatformat:0 }} so'm</span></div>
+                        <div class="tp-detail-item"><span>Jami daromad</span><span class="tp-money-green">{{ td.salary_total|floatformat:0 }} söm</span></div>
+                        <div class="tp-detail-item"><span>Şu oy</span><span class="tp-money-blue">{{ td.salary_month|floatformat:0 }} söm</span></div>
+                        <div class="tp-detail-item"><span>Tölanmagan</span><span class="tp-money-red">{{ td.salary_unpaid|floatformat:0 }} söm</span></div>
                     </div>
                     <!-- Summary -->
                     <div class="tp-detail-box">
                         <div class="tp-detail-title"><i class="bi bi-bar-chart me-1"></i> Umumiy</div>
-                        <div class="tp-detail-item"><span>Ro'yxatdan o'tgan</span><span>{{ td.user.date_joined|date:"d.m.Y" }}</span></div>
+                        <div class="tp-detail-item"><span>Röyxatdan ötgan</span><span>{{ td.user.date_joined|date:"d.m.Y" }}</span></div>
                         <div class="tp-detail-item"><span>Kurslar soni</span><span>{{ td.courses_count }}</span></div>
-                        <div class="tp-detail-item"><span>Jami o'quvchilar</span><span>{{ td.students_count }}</span></div>
+                        <div class="tp-detail-item"><span>Jami öquvçilar</span><span>{{ td.students_count }}</span></div>
                     </div>
                 </div>
             </div>
 
             <!-- Toggle Button -->
             <button class="tp-toggle-btn" onclick="toggleDetails({{ td.user.pk }}, this)">
-                <i class="bi bi-chevron-down"></i> Batafsil ko'rish
+                <i class="bi bi-chevron-down"></i> Batafsil köriş
             </button>
 
             <!-- Actions -->
             <div class="tp-actions" style="margin-top: 8px;">
-                <a href="{% url 'admin_user_view' td.user.pk %}" class="tp-act tp-act-view"><i class="bi bi-eye"></i> Ko'rish</a>
-                <a href="{% url 'admin_user_edit' td.user.pk %}" class="tp-act tp-act-edit"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'admin_user_view' td.user.pk %}" class="tp-act tp-act-view"><i class="bi bi-eye"></i> Köriş</a>
+                <a href="{% url 'admin_user_edit' td.user.pk %}" class="tp-act tp-act-edit"><i class="bi bi-pencil"></i> Tahrirlaş</a>
                 <a href="{% url 'admin_user_block' td.user.pk %}" class="tp-act tp-act-block">
                     <i class="bi bi-{% if td.user.is_blocked %}unlock{% else %}lock{% endif %}"></i>
-                    {% if td.user.is_blocked %}Ochish{% else %}Bloklash{% endif %}
+                    {% if td.user.is_blocked %}Oçiş{% else %}Bloklaş{% endif %}
                 </a>
             </div>
             <div class="tp-actions" style="margin-top: 6px;">
@@ -300,7 +300,7 @@
                         data-url="{% url 'admin_teacher_ai_toggle' td.user.pk %}"
                         onclick="toggleTeacherAi(this)">
                     <i class="bi bi-robot"></i>
-                    {% if td.user.ai_access_enabled %}AI ni bloklash{% else %}AI ni yoqish{% endif %}
+                    {% if td.user.ai_access_enabled %}AI ni bloklaş{% else %}AI ni yoqiş{% endif %}
                 </button>
             </div>
         </div>
@@ -309,8 +309,8 @@
     {% else %}
     <div class="tp-empty">
         <div class="tp-empty-icon"><i class="bi bi-person-workspace"></i></div>
-        <h5 style="font-weight:700;">O'qituvchilar topilmadi</h5>
-        <p style="color:var(--bs-secondary-color);">{% if search_query %}"{{ search_query }}" bo'yicha natija yo'q{% else %}Hali o'qituvchi qo'shilmagan{% endif %}</p>
+        <h5 style="font-weight:700;">Öqituvçilar topilmadi</h5>
+        <p style="color:var(--bs-secondary-color);">{% if search_query %}"{{ search_query }}" böyiça natija yöq{% else %}Hali öqituvçi qöşilmagan{% endif %}</p>
     </div>
     {% endif %}
 </div>
@@ -322,11 +322,11 @@ function toggleDetails(pk, btn) {
     if (el.classList.contains('show')) {
         el.classList.remove('show');
         icon.className = 'bi bi-chevron-down';
-        btn.innerHTML = '<i class="bi bi-chevron-down"></i> Batafsil ko\'rish';
+        btn.innerHTML = '<i class="bi bi-chevron-down"></i> Batafsil köriş';
     } else {
         el.classList.add('show');
         icon.className = 'bi bi-chevron-up';
-        btn.innerHTML = '<i class="bi bi-chevron-up"></i> Yopish';
+        btn.innerHTML = '<i class="bi bi-chevron-up"></i> Yopiş';
     }
 }
 
@@ -341,8 +341,8 @@ function toggleTeacherAi(btn) {
     const url = btn.dataset.url;
     const wasOff = btn.classList.contains('is-off');
     const confirmMsg = wasOff
-        ? `"${name}" uchun AI funksiyasini YOQMOQCHIMISIZ?`
-        : `"${name}" uchun AI funksiyasini BLOKLAMOQCHIMISIZ?\n\nO'qituvchi AI orqali test yaratish va vazifa baholay olmaydi.`;
+        ? `"${name}" uçun AI funksiyasini YOQMOQÇIMISIZ?`
+        : `"${name}" uçun AI funksiyasini BLOKLAMOQÇIMISIZ?\n\nÖqituvçi AI orqali test yaratiş va vazifa baholay olmaydi.`;
     if (!confirm(confirmMsg)) return;
 
     btn.disabled = true;
@@ -363,10 +363,10 @@ function toggleTeacherAi(btn) {
             // Update button
             if (isOn) {
                 btn.classList.remove('is-off');
-                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni bloklash';
+                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni bloklaş';
             } else {
                 btn.classList.add('is-off');
-                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni yoqish';
+                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni yoqiş';
             }
             // Update status badge
             const badge = document.getElementById('ai-status-' + pk);

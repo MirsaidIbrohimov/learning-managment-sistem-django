@@ -7,7 +7,7 @@ urlpatterns = [
     # ─── Statistika ───
     path('stats/', views.library_stats, name='stats'),
 
-    # ─── Duplicate tekshiruv ───
+    # ─── Duplicate tekşiruv ───
     path('books/check/', views.check_duplicate, name='check_duplicate'),
 
     # ─── Kitoblar (student & admin) ───

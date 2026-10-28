@@ -18,25 +18,25 @@
 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:1.2rem;">
     <div>
         <h4 style="font-weight:800;margin:0;"><i class="bi bi-play-circle-fill" style="color:#6366f1;"></i> Video Mid Quiz</h4>
-        <small style="color:var(--bs-secondary-color);">Video ichidagi barcha interaktiv testlar — {{ total_count }} ta</small>
+        <small style="color:var(--bs-secondary-color);">Video içidagi barça interaktiv testlar — {{ total_count }} ta</small>
     </div>
 </div>
 
 <!-- Umumiy statistika -->
 <div class="vqa-stats">
     <div class="vqa-stat"><b>{{ total_count }}</b><span>Jami testlar</span></div>
-    <div class="vqa-stat"><b>{{ agg.total|default:0 }}</b><span>Urinishlar</span></div>
-    <div class="vqa-stat"><b style="color:#10b981;">{{ agg.correct|default:0 }}</b><span>To'g'ri javoblar</span></div>
+    <div class="vqa-stat"><b>{{ agg.total|default:0 }}</b><span>Urinişlar</span></div>
+    <div class="vqa-stat"><b style="color:#10b981;">{{ agg.correct|default:0 }}</b><span>Töğri javoblar</span></div>
     <div class="vqa-stat"><b style="color:#10b981;">+{{ agg.coins_plus|default:0 }}</b><span>Berilgan coin</span></div>
     <div class="vqa-stat"><b style="color:#ef4444;">{{ agg.coins_minus|default:0 }}</b><span>Olingan coin</span></div>
-    <div class="vqa-stat"><b>{{ total_income }}</b><span>Ustoz daromadi (so'm)</span></div>
+    <div class="vqa-stat"><b>{{ total_income }}</b><span>Ustoz daromadi (söm)</span></div>
 </div>
 
-<!-- Analitika grafiklari (#8) — statistika vizual ko'rinishda -->
+<!-- Analitika grafiklari (#8) — statistika vizual körinişda -->
 <div class="vqa-card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;margin-bottom:1.4rem;">
     <div>
         <div style="font-weight:800;font-size:.85rem;margin-bottom:.6rem;">
-            <i class="bi bi-pie-chart-fill" style="color:#10b981;"></i> To'g'ri / Noto'g'ri javoblar
+            <i class="bi bi-pie-chart-fill" style="color:#10b981;"></i> Töğri / Notöğri javoblar
         </div>
         <div style="position:relative;height:220px;"><canvas id="vqaDonut"></canvas></div>
     </div>
@@ -66,9 +66,9 @@
         <select name="status" class="form-select form-select-sm">
             <option value="">— Holat —</option>
             <option value="active" {% if f_status == 'active' %}selected{% endif %}>Faol</option>
-            <option value="inactive" {% if f_status == 'inactive' %}selected{% endif %}>O'chiq</option>
+            <option value="inactive" {% if f_status == 'inactive' %}selected{% endif %}>Öçiq</option>
         </select>
-        <input type="text" name="q" value="{{ f_q }}" placeholder="Qidirish: savol, video, ustoz..." class="form-control form-control-sm" style="max-width:260px;">
+        <input type="text" name="q" value="{{ f_q }}" placeholder="Qidiriş: savol, video, ustoz..." class="form-control form-control-sm" style="max-width:260px;">
         <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtr</button>
         {% if f_teacher or f_course or f_status or f_q %}
         <a href="{% url 'video_quiz:admin_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
@@ -82,7 +82,7 @@
                 <tr style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;">
                     <th>ID</th><th>Video</th><th>Kurs</th><th>Ustoz</th><th>Savol</th>
                     <th>Vaqt</th><th>Coin +/-</th>
-                    <th>Urinish</th><th>To'g'ri %</th><th>Holat</th><th>Sana</th><th></th>
+                    <th>Uriniş</th><th>Töğri %</th><th>Holat</th><th>Sana</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -102,11 +102,11 @@
                     </td>
                     <td>
                         {% if r.quiz.is_active %}<span class="badge bg-success">Faol</span>
-                        {% else %}<span class="badge bg-secondary">O'chiq</span>{% endif %}
+                        {% else %}<span class="badge bg-secondary">Öçiq</span>{% endif %}
                     </td>
                     <td><small>{{ r.quiz.created_at|date:"d.m.Y" }}</small></td>
                     <td>
-                        <a href="{% url 'video_quiz:teacher_manager' r.quiz.video_id %}" class="btn btn-sm btn-outline-primary" title="Boshqarish">
+                        <a href="{% url 'video_quiz:teacher_manager' r.quiz.video_id %}" class="btn btn-sm btn-outline-primary" title="Boşqariş">
                             <i class="bi bi-sliders"></i>
                         </a>
                     </td>
@@ -131,12 +131,12 @@
     </div>
     {% endif %}
 </div>
-<!-- Chart.js — loyihada allaqachon ishlatiladigan versiya (statistics.html bilan bir xil) -->
+<!-- Chart.js — loyihada allaqaçon işlatiladigan versiya (statistics.html bilan bir xil) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 (function () {
     'use strict';
-    // Chart.js yuklanmagan bo'lsa (CDN yo'q) — jimgina chiqamiz, sahifa buzilmaydi
+    // Chart.js yuklanmagan bölsa (CDN yöq) — jimgina çiqamiz, sahifa buzilmaydi
     if (typeof Chart === 'undefined') return;
 
     // Agregat qiymatlar server tomonidan hisoblangan (N+1 siz)
@@ -146,7 +146,7 @@
     var given   = {{ agg.coins_plus|default:0 }};
     var removed = Math.abs({{ agg.coins_minus|default:0 }});
 
-    // Dark/Light mode uchun matn/panjara ranglari
+    // Dark/Light mode uçun matn/panjara ranglari
     var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
     Chart.defaults.color = dark ? '#94a3b8' : '#475569';
     var gridColor = dark ? 'rgba(148,163,184,.15)' : 'rgba(15,23,42,.08)';
@@ -156,7 +156,7 @@
         new Chart(donut, {
             type: 'doughnut',
             data: {
-                labels: ["To'g'ri", "Noto'g'ri"],
+                labels: ["Töğri", "Notöğri"],
                 datasets: [{ data: [correct, wrong], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }],
             },
             options: { cutout: '68%', plugins: { legend: { position: 'bottom' } } },
@@ -184,5 +184,5 @@
 </script>
 {% endblock %}
 
-{# Bu fayl: admin uchun barcha video testlar — filtrlar, qidiruv, statistika #}
-{# ustunlari + analitika grafiklari (Chart.js: to'g'ri/noto'g'ri, coin harakati). #}
+{# Bu fayl: admin uçun barça video testlar — filtrlar, qidiruv, statistika #}
+{# ustunlari + analitika grafiklari (Chart.js: töğri/notöğri, coin harakati). #}

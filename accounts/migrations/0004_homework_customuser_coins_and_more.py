@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('description', models.TextField(verbose_name='Vazifa tavsifi')),
-                ('due_date', models.DateTimeField(blank=True, null=True, verbose_name='Topshirish muddati')),
+                ('due_date', models.DateTimeField(blank=True, null=True, verbose_name='Topşiriş muddati')),
             ],
         ),
         migrations.AddField(
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('file', models.FileField(upload_to='homework_submissions/')),
                 ('submitted_at', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(choices=[('pending', 'Tekshirilmoqda'), ('graded', 'Baholangan')], default='pending', max_length=20)),
+                ('status', models.CharField(choices=[('pending', 'Tekşirilmoqda'), ('graded', 'Baholangan')], default='pending', max_length=20)),
                 ('grade', models.IntegerField(blank=True, null=True, verbose_name='Baho (1-100)')),
                 ('feedback', models.TextField(blank=True, null=True, verbose_name='Izoh')),
                 ('graded_at', models.DateTimeField(blank=True, null=True)),
@@ -101,8 +101,8 @@ class Migration(migrations.Migration):
             name='Test',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time_limit', models.IntegerField(default=30, verbose_name='Vaqt chegarasi (daqiqa)')),
-                ('passing_score', models.IntegerField(default=60, verbose_name="O'tish bali (%)")),
+                ('time_limit', models.IntegerField(default=30, verbose_name='Vaqt çegarasi (daqiqa)')),
+                ('passing_score', models.IntegerField(default=60, verbose_name="Ötiş bali (%)")),
                 ('lesson', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='test', to='accounts.lesson')),
             ],
         ),
@@ -124,7 +124,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('answer_text', models.CharField(max_length=500, verbose_name='Javob matni')),
-                ('is_correct', models.BooleanField(default=False, verbose_name="To'g'ri javob")),
+                ('is_correct', models.BooleanField(default=False, verbose_name="Töğri javob")),
                 ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='accounts.testquestion')),
             ],
         ),
@@ -174,8 +174,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollments', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': 'Kursga yozilish',
-                'verbose_name_plural': 'Kursga yozilishlar',
+                'verbose_name': 'Kursga yoziliş',
+                'verbose_name_plural': 'Kursga yozilişlar',
                 'unique_together': {('user', 'profession')},
             },
         ),

@@ -33,8 +33,8 @@
                 </div>
             </div>
             <div class="sa-hero-actions">
-                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Ro'yxat</a>
-                <a href="{% url 'startup_admin:startup_edit' startup.slug %}" class="sa-hero-btn"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Röyxat</a>
+                <a href="{% url 'startup_admin:startup_edit' startup.slug %}" class="sa-hero-btn"><i class="bi bi-pencil"></i> Tahrirlaş</a>
                 <a href="{% url 'startup:detail' startup.slug %}" class="sa-hero-btn" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda</a>
                 <a href="{% url 'admin_user_view' startup.owner.id %}" class="sa-hero-btn"><i class="bi bi-person-badge"></i> Egasi profili</a>
             </div>
@@ -49,36 +49,36 @@
                     <div class="sa-progress sa-progress-lg"><i style="width:{{ startup.progress }}%"></i></div>
                     <div class="sa-progress-text mt-1">
                         Vazifalar: {{ task_done }} / {{ tasks|length }} bajarilgan
-                        {% if pending_submissions %}· <b class="sa-row-skipped">{{ pending_submissions|length }} topshiriq tekshiruv kutmoqda</b>{% endif %}
+                        {% if pending_submissions %}· <b class="sa-row-skipped">{{ pending_submissions|length }} topşiriq tekşiruv kutmoqda</b>{% endif %}
                     </div>
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     <form method="post" action="{% url 'startup_admin:startup_recompute' startup.slug %}">
                         {% csrf_token %}
-                        <button type="submit" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-repeat"></i> Qayta hisoblash</button>
+                        <button type="submit" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-repeat"></i> Qayta hisoblaş</button>
                     </form>
                     <form method="post" action="{% url 'startup_admin:startup_status' startup.slug %}" class="d-flex gap-2">
                         {% csrf_token %}
                         {% if startup.status != 'active' %}
-                        <button type="submit" name="status" value="active" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-play-circle"></i> Faollashtirish</button>
+                        <button type="submit" name="status" value="active" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-play-circle"></i> Faollaştiriş</button>
                         {% endif %}
                         {% if startup.status != 'paused' %}
-                        <button type="submit" name="status" value="paused" class="sa-btn sa-btn-sm"><i class="bi bi-pause-circle"></i> To'xtatish</button>
+                        <button type="submit" name="status" value="paused" class="sa-btn sa-btn-sm"><i class="bi bi-pause-circle"></i> Töxtatiş</button>
                         {% endif %}
                         {% if startup.status != 'archived' %}
-                        <button type="submit" name="status" value="archived" class="sa-btn sa-btn-sm"><i class="bi bi-archive"></i> Arxivlash</button>
+                        <button type="submit" name="status" value="archived" class="sa-btn sa-btn-sm"><i class="bi bi-archive"></i> Arxivlaş</button>
                         {% endif %}
                     </form>
-                    <button type="button" class="sa-btn sa-btn-sm sa-btn-danger" data-sa-delete><i class="bi bi-trash"></i> O'chirish</button>
+                    <button type="button" class="sa-btn sa-btn-sm sa-btn-danger" data-sa-delete><i class="bi bi-trash"></i> Öçiriş</button>
                 </div>
             </div>
         </div>
 
         <div class="sa-tabs" role="tablist">
-            <button type="button" class="sa-tab active" data-sa-tab="idea"><i class="bi bi-lightbulb"></i> G'oya</button>
+            <button type="button" class="sa-tab active" data-sa-tab="idea"><i class="bi bi-lightbulb"></i> Ğoya</button>
             <button type="button" class="sa-tab" data-sa-tab="roadmap"><i class="bi bi-signpost-2"></i> Roadmap</button>
             <button type="button" class="sa-tab" data-sa-tab="tasks"><i class="bi bi-list-check"></i> Vazifalar</button>
-            <button type="button" class="sa-tab" data-sa-tab="reviews"><i class="bi bi-clipboard-check"></i> Topshiriqlar
+            <button type="button" class="sa-tab" data-sa-tab="reviews"><i class="bi bi-clipboard-check"></i> Topşiriqlar
                 {% if pending_submissions %}<span class="sa-badge sa-badge-paused">{{ pending_submissions|length }}</span>{% endif %}
             </button>
             <button type="button" class="sa-tab" data-sa-tab="team"><i class="bi bi-people"></i> Jamoa</button>
@@ -88,15 +88,15 @@
             <button type="button" class="sa-tab" data-sa-tab="log"><i class="bi bi-clock-history"></i> Faollik</button>
         </div>
 
-        <!-- G'oya -->
+        <!-- Ğoya -->
         <div class="sa-pane active" id="sa-pane-idea">
             <div class="sa-grid">
                 <div class="sa-card sa-card-pad sa-info">
-                    <h2 class="sa-section-title"><i class="bi bi-exclamation-circle"></i> Muammo va yechim</h2>
+                    <h2 class="sa-section-title"><i class="bi bi-exclamation-circle"></i> Muammo va yeçim</h2>
                     <dl>
                         <dt>Muammo</dt>
                         <dd>{{ startup.problem|default:"— kiritilmagan" }}</dd>
-                        <dt>Yechim</dt>
+                        <dt>Yeçim</dt>
                         <dd>{{ startup.solution|default:"— kiritilmagan" }}</dd>
                         <dt>Maqsadli auditoriya</dt>
                         <dd>{{ startup.target_audience|default:"— kiritilmagan" }}</dd>
@@ -107,9 +107,9 @@
                     <dl>
                         <dt>Biznes model</dt>
                         <dd>{{ startup.business_model|default:"— kiritilmagan" }}</dd>
-                        <dt>Raqobatchilar</dt>
+                        <dt>Raqobatçilar</dt>
                         <dd>{{ startup.competitors|default:"— kiritilmagan" }}</dd>
-                        <dt>To'liq tavsif</dt>
+                        <dt>Töliq tavsif</dt>
                         <dd>{{ startup.description|default:"— kiritilmagan" }}</dd>
                     </dl>
                 </div>
@@ -143,7 +143,7 @@
                         <div>
                             <div style="font-weight:700">{{ item.title }}</div>
                             <div class="sa-name-sub">
-                                {% if item.is_unlocked %}{{ item.unlocked_at|date:"d.m.Y" }}{% else %}ochilmagan{% endif %}
+                                {% if item.is_unlocked %}{{ item.unlocked_at|date:"d.m.Y" }}{% else %}oçilmagan{% endif %}
                                 · +{{ item.xp }} XP
                             </div>
                         </div>
@@ -158,7 +158,7 @@
             <div class="sa-table-wrap">
                 <div class="table-responsive">
                     <table class="sa-table">
-                        <thead><tr><th>#</th><th>Bosqich</th><th>Vazn</th><th>Holat</th><th>Yakunlangan</th></tr></thead>
+                        <thead><tr><th>#</th><th>Bosqiç</th><th>Vazn</th><th>Holat</th><th>Yakunlangan</th></tr></thead>
                         <tbody>
                             {% for stage in stages %}
                             <tr>
@@ -175,7 +175,7 @@
                                 <td>{{ stage.completed_at|date:"d.m.Y H:i"|default:"—" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-signpost"></i><b>Roadmap yo'q</b>"Qayta hisoblash" tugmasini bosing.</div></td></tr>
+                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-signpost"></i><b>Roadmap yöq</b>"Qayta hisoblaş" tugmasini bosing.</div></td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -188,7 +188,7 @@
             <div class="sa-table-wrap">
                 <div class="table-responsive">
                     <table class="sa-table">
-                        <thead><tr><th>Vazifa</th><th>Bosqich</th><th>Mas'ul</th><th>Muddat</th><th>Ball</th><th>Holat</th></tr></thead>
+                        <thead><tr><th>Vazifa</th><th>Bosqiç</th><th>Mas'ul</th><th>Muddat</th><th>Ball</th><th>Holat</th></tr></thead>
                         <tbody>
                             {% for task in tasks %}
                             <tr>
@@ -199,13 +199,13 @@
                                 <td>{{ task.points }}</td>
                                 <td>
                                     {% if task.status == 'COMPLETED' %}<span class="sa-badge sa-badge-active">Bajarilgan</span>
-                                    {% elif task.status == 'SUBMITTED' %}<span class="sa-badge sa-badge-paused">Tekshiruvda</span>
+                                    {% elif task.status == 'SUBMITTED' %}<span class="sa-badge sa-badge-paused">Tekşiruvda</span>
                                     {% elif task.status == 'IN_PROGRESS' %}<span class="sa-badge sa-badge-info">Bajarilmoqda</span>
                                     {% else %}<span class="sa-badge sa-badge-muted">{{ task.get_status_display }}</span>{% endif %}
                                 </td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-list-check"></i><b>Vazifa yo'q</b></div></td></tr>
+                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-list-check"></i><b>Vazifa yöq</b></div></td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -213,7 +213,7 @@
             </div>
         </div>
 
-        <!-- Topshiriqlar -->
+        <!-- Topşiriqlar -->
         <div class="sa-pane" id="sa-pane-reviews">
             {% if pending_submissions %}
             <div class="d-flex flex-column gap-3 mb-3">
@@ -227,7 +227,7 @@
                                 · {{ submission.submitted_at|date:"d.m.Y H:i" }}
                             </div>
                         </div>
-                        <span class="sa-badge sa-badge-paused">Tekshiruv kutmoqda</span>
+                        <span class="sa-badge sa-badge-paused">Tekşiruv kutmoqda</span>
                     </div>
                     {% if submission.description %}<p class="sa-hint mt-2 mb-0" style="white-space:pre-line">{{ submission.description }}</p>{% endif %}
                     <div class="d-flex flex-wrap gap-2 mt-2">
@@ -242,9 +242,9 @@
                             <label for="sa-comment-{{ submission.pk }}">Izoh (ixtiyoriy)</label>
                             <input type="text" id="sa-comment-{{ submission.pk }}" name="comment" class="sa-input" maxlength="500" placeholder="Fikr-mulohaza">
                         </div>
-                        <button type="submit" name="action" value="approve" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
-                        <button type="submit" name="action" value="changes" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-counterclockwise"></i> O'zgartirish</button>
-                        <button type="submit" name="action" value="reject" class="sa-btn sa-btn-sm sa-btn-danger"><i class="bi bi-x-lg"></i> Rad etish</button>
+                        <button type="submit" name="action" value="approve" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-check-lg"></i> Tasdiqlaş</button>
+                        <button type="submit" name="action" value="changes" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Özgartiriş</button>
+                        <button type="submit" name="action" value="reject" class="sa-btn sa-btn-sm sa-btn-danger"><i class="bi bi-x-lg"></i> Rad etiş</button>
                     </form>
                 </div>
                 {% endfor %}
@@ -254,7 +254,7 @@
             <div class="sa-table-wrap">
                 <div class="table-responsive">
                     <table class="sa-table">
-                        <thead><tr><th>Vazifa</th><th>Yuboruvchi</th><th>Vaqt</th><th>Holat</th><th>Tekshirdi</th><th>Izoh</th></tr></thead>
+                        <thead><tr><th>Vazifa</th><th>Yuboruvçi</th><th>Vaqt</th><th>Holat</th><th>Tekşirdi</th><th>Izoh</th></tr></thead>
                         <tbody>
                             {% for submission in submissions %}
                             <tr>
@@ -271,7 +271,7 @@
                                 <td class="sa-name-sub">{{ submission.review_comment|truncatechars:50|default:"—" }}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-clipboard"></i><b>Topshiriq yo'q</b></div></td></tr>
+                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-clipboard"></i><b>Topşiriq yöq</b></div></td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -296,7 +296,7 @@
                             {% else %}<span class="sa-badge sa-badge-muted">{{ member.get_status_display }}</span>{% endif %}
                         </div>
                         {% empty %}
-                        <div class="sa-hint">A'zo yo'q.</div>
+                        <div class="sa-hint">A'zo yöq.</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -324,7 +324,7 @@
                     <form method="post" action="{% url 'startup_admin:startup_mentor' startup.slug %}" class="d-flex gap-2 align-items-end">
                         {% csrf_token %}
                         <div class="sa-field flex-grow-1">
-                            <label for="sa-mentor-select">Mentor biriktirish</label>
+                            <label for="sa-mentor-select">Mentor biriktiriş</label>
                             <select id="sa-mentor-select" name="mentor" class="sa-input" required>
                                 <option value="">Tanlang…</option>
                                 {% for candidate in mentor_candidates %}
@@ -349,7 +349,7 @@
                             <div style="font-size:.88rem;white-space:pre-line">{{ feedback.message }}</div>
                         </div>
                         {% empty %}
-                        <div class="sa-hint">Izoh yo'q.</div>
+                        <div class="sa-hint">Izoh yöq.</div>
                         {% endfor %}
                     </div>
                 </div>
@@ -393,7 +393,7 @@
                                     <td class="sa-name-sub">{{ entry.description|truncatechars:40|default:"—" }}</td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-cash"></i><b>Yozuv yo'q</b></div></td></tr>
+                                <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-cash"></i><b>Yozuv yöq</b></div></td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -411,7 +411,7 @@
                                     <td>{{ metric.value|floatformat:0 }}</td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="3"><div class="sa-empty"><i class="bi bi-graph-up"></i><b>Metrika yo'q</b></div></td></tr>
+                                <tr><td colspan="3"><div class="sa-empty"><i class="bi bi-graph-up"></i><b>Metrika yöq</b></div></td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -426,11 +426,11 @@
                 {% if pitch %}
                 <h2 class="sa-section-title">
                     <i class="bi bi-easel"></i> Pitch Deck
-                    <span class="sa-badge sa-badge-primary">{{ pitch.filled_count }} / 10 to'ldirilgan</span>
+                    <span class="sa-badge sa-badge-primary">{{ pitch.filled_count }} / 10 töldirilgan</span>
                 </h2>
                 <dl class="sa-grid">
                     <div><dt>1. Muammo</dt><dd>{{ pitch.problem|default:"—" }}</dd></div>
-                    <div><dt>2. Yechim</dt><dd>{{ pitch.solution|default:"—" }}</dd></div>
+                    <div><dt>2. Yeçim</dt><dd>{{ pitch.solution|default:"—" }}</dd></div>
                     <div><dt>3. Bozor hajmi</dt><dd>{{ pitch.market|default:"—" }}</dd></div>
                     <div><dt>4. Mahsulot</dt><dd>{{ pitch.product|default:"—" }}</dd></div>
                     <div><dt>5. Biznes model</dt><dd>{{ pitch.business_model|default:"—" }}</dd></div>
@@ -438,10 +438,10 @@
                     <div><dt>7. Jamoa</dt><dd>{{ pitch.team|default:"—" }}</dd></div>
                     <div><dt>8. Natijalar</dt><dd>{{ pitch.traction|default:"—" }}</dd></div>
                     <div><dt>9. Moliya prognozi</dt><dd>{{ pitch.financials|default:"—" }}</dd></div>
-                    <div><dt>10. Investitsiya so'rovi</dt><dd>{{ pitch.investment_ask|default:"—" }}</dd></div>
+                    <div><dt>10. Investitsiya sörovi</dt><dd>{{ pitch.investment_ask|default:"—" }}</dd></div>
                 </dl>
                 {% else %}
-                <div class="sa-empty"><i class="bi bi-easel"></i><b>Pitch deck yo'q</b></div>
+                <div class="sa-empty"><i class="bi bi-easel"></i><b>Pitch deck yöq</b></div>
                 {% endif %}
             </div>
         </div>
@@ -449,7 +449,7 @@
         <!-- XP -->
         <div class="sa-pane" id="sa-pane-xp">
             <div class="sa-card sa-card-pad mb-3">
-                <h2 class="sa-section-title"><i class="bi bi-plus-circle"></i> Qo'lda XP berish</h2>
+                <h2 class="sa-section-title"><i class="bi bi-plus-circle"></i> Qölda XP beriş</h2>
                 <form method="post" action="{% url 'startup_admin:startup_xp' startup.slug %}" class="d-flex flex-wrap gap-2 align-items-end">
                     {% csrf_token %}
                     <div class="sa-field" style="max-width:170px">
@@ -457,16 +457,16 @@
                         {{ xp_form.amount }}
                     </div>
                     <div class="sa-field flex-grow-1" style="min-width:220px">
-                        <label for="{{ xp_form.description.id_for_label }}">Sabab (audit uchun majburiy)</label>
+                        <label for="{{ xp_form.description.id_for_label }}">Sabab (audit uçun majburiy)</label>
                         {{ xp_form.description }}
                     </div>
-                    <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-lightning-charge"></i> Berish</button>
+                    <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-lightning-charge"></i> Beriş</button>
                 </form>
             </div>
             <div class="sa-table-wrap">
                 <div class="table-responsive">
                     <table class="sa-table">
-                        <thead><tr><th>Vaqt</th><th>Sabab</th><th>Tavsif</th><th>Foydalanuvchi</th><th>XP</th></tr></thead>
+                        <thead><tr><th>Vaqt</th><th>Sabab</th><th>Tavsif</th><th>Foydalanuvçi</th><th>XP</th></tr></thead>
                         <tbody>
                             {% for entry in xp_log %}
                             <tr>
@@ -477,7 +477,7 @@
                                 <td><span class="sa-badge sa-badge-primary">+{{ entry.amount }}</span></td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-lightning"></i><b>XP tarixi bo'sh</b></div></td></tr>
+                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-lightning"></i><b>XP tarixi böş</b></div></td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -500,7 +500,7 @@
                                 <td class="sa-name-sub">{% if activity.user %}{{ activity.user.get_full_name|default:activity.user.username }}{% else %}tizim{% endif %}</td>
                             </tr>
                             {% empty %}
-                            <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-clock-history"></i><b>Faollik yo'q</b></div></td></tr>
+                            <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-clock-history"></i><b>Faollik yöq</b></div></td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -512,14 +512,14 @@
 
 <div class="sa-modal" id="saDeleteModal">
     <div class="sa-modal-box">
-        <h3><i class="bi bi-exclamation-triangle text-danger"></i> O'chirishni tasdiqlang</h3>
-        <p><b>{{ startup.name }}</b> startupi butunlay o'chiriladi: roadmap, vazifalar,
-           topshiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bo'lmaydi.</p>
+        <h3><i class="bi bi-exclamation-triangle text-danger"></i> Öçirişni tasdiqlang</h3>
+        <p><b>{{ startup.name }}</b> startupi butunlay öçiriladi: roadmap, vazifalar,
+           topşiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bölmaydi.</p>
         <div class="sa-modal-actions">
-            <button type="button" class="sa-btn" data-sa-cancel>Bekor qilish</button>
+            <button type="button" class="sa-btn" data-sa-cancel>Bekor qiliş</button>
             <form method="post" action="{% url 'startup_admin:startup_delete' startup.slug %}">
                 {% csrf_token %}
-                <button type="submit" class="sa-btn sa-btn-danger"><i class="bi bi-trash"></i> O'chirish</button>
+                <button type="submit" class="sa-btn sa-btn-danger"><i class="bi bi-trash"></i> Öçiriş</button>
             </form>
         </div>
     </div>

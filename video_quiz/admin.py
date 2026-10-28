@@ -41,4 +41,4 @@ class VideoTranscriptAdmin(admin.ModelAdmin):
         return len(obj.text)
 
 
-# Bu fayl: Django admin panelida video-quiz modellarini boshqarish.
+# Bu fayl: Django admin panelida video-quiz modellarini boşqariş.

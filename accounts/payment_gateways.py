@@ -24,7 +24,7 @@ PAYMENT_METHODS = [
 ]
 METHOD_GATEWAY = {code: gateway for code, _, gateway, _, _ in PAYMENT_METHODS}
 
-# Tanlash kartalari uchun brend rangi va qisqa izoh (faqat ko'rinish).
+# Tanlaş kartalari uçun brend rangi va qisqa izoh (faqat köriniş).
 METHOD_STYLE = {
     'card': ('#6366f1', 'Uzcard \u00b7 Humo'),
     'click': ('#0095ff', 'Click ilovasi'),
@@ -69,9 +69,9 @@ def selected_method(request):
         return '', TEZCHECK
     gateway = METHOD_GATEWAY.get(method)
     if gateway is None:
-        raise PaymentMethodError('Noma\u2019lum to\u2018lov usuli. Sahifani yangilab, qayta tanlang.')
+        raise PaymentMethodError('Noma\u2019lum tölov usuli. Sahifani yangilab, qayta tanlang.')
     if not gateway_ready(gateway):
-        raise PaymentMethodError('Bu to\u2018lov usuli hozircha ishlamayapti. Boshqa usulni tanlang.')
+        raise PaymentMethodError('Bu tölov usuli hozirça işlamayapti. Boşqa usulni tanlang.')
     return method, gateway
 
 

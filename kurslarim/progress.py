@@ -1,9 +1,9 @@
-"""Portal uchun darslar ketma-ketligi — asosiy tizimdagi qoidalar bilan bir xil.
+"""Portal uçun darslar ketma-ketligi — asosiy tizimdagi qoidalar bilan bir xil.
 
-Bo'lim ochiladi, agar: birinchi bo'lim bo'lsa, boshlangan/tugatilgan bo'lsa yoki
-oldingi bo'lim to'liq bajarilgan bo'lsa. Kunlik cheklov yoqilgan kursda bir
-kunda faqat bitta yangi bo'limga kiriladi. Progress asosiy tizim modellarida
-saqlanadi, shuning uchun hisob ochilgach o'quvchi shu joyidan davom etadi.
+Bölim oçiladi, agar: birinçi bölim bölsa, boshlangan/tugatilgan bölsa yoki
+oldingi bölim töliq bajarilgan bölsa. Kunlik çeklov yoqilgan kursda bir
+kunda faqat bitta yangi bölimga kiriladi. Progress asosiy tizim modellarida
+saqlanadi, şuning uçun hisob oçilgaç öquvçi şu joyidan davom etadi.
 """
 from datetime import date
 
@@ -14,7 +14,7 @@ from accounts.models import (
 
 
 def portal_supports(lesson):
-    """Portalda bajarib bo'ladigan dars turlari."""
+    """Portalda bajarib böladigan dars turlari."""
     if lesson.lesson_type in ('video', 'homework', 'dictionary'):
         return True
     if lesson.lesson_type == 'test':
@@ -25,8 +25,8 @@ def portal_supports(lesson):
 
 
 def _is_required(lesson):
-    # Lug'at hech qachon talab qilinmaydi; portalda ochilmaydigan darslar
-    # (speaking, eski tizimdagi test) o'quvchini to'xtatib qo'ymasligi kerak.
+    # Luğat heç qaçon talab qilinmaydi; portalda oçilmaydigan darslar
+    # (speaking, eski tizimdagi test) öquvçini töxtatib qöymasligi kerak.
     return lesson.lesson_type != 'dictionary' and portal_supports(lesson)
 
 
@@ -53,7 +53,7 @@ def completed_lesson_ids(user, profession):
 
 
 def course_state(user, profession):
-    """Bo'limlar, darslar, qulflar va keyingi dars uchun tartiblangan ro'yxat."""
+    """Bölimlar, darslar, qulflar va keyingi dars uçun tartiblangan röyxat."""
     done = completed_lesson_ids(user, profession)
     limit_on = daily_limit_active(user, profession)
     today_access = DailySectionAccess.objects.filter(
@@ -97,7 +97,7 @@ def course_state(user, profession):
         ordered.append(lesson)
 
     required_all = {l.pk for l in ordered if _is_required(l)}
-    # "Davom ettirish" — birinchi ochiq va hali bajarilmagan dars.
+    # "Davom ettiriş" — birinçi oçiq va hali bajarilmagan dars.
     resume = next((l for l in ordered if _is_required(l) and l.pk not in done
                    and not lesson_lock.get(l.pk)), None)
     return {
@@ -115,14 +115,14 @@ def course_state(user, profession):
 
 
 def open_lesson(user, profession, lesson):
-    """Darsga kirishni tekshiradi. Qaytaradi: (state, xato_xabari yoki None)."""
+    """Darsga kirişni tekşiradi. Qaytaradi: (state, xato_xabari yoki None)."""
     state = course_state(user, profession)
     lock = state['lesson_lock'].get(lesson.pk, False)
     if lock == 'sequential':
-        return state, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒"
+        return state, "Avval oldingi bölimdagi barça darslarni bajaring! 🔒"
     if lock == 'daily':
-        return state, (f"Bugun siz faqat \"{state['today_access'].section.title}\" bo'limini o'qiy olasiz. "
-                       "Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+        return state, (f"Bugun siz faqat \"{state['today_access'].section.title}\" bölimini öqiy olasiz. "
+                       "Yangi bölimga ertaga kirişingiz mumkin! 📚")
     if (lesson.section_id and lesson.pk not in state['done'] and state['limit_on']
             and lesson.lesson_type != 'dictionary' and not state['today_access']):
         section_done = next((s['completed'] for s in state['sections'] if s['section'].pk == lesson.section_id), False)

@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load static custom_filters %}
 
-{% block title %}{{ course.name }} — onlayn kurs, {{ course.sale.price|floatformat:"0g" }} so'm | IT Creative Academy{% endblock %}
+{% block title %}{{ course.name }} — onlayn kurs, {{ course.sale.price|floatformat:"0g" }} söm | IT Creative Academy{% endblock %}
 {% block meta_description %}{{ summary }}{% endblock %}
 {% block meta_robots %}index, follow, max-image-preview:large{% endblock %}
 {% block og_type %}product{% endblock %}
@@ -31,8 +31,8 @@
 <div class="dash pc-page">
 <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-<nav class="pc-crumbs" aria-label="Sahifa yo'li">
-    <a href="/">Bosh sahifa</a><i class="bi bi-chevron-right" aria-hidden="true"></i>
+<nav class="pc-crumbs" aria-label="Sahifa yöli">
+    <a href="/">Boş sahifa</a><i class="bi bi-chevron-right" aria-hidden="true"></i>
     <a href="{% url 'public_courses' %}">Kurslar</a><i class="bi bi-chevron-right" aria-hidden="true"></i>
     <span aria-current="page">{{ course.name }}</span>
 </nav>
@@ -40,16 +40,16 @@
 <div class="pc-layout">
     <main class="pc-main">
         <header class="pc-hero kp-glass">
-            <span class="pc-eyebrow"><i class="bi bi-fire"></i> Onlayn kurs · bir martalik to'lov</span>
+            <span class="pc-eyebrow"><i class="bi bi-fire"></i> Onlayn kurs · bir martalik tölov</span>
             <h1>{{ course.name }}</h1>
             <p class="pc-lead">{{ summary }}</p>
-            <ul class="pc-facts" aria-label="Kurs haqida qisqacha">
+            <ul class="pc-facts" aria-label="Kurs haqida qisqaça">
                 {% if total_lessons %}<li><i class="bi bi-collection-play-fill"></i><b>{{ total_lessons }}</b> ta dars</li>{% endif %}
                 {% if video_count %}<li><i class="bi bi-play-circle-fill"></i><b>{{ video_count }}</b> video</li>{% endif %}
                 {% if homework_count %}<li><i class="bi bi-pencil-square"></i><b>{{ homework_count }}</b> amaliy vazifa</li>{% endif %}
                 {% if test_count %}<li><i class="bi bi-ui-checks"></i><b>{{ test_count }}</b> test</li>{% endif %}
                 {% if course.duration_months %}<li><i class="bi bi-calendar-range"></i><b>{{ course.duration_months }}</b> oy</li>{% endif %}
-                <li><i class="bi bi-people-fill"></i><b>{{ student_count }}</b> o'quvchi</li>
+                <li><i class="bi bi-people-fill"></i><b>{{ student_count }}</b> öquvçi</li>
                 {% if course.has_certificate %}<li><i class="bi bi-patch-check-fill"></i>Sertifikat</li>{% endif %}
             </ul>
             {% if teachers %}
@@ -63,12 +63,12 @@
         </header>
 
         <section class="pc-block kp-glass" aria-labelledby="pcWhy">
-            <h2 id="pcWhy">Nega aynan shu kurs?</h2>
+            <h2 id="pcWhy">Nega aynan şu kurs?</h2>
             <div class="pc-perks">
-                <div><i class="bi bi-infinity"></i><b>Umrbod kirish</b><span>Bir marta to'laysiz — kurs butunlay sizniki.</span></div>
-                <div><i class="bi bi-lightning-charge-fill"></i><b>Darhol boshlang</b><span>To'lovdan keyin kurs avtomatik ochiladi.</span></div>
-                <div><i class="bi bi-person-video3"></i><b>Ustoz nazorati</b><span>Vazifalaringiz tekshiriladi, savollarga javob beriladi.</span></div>
-                <div><i class="bi bi-phone"></i><b>Istalgan qurilmada</b><span>Telefon, planshet yoki kompyuterdan o'qing.</span></div>
+                <div><i class="bi bi-infinity"></i><b>Umrbod kiriş</b><span>Bir marta tölaysiz — kurs butunlay sizniki.</span></div>
+                <div><i class="bi bi-lightning-charge-fill"></i><b>Darhol boşlang</b><span>Tölovdan keyin kurs avtomatik oçiladi.</span></div>
+                <div><i class="bi bi-person-video3"></i><b>Ustoz nazorati</b><span>Vazifalaringiz tekşiriladi, savollarga javob beriladi.</span></div>
+                <div><i class="bi bi-phone"></i><b>Istalgan qurilmada</b><span>Telefon, planşet yoki kompyuterdan öqing.</span></div>
             </div>
         </section>
 
@@ -82,7 +82,7 @@
         {% if sections %}
         <section class="pc-block kp-glass" aria-labelledby="pcProgram">
             <h2 id="pcProgram">Kurs dasturi</h2>
-            <p class="kp-muted">{{ sections|length }} bo'lim · {{ total_lessons }} dars</p>
+            <p class="kp-muted">{{ sections|length }} bölim · {{ total_lessons }} dars</p>
             <div class="pc-program">
                 {% for section in sections %}
                 <details class="pc-mod" {% if forloop.first %}open{% endif %}>
@@ -94,9 +94,9 @@
                     </summary>
                     <ul>
                         {% for lesson in section.lessons.all %}
-                        <li><i class="bi {% if lesson.lesson_type == 'video' %}bi-play-circle{% elif lesson.lesson_type == 'homework' %}bi-pencil-square{% elif lesson.lesson_type == 'test' %}bi-ui-checks{% elif lesson.lesson_type == 'dictionary' %}bi-book{% else %}bi-mic{% endif %}" aria-hidden="true"></i>{{ lesson.title }}<i class="bi bi-lock-fill pc-lock" aria-label="Sotib olingandan keyin ochiladi"></i></li>
+                        <li><i class="bi {% if lesson.lesson_type == 'video' %}bi-play-circle{% elif lesson.lesson_type == 'homework' %}bi-pencil-square{% elif lesson.lesson_type == 'test' %}bi-ui-checks{% elif lesson.lesson_type == 'dictionary' %}bi-book{% else %}bi-mic{% endif %}" aria-hidden="true"></i>{{ lesson.title }}<i class="bi bi-lock-fill pc-lock" aria-label="Sotib olingandan keyin oçiladi"></i></li>
                         {% empty %}
-                        <li class="kp-muted">Darslar tez orada qo'shiladi.</li>
+                        <li class="kp-muted">Darslar tez orada qöşiladi.</li>
                         {% endfor %}
                     </ul>
                 </details>
@@ -106,7 +106,7 @@
         {% endif %}
 
         <section class="pc-block kp-glass" aria-labelledby="pcFaq">
-            <h2 id="pcFaq">Ko'p beriladigan savollar</h2>
+            <h2 id="pcFaq">Köp beriladigan savollar</h2>
             <div class="pc-faq">
                 {% for q, a in faq %}
                 <details><summary>{{ q }}<i class="bi bi-plus-lg" aria-hidden="true"></i></summary><p>{{ a }}</p></details>
@@ -119,28 +119,28 @@
         <div class="pc-buy kp-glass">
             <div class="pc-buy-media">
                 {% if course.photo %}<img src="{{ course.photo.url }}" alt="{{ course.name }}">{% endif %}
-                <span class="pc-ribbon">{% if course.sale.has_discount %}CHEGIRMA −{{ course.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
+                <span class="pc-ribbon">{% if course.sale.has_discount %}ÇEGIRMA −{{ course.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
             </div>
             <div class="pc-buy-body">
-                <div class="pc-price">{% if course.sale.has_discount %}<del class="sale-old">{{ course.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ course.sale.price|floatformat:"0g" }}</b> <span>so'm</span></div>
+                <div class="pc-price">{% if course.sale.has_discount %}<del class="sale-old">{{ course.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ course.sale.price|floatformat:"0g" }}</b> <span>söm</span></div>
                 {% if course.sale.has_discount %}
-                <div class="sale-banner"><span><i class="bi bi-gift-fill"></i> <b>{{ course.sale.discount.name }}</b> — {{ course.sale.saving|floatformat:"0g" }} so'm tejaysiz</span>{% if course.sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ course.sale.ends_at|date:'c' }}">{{ course.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
+                <div class="sale-banner"><span><i class="bi bi-gift-fill"></i> <b>{{ course.sale.discount.name }}</b> — {{ course.sale.saving|floatformat:"0g" }} söm tejaysiz</span>{% if course.sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ course.sale.ends_at|date:'c' }}">{{ course.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
                 {% endif %}
-                <p class="kp-muted small mb-3">Bir martalik to'lov · umrbod kirish</p>
+                <p class="kp-muted small mb-3">Bir martalik tölov · umrbod kiriş</p>
                 {% if purchased %}
-                <a href="{% url 'kurslarim:course' course.pk %}" class="kp-btn kp-btn-primary kp-btn-block pc-cta pc-cta-owned"><i class="bi bi-play-fill"></i>Kursni davom ettirish</a>
+                <a href="{% url 'kurslarim:course' course.pk %}" class="kp-btn kp-btn-primary kp-btn-block pc-cta pc-cta-owned"><i class="bi bi-play-fill"></i>Kursni davom ettiriş</a>
                 {% else %}
-                <a href="{% url 'enroll_course' course.pk %}" class="kp-btn kp-btn-primary kp-btn-block pc-cta" rel="nofollow"><i class="bi bi-bag-check-fill"></i>Sotib olish</a>
+                <a href="{% url 'enroll_course' course.pk %}" class="kp-btn kp-btn-primary kp-btn-block pc-cta" rel="nofollow"><i class="bi bi-bag-check-fill"></i>Sotib oliş</a>
                 {% if not user.is_authenticated %}
-                <p class="pc-auth">Akkauntingiz yo'qmi? <a href="{% url 'register' %}" rel="nofollow">Ro'yxatdan o'ting</a></p>
+                <p class="pc-auth">Akkauntingiz yöqmi? <a href="{% url 'register' %}" rel="nofollow">Röyxatdan öting</a></p>
                 {% endif %}
                 {% endif %}
                 <ul class="pc-buy-list">
-                    <li><i class="bi bi-check-circle-fill"></i>Barcha video, vazifa va testlar</li>
-                    <li><i class="bi bi-check-circle-fill"></i>So'rovsiz, darhol ochiladi</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Barça video, vazifa va testlar</li>
+                    <li><i class="bi bi-check-circle-fill"></i>Sörovsiz, darhol oçiladi</li>
                     {% if course.has_certificate %}<li><i class="bi bi-check-circle-fill"></i>Tugatganda sertifikat</li>{% endif %}
                 </ul>
-                <div class="pc-pay" aria-label="To'lov usullari">
+                <div class="pc-pay" aria-label="Tölov usullari">
                     <img src="{% static 'img/payments/click.svg' %}" alt="Click">
                     <img src="{% static 'img/payments/payme.png' %}" alt="Payme">
                     <img src="{% static 'img/payments/uzum.svg' %}" alt="Uzum Pay">
@@ -155,8 +155,8 @@
 
 {% if not purchased %}
 <div class="pc-mobile-bar">
-    <div><b>{{ course.sale.price|floatformat:"0g" }} so'm</b><small>{% if course.sale.has_discount %}<del>{{ course.sale.original|floatformat:"0g" }}</del> · chegirma{% else %}bir martalik{% endif %}</small></div>
-    <a href="{% url 'enroll_course' course.pk %}" class="kp-btn kp-btn-primary" rel="nofollow">Sotib olish</a>
+    <div><b>{{ course.sale.price|floatformat:"0g" }} söm</b><small>{% if course.sale.has_discount %}<del>{{ course.sale.original|floatformat:"0g" }}</del> · çegirma{% else %}bir martalik{% endif %}</small></div>
+    <a href="{% url 'enroll_course' course.pk %}" class="kp-btn kp-btn-primary" rel="nofollow">Sotib oliş</a>
 </div>
 {% endif %}
 </div>

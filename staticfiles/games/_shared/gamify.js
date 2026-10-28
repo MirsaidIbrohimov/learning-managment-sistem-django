@@ -3,11 +3,11 @@
  * Plug-and-play XP / rank / achievements / leaderboard for any
  * external LMS game. Bootstrap Icons only (no emoji).
  *
- * Foydalanish (o'yin index.html):
- *   <link rel="stylesheet" href="../_shared/gamify.css">
- *   <div id="gamify-slot"></div>   (menyu ichida)
+ * Foydalaniş (öyin index.html):
+ *   <link rel="styleşeet" href="../_shared/gamify.css">
+ *   <div id="gamify-slot"></div>   (menyu içida)
  *   <script src="../_shared/gamify.js"></script>
- * O'yin tugaganda app.js dan:
+ * Öyin tugaganda app.js dan:
  *   window.Gamify && Gamify.onResult(result, score, MODE);
  *     result: 'win' | 'lose' | 'draw',  MODE: 'ai' | 'mp'
  * ============================================================= */
@@ -34,16 +34,16 @@
   const rankFor = xp => { let r = RANKS[0]; for (const t of RANKS) if ((xp || 0) >= t.min) r = t; return r; };
 
   const ACH = [
-    { code: 'first_win', name: 'Ilk g\'alaba', desc: 'Birinchi g\'alabangiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.outcome === 'win' && (GX.plays || 0) === 0 },
-    { code: 'win_10', name: '10 g\'alaba', desc: '10 marta yutdingiz', icon: 'bi-trophy', color: '#6366f1', cond: c => c.totalWins >= 10 },
-    { code: 'win_50', name: '50 g\'alaba', desc: '50 marta yutdingiz', icon: 'bi-trophy-fill', color: '#8b5cf6', cond: c => c.totalWins >= 50 },
-    { code: 'win_100', name: '100 g\'alaba', desc: '100 marta yutdingiz', icon: 'bi-award-fill', color: '#f59e0b', cond: c => c.totalWins >= 100 },
-    { code: 'shutout', name: 'Mukammal', desc: 'Durangsiz toza g\'alaba', icon: 'bi-shield-fill-check', color: '#06b6d4', cond: c => c.outcome === 'win' && c.score >= 200 },
-    { code: 'speed_victory', name: 'Tezkor g\'alaba', desc: 'Tez yakunlangan g\'alaba', icon: 'bi-lightning-charge-fill', color: '#fb923c', cond: c => c.outcome === 'win' && c.elapsed > 0 && c.elapsed < 60 },
-    { code: 'ranked_win', name: 'Reyting jangchisi', desc: 'Reytingli o\'yinda g\'alaba', icon: 'bi-bar-chart-fill', color: '#a855f7', cond: c => c.outcome === 'win' && c.mode === 'ranked' },
+    { code: 'first_win', name: 'Ilk ğalaba', desc: 'Birinçi ğalabangiz', icon: 'bi-flag-fill', color: '#22c55e', cond: c => c.outcome === 'win' && (GX.plays || 0) === 0 },
+    { code: 'win_10', name: '10 ğalaba', desc: '10 marta yutdingiz', icon: 'bi-trophy', color: '#6366f1', cond: c => c.totalWins >= 10 },
+    { code: 'win_50', name: '50 ğalaba', desc: '50 marta yutdingiz', icon: 'bi-trophy-fill', color: '#8b5cf6', cond: c => c.totalWins >= 50 },
+    { code: 'win_100', name: '100 ğalaba', desc: '100 marta yutdingiz', icon: 'bi-award-fill', color: '#f59e0b', cond: c => c.totalWins >= 100 },
+    { code: 'shutout', name: 'Mukammal', desc: 'Durangsiz toza ğalaba', icon: 'bi-shield-fill-check', color: '#06b6d4', cond: c => c.outcome === 'win' && c.score >= 200 },
+    { code: 'speed_victory', name: 'Tezkor ğalaba', desc: 'Tez yakunlangan ğalaba', icon: 'bi-lightning-charge-fill', color: '#fb923c', cond: c => c.outcome === 'win' && c.elapsed > 0 && c.elapsed < 60 },
+    { code: 'ranked_win', name: 'Reyting jangçisi', desc: 'Reytingli öyinda ğalaba', icon: 'bi-bar-chart-fill', color: '#a855f7', cond: c => c.outcome === 'win' && c.mode === 'ranked' },
     { code: 'streak_7', name: '7 kun', desc: '7 kun ketma-ket faollik', icon: 'bi-calendar-week-fill', color: '#ec4899', cond: c => (GX.streak_days || 0) >= 7 },
     { code: 'grandmaster', name: 'Grandmaster', desc: 'Grandmaster darajasi', icon: 'bi-trophy-fill', color: '#eab308', cond: c => rankFor(GX.xp).name === 'Grandmaster' },
-    { code: 'champion', name: 'Chempion', desc: '5-darajaga yetdingiz', icon: 'bi-star-fill', color: '#14b8a6', cond: c => (GX.level || 1) >= 5 },
+    { code: 'champion', name: 'Çempion', desc: '5-darajaga yetdingiz', icon: 'bi-star-fill', color: '#14b8a6', cond: c => (GX.level || 1) >= 5 },
   ];
   const ACH_BY = Object.fromEntries(ACH.map(a => [a.code, a]));
 
@@ -80,7 +80,7 @@
         </div>
       </div>`;
     $('#gmf-hub', slot).onclick = () => openHub('ach');
-    $('#gmf-ranked', slot).onclick = () => { rankedOn = !rankedOn; localStorage.setItem(GAME + '_ranked', rankedOn ? '1' : '0'); renderChip(); toast(rankedOn ? 'Reytingli rejim YONIQ' : 'Reytingli rejim o\'chiq', rankedOn ? 'bi-bar-chart-line-fill' : 'bi-bar-chart-line'); };
+    $('#gmf-ranked', slot).onclick = () => { rankedOn = !rankedOn; localStorage.setItem(GAME + '_ranked', rankedOn ? '1' : '0'); renderChip(); toast(rankedOn ? 'Reytingli rejim YONIQ' : 'Reytingli rejim öçiq', rankedOn ? 'bi-bar-chart-line-fill' : 'bi-bar-chart-line'); };
   }
 
   // ── Hub modal ──
@@ -115,7 +115,7 @@
       const data = [
         { i: 'bi-star-fill', c: '#f59e0b', v: GX.xp || 0, l: 'Umumiy XP' },
         { i: 'bi-bar-chart-fill', c: '#6366f1', v: GX.level || 1, l: 'Daraja' },
-        { i: 'bi-trophy-fill', c: '#22c55e', v: GX.wins || 0, l: 'G\'alabalar' },
+        { i: 'bi-trophy-fill', c: '#22c55e', v: GX.wins || 0, l: 'Ğalabalar' },
         { i: 'bi-fire', c: '#fb923c', v: GX.streak_days || 0, l: 'Streak' },
         { i: 'bi-coin', c: '#eab308', v: GX.coins || 0, l: 'Coinlar' },
         { i: rk.icon, c: rk.color, v: rk.name, l: 'Rank' },
@@ -125,11 +125,11 @@
       body.innerHTML = '<div class="gmf-empty">Yuklanmoqda…</div>';
       if (!hasLMS()) { body.innerHTML = '<div class="gmf-empty">Reyting faqat LMS hisobida mavjud</div>'; return; }
       post(U.leader, { token: TOKEN, game: GAME, limit: 20 }).then(d => {
-        if (!d.ok || !d.leaderboard || !d.leaderboard.length) { body.innerHTML = '<div class="gmf-empty">Hali natijalar yo\'q — birinchi bo\'ling!</div>'; return; }
+        if (!d.ok || !d.leaderboard || !d.leaderboard.length) { body.innerHTML = '<div class="gmf-empty">Hali natijalar yöq — birinçi böling!</div>'; return; }
         body.innerHTML = d.leaderboard.map(p => { const rk = rankFor(p.xp), ini = (p.name || '?')[0].toUpperCase();
           return `<div class="gmf-row${p.is_me ? ' me' : ''}"><div class="gmf-rk">${p.rank <= 3 ? '<i class="bi bi-award-fill" style="color:' + rk.color + '"></i>' : p.rank}</div><div class="gmf-ava">${esc(ini)}</div><div class="gmf-nm">${esc(p.name)}<div class="gmf-sub"><i class="bi ${rk.icon}"></i> ${rk.name} · Daraja ${p.level}</div></div><div class="gmf-xp">${p.xp} XP</div></div>`; }).join('')
-          + (d.me && d.me.rank ? `<div class="gmf-empty">Sizning o'rningiz: #${d.me.rank}</div>` : '');
-      }).catch(() => body.innerHTML = '<div class="gmf-empty">Reytingni yuklab bo\'lmadi</div>');
+          + (d.me && d.me.rank ? `<div class="gmf-empty">Sizning örningiz: #${d.me.rank}</div>` : '');
+      }).catch(() => body.innerHTML = '<div class="gmf-empty">Reytingni yuklab bölmadi</div>');
     }
   }
 
@@ -141,16 +141,16 @@
     const rk = rankFor(GX.xp);
     const ringColor = won ? '#22c55e' : res.outcome === 'draw' ? '#f59e0b' : '#64748b';
     const ringIcon = won ? 'bi-trophy-fill' : res.outcome === 'draw' ? 'bi-emoji-neutral-fill' : 'bi-emoji-frown-fill';
-    const title = won ? 'G\'alaba!' : res.outcome === 'draw' ? 'Durang' : 'Mag\'lubiyat';
+    const title = won ? 'Ğalaba!' : res.outcome === 'draw' ? 'Durang' : 'Mağlubiyat';
     ov.innerHTML =
       `<div class="gmf-rcard">
         <div class="gmf-rring" style="background:${ringColor}"><i class="bi ${ringIcon}"></i></div>
         <div class="gmf-rtitle">${title}</div>
-        <div class="gmf-rsub">${res.mode === 'ranked' ? 'Reytingli o\'yin' : res.mode === 'ai' ? 'AI o\'yin' : 'Multiplayer'}</div>
+        <div class="gmf-rsub">${res.mode === 'ranked' ? 'Reytingli öyin' : res.mode === 'ai' ? 'AI öyin' : 'Multiplayer'}</div>
         <div class="gmf-rxp">+${res.xp || 0} XP</div>
         <div class="gmf-rrank${res.promoted ? ' promo' : ''}" style="background:${rk.color}"><i class="bi ${rk.icon}"></i> ${rk.name}${res.promoted ? ' — yangi rank!' : ''} · Daraja ${GX.level || 1}</div>
         <div class="gmf-ractions">
-          <button class="gmf-btn" id="gmf-rclose"><i class="bi bi-check-lg"></i> Davom etish</button>
+          <button class="gmf-btn" id="gmf-rclose"><i class="bi bi-check-lg"></i> Davom etiş</button>
         </div>
       </div>`;
     $('#gmf-rclose', ov).onclick = () => ov.classList.add('gmf-hidden');

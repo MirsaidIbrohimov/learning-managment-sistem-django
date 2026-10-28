@@ -13,8 +13,8 @@ class Migration(migrations.Migration):
             name='can_use_ai',
             field=models.BooleanField(
                 default=True,
-                help_text="O'chirilsa, o'qituvchi AI (vazifa tekshirish, test generatsiya va h.k.) dan foydalana olmaydi",
-                verbose_name='AI dan foydalanishi mumkin',
+                help_text="Öçirilsa, öqituvçi AI (vazifa tekşiriş, test generatsiya va h.k.) dan foydalana olmaydi",
+                verbose_name='AI dan foydalanişi mumkin',
             ),
         ),
     ]

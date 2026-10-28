@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='premiumrequest',
             name='coins_paid',
-            field=models.PositiveIntegerField(default=0, verbose_name="To'langan coin"),
+            field=models.PositiveIntegerField(default=0, verbose_name="Tölangan coin"),
         ),
         migrations.AlterField(
             model_name='premiumrequest',

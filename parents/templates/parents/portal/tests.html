@@ -7,7 +7,7 @@
 <div class="pp-head">
     <div>
         <h1><span class="ic"><i class="bi bi-ui-checks-grid"></i></span>Test natijalari</h1>
-        <p>{% if selected_child %}{{ selected_child.full_name }} — barcha testlar va quizlar natijasi.{% endif %}</p>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — barça testlar va quizlar natijasi.{% endif %}</p>
     </div>
 </div>
 
@@ -16,24 +16,24 @@
 {% else %}
 <section class="pp-grid c4 pp-mb">
     <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-list-check"></i></span></div>
-        <div class="num"><span data-count="{{ tests.taken }}">0</span></div><div class="lbl">Ishlangan testlar</div></div>
+        <div class="num"><span data-count="{{ tests.taken }}">0</span></div><div class="lbl">Işlangan testlar</div></div>
     <div class="pp-card pp-kpi tone-{{ tests.avg|tone }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-graph-up-arrow"></i></span></div>
-        <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div><div class="lbl">O‘rtacha ball</div></div>
+        <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div><div class="lbl">Örtaça ball</div></div>
     <div class="pp-card pp-kpi tone-ok" data-reveal><div class="top"><span class="ic"><i class="bi bi-trophy-fill"></i></span></div>
-        <div class="num"><span data-count="{{ best }}">0</span><small>%</small></div><div class="lbl">Eng yaxshi natija</div></div>
+        <div class="num"><span data-count="{{ best }}">0</span><small>%</small></div><div class="lbl">Eng yaxşi natija</div></div>
     <div class="pp-card pp-kpi tone-vio" data-reveal><div class="top"><span class="ic"><i class="bi bi-mic-fill"></i></span></div>
-        <div class="num"><span data-count="{{ speaking.count }}">0</span></div><div class="lbl">Speaking topshiriq</div>
-        <div class="sub">{% if speaking.graded %}O‘rtacha: {{ speaking.avg_grade }} ball{% else %}Baholanmagan{% endif %}</div></div>
+        <div class="num"><span data-count="{{ speaking.count }}">0</span></div><div class="lbl">Speaking topşiriq</div>
+        <div class="sub">{% if speaking.graded %}Örtaça: {{ speaking.avg_grade }} ball{% else %}Baholanmagan{% endif %}</div></div>
 </section>
 
 <section class="pp-grid side">
     <div class="pp-card flat" data-reveal>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--pp-line);">
-            <h3 style="margin:0;font-size:1rem;font-weight:800;">Natijalar ro‘yxati</h3>
+            <h3 style="margin:0;font-size:1rem;font-weight:800;">Natijalar röyxati</h3>
             <div class="pp-seg" data-seg="testTable" role="group" aria-label="Filtr">
-                <button type="button" data-filter="all" class="on">Barchasi <span class="n">{{ rows|length }}</span></button>
-                <button type="button" data-filter="pass">O‘tgan <span class="n">{{ rows_passed }}</span></button>
-                <button type="button" data-filter="fail">O‘tmagan <span class="n">{{ rows_failed }}</span></button>
+                <button type="button" data-filter="all" class="on">Barçasi <span class="n">{{ rows|length }}</span></button>
+                <button type="button" data-filter="pass">Ötgan <span class="n">{{ rows_passed }}</span></button>
+                <button type="button" data-filter="fail">Ötmagan <span class="n">{{ rows_failed }}</span></button>
             </div>
         </div>
         <div class="pp-table-wrap" id="testTable">
@@ -46,7 +46,7 @@
                     <td>{{ r.date|date:"d.m.Y" }}<span class="sub">{{ r.date|date:"H:i" }}</span></td>
                     <td><div class="pp-score tone-{{ r.score|tone }}"><div class="pp-bar sm"><i data-w="{{ r.score }}"></i></div><b>{{ r.score }}%</b></div></td>
                     <td class="pp-mono" style="font-size:.82rem;">{{ r.correct }}/{{ r.total }}</td>
-                    <td>{% if r.passed %}<span class="pp-badge ok"><i class="bi bi-check-circle"></i>O‘tdi</span>{% else %}<span class="pp-badge bad"><i class="bi bi-x-circle"></i>O‘tmadi</span>{% endif %}</td>
+                    <td>{% if r.passed %}<span class="pp-badge ok"><i class="bi bi-check-circle"></i>Ötdi</span>{% else %}<span class="pp-badge bad"><i class="bi bi-x-circle"></i>Ötmadi</span>{% endif %}</td>
                 </tr>
                 {% endfor %}
                 <tr data-filter-empty class="{% if rows %}pp-hide{% endif %}"><td colspan="5"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-clipboard-x"></i></div><p>Natija topilmadi.</p></div></td></tr>
@@ -57,13 +57,13 @@
 
     <div class="pp-stack">
         <div class="pp-card" data-reveal style="text-align:center;">
-            <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-pie-chart-fill"></i></span><h3>O‘tish ko‘rsatkichi</h3></div>
+            <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-pie-chart-fill"></i></span><h3>Ötiş körsatkiçi</h3></div>
             <div style="display:grid;place-items:center;">
-                {% include 'parents/portal/partials/ring.html' with value=tests.pass_rate size=150 label="o‘tdi" tone=tests.pass_rate|tone %}
+                {% include 'parents/portal/partials/ring.html' with value=tests.pass_rate size=150 label="ötdi" tone=tests.pass_rate|tone %}
             </div>
             <div class="pp-legend" style="justify-content:center;margin-top:14px;">
-                <span><i style="background:var(--pp-ok)"></i>O‘tgan: {{ tests.passed }}</span>
-                <span><i style="background:var(--pp-bad)"></i>O‘tmagan: {{ tests.failed }}</span>
+                <span><i style="background:var(--pp-ok)"></i>Ötgan: {{ tests.passed }}</span>
+                <span><i style="background:var(--pp-bad)"></i>Ötmagan: {{ tests.failed }}</span>
             </div>
         </div>
         <div class="pp-card" data-reveal>
@@ -71,8 +71,8 @@
             {% with total=rows|length %}
             <div style="display:grid;gap:14px;">
                 <div class="tone-ok"><div style="display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;margin-bottom:6px;"><span>A’lo (80–100%)</span><span style="color:var(--tone)">{{ dist.excellent }}</span></div><div class="pp-bar"><i data-w="{{ dist.excellent|pct:total }}"></i></div></div>
-                <div class="tone-warn"><div style="display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;margin-bottom:6px;"><span>Yaxshi (60–79%)</span><span style="color:var(--tone)">{{ dist.good }}</span></div><div class="pp-bar"><i data-w="{{ dist.good|pct:total }}"></i></div></div>
-                <div class="tone-bad"><div style="display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;margin-bottom:6px;"><span>Yaxshilash kerak (0–59%)</span><span style="color:var(--tone)">{{ dist.poor }}</span></div><div class="pp-bar"><i data-w="{{ dist.poor|pct:total }}"></i></div></div>
+                <div class="tone-warn"><div style="display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;margin-bottom:6px;"><span>Yaxşi (60–79%)</span><span style="color:var(--tone)">{{ dist.good }}</span></div><div class="pp-bar"><i data-w="{{ dist.good|pct:total }}"></i></div></div>
+                <div class="tone-bad"><div style="display:flex;justify-content:space-between;font-size:.84rem;font-weight:700;margin-bottom:6px;"><span>Yaxşilaş kerak (0–59%)</span><span style="color:var(--tone)">{{ dist.poor }}</span></div><div class="pp-bar"><i data-w="{{ dist.poor|pct:total }}"></i></div></div>
             </div>
             {% endwith %}
         </div>

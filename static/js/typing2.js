@@ -1,19 +1,19 @@
-/* Yozish mashqi 2.0 — umumiy komponentlar: lenta (Tape), poyga mashinasi SVG.
-   Mashq, musobaqa va "Sheriklar bilan" xona sahifalari shu faylni ishlatadi.
-   GSAP (window.gsap) ixtiyoriy: bo'lmasa animatsiyalarsiz ishlaydi. */
+/* Yoziş maşqi 2.0 — umumiy komponentlar: lenta (Tape), poyga maşinasi SVG.
+   Maşq, musobaqa va "Şeriklar bilan" xona sahifalari şu faylni işlatadi.
+   GSAP (window.gsap) ixtiyoriy: bölmasa animatsiyalarsiz işlaydi. */
 (function () {
   'use strict';
   const $ = (s, r = document) => r.querySelector(s);
   const G = window.gsap;
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  // Apostroflar eski mashqdagidek ` ga keltiriladi — server ham shunday solishtiradi.
+  // Apostroflar eski maşqdagidek ` ga keltiriladi — server ham şunday soliştiradi.
   const norm = s => s.replace(/[’‘'ʻʼ]/g, '`');
 
-  /* ════════ LENTA komponenti: mashq va poygada bir xil ════════ */
+  /* ════════ LENTA komponenti: maşq va poygada bir xil ════════ */
   class Tape {
     constructor(root, opts = {}) {
       this.root = root; this.opts = opts;
-      root.innerHTML = '<div class="lane"><div class="caret"></div><div class="rail"></div></div><div class="lock">Start chirog‘ini kuting…</div><div class="focus-hint">Yozish uchun shu yerni bosing</div><input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Yozish maydoni">';
+      root.innerHTML = '<div class="lane"><div class="caret"></div><div class="rail"></div></div><div class="lock">Start çiroğini kuting…</div><div class="focus-hint">Yoziş uçun şu yerni bosing</div><input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Yoziş maydoni">';
       this.lane = $('.lane', root); this.rail = $('.rail', root); this.caret = $('.caret', root); this.inp = $('input', root);
       root.addEventListener('click', () => this.focus());
       this.inp.addEventListener('focus', () => root.classList.remove('blurred'));
@@ -23,7 +23,7 @@
         if (e.key === 'Escape' && this.opts.onEsc) { e.preventDefault(); this.opts.onEsc(); }
       });
       ['paste', 'drop', 'cut'].forEach(ev => this.inp.addEventListener(ev, e => e.preventDefault()));
-      // 'input' hodisasi — telefon klaviaturalarida ham ishonchli ishlaydi
+      // 'input' hodisasi — telefon klaviaturalarida ham işonçli işlaydi
       this.inp.addEventListener('input', () => this.onInput());
     }
     load(words) {
@@ -32,7 +32,7 @@
       this.rail.innerHTML = words.map(w => `<span class="w">${esc(w)}</span>`).join('');
       this.root.classList.add('idle'); this.paint(true);
     }
-    // Sahifa yangilanganda serverda saqlangan so'zlardan davom ettirish (animatsiyasiz)
+    // Sahifa yangilanganda serverda saqlangan sözlardan davom ettiriş (animatsiyasiz)
     resume(typedWords) {
       typedWords.slice(0, this.words.length).forEach((t, k) => {
         const good = t === this.words[k];
@@ -54,7 +54,7 @@
       }
       if (v.includes(' ')) {
         const t = v.split(' ')[0];
-        // Qat'iy rejim (poyga xonasi): xato so'z tasdiqlanmaydi — tuzatmaguncha keyingisiga o'tilmaydi.
+        // Qat'iy rejim (poyga xonasi): xato söz tasdiqlanmaydi — tuzatmagunça keyingisiga ötilmaydi.
         if (this.opts.strict && t !== w) { this.inp.value = t; this.typed = t; if (t) this.rejectWord(); this.paint(); return; }
         this.inp.value = ''; if (t) this.commit(t); else { this.typed = ''; this.paint(); } return;
       }
@@ -63,15 +63,15 @@
       this.paint();
     }
     rejectWord() {
-      if (this._errWord !== this.i) { this._errWord = this.i; this.errors++; }   // har so'z uchun bir marta
-      this.rejected.add(this.i);   // grafikda bu so'z "xato" (qizil) bo'lib ko'rinadi
+      if (this._errWord !== this.i) { this._errWord = this.i; this.errors++; }   // har söz uçun bir marta
+      this.rejected.add(this.i);   // grafikda bu söz "xato" (qizil) bölib körinadi
       this.combo = 0; this.flashErr();
       const el = this.rail.children[this.i];
       G && el && G.fromTo(el, { x: -8 }, { x: 0, duration: .45, ease: 'elastic.out(1,.25)' });
       this.opts.onReject && this.opts.onReject(this.words[this.i]);
     }
-    // Faqat to'liq va to'g'ri yozilgan so'zlar bo'yicha progress — server ham aynan shuni hisoblaydi,
-    // shuning uchun barcha kompyuterlarda mashina bir xil joyda turadi.
+    // Faqat töliq va töğri yozilgan sözlar böyiça progress — server ham aynan şuni hisoblaydi,
+    // şuning uçun barça kompyuterlarda maşina bir xil joyda turadi.
     wordProgress() { return this.words.length ? this.marks.filter(m => m === 'done').length / this.words.length : 0; }
     commit(t) {
       const good = t === this.words[this.i], el = this.rail.children[this.i];
@@ -93,12 +93,12 @@
             [...t.slice(w.length)].map(c => `<span class="c x">${esc(c)}</span>`).join('');
         } else if (el.children.length) el.textContent = this.words[k];
       });
-      // Kursor joyi: joriy so'zdagi keyingi harf — lenta shu nuqtani markazga suradi
+      // Kursor joyi: joriy sözdagi keyingi harf — lenta şu nuqtani markazga suradi
       const cur = this.rail.children[Math.min(this.i, this.words.length - 1)], cs = cur.children;
       let x;
-      // .w — position:relative, ya'ni harflar o'lchovi DOIM so'z boshidan. Avval harf offsetLeft'i
-      // to'g'ridan-to'g'ri olinardi: so'z silkitilganda (GSAP transform) brauzer o'lchov boshini
-      // almashtirib yuborardi va lenta gap boshiga sakrab ketardi.
+      // .w — position:relative, ya'ni harflar ölçovi DOIM söz boşidan. Avval harf offsetLeft'i
+      // töğridan-töğri olinardi: söz silkitilganda (GSAP transform) brauzer ölçov boşini
+      // almaştirib yuborardi va lenta gap boşiga sakrab ketardi.
       if (this.i >= this.words.length) x = cur.offsetLeft + cur.offsetWidth;
       else if (this.typed.length < cs.length) x = cur.offsetLeft + cs[this.typed.length].offsetLeft;
       else { const l = cs[cs.length - 1]; x = cur.offsetLeft + (l ? l.offsetLeft + l.offsetWidth : 0); }
@@ -123,7 +123,7 @@
       const w = this.words[this.i]; let p = 0; while (p < this.typed.length && this.typed[p] === w[p]) p++;
       return (this.i + p / (w.length + 1)) / this.words.length;
     }
-    // Har bir so'z uchun tezlik (WPM) — natija grafigi uchun
+    // Har bir söz uçun tezlik (WPM) — natija grafigi uçun
     wordSpeeds() {
       let prev = this.t0;
       return this.times.map((t, k) => {
@@ -144,7 +144,7 @@
     { c: '#f59e0b', d: '#b45309' }, { c: '#22c55e', d: '#15803d' }
   ];
   let uid = 0;
-  // Yon tomondan sport mashina: gradient kuzov, oyna aksi, haydovchi shlemi, faralar, aylanadigan disklar
+  // Yon tomondan sport maşina: gradient kuzov, oyna aksi, haydovçi şlemi, faralar, aylanadigan disklar
   function carSVG(k, num) {
     const r = ROSTER[k % ROSTER.length], id = 'c' + (uid++);
     const wheel = cx => `<g transform="translate(${cx} 43)"><circle r="11.5" fill="#0b0c10"/><circle r="10" fill="none" stroke="#1f2229" stroke-width="2"/>
@@ -182,9 +182,9 @@
   }
 
 
-  /* ════════ NATIJA EKRANI — to'liq ekran, motion ════════ */
+  /* ════════ NATIJA EKRANI — töliq ekran, motion ════════ */
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
-  const GRADES = [[70, 'S', 'Afsonaviy natija!'], [50, 'A', "Zo'r natija!"], [35, 'B', 'Yaxshi natija!'], [20, 'C', 'Davom eting!'], [0, 'D', 'Mashq — muvaffaqiyat kaliti']];
+  const GRADES = [[70, 'S', 'Afsonaviy natija!'], [50, 'A', "Zör natija!"], [35, 'B', 'Yaxşi natija!'], [20, 'C', 'Davom eting!'], [0, 'D', 'Maşq — muvaffaqiyat kaliti']];
   const grade = score => GRADES.find(g => score >= g[0]).slice(1);
 
   function confetti(box) {
@@ -197,7 +197,7 @@
   }
 
   /**
-   * To'liq ekranli natija oynasi.
+   * Töliq ekranli natija oynasi.
    * o: { kicker, title, subtitle, wpm, acc, score, sec, combo, errors, wordSpeeds, extra:[{key,label,value}], actions:[{label,href,icon,primary}] }
    * Qaytaradi: { update(data), record(text, gold), error(msg) } — server javobi kelganda raqamlar yangilanadi.
    */
@@ -208,14 +208,14 @@
     el.className = 'tv-res'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Natija');
     const C = 2 * Math.PI * 86;
     el.innerHTML = `<div class="res-card">
-      <button class="res-x" type="button" aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+      <button class="res-x" type="button" aria-label="Yopiş"><i class="bi bi-x-lg"></i></button>
       <div class="res-head"><span class="res-kicker">${esc(o.kicker || 'NATIJA')}</span><h2 class="res-title">${esc(o.title || '')}</h2><p class="res-sub">${esc(o.subtitle || '')}</p></div>
       <div class="res-main">
         <div class="res-ring">
           <svg viewBox="0 0 200 200"><defs><linearGradient id="resG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#a78bfa"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs>
             <circle cx="100" cy="100" r="86" fill="none" stroke="currentColor" stroke-opacity=".1" stroke-width="12"/>
             <circle class="arc" cx="100" cy="100" r="86" fill="none" stroke="url(#resG)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 100 100)"/></svg>
-          <div class="res-wpm"><b data-k="wpm">0</b><small>SO'Z / DAQIQA</small></div>
+          <div class="res-wpm"><b data-k="wpm">0</b><small>SÖZ / DAQIQA</small></div>
           <span class="res-grade" data-k="grade">–</span>
         </div>
         <div class="res-side">
@@ -224,14 +224,14 @@
             <div><small>ANIQLIK</small><b><span data-k="acc">0</span>%</b></div>
             <div><small>VAQT</small><b><span data-k="sec">0</span>s</b></div>
             <div><small>KOMBO</small><b class="gold" data-k="combo">0</b></div>
-            <div><small>XATO SO'Z</small><b class="bad" data-k="errors">0</b></div>
+            <div><small>XATO SÖZ</small><b class="bad" data-k="errors">0</b></div>
             ${(o.extra || []).map(x => `<div><small>${esc(x.label)}</small><b data-k="${esc(x.key)}">${esc(x.value)}</b></div>`).join('')}
           </div>
           <div class="res-rec" data-k="rec"></div>
-          <div class="res-official" data-k="official"><i class="bi bi-hourglass-split"></i> Natija serverda tekshirilmoqda…</div>
+          <div class="res-official" data-k="official"><i class="bi bi-hourglass-split"></i> Natija serverda tekşirilmoqda…</div>
         </div>
       </div>
-      <div class="res-chart"><div class="res-chart-h"><span>HAR BIR SO'Z TEZLIGI</span><span><i class="ok"></i> to'g'ri &nbsp;<i class="no"></i> xato</span></div><div class="bars"></div></div>
+      <div class="res-chart"><div class="res-chart-h"><span>HAR BIR SÖZ TEZLIGI</span><span><i class="ok"></i> töğri &nbsp;<i class="no"></i> xato</span></div><div class="bars"></div></div>
       <div class="res-acts">${(o.actions || []).map(a => `<a class="tv-btn ${a.primary ? '' : 'ghost'}" href="${esc(a.href)}"><i class="bi ${esc(a.icon || 'bi-arrow-right')}"></i> ${esc(a.label)}</a>`).join('')}</div>
     </div>`;
     host.appendChild(el);

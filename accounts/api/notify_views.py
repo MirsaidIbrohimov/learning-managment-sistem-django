@@ -1,16 +1,16 @@
 """
-Bildirishnoma feed API — accounts/api/notify_views.py
+Bildirişnoma feed API — accounts/api/notify_views.py
 
-Real-time bildirishnomalar polling orqali ishlaydi (loyihada websocket yo'q:
-ASGI/Channels/Redis o'rnatilmagan, CACHES = LocMemCache). Chat API'ning
-mavjud polling arxitekturasi shu yerda ham davom etadi.
+Real-time bildirişnomalar polling orqali işlaydi (loyihada websocket yöq:
+ASGI/Channels/Redis örnatilmagan, CACHES = LocMemCache). Çat API'ning
+mavjud polling arxitekturasi şu yerda ham davom etadi.
 
   GET /accounts/api/notify/feed/?since=<epoch_ms>
 
-`since` berilmasa — "backlog" rejimi: foydalanuvchi tizimga kirgan paytda
-o'qilmagan xabarlari borligini bir marta ko'rsatish uchun umumiy xulosa
-qaytariladi. `since` berilsa — faqat shu vaqtdan keyin kelgan yangi
-hodisalar qaytariladi (toast + ovoz uchun).
+`since` berilmasa — "backlog" rejimi: foydalanuvçi tizimga kirgan paytda
+öqilmagan xabarlari borligini bir marta körsatiş uçun umumiy xulosa
+qaytariladi. `since` berilsa — faqat şu vaqtdan keyin kelgan yangi
+hodisalar qaytariladi (toast + ovoz uçun).
 """
 
 from datetime import datetime, timedelta, timezone as dt_timezone
@@ -33,9 +33,9 @@ from accounts.models import (
 from .homework_views import _ok, rate_limited
 from .chat_views import _is_admin
 
-# Bir marta qaytariladigan maksimal hodisa soni — toast bo'roni bo'lmasligi uchun
+# Bir marta qaytariladigan maksimal hodisa soni — toast böroni bölmasligi uçun
 MAX_ITEMS = 6
-# `since` juda uzoq o'tmishda bo'lsa (tab uxlab qolgan) shu chegaradan orqaga qaramaymiz
+# `since` juda uzoq ötmişda bölsa (tab uxlab qolgan) şu çegaradan orqaga qaramaymiz
 MAX_LOOKBACK_SECONDS = 60 * 60 * 6
 
 
@@ -64,7 +64,7 @@ def _safe_url(name, *args):
 
 
 def _my_professions(user):
-    """Foydalanuvchi kira oladigan guruh chatlari (chat sidebar bilan bir xil mantiq)."""
+    """Foydalanuvçi kira oladigan guruh çatlari (çat sidebar bilan bir xil mantiq)."""
     if _is_admin(user):
         qs = Profession.objects.all()
     elif getattr(user, 'is_teacher', False):
@@ -93,7 +93,7 @@ def _parse_since(raw):
 
 
 def _group_unread_map(user, professions):
-    """{profession_id: o'qilmagan guruh xabarlari soni}"""
+    """{profession_id: öqilmagan guruh xabarlari soni}"""
     reads = {
         r.profession_id: r.last_read_at
         for r in GroupChatRead.objects.filter(user=user)
@@ -113,7 +113,7 @@ def _group_unread_map(user, professions):
 
 
 def _system_unread_qs(user):
-    """O'qilmagan tizim xabarlari — navbar badge'i bilan bir xil mantiq
+    """Öqilmagan tizim xabarlari — navbar badge'i bilan bir xil mantiq
     (context_processors.unread_messages)."""
     broadcast_types = ['all']
     if getattr(user, 'is_student', False):
@@ -131,7 +131,7 @@ RECENT_PER_SECTION = 3
 
 
 def _recent(user, request, professions):
-    """Panel uchun: suhbatlar va xabarlardan oxirgi 3 tadan — faqat o'qilmaganlari."""
+    """Panel uçun: suhbatlar va xabarlardan oxirgi 3 tadan — faqat öqilmaganlari."""
     n = RECENT_PER_SECTION
     chats = []
     for m in (DirectMessage.objects
@@ -170,7 +170,7 @@ def _recent(user, request, professions):
 
     system = [{
         'uid': f'sys-{m.pk}', 'kind': 'system',
-        'title': m.title or 'Bildirishnoma',
+        'title': m.title or 'Bildirişnoma',
         'body': _preview(m.content, False),
         'url': _safe_url('message_detail', m.pk),
         'photo': None, 'initials': '🔔',
@@ -182,13 +182,13 @@ def _recent(user, request, professions):
 @login_required
 @require_http_methods(["POST"])
 def notify_mark_all_read(request):
-    """Qo'ng'iroq panelidagi barcha suhbat va xabarlarni o'qilgan deb belgilash."""
+    """Qönğiroq panelidagi barça suhbat va xabarlarni öqilgan deb belgilaş."""
     user = request.user
     now = timezone.now()
     DirectMessage.objects.filter(recipient=user, is_read=False).update(is_read=True)
     for prof in _my_professions(user):
         GroupChatRead.objects.update_or_create(profession=prof, user=user, defaults={'last_read_at': now})
-    # Xabarlar sahifasidagi "Barchasini o'qilgan" bilan bir xil qoida.
+    # Xabarlar sahifasidagi "Barçasini öqilgan" bilan bir xil qoida.
     _system_unread_qs(user).update(is_read=True)
     return _ok({'counts': {'dm': 0, 'group': 0, 'system': 0, 'chat': 0, 'total': 0},
                 'recent': {'chats': [], 'messages': []}})
@@ -204,7 +204,7 @@ def notify_feed(request):
 
     professions = list(_my_professions(user))
 
-    # ── Hisoblagichlar (badge'lar uchun) ──────────────────────────────
+    # ── Hisoblagiçlar (badge'lar uçun) ──────────────────────────────
     dm_unread = DirectMessage.objects.filter(
         recipient=user, is_read=False, is_deleted=False
     ).count()
@@ -228,7 +228,7 @@ def notify_feed(request):
         'recent': _recent(user, request, professions),
     }
 
-    # ── Backlog rejimi: login qilgandan keyingi birinchi so'rov ───────
+    # ── Backlog rejimi: login qilgandan keyingi birinçi sörov ───────
     if since is None:
         if counts['total']:
             lines = []
@@ -244,11 +244,11 @@ def notify_feed(request):
                 for s in senders:
                     full = f"{s['sender__first_name'] or ''} {s['sender__last_name'] or ''}".strip()
                     names.append(full or s['sender__username'])
-                lines.append(f"💬 {dm_unread} shaxsiy xabar — {', '.join(names)}")
+                lines.append(f"💬 {dm_unread} şaxsiy xabar — {', '.join(names)}")
             if group_unread:
                 lines.append(f"👥 {group_unread} guruh xabari")
             if system_unread:
-                lines.append(f"🔔 {system_unread} tizim bildirishnomasi")
+                lines.append(f"🔔 {system_unread} tizim bildirişnomasi")
             payload['backlog'] = {
                 'total': counts['total'],
                 'lines': lines,
@@ -300,7 +300,7 @@ def notify_feed(request):
         items.append({
             'uid': f'sys-{m.pk}',
             'kind': 'system',
-            'title': m.title or 'Bildirishnoma',
+            'title': m.title or 'Bildirişnoma',
             'body': _preview(m.content, False),
             'url': _safe_url('message_detail', m.pk),
             'photo': None,

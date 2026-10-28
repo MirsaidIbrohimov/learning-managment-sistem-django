@@ -1183,7 +1183,7 @@
         <div class="db-hero-content">
             <div class="db-hero-text">
                 <div class="db-hero-greeting">Salom, <span>{{ request.user.first_name|default:"Admin" }}</span> 👋</div>
-                <div class="db-hero-subtitle">Boshqaruv paneliga xush kelibsiz</div>
+                <div class="db-hero-subtitle">Boşqaruv paneliga xuş kelibsiz</div>
             </div>
             <div class="db-hero-actions">
                 <div class="db-maint-trigger {% if maintenance.is_active %}is-on{% else %}is-off{% endif %}" onclick="showMaintModal()">
@@ -1193,7 +1193,7 @@
                     <div class="db-maint-trigger-text">
                         <span class="db-maint-trigger-label">Texnik xizmat</span>
                         <span class="db-maint-trigger-badge">
-                            {% if maintenance.is_active %}O'chirilgan{% else %}Yoniq{% endif %}
+                            {% if maintenance.is_active %}Öçirilgan{% else %}Yoniq{% endif %}
                         </span>
                     </div>
                 </div>
@@ -1213,32 +1213,32 @@
         </div>
     </div>
 
-    <!-- Moliya va o'sish -->
+    <!-- Moliya va ösiş -->
     <div class="db-section-header" style="animation-delay:0.05s;">
         <i class="bi bi-cash-stack"></i>
-        <h2>Moliya va o'sish (joriy oy)</h2>
+        <h2>Moliya va ösiş (joriy oy)</h2>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:1.75rem;">
         <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yig'ilgan to'lovlar</div>
-            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ finance.month_revenue|floatformat:0 }} so'm</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yiğilgan tölovlar</div>
+            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ finance.month_revenue|floatformat:0 }} söm</div>
             <div style="font-size:.76rem;font-weight:700;color:{% if finance.revenue_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
                 {% if finance.revenue_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ finance.revenue_change }}%
-                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">o'tgan oyga nisbatan ({{ finance.month_paid_count }} ta to'lov)</span>
+                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">ötgan oyga nisbatan ({{ finance.month_paid_count }} ta tölov)</span>
             </div>
         </div>
         <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">To'lanmagan (qarzdorlik)</div>
-            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;color:{% if finance.month_unpaid %}var(--ds-danger){% else %}var(--ds-success){% endif %};">{{ finance.month_unpaid|floatformat:0 }} so'm</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Tölanmagan (qarzdorlik)</div>
+            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;color:{% if finance.month_unpaid %}var(--ds-danger){% else %}var(--ds-success){% endif %};">{{ finance.month_unpaid|floatformat:0 }} söm</div>
             <div style="font-size:.76rem;color:var(--bs-secondary-color,#6c757d);">{{ finance.month_unpaid_count }} ta qarzdor</div>
         </div>
         <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yangi foydalanuvchilar</div>
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yangi foydalanuvçilar</div>
             <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ growth.new_this_month }}</div>
             <div style="font-size:.76rem;font-weight:700;color:{% if growth.user_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
                 {% if growth.user_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ growth.user_change }}%
-                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">o'tgan oyda: {{ growth.new_prev_month }}</span>
+                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">ötgan oyda: {{ growth.new_prev_month }}</span>
             </div>
         </div>
     </div>
@@ -1254,10 +1254,10 @@
             <thead>
                 <tr style="font-size:.73rem;text-transform:uppercase;letter-spacing:.04em;">
                     <th>Kurs</th>
-                    <th class="text-center">O'quvchilar</th>
+                    <th class="text-center">Öquvçilar</th>
                     <th class="text-center">Darslar</th>
-                    <th class="text-center">Tekshirilmagan vazifa</th>
-                    <th class="text-center">O'rtacha test bali</th>
+                    <th class="text-center">Tekşirilmagan vazifa</th>
+                    <th class="text-center">Örtaça test bali</th>
                 </tr>
             </thead>
             <tbody>
@@ -1287,11 +1287,11 @@
     <div class="db-quick-grid">
         <a href="{% url 'admin_users' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#3b82f6;"><i class="bi bi-people-fill"></i></div>
-            <span class="db-quick-label">Foydalanuvchilar</span>
+            <span class="db-quick-label">Foydalanuvçilar</span>
         </a>
         <a href="{% url 'admin_teachers' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#10b981;"><i class="bi bi-person-workspace"></i></div>
-            <span class="db-quick-label">O'qituvchilar</span>
+            <span class="db-quick-label">Öqituvçilar</span>
         </a>
         <a href="{% url 'admin_professions' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#8b5cf6;"><i class="bi bi-mortarboard-fill"></i></div>
@@ -1317,7 +1317,7 @@
         </a>
         <a href="{% url 'admin_help_requests' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#ef4444;"><i class="bi bi-question-circle-fill"></i></div>
-            <span class="db-quick-label">So'rovlar</span>
+            <span class="db-quick-label">Sörovlar</span>
         </a>
         <a href="{% url 'admin_certificates' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#0ea5e9;"><i class="bi bi-award-fill"></i></div>
@@ -1325,15 +1325,15 @@
         </a>
         <a href="{% url 'admin_discounts' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#f97316;"><i class="bi bi-percent"></i></div>
-            <span class="db-quick-label">Chegirmalar</span>
+            <span class="db-quick-label">Çegirmalar</span>
         </a>
     </div>
 
     {% if pending_homeworks > 0 %}
     <div class="db-alert-bar warn">
         <i class="bi bi-exclamation-triangle-fill"></i>
-        <span><strong>{{ pending_homeworks }}</strong> ta uyga vazifa tekshirilishini kutmoqda</span>
-        <a href="{% url 'homework_submissions' %}">Ko'rish →</a>
+        <span><strong>{{ pending_homeworks }}</strong> ta uyga vazifa tekşirilişini kutmoqda</span>
+        <a href="{% url 'homework_submissions' %}">Köriş →</a>
     </div>
     {% endif %}
 
@@ -1347,17 +1347,17 @@
         <a href="{% url 'admin_users' %}" class="db-stat blue" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-people"></i></div>
             <div class="db-stat-num">{{ total_users }}</div>
-            <div class="db-stat-label">Foydalanuvchilar</div>
+            <div class="db-stat-label">Foydalanuvçilar</div>
         </a>
         <a href="{% url 'admin_teachers' %}" class="db-stat green" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-person-workspace"></i></div>
             <div class="db-stat-num">{{ total_teachers }}</div>
-            <div class="db-stat-label">O'qituvchilar</div>
+            <div class="db-stat-label">Öqituvçilar</div>
         </a>
         <a href="{% url 'admin_users' %}" class="db-stat orange" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-mortarboard"></i></div>
             <div class="db-stat-num">{{ total_students }}</div>
-            <div class="db-stat-label">O'quvchilar</div>
+            <div class="db-stat-label">Öquvçilar</div>
         </a>
         <div class="db-stat cyan online-card">
             <div class="db-stat-icon"><i class="bi bi-broadcast"></i></div>
@@ -1381,10 +1381,10 @@
         </a>
     </div>
 
-    <!-- O'quv statistikasi -->
+    <!-- Öquv statistikasi -->
     <div class="db-section-header">
         <i class="bi bi-book"></i>
-        <h2>O'quv jarayoni</h2>
+        <h2>Öquv jarayoni</h2>
     </div>
 
     <div class="db-info-grid">
@@ -1488,7 +1488,7 @@
             <div class="db-info-icon blue"><i class="bi bi-eye"></i></div>
             <div class="db-info-text">
                 <div class="db-info-num">{{ total_deploy_views }}</div>
-                <div class="db-info-label">Ko'rishlar</div>
+                <div class="db-info-label">Körişlar</div>
             </div>
         </div>
     </div>
@@ -1511,11 +1511,11 @@
                 </div>
                 <div class="db-summary-item">
                     <h3 class="text-success">{{ passed_tests }}</h3>
-                    <small>O'tgan</small>
+                    <small>Ötgan</small>
                 </div>
                 <div class="db-summary-item">
                     <h3 class="text-primary">{{ avg_test_score }}%</h3>
-                    <small>O'rtacha</small>
+                    <small>Örtaça</small>
                 </div>
             </div>
         </div>
@@ -1551,7 +1551,7 @@
         <div class="db-table-card">
             <div class="db-table-head">
                 <span><i class="bi bi-briefcase"></i> Kurslar statistikasi</span>
-                <a href="{% url 'admin_professions' %}">Barchasi</a>
+                <a href="{% url 'admin_professions' %}">Barçasi</a>
             </div>
             <div class="db-table-body">
                 {% if profession_stats %}
@@ -1560,7 +1560,7 @@
                         <thead>
                             <tr>
                                 <th>Kurs</th>
-                                <th class="text-center">O'quvchi</th>
+                                <th class="text-center">Öquvçi</th>
                                 <th class="text-center">Ustoz</th>
                             </tr>
                         </thead>
@@ -1581,11 +1581,11 @@
             </div>
         </div>
 
-        <!-- Oxirgi faol foydalanuvchilar -->
+        <!-- Oxirgi faol foydalanuvçilar -->
         <div class="db-table-card">
             <div class="db-table-head">
                 <span><i class="bi bi-clock-history"></i> Oxirgi faollar</span>
-                <a href="{% url 'admin_users' %}">Barchasi</a>
+                <a href="{% url 'admin_users' %}">Barçasi</a>
             </div>
             <div class="db-table-body">
                 {% if recent_users %}
@@ -1593,7 +1593,7 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Foydalanuvchi</th>
+                                <th>Foydalanuvçi</th>
                                 <th>Vaqt</th>
                                 <th class="text-center">Status</th>
                             </tr>
@@ -1619,7 +1619,7 @@
                     </table>
                 </div>
                 {% else %}
-                <div class="db-empty">Ma'lumot yo'q</div>
+                <div class="db-empty">Ma'lumot yöq</div>
                 {% endif %}
             </div>
         </div>
@@ -1641,7 +1641,7 @@
             <div class="db-week-day">
                 <div class="db-week-date">{{ day.date|date:"d.m" }}</div>
                 <div class="db-week-val">
-                    <span class="db-week-badge users" title="Yangi foydalanuvchilar">
+                    <span class="db-week-badge users" title="Yangi foydalanuvçilar">
                         <i class="bi bi-person-plus"></i> {{ day.users }}
                     </span>
                     <span class="db-week-badge enrolls" title="Kursga yozilganlar">
@@ -1655,7 +1655,7 @@
 
 </div>
 
-<!-- Maintenance Modal — body darajasida, db-page dan tashqarida -->
+<!-- Maintenance Modal — body darajasida, db-page dan taşqarida -->
 <div class="mm-overlay" id="maintOverlay">
     <div class="mm-backdrop" onclick="closeMaintModal()"></div>
     <div class="mm-dialog">
@@ -1665,20 +1665,20 @@
             <div class="mm-icon safe">
                 <i class="bi bi-power"></i>
             </div>
-            <h3 class="mm-title">Tizimni qayta yoqish</h3>
-            <p class="mm-desc">Texnik xizmat rejimini o'chirib, tizimni barcha foydalanuvchilar uchun ochmoqchimisiz?</p>
+            <h3 class="mm-title">Tizimni qayta yoqiş</h3>
+            <p class="mm-desc">Texnik xizmat rejimini öçirib, tizimni barça foydalanuvçilar uçun oçmoqçimisiz?</p>
             <div class="mm-warn-list">
                 <div class="mm-warn-item green">
                     <i class="bi bi-check-circle-fill"></i>
-                    O'quvchilar tizimga kirishga ruxsat oladi
+                    Öquvçilar tizimga kirişga ruxsat oladi
                 </div>
                 <div class="mm-warn-item green">
                     <i class="bi bi-check-circle-fill"></i>
-                    O'qituvchilar tizimga kirishga ruxsat oladi
+                    Öqituvçilar tizimga kirişga ruxsat oladi
                 </div>
                 <div class="mm-warn-item green">
                     <i class="bi bi-check-circle-fill"></i>
-                    Barcha funksiyalar ishga tushadi
+                    Barça funksiyalar işga tuşadi
                 </div>
             </div>
         </div>
@@ -1686,10 +1686,10 @@
             {% csrf_token %}
             <div class="mm-footer">
                 <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                    <i class="bi bi-x-lg"></i> Bekor qilish
+                    <i class="bi bi-x-lg"></i> Bekor qiliş
                 </button>
                 <button type="submit" class="mm-btn mm-btn-success">
-                    <i class="bi bi-power"></i> Tizimni yoqish
+                    <i class="bi bi-power"></i> Tizimni yoqiş
                 </button>
             </div>
         </form>
@@ -1699,34 +1699,34 @@
             <div class="mm-icon warn">
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
-            <h3 class="mm-title">Tizimni o'chirish</h3>
-            <p class="mm-desc">Texnik xizmat rejimini yoqmoqchimisiz? Faqat adminlar tizimga kirishga ruxsat oladi.</p>
+            <h3 class="mm-title">Tizimni öçiriş</h3>
+            <p class="mm-desc">Texnik xizmat rejimini yoqmoqçimisiz? Faqat adminlar tizimga kirişga ruxsat oladi.</p>
             <div class="mm-warn-list">
                 <div class="mm-warn-item red">
                     <i class="bi bi-x-circle-fill"></i>
-                    O'quvchilar tizimga kira olmaydi
+                    Öquvçilar tizimga kira olmaydi
                 </div>
                 <div class="mm-warn-item red">
                     <i class="bi bi-x-circle-fill"></i>
-                    O'qituvchilar tizimga kira olmaydi
+                    Öqituvçilar tizimga kira olmaydi
                 </div>
                 <div class="mm-warn-item green">
                     <i class="bi bi-shield-check"></i>
-                    Faqat adminlar ishlashda davom etadi
+                    Faqat adminlar işlaşda davom etadi
                 </div>
             </div>
         </div>
         <form method="POST" action="{% url 'toggle_maintenance' %}">
             {% csrf_token %}
             <div style="padding: 0 2rem;">
-                <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvchilarga ko'rsatiladigan xabar...">{{ maintenance.message }}</textarea>
+                <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvçilarga körsatiladigan xabar...">{{ maintenance.message }}</textarea>
             </div>
             <div class="mm-footer">
                 <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                    <i class="bi bi-x-lg"></i> Bekor qilish
+                    <i class="bi bi-x-lg"></i> Bekor qiliş
                 </button>
                 <button type="submit" class="mm-btn mm-btn-danger">
-                    <i class="bi bi-tools"></i> O'chirish
+                    <i class="bi bi-tools"></i> Öçiriş
                 </button>
             </div>
         </form>
@@ -1738,7 +1738,7 @@
 /* Live date/time */
 function updateDateTime() {
     var now = new Date();
-    var days = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+    var days = ['Yakşanba','Duşanba','Seşanba','Çorşanba','Payşanba','Juma','Şanba'];
     var months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
     var h = now.getHours().toString().padStart(2,'0');
     var m = now.getMinutes().toString().padStart(2,'0');

@@ -2,7 +2,7 @@
 Test hulosalari (test summary / analytics) service.
 
 Single source of truth for the "Test hulosalari" pages shown in the Admin,
-Yordamchi (assistant) and Teacher panels. All three panels call the helpers
+Yordamçi (assistant) and Teacher panels. All three panels call the helpers
 here so the query/aggregation logic lives in exactly one place -- the views
 only handle role scoping (which courses a user may see) and rendering.
 
@@ -36,7 +36,7 @@ from accounts.models import TestResult, TestUserAnswer
 from quiz.models import Attempt, AttemptAnswer, Quiz
 
 
-# Attempts/results that count as "solved" (ishlangan) -- finished ones only.
+# Attempts/results that count as "solved" (işlangan) -- finished ones only.
 _FINALIZED_ATTEMPT_STATUSES = (Attempt.Status.SUBMITTED, Attempt.Status.GRADED)
 
 
@@ -294,7 +294,7 @@ class StudentTestRow:
 
 def student_test_rows(records: Sequence[AttemptRecord]) -> list[StudentTestRow]:
     """Collapse records into one row per (student, test), sorted by most recent
-    activity. This is the core "chuqurlashtirilgan" table."""
+    activity. This is the core "çuqurlaştirilgan" table."""
     buckets: dict[tuple[str, int], list[AttemptRecord]] = {}
     for rec in records:
         buckets.setdefault((rec.ref.key, rec.student_id), []).append(rec)
@@ -394,7 +394,7 @@ class QuestionStat:
 
 @dataclass
 class StudentAttemptsGroup:
-    """A student's every attempt at one test, so "necha marta" is fully
+    """A student's every attempt at one test, so "neça marta" is fully
     visible with each try's score."""
     student_id: int
     student_name: str
@@ -582,7 +582,7 @@ def test_detail(ref: TestRef, profession_ids: Optional[Iterable[int]] = None) ->
 # ============================================================
 #
 # These assemble the full template context (filters + pagination + url names)
-# so the Admin, Yordamchi and Teacher views stay thin and identical -- only
+# so the Admin, Yordamçi and Teacher views stay thin and identical -- only
 # role scoping and the url-name set differ between them.
 
 def _filter_records(

@@ -13,22 +13,22 @@
 <div class="tv2-bgfx"></div>
 <div class="tv2">
   <div class="top">
-    <h1><i class="bi bi-car-front-fill" style="background:linear-gradient(135deg,#f59e0b,#b45309)"></i>Sheriklar bilan <small>XONA {{ room.code }}</small></h1>
+    <h1><i class="bi bi-car-front-fill" style="background:linear-gradient(135deg,#f59e0b,#b45309)"></i>Şeriklar bilan <small>XONA {{ room.code }}</small></h1>
     <span class="coin" title="Coin balansingiz"><b>₵</b><span id="myCoin">{{ request.user.coins }}</span></span>
     <a href="{% url 'games:rooms_lobby' %}" class="tv-btn ghost sm"><i class="bi bi-arrow-left"></i> Lobbi</a>
   </div>
 
-  <!-- ═══ KUTISH ZALI (lobby / bekor) — trek faqat poyga boshlanganda ko'rinadi ═══ -->
+  <!-- ═══ KUTIŞ ZALI (lobby / bekor) — trek faqat poyga boşlanganda körinadi ═══ -->
   <section class="rl" id="rLobby">
     <div class="rl-main">
       <div class="rl-head">
         <div>
-          <span class="rl-kicker" id="rlKicker">KUTISH ZALI</span>
-          <h2 id="rlTitle">Sheriklarni kuting…</h2>
+          <span class="rl-kicker" id="rlKicker">KUTIŞ ZALI</span>
+          <h2 id="rlTitle">Şeriklarni kuting…</h2>
           <p id="rlNote"></p>
         </div>
-        <button class="rl-code" type="button" id="codeBtn" title="Havolani nusxalash">
-          <small>XONA KODI</small><b>{{ room.code }}</b><span><i class="bi bi-copy"></i> nusxalash</span>
+        <button class="rl-code" type="button" id="codeBtn" title="Havolani nusxalaş">
+          <small>XONA KODI</small><b>{{ room.code }}</b><span><i class="bi bi-copy"></i> nusxalaş</span>
         </button>
       </div>
       <div class="rl-meter"><i id="rlMeter"></i></div>
@@ -37,12 +37,12 @@
     <aside class="rl-side">
       <div class="rl-stake" id="rlStake"></div>
       <div class="rl-acts">
-        <button class="tv-btn" type="button" id="joinBtn" hidden><i class="bi bi-box-arrow-in-right"></i> Qo‘shilish</button>
-        <button class="tv-btn" type="button" id="startBtn" hidden><i class="bi bi-flag-fill"></i> Poygani boshlash</button>
+        <button class="tv-btn" type="button" id="joinBtn" hidden><i class="bi bi-box-arrow-in-right"></i> Qöşiliş</button>
+        <button class="tv-btn" type="button" id="startBtn" hidden><i class="bi bi-flag-fill"></i> Poygani boşlaş</button>
         <p class="rl-hint" id="startHint"></p>
-        <button class="tv-btn ghost" type="button" id="copyBtn2"><i class="bi bi-share"></i> Taklif havolasini nusxalash</button>
-        <button class="tv-btn ghost danger" type="button" id="leaveBtn2" hidden><i class="bi bi-box-arrow-left"></i> Xonadan chiqish</button>
-        <a class="tv-btn ghost" href="{% url 'games:rooms_lobby' %}" id="lobbyLink" hidden><i class="bi bi-grid"></i> Lobbiga qaytish</a>
+        <button class="tv-btn ghost" type="button" id="copyBtn2"><i class="bi bi-share"></i> Taklif havolasini nusxalaş</button>
+        <button class="tv-btn ghost danger" type="button" id="leaveBtn2" hidden><i class="bi bi-box-arrow-left"></i> Xonadan çiqiş</button>
+        <a class="tv-btn ghost" href="{% url 'games:rooms_lobby' %}" id="lobbyLink" hidden><i class="bi bi-grid"></i> Lobbiga qaytiş</a>
       </div>
     </aside>
   </section>
@@ -54,17 +54,17 @@
       <div class="gauge"><svg viewBox="0 0 46 30"><defs><linearGradient id="gG"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs><path d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="5" stroke-linecap="round"/><path id="gArc" d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="url(#gG)" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .3s"/></svg><div><b id="gW">0</b> <small>WPM</small></div></div>
       <span class="pill hot" id="potPill"></span>
       <button class="tv-btn ghost sm" type="button" id="copyBtn"><i class="bi bi-share"></i> Taklif havolasi</button>
-      <button class="tv-btn ghost sm" type="button" id="leaveBtn" hidden><i class="bi bi-box-arrow-left"></i> Chiqish</button>
+      <button class="tv-btn ghost sm" type="button" id="leaveBtn" hidden><i class="bi bi-box-arrow-left"></i> Çiqiş</button>
     </div>
     <div class="track" id="track"></div>
     <div class="board">
       <div class="rtape glass">
-        <div class="rt-h"><span>SO‘Z <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">To‘g‘ri so‘z = nitro 🚀</span></div>
+        <div class="rt-h"><span>SÖZ <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">Töğri söz = nitro 🚀</span></div>
         <div class="tape" id="rTape"></div>
         <div class="tbar"><i id="rBar"></i></div>
       </div>
-      <div class="standings glass"><h4>JONLI O‘RINLAR <span id="clock">0.0s</span></h4><div id="stand"></div>
-        <p class="pill mt-2" style="white-space:normal;display:block;line-height:1.5">Mashina faqat <b>to‘g‘ri yozilgan</b> so‘z bilan yuradi. Xato so‘zni tuzatmaguncha keyingisiga o‘tib bo‘lmaydi. G‘olib — matnni birinchi bo‘lib xatosiz tugatgan o‘yinchi.</p>
+      <div class="standings glass"><h4>JONLI ÖRINLAR <span id="clock">0.0s</span></h4><div id="stand"></div>
+        <p class="pill mt-2" style="white-space:normal;display:block;line-height:1.5">Maşina faqat <b>töğri yozilgan</b> söz bilan yuradi. Xato sözni tuzatmagunça keyingisiga ötib bölmaydi. Ğolib — matnni birinçi bölib xatosiz tugatgan öyinçi.</p>
       </div>
     </div>
 
@@ -100,9 +100,9 @@
   const now = () => Date.now() + offset;
 
   const tape = new Tape($('#rTape'), {
-    strict: true,   // xato so'z tasdiqlanmaydi — tuzatish kerak
+    strict: true,   // xato söz tasdiqlanmaydi — tuzatiş kerak
     onWord: good => { if (good) nitro(mySlot()); sendProgress(); },
-    onReject: w => toast(`❌ Xato! “${w}” so‘zini to‘g‘ri yozing`),
+    onReject: w => toast(`❌ Xato! “${w}” sözini töğri yozing`),
     onDone: () => sendProgress(true),
   });
   tape.load(['…']); tape.locked = true;
@@ -140,12 +140,12 @@
     setTimeout(poll, S.status === 'running' ? 700 : 1500);
   }
 
-  /* ── Holatni chizish ── */
+  /* ── Holatni çiziş ── */
   function apply(st) {
     S = st;
     if (st.my_coins != null) $('#myCoin').textContent = st.my_coins;
     const n = st.players.length, me = st.players.find(p => p.is_me);
-    $('#potPill').textContent = st.stake ? `Tikish ${st.stake} · bank ${st.stake * n}` : 'Shunchaki o‘yin';
+    $('#potPill').textContent = st.stake ? `Tikiş ${st.stake} · bank ${st.stake * n}` : 'Şunçaki öyin';
     $('#leaveBtn').hidden = !me || st.status === 'lobby' || st.status === 'finished' || st.status === 'cancelled' || (me && me.finish_seconds);
     const key = st.players.map(p => p.slot + ':' + p.name).join('|');
     if (key !== carKey) { carKey = key; build(st.players); }
@@ -156,15 +156,15 @@
     $('#rLobby').hidden = !inLobby; $('#raceBox').hidden = inLobby;
     if (st.status === 'lobby') {
       pill.textContent = `Kutilmoqda · ${n}/${st.max_players}`;
-      $('#rlKicker').textContent = `KUTISH ZALI · ${n}/${st.max_players} O‘YINCHI`;
-      $('#rlTitle').textContent = !me ? 'Poygaga qo‘shiling!' : n < 2 ? 'Sheriklarni kuting…' : st.is_host ? 'Hamma tayyor — boshlang!' : 'Xona egasi boshlashini kuting…';
-      $('#rlNote').textContent = st.is_host ? 'Kodni yoki havolani do‘stlaringizga yuboring. Poygani siz boshlaysiz.' : 'Poyga boshlanganda start chiroqlari yonadi — tayyor turing.';
+      $('#rlKicker').textContent = `KUTIŞ ZALI · ${n}/${st.max_players} ÖYINÇI`;
+      $('#rlTitle').textContent = !me ? 'Poygaga qöşiling!' : n < 2 ? 'Şeriklarni kuting…' : st.is_host ? 'Hamma tayyor — boşlang!' : 'Xona egasi boşlaşini kuting…';
+      $('#rlNote').textContent = st.is_host ? 'Kodni yoki havolani döstlaringizga yuboring. Poygani siz boşlaysiz.' : 'Poyga boşlanganda start çiroqlari yonadi — tayyor turing.';
       $('#rlMeter').style.width = (n / st.max_players * 100) + '%';
       slots(st);
       $('#joinBtn').hidden = !!me || n >= st.max_players;
-      $('#joinBtn').innerHTML = st.stake ? `<i class="bi bi-coin"></i> ${st.stake} coin tikib qo‘shilish` : '<i class="bi bi-box-arrow-in-right"></i> Qo‘shilish';
+      $('#joinBtn').innerHTML = st.stake ? `<i class="bi bi-coin"></i> ${st.stake} coin tikib qöşiliş` : '<i class="bi bi-box-arrow-in-right"></i> Qöşiliş';
       $('#startBtn').hidden = !st.is_host; $('#startBtn').disabled = n < 2;
-      $('#startHint').textContent = st.is_host && n < 2 ? 'Boshlash uchun kamida 2 o‘yinchi kerak' : '';
+      $('#startHint').textContent = st.is_host && n < 2 ? 'Boşlaş uçun kamida 2 öyinçi kerak' : '';
       $('#leaveBtn2').hidden = !me; $('#lobbyLink').hidden = true; $('#copyBtn2').hidden = false;
       calc(st);
     } else if (st.status === 'cancelled') {
@@ -187,25 +187,25 @@
   function calc(st) {
     const c = st.calc;
     $('#rlStake').innerHTML = !st.stake
-      ? `<span class="rl-kicker">REJIM</span><div class="rl-big">🏁 Shunchaki o‘yin</div><p>Coin tikilmaydi — g‘olibga shon-sharaf.</p>`
+      ? `<span class="rl-kicker">REJIM</span><div class="rl-big">🏁 Şunçaki öyin</div><p>Coin tikilmaydi — ğolibga shon-sharaf.</p>`
       : `<span class="rl-kicker">BANK</span><div class="rl-big gold">₵ ${c.pot}</div>
-         <div class="rl-row"><span>Har bir o‘yinchi</span><b>${st.stake} coin</b></div>
-         <div class="rl-row"><span>O‘yinchilar</span><b>${st.players.length} × ${st.stake}</b></div>
+         <div class="rl-row"><span>Har bir öyinçi</span><b>${st.stake} coin</b></div>
+         <div class="rl-row"><span>Öyinçilar</span><b>${st.players.length} × ${st.stake}</b></div>
          <div class="rl-row bad"><span>Xizmat haqi (${c.fee_percent}%)</span><b>−${c.fee}</b></div>
-         <div class="rl-row win"><span>G‘olibga tushadi</span><b>+${c.win}</b></div>`;
+         <div class="rl-row win"><span>Ğolibga tuşadi</span><b>+${c.win}</b></div>`;
   }
   function slots(st) {
     const filled = st.players.map(p => `<div class="rl-slot${p.is_me ? ' me' : ''}" style="--c:${ROSTER[p.slot % ROSTER.length].c}">
         <div class="rl-car">${carSVG(p.slot, p.slot + 7)}</div>
-        <div class="rl-who"><b>${esc(p.name)}${p.is_host ? ' <span title="Xona egasi">👑</span>' : ''}</b><small>${p.is_me ? 'siz' : 'tayyor'} · ${p.slot + 1}-yo‘lak</small></div>
+        <div class="rl-who"><b>${esc(p.name)}${p.is_host ? ' <span title="Xona egasi">👑</span>' : ''}</b><small>${p.is_me ? 'siz' : 'tayyor'} · ${p.slot + 1}-yölak</small></div>
         <span class="rl-ready"><i class="bi bi-check-lg"></i></span></div>`);
     const empty = Array.from({ length: Math.max(0, st.max_players - st.players.length) }, () =>
-      `<button type="button" class="rl-slot empty js-invite"><span class="rl-plus"><i class="bi bi-person-plus"></i></span><div class="rl-who"><b>Bo‘sh joy</b><small>do‘stingizni taklif qiling</small></div></button>`);
+      `<button type="button" class="rl-slot empty js-invite"><span class="rl-plus"><i class="bi bi-person-plus"></i></span><div class="rl-who"><b>Böş joy</b><small>döstingizni taklif qiling</small></div></button>`);
     const html = filled.concat(empty).join('');
     if ($('#rlSlots').dataset.html === html) return;
     $('#rlSlots').dataset.html = html; $('#rlSlots').innerHTML = html;
     $$('#rlSlots .js-invite').forEach(b => b.onclick = copy);
-    // Faqat siljish — opacity'ga tegilmaydi: animatsiya to'xtab qolsa ham joy ko'rinib turadi
+    // Faqat siljiş — opacity'ga tegilmaydi: animatsiya töxtab qolsa ham joy körinib turadi
     G && G.fromTo('#rlSlots .rl-slot:not(.empty)', { y: 12, scale: .97 }, { y: 0, scale: 1, duration: .45, stagger: .06, ease: 'back.out(1.8)', clearProps: 'transform' });
   }
 
@@ -251,7 +251,7 @@
       if (!loop.st || t - loop.st > 250) { loop.st = t; drawStand(); }
     })();
   }
-  // Start chiroqlari server vaqtiga bog'langan: GO hammada bir paytda yonadi.
+  // Start çiroqlari server vaqtiga boğlangan: GO hammada bir paytda yonadi.
   function lights(startsAt) {
     if (lightsSet) return; lightsSet = true;
     const L = $$('#lights .box i'), txt = $('#lightsTxt'), wait = startsAt - now();
@@ -283,11 +283,11 @@
     const el = $('#stand'), old = {}, o = order();
     [...el.children].forEach(c => old[c.dataset.k] = c.getBoundingClientRect().top);
     el.innerHTML = o.map((c, r) => { const p = c.p, wpm = Math.round(p.wpm);
-      return `<div class="st r${r + 1} ${p.is_me ? 'me' : ''}" data-k="${c.slot}"><span class="p">${r + 1}</span><span class="dot" style="background:${ROSTER[c.slot % ROSTER.length].c}"></span><div><b>${esc(p.name)}${p.is_host ? ' 👑' : ''}</b><small>${p.left ? 'chiqib ketdi' : Math.round(c.target * 100) + '% · ' + wpm + ' WPM'}</small></div><span class="wt">${p.finish_seconds ? '🏁 ' + p.finish_seconds.toFixed(1) + 's' : ''}</span></div>`; }).join('');
+      return `<div class="st r${r + 1} ${p.is_me ? 'me' : ''}" data-k="${c.slot}"><span class="p">${r + 1}</span><span class="dot" style="background:${ROSTER[c.slot % ROSTER.length].c}"></span><div><b>${esc(p.name)}${p.is_host ? ' 👑' : ''}</b><small>${p.left ? 'çiqib ketdi' : Math.round(c.target * 100) + '% · ' + wpm + ' WPM'}</small></div><span class="wt">${p.finish_seconds ? '🏁 ' + p.finish_seconds.toFixed(1) + 's' : ''}</span></div>`; }).join('');
     o.forEach((c, r) => { const i = c.plate.firstChild, t = 'P' + (r + 1); if (i.textContent !== t) { i.textContent = t; G && G.fromTo(i, { scale: 1.6 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); } c.plate.className = 'plate' + (r < 3 ? ' p' + (r + 1) : ''); });
     [...el.children].forEach(c => { const was = old[c.dataset.k]; if (was != null && G) { const d = was - c.getBoundingClientRect().top; if (d) G.fromTo(c, { y: d }, { y: 0, duration: .45, ease: 'power3.out' }); } });
     const myRank = o.findIndex(c => c.p.is_me) + 1;
-    if (S.status === 'running' && lastRank && myRank && myRank !== lastRank) toast(myRank < lastRank ? `🚀 Siz ${myRank}-o‘ringa chiqdingiz!` : `⚠️ ${o[myRank - 2].p.name} sizni quvib o‘tdi`);
+    if (S.status === 'running' && lastRank && myRank && myRank !== lastRank) toast(myRank < lastRank ? `🚀 Siz ${myRank}-öringa çiqdingiz!` : `⚠️ ${o[myRank - 2].p.name} sizni quvib ötdi`);
     lastRank = myRank;
     if (raceInit) {
       const s = tape.stats(), N = tape.words.length;
@@ -299,11 +299,11 @@
     cancelAnimationFrame(raf); tape.locked = true; timers.forEach(clearTimeout); $('#lights').classList.remove('on');
     $$('#track .kerb').forEach(k => k.classList.remove('mv'));
     const res = S.result || {}, o = order(), H = [140, 180, 110], C = ['#94a3b8', '#f59e0b', '#c2410c'], slots = [1, 0, 2].filter(p => p < o.length);
-    const title = res.winner_is_me ? 'Siz yutdingiz! 🏆' : res.winner ? esc(res.winner) + ' yutdi!' : 'G‘olib aniqlanmadi';
-    const sub = res.pot ? `Bank ${res.pot} coin · ${S.calc.fee_percent}% xizmat haqi (${res.fee}) · g‘olibga ${res.payout} coin`
-      : S.stake && !res.winner ? 'Vaqt tugadi, hech kim marraga yetmadi — tikishlar qaytarildi.' : 'Shunchaki o‘yin — coin tikilmagan';
+    const title = res.winner_is_me ? 'Siz yutdingiz! 🏆' : res.winner ? esc(res.winner) + ' yutdi!' : 'Ğolib aniqlanmadi';
+    const sub = res.pot ? `Bank ${res.pot} coin · ${S.calc.fee_percent}% xizmat haqi (${res.fee}) · ğolibga ${res.payout} coin`
+      : S.stake && !res.winner ? 'Vaqt tugadi, heç kim marraga yetmadi — tikişlar qaytarildi.' : 'Şunçaki öyin — coin tikilmagan';
     $('#podium').innerHTML = `<div class="title"><h3>${title}</h3><p>${sub}</p></div>
-      <div class="again"><a class="tv-btn sm" href="${URL.lobby}"><i class="bi bi-arrow-repeat"></i> Revansh xonasi</a></div>` +
+      <div class="again"><a class="tv-btn sm" href="${URL.lobby}"><i class="bi bi-arrow-repeat"></i> Revanş xonasi</a></div>` +
       slots.map(k => { const c = o[k], p = c.p, hi = [1, 0, 2].indexOf(k);
         return `<div class="col"><div class="pcar">${carSVG(c.slot, c.slot + 7)}</div><div class="who">${esc(p.name)}</div><div class="pay">${p.payout ? '+' + p.payout + ' coin' : p.finish_seconds ? p.finish_seconds.toFixed(1) + 's · ' + Math.round(p.accuracy) + '%' : Math.round(p.progress * 100) + '%'}</div><div class="blk" style="height:${H[hi]}px;background:${C[hi]}">${k + 1}</div></div>`; }).join('');
     $('#podium').classList.add('on');
@@ -316,22 +316,22 @@
     const me = S.players.find(p => p.is_me);
     if (me && raceInit) setTimeout(() => myResult(me, res, sub), 2200);
   }
-  // Shaxsiy natija — to'liq ekranli motion oyna (raqamlar serverniki)
+  // Şaxsiy natija — töliq ekranli motion oyna (raqamlar serverniki)
   function myResult(me, res, sub) {
     const s = tape.stats(), d = { wpm: Math.round(me.wpm), acc: Math.round(me.accuracy), score: Math.round(me.wpm * me.accuracy) / 100, sec: me.finish_seconds || 0 };
     const coin = me.payout ? '+' + me.payout : (S.stake && res.winner && !res.winner_is_me ? '−' + S.stake : '0');
     const screen = showResult(Object.assign({
-      kicker: 'SHERIKLAR BILAN · XONA ' + S.code,
-      title: res.winner_is_me ? 'Siz yutdingiz! 🏆' : me.place ? `${me.place}-o'rin` : '',
+      kicker: 'ŞERIKLAR BILAN · XONA ' + S.code,
+      title: res.winner_is_me ? 'Siz yutdingiz! 🏆' : me.place ? `${me.place}-örin` : '',
       subtitle: sub, combo: s.maxCombo, errors: s.errors, wordSpeeds: tape.wordSpeeds(),
-      extra: [{ key: 'place', label: "O'RIN", value: me.place ? `${me.place} / ${S.players.length}` : '—' }, { key: 'coin', label: 'COIN', value: coin }],
+      extra: [{ key: 'place', label: "ÖRIN", value: me.place ? `${me.place} / ${S.players.length}` : '—' }, { key: 'coin', label: 'COIN', value: coin }],
       actions: [
-        { label: 'Revansh xonasi', href: URL.lobby, icon: 'bi-arrow-repeat', primary: true },
+        { label: 'Revanş xonasi', href: URL.lobby, icon: 'bi-arrow-repeat', primary: true },
         { label: 'Natijalarim', href: "{% url 'games:my_results' %}?mode=room", icon: 'bi-bar-chart-line' },
       ],
     }, d));
     screen.update(d);
-    if (res.winner_is_me) screen.record(res.payout ? `💰 +${res.payout} coin hisobingizga tushdi!` : '🏆 Shon-sharaf sizniki!', true);
+    if (res.winner_is_me) screen.record(res.payout ? `💰 +${res.payout} coin hisobingizga tuşdi!` : '🏆 Shon-sharaf sizniki!', true);
   }
   function confetti() {
     const box = $('#raceBox'), cols = ['#22d3ee', '#a78bfa', '#f472b6', '#fbbf24', '#a3e635'];
@@ -346,7 +346,7 @@
   $('#startBtn').onclick = () => post(URL.start);
   $('#leaveBtn').onclick = () => {
     const running = S.status === 'running';
-    if (!confirm(running ? 'Poyga ketmoqda! Chiqsangiz tikishingiz bankda qoladi. Chiqasizmi?' : 'Xonadan chiqasizmi?' + (S.is_host ? ' (Siz egasiz — xona bekor qilinadi)' : ''))) return;
+    if (!confirm(running ? 'Poyga ketmoqda! Çiqsangiz tikişingiz bankda qoladi. Çiqasizmi?' : 'Xonadan çiqasizmi?' + (S.is_host ? ' (Siz egasiz — xona bekor qilinadi)' : ''))) return;
     post(URL.leave).then(() => { if (!running) location.assign(URL.lobby); });
   };
   function copy() { (navigator.clipboard ? navigator.clipboard.writeText(INVITE) : Promise.reject()).then(() => toast('🔗 Havola nusxalandi: ' + S.code), () => prompt('Havolani nusxalang:', INVITE)); }

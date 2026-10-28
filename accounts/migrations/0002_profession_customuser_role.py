@@ -28,6 +28,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='role',
-            field=models.CharField(choices=[('admin', 'Admin'), ('teacher', "O'qituvchi"), ('student', "O'quvchi")], default='student', max_length=20, verbose_name='Rol'),
+            field=models.CharField(choices=[('admin', 'Admin'), ('teacher', "Öqituvçi"), ('student', "Öquvçi")], default='student', max_length=20, verbose_name='Rol'),
         ),
     ]

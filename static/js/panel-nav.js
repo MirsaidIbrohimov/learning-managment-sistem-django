@@ -1,7 +1,7 @@
-/* O'qituvchi/admin panellari — navigatsiya rejimlari.
-   1) html[data-sb] → body.sidebar-collapsed (desktop), yig'ish tugmasi ikonkasi.
+/* Öqituvchi/admin panellari — navigatsiya rejimlari.
+   1) html[data-sb] → body.sidebar-collapsed (desktop), yiğiş tugmasi ikonkasi.
    2) Top Navigation: yuqori menyu yon panel havolalaridan quriladi (bitta manba — huquqlar server tomonda),
-      sig'magan guruhlar "Ko'proq" menyusiga o'tadi. Holat va saqlash: nav-prefs.js. */
+      siğmagan guruhlar "Köproq" menyusiga ötadi. Holat va saqlaş: nav-prefs.js. */
 (function () {
   'use strict';
   var root = document.documentElement, body = document.body;
@@ -12,7 +12,7 @@
   var mqDesk = matchMedia('(min-width: 993px)');
   var layout = function () { return root.getAttribute('data-layout'); };
 
-  /* ───────── Yig'ilgan holat ───────── */
+  /* ───────── Yiğilgan holat ───────── */
   function syncCollapse() {
     var collapsed = mqDesk.matches && layout() !== 'top' && root.getAttribute('data-sb') === 'collapsed';
     body.classList.toggle('sidebar-collapsed', collapsed);
@@ -50,7 +50,7 @@
     return li;
   }
 
-  // Guruhlar: .sidebar-group-label + keyingi havolalar ([data-tn-skip] — profil menyusida bor, o'tkaziladi)
+  // Guruhlar: .sidebar-group-label + keyingi havolalar ([data-tn-skip] — profil menyusida bor, ötkaziladi)
   var groups = [], cur = null;
   Array.prototype.forEach.call(sidebar.querySelectorAll('.sidebar-nav > *'), function (n) {
     if (n.classList.contains('sidebar-group-label')) {
@@ -65,7 +65,7 @@
   nav.setAttribute('aria-label', 'Panel menyusi');
   var more = el('div', 'dropdown pn-tn-item pn-tn-more');
   var moreMenu = el('ul', 'dropdown-menu dropdown-menu-end pn-tn-menu');
-  more.appendChild(el('button', 'pn-tn-link', 'Ko‘proq <i class="bi bi-chevron-down pn-chev" aria-hidden="true"></i>'));
+  more.appendChild(el('button', 'pn-tn-link', 'Köproq <i class="bi bi-chevron-down pn-chev" aria-hidden="true"></i>'));
   more.firstChild.type = 'button';
   more.firstChild.setAttribute('data-bs-toggle', 'dropdown');
   more.firstChild.setAttribute('aria-expanded', 'false');
@@ -100,7 +100,7 @@
       item.appendChild(ul);
     }
     nav.appendChild(item);
-    // "Ko'proq" ichidagi nusxa (sig'masa ko'rsatiladi)
+    // "Köproq" içidagi nusxa (siğmasa körsatiladi)
     var sec = [el('li', 'dropdown-header', '')];
     sec[0].textContent = g.label;
     g.links.forEach(function (a) { sec.push(menuItem(a)); });
@@ -121,7 +121,7 @@
       entries[k].item.hidden = true;
       entries[k].sec.forEach(function (li) { li.hidden = false; });
     }
-    // Faol guruh yashiringan bo'lsa — "Ko'proq" belgilanadi
+    // Faol guruh yaşiringan bölsa — "Köproq" belgilanadi
     more.firstChild.classList.toggle('active', entries.some(function (e) { return e.item.hidden && e.item.querySelector('.active'); }));
   }
 

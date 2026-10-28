@@ -1,7 +1,7 @@
-"""Navbar uchun kontekst: foydalanuvchining faol startupi va mentor huquqi.
+"""Navbar uçun kontekst: foydalanuvçining faol startupi va mentor huquqi.
 
-Talaba uchun bitta `only()` so'rov. Mentor bayrogʻi faqat `teacher`/`admin`
-rollari uchun hisoblanadi — o'quvchilarga qo'shimcha so'rov tushmaydi.
+Talaba uçun bitta `only()` sörov. Mentor bayroği faqat `teacher`/`admin`
+rollari uçun hisoblanadi — öquvçilarga qöşimça sörov tuşmaydi.
 """
 
 MENTOR_ROLES = ('teacher', 'admin', 'assistant_admin')

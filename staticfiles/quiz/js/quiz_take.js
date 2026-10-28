@@ -120,7 +120,7 @@
                 window.location.href = window.QUIZ_RETRY_URL || `/quiz/quizzes/${err.payload.quiz_id}/retry-payment/`;
                 return;
             }
-            const msg = (err && err.message) || "Testni boshlab bo'lmadi.";
+            const msg = (err && err.message) || "Testni boşlab bölmadi.";
             // Show error both inline (intro screen) and as a toast (visible from any screen).
             showIntroError(msg);
             QuizApi.toast(msg, 'error');
@@ -140,7 +140,7 @@
                 enterExam(payload);
             }
         } catch (err) {
-            showIntroError((err && err.message) || "Davom etayotgan urinishni yuklab bo'lmadi.");
+            showIntroError((err && err.message) || "Davom etayotgan urinişni yuklab bölmadi.");
         } finally {
             setIntroBusy(false);
         }
@@ -374,7 +374,7 @@
             updateProgress();
         } catch (err) {
             if (indicator) {
-                indicator.textContent = (err && err.message) || "Saqlanmadi, qayta urinib ko'ring.";
+                indicator.textContent = (err && err.message) || "Saqlanmadi, qayta urinib köring.";
                 indicator.classList.remove('qt-save-ok');
             }
         }
@@ -391,7 +391,7 @@
                 state.remainingSeconds = 0;
                 renderTimer();
                 stopTimer();
-                autoSubmit('Vaqt tugadi, test avtomatik topshirildi.');
+                autoSubmit('Vaqt tugadi, test avtomatik topşirildi.');
                 return;
             }
             renderTimer();
@@ -438,7 +438,7 @@
         } catch (err) {
             // A failed submit must not strand the student with a dead timer
             // -- resume it so they can retry instead of losing the attempt.
-            QuizApi.toast((err && err.message) || "Topshirib bo'lmadi, qayta urinib ko'ring.", 'error');
+            QuizApi.toast((err && err.message) || "Topşirib bölmadi, qayta urinib köring.", 'error');
             startTimer(state.remainingSeconds);
         }
     }
@@ -486,12 +486,12 @@
 
     function handleVisibilityChange() {
         if (state.antiCheatActive && document.hidden) {
-            registerStrike("Boshqa oyna yoki tabga o'tdingiz.");
+            registerStrike("Boşqa oyna yoki tabga ötdingiz.");
         }
     }
 
     function handleWindowBlur() {
-        if (state.antiCheatActive) registerStrike("Sahifadan e'tiboringiz chalg'idi.");
+        if (state.antiCheatActive) registerStrike("Sahifadan e'tiboringiz çalğidi.");
     }
 
     function handleFullscreenChange() {
@@ -510,19 +510,19 @@
             (event.ctrlKey && ['U', 'S', 'P'].includes(key));
         if (isBlockedCombo) {
             event.preventDefault();
-            registerStrike("Ruxsat etilmagan tugmalar birikmasi ishlatildi.");
+            registerStrike("Ruxsat etilmagan tugmalar birikmasi işlatildi.");
         }
     }
 
     function registerStrike(message) {
         state.warningCount += 1;
         if (state.warningCount >= 3) {
-            showWarningModal('Test avtomatik topshirildi', 'Qoidalar 3 marta buzildi, shuning uchun test avtomatik topshirildi.');
-            autoSubmit('Qoidabuzarlik tufayli test avtomatik topshirildi.');
+            showWarningModal('Test avtomatik topşirildi', 'Qoidalar 3 marta buzildi, şuning uçun test avtomatik topşirildi.');
+            autoSubmit('Qoidabuzarlik tufayli test avtomatik topşirildi.');
             return;
         }
         const remaining = 3 - state.warningCount;
-        showWarningModal(`Ogohlantirish (${state.warningCount}/3)`, `${message} Yana ${remaining} marta buzilsa, test avtomatik topshiriladi.`);
+        showWarningModal(`Ogohlantiriş (${state.warningCount}/3)`, `${message} Yana ${remaining} marta buzilsa, test avtomatik topşiriladi.`);
     }
 
     function showWarningModal(title, text) {
@@ -587,33 +587,33 @@
         scoreCircle.appendChild(createEl('span', { text: '%' }));
         el.resultCard.appendChild(scoreCircle);
 
-        let title = attempt.passed ? "Tabriklaymiz, testdan o'tdingiz!" : "Afsuski, testdan o'ta olmadingiz.";
-        if (isPending) title = 'Test topshirildi';
+        let title = attempt.passed ? "Tabriklaymiz, testdan ötdingiz!" : "Afsuski, testdan öta olmadingiz.";
+        if (isPending) title = 'Test topşirildi';
         el.resultCard.appendChild(createEl('h2', { className: 'qt-result-title', text: title }));
         el.resultCard.appendChild(createEl('p', {
             className: 'qt-result-sub',
-            text: `${attempt.correct_count} / ${attempt.total_questions} avtomatik baholanadigan savolga to'g'ri javob berdingiz.`,
+            text: `${attempt.correct_count} / ${attempt.total_questions} avtomatik baholanadigan savolga töğri javob berdingiz.`,
         }));
 
         if (attempt.coin_awarded && attempt.coins_earned > 0) {
             const rate = bootstrap.coin_per_correct;
             const coinMsg = createEl('p', { className: 'qt-result-coin' });
-            coinMsg.innerHTML = `<i class="bi bi-coin"></i> <strong>+${attempt.coins_earned} coin</strong> qo'lga kiritdingiz! (har bir to'g'ri javob uchun ${rate} coin)`;
+            coinMsg.innerHTML = `<i class="bi bi-coin"></i> <strong>+${attempt.coins_earned} coin</strong> qölga kiritdingiz! (har bir töğri javob uçun ${rate} coin)`;
             el.resultCard.appendChild(coinMsg);
         } else if (isPending) {
             el.resultCard.appendChild(createEl('p', {
                 className: 'qt-result-sub',
-                text: "Bu testda yozma javob mavjud -- yakuniy natija va coin o'qituvchi tekshirib chiqgunga qadar kutilmoqda.",
+                text: "Bu testda yozma javob mavjud -- yakuniy natija va coin öqituvçi tekşirib çiqgunga qadar kutilmoqda.",
             }));
         } else if (!attempt.coin_awarded && attempt.passed && attempt.attempt_number > 1) {
             el.resultCard.appendChild(createEl('p', {
                 className: 'qt-result-sub',
-                text: "Coin faqat birinchi muvaffaqiyatli urinishda beriladi.",
+                text: "Coin faqat birinçi muvaffaqiyatli urinişda beriladi.",
             }));
         }
 
         const actions = createEl('div', { className: 'qt-result-actions' });
-        const btnReview = createButton('qt-btn qt-btn-primary', 'bi bi-eye', "Javoblarni ko'rish");
+        const btnReview = createButton('qt-btn qt-btn-primary', 'bi bi-eye', "Javoblarni köriş");
         btnReview.addEventListener('click', loadReview);
         actions.appendChild(btnReview);
 
@@ -623,10 +623,10 @@
         if (bootstrap.allow_retry || bootstrap.retry_payment_required) {
             let retryLabel, retryIcon;
             if (bootstrap.retry_payment_required) {
-                retryLabel = "Qayta urinish (to'lov)";
+                retryLabel = "Qayta uriniş (tölov)";
                 retryIcon = 'bi bi-credit-card-2-front';
             } else {
-                retryLabel = `Qayta urinish (${bootstrap.retry_cost} coin)`;
+                retryLabel = `Qayta uriniş (${bootstrap.retry_cost} coin)`;
                 retryIcon = 'bi bi-arrow-repeat';
             }
             const btnRetry = createButton('qt-btn qt-btn-ghost', retryIcon, retryLabel);
@@ -648,7 +648,7 @@
             const payload = await QuizApi.get(`attempts/${state.attempt.id}/review/`);
             renderReview(payload);
         } catch (err) {
-            QuizApi.toast((err && err.message) || "Tafsilotlarni yuklab bo'lmadi.", 'error');
+            QuizApi.toast((err && err.message) || "Tafsilotlarni yuklab bölmadi.", 'error');
         }
     }
 
@@ -668,12 +668,12 @@
         item.appendChild(buildAnswerRow('Sizning javobingiz: ', describeResponse(question) || '(javob berilmagan)', correct));
 
         if (correct === false) {
-            item.appendChild(buildAnswerRow("To'g'ri javob: ", describeCorrectAnswer(question), true));
+            item.appendChild(buildAnswerRow("Töğri javob: ", describeCorrectAnswer(question), true));
         }
 
         const note = question.feedback || question.explanation;
         if (note) {
-            const prefix = question.feedback ? "O'qituvchi izohi: " : '';
+            const prefix = question.feedback ? "Öqituvçi izohi: " : '';
             item.appendChild(createEl('p', { className: 'qt-review-explanation', text: `${prefix}${note}` }));
         }
         return item;

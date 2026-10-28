@@ -7,7 +7,7 @@
 
     const STATUS_LABELS = {
         draft: ['Qoralama', 'bg-secondary'],
-        published: ['Chop etilgan', 'bg-success'],
+        published: ['Çop etilgan', 'bg-success'],
         archived: ['Arxivlangan', 'bg-warning text-dark'],
     };
 

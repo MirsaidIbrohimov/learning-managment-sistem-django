@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Kurslarim - O'qituvchi paneli{% endblock %}
+{% block title %}Kurslarim - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Kurslarim{% endblock %}
 
 {% block teacher_content %}
@@ -386,7 +386,7 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
             <div class="tc-placeholder"><i class="bi bi-mortarboard-fill"></i></div>
             {% endif %}
             <div class="tc-img-overlay">
-                <span class="tc-img-tag"><i class="bi bi-people-fill"></i> {{ cd.student_count }} o'quvchi</span>
+                <span class="tc-img-tag"><i class="bi bi-people-fill"></i> {{ cd.student_count }} öquvçi</span>
                 <span class="tc-img-tag"><i class="bi bi-play-circle-fill"></i> {{ cd.lesson_count }} dars</span>
             </div>
         </div>
@@ -398,7 +398,7 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
             <div class="tc-stats">
                 <div class="tc-stat">
                     <div class="tc-stat-icon purple"><i class="bi bi-people-fill"></i></div>
-                    <span>{{ cd.student_count }} o'quvchi</span>
+                    <span>{{ cd.student_count }} öquvçi</span>
                 </div>
                 <div class="tc-stat">
                     <div class="tc-stat-icon blue"><i class="bi bi-play-circle-fill"></i></div>
@@ -420,10 +420,10 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
         </div>
         <div class="tc-actions">
             <a href="{% url 'quizui:quiz_create' %}" class="tc-btn tc-btn-primary" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                <i class="bi bi-patch-question-fill"></i> Quiz yaratish
+                <i class="bi bi-patch-question-fill"></i> Quiz yaratiş
             </a>
             <a href="{% url 'teacher:add_speaking' cd.profession.pk %}" class="tc-btn tc-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                <i class="bi bi-mic-fill"></i> Speaking qo'shish
+                <i class="bi bi-mic-fill"></i> Speaking qöşiş
             </a>
             <a href="{% url 'profession_detail' cd.profession.pk %}" class="tc-btn tc-btn-outline">
                 <i class="bi bi-eye"></i> Darslar
@@ -433,7 +433,7 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
                     data-name="{{ cd.profession.name }}"
                     data-description="{{ cd.profession.description|default_if_none:'' }}"
                     data-photo="{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}">
-                <i class="bi bi-pencil-square"></i> Tahrirlash
+                <i class="bi bi-pencil-square"></i> Tahrirlaş
             </button>
         </div>
     </div>
@@ -444,16 +444,16 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
     <div class="tc-empty">
         <div class="tc-empty-icon"><i class="bi bi-book"></i></div>
         <h3>Kurslar topilmadi</h3>
-        <p>Sizga hali kurs tayinlanmagan. Admin bilan bog'laning.</p>
+        <p>Sizga hali kurs tayinlanmagan. Admin bilan boğlaning.</p>
     </div>
 </div>
 {% endif %}
 
-<!-- Kursni tahrirlash modali -->
+<!-- Kursni tahrirlaş modali -->
 <div class="tc-modal-bg" id="editCourseModal">
     <div class="tc-modal">
         <div class="tc-modal-header">
-            <h3><i class="bi bi-pencil-square" style="color:#3b82f6;"></i> Kursni tahrirlash</h3>
+            <h3><i class="bi bi-pencil-square" style="color:#3b82f6;"></i> Kursni tahrirlaş</h3>
             <button type="button" class="tc-modal-close" onclick="closeEditModal()"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="tc-modal-body">
@@ -467,7 +467,7 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
 
                 <div class="tc-form-group">
                     <label><i class="bi bi-card-text"></i> Kurs haqida</label>
-                    <textarea name="description" id="editCourseDesc" class="tc-input" rows="3" placeholder="Kurs haqida qisqacha ma'lumot..."></textarea>
+                    <textarea name="description" id="editCourseDesc" class="tc-input" rows="3" placeholder="Kurs haqida qisqaça ma'lumot..."></textarea>
                 </div>
 
                 <div class="tc-form-group">
@@ -484,10 +484,10 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
 
                 <div class="tc-modal-footer">
                     <button type="button" onclick="closeEditModal()" class="tc-btn tc-btn-outline">
-                        <i class="bi bi-x"></i> Bekor qilish
+                        <i class="bi bi-x"></i> Bekor qiliş
                     </button>
                     <button type="submit" class="tc-btn tc-btn-primary">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                 </div>
             </form>

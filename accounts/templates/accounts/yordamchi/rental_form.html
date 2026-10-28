@@ -1,6 +1,6 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
-{% block title %}Ijaraga berish{% endblock %}
-{% block page_title %}Kitobni ijaraga berish{% endblock %}
+{% block title %}Ijaraga beriş{% endblock %}
+{% block page_title %}Kitobni ijaraga beriş{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -18,19 +18,19 @@
                                     <option value="{{ b.pk }}">{{ b.title }} — {{ b.author }} (mavjud: {{ b.available_copies }})</option>
                                 {% endfor %}
                             </select>
-                            {% if not books %}<small class="text-danger">Mavjud kitob yo'q. Avval kitob qo'shing.</small>{% endif %}
+                            {% if not books %}<small class="text-danger">Mavjud kitob yöq. Avval kitob qöşing.</small>{% endif %}
                         </div>
                         <div class="col-12">
-                            <label class="form-label">O'quvchi *</label>
+                            <label class="form-label">Öquvçi *</label>
                             <select name="student" class="form-select" required>
-                                <option value="">— O'quvchini tanlang —</option>
+                                <option value="">— Öquvçini tanlang —</option>
                                 {% for s in students %}
                                     <option value="{{ s.pk }}">{{ s.full_name }} ({{ s.phone }})</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Qaytarish sanasi *</label>
+                            <label class="form-label">Qaytariş sanasi *</label>
                             <input type="date" name="return_date" class="form-control" required>
                         </div>
                         <div class="col-12">
@@ -39,8 +39,8 @@
                         </div>
                     </div>
                     <div class="mt-4 d-flex gap-2">
-                        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Berish</button>
-                        <a href="{% url 'yordamchi_rentals' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Bekor qilish</a>
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Beriş</button>
+                        <a href="{% url 'yordamchi_rentals' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Bekor qiliş</a>
                     </div>
                 </form>
             </div>

@@ -18,7 +18,7 @@ def seed(apps, schema_editor):
         slug='bilim-arena',
         defaults={
             'title': 'Bilim Arena',
-            'description': "Bilim olamlari bo'ylab sayohat — missiyalarni bajaring, XP to'plang, daraja oshiring!",
+            'description': "Bilim olamlari böylab sayohat — missiyalarni bajaring, XP töplang, daraja oşiring!",
             'game_type': 'external',
             'icon': 'bi-globe-americas',
             'is_active': True,

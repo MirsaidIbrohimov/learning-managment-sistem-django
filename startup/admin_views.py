@@ -1,14 +1,14 @@
-"""Admin panel view'lari — LMS ning o'z admin qobig'i uchun
+"""Admin panel view'lari — LMS ning öz admin qobiği uçun
 (`accounts/templates/accounts/admin/base_admin.html`), Django'ning
 `/admin/` sahifasidan alohida.
 
-Ruxsat: repo konvensiyasi bo'yicha dekorator/mixin yo'q — har bir view
-`@login_required` + `if not request.user.is_admin` tekshiruvidan boshlanadi.
-`SectionBlockMiddleware.ADMIN_EXEMPT = True` bo'lgani uchun "startup" bo'limi
-bloklangan bo'lsa ham bu sahifalar ishlaydi.
+Ruxsat: repo konvensiyasi böyiça dekorator/mixin yöq — har bir view
+`@login_required` + `if not request.user.is_admin` tekşiruvidan boşlanadi.
+`SectionBlockMiddleware.ADMIN_EXEMPT = True` bölgani uçun "startup" bölimi
+bloklangan bölsa ham bu sahifalar işlaydi.
 
 Biznes logikasi `services.py` da qoladi — bu yerda faqat HTTP, filtr va
-kontekst yig'ish bor.
+kontekst yiğiş bor.
 """
 
 from uuid import uuid4
@@ -48,12 +48,12 @@ SORT_OPTIONS = {
 
 
 def _denied(request):
-    """Admin bo'lmasa — bosh sahifaga (mavjud admin view'lar bilan bir xil)."""
+    """Admin bölmasa — boş sahifaga (mavjud admin view'lar bilan bir xil)."""
     return not request.user.is_admin
 
 
 def _filtered_queryset(request):
-    """Ro'yxat va eksport bitta filtr mantiqidan foydalanadi."""
+    """Röyxat va eksport bitta filtr mantiqidan foydalanadi."""
     queryset = (Startup.objects
                 .select_related('owner', 'profession')
                 .annotate(
@@ -102,7 +102,7 @@ def _filtered_queryset(request):
 
 
 def _filter_state(request):
-    """Shablon va eksport havolalari uchun joriy filtrlar."""
+    """Şablon va eksport havolalari uçun joriy filtrlar."""
     keys = ('q', 'status', 'category', 'stage', 'profession', 'mentor', 'sort')
     return {key: (request.GET.get(key) or '').strip() for key in keys}
 
@@ -228,7 +228,7 @@ def startup_edit(request, slug):
                                   'Admin maʼlumotlarni tahrirladi')
             messages.success(request, f'"{startup.name}" saqlandi.')
             return redirect('startup_admin:startup_detail', slug=startup.slug)
-        messages.error(request, 'Formada xatolar bor — tekshirib qayta yuboring.')
+        messages.error(request, 'Formada xatolar bor — tekşirib qayta yuboring.')
     else:
         form = StartupAdminForm(instance=startup)
 
@@ -250,7 +250,7 @@ def startup_status(request, slug):
     labels = dict(Startup.STATUS_CHOICES)
 
     if status not in labels:
-        messages.error(request, 'Notoʻgʻri holat.')
+        messages.error(request, 'Notöğri holat.')
         return redirect('startup_admin:startup_detail', slug=slug)
 
     if status == 'active':
@@ -258,13 +258,13 @@ def startup_status(request, slug):
                  .filter(owner=startup.owner, status='active')
                  .exclude(pk=startup.pk).first())
         if clash:
-            messages.error(request, f'Bu oʻquvchida faol startup bor: "{clash.name}".')
+            messages.error(request, f'Bu öquvçida faol startup bor: "{clash.name}".')
             return redirect('startup_admin:startup_detail', slug=slug)
 
     startup.status = status
     startup.save(update_fields=['status', 'updated_at'])
     services.log_activity(startup, request.user, 'admin_status',
-                          f'Holat oʻzgardi: {labels[status]}')
+                          f'Holat özgardi: {labels[status]}')
     messages.success(request, f'"{startup.name}" holati: {labels[status]}.')
     return redirect('startup_admin:startup_detail', slug=slug)
 
@@ -279,7 +279,7 @@ def startup_delete(request, slug):
     startup = get_object_or_404(Startup, slug=slug)
     name = startup.name
     startup.delete()
-    messages.success(request, f'"{name}" startupi oʻchirildi.')
+    messages.success(request, f'"{name}" startupi öçirildi.')
     return redirect('startup_admin:startup_list')
 
 
@@ -304,8 +304,8 @@ def startup_mentor(request, slug):
     if action == 'remove':
         StartupMentor.objects.filter(startup=startup, mentor=mentor).update(is_active=False)
         services.log_activity(startup, request.user, 'mentor_removed',
-                              f'Mentor olib tashlandi: {mentor.get_full_name() or mentor.username}')
-        messages.success(request, 'Mentor olib tashlandi.')
+                              f'Mentor olib taşlandi: {mentor.get_full_name() or mentor.username}')
+        messages.success(request, 'Mentor olib taşlandi.')
     else:
         link, created = StartupMentor.objects.get_or_create(startup=startup, mentor=mentor)
         if not created and not link.is_active:
@@ -345,7 +345,7 @@ def startup_xp(request, slug):
     startup = get_object_or_404(Startup, slug=slug)
     form = ManualXPForm(request.POST)
     if not form.is_valid():
-        messages.error(request, 'XP miqdori va sababni toʻgʻri kiriting.')
+        messages.error(request, 'XP miqdori va sababni töğri kiriting.')
         return redirect('startup_admin:startup_detail', slug=slug)
 
     amount = form.cleaned_data['amount']
@@ -374,14 +374,14 @@ def submission_review(request, pk):
 
     action = (request.POST.get('action') or '').strip()
     if action not in ('approve', 'reject', 'changes'):
-        messages.error(request, 'Notoʻgʻri amal.')
+        messages.error(request, 'Notöğri amal.')
         return redirect('startup_admin:startup_detail', slug=slug)
 
     services.review_submission(submission, request.user, action,
                                (request.POST.get('comment') or '').strip())
     labels = {'approve': 'tasdiqlandi', 'reject': 'rad etildi',
-              'changes': 'oʻzgartirish soʻraldi'}
-    messages.success(request, f'Topshiriq {labels[action]}.')
+              'changes': 'özgartiriş söraldi'}
+    messages.success(request, f'Topşiriq {labels[action]}.')
     return redirect('startup_admin:startup_detail', slug=slug)
 
 
@@ -427,7 +427,7 @@ IMPORT_FORM_FIELDS = [
 
 
 def _row_form_data(data, profession_map):
-    """Qator ma'lumotlaridan `StartupForm` uchun `data` lug'ati."""
+    """Qator ma'lumotlaridan `StartupForm` uçun `data` luğati."""
     payload = {key: data.get(key, '') for key in IMPORT_FORM_FIELDS}
     payload['category'] = excel.resolve_category(data.get('category'))
     payload['profession'] = profession_map.get((data.get('profession') or '').strip().lower(), '')
@@ -452,7 +452,7 @@ def _import_rows(rows, mode, admin_user):
         if not owner:
             results.append({'row': number, 'name': data.get('name', ''),
                             'action': 'error',
-                            'message': f'"{username}" — bunday oʻquvchi topilmadi.'})
+                            'message': f'"{username}" — bunday öquvçi topilmadi.'})
             continue
 
         existing = Startup.objects.filter(owner=owner, status='active').first()
@@ -462,14 +462,14 @@ def _import_rows(rows, mode, admin_user):
             if not existing:
                 results.append({'row': number, 'name': payload['name'],
                                 'action': 'skipped',
-                                'message': 'Faol startup yoʻq — yangilash uchun hech narsa topilmadi.'})
+                                'message': 'Faol startup yöq — yangilaş uçun heç narsa topilmadi.'})
                 continue
             form = StartupForm(data=payload, instance=existing)
         else:
             if existing:
                 results.append({'row': number, 'name': payload['name'],
                                 'action': 'skipped',
-                                'message': f'Oʻquvchida faol startup bor: "{existing.name}".'})
+                                'message': f'Öquvçida faol startup bor: "{existing.name}".'})
                 continue
             form = StartupForm(data=payload)
 
@@ -477,7 +477,7 @@ def _import_rows(rows, mode, admin_user):
             details = '; '.join(
                 f'{form.fields[field].label or field}: {error[0]}'
                 for field, error in form.errors.items() if field in form.fields
-            ) or 'Maʻlumotlar notoʻgʻri.'
+            ) or 'Maʻlumotlar notöğri.'
             results.append({'row': number, 'name': payload['name'],
                             'action': 'error', 'message': details})
             continue
@@ -531,7 +531,7 @@ def startup_import(request):
         messages.error(request, 'Faqat .xlsx formatdagi fayl qabul qilinadi.')
         return render(request, 'startup/admin/import.html', context)
     if upload.size > excel.MAX_IMPORT_SIZE:
-        messages.error(request, 'Fayl hajmi 5 MB dan oshmasligi kerak.')
+        messages.error(request, 'Fayl hajmi 5 MB dan oşmasligi kerak.')
         return render(request, 'startup/admin/import.html', context)
 
     rows, file_errors = excel.parse_import_file(upload)
@@ -542,7 +542,7 @@ def startup_import(request):
     for warning in file_errors:
         messages.warning(request, warning)
 
-    # Butun import bitta tranzaksiyada: xato bo'lsa ham yarim yozilgan
+    # Butun import bitta tranzaksiyada: xato bölsa ham yarim yozilgan
     # holat qolmaydi, `dry_run` esa oxirida ataylab rollback qiladi.
     with transaction.atomic():
         results, created, updated = _import_rows(rows, mode, request.user)
@@ -554,12 +554,12 @@ def startup_import(request):
     skipped = sum(1 for row in results if row['action'] == 'skipped')
 
     if dry_run:
-        messages.info(request, f'Tekshiruv (dry run): {created} yaratiladi, '
-                               f'{updated} yangilanadi, {skipped} oʻtkazib yuboriladi, '
-                               f'{errors} xato. Bazaga hech narsa yozilmadi.')
+        messages.info(request, f'Tekşiruv (dry run): {created} yaratiladi, '
+                               f'{updated} yangilanadi, {skipped} ötkazib yuboriladi, '
+                               f'{errors} xato. Bazaga heç narsa yozilmadi.')
     else:
         messages.success(request, f'Import yakunlandi: {created} yaratildi, '
-                                  f'{updated} yangilandi, {skipped} oʻtkazib yuborildi, '
+                                  f'{updated} yangilandi, {skipped} ötkazib yuborildi, '
                                   f'{errors} xato.')
     return render(request, 'startup/admin/import.html', context)
 

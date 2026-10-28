@@ -14,7 +14,7 @@
     <span class="su-head-logo"><i class="bi bi-cash-stack"></i></span>
     <div class="su-head-main">
       <h1>Moliya</h1>
-      <p>{{ startup.name }} · summalar soʻmda (UZS)</p>
+      <p>{{ startup.name }} · summalar sömda (UZS)</p>
     </div>
   </div>
 
@@ -41,7 +41,7 @@
     <h2 class="su-card-title"><i class="bi bi-plus-circle"></i> Yangi yozuv</h2>
     {% include 'startup/_form.html' %}
     <div style="margin-top:14px">
-      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Saqlash</button>
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Saqlaş</button>
     </div>
   </form>
   {% endif %}
@@ -67,16 +67,16 @@
         </span>
         {% if can_manage_finance %}
           <form method="post" action="{% url 'startup:finance_delete' startup.slug entry.pk %}"
-                onsubmit="return confirm('Yozuv oʻchirilsinmi?')">
+                onsubmit="return confirm('Yozuv öçirilsinmi?')">
             {% csrf_token %}
-            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Oʻchirish">
+            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Öçiriş">
               <i class="bi bi-trash"></i>
             </button>
           </form>
         {% endif %}
       </div>
     {% empty %}
-      <p class="su-note">Hali yozuv yoʻq.</p>
+      <p class="su-note">Hali yozuv yöq.</p>
     {% endfor %}
 
     {% if page_obj.has_other_pages %}

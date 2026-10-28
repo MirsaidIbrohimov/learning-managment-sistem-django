@@ -1,4 +1,4 @@
-"""Kurs chegirmasi: sahifalarda ko'rinadigan va to'lovda olinadigan yagona narx."""
+"""Kurs çegirmasi: sahifalarda körinadigan va tölovda olinadigan yagona narx."""
 from dataclasses import dataclass
 from typing import Optional
 
@@ -50,7 +50,7 @@ def discounted_price(original, discount):
         price = original - original * min(value, 99) // 100
     else:
         price = original - value
-    # Chegirma narxni oshirmaydi va eng kam to'lovdan pastga tushirmaydi.
+    # Çegirma narxni oşirmaydi va eng kam tölovdan pastga tuşirmaydi.
     return min(original, max(MIN_COURSE_PRICE, price))
 
 
@@ -76,7 +76,7 @@ def course_price(profession):
 
 
 def discounted_courses(exclude_ids=(), limit=4):
-    """Bosh sahifa bloki: hozir chegirmadagi, hali sotib olinmagan kurslar."""
+    """Boş sahifa bloki: hozir çegirmadagi, hali sotib olinmagan kurslar."""
     discounts = list(valid_discounts())
     if not discounts:
         return []
@@ -96,7 +96,7 @@ def discounted_courses(exclude_ids=(), limit=4):
 
 
 def attach_prices(professions):
-    """Ro'yxat sahifalari uchun: barcha kurs narxini bitta so'rov bilan hisoblaydi."""
+    """Röyxat sahifalari uçun: barça kurs narxini bitta sörov bilan hisoblaydi."""
     professions = list(professions)
     discounts = list(valid_discounts()) if any(p.is_sold_once for p in professions) else []
     for profession in professions:

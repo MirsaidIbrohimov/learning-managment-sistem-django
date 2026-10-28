@@ -538,7 +538,7 @@
             </a>
             <div class="header-actions">
                 <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="header-action-btn">
-                    <i class="bi bi-pencil"></i> Tahrirlash
+                    <i class="bi bi-pencil"></i> Tahrirlaş
                 </a>
                 <a href="/admin/ai_yordamchi/chatmessage/?session__id__exact={{ session.pk }}" class="header-action-btn">
                     <i class="bi bi-list-ul"></i> Xabarlar
@@ -616,7 +616,7 @@
                                 {% if msg.role == 'user' %}
                                     <i class="bi bi-person-fill"></i> {{ session.user.full_name }}
                                 {% else %}
-                                    <i class="bi bi-robot"></i> AI Yordamchi
+                                    <i class="bi bi-robot"></i> AI Yordamçi
                                 {% endif %}
                             </span>
                             <span class="msg-time">
@@ -630,8 +630,8 @@
                         </div>
                         <div class="msg-bubble">
                             {% if msg.role == 'assistant' %}
-                                {# `json_script` — `|safe` bo'lganda kontentdagi `</script>`
-                                   script tegini yopib, adminning brauzerida XSS ishga tushar edi. #}
+                                {# `json_script` — `|safe` bölganda kontentdagi `</script>`
+                                   script tegini yopib, adminning brauzerida XSS işga tuşar edi. #}
                                 {% with mid=forloop.counter|stringformat:"s" %}{% with src_id="ai-content-"|add:mid %}
                                 <div class="markdown-body" id="ai-msg-{{ mid }}"></div>
                                 {{ msg.content|json_script:src_id }}
@@ -649,7 +649,7 @@
             {% else %}
                 <div class="empty-msgs">
                     <i class="bi bi-chat-square-dots"></i>
-                    <p>Bu suhbatda xabarlar yo'q</p>
+                    <p>Bu suhbatda xabarlar yöq</p>
                 </div>
             {% endif %}
         </div>
@@ -689,14 +689,14 @@ renderer.code = function(code, lang) {
 
     const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
 
-    // Nusxalash tugmasi `onclick` orqali emas, event delegation orqali ishlaydi:
-    // kod matnini `onclick="..."` atributiga qo'yish `"` belgisi bilan atributdan
-    // chiqib ketish (XSS) imkonini berardi.
+    // Nusxalaş tugmasi `onclick` orqali emas, event delegation orqali işlaydi:
+    // kod matnini `onclick="..."` atributiga qöyiş `"` belgisi bilan atributdan
+    // çiqib ketiş (XSS) imkonini berardi.
     return `<div class="code-block-wrapper" id="${codeId}">
         <div class="code-header">
             <span class="code-lang">${language}</span>
-            <button class="copy-btn" type="button" title="Nusxalash">
-                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+            <button class="copy-btn" type="button" title="Nusxalaş">
+                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalaş</span>
             </button>
         </div>
         <pre><code class="hljs language-${language}">${highlighted}</code></pre>
@@ -718,10 +718,10 @@ renderer.link = function(href, title, text) {
 
 marked.setOptions({ renderer: renderer, breaks: true, gfm: true, pedantic: false });
 
-// Markdown natijasi `innerHTML` ga tushadi. Kontent AI javobi bo'lsa-da, uni
-// o'quvchi savoli shakllantiradi — shuning uchun admin brauzerida ko'rsatishdan
+// Markdown natijasi `innerHTML` ga tuşadi. Kontent AI javobi bölsa-da, uni
+// öquvçi savoli şakllantiradi — şuning uçun admin brauzerida körsatişdan
 // oldin sanitizatsiya qilinadi. Sanitizer yuklanmasa `null` qaytadi va
-// chaqiruvchi HTML emas, oddiy matn ko'rsatadi.
+// çaqiruvçi HTML emas, oddiy matn körsatadi.
 function renderSafeMarkdown(text) {
     let html;
     try { html = marked.parse(text || ''); } catch (e) { return null; }
@@ -729,7 +729,7 @@ function renderSafeMarkdown(text) {
     return DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target'] });
 }
 
-// Nusxalash — event delegation (sanitizer inline `onclick`ni olib tashlaydi)
+// Nusxalaş — event delegation (sanitizer inline `onclick`ni olib taşlaydi)
 document.addEventListener('click', function (e) {
     const btn = e.target.closest('.copy-btn');
     if (!btn) return;
@@ -745,7 +745,7 @@ document.addEventListener('click', function (e) {
 
 function showCopied(btn) {
     const t = btn.querySelector('.copy-text');
-    const orig = t ? t.textContent : 'Nusxalash';
+    const orig = t ? t.textContent : 'Nusxalaş';
     btn.classList.add('copied');
     if (t) t.textContent = 'Nusxalandi!';
     setTimeout(() => { btn.classList.remove('copied'); if (t) t.textContent = orig; }, 2000);
@@ -804,8 +804,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const btn = document.createElement('button');
                 btn.className = 'copy-btn';
                 btn.type = 'button';
-                btn.title = 'Nusxalash';
-                btn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
+                btn.title = 'Nusxalaş';
+                btn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalaş</span>';
                 header.appendChild(langEl);
                 header.appendChild(btn);
 

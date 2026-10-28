@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='bio',
-            field=models.TextField(blank=True, null=True, verbose_name="O'zi haqida"),
+            field=models.TextField(blank=True, null=True, verbose_name="Özi haqida"),
         ),
         migrations.AddField(
             model_name='customuser',
@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='profession',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='students', to='accounts.profession', verbose_name="Yo'nalish"),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='students', to='accounts.profession', verbose_name="Yönaliş"),
         ),
     ]

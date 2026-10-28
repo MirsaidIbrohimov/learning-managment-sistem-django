@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>To'lov — IT Creative LMS</title>
+<title>Tölov — IT Creative LMS</title>
 <script>
     try {
         document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light');
@@ -470,7 +470,7 @@ body {
 .pw-method-logo.square { height: 26px; border-radius: 7px; }
 .pw-method-logo.wide { height: 18px; }
 @media (max-width: 380px) { .pw-payment-methods-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-/* ── Sotib olingan kurslar: bloklangan hisobda ham ochiq ── */
+/* ── Sotib olingan kurslar: bloklangan hisobda ham oçiq ── */
 .pc-wrap { max-width: 1000px; margin: 0 auto 1.25rem; width: 100%; }
 .pc-card {
     position: relative; overflow: hidden; border-radius: 22px; padding: 1.4rem;
@@ -584,12 +584,12 @@ body {
             IT Creative LMS
         </a>
         <div style="display:flex;align-items:center;gap:.5rem;">
-            <button type="button" class="pw-theme" id="pwThemeToggle" aria-label="Rang mavzusini almashtirish">
+            <button type="button" class="pw-theme" id="pwThemeToggle" aria-label="Rang mavzusini almaştiriş">
                 <i class="bi bi-moon-fill" id="pwThemeIcon" aria-hidden="true"></i>
-                <span id="pwThemeLabel">Qorong'i</span>
+                <span id="pwThemeLabel">Qoronği</span>
             </button>
             <a href="{% url 'logout' %}" class="pw-logout">
-                <i class="bi bi-box-arrow-right"></i> Chiqish
+                <i class="bi bi-box-arrow-right"></i> Çiqiş
             </a>
         </div>
     </div>
@@ -607,18 +607,18 @@ body {
     {% endif %}
 
     {% if purchased_courses %}
-    <!-- Sotib olingan kurslar: hisob bloklangan bo'lsa ham ochiq -->
+    <!-- Sotib olingan kurslar: hisob bloklangan bölsa ham oçiq -->
     <section class="pc-wrap" aria-labelledby="pcTitle">
         <div class="pc-card">
             <div class="pc-head">
                 <div class="pc-icon" aria-hidden="true"><i class="bi bi-unlock-fill"></i></div>
                 <div class="pc-text">
-                    <span class="pc-eyebrow"><i class="bi bi-stars"></i>O'qishni to'xtatmang</span>
-                    <h2 class="pc-title" id="pcTitle">Sotib olingan kurslaringiz ochiq! 🎉</h2>
-                    <p class="pc-sub">Hisob holatidan qat'i nazar, bu kurslarni hozir davom ettirishingiz mumkin.</p>
+                    <span class="pc-eyebrow"><i class="bi bi-stars"></i>Öqişni töxtatmang</span>
+                    <h2 class="pc-title" id="pcTitle">Sotib olingan kurslaringiz oçiq! 🎉</h2>
+                    <p class="pc-sub">Hisob holatidan qat'i nazar, bu kurslarni hozir davom ettirişingiz mumkin.</p>
                 </div>
                 <a href="{% url 'kurslarim:my_courses' %}" class="pc-cta">
-                    <i class="bi bi-play-circle-fill"></i>Kurslarimga o'tish<i class="bi bi-arrow-right"></i>
+                    <i class="bi bi-play-circle-fill"></i>Kurslarimga ötiş<i class="bi bi-arrow-right"></i>
                 </a>
             </div>
             <div class="pc-list">
@@ -628,7 +628,7 @@ body {
                     {% else %}<span class="pc-thumb"><i class="bi bi-journal-code"></i></span>{% endif %}
                     <span class="pc-info">
                         <span class="pc-name">{{ item.course.name }}</span>
-                        <span class="pc-meta"><span>{% if item.percent == 100 %}Tugatilgan 🏆{% elif item.percent %}Davom ettirish{% else %}Boshlash{% endif %}</span><span>{{ item.percent }}%</span></span>
+                        <span class="pc-meta"><span>{% if item.percent == 100 %}Tugatilgan 🏆{% elif item.percent %}Davom ettiriş{% else %}Boşlaş{% endif %}</span><span>{{ item.percent }}%</span></span>
                         <span class="pc-bar" role="progressbar" aria-label="{{ item.course.name }} progressi" aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"><i style="width:{{ item.percent }}%"></i></span>
                     </span>
                     <span class="pc-go" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
@@ -660,7 +660,7 @@ body {
                 <div style="margin-top:0.5rem;">
                     <span class="pw-blocked-badge">
                         <i class="bi bi-{% if request.user.is_blocked %}lock-fill{% else %}check-circle-fill{% endif %}"></i>
-                        {% if request.user.is_blocked %}To'lov sababli cheklangan{% else %}Akkaunt faol{% endif %}
+                        {% if request.user.is_blocked %}Tölov sababli çeklangan{% else %}Akkaunt faol{% endif %}
                     </span>
                 </div>
             </div>
@@ -673,12 +673,12 @@ body {
                 {% endif %}
                 {% if request.user.profession %}
                 <div class="pw-info-row">
-                    <span class="pw-info-label"><i class="bi bi-mortarboard me-1"></i>Yo'nalish</span>
+                    <span class="pw-info-label"><i class="bi bi-mortarboard me-1"></i>Yönaliş</span>
                     <span class="pw-info-value">{{ request.user.profession.name }}</span>
                 </div>
                 {% endif %}
                 <div class="pw-info-row">
-                    <span class="pw-info-label"><i class="bi bi-calendar me-1"></i>Ro'yxat</span>
+                    <span class="pw-info-label"><i class="bi bi-calendar me-1"></i>Röyxat</span>
                     <span class="pw-info-value">{{ request.user.date_joined|date:"d.m.Y" }}</span>
                 </div>
                 <div class="pw-info-row">
@@ -686,24 +686,24 @@ body {
                     <span class="pw-info-value">{{ request.user.coins }}</span>
                 </div>
                 <div class="pw-info-row">
-                    <span class="pw-info-label"><i class="bi bi-calendar-month me-1"></i>Oylik to'lov</span>
-                    <span class="pw-info-value" style="color:var(--pw-warning-text);">{{ ps.monthly_fee|space_num }} so'm</span>
+                    <span class="pw-info-label"><i class="bi bi-calendar-month me-1"></i>Oylik tölov</span>
+                    <span class="pw-info-value" style="color:var(--pw-warning-text);">{{ ps.monthly_fee|space_num }} söm</span>
                 </div>
 
-                <!-- To'lovlar tarixi (oxirgi 6 oy) -->
+                <!-- Tölovlar tarixi (oxirgi 6 oy) -->
                 {% if pay_records %}
                 <div class="pw-divider"></div>
                 <div class="pw-section-title" style="margin-bottom:0.6rem;">
-                    <i class="bi bi-receipt"></i> To'lovlar tarixi
+                    <i class="bi bi-receipt"></i> Tölovlar tarixi
                 </div>
                 {% for rec in pay_records|slice:":6" %}
                 <div class="pw-pay-row">
                     <span class="pw-pay-dot {% if rec.is_paid %}paid{% else %}unpaid{% endif %}"></span>
                     <span class="pw-pay-month">{{ rec.month_name }} {{ rec.year }}</span>
                     {% if rec.is_paid %}
-                    <span class="pw-pay-status-paid">✓ {{ rec.paid_amount|space_num }} so'm</span>
+                    <span class="pw-pay-status-paid">✓ {{ rec.paid_amount|space_num }} söm</span>
                     {% else %}
-                    <span class="pw-pay-status-unpaid">✗ To'lanmagan</span>
+                    <span class="pw-pay-status-unpaid">✗ Tölanmagan</span>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -725,21 +725,21 @@ body {
                         <span class="pw-balance-amount {% if can_pay %}sufficient{% else %}insufficient{% endif %}">
                             {{ balance.amount|space_num }}
                         </span>
-                        <span class="pw-balance-currency">so'm</span>
+                        <span class="pw-balance-currency">söm</span>
                     </div>
                     <div class="pw-balance-monthly">
                         <i class="bi bi-arrow-down-circle"></i>
-                        Oylik to'lov: <strong style="color:var(--pw-warning-text);margin-left:0.3rem;">{{ ps.monthly_fee|space_num }} so'm</strong>
+                        Oylik tölov: <strong style="color:var(--pw-warning-text);margin-left:0.3rem;">{{ ps.monthly_fee|space_num }} söm</strong>
                     </div>
                     {% if balance.next_payment_date %}
                     <div class="pw-balance-monthly" style="margin-top:4px;">
                         <i class="bi bi-calendar-check"></i>
-                        Keyingi to'lov sanasi: <strong style="color:var(--pw-date-text);margin-left:0.3rem;">{{ balance.next_payment_date|date:"d.m.Y" }}</strong>
+                        Keyingi tölov sanasi: <strong style="color:var(--pw-date-text);margin-left:0.3rem;">{{ balance.next_payment_date|date:"d.m.Y" }}</strong>
                     </div>
                     {% if days_late > 0 and days_late < grace_days %}
                     <div class="pw-balance-monthly" style="margin-top:4px;color:var(--pw-warning-text);">
                         <i class="bi bi-hourglass-split"></i>
-                        Kechikish imtiyozi: yana {{ grace_days_left }} kun
+                        Keçikiş imtiyozi: yana {{ grace_days_left }} kun
                     </div>
                     {% endif %}
                     {% endif %}
@@ -753,15 +753,15 @@ body {
                         <input type="hidden" name="amount" id="tz-amount-hidden" value="{{ monthly_fee }}">
 
                         <div class="pw-section-title" style="margin-bottom:0.75rem;">
-                            <i class="bi bi-credit-card-2-front-fill"></i> To'lov miqdorini tanlang
+                            <i class="bi bi-credit-card-2-front-fill"></i> Tölov miqdorini tanlang
                         </div>
 
-                        <!-- 4 ta to'lov varianti kartochkalari -->
+                        <!-- 4 ta tölov varianti kartoçkalari -->
                         <div class="pw-plans-grid">
-                            <!-- 1. To'liq 1 oy -->
+                            <!-- 1. Töliq 1 oy -->
                             <div class="pw-plan-card active" data-amt="{{ monthly_fee }}" onclick="selectPlan(this, {{ monthly_fee }})">
                                 <span class="pw-plan-badge badge-primary">Tavsiya</span>
-                                <div class="pw-plan-title">To'liq 1 oy</div>
+                                <div class="pw-plan-title">Töliq 1 oy</div>
                                 <div class="pw-plan-amount">{{ monthly_fee|space_num }}</div>
                                 <div class="pw-plan-days"><i class="bi bi-calendar-check"></i> 30 kun</div>
                             </div>
@@ -774,13 +774,13 @@ body {
                                 <div class="pw-plan-days"><i class="bi bi-calendar-check"></i> 15 kun</div>
                             </div>
 
-                            <!-- 3. Qolgan yetishmayotgan to'lov (agar balansda pul bo'lsa) -->
+                            <!-- 3. Qolgan yetişmayotgan tölov (agar balansda pul bölsa) -->
                             {% if has_partial_balance %}
                             <div class="pw-plan-card" data-amt="{{ shortage }}" onclick="selectPlan(this, {{ shortage }})">
                                 <span class="pw-plan-badge badge-warning">Qoldiq</span>
-                                <div class="pw-plan-title">Yetishmayotgan</div>
+                                <div class="pw-plan-title">Yetişmayotgan</div>
                                 <div class="pw-plan-amount">{{ shortage|space_num }}</div>
-                                <div class="pw-plan-days"><i class="bi bi-check2-all"></i> 1 oyga yetkazish</div>
+                                <div class="pw-plan-days"><i class="bi bi-check2-all"></i> 1 oyga yetkaziş</div>
                             </div>
                             {% endif %}
 
@@ -788,15 +788,15 @@ body {
                             <div class="pw-plan-card" id="card-custom" onclick="selectCustomPlan(this)">
                                 <span class="pw-plan-badge badge-info">Erkin</span>
                                 <div class="pw-plan-title">Ixtiyoriy summa</div>
-                                <div class="pw-plan-amount" style="font-size:0.92rem;">O'zingiz yozing</div>
+                                <div class="pw-plan-amount" style="font-size:0.92rem;">Özingiz yozing</div>
                                 <div class="pw-plan-days"><i class="bi bi-pencil-square"></i> Kun hisobi</div>
                             </div>
                         </div>
 
-                        <!-- Ixtiyoriy summa kiritish maydoni (kerak bo'lganda ochiladi) -->
+                        <!-- Ixtiyoriy summa kiritiş maydoni (kerak bölganda oçiladi) -->
                         <div class="pw-custom-amount-wrap" id="custom-amount-box" style="display:none;">
                             <label style="display:block;font-size:0.78rem;font-weight:700;color:var(--pw-muted);margin-bottom:0.4rem;">
-                                <i class="bi bi-cash-coin"></i> Istagan summani kiriting (so'mda):
+                                <i class="bi bi-cash-coin"></i> Istagan summani kiriting (sömda):
                             </label>
                             <div style="display:flex;gap:0.5rem;align-items:center;">
                                 <input type="number" id="tz-amount-custom"
@@ -805,18 +805,18 @@ body {
                                        placeholder="Masalan: 60 000"
                                        class="form-control"
                                        style="background:rgba(255,255,255,0.06);border:1px solid var(--pw-border);color:var(--pw-text);border-radius:10px;padding:0.6rem 0.8rem;font-weight:700;font-size:1.05rem;">
-                                <span style="font-weight:700;color:var(--pw-muted);font-size:0.85rem;">so'm</span>
+                                <span style="font-weight:700;color:var(--pw-muted);font-size:0.85rem;">söm</span>
                             </div>
                             <div style="font-size:0.75rem;color:var(--pw-muted);margin-top:0.35rem;" id="custom-calc-note">
-                                * Har {{ daily_fee|space_num }} so'm uchun 1 kunlik muddat beriladi. Ortiqcha mablag' balansingizda saqlanadi.
+                                * Har {{ daily_fee|space_num }} söm uçun 1 kunlik muddat beriladi. Ortiqça mablag' balansingizda saqlanadi.
                             </div>
                         </div>
 
                         <!-- Jonli hisob-kitob qutisi -->
                         <div class="pw-calc-preview">
                             <div class="pw-calc-preview-row">
-                                <span style="color:var(--pw-muted);"><i class="bi bi-tag-fill"></i> To'lanadigan summa:</span>
-                                <strong id="preview-amount-val" style="color:var(--pw-text);font-size:1rem;">{{ monthly_fee|space_num }} so'm</strong>
+                                <span style="color:var(--pw-muted);"><i class="bi bi-tag-fill"></i> Tölanadigan summa:</span>
+                                <strong id="preview-amount-val" style="color:var(--pw-text);font-size:1rem;">{{ monthly_fee|space_num }} söm</strong>
                             </div>
                             <div class="pw-calc-preview-row">
                                 <span style="color:var(--pw-muted);"><i class="bi bi-hourglass-split"></i> Beriladigan muddat:</span>
@@ -824,30 +824,30 @@ body {
                             </div>
                             {% if has_partial_balance %}
                             <div class="pw-calc-preview-row" id="shortage-notice" style="border-top:1px dashed rgba(255,255,255,0.1);margin-top:0.3rem;padding-top:0.4rem;font-size:0.78rem;color:#a5b4fc;">
-                                <span><i class="bi bi-wallet2"></i> Balansingizdagi <strong>{{ balance_amount|space_num }} so'm</strong> hisobga olinadi</span>
+                                <span><i class="bi bi-wallet2"></i> Balansingizdagi <strong>{{ balance_amount|space_num }} söm</strong> hisobga olinadi</span>
                             </div>
                             {% endif %}
                         </div>
 
                         {% payment_method_cards %}
 
-                        <!-- To'lash tugmasi -->
+                        <!-- Tölaş tugmasi -->
                         <button type="submit" class="pw-pay-btn enabled" id="tz-submit-btn">
                             <i class="bi bi-credit-card-fill"></i>
-                            <span id="btn-pay-text">Online to'lash</span>
+                            <span id="btn-pay-text">Online tölaş</span>
                         </button>
 
                     </form>
                     {% endif %}
 
-                    <!-- Mavjud balansdan to'lash bloki (agar balansda mablag' bo'lsa va bloklangan bo'lsa) -->
+                    <!-- Mavjud balansdan tölaş bloki (agar balansda mablag' bölsa va bloklangan bölsa) -->
                     {% if can_pay and request.user.is_blocked %}
                     <div class="pw-balance-unlock-card">
                         <div style="display:flex;align-items:center;gap:0.65rem;margin-bottom:0.75rem;">
                             <i class="bi bi-unlock-fill" style="font-size:1.4rem;color:var(--pw-success-text);"></i>
                             <div>
-                                <div style="font-weight:700;font-size:0.9rem;color:var(--pw-text);">Balansdan to'lash imkoni bor!</div>
-                                <div style="font-size:0.78rem;color:var(--pw-muted);">Hozirgi balans: <strong>{{ balance_amount|space_num }} so'm</strong> (<strong>{{ balance_desc }}</strong> muddat uchun yetarli)</div>
+                                <div style="font-weight:700;font-size:0.9rem;color:var(--pw-text);">Balansdan tölaş imkoni bor!</div>
+                                <div style="font-size:0.78rem;color:var(--pw-muted);">Hozirgi balans: <strong>{{ balance_amount|space_num }} söm</strong> (<strong>{{ balance_desc }}</strong> muddat uçun yetarli)</div>
                             </div>
                         </div>
                         <form method="post">
@@ -855,7 +855,7 @@ body {
                             <input type="hidden" name="action" value="pay">
                             <button type="submit" class="pw-pay-btn enabled" style="background:linear-gradient(135deg, #059669, #10b981);">
                                 <i class="bi bi-lightning-charge-fill"></i>
-                                Balansdan to'lab, darhol ochish ({{ balance_desc }})
+                                Balansdan tölab, darhol oçiş ({{ balance_desc }})
                             </button>
                         </form>
                     </div>
@@ -865,18 +865,18 @@ body {
 
             {% if online_orders %}
             <div class="pw-card" style="padding:1.25rem 1.5rem;">
-                <div class="pw-section-title"><i class="bi bi-receipt-cutoff"></i> Onlayn to'lovlar</div>
+                <div class="pw-section-title"><i class="bi bi-receipt-cutoff"></i> Onlayn tölovlar</div>
                 {% for order in online_orders %}
                 <div class="pw-pay-row">
                     <span class="pw-pay-dot {% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}"></span>
-                    <span class="pw-pay-month">{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }} · {{ order.amount_som|space_num }} so'm</span>
+                    <span class="pw-pay-month">{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }} · {{ order.amount_som|space_num }} söm</span>
                     <span class="pw-pay-status-{% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}">{{ order.get_status_display }}</span>
                     {% if order.status == 'pending' or order.status == 'expired' or order.status == 'cancelled' or order.status == 'failed' %}
                     <form method="post" action="{% url 'tezcheck_create_payment' %}">
                         {% csrf_token %}
                         <input type="hidden" name="amount" value="{{ order.amount_som }}">
                         {% if order.payment_method %}<input type="hidden" name="payment_method" value="{{ order.payment_method }}">{% endif %}
-                        <button type="submit" class="btn btn-sm btn-outline-primary">{% if order.status == 'pending' %}Tekshirish va to‘lash{% else %}Yangi havola olish{% endif %}</button>
+                        <button type="submit" class="btn btn-sm btn-outline-primary">{% if order.status == 'pending' %}Tekşiriş va tölaş{% else %}Yangi havola oliş{% endif %}</button>
                     </form>
                     {% endif %}
                 </div>
@@ -888,12 +888,12 @@ body {
             {% if topups %}
             <div class="pw-card" style="padding:1.25rem 1.5rem;">
                 <div class="pw-section-title">
-                    <i class="bi bi-clock-history"></i> Balans to'ldirish tarixi
+                    <i class="bi bi-clock-history"></i> Balans töldiriş tarixi
                 </div>
                 {% for t in topups %}
                 <div class="pw-topup-row">
                     <div>
-                        <div class="pw-topup-amount">+{{ t.amount|space_num }} so'm</div>
+                        <div class="pw-topup-amount">+{{ t.amount|space_num }} söm</div>
                         <div class="pw-topup-meta">
                             {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
                             {% if t.note %} · {{ t.note }}{% endif %}
@@ -911,9 +911,9 @@ body {
     <!-- Info box -->
     <div class="pw-info-box" style="margin-top:1.5rem;">
         <i class="bi bi-info-circle-fill"></i>
-        <strong>Qanday to'lash mumkin?</strong> — Online to'lovni Click, Payme, Paynet, Alif, AnorBank, Plum ilovalari yoki Uzcard, Humo, Visa/Mastercard kartalari bilan amalga oshiring. Zarur bo'lsa, admin/yordamchi adminga murojaat qilib balansni ham to'ldirishingiz mumkin.
-        To'lov tasdiqlangach, holat va hisobingiz avtomatik yangilanadi.
-        Savollar uchun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
+        <strong>Qanday tölaş mumkin?</strong> — Online tölovni Click, Payme, Paynet, Alif, AnorBank, Plum ilovalari yoki Uzcard, Humo, Visa/Mastercard kartalari bilan amalga oşiring. Zarur bölsa, admin/yordamchi adminga murojaat qilib balansni ham töldirişingiz mumkin.
+        Tölov tasdiqlangaç, holat va hisobingiz avtomatik yangilanadi.
+        Savollar uçun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
     </div>
 
 </div>
@@ -928,8 +928,8 @@ body {
         function paintTheme(theme) {
             root.setAttribute('data-bs-theme', theme);
             icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
-            label.textContent = theme === 'dark' ? 'Yorugʻ' : 'Qorongʻi';
-            button.setAttribute('aria-label', theme === 'dark' ? 'Yorugʻ mavzuga oʻtish' : 'Qorongʻi mavzuga oʻtish');
+            label.textContent = theme === 'dark' ? 'Yorugʻ' : 'Qoronği';
+            button.setAttribute('aria-label', theme === 'dark' ? 'Yorugʻ mavzuga ötiş' : 'Qoronği mavzuga ötiş');
         }
         let saved = 'light';
         try { saved = localStorage.getItem('theme') || 'light'; } catch (_) {}
@@ -941,7 +941,7 @@ body {
         });
     })();
 
-    // Tezcheck to'lov summasi va kartochkalar bo'yicha jonli hisob-kitob
+    // Tezcheck tölov summasi va kartoçkalar böyiça jonli hisob-kitob
     const monthlyFee = {{ monthly_fee }};
     const dailyFee = {{ daily_fee }};
     const amtHidden = document.getElementById('tz-amount-hidden');
@@ -968,7 +968,7 @@ body {
         if (fullMonths > 0) parts.push(fullMonths + ' oy');
         if (extraDays > 0) parts.push(extraDays + ' kun');
         if (parts.length === 0) {
-            return { text: '0 kun (kamida ' + formatNumber(Math.round(dayCost)) + " so'm kerak)", remainder: amount };
+            return { text: '0 kun (kamida ' + formatNumber(Math.round(dayCost)) + " söm kerak)", remainder: amount };
         }
         return { text: parts.join(' + '), remainder: leftover };
     }
@@ -976,16 +976,16 @@ body {
     function updateDisplay(amount) {
         amount = parseInt(amount) || 0;
         if (amtHidden) amtHidden.value = amount;
-        if (previewAmount) previewAmount.textContent = formatNumber(amount) + " so'm";
+        if (previewAmount) previewAmount.textContent = formatNumber(amount) + " söm";
         const res = calculateDays(amount);
         if (previewDays) {
             if (res.remainder > 0) {
-                previewDays.innerHTML = res.text + ' <span style="font-size:0.75rem;font-weight:normal;color:var(--pw-muted);">(qoldiq ' + formatNumber(res.remainder) + " so'm balansda qoladi)</span>";
+                previewDays.innerHTML = res.text + ' <span style="font-size:0.75rem;font-weight:normal;color:var(--pw-muted);">(qoldiq ' + formatNumber(res.remainder) + " söm balansda qoladi)</span>";
             } else {
                 previewDays.textContent = res.text;
             }
         }
-        if (btnPayText) btnPayText.textContent = "Online to'lash";
+        if (btnPayText) btnPayText.textContent = "Online tölaş";
     }
 
     window.selectPlan = function(card, amount) {
@@ -1013,7 +1013,7 @@ body {
         });
     }
 
-    // Dastlabki holatni sozlash
+    // Dastlabki holatni sozlaş
     updateDisplay({{ monthly_fee }});
 </script>
 </body>

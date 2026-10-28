@@ -38,11 +38,11 @@ def encode_project(raw):
     try:
         project = json.loads(raw)
     except (ValueError, TypeError, RecursionError):
-        raise ValueError('Kod formati noto‘g‘ri.')
+        raise ValueError('Kod formati notöğri.')
     if not valid_project(project):
-        raise ValueError('Kod loyihasi formati yoki hajmi noto\u2018g\u2018ri.')
+        raise ValueError('Kod loyihasi formati yoki hajmi notöğri.')
     if not all(isinstance(v, str) for v in project.values()):
-        raise ValueError('Kod matn ko‘rinishida bo‘lishi kerak.')
+        raise ValueError('Kod matn körinişida bölişi kerak.')
     if not any(v.strip() for k, v in project.items() if k in {'code', 'html', 'css', 'js'}):
         raise ValueError('Avval kod yozing.')
     if sum(len(v) for v in project.values()) > 150_000:

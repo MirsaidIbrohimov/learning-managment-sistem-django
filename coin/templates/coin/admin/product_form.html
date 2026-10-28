@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}{% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %} | Admin{% endblock %}
+{% block title %}{% if product %}Mahsulotni tahrirlaş{% else %}Yangi mahsulot{% endif %} | Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -147,7 +147,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
         <h2 class="fw-bold mb-0">
             <i class="bi bi-{% if product %}pencil-square{% else %}plus-circle{% endif %} text-primary"></i>
-            {% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %}
+            {% if product %}Mahsulotni tahrirlaş{% else %}Yangi mahsulot{% endif %}
         </h2>
         <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
             <i class="bi bi-arrow-left"></i> Ortga
@@ -175,7 +175,7 @@
                     <div class="mb-3">
                         <label class="form-label">Tavsif <span class="text-danger">*</span></label>
                         <textarea name="description" rows="5" class="form-control"
-                                  placeholder="Mahsulot haqida qisqacha ma'lumot" required>{% if product %}{{ product.description }}{% endif %}</textarea>
+                                  placeholder="Mahsulot haqida qisqaça ma'lumot" required>{% if product %}{{ product.description }}{% endif %}</textarea>
                     </div>
 
                     <div class="mb-3">
@@ -184,7 +184,7 @@
                         <div class="preview-wrap">
                             <img src="{{ product.image.url }}" class="preview-img" alt="{{ product.name }}">
                             <div class="preview-note">
-                                <i class="bi bi-info-circle"></i> Joriy rasm — yangi tanlamasangiz shu qoladi.
+                                <i class="bi bi-info-circle"></i> Joriy rasm — yangi tanlamasangiz şu qoladi.
                             </div>
                         </div>
                         {% endif %}
@@ -202,7 +202,7 @@
                             <label class="form-label"><i class="bi bi-archive"></i> Zaxira</label>
                             <input type="number" name="stock" min="0" class="form-control"
                                    value="{% if product %}{{ product.stock }}{% else %}0{% endif %}">
-                            <div class="field-hint">Bo'sh yoki 0 — mahsulot tugagan deb belgilanadi.</div>
+                            <div class="field-hint">Böş yoki 0 — mahsulot tugagan deb belgilanadi.</div>
                         </div>
                     </div>
 
@@ -211,18 +211,18 @@
                             <input class="form-check-input" type="checkbox" name="is_active" id="isActiveChk"
                                    {% if product.is_active or not product %}checked{% endif %}>
                             <label class="form-check-label fw-semibold" for="isActiveChk">
-                                <i class="bi bi-eye"></i> Faol (marketda ko'rinadi)
+                                <i class="bi bi-eye"></i> Faol (marketda körinadi)
                             </label>
                         </div>
                     </div>
 
                     <div class="d-flex gap-3 flex-wrap">
                         <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
-                            <i class="bi bi-x-lg"></i> Bekor qilish
+                            <i class="bi bi-x-lg"></i> Bekor qiliş
                         </a>
                         <button type="submit" class="btn btn-add flex-grow-1">
                             <i class="bi bi-check-lg"></i>
-                            {% if product %}Saqlash{% else %}Mahsulot qo'shish{% endif %}
+                            {% if product %}Saqlaş{% else %}Mahsulot qöşiş{% endif %}
                         </button>
                     </div>
                 </form>

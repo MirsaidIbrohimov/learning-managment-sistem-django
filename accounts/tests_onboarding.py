@@ -1,4 +1,4 @@
-"""O'quvchining birinchi kirishdagi qo'llanmasi."""
+"""Öquvçining birinçi kirişdagi qöllanmasi."""
 from django.test import TestCase, modify_settings
 from django.urls import reverse
 

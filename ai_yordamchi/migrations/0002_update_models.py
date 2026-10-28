@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             options={'ordering': ['-updated_at'], 'verbose_name': 'Suhbat', 'verbose_name_plural': 'Suhbatlar'},
         ),
         
-        # Rename chat to session in ChatMessage
+        # Rename çat to session in ChatMessage
         migrations.RenameField(
             model_name='chatmessage',
             old_name='chat',
@@ -86,7 +86,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='chatmessage',
             name='role',
-            field=models.CharField(choices=[('user', 'Foydalanuvchi'), ('assistant', 'AI Yordamchi')], max_length=20),
+            field=models.CharField(choices=[('user', 'Foydalanuvçi'), ('assistant', 'AI Yordamçi')], max_length=20),
         ),
         
         # Add ChatMessage Meta

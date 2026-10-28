@@ -14,7 +14,7 @@ urlpatterns = [
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
     path('.well-known/security.txt', security_txt, name='security_txt'),
     path('security.txt', security_txt),
-    # PWA + Android TWA (ommaviy, foydalanuvchi ma'lumotisiz)
+    # PWA + Android TWA (ommaviy, foydalanuvçi ma'lumotisiz)
     path('manifest.webmanifest', pwa.manifest, name='pwa_manifest'),
     path('sw.js', pwa.service_worker, name='pwa_service_worker'),
     path('.well-known/assetlinks.json', pwa.assetlinks, name='assetlinks'),
@@ -37,8 +37,8 @@ urlpatterns = [
 ]
 
 # Media files handling
-# DEBUG rejimida ham `serve_media` ishlatiladi: yuklangan `.html`/`.svg` fayl
-# saqlangan XSS bermasligi lokal muhitda ham tekshirilishi kerak.
+# DEBUG rejimida ham `serve_media` işlatiladi: yuklangan `.html`/`.svg` fayl
+# saqlangan XSS bermasligi lokal muhitda ham tekşirilişi kerak.
 urlpatterns += [
     re_path(r'^media/(?P<path>.*)$', serve_media, name='serve_media'),
 ]

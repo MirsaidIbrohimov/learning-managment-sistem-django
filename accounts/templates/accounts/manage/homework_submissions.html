@@ -55,6 +55,8 @@
 .hw-ccard-row { display: flex; gap: 1rem; font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); }
 .hw-ccard-row span { display: flex; align-items: center; gap: 0.25rem; }
 .hw-ccard-row .warn { color: #d97706; font-weight: 600; }
+.hw-ccard-teacher { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.3rem; font-size: 0.78rem; color: #4f46e5; font-weight: 500; }
+.hw-ccard-teacher .none { color: var(--bs-secondary-color, #6c757d); font-style: italic; font-weight: 400; }
 .hw-ccard-badge {
     align-self: center; min-width: 28px; height: 28px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
@@ -253,7 +255,7 @@
 
     <div class="hw-head">
         <h1><i class="bi bi-journal-check"></i> Uy vazifalari</h1>
-        <p>{% if profession_filter %}Vazifalarni tekshirish va baholash{% else %}Kursni tanlang{% endif %}</p>
+        <p>{% if profession_filter %}Vazifalarni tekşiriş va baholaş{% else %}Kursni tanlang{% endif %}</p>
     </div>
 
 {% if not profession_filter %}
@@ -266,11 +268,11 @@
         </div>
         <div class="hw-strip-card">
             <div class="hw-strip-num c2">{{ stats.reviewing }}</div>
-            <div class="hw-strip-label">Ko'rilmoqda</div>
+            <div class="hw-strip-label">Körilmoqda</div>
         </div>
         <div class="hw-strip-card">
             <div class="hw-strip-num c3">{{ stats.revision }}</div>
-            <div class="hw-strip-label">Qayta ishlash</div>
+            <div class="hw-strip-label">Qayta işlaş</div>
         </div>
         <div class="hw-strip-card">
             <div class="hw-strip-num c4">{{ stats.accepted }}</div>
@@ -296,6 +298,10 @@
                     <span class="warn"><i class="bi bi-exclamation-circle"></i> {{ ps.pending }} kutilmoqda</span>
                     {% endif %}
                 </div>
+                <div class="hw-ccard-teacher">
+                    <i class="bi bi-person-badge"></i>
+                    {% if ps.teachers %}{{ ps.teachers|join:", " }}{% else %}<span class="none">Öqituvçi biriktirilmagan</span>{% endif %}
+                </div>
             </div>
             {% if ps.pending > 0 %}
             <div class="hw-ccard-badge has">{{ ps.pending }}</div>
@@ -310,20 +316,24 @@
     <div class="hw-empty">
         <div class="hw-empty-ico"><i class="bi bi-inbox"></i></div>
         <h5>Kurslar topilmadi</h5>
-        <p>Hozircha vazifa topshirilmagan</p>
+        <p>Hozirça vazifa topşirilmagan</p>
     </div>
     {% endif %}
 
 {% else %}
 
-    <a href="{% url 'homework_submissions' %}" class="hw-back"><i class="bi bi-arrow-left"></i> Barcha kurslar</a>
+    <a href="{% url 'homework_submissions' %}" class="hw-back"><i class="bi bi-arrow-left"></i> Barça kurslar</a>
 
     {% for ps in profession_stats %}{% if ps.profession.pk|stringformat:"i" == profession_filter %}
     <div class="hw-inner-head">
         <div class="hw-ccard-icon"><i class="bi bi-book"></i></div>
         <div>
             <div class="hw-inner-name">{{ ps.profession.name }}</div>
-            <div class="hw-inner-sub">{{ total_count }} ta topshirilgan vazifa</div>
+            <div class="hw-inner-sub">{{ total_count }} ta topşirilgan vazifa</div>
+            <div class="hw-ccard-teacher">
+                <i class="bi bi-person-badge"></i> Öqituvçi:
+                {% if ps.teachers %}<strong>{{ ps.teachers|join:", " }}</strong>{% else %}<span class="none">biriktirilmagan</span>{% endif %}
+            </div>
         </div>
     </div>
     {% endif %}{% endfor %}
@@ -331,16 +341,16 @@
     <!-- Tabs -->
     <div class="hw-tabs">
         <a href="?profession={{ profession_filter }}" class="hw-tab {% if not status_filter %}on{% endif %}">
-            <i class="bi bi-layers"></i> Barchasi
+            <i class="bi bi-layers"></i> Barçasi
         </a>
         <a href="?profession={{ profession_filter }}&status=pending" class="hw-tab {% if status_filter == 'pending' %}on{% endif %}">
             <i class="bi bi-hourglass-split"></i> Kutilmoqda <span class="hw-tab-count">{{ stats.pending }}</span>
         </a>
         <a href="?profession={{ profession_filter }}&status=reviewing" class="hw-tab {% if status_filter == 'reviewing' %}on{% endif %}">
-            <i class="bi bi-eye"></i> Ko'rilmoqda <span class="hw-tab-count">{{ stats.reviewing }}</span>
+            <i class="bi bi-eye"></i> Körilmoqda <span class="hw-tab-count">{{ stats.reviewing }}</span>
         </a>
         <a href="?profession={{ profession_filter }}&status=revision" class="hw-tab {% if status_filter == 'revision' %}on{% endif %}">
-            <i class="bi bi-arrow-repeat"></i> Qayta ishlash <span class="hw-tab-count">{{ stats.revision }}</span>
+            <i class="bi bi-arrow-repeat"></i> Qayta işlaş <span class="hw-tab-count">{{ stats.revision }}</span>
         </a>
         <a href="?profession={{ profession_filter }}&status=graded" class="hw-tab {% if status_filter == 'graded' %}on{% endif %}">
             <i class="bi bi-star"></i> Baholangan <span class="hw-tab-count">{{ stats.graded }}</span>
@@ -350,16 +360,16 @@
         </a>
     </div>
 
-    <!-- AI ommaviy baholash + ustozga eslatma tugmalari -->
+    <!-- AI ommaviy baholaş + ustozga eslatma tugmalari -->
     <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
         {% if user_ai_enabled %}
         <button type="button" id="bulkAiBtn" class="hw-btn" style="background:rgba(16,185,129,0.1);color:#059669;padding:0.5rem 1rem;font-size:0.85rem;">
-            <i class="bi bi-robot"></i> Barchasini AI bilan baholash
+            <i class="bi bi-robot"></i> Barçasini AI bilan baholaş
         </button>
         {% endif %}
         {% if request.user.is_admin and reminder_templates %}
         <button type="button" id="remindBtn" class="hw-btn" style="background:rgba(99,102,241,0.1);color:#4f46e5;padding:0.5rem 1rem;font-size:0.85rem;">
-            <i class="bi bi-send"></i> Ustozga eslatma yuborish
+            <i class="bi bi-send"></i> Ustozga eslatma yuboriş
         </button>
         {% endif %}
     </div>
@@ -372,14 +382,14 @@
     <div class="hw-controls">
         <div class="hw-search">
             <i class="bi bi-search"></i>
-            <input type="text" name="q" id="hwQ" placeholder="Izlash..."
+            <input type="text" name="q" id="hwQ" placeholder="Izlaş..."
                    value="{{ search_query }}" autocomplete="off">
             <button type="button" class="hw-search-x {% if search_query %}on{% endif %}" id="hwX"><i class="bi bi-x-circle-fill"></i></button>
         </div>
         <select name="sort" class="hw-sort" onchange="document.getElementById('hwForm').submit()">
-            <option value="">Yangi birinchi</option>
-            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
-            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism bo'yicha</option>
+            <option value="">Yangi birinçi</option>
+            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinçi</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism böyiça</option>
         </select>
         <span class="hw-count">{{ total_count }} ta vazifa</span>
     </div>
@@ -391,7 +401,7 @@
     <table class="hw-table">
         <thead>
             <tr>
-                <th>O'quvchi</th>
+                <th>Öquvçi</th>
                 <th>Dars</th>
                 <th>Holat</th>
                 <th>Vaqt</th>
@@ -413,7 +423,7 @@
                                 {{ sub.student.full_name }}
                                 {% if sub.unread_messages_count > 0 %}<span class="hw-ubadge">{{ sub.unread_messages_count }}</span>{% endif %}
                             </div>
-                            {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Kech</span>{% endif %}
+                            {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Keç</span>{% endif %}
                         </div>
                     </div>
                 </td>
@@ -429,15 +439,15 @@
                 <td>
                     <span class="hw-badge b-{{ sub.status }}">
                         {% if sub.status == 'pending' %}<i class="bi bi-hourglass-split"></i> Kutilmoqda
-                        {% elif sub.status == 'reviewing' %}<i class="bi bi-eye"></i> Ko'rilmoqda
-                        {% elif sub.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta ishlash
+                        {% elif sub.status == 'reviewing' %}<i class="bi bi-eye"></i> Körilmoqda
+                        {% elif sub.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta işlaş
                         {% elif sub.status == 'accepted' %}<i class="bi bi-check-lg"></i> Qabul qilindi
                         {% elif sub.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ sub.grade }}/10
                         {% endif %}
                     </span>
                 </td>
                 <td><span class="hw-date">{{ sub.submitted_at|timesince }} oldin</span></td>
-                <td><a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Ko'rish</a></td>
+                <td><a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Köriş</a></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -460,13 +470,13 @@
                             {{ sub.student.full_name }}
                             {% if sub.unread_messages_count > 0 %}<span class="hw-ubadge">{{ sub.unread_messages_count }}</span>{% endif %}
                         </div>
-                        {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Kech</span>{% endif %}
+                        {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Keç</span>{% endif %}
                     </div>
                 </div>
                 <span class="hw-badge b-{{ sub.status }}">
                     {% if sub.status == 'pending' %}Kutilmoqda
-                    {% elif sub.status == 'reviewing' %}Ko'rilmoqda
-                    {% elif sub.status == 'revision' %}Qayta ishlash
+                    {% elif sub.status == 'reviewing' %}Körilmoqda
+                    {% elif sub.status == 'revision' %}Qayta işlaş
                     {% elif sub.status == 'accepted' %}Qabul qilindi
                     {% elif sub.status == 'graded' %}{{ sub.grade }}/10
                     {% endif %}
@@ -482,7 +492,7 @@
             </div>
             <div class="hw-mob-bot">
                 <span class="hw-date"><i class="bi bi-clock me-1"></i>{{ sub.submitted_at|timesince }} oldin</span>
-                <a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Ko'rish</a>
+                <a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Köriş</a>
             </div>
         </div>
         {% endfor %}
@@ -494,7 +504,7 @@
     <div class="hw-empty">
         <div class="hw-empty-ico"><i class="bi bi-inbox"></i></div>
         <h5>Vazifalar topilmadi</h5>
-        <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Bu filtrda hozircha vazifa yo'q{% endif %}</p>
+        <p>{% if search_query %}"{{ search_query }}" böyiça heç narsa topilmadi{% else %}Bu filtrda hozirça vazifa yöq{% endif %}</p>
     </div>
     {% endif %}
 
@@ -502,36 +512,36 @@
 </div>
 
 {% if profession_filter %}
-<!-- AI ommaviy baholash modali -->
+<!-- AI ommaviy baholaş modali -->
 <div id="bulkAiModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
     <div style="background:var(--card-bg,#fff);border-radius:18px;padding:2rem 2rem 1.5rem;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
         <div id="bulkAiConfirm">
             <div style="text-align:center;margin-bottom:1.25rem;">
                 <div style="width:56px;height:56px;border-radius:14px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 0.75rem;">🤖</div>
-                <h5 style="font-weight:800;margin:0 0 0.35rem;">AI bilan ommaviy baholash</h5>
+                <h5 style="font-weight:800;margin:0 0 0.35rem;">AI bilan ommaviy baholaş</h5>
                 <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.85rem;margin:0;">
-                    Ushbu kursning barcha <strong>kutilayotgan</strong> va <strong>ko'rilayotgan</strong> vazifalarini AI avtomatik baholaydi (har safar 30 tagacha).
+                    Uşbu kursning barça <strong>kutilayotgan</strong> va <strong>körilayotgan</strong> vazifalarini AI avtomatik baholaydi (har safar 30 tagaça).
                 </p>
             </div>
             <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:0.75rem 1rem;font-size:0.8rem;color:#b45309;margin-bottom:1.25rem;">
                 <i class="bi bi-exclamation-triangle me-1"></i>
-                Bu amal ortga qaytarib bo'lmaydi. O'quvchilarga xabar yuboriladi.
+                Bu amal ortga qaytarib bölmaydi. Öquvçilarga xabar yuboriladi.
             </div>
             <div style="display:flex;gap:0.75rem;">
-                <button type="button" id="bulkAiCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qilish</button>
-                <button type="button" id="bulkAiConfirmBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Boshlash</button>
+                <button type="button" id="bulkAiCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qiliş</button>
+                <button type="button" id="bulkAiConfirmBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Boşlaş</button>
             </div>
         </div>
         <div id="bulkAiLoading" style="display:none;text-align:center;padding:0.5rem 0;">
             <div style="width:48px;height:48px;border-radius:50%;border:4px solid rgba(16,185,129,0.2);border-top-color:#10b981;animation:bulkSpin 0.8s linear infinite;margin:0 auto 1rem;"></div>
             <p style="font-weight:700;margin:0 0 0.25rem;">AI baholayapti...</p>
-            <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin:0;">Bu bir necha daqiqa vaqt olishi mumkin</p>
+            <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin:0;">Bu bir neça daqiqa vaqt olişi mumkin</p>
         </div>
         <div id="bulkAiResult" style="display:none;text-align:center;">
             <div id="bulkAiResultIcon" style="font-size:2rem;margin-bottom:0.5rem;"></div>
             <div id="bulkAiResultText" style="font-weight:700;font-size:1rem;margin-bottom:0.35rem;"></div>
             <div id="bulkAiResultSub" style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin-bottom:1.25rem;"></div>
-            <button type="button" id="bulkAiCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopish</button>
+            <button type="button" id="bulkAiCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopiş</button>
         </div>
     </div>
 </div>
@@ -590,9 +600,9 @@
                     icon.textContent='✅';
                     text.textContent=data.graded+' ta vazifa baholandi';
                     var parts=[];
-                    if(data.revision>0) parts.push(data.revision+' ta qayta ishlashga yuborildi');
-                    if(data.skipped>0) parts.push(data.skipped+' ta o\'tkazib yuborildi (fayl formati)');
-                    sub.textContent=parts.join(' · ') || 'Hamma vazifa muvaffaqiyatli qayta ishlandi';
+                    if(data.revision>0) parts.push(data.revision+' ta qayta işlaşga yuborildi');
+                    if(data.skipped>0) parts.push(data.skipped+' ta ötkazib yuborildi (fayl formati)');
+                    sub.textContent=parts.join(' · ') || 'Hamma vazifa muvaffaqiyatli qayta işlandi';
                 }
             })
             .catch(function(){
@@ -600,7 +610,7 @@
                 resultDiv.style.display='';
                 document.getElementById('bulkAiResultIcon').textContent='❌';
                 document.getElementById('bulkAiResultText').textContent='Tarmoq xatosi';
-                document.getElementById('bulkAiResultSub').textContent='Qayta urinib ko\'ring';
+                document.getElementById('bulkAiResultSub').textContent='Qayta urinib köring';
             });
         };
     }
@@ -615,21 +625,21 @@
 </script>
 
 {% if request.user.is_admin and reminder_templates %}
-<!-- Ustozga eslatma yuborish modali -->
+<!-- Ustozga eslatma yuboriş modali -->
 {{ reminder_templates|json_script:"remindTemplatesData" }}
 <div id="remindModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
     <div style="background:var(--card-bg,#fff);border-radius:18px;padding:1.75rem;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
         <div id="remindForm">
             <div style="text-align:center;margin-bottom:1rem;">
                 <div style="width:56px;height:56px;border-radius:14px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 0.75rem;">📨</div>
-                <h5 style="font-weight:800;margin:0 0 0.35rem;">Ustozga eslatma yuborish</h5>
+                <h5 style="font-weight:800;margin:0 0 0.35rem;">Ustozga eslatma yuboriş</h5>
                 <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.83rem;margin:0;">
-                    Xabar ichki chat va Telegram orqali yuboriladi.<br>
-                    Qabul qiluvchi: <strong>{{ course_teachers|join:", "|default:"o'qituvchi biriktirilmagan" }}</strong>
+                    Xabar içki çat va Telegram orqali yuboriladi.<br>
+                    Qabul qiluvçi: <strong>{{ course_teachers|join:", "|default:"öqituvçi biriktirilmagan" }}</strong>
                 </p>
             </div>
 
-            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.35rem;">Shablon tanlang:</label>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.35rem;">Şablon tanlang:</label>
             <select id="remindTemplate" style="width:100%;padding:0.55rem 0.75rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);color:var(--text-color,#212529);font-size:0.85rem;margin-bottom:0.75rem;">
                 {% for t in reminder_templates %}
                 <option value="{{ forloop.counter0 }}">{{ t.label }}</option>
@@ -637,13 +647,13 @@
             </select>
 
             <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.35rem;">
-                Xabar matni <span style="font-weight:500;color:var(--bs-secondary-color,#6c757d);">({ustoz} — har bir o'qituvchi ismi bilan almashadi)</span>:
+                Xabar matni <span style="font-weight:500;color:var(--bs-secondary-color,#6c757d);">({ustoz} — har bir öqituvçi ismi bilan almaşadi)</span>:
             </label>
             <textarea id="remindText" rows="9" style="width:100%;padding:0.65rem 0.75rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);color:var(--text-color,#212529);font-size:0.84rem;line-height:1.5;resize:vertical;margin-bottom:1rem;"></textarea>
 
             <div style="display:flex;gap:0.75rem;">
-                <button type="button" id="remindCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qilish</button>
-                <button type="button" id="remindSendBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="bi bi-send"></i> Yuborish</button>
+                <button type="button" id="remindCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qiliş</button>
+                <button type="button" id="remindSendBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="bi bi-send"></i> Yuboriş</button>
             </div>
         </div>
         <div id="remindLoading" style="display:none;text-align:center;padding:0.5rem 0;">
@@ -654,7 +664,7 @@
             <div id="remindResultIcon" style="font-size:2rem;margin-bottom:0.5rem;"></div>
             <div id="remindResultText" style="font-weight:700;font-size:1rem;margin-bottom:0.35rem;"></div>
             <div id="remindResultSub" style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin-bottom:1.25rem;"></div>
-            <button type="button" id="remindCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopish</button>
+            <button type="button" id="remindCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopiş</button>
         </div>
     </div>
 </div>
@@ -724,7 +734,7 @@
             } else {
                 icon.textContent='✅';
                 rt.textContent='Eslatma yuborildi!';
-                sub.textContent=data.teachers+' ta ustozga: '+data.chat+' ta chat, '+data.telegram+' ta Telegram xabari';
+                sub.textContent=data.teachers+' ta ustozga: '+data.chat+' ta çat, '+data.telegram+' ta Telegram xabari';
             }
         })
         .catch(function(){
@@ -732,7 +742,7 @@
             resultDiv.style.display='';
             document.getElementById('remindResultIcon').textContent='❌';
             document.getElementById('remindResultText').textContent='Tarmoq xatosi';
-            document.getElementById('remindResultSub').textContent='Qayta urinib ko\'ring';
+            document.getElementById('remindResultSub').textContent='Qayta urinib köring';
         });
     };
 })();

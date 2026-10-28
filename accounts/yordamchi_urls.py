@@ -1,4 +1,4 @@
-"""Alohida Yordamchi admin paneli URL'lari (/yordamchi/*)."""
+"""Alohida Yordamçi admin paneli URL'lari (/yordamchi/*)."""
 
 from django.urls import path
 
@@ -12,13 +12,13 @@ urlpatterns = [
     path('profil/', v.yordamchi_profile, name='yordamchi_profile'),
     path('profil/tahrirlash/', v.yordamchi_profile_edit, name='yordamchi_profile_edit'),
 
-    # Foydalanuvchilar
+    # Foydalanuvçilar
     path('oquvchilar/', v.yordamchi_students, name='yordamchi_students'),
     path('oquvchilar/<int:pk>/', v.yordamchi_student_detail, name='yordamchi_student_detail'),
     path('oqituvchilar/', v.yordamchi_teachers, name='yordamchi_teachers'),
     path('ota-onalar/', v.yordamchi_parents, name='yordamchi_parents'),
 
-    # O'quv jarayoni (faqat ko'rish, baholash YO'Q)
+    # Öquv jarayoni (faqat köriş, baholaş YÖQ)
     path('vazifalar/', v.yordamchi_homework, name='yordamchi_homework'),
     path('testlar/', v.yordamchi_tests, name='yordamchi_tests'),
     path('test-hulosalari/', v.yordamchi_test_summary, name='yordamchi_test_summary'),
@@ -42,7 +42,7 @@ urlpatterns = [
     path('kitob-arizalar/<int:pk>/tasdiqlash/', v.yordamchi_approve_book_request, name='yordamchi_approve_book_request'),
     path('kitob-arizalar/<int:pk>/rad/', v.yordamchi_reject_book_request, name='yordamchi_reject_book_request'),
 
-    # So'rovlar & yordam
+    # Sörovlar & yordam
     path('sorovlar/', v.yordamchi_requests, name='yordamchi_requests'),
     path('yordam-xatlari/', v.yordamchi_help, name='yordamchi_help'),
     path('arizalar/', v.yordamchi_applications, name='yordamchi_applications'),

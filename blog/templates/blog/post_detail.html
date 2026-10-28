@@ -356,7 +356,7 @@
     <div class="pd-hero-orb pd-hero-orb2"></div>
     <div class="pd-hero-content">
       <a href="{% url 'blog:post_list' %}" class="pd-back-btn">
-        <i class="bi bi-arrow-left"></i> Postlarga qaytish
+        <i class="bi bi-arrow-left"></i> Postlarga qaytiş
       </a>
       <div class="pd-meta">
         <span class="pd-type-badge type-{{ post.post_type }}">
@@ -364,7 +364,7 @@
           {% elif post.post_type == 'tutorial' %}<i class="bi bi-book-half"></i> Darslik
           {% elif post.post_type == 'tips' %}<i class="bi bi-lightbulb-fill"></i> Maslahat
           {% elif post.post_type == 'announcement' %}<i class="bi bi-megaphone-fill"></i> E'lon
-          {% else %}<i class="bi bi-three-dots"></i> Boshqa{% endif %}
+          {% else %}<i class="bi bi-three-dots"></i> Boşqa{% endif %}
         </span>
         <span class="pd-date"><i class="bi bi-calendar3"></i> {{ post.created_at|date:"d.m.Y, H:i" }}</span>
       </div>
@@ -390,11 +390,11 @@
         {% if user.is_teacher or user.is_admin %}
         <div class="pd-admin-btns">
           <a href="{% url 'blog:post_edit' post.pk %}" class="pd-admin-btn edit">
-            <i class="bi bi-pencil"></i> Tahrirlash
+            <i class="bi bi-pencil"></i> Tahrirlaş
           </a>
           <a href="{% url 'blog:post_delete' post.pk %}" class="pd-admin-btn del"
-             onclick="return confirm('Postni o\'chirmoqchimisiz?')">
-            <i class="bi bi-trash3"></i> O'chirish
+             onclick="return confirm('Postni öçirmoqçimisiz?')">
+            <i class="bi bi-trash3"></i> Öçiriş
           </a>
         </div>
         {% endif %}
@@ -429,10 +429,10 @@
         <form method="post">
           {% csrf_token %}
           <textarea name="content" class="pd-cmt-textarea"
-                    placeholder="Fikringizni tushunarli va mazmunli yozing..."
+                    placeholder="Fikringizni tuşunarli va mazmunli yozing..."
                     maxlength="1000" required>{{ form.content.value|default:'' }}</textarea>
           <div class="pd-cmt-help">
-            Kamida ikki tushunarli so'z yozing. Tasodifiy harflar va takroriy belgilar qabul qilinmaydi.
+            Kamida ikki tuşunarli söz yozing. Tasodifiy harflar va takroriy belgilar qabul qilinmaydi.
           </div>
           {% for error in form.content.errors %}
           <div class="pd-cmt-error" role="alert">
@@ -441,14 +441,14 @@
           {% endfor %}
           <div class="pd-cmt-form-footer">
             <button type="submit" class="pd-cmt-submit">
-              <i class="bi bi-send-fill"></i> Yuborish
+              <i class="bi bi-send-fill"></i> Yuboriş
             </button>
           </div>
         </form>
       </div>
       {% else %}
       <div class="pd-cmt-form-wrap">
-        <p>Izoh qoldirish uchun <a href="{% url 'login' %}?next={{ request.path|urlencode }}">hisobingizga kiring</a>.</p>
+        <p>Izoh qoldiriş uçun <a href="{% url 'login' %}?next={{ request.path|urlencode }}">hisobingizga kiring</a>.</p>
       </div>
       {% endif %}
 
@@ -472,8 +472,8 @@
         {% empty %}
         <div class="pd-cmt-empty">
           <i class="bi bi-chat-square"></i>
-          <div style="font-weight:600;color:var(--pd-text);margin-bottom:.35rem;">Hozircha izohlar yo'q</div>
-          <div style="font-size:.85rem;">Birinchi bo'lib fikr bildiring!</div>
+          <div style="font-weight:600;color:var(--pd-text);margin-bottom:.35rem;">Hozirça izohlar yöq</div>
+          <div style="font-size:.85rem;">Birinçi bölib fikr bildiring!</div>
         </div>
         {% endfor %}
       </div>

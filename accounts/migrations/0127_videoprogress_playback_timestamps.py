@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='videoprogress',
             name='playback_started_at',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Birinchi haqiqiy ijro vaqti'),
+            field=models.DateTimeField(blank=True, null=True, verbose_name='Birinçi haqiqiy ijro vaqti'),
         ),
         migrations.AddField(
             model_name='videoprogress',

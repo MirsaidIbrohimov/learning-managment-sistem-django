@@ -3,7 +3,7 @@
 Students already switched to contract mode (``StudentBalance.is_contract=True``)
 before this fix may still have leftover unpaid ``PaymentRecord`` rows created
 while they were on the regular monthly plan. Those rows keep surfacing as
-"To'lanmagan" in reminders/exports/counts even though the payments page hides
+"Tölanmagan" in reminders/exports/counts even though the payments page hides
 the students themselves. Delete only the *unpaid* rows for contract students;
 real (paid) payment history is preserved.
 """

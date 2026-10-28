@@ -1,32 +1,32 @@
-/* Ota-ona paneli — birinchi kirishdagi interaktiv qo'llanma (spotlight tur).
-   Ishga tushirish: window.ppTour.start()  ·  avtomatik: <body data-tour-auto>
-   Qadamlar [data-tour="..."] elementlariga bog'langan; topilmagan/ko'rinmagan qadam o'tkazib yuboriladi. */
+/* Ota-ona paneli — birinçi kirişdagi interaktiv qöllanma (spotlight tur).
+   Işga tuşiriş: window.ppTour.start()  ·  avtomatik: <body data-tour-auto>
+   Qadamlar [data-tour="..."] elementlariga boğlangan; topilmagan/körinmagan qadam ötkazib yuboriladi. */
 (function () {
     'use strict';
     var name = (document.body.getAttribute('data-child-name') || 'farzandingiz');
     var mobile = function () { return window.matchMedia('(max-width: 992px)').matches; };
 
     var STEPS = [
-        { target: null, icon: 'bi-stars', title: 'Xush kelibsiz! 👋',
-          text: 'Bu — ota-onalar uchun shaxsiy panelingiz. 1 daqiqada asosiy bo‘limlarni ko‘rsatib chiqamiz.' },
-        { target: 'kid', icon: 'bi-people-fill', title: 'Farzandni tanlash',
-          text: 'Bir nechta farzandingiz bo‘lsa, shu yerdan almashtirasiz — barcha sahifalar tanlangan farzand bo‘yicha ochiladi.' },
-        { target: 'hero', icon: 'bi-person-badge-fill', title: name + ' haqida qisqacha',
-          text: 'Onlayn holati, umumiy o‘zlashtirish foizi, davomat va test o‘rtachasi — bir qarashda.' },
-        { target: 'alerts', icon: 'bi-bell-fill', title: 'Muhim ogohlantirishlar',
-          text: 'Darsga kelmagan kunlar, topshirilmagan vazifalar yoki to‘lov muddati yaqinlashsa — shu yerda darhol ko‘rasiz.' },
-        { target: 'kpis', icon: 'bi-bar-chart-fill', title: 'Asosiy ko‘rsatkichlar',
-          text: 'Video darslar, testlar, davomat va vazifa baholari. Har bir kartani bossangiz — batafsil sahifa ochiladi.' },
+        { target: null, icon: 'bi-stars', title: 'Xuş kelibsiz! 👋',
+          text: 'Bu — ota-onalar uçun şaxsiy panelingiz. 1 daqiqada asosiy bölimlarni körsatib çiqamiz.' },
+        { target: 'kid', icon: 'bi-people-fill', title: 'Farzandni tanlaş',
+          text: 'Bir neçta farzandingiz bölsa, şu yerdan almaştirasiz — barça sahifalar tanlangan farzand böyiça oçiladi.' },
+        { target: 'hero', icon: 'bi-person-badge-fill', title: name + ' haqida qisqaça',
+          text: 'Onlayn holati, umumiy özlaştiriş foizi, davomat va test örtaçasi — bir qaraşda.' },
+        { target: 'alerts', icon: 'bi-bell-fill', title: 'Muhim ogohlantirişlar',
+          text: 'Darsga kelmagan kunlar, topşirilmagan vazifalar yoki tölov muddati yaqinlaşsa — şu yerda darhol körasiz.' },
+        { target: 'kpis', icon: 'bi-bar-chart-fill', title: 'Asosiy körsatkiçlar',
+          text: 'Video darslar, testlar, davomat va vazifa baholari. Har bir kartani bossangiz — batafsil sahifa oçiladi.' },
         { target: 'week', icon: 'bi-activity', title: 'Haftalik faollik',
-          text: 'Oxirgi 7 kunda ' + name + ' platformada qancha o‘qiganini ko‘rsatadi. Bo‘sh kunlar — gaplashib olish uchun yaxshi sabab 🙂' },
-        { target: 'pay', icon: 'bi-wallet2', title: 'To‘lov — bir bosishda',
-          text: 'Necha oyga to‘lashni tanlang va Click, Payme yoki karta bilan uydan turib to‘lang — pul to‘g‘ridan-to‘g‘ri ' + name + ' hisobiga tushadi.' },
-        { target: function () { return mobile() ? 'tabbar' : 'nav'; }, icon: 'bi-compass-fill', title: 'Barcha bo‘limlar',
-          text: 'Darslar, vazifalar, test natijalari, davomat va jadval, to‘lovlar, yutuqlar va reyting — hammasi menyuda.' },
+          text: 'Oxirgi 7 kunda ' + name + ' platformada qança öqiganini körsatadi. Böş kunlar — gaplaşib oliş uçun yaxşi sabab 🙂' },
+        { target: 'pay', icon: 'bi-wallet2', title: 'Tölov — bir bosişda',
+          text: 'Neça oyga tölaşni tanlang va Click, Payme yoki karta bilan uydan turib tölang — pul töğridan-töğri ' + name + ' hisobiga tuşadi.' },
+        { target: function () { return mobile() ? 'tabbar' : 'nav'; }, icon: 'bi-compass-fill', title: 'Barça bölimlar',
+          text: 'Darslar, vazifalar, test natijalari, davomat va jadval, tölovlar, yutuqlar va reyting — hammasi menyuda.' },
         { target: 'messages', icon: 'bi-chat-heart-fill', title: 'Ustoz bilan aloqa',
-          text: 'Savolingiz bo‘lsa — “Xabarlar” bo‘limidan yozing. Javob kelganda shu yerda qizil belgi paydo bo‘ladi.' },
+          text: 'Savolingiz bölsa — “Xabarlar” bölimidan yozing. Javob kelganda şu yerda qizil belgi paydo böladi.' },
         { target: null, icon: 'bi-check2-circle', title: 'Tayyor! 🎉',
-          text: 'Qo‘llanmani istalgan vaqtda yuqoridagi ❓ tugmasi orqali qayta ko‘rishingiz mumkin. ' + name + 'ga omad!' }
+          text: 'Qöllanmani istalgan vaqtda yuqoridagi ❓ tugmasi orqali qayta körişingiz mumkin. ' + name + 'ga omad!' }
     ];
 
     var ui, spot, card, idx = 0, steps = [];
@@ -43,7 +43,7 @@
             '  <div class="pt-ic"><i class="bi"></i></div>' +
             '  <h4 id="ptTitle"></h4><p></p>' +
             '  <div class="pt-dots"></div>' +
-            '  <div class="pt-btns"><button type="button" class="pt-skip">O‘tkazib yuborish</button>' +
+            '  <div class="pt-btns"><button type="button" class="pt-skip">Ötkazib yuboriş</button>' +
             '  <span style="flex:1"></span><button type="button" class="pt-prev" aria-label="Oldingi"><i class="bi bi-arrow-left"></i></button>' +
             '  <button type="button" class="pt-next">Keyingi <i class="bi bi-arrow-right"></i></button></div>' +
             '</div>';
@@ -94,7 +94,7 @@
         var below = top + h + gap, above = top - ch - gap;
         var y = (below + ch < innerHeight) ? below : (above > 0 ? above : Math.max(10, innerHeight - ch - 10));
         var x = Math.min(Math.max(10, left + w / 2 - cw / 2), innerWidth - cw - 10);
-        // Element juda keng/baland bo'lsa (sidebar) — kartani yoniga
+        // Element juda keng/baland bölsa (sidebar) — kartani yoniga
         if (h > innerHeight * 0.6 && left + w + cw + gap < innerWidth) { x = left + w + gap; y = Math.max(10, Math.min(top + 40, innerHeight - ch - 10)); }
         card.style.left = x + 'px';
         card.style.top = y + 'px';
@@ -110,7 +110,7 @@
         card.querySelector('.pt-dots').innerHTML = steps.map(function (_, k) { return '<i class="' + (k === i ? 'on' : k < i ? 'done' : '') + '"></i>'; }).join('');
         card.querySelector('.pt-prev').style.visibility = i ? 'visible' : 'hidden';
         var next = card.querySelector('.pt-next');
-        next.innerHTML = i === steps.length - 1 ? 'Boshlash <i class="bi bi-rocket-takeoff"></i>' : (i === 0 ? 'Boshladik <i class="bi bi-arrow-right"></i>' : 'Keyingi <i class="bi bi-arrow-right"></i>');
+        next.innerHTML = i === steps.length - 1 ? 'Boşlaş <i class="bi bi-rocket-takeoff"></i>' : (i === 0 ? 'Boşladik <i class="bi bi-arrow-right"></i>' : 'Keyingi <i class="bi bi-arrow-right"></i>');
         card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
         if (el) {
             var r = el.getBoundingClientRect();
@@ -137,7 +137,7 @@
 
     function start() {
         if (ui) return;
-        // Mobil menyu ochiq bo'lsa yopamiz
+        // Mobil menyu oçiq bölsa yopamiz
         var side = document.querySelector('.pp-side.open'); if (side) side.classList.remove('open');
         steps = STEPS.filter(function (s) { return !s.target || targetEl(s) || typeof s.target === 'function'; });
         build();

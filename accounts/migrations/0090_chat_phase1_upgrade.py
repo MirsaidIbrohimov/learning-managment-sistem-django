@@ -34,8 +34,8 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, db_index=True)),
             ],
             options={
-                'verbose_name': 'Yozish holati',
-                'verbose_name_plural': 'Yozish holatlari',
+                'verbose_name': 'Yoziş holati',
+                'verbose_name_plural': 'Yoziş holatlari',
             },
         ),
         migrations.CreateModel(
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directmessage',
             name='forwarded_sender_name',
-            field=models.CharField(blank=True, max_length=150, null=True, verbose_name='Asl yuboruvchi (forward)'),
+            field=models.CharField(blank=True, max_length=150, null=True, verbose_name='Asl yuboruvçi (forward)'),
         ),
         migrations.AddField(
             model_name='directmessage',
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='groupchatmessage',
             name='forwarded_sender_name',
-            field=models.CharField(blank=True, max_length=150, null=True, verbose_name='Asl yuboruvchi (forward)'),
+            field=models.CharField(blank=True, max_length=150, null=True, verbose_name='Asl yuboruvçi (forward)'),
         ),
         migrations.AddField(
             model_name='groupchatmessage',
@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='chatpin',
             name='partner',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Shaxsiy suhbatdosh'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Şaxsiy suhbatdoş'),
         ),
         migrations.AddField(
             model_name='chatpin',
@@ -123,12 +123,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='chatpin',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='chat_pins', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='chat_pins', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi'),
         ),
         migrations.AddField(
             model_name='chattypingstatus',
             name='partner',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Shaxsiy suhbatdosh'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to=settings.AUTH_USER_MODEL, verbose_name='Şaxsiy suhbatdoş'),
         ),
         migrations.AddField(
             model_name='chattypingstatus',
@@ -138,12 +138,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='chattypingstatus',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='typing_statuses', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='typing_statuses', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi'),
         ),
         migrations.AddField(
             model_name='messagereaction',
             name='direct_message',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='accounts.directmessage', verbose_name='Shaxsiy xabar'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='reactions', to='accounts.directmessage', verbose_name='Şaxsiy xabar'),
         ),
         migrations.AddField(
             model_name='messagereaction',
@@ -153,7 +153,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='messagereaction',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='message_reactions', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='message_reactions', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi'),
         ),
         migrations.AddConstraint(
             model_name='chatpin',

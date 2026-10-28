@@ -1,8 +1,8 @@
-"""Sotib olingan kurslar portali uchun kirish qoidalari.
+"""Sotib olingan kurslar portali uçun kiriş qoidalari.
 
-Portal faqat bir martalik to'lov bilan sotib olingan kurslarni ochadi. To'lov
-sababli bloklangan o'quvchi asosiy tizimga emas, faqat shu portalga kiradi —
-shuning uchun har bir portal sahifasi va API kursni o'zi qayta tekshiradi.
+Portal faqat bir martalik tölov bilan sotib olingan kurslarni oçadi. Tölov
+sababli bloklangan öquvçi asosiy tizimga emas, faqat şu portalga kiradi —
+şuning uçun har bir portal sahifasi va API kursni özi qayta tekşiradi.
 """
 from functools import wraps
 
@@ -16,7 +16,7 @@ PORTAL_PREFIX = '/kurslarim/'
 
 
 def is_payment_blocked(user):
-    """Faqat to'lov sababli blok (avtomatik yoki admin "to'lov qilinmagan" deb)."""
+    """Faqat tölov sababli blok (avtomatik yoki admin "tölov qilinmagan" deb)."""
     return bool(
         getattr(user, 'is_blocked', False)
         and user.role == 'student'
@@ -25,7 +25,7 @@ def is_payment_blocked(user):
 
 
 def purchased_course_ids(user):
-    """To'langan va o'quvchi hozir yozilgan kurslar."""
+    """Tölangan va öquvçi hozir yozilgan kurslar."""
     if not user.is_authenticated or not user.is_learner:
         return set()
     paid = set(TezCheckPaymentOrder.objects.filter(
@@ -54,7 +54,7 @@ def get_lesson_or_404(user, lesson_pk):
 
 
 def portal_lesson_api(view):
-    """`lesson_pk` kursi sotib olingan bo'lsagina mavjud API'ni chaqiradi."""
+    """`lesson_pk` kursi sotib olingan bölsagina mavjud API'ni çaqiradi."""
     @login_required
     @wraps(view)
     def wrapper(request, lesson_pk, *args, **kwargs):

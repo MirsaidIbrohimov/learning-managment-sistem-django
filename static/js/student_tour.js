@@ -1,45 +1,45 @@
-/* O'quvchi — saytga birinchi kirishdagi interaktiv qo'llanma (spotlight tur).
-   Ishga tushirish: window.stTour.start()  ·  avtomatik: <div id="stTourBoot" data-auto data-done-url="...">
-   Qadamlar [data-tour="..."] elementlariga bog'langan; ko'rinmagan qadam o'tkazib yuboriladi
-   (masalan, mobil va kompyuterda menyu turli joyda — qaysi biri ko'rinsa, o'sha ko'rsatiladi). */
+/* Öquvçi — saytga birinçi kirişdagi interaktiv qöllanma (spotlight tur).
+   Işga tuşiriş: window.stTour.start()  ·  avtomatik: <div id="stTourBoot" data-auto data-done-url="...">
+   Qadamlar [data-tour="..."] elementlariga boğlangan; körinmagan qadam ötkazib yuboriladi
+   (masalan, mobil va kompyuterda menyu turli joyda — qaysi biri körinsa, öşa körsatiladi). */
 (function () {
     'use strict';
     var boot = document.getElementById('stTourBoot');
     var name = (boot && boot.getAttribute('data-name')) || '';
 
     var STEPS = [
-        { target: null, icon: 'bi-stars', title: 'Xush kelibsiz' + (name ? ', ' + name : '') + '! 👋',
-          text: 'Bu — IT Creative o‘quv platformasi. 1 daqiqada saytdan qanday foydalanishni ko‘rsatib beramiz. Tayyormisiz?' },
-        { target: 'hero', icon: 'bi-house-heart-fill', title: 'Bosh sahifa',
-          text: 'Har safar kirganingizda shu yerni ko‘rasiz: keyingi dars vaqti va qaysi kursni davom ettirish kerakligi shu yerda yoziladi.' },
+        { target: null, icon: 'bi-stars', title: 'Xuş kelibsiz' + (name ? ', ' + name : '') + '! 👋',
+          text: 'Bu — IT Creative öquv platformasi. 1 daqiqada saytdan qanday foydalanişni körsatib beramiz. Tayyormisiz?' },
+        { target: 'hero', icon: 'bi-house-heart-fill', title: 'Boş sahifa',
+          text: 'Har safar kirganingizda şu yerni körasiz: keyingi dars vaqti va qaysi kursni davom ettiriş kerakligi şu yerda yoziladi.' },
         { target: 'metrics', icon: 'bi-bar-chart-fill', title: 'Sizning natijalaringiz',
-          text: 'Darajangiz, coinlaringiz, reytingdagi o‘rningiz va kurslarni necha foiz o‘zlashtirganingiz — hammasi bir qarashda.' },
+          text: 'Darajangiz, coinlaringiz, reytingdagi örningiz va kurslarni neça foiz özlaştirganingiz — hammasi bir qaraşda.' },
         { target: 'courses', icon: 'bi-book-fill', title: '1-qadam: Kursga yoziling',
-          text: '“Kurslar” bo‘limidan o‘zingizga yoqqan kursni tanlang va “Kursga yozilish” tugmasini bosing. Qisqacha nima uchun o‘qimoqchi ekaningizni yozasiz.' },
+          text: '“Kurslar” bölimidan özingizga yoqqan kursni tanlang va “Kursga yoziliş” tugmasini bosing. Qisqaça nima uçun öqimoqçi ekaningizni yozasiz.' },
         { target: null, icon: 'bi-person-check-fill', title: '2-qadam: Ustoz tasdiqlaydi',
-          text: 'So‘rovingiz kurs ustoziga boradi. Ustoz yoki admin tasdiqlagach, sizga xabar keladi va darslar ochiladi. Telegram botga ulangan bo‘lsangiz, xabar Telegramga ham keladi.' },
-        { target: 'mycourses', icon: 'bi-play-btn-fill', title: '3-qadam: Darslarni o‘qing',
-          text: 'Yozilgan kurslaringiz shu yerda turadi. Video darsni ko‘ring, testni ishlang, uyga vazifani yuboring — har biri uchun coin olasiz.' },
+          text: 'Sörovingiz kurs ustoziga boradi. Ustoz yoki admin tasdiqlagaç, sizga xabar keladi va darslar oçiladi. Telegram botga ulangan bölsangiz, xabar Telegramga ham keladi.' },
+        { target: 'mycourses', icon: 'bi-play-btn-fill', title: '3-qadam: Darslarni öqing',
+          text: 'Yozilgan kurslaringiz şu yerda turadi. Video darsni köring, testni işlang, uyga vazifani yuboring — har biri uçun coin olasiz.' },
         { target: 'missions', icon: 'bi-check2-circle', title: 'Kunlik vazifalar',
-          text: 'Har kuni kichik vazifalar beriladi. Bajarsangiz qo‘shimcha XP olasiz va darajangiz oshadi.' },
+          text: 'Har kuni kiçik vazifalar beriladi. Bajarsangiz qöşimça XP olasiz va darajangiz oşadi.' },
         { target: 'coin', icon: 'bi-coin', title: 'Coin — sizning mukofotingiz',
-          text: 'Dars, test va vazifalar uchun coin yig‘iladi. Ustozingiz ham faolligingiz uchun coin berishi mumkin. Bosib, coin tarixini ko‘rasiz.' },
+          text: 'Dars, test va vazifalar uçun coin yiğiladi. Ustozingiz ham faolligingiz uçun coin berişi mumkin. Bosib, coin tarixini körasiz.' },
         { target: 'market', icon: 'bi-shop', title: 'Market',
-          text: 'Yig‘ilgan coinlarga Marketdan sovg‘alar va mahsulotlar sotib olishingiz mumkin. Qancha ko‘p o‘qisangiz — shuncha ko‘p coin!' },
+          text: 'Yiğilgan coinlarga Marketdan sovğalar va mahsulotlar sotib olişingiz mumkin. Qança köp öqisangiz — şunça köp coin!' },
         { target: 'rating', icon: 'bi-trophy-fill', title: 'Reyting',
-          text: 'Boshqa o‘quvchilar orasida nechanchi o‘rinda ekaningizni ko‘ring. Eng faollar sahifaning tepasida turadi.' },
+          text: 'Boşqa öquvçilar orasida neçançi örinda ekaningizni köring. Eng faollar sahifaning tepasida turadi.' },
         { target: 'schedule', icon: 'bi-calendar2-week-fill', title: 'Dars jadvali',
-          text: 'Qaysi kuni, soat nechada darsingiz borligini shu yerdan bilib olasiz.' },
+          text: 'Qaysi kuni, soat neçada darsingiz borligini şu yerdan bilib olasiz.' },
         { target: 'chat', icon: 'bi-chat-dots-fill', title: 'Suhbatlar',
-          text: 'Guruhdoshlaringiz va ustozingiz bilan shu yerda yozishasiz. Tushunmagan joyingizni ustozdan so‘rang — uyalmang 🙂' },
-        { target: 'bell', icon: 'bi-bell-fill', title: 'Bildirishnomalar',
-          text: 'Yangi xabar, baho yoki so‘rov javobi kelsa — qo‘ng‘iroqchada qizil belgi paydo bo‘ladi.' },
+          text: 'Guruhdoşlaringiz va ustozingiz bilan şu yerda yozişasiz. Tuşunmagan joyingizni ustozdan sörang — uyalmang 🙂' },
+        { target: 'bell', icon: 'bi-bell-fill', title: 'Bildirişnomalar',
+          text: 'Yangi xabar, baho yoki sörov javobi kelsa — qönğiroqçada qizil belgi paydo böladi.' },
         { target: 'help', icon: 'bi-question-circle-fill', title: 'Yordam',
-          text: 'Biror narsa ishlamasa yoki savolingiz bo‘lsa — “Yordam” bo‘limidan murojaat yuboring, admin javob beradi.' },
+          text: 'Biror narsa işlamasa yoki savolingiz bölsa — “Yordam” bölimidan murojaat yuboring, admin javob beradi.' },
         { target: 'profile', icon: 'bi-person-circle', title: 'Profil va sozlamalar',
-          text: 'Profil rasmingiz, ma’lumotlaringiz, vazifalaringiz va sozlamalar shu menyuda. Qo‘llanmani ham shu yerdagi “Qo‘llanma” tugmasi orqali qayta ko‘rasiz.' },
+          text: 'Profil rasmingiz, ma’lumotlaringiz, vazifalaringiz va sozlamalar şu menyuda. Qöllanmani ham şu yerdagi “Qöllanma” tugmasi orqali qayta körasiz.' },
         { target: null, icon: 'bi-rocket-takeoff-fill', title: 'Hammasi tayyor! 🎉',
-          text: 'Endi birinchi kursingizni tanlang va o‘qishni boshlang. Omad tilaymiz!' }
+          text: 'Endi birinçi kursingizni tanlang va öqişni boşlang. Omad tilaymiz!' }
     ];
 
     var ui, spot, card, idx = 0, steps = [];
@@ -56,7 +56,7 @@
             '  <div class="st-ic"><i class="bi"></i></div>' +
             '  <h4 id="stTitle"></h4><p></p>' +
             '  <div class="st-dots"></div>' +
-            '  <div class="st-btns"><button type="button" class="st-skip">O‘tkazib yuborish</button>' +
+            '  <div class="st-btns"><button type="button" class="st-skip">Ötkazib yuboriş</button>' +
             '  <span style="flex:1"></span><button type="button" class="st-prev" aria-label="Oldingi"><i class="bi bi-arrow-left"></i></button>' +
             '  <button type="button" class="st-next">Keyingi <i class="bi bi-arrow-right"></i></button></div>' +
             '</div>';
@@ -114,7 +114,7 @@
         var below = top + h + gap, above = top - ch - gap;
         var y = (below + ch < innerHeight) ? below : (above > 0 ? above : Math.max(10, innerHeight - ch - 10));
         var x = Math.min(Math.max(10, left + w / 2 - cw / 2), innerWidth - cw - 10);
-        // Baland element (yon panel) — kartani yoniga qo'yamiz
+        // Baland element (yon panel) — kartani yoniga qöyamiz
         if (h > innerHeight * 0.6 && left + w + cw + gap < innerWidth) { x = left + w + gap; y = Math.max(10, Math.min(top + 40, innerHeight - ch - 10)); }
         card.style.left = x + 'px';
         card.style.top = y + 'px';
@@ -130,7 +130,7 @@
         card.querySelector('.st-dots').innerHTML = steps.map(function (_, k) { return '<i class="' + (k === i ? 'on' : k < i ? 'done' : '') + '"></i>'; }).join('');
         card.querySelector('.st-prev').style.visibility = i ? 'visible' : 'hidden';
         var btn = card.querySelector('.st-next');
-        btn.innerHTML = i === steps.length - 1 ? 'Boshlash <i class="bi bi-rocket-takeoff"></i>' : (i === 0 ? 'Boshladik <i class="bi bi-arrow-right"></i>' : 'Keyingi <i class="bi bi-arrow-right"></i>');
+        btn.innerHTML = i === steps.length - 1 ? 'Boşlaş <i class="bi bi-rocket-takeoff"></i>' : (i === 0 ? 'Boşladik <i class="bi bi-arrow-right"></i>' : 'Keyingi <i class="bi bi-arrow-right"></i>');
         card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
         if (el) {
             var r = el.getBoundingClientRect();

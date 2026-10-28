@@ -1,5 +1,5 @@
-/* IT Creative — bosh sahifa (dashboard) motion. profile-motion.js bilan birga ishlaydi.
- * GSAP bo'lmasa ham hamma qiymatlar yakuniy holatda ko'rinadi.
+/* IT Creative — boş sahifa (dashboard) motion. profile-motion.js bilan birga işlaydi.
+ * GSAP bölmasa ham hamma qiymatlar yakuniy holatda körinadi.
  * Global: window.HomeMotion = { enter(panel) }
  */
 (function () {
@@ -8,7 +8,7 @@
   const G = window.gsap, ST = window.ScrollTrigger;
   const anim = !!G && !matchMedia('(prefers-reduced-motion: reduce)').matches;
   const OY = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
-  const KUN = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba', 'Payshanba', 'Juma', 'Shanba'];
+  const KUN = ['Yakşanba', 'Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba'];
   const pad = n => String(n).padStart(2, '0');
 
   /* ── Sana va soat ── */
@@ -20,14 +20,14 @@
   }
   clock(); setInterval(clock, 15000);
 
-  /* ── Haftalik ustunlar: [data-bars="1,2,3"] yoki server chizgan .b[data-h] ── */
-  const WEEK = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'];
+  /* ── Haftalik ustunlar: [data-bars="1,2,3"] yoki server çizgan .b[data-h] ── */
+  const WEEK = ['Du', 'Se', 'Ç', 'Pa', 'Ju', 'Ş', 'Ya'];
   root.querySelectorAll('[data-bars]').forEach(box => {
     if (box.children.length) return;
     const vals = box.dataset.bars.split(',').map(Number), max = Math.max(...vals, 1), today = (new Date().getDay() + 6) % 7;
     box.innerHTML = vals.map((v, i) => `<div class="b"><div class="col${i === today ? ' today' : ''}" data-h="${Math.round(v / max * 100)}"><span>${v}</span></div><small>${WEEK[i]}</small></div>`).join('');
   });
-  // Server chizgan ustunlar: [data-auto] ichidagi .col[data-v] — balandlik eng kattasiga nisbatan
+  // Server çizgan ustunlar: [data-auto] içidagi .col[data-v] — balandlik eng kattasiga nisbatan
   root.querySelectorAll('.bars3[data-auto]').forEach(box => {
     const cols = [...box.querySelectorAll('.col[data-v]')], max = Math.max(1, ...cols.map(c => +c.dataset.v || 0));
     cols.forEach(c => { const v = +c.dataset.v || 0; c.dataset.h = v ? Math.max(6, Math.round(v / max * 100)) : 4; });
@@ -39,7 +39,7 @@
     });
   }
 
-  /* ── Keyingi dars / tadbir sanagichi: [data-countdown="ISO"] (kun, soat, daqiqa, soniya) ── */
+  /* ── Keyingi dars / tadbir sanagiçi: [data-countdown="ISO"] (kun, soat, daqiqa, soniya) ── */
   root.querySelectorAll('[data-countdown]').forEach(cd => {
     const at = new Date(cd.dataset.countdown).getTime(); if (isNaN(at)) return;
     const cells = cd.querySelectorAll('.cd b'), done = cd.querySelector('[data-cd-done]'), box = cd.querySelector('.cd');
@@ -53,7 +53,7 @@
     tick(); iv = setInterval(tick, 1000);
   });
 
-  /* ── Yozilib chiqadigan matn: [data-type] ── */
+  /* ── Yozilib çiqadigan matn: [data-type] ── */
   root.querySelectorAll('[data-type]').forEach(el => {
     const text = el.dataset.type; el.textContent = text;
     if (!anim || !ST) return;
@@ -63,7 +63,7 @@
     } });
   });
 
-  /* ── Panel (rol) ochilganda: ism, kartalar, raqamlar, halqalar, chiziqlar ── */
+  /* ── Panel (rol) oçilganda: ism, kartalar, raqamlar, halqalar, çiziqlar ── */
   function enter(panel) {
     const t = document.querySelector('#heroTitle .split');
     if (t && !t.querySelector('.ch')) t.innerHTML = t.textContent.trim().split(' ').map(w => `<span class="w">${chars(w).map(c => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
@@ -79,7 +79,7 @@
   }
   window.HomeMotion = { enter };
 
-  /* Birinchi ochilishda faqat ustunlar va faollik xaritasi (qolganini profile-motion.js qiladi) */
+  /* Birinçi oçilişda faqat ustunlar va faollik xaritasi (qolganini profile-motion.js qiladi) */
   const first = root.querySelector('.role.on') || root;
   if (anim && ST) {
     first.querySelectorAll('.bars3').forEach(b => ST.create({ trigger: b, start: 'top 92%', once: true, onEnter: () => growBars(b.parentElement) }));

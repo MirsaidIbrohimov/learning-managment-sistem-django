@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='homeworksubmission',
             name='submission_type',
-            field=models.CharField(choices=[('file', 'Fayl'), ('text', 'Matn')], default='file', max_length=10, verbose_name='Topshirish turi'),
+            field=models.CharField(choices=[('file', 'Fayl'), ('text', 'Matn')], default='file', max_length=10, verbose_name='Topşiriş turi'),
         ),
         migrations.AddField(
             model_name='homeworksubmission',

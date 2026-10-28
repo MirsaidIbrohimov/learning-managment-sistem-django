@@ -9,20 +9,20 @@ urlpatterns = [
     path('statistics/', views.teacher_statistics, name='statistics'),
     path('export/', views.teacher_export, name='export'),
 
-    # O'quvchilarim
+    # Öquvçilarim
     path('students/', views.teacher_my_students, name='my_students'),
     path('students/coins/', views.teacher_student_coins, name='student_coins'),
     path('students/add/', views.teacher_add_student, name='add_student'),
     path('students/remove/', views.teacher_remove_student, name='remove_student'),
 
-    # Kurs so'rovlari (yozilish / chiqish)
+    # Kurs sörovlari (yoziliş / çiqiş)
     path('requests/', views.teacher_course_requests, name='course_requests'),
     path('requests/<str:kind>/<int:pk>/<str:decision>/', views.teacher_review_request, name='review_request'),
 
-    # Admin: o'qituvchi amallari jurnali
+    # Admin: öqituvçi amallari jurnali
     path('admin/actions/', views.admin_teacher_actions, name='admin_actions'),
 
-    # Guruh chatlari
+    # Guruh çatlari
     path('group-chats/', views.teacher_group_chats, name='group_chats'),
 
     # Kurslarim
@@ -39,7 +39,7 @@ urlpatterns = [
     path('homeworks/', views.teacher_homeworks, name='homeworks'),
     path('homeworks/<int:pk>/grade/', views.teacher_grade_homework, name='grade_homework'),
 
-    # Test yuklash
+    # Test yuklaş
     path('courses/<int:pk>/add-test/', views.teacher_add_test, name='add_test'),
     path('tests/<int:pk>/questions/', views.teacher_manage_questions, name='manage_questions'),
     path('tests/<int:pk>/questions/add/', views.teacher_add_question, name='add_question'),
@@ -58,12 +58,12 @@ urlpatterns = [
     path('speaking/<int:pk>/grade/', views.teacher_grade_speaking, name='grade_speaking'),
     path('courses/<int:pk>/add-speaking/', views.teacher_add_speaking, name='add_speaking'),
 
-    # Yakuniy test to'lovlari
+    # Yakuniy test tölovlari
     path('final-test-payments/', views.teacher_final_test_payments, name='final_test_payments'),
     path('final-test-payments/<int:pk>/approve/', views.teacher_approve_final_payment, name='approve_final_payment'),
     path('final-test-payments/<int:pk>/reject/', views.teacher_reject_final_payment, name='reject_final_payment'),
 
-    # AI Tekshiruvchi
+    # AI Tekşiruvçi
     path('ai-checker/', views.teacher_ai_checker, name='ai_checker'),
     path('ai-checker/toggle/', views.teacher_ai_checker_toggle, name='ai_checker_toggle'),
     path('ai-checker/file-only-toggle/', views.teacher_file_only_toggle, name='file_only_toggle'),

@@ -1,4 +1,4 @@
-""""Sheriklar bilan" poyga xonalari: coin bron, poyga, hisob-kitob."""
+""""Şeriklar bilan" poyga xonalari: coin bron, poyga, hisob-kitob."""
 import itertools
 from datetime import timedelta
 
@@ -12,7 +12,7 @@ from . import rooms
 from .models import Game, Prompt, TypingRoom
 
 _phone = itertools.count(900)
-TEXT = 'bir ikki uch tort besh'
+TEXT = 'bir ikki uç tort beş'
 SKIP_SESSION_MIDDLEWARE = modify_settings(MIDDLEWARE={'remove': [
     'accounts.middleware.DeviceLimitMiddleware',
     'accounts.middleware.ProfileCompletionMiddleware',
@@ -44,7 +44,7 @@ class RoomServiceTests(TestCase):
         for u in players or [self.b]:
             rooms.join(room, u)
         rooms.start(room, self.a)
-        # Countdown'ni o'tkazib yuboramiz: start 10 soniya oldin bo'lgan deb hisoblaymiz
+        # Countdown'ni ötkazib yuboramiz: start 10 soniya oldin bölgan deb hisoblaymiz
         TypingRoom.objects.filter(pk=room.pk).update(starts_at=timezone.now() - timedelta(seconds=10))
         room.refresh_from_db()
         return room
@@ -78,7 +78,7 @@ class RoomServiceTests(TestCase):
         with self.assertRaises(rooms.RoomError):
             rooms.create_room(self.a, self.game, stake=500, max_players=2)
         room = rooms.create_room(self.a, self.game, stake=0, max_players=2)
-        self.assertEqual(room.fee_percent, 15)  # default — boshqa coinli o'yinlar bilan bir xil
+        self.assertEqual(room.fee_percent, 15)  # default — boşqa coinli öyinlar bilan bir xil
 
     def test_full_room_rejects(self):
         room = rooms.create_room(self.a, self.game, stake=0, max_players=2)
@@ -112,9 +112,9 @@ class RoomServiceTests(TestCase):
         self.assertEqual(list(room.players.order_by('place').values_list('user__username', flat=True)), ['anvar', 'bobur'])
 
     def test_wrong_word_gives_no_progress(self):
-        """'O'zbekiston' o'rniga 'jhdsbvcj' yozilsa — mashina joyida turadi."""
+        """'Özbekiston' örniga 'jhdsbvcj' yozilsa — maşina joyida turadi."""
         room = self.running_room(stake=0)
-        rooms.record_progress(room, self.a, 'jhdsbvcjsdhbvsd ikki uch tort besh')
+        rooms.record_progress(room, self.a, 'jhdsbvcjsdhbvsd ikki uç tort beş')
         player = room.players.get(user=self.a)
         self.assertEqual(player.words_done, 0)
         self.assertIsNone(player.finish_seconds)
@@ -123,15 +123,15 @@ class RoomServiceTests(TestCase):
 
     def test_progress_stops_at_first_wrong_word(self):
         room = self.running_room(stake=0)
-        rooms.record_progress(room, self.a, 'bir ikki XATO tort besh')
+        rooms.record_progress(room, self.a, 'bir ikki XATO tort beş')
         player = room.players.get(user=self.a)
         self.assertEqual(player.words_done, 2)
-        self.assertEqual(player.typed_text, 'bir ikki')     # faqat to'g'ri so'zlar saqlanadi
+        self.assertEqual(player.typed_text, 'bir ikki')     # faqat töğri sözlar saqlanadi
         self.assertIsNone(player.finish_seconds)
 
     def test_garbage_cannot_finish_or_win(self):
         room = self.running_room(stake=100)
-        rooms.record_progress(room, self.a, 'x x x x x')    # 5 ta so'z, hammasi xato — marra emas
+        rooms.record_progress(room, self.a, 'x x x x x')    # 5 ta söz, hammasi xato — marra emas
         rooms.record_progress(room, self.b, TEXT)
         room.refresh_from_db()
         self.assertEqual(room.status, 'running')            # a hali poygada
@@ -150,7 +150,7 @@ class RoomServiceTests(TestCase):
         self.assertEqual(room.status, 'finished')
         self.assertIsNone(room.winner)
         self.assertEqual((coins(self.a), coins(self.b)), (1000, 1000))
-        # b ko'proq to'g'ri so'z yozgan — o'rinlarda oldinda
+        # b köproq töğri söz yozgan — örinlarda oldinda
         self.assertEqual(room.players.get(user=self.b).place, 1)
 
     def test_client_accuracy_is_display_only(self):

@@ -1,15 +1,15 @@
-"""Jumanji uchun view'lar.
+"""Jumanji uçun view'lar.
 
-`games/views.py` allaqachon 2600+ qator — Jumanji shu yerda alohida turadi
+`games/views.py` allaqaçon 2600+ qator — Jumanji şu yerda alohida turadi
 (`accounts/payment_views.py` bilan bir xil konvensiya).
 
 Ikki qism:
-  * admin — savol bazasi (CRUD + Excel) va sessiyalar ro'yxati;
-  * jonli o'yin — lobby, polling (`state`) va boshqaruv (`control`).
+  * admin — savol bazasi (CRUD + Excel) va sessiyalar röyxati;
+  * jonli öyin — lobby, polling (`state`) va boşqaruv (`control`).
 
-Sinxronlash polling orqali: client `state_version` yuboradi, o'zgarmagan
-bo'lsa server qisqa javob qaytaradi. Har bir boshqaruv amali `turn_seq`
-tokeni bilan himoyalangan — ikki boshqaruvchi bir vaqtda bosса, ikkinchisi
+Sinxronlaş polling orqali: client `state_version` yuboradi, özgarmagan
+bölsa server qisqa javob qaytaradi. Har bir boşqaruv amali `turn_seq`
+tokeni bilan himoyalangan — ikki boşqaruvçi bir vaqtda bosса, ikkinçisi
 409 oladi va amal ikki marta bajarilmaydi.
 """
 
@@ -23,6 +23,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.alphabet import to_new_alphabet
 from accounts.models import Profession
 from . import jumanji
 from .models import (
@@ -35,17 +36,17 @@ from .models import (
 
 DIFFICULTY_MAP = {
     'oson': 'easy', 'easy': 'easy',
-    "o'rta": 'medium', 'orta': 'medium', "o`rta": 'medium', 'medium': 'medium',
+    "örta": 'medium', 'orta': 'medium', "örta": 'medium', 'medium': 'medium',
     'qiyin': 'hard', 'hard': 'hard',
 }
-DIFFICULTY_LABELS = {'easy': 'Oson', 'medium': "O'rta", 'hard': 'Qiyin'}
+DIFFICULTY_LABELS = {'easy': 'Oson', 'medium': "Örta", 'hard': 'Qiyin'}
 
-XLSX_HEADERS = ['Savol', "To'g'ri javob", 'Qiyinlik', "Yo'nalish"]
+XLSX_HEADERS = ['Savol', "Töğri javob", 'Qiyinlik', "Yönaliş"]
 MAX_IMPORT_ROWS = 2000
 
 
 # ============================================================
-# Yordamchilar
+# Yordamçilar
 # ============================================================
 
 def _int_or(value, default=0):
@@ -60,7 +61,7 @@ def _norm(value):
 
 
 def _jumanji_game():
-    """Jumanji o'yini yozuvi (birinchi faol)."""
+    """Jumanji öyini yozuvi (birinçi faol)."""
     return Game.objects.filter(game_type='jumanji').order_by('pk').first()
 
 
@@ -115,7 +116,7 @@ def admin_question_add(request, game_pk):
         correct_text = _norm(request.POST.get('correct_text'))
 
         if not text or not correct_text:
-            messages.error(request, "Savol matni va to'g'ri javob majburiy!")
+            messages.error(request, "Savol matni va töğri javob majburiy!")
         else:
             JumanjiQuestion.objects.create(
                 game=game,
@@ -128,13 +129,13 @@ def admin_question_add(request, game_pk):
                 is_active='is_active' in request.POST,
                 created_by=request.user,
             )
-            messages.success(request, "Savol qo'shildi!")
+            messages.success(request, "Savol qöşildi!")
             return redirect('games:jumanji_admin_questions', game_pk=game.pk)
 
     return render(request, 'games/admin/jumanji_question_form.html', {
         'game': game,
         'professions': Profession.objects.order_by('name'),
-        'title_page': "Jumanji savoli qo'shish",
+        'title_page': "Jumanji savoli qöşiş",
     })
 
 
@@ -150,7 +151,7 @@ def admin_question_edit(request, pk):
         correct_text = _norm(request.POST.get('correct_text'))
 
         if not text or not correct_text:
-            messages.error(request, "Savol matni va to'g'ri javob majburiy!")
+            messages.error(request, "Savol matni va töğri javob majburiy!")
         else:
             question.text = text
             question.correct_text = correct_text
@@ -170,7 +171,7 @@ def admin_question_edit(request, pk):
         'game': question.game,
         'question': question,
         'professions': Profession.objects.order_by('name'),
-        'title_page': "Savolni tahrirlash",
+        'title_page': "Savolni tahrirlaş",
     })
 
 
@@ -183,7 +184,7 @@ def admin_question_delete(request, pk):
     question = get_object_or_404(JumanjiQuestion, pk=pk)
     game_pk = question.game.pk
     question.delete()
-    messages.success(request, "Savol o'chirildi!")
+    messages.success(request, "Savol öçirildi!")
     return redirect('games:jumanji_admin_questions', game_pk=game_pk)
 
 
@@ -218,7 +219,7 @@ def _xlsx_workbook(sheet_title):
 def _add_validation(ws, max_row=1000):
     from openpyxl.worksheet.datavalidation import DataValidation
 
-    dv = DataValidation(type='list', formula1='"Oson,O\'rta,Qiyin"', allow_blank=True, showDropDown=False)
+    dv = DataValidation(type='list', formula1='"Oson,Örta,Qiyin"', allow_blank=True, showDropDown=False)
     ws.add_data_validation(dv)
     dv.add(f'C2:C{max_row}')
 
@@ -237,18 +238,18 @@ def _xlsx_response(wb, filename):
 
 @login_required
 def admin_questions_template(request, game_pk):
-    """Bo'sh import shabloni — namunaviy qatorlar bilan."""
+    """Böş import şabloni — namunaviy qatorlar bilan."""
     if not request.user.is_admin:
         return redirect('home')
 
     game = get_object_or_404(Game, pk=game_pk)
-    wb, ws = _xlsx_workbook('Shablon')
+    wb, ws = _xlsx_workbook('Şablon')
 
     from openpyxl.styles import Font
     samples = [
-        ("HTML da havola yaratish uchun qaysi teg ishlatiladi?", '<a> tegi', 'Oson', 'HTML asoslari'),
-        ("CSS da matn rangini o'zgartiruvchi xususiyat nomi?", 'color', "O'rta", 'HTML asoslari'),
-        ("HTML sahifa strukturasini og'zaki tushuntiring.", 'html > head + body', 'Qiyin', ''),
+        ("HTML da havola yaratiş uçun qaysi teg işlatiladi?", '<a> tegi', 'Oson', 'HTML asoslari'),
+        ("CSS da matn rangini özgartiruvçi xususiyat nomi?", 'color', "Örta", 'HTML asoslari'),
+        ("HTML sahifa strukturasini oğzaki tuşuntiring.", 'html > head + body', 'Qiyin', ''),
     ]
     for row, sample in enumerate(samples, start=2):
         for col, value in enumerate(sample, start=1):
@@ -271,7 +272,7 @@ def admin_questions_export(request, game_pk):
     for row, question in enumerate(questions, start=2):
         ws.cell(row=row, column=1, value=question.text)
         ws.cell(row=row, column=2, value=question.correct_text)
-        ws.cell(row=row, column=3, value=DIFFICULTY_LABELS.get(question.difficulty, "O'rta"))
+        ws.cell(row=row, column=3, value=DIFFICULTY_LABELS.get(question.difficulty, "Örta"))
         ws.cell(row=row, column=4, value=question.profession.name if question.profession else '')
 
     _add_validation(ws, max_row=max(1000, questions.count() + 100))
@@ -283,8 +284,8 @@ def admin_questions_export(request, game_pk):
 def admin_questions_import(request, game_pk):
     """Excel (.xlsx) dan savollarni import qiladi.
 
-    Ustunlar: Savol | To'g'ri javob | Qiyinlik | Yo'nalish
-    Faqat 'Savol' va 'To'g'ri javob' majburiy.
+    Ustunlar: Savol | Töğri javob | Qiyinlik | Yönaliş
+    Faqat 'Savol' va 'Töğri javob' majburiy.
     """
     if not request.user.is_admin:
         return redirect('home')
@@ -300,7 +301,7 @@ def admin_questions_import(request, game_pk):
         messages.error(request, "Faqat .xlsx formatdagi fayl qabul qilinadi!")
         return redirect_to
     if file.size > 5 * 1024 * 1024:
-        messages.error(request, "Fayl hajmi 5 MB dan oshmasligi kerak!")
+        messages.error(request, "Fayl hajmi 5 MB dan oşmasligi kerak!")
         return redirect_to
 
     import openpyxl
@@ -308,7 +309,7 @@ def admin_questions_import(request, game_pk):
         wb = openpyxl.load_workbook(file, read_only=True, data_only=True)
         ws = wb.active
     except Exception:
-        messages.error(request, "Faylni o'qib bo'lmadi. To'g'ri .xlsx fayl ekanligiga ishonch hosil qiling.")
+        messages.error(request, "Faylni öqib bölmadi. Töğri .xlsx fayl ekanligiga işonç hosil qiling.")
         return redirect_to
 
     replace_all = 'replace_all' in request.POST
@@ -342,7 +343,7 @@ def admin_questions_import(request, game_pk):
             profession=profession,
             text=text,
             correct_text=correct,
-            difficulty=DIFFICULTY_MAP.get(_norm(row[2] if len(row) > 2 else '').lower(), 'medium'),
+            difficulty=DIFFICULTY_MAP.get(to_new_alphabet(_norm(row[2] if len(row) > 2 else '').lower()), 'medium'),
             created_by=request.user,
         ))
 
@@ -361,9 +362,9 @@ def admin_questions_import(request, game_pk):
 
     msg = f"{len(new_questions)} ta savol import qilindi!"
     if replace_all:
-        msg += " (eski savollar o'chirildi)"
+        msg += " (eski savollar öçirildi)"
     if skipped:
-        msg += f" {skipped} ta takroriy qator o'tkazib yuborildi."
+        msg += f" {skipped} ta takroriy qator ötkazib yuborildi."
     messages.success(request, msg)
     return redirect_to
 
@@ -390,13 +391,13 @@ def admin_sessions(request):
 @login_required
 @require_POST
 def admin_open_lobby(request, pk):
-    """Musobaqa uchun lobby ochadi (yoki mavjud ochiqqa yo'naltiradi)."""
+    """Musobaqa uçun lobby oçadi (yoki mavjud oçiqqa yönaltiradi)."""
     if not jumanji.can_control(request.user):
         return redirect('home')
 
     competition = get_object_or_404(Competition.objects.select_related('game'), pk=pk)
     if competition.game.game_type != 'jumanji':
-        messages.error(request, "Bu musobaqa Jumanji o'yiniga tegishli emas!")
+        messages.error(request, "Bu musobaqa Jumanji öyiniga tegişli emas!")
         return redirect('games:admin_competitions')
 
     live = competition.jumanji_live_session()
@@ -413,7 +414,7 @@ def admin_open_lobby(request, pk):
         .values_list('pk', flat=True)
     )
     if not question_ids:
-        messages.error(request, "Bu yo'nalish uchun faol savol topilmadi. Avval savol qo'shing.")
+        messages.error(request, "Bu yönaliş uçun faol savol topilmadi. Avval savol qöşing.")
         return redirect('games:jumanji_admin_questions', game_pk=competition.game.pk)
 
     session = JumanjiSession.objects.create(
@@ -425,12 +426,12 @@ def admin_open_lobby(request, pk):
         created_by=request.user,
     )
     jumanji.add_event(session, 'lobby_open', by=request.user.get_full_name() or request.user.username)
-    messages.success(request, "Lobby ochildi! O'quvchilar qo'shilishi mumkin.")
+    messages.success(request, "Lobby oçildi! Öquvçilar qöşilişi mumkin.")
     return redirect('games:jumanji_room', session_id=session.pk)
 
 
 # ============================================================
-# JONLI O'YIN
+# JONLI ÖYIN
 # ============================================================
 
 def _session_or_404(session_id):
@@ -442,12 +443,12 @@ def _session_or_404(session_id):
 
 @login_required
 def room(request, session_id):
-    """O'yin xonasi. Bitta template, rol bo'yicha panel farq qiladi."""
+    """Öyin xonasi. Bitta template, rol böyiça panel farq qiladi."""
     session = _session_or_404(session_id)
     is_controller = jumanji.can_control(request.user)
 
     if not is_controller and not session.competition.is_user_allowed(request.user):
-        messages.error(request, "Siz bu musobaqa ishtirokchisi emassiz.")
+        messages.error(request, "Siz bu musobaqa iştirokçisi emassiz.")
         return redirect('games:games_list')
 
     player = session.players.filter(user=request.user).first()
@@ -477,7 +478,7 @@ def room(request, session_id):
 
 @login_required
 def state(request, session_id):
-    """Polling endpoint. Yon ta'siri yo'q — faqat o'qiydi."""
+    """Polling endpoint. Yon ta'siri yöq — faqat öqiydi."""
     session = _session_or_404(session_id)
     is_controller = jumanji.can_control(request.user)
 
@@ -501,15 +502,15 @@ def state(request, session_id):
 
 
 def _auto_advance(session):
-    """Server soati bo'yicha o'zi davom etadigan qadamlar.
+    """Server soati böyiça özi davom etadigan qadamlar.
 
-    Boshqaruvchi "Savolni ochish"ni bosib o'tirmasligi kerak, va o'quvchi
-    uzilib qolsa o'yin `dice` bosqichida muzlab qolmasligi kerak. Vaqt FAQAT
-    serverdan olinadi — client soati o'zgartirilishi mumkin.
+    Boşqaruvçi "Savolni oçiş"ni bosib ötirmasligi kerak, va öquvçi
+    uzilib qolsa öyin `dice` bosqiçida muzlab qolmasligi kerak. Vaqt FAQAT
+    serverdan olinadi — client soati özgartirilişi mumkin.
 
-    Har polling shu funksiyadan o'tadi, shuning uchun avval qulfsiz arzon
-    tekshiruv, keyin qulf ostida qaytadan tekshirish (bir necha client bir
-    vaqtda kirsa qadam ikki marta bajarilmasligi uchun).
+    Har polling şu funksiyadan ötadi, şuning uçun avval qulfsiz arzon
+    tekşiruv, keyin qulf ostida qaytadan tekşiriş (bir neça client bir
+    vaqtda kirsa qadam ikki marta bajarilmasligi uçun).
     """
     if session.status != 'running' or session.is_paused:
         return False
@@ -536,7 +537,7 @@ def _auto_advance(session):
         )
         if locked is None:
             return False
-        # Qulfni kutib turgan vaqtda boshqa so'rov ulgurgan bo'lishi mumkin.
+        # Qulfni kutib turgan vaqtda boşqa sörov ulgurgan bölişi mumkin.
         if (locked.status != 'running' or locked.is_paused
                 or locked.phase != phase or locked.phase_age() < delay):
             return False
@@ -545,7 +546,7 @@ def _auto_advance(session):
             if locked.current_turn_id or not locked.current_player_id:
                 return False
             if jumanji.open_question(locked) is None:
-                # Savol bazasi bo'sh — har pollingda urinib qotib qolmaslik uchun yakunlaymiz.
+                # Savol bazasi böş — har pollingda urinib qotib qolmaslik uçun yakunlaymiz.
                 jumanji.finish_session(locked, jumanji.check_winner(locked))
                 jumanji.award_coins(locked)
         else:
@@ -556,7 +557,7 @@ def _auto_advance(session):
 
 
 def _state_payload(session, user, is_controller, since=0, want_full=False):
-    """Client uchun to'liq holat. `state` va `control` shu bitta shakldan foydalanadi."""
+    """Client uçun töliq holat. `state` va `control` şu bitta şakldan foydalanadi."""
     players = list(session.players.select_related('user').order_by('seat_order', 'pk'))
 
     payload = {
@@ -581,7 +582,7 @@ def _state_payload(session, user, is_controller, since=0, want_full=False):
         'is_player': me is not None,
         'player_id': me.pk if me else None,
         'is_current': bool(me and session.current_player_id == me.pk),
-        # Lobby tugmalari clientda chiziladi — sahifani yangilamasdan yangilanishi uchun.
+        # Lobby tugmalari clientda çiziladi — sahifani yangilamasdan yangilanişi uçun.
         'can_join': bool(
             session.status == 'lobby' and not is_controller and me is None
             and len(players) < jumanji.MAX_PLAYERS
@@ -620,7 +621,7 @@ def _state_payload(session, user, is_controller, since=0, want_full=False):
 
 
 def _cells_json(session):
-    """Doska kataklari — JSON uchun (o'yinchi obyektlari ID ga aylantiriladi)."""
+    """Doska kataklari — JSON uçun (öyinçi obyektlari ID ga aylantiriladi)."""
     return [
         {
             'index': cell['index'],
@@ -665,7 +666,7 @@ def _question_json(turn, is_controller):
         'time_limit': jumanji.QUESTION_SECONDS,
         'remaining': turn.seconds_left(),
     }
-    # To'g'ri javob FAQAT boshqaruvchiga yuboriladi.
+    # Töğri javob FAQAT boşqaruvçiga yuboriladi.
     if is_controller:
         data['correct_text'] = question.correct_text
     return data
@@ -682,15 +683,15 @@ def _events_json(session, since):
 @login_required
 @require_POST
 def join(request, session_id):
-    """O'quvchi lobbyga qo'shiladi."""
+    """Öquvçi lobbyga qöşiladi."""
     session = _session_or_404(session_id)
 
     if session.status != 'lobby':
-        return JsonResponse({'ok': False, 'error': "O'yin allaqachon boshlangan yoki tugagan."}, status=400)
+        return JsonResponse({'ok': False, 'error': "Öyin allaqaçon boşlangan yoki tugagan."}, status=400)
     if not session.competition.is_user_allowed(request.user):
-        return JsonResponse({'ok': False, 'error': 'Siz bu musobaqa ishtirokchisi emassiz.'}, status=403)
+        return JsonResponse({'ok': False, 'error': 'Siz bu musobaqa iştirokçisi emassiz.'}, status=403)
     if jumanji.can_control(request.user):
-        return JsonResponse({'ok': False, 'error': "Boshqaruvchilar o'yinchi bo'lib qo'shilmaydi."}, status=400)
+        return JsonResponse({'ok': False, 'error': "Boşqaruvçilar öyinçi bölib qöşilmaydi."}, status=400)
 
     with transaction.atomic():
         locked = JumanjiSession.objects.select_for_update().get(pk=session.pk)
@@ -713,10 +714,10 @@ def join(request, session_id):
 @login_required
 @require_POST
 def leave(request, session_id):
-    """Lobbydan chiqish (o'yin boshlangach ruxsat berilmaydi)."""
+    """Lobbydan çiqiş (öyin boşlangaç ruxsat berilmaydi)."""
     session = _session_or_404(session_id)
     if session.status != 'lobby':
-        return JsonResponse({'ok': False, 'error': "O'yin boshlangan — chiqib bo'lmaydi."}, status=400)
+        return JsonResponse({'ok': False, 'error': "Öyin boşlangan — çiqib bölmaydi."}, status=400)
 
     player = session.players.filter(user=request.user).first()
     if player:
@@ -729,11 +730,11 @@ def leave(request, session_id):
 @login_required
 @require_POST
 def roll(request, session_id):
-    """Toshni aylantirish — buni O'QUVCHINING O'ZI bosadi.
+    """Toşni aylantiriş — buni ÖQUVÇINING ÖZI bosadi.
 
     Qiymat serverda hisoblanadi (`jumanji.throw_dice`), client faqat "bosdim"
-    deb xabar beradi. Boshqaruvchi ham bosa oladi: o'quvchining aloqasi uzilsa
-    o'yin qotib qolmasligi uchun.
+    deb xabar beradi. Boşqaruvçi ham bosa oladi: öquvçining aloqasi uzilsa
+    öyin qotib qolmasligi uçun.
     """
     since = _int_or(request.POST.get('since'), 0)
     is_controller = jumanji.can_control(request.user)
@@ -748,14 +749,14 @@ def roll(request, session_id):
         if session is None:
             return JsonResponse({'ok': False, 'error': 'Sessiya topilmadi.'}, status=404)
         if not is_controller and not session.competition.is_user_allowed(request.user):
-            return JsonResponse({'ok': False, 'error': 'Ruxsat yo‘q.'}, status=403)
+            return JsonResponse({'ok': False, 'error': 'Ruxsat yöq.'}, status=403)
 
-        # Bosqich tekshiruvi ruxsatdan OLDIN: ikki marta bosilganda navbat
-        # allaqachon o'tgan bo'ladi va "navbatingiz emas" degan xato chalg'itardi.
+        # Bosqiç tekşiruvi ruxsatdan OLDIN: ikki marta bosilganda navbat
+        # allaqaçon ötgan böladi va "navbatingiz emas" degan xato çalğitardi.
         if session.phase != 'dice' or not session.current_turn_id:
             return JsonResponse({
                 'ok': False, 'stale': True,
-                'error': 'Tosh allaqachon tashlangan.',
+                'error': 'Toş allaqaçon taşlangan.',
             }, status=409)
 
         if not is_controller:
@@ -763,7 +764,7 @@ def roll(request, session_id):
             if not me or session.current_player_id != me.pk:
                 return JsonResponse({'ok': False, 'error': 'Hozir sizning navbatingiz emas.'}, status=403)
         if session.is_paused:
-            return JsonResponse({'ok': False, 'error': "O'yin pauzada."}, status=400)
+            return JsonResponse({'ok': False, 'error': "Öyin pauzada."}, status=400)
 
         _resolve_dice(session)
 
@@ -775,11 +776,11 @@ def roll(request, session_id):
 
 
 # ============================================================
-# BOSHQARUV
+# BOŞQARUV
 # ============================================================
 
-# Har bir amal uchun: qaysi bosqichlarda ruxsat etilgan.
-# Bo'sh to'plam — bosqich tekshirilmaydi.
+# Har bir amal uçun: qaysi bosqiçlarda ruxsat etilgan.
+# Böş töplam — bosqiç tekşirilmaydi.
 ACTION_PHASES = {
     'open_question': {'waiting_turn'},
     'verdict': {'question'},
@@ -791,15 +792,15 @@ ACTION_PHASES = {
 @login_required
 @require_POST
 def control(request, session_id):
-    """Boshqaruvchi amallari.
+    """Boşqaruvçi amallari.
 
     Ikki qatlamli himoya:
       * `select_for_update` — bir vaqtda faqat bitta amal bajariladi;
-      * `turn_seq` tokeni — ikkinchi boshqaruvchining eskirgan bosishi 409 oladi
-        (masalan ikkalasi ham "To'g'ri" bosса, o'yinchi ikki marta yurmaydi).
+      * `turn_seq` tokeni — ikkinçi boşqaruvçining eskirgan bosişi 409 oladi
+        (masalan ikkalasi ham "Töğri" bosса, öyinçi ikki marta yurmaydi).
     """
     if not jumanji.can_control(request.user):
-        return JsonResponse({'ok': False, 'error': "Sizda boshqaruv huquqi yo'q."}, status=403)
+        return JsonResponse({'ok': False, 'error': "Sizda boşqaruv huquqi yöq."}, status=403)
 
     action = _norm(request.POST.get('action'))
     client_seq = _int_or(request.POST.get('turn_seq'), -1)
@@ -815,18 +816,18 @@ def control(request, session_id):
         if session is None:
             return JsonResponse({'ok': False, 'error': 'Sessiya topilmadi.'}, status=404)
 
-        # Eskirgan token — boshqa boshqaruvchi allaqachon bajargan.
+        # Eskirgan token — boşqa boşqaruvçi allaqaçon bajargan.
         if client_seq >= 0 and client_seq != session.turn_seq:
             return JsonResponse({
                 'ok': False, 'stale': True,
-                'error': 'Bu amalni boshqa boshqaruvchi allaqachon bajardi.',
+                'error': 'Bu amalni boşqa boşqaruvçi allaqaçon bajardi.',
             }, status=409)
 
         allowed = ACTION_PHASES.get(action)
         if allowed is not None and session.phase not in allowed:
             return JsonResponse({
                 'ok': False, 'stale': True,
-                'error': "Bu amal hozirgi bosqichda mumkin emas.",
+                'error': "Bu amal hozirgi bosqiçda mumkin emas.",
             }, status=409)
 
         handler = _CONTROL_HANDLERS.get(action)
@@ -854,7 +855,7 @@ def _act_start(request, session):
 
 def _act_cancel(request, session):
     if session.status not in ('lobby', 'running'):
-        return "O'yin allaqachon yakunlangan."
+        return "Öyin allaqaçon yakunlangan."
     session.status = 'cancelled'
     session.enter_phase('finished')
     session.ended_at = timezone.now()
@@ -868,29 +869,29 @@ def _act_cancel(request, session):
 
 def _act_open_question(request, session):
     if session.status != 'running':
-        return "O'yin ketmayapti."
+        return "Öyin ketmayapti."
     if session.is_paused:
-        return "O'yin pauzada."
+        return "Öyin pauzada."
     if not session.current_player_id:
-        return "Navbatdagi o'yinchi aniqlanmadi."
+        return "Navbatdagi öyinçi aniqlanmadi."
     if session.current_turn_id:
-        return "Bu o'yinchi javob berib bo'ldi — navbatni keyingisiga uzating."
+        return "Bu öyinçi javob berib böldi — navbatni keyingisiga uzating."
     if jumanji.open_question(session, request.user) is None:
-        return "Savol topilmadi — savol bazasi bo'sh."
+        return "Savol topilmadi — savol bazasi böş."
     return None
 
 
 def _act_verdict(request, session):
-    """Baho beradi. To'g'ri javobda zanjir `dice` bosqichida ATAYIN to'xtaydi.
+    """Baho beradi. Töğri javobda zanjir `dice` bosqiçida ATAYIN töxtaydi.
 
-    Toshni o'quvchining o'zi aylantiradi (`roll` view), shuning uchun bu yerda
-    zarba tashlanmaydi. Noto'g'ri javobda navbat darhol keyingisiga o'tadi.
+    Toşni öquvçining özi aylantiradi (`roll` view), şuning uçun bu yerda
+    zarba taşlanmaydi. Notöğri javobda navbat darhol keyingisiga ötadi.
     """
     verdict = _norm(request.POST.get('verdict'))
     if verdict not in ('correct', 'wrong', 'skipped', 'timeout'):
-        return "Noto'g'ri baho."
+        return "Notöğri baho."
     if not session.current_turn_id:
-        return "Faol savol yo'q."
+        return "Faol savol yöq."
 
     jumanji.judge_turn(session, verdict, request.user)
 
@@ -900,12 +901,12 @@ def _act_verdict(request, session):
 
 
 def _resolve_dice(session):
-    """Tosh tashlangandan keyingi zanjir: zarba → katak effekti → navbat."""
+    """Toş taşlangandan keyingi zanjir: zarba → katak effekti → navbat."""
     jumanji.throw_dice(session)
 
     outcome = jumanji.apply_cell_effect(session)
     if outcome and outcome.get('awaiting_task'):
-        # 🃏 — boshqaruvchi shart natijasini alohida tasdiqlaydi
+        # 🃏 — boşqaruvçi şart natijasini alohida tasdiqlaydi
         return
     if _settle_if_finished(session):
         return
@@ -914,7 +915,7 @@ def _resolve_dice(session):
 
 def _act_resolve_task(request, session):
     if not session.current_turn_id:
-        return "Faol navbat yo'q."
+        return "Faol navbat yöq."
     completed = request.POST.get('completed') == '1'
     note = _norm(request.POST.get('note'))[:500]
     jumanji.resolve_task(session, completed, request.user, note=note)
@@ -925,7 +926,7 @@ def _act_resolve_task(request, session):
 
 def _act_next_turn(request, session):
     if session.status != 'running':
-        return "O'yin ketmayapti."
+        return "Öyin ketmayapti."
     if _settle_if_finished(session):
         return None
     jumanji.advance_turn(session)
@@ -950,7 +951,7 @@ def _act_resume(request, session):
 
 def _act_finish(request, session):
     if session.status != 'running':
-        return "O'yin ketmayapti."
+        return "Öyin ketmayapti."
     jumanji.finish_session(session, jumanji.check_winner(session))
     jumanji.award_coins(session)
     return None
@@ -958,10 +959,10 @@ def _act_finish(request, session):
 
 def _act_kick(request, session):
     if session.status != 'lobby':
-        return "O'yin boshlangach o'yinchini chiqarib bo'lmaydi."
+        return "Öyin boşlangaç öyinçini çiqarib bölmaydi."
     player = session.players.filter(pk=_int_or(request.POST.get('player_id'), 0)).first()
     if not player:
-        return "O'yinchi topilmadi."
+        return "Öyinçi topilmadi."
     name = player.display_name
     player.delete()
     jumanji.add_event(session, 'kicked', player=name)
@@ -985,7 +986,7 @@ _CONTROL_HANDLERS = {
 
 
 def _settle_if_finished(session):
-    """Kimdir FINISH ga yetgan bo'lsa o'yinni yopadi va coin beradi."""
+    """Kimdir FINISH ga yetgan bölsa öyinni yopadi va coin beradi."""
     winner = jumanji.check_winner(session)
     if not winner:
         return False

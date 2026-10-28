@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Foydalanuvchini tahrirlash - Admin Panel{% endblock %}
+{% block title %}Foydalanuvçini tahrirlaş - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -139,7 +139,7 @@
 
 <div class="ue-page">
     <a href="{% url 'admin_users' %}" class="ue-back">
-        <i class="bi bi-arrow-left"></i> Foydalanuvchilarga qaytish
+        <i class="bi bi-arrow-left"></i> Foydalanuvçilarga qaytiş
     </a>
 
     <!-- ====== HERO ====== -->
@@ -153,14 +153,14 @@
             <h1><i class="bi bi-pencil-square me-2"></i>{{ user_obj.full_name }}</h1>
             <p>@{{ user_obj.username }} &bull; {{ user_obj.phone }}</p>
             <span class="ue-hero-badge {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'assistant_admin' %}r-assistant{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'assistant_admin' %}Yordamchi admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'assistant_admin' %}Yordamçi admin{% elif user_obj.role == 'teacher' %}Öqituvçi{% else %}Öquvçi{% endif %}
             </span>
         </div>
     </div>
 
     <!-- ====== TABS ====== -->
     <div class="ue-tabs">
-        <div class="ue-tab active" data-tab="personal"><i class="bi bi-person-fill" style="color:#6366f1"></i> Shaxsiy</div>
+        <div class="ue-tab active" data-tab="personal"><i class="bi bi-person-fill" style="color:#6366f1"></i> Şaxsiy</div>
         <div class="ue-tab" data-tab="passport"><i class="bi bi-credit-card-2-front-fill" style="color:#22c55e"></i> Pasport</div>
         <div class="ue-tab" data-tab="parents"><i class="bi bi-people-fill" style="color:#3b82f6"></i> Ota-ona</div>
         <div class="ue-tab" data-tab="school"><i class="bi bi-building" style="color:#f59e0b"></i> Maktab</div>
@@ -189,12 +189,12 @@
             <!-- ============ MAIN ============ -->
             <div>
 
-                <!-- ===== TAB: SHAXSIY ===== -->
+                <!-- ===== TAB: ŞAXSIY ===== -->
                 <div class="ue-section active" id="tab-personal">
                     <div class="ue-card">
                         <div class="ue-card-head">
                             <div class="ue-card-ico" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"><i class="bi bi-person-fill"></i></div>
-                            Shaxsiy ma'lumotlar
+                            Şaxsiy ma'lumotlar
                         </div>
                         <div class="ue-card-body">
                             <div class="ue-row">
@@ -224,7 +224,7 @@
                             </div>
                             <div class="ue-row3">
                                 <div>
-                                    <label class="ue-label"><i class="bi bi-calendar-event"></i> Tug'ilgan sana</label>
+                                    <label class="ue-label"><i class="bi bi-calendar-event"></i> Tuğilgan sana</label>
                                     {{ form.birth_date }}
                                 </div>
                                 <div>
@@ -242,19 +242,19 @@
                                     {{ form.role }}
                                 </div>
                                 <div>
-                                    <label class="ue-label"><i class="bi bi-compass"></i> Yo'nalish</label>
+                                    <label class="ue-label"><i class="bi bi-compass"></i> Yönaliş</label>
                                     {{ form.profession }}
                                 </div>
                             </div>
                             <div class="ue-field" id="ueAssistantRoleWrap" style="{% if user_obj.role != 'assistant_admin' %}display:none{% endif %}">
-                                <label class="ue-label"><i class="bi bi-shield-check"></i> Yordamchi rol (permission profili)</label>
+                                <label class="ue-label"><i class="bi bi-shield-check"></i> Yordamçi rol (permission profili)</label>
                                 {{ form.assistant_role }}
-                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Faqat "Yordamchi admin" rol uchun ishlatiladi. Akademik Admin / Support / Finance / Super Admin va h.k.</div>
+                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Faqat "Yordamçi admin" rol uçun işlatiladi. Akademik Admin / Support / Finance / Super Admin va h.k.</div>
                             </div>
                             <div class="ue-field">
-                                <label class="ue-label"><i class="bi bi-geo-alt"></i> Yashash manzili</label>
+                                <label class="ue-label"><i class="bi bi-geo-alt"></i> Yaşaş manzili</label>
                                 {{ form.address }}
-                                <div class="ue-hint"><i class="bi bi-lightbulb"></i> Viloyat, tuman, ko'cha va uy raqami</div>
+                                <div class="ue-hint"><i class="bi bi-lightbulb"></i> Viloyat, tuman, köça va uy raqami</div>
                             </div>
                             <div class="ue-field">
                                 <label class="ue-label"><i class="bi bi-camera"></i> Profil rasmi</label>
@@ -266,7 +266,7 @@
                                 {% endif %}
                             </div>
                             <div class="ue-field">
-                                <label class="ue-label"><i class="bi bi-chat-text"></i> O'zi haqida</label>
+                                <label class="ue-label"><i class="bi bi-chat-text"></i> Özi haqida</label>
                                 {{ form.bio }}
                             </div>
                         </div>
@@ -307,7 +307,7 @@
                         <div class="ue-card-body">
                             <div class="ue-passport-vis">
                                 <i class="bi bi-credit-card-2-front"></i>
-                                Pasport yoki ID kartaning <strong>seriya va raqami</strong>, <strong>JSHSHIR (PINFL)</strong> hamda <strong>berilgan sanasini</strong> kiriting.
+                                Pasport yoki ID kartaning <strong>seriya va raqami</strong>, <strong>JŞŞIR (PINFL)</strong> hamda <strong>berilgan sanasini</strong> kiriting.
                             </div>
                             <div class="ue-row3">
                                 <div>
@@ -321,7 +321,7 @@
                                     <div class="ue-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
                                 </div>
                                 <div>
-                                    <label class="ue-label"><i class="bi bi-fingerprint"></i> JSHSHIR (PINFL)</label>
+                                    <label class="ue-label"><i class="bi bi-fingerprint"></i> JŞŞIR (PINFL)</label>
                                     {{ form.jshshir }}
                                     <div class="ue-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
                                 </div>
@@ -354,7 +354,7 @@
                                     </div>
                                     <div id="father-fields-wrapper">
                                         <div class="ue-field">
-                                            <label class="ue-label">To'liq ismi</label>
+                                            <label class="ue-label">Töliq ismi</label>
                                             {{ form.father_name }}
                                         </div>
                                         <div class="ue-field">
@@ -376,7 +376,7 @@
                                     </div>
                                     <div id="mother-fields-wrapper">
                                         <div class="ue-field">
-                                            <label class="ue-label">To'liq ismi</label>
+                                            <label class="ue-label">Töliq ismi</label>
                                             {{ form.mother_name }}
                                         </div>
                                         <div class="ue-field">
@@ -396,7 +396,7 @@
                                     <div>
                                         <label class="ue-label"><i class="bi bi-telephone-fill"></i> Asosiy ota-ona telefon</label>
                                         {{ form.parent_phone }}
-                                        <div class="ue-hint"><i class="bi bi-lightbulb"></i> Bog'lanish uchun asosiy raqam</div>
+                                        <div class="ue-hint"><i class="bi bi-lightbulb"></i> Boğlaniş uçun asosiy raqam</div>
                                     </div>
                                     <div></div>
                                 </div>
@@ -441,14 +441,14 @@
                                     <label class="ue-label"><i class="bi bi-card-heading"></i> ID Karta / Pasport</label>
                                     {{ form.id_card }}
                                     {% if user_obj.id_card %}
-                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.id_card.url }}" target="_blank">Ko'rish</a></div>
+                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.id_card.url }}" target="_blank">Köriş</a></div>
                                     {% endif %}
                                 </div>
                                 <div>
-                                    <label class="ue-label"><i class="bi bi-file-text"></i> Tug'ilganlik guvohnomasi</label>
+                                    <label class="ue-label"><i class="bi bi-file-text"></i> Tuğilganlik guvohnomasi</label>
                                     {{ form.birth_certificate }}
                                     {% if user_obj.birth_certificate %}
-                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.birth_certificate.url }}" target="_blank">Ko'rish</a></div>
+                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.birth_certificate.url }}" target="_blank">Köriş</a></div>
                                     {% endif %}
                                 </div>
                             </div>
@@ -466,14 +466,14 @@
                         <div class="ue-card-body">
                             <div class="ue-field">
                                 <label class="ue-label"><i class="bi bi-key"></i> Yangi parol</label>
-                                <input type="password" name="new_password" class="form-control" placeholder="Yangi parol kiriting (o'zgartirish uchun)">
-                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Bo'sh qoldiring agar parolni o'zgartirmoqchi bo'lmasangiz</div>
+                                <input type="password" name="new_password" class="form-control" placeholder="Yangi parol kiriting (özgartiriş uçun)">
+                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Böş qoldiring agar parolni özgartirmoqçi bölmasangiz</div>
                             </div>
                             <div style="margin-top:.75rem">
                                 <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.7rem .9rem;border-radius:12px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.12)">
                                     {{ form.is_blocked }}
                                     <span style="font-size:.86rem;font-weight:600;color:var(--text-color)">
-                                        <i class="bi bi-slash-circle" style="color:#ef4444"></i> Foydalanuvchini bloklash
+                                        <i class="bi bi-slash-circle" style="color:#ef4444"></i> Foydalanuvçini bloklaş
                                     </span>
                                 </label>
                             </div>
@@ -483,8 +483,8 @@
 
                 <!-- ACTIONS -->
                 <div class="ue-actions">
-                    <a href="{% url 'admin_users' %}" class="ue-btn-cancel"><i class="bi bi-x-lg"></i> Bekor qilish</a>
-                    <button type="submit" class="ue-btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                    <a href="{% url 'admin_users' %}" class="ue-btn-cancel"><i class="bi bi-x-lg"></i> Bekor qiliş</a>
+                    <button type="submit" class="ue-btn-save"><i class="bi bi-check-lg"></i> Saqlaş</button>
                 </div>
             </div>
 
@@ -496,7 +496,7 @@
                         <div class="ue-ring" style="--pct:{{ user_obj.profile_completion_percent }}">
                             <span class="ue-ring-pct">{{ user_obj.profile_completion_percent }}%</span>
                         </div>
-                        <div class="ue-ring-text">Profil to'ldirilganligi</div>
+                        <div class="ue-ring-text">Profil töldirilganligi</div>
                     </div>
                 </div>
 
@@ -504,7 +504,7 @@
                 <div class="ue-side">
                     <div class="ue-side-title"><i class="bi bi-person-vcard" style="color:#6366f1"></i> Tezkor ma'lumot</div>
                     <div class="ue-side-row">
-                        <span class="lb">Ro'yxatdan o'tgan</span>
+                        <span class="lb">Röyxatdan ötgan</span>
                         <span class="vl">{{ user_obj.date_joined|date:"d.m.Y" }}</span>
                     </div>
                     <div class="ue-side-row">
@@ -537,11 +537,11 @@
                 <div class="ue-side">
                     <div class="ue-side-title"><i class="bi bi-lightbulb" style="color:#f59e0b"></i> Eslatmalar</div>
                     <ul class="ue-notes">
-                        <li>Rolni o'zgartirish foydalanuvchi huquqlarini o'zgartiradi</li>
-                        <li>Parol maydonini bo'sh qoldiring agar o'zgartirmoqchi bo'lmasangiz</li>
-                        <li>Bloklangan foydalanuvchi tizimga kira olmaydi</li>
-                        <li>O'qituvchi rolida kurslarni tayinlash mumkin</li>
-                        <li>Barcha tab'lardagi maydonlarni to'ldiring</li>
+                        <li>Rolni özgartiriş foydalanuvçi huquqlarini özgartiradi</li>
+                        <li>Parol maydonini böş qoldiring agar özgartirmoqçi bölmasangiz</li>
+                        <li>Bloklangan foydalanuvçi tizimga kira olmaydi</li>
+                        <li>Öqituvçi rolida kurslarni tayinlaş mumkin</li>
+                        <li>Barça tab'lardagi maydonlarni töldiring</li>
                     </ul>
                 </div>
             </div>

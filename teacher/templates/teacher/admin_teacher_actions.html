@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}O'qituvchi amallari - Admin Panel{% endblock %}
-{% block topbar_title %}O'qituvchi amallari{% endblock %}
+{% block title %}Öqituvçi amallari - Admin Panel{% endblock %}
+{% block topbar_title %}Öqituvçi amallari{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -26,34 +26,34 @@
 
 {% block admin_content %}
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <h4 class="mb-0 fw-bold"><i class="bi bi-person-workspace me-2"></i>O'qituvchi amallari</h4>
-    <a href="{% url 'admin_enrollment_requests' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> Kurs so'rovlari</a>
+    <h4 class="mb-0 fw-bold"><i class="bi bi-person-workspace me-2"></i>Öqituvçi amallari</h4>
+    <a href="{% url 'admin_enrollment_requests' %}" class="btn btn-sm btn-outline-primary"><i class="bi bi-person-plus me-1"></i> Kurs sörovlari</a>
 </div>
-<p class="text-muted small">O'qituvchilar (va adminlar) tomonidan o'quvchilarga coin berish/ayirish, kursga qo'shish/chiqarish va so'rovlarni ko'rib chiqish jurnali.</p>
+<p class="text-muted small">Öqituvçilar (va adminlar) tomonidan öquvçilarga coin berish/ayirish, kursga qöshish/chiqarish va sörovlarni körib çiqiş jurnali.</p>
 
 <div class="ta-stats">
     <div class="ta-stat"><i class="bi bi-plus-circle" style="background:rgba(13,110,253,.12);color:#0a58ca;"></i><div><b>{{ totals.given|default:0 }}</b><span>Berilgan coin</span></div></div>
     <div class="ta-stat"><i class="bi bi-dash-circle" style="background:rgba(245,158,11,.14);color:#b45309;"></i><div><b>{{ totals.taken|default:0 }}</b><span>Ayirilgan coin</span></div></div>
-    <div class="ta-stat"><i class="bi bi-box-arrow-in-right" style="background:rgba(16,185,129,.12);color:#047857;"></i><div><b>{{ totals.enrolled|default:0 }}</b><span>Kursga qo'shilgan</span></div></div>
-    <div class="ta-stat"><i class="bi bi-box-arrow-right" style="background:rgba(239,68,68,.12);color:#dc2626;"></i><div><b>{{ totals.removed|default:0 }}</b><span>Kursdan chiqarilgan</span></div></div>
+    <div class="ta-stat"><i class="bi bi-box-arrow-in-right" style="background:rgba(16,185,129,.12);color:#047857;"></i><div><b>{{ totals.enrolled|default:0 }}</b><span>Kursga qöşilgan</span></div></div>
+    <div class="ta-stat"><i class="bi bi-box-arrow-right" style="background:rgba(239,68,68,.12);color:#dc2626;"></i><div><b>{{ totals.removed|default:0 }}</b><span>Kursdan çiqarilgan</span></div></div>
 </div>
 
 <form method="GET" class="ta-filters">
     <select name="teacher" class="form-select">
-        <option value="">Barcha o'qituvchilar</option>
+        <option value="">Barça öqituvçilar</option>
         {% for t in teachers %}<option value="{{ t.pk }}" {% if f_teacher == t.pk|stringformat:"d" %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
     </select>
     <select name="action" class="form-select">
-        <option value="">Barcha amallar</option>
+        <option value="">Barça amallar</option>
         {% for val, label in action_choices %}<option value="{{ val }}" {% if f_action == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
     <select name="profession" class="form-select">
-        <option value="">Barcha kurslar</option>
+        <option value="">Barça kurslar</option>
         {% for p in professions %}<option value="{{ p.pk }}" {% if f_profession == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>{% endfor %}
     </select>
-    <input type="text" name="q" value="{{ f_q }}" class="form-control" placeholder="O'quvchi, telefon, izoh...">
-    <button type="submit" class="btn btn-primary btn-sm px-3"><i class="bi bi-funnel me-1"></i> Filtrlash</button>
-    {% if f_teacher or f_action or f_profession or f_q %}<a href="{% url 'teacher:admin_actions' %}" class="btn btn-outline-secondary btn-sm">Tozalash</a>{% endif %}
+    <input type="text" name="q" value="{{ f_q }}" class="form-control" placeholder="Öquvçi, telefon, izoh...">
+    <button type="submit" class="btn btn-primary btn-sm px-3"><i class="bi bi-funnel me-1"></i> Filtrlaş</button>
+    {% if f_teacher or f_action or f_profession or f_q %}<a href="{% url 'teacher:admin_actions' %}" class="btn btn-outline-secondary btn-sm">Tozalaş</a>{% endif %}
 </form>
 
 <div class="ta-table">
@@ -61,9 +61,9 @@
         <thead>
             <tr>
                 <th>Sana</th>
-                <th>Bajaruvchi</th>
+                <th>Bajaruvçi</th>
                 <th>Amal</th>
-                <th>O'quvchi</th>
+                <th>Öquvçi</th>
                 <th>Kurs</th>
                 <th class="text-end">Coin</th>
                 <th>Izoh</th>
@@ -90,7 +90,7 @@
                 <td class="small" style="max-width:280px;">{{ a.note|default:""|truncatechars:120 }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="text-center text-muted py-4">Hozircha amallar yo'q</td></tr>
+            <tr><td colspan="7" class="text-center text-muted py-4">Hozirça amallar yöq</td></tr>
             {% endfor %}
         </tbody>
     </table>

@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load static payment_tags %}
 
-{% block title %}Kursni sotib olish - {{ profession.name }}{% endblock %}
+{% block title %}Kursni sotib oliş - {{ profession.name }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
@@ -52,53 +52,53 @@
 <div class="dash">
 <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <main class="kp-page" style="max-width:600px;">
-    <a href="{% url 'profession_detail' profession.pk %}" class="kp-back"><i class="bi bi-arrow-left"></i>Kursga qaytish</a>
+    <a href="{% url 'profession_detail' profession.pk %}" class="kp-back"><i class="bi bi-arrow-left"></i>Kursga qaytiş</a>
 
     <article class="cc-card kp-glass">
         <div class="cc-media">
             {% if profession.photo %}<img src="{{ profession.photo.url }}" alt="">{% endif %}
             <div class="cc-media-text">
-                <span class="kp-eyebrow">{{ profession.get_kind_display }} · bir martalik to'lov</span>
+                <span class="kp-eyebrow">{{ profession.get_kind_display }} · bir martalik tölov</span>
                 <h1>{{ profession.name }}</h1>
             </div>
         </div>
         <div class="cc-body">
-            <div class="cc-price"><b>{{ sale.price|floatformat:"0g" }}</b><span>so'm</span>{% if sale.has_discount %} <del class="sale-old">{{ sale.original|floatformat:"0g" }}</del> <span class="sale-tag">−{{ sale.percent }}%</span>{% endif %}</div>
+            <div class="cc-price"><b>{{ sale.price|floatformat:"0g" }}</b><span>söm</span>{% if sale.has_discount %} <del class="sale-old">{{ sale.original|floatformat:"0g" }}</del> <span class="sale-tag">−{{ sale.percent }}%</span>{% endif %}</div>
             {% if sale.has_discount %}
             <div class="sale-banner" role="note">
-                <span><i class="bi bi-gift-fill"></i> <b>{{ sale.discount.name }}</b> — {{ sale.saving|floatformat:"0g" }} so'm tejaysiz</span>
+                <span><i class="bi bi-gift-fill"></i> <b>{{ sale.discount.name }}</b> — {{ sale.saving|floatformat:"0g" }} söm tejaysiz</span>
                 {% if sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ sale.ends_at|date:'c' }}" data-sale-reload>{{ sale.ends_at|timeuntil }} qoldi</span>{% endif %}
             </div>
             {% endif %}
-            <p class="kp-muted mb-0">Bir marta to'laysiz — kurs butunlay sizniki bo'ladi.</p>
+            <p class="kp-muted mb-0">Bir marta tölaysiz — kurs butunlay sizniki böladi.</p>
 
             <ul class="cc-features">
-                <li><i class="bi bi-infinity"></i>Kursga umrbod kirish</li>
-                <li><i class="bi bi-lightning-charge-fill"></i>To'lovdan so'ng avtomatik yozilish — so'rov kutilmaydi</li>
-                <li><i class="bi bi-shield-check"></i>Hisob holatidan qat'i nazar ochiq qoladi</li>
+                <li><i class="bi bi-infinity"></i>Kursga umrbod kiriş</li>
+                <li><i class="bi bi-lightning-charge-fill"></i>Tölovdan söng avtomatik yoziliş — sörov kutilmaydi</li>
+                <li><i class="bi bi-shield-check"></i>Hisob holatidan qat'i nazar oçiq qoladi</li>
                 {% if profession.duration_months %}<li><i class="bi bi-calendar-range"></i>{{ profession.duration_months }} oylik dastur</li>{% endif %}
             </ul>
 
             {% if course_order.status == 'review' %}
             <div class="cc-status review" role="status">
                 <i class="bi bi-hourglass-split"></i>
-                <span>To'lov administrator tekshiruvini kutmoqda. {{ course_order.last_error }}</span>
+                <span>Tölov administrator tekşiruvini kutmoqda. {{ course_order.last_error }}</span>
             </div>
             {% else %}
                 {% if course_order.status == 'pending' and course_order.payment_url %}
                 <div class="cc-status wait" role="status">
                     <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
-                    <span>To'lov tasdiqlanishi kutilmoqda. To'lov o'tgach, sahifa o'zi yangilanadi.</span>
+                    <span>Tölov tasdiqlanişi kutilmoqda. Tölov ötgaç, sahifa özi yangilanadi.</span>
                 </div>
                 {% endif %}
                 {% if course_order.status == 'refunded' %}
-                <div class="cc-status muted"><i class="bi bi-arrow-counterclockwise"></i><span>Oldingi to'lov qaytarilgan.</span></div>
+                <div class="cc-status muted"><i class="bi bi-arrow-counterclockwise"></i><span>Oldingi tölov qaytarilgan.</span></div>
                 {% endif %}
                 {% if money_balance %}
                 <div class="cc-balance {% if not balance_enough %}short{% endif %}">
                     <div class="cc-bal-head">
                         <span class="cc-bal-ico" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
-                        <div><small>Sizning balansingiz</small><b>{{ money_balance|floatformat:"0g" }} so'm</b></div>
+                        <div><small>Sizning balansingiz</small><b>{{ money_balance|floatformat:"0g" }} söm</b></div>
                     </div>
                     {% if balance_enough %}
                     <form method="post" action="{% url 'course_balance_pay' profession.pk %}"
@@ -106,12 +106,12 @@
                         {% csrf_token %}
                         <input type="hidden" name="expected_price" value="{{ sale.price }}">
                         <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay cc-bal-pay">
-                            <i class="bi bi-lightning-charge-fill"></i>Balansdan to'lash
+                            <i class="bi bi-lightning-charge-fill"></i>Balansdan tölaş
                         </button>
                     </form>
-                    <p class="cc-bal-note">Kurs darhol ochiladi. Balansingizda <b>{{ balance_after|floatformat:"0g" }} so'm</b> qoladi.</p>
+                    <p class="cc-bal-note">Kurs darhol oçiladi. Balansingizda <b>{{ balance_after|floatformat:"0g" }} söm</b> qoladi.</p>
                     {% else %}
-                    <p class="cc-bal-note mt-0">Balansdan to'lash uchun yana <b>{{ balance_shortage|floatformat:"0g" }} so'm</b> kerak — quyida onlayn to'lashingiz mumkin.</p>
+                    <p class="cc-bal-note mt-0">Balansdan tölaş uçun yana <b>{{ balance_shortage|floatformat:"0g" }} söm</b> kerak — quyida onlayn tölaşingiz mumkin.</p>
                     {% endif %}
                 </div>
                 <div class="cc-or">yoki</div>
@@ -122,12 +122,12 @@
                     <input type="hidden" name="expected_price" value="{{ sale.price }}">
                     {% payment_method_cards %}
                     <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay {% if balance_enough %}cc-online-secondary{% endif %}">
-                        <i class="bi bi-credit-card-2-front-fill"></i>Online to'lash
+                        <i class="bi bi-credit-card-2-front-fill"></i>Online tölaş
                     </button>
                 </form>
-                <p class="kp-muted small text-center mt-3 mb-0">Oldingi to'lov avval tekshiriladi — to'lov o'tgan bo'lsa, qayta to'lash talab qilinmaydi.</p>
+                <p class="kp-muted small text-center mt-3 mb-0">Oldingi tölov avval tekşiriladi — tölov ötgan bölsa, qayta tölaş talab qilinmaydi.</p>
             {% endif %}
-            <div class="cc-secure"><i class="bi bi-lock-fill"></i>Xavfsiz onlayn to'lov</div>
+            <div class="cc-secure"><i class="bi bi-lock-fill"></i>Xavfsiz onlayn tölov</div>
         </div>
     </article>
 </main>

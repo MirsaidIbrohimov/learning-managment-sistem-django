@@ -40,22 +40,22 @@ class Migration(migrations.Migration):
                 ('code', models.SlugField(max_length=64, unique=True, verbose_name='Kod (slug)')),
                 ('name', models.CharField(max_length=120, verbose_name='Nomi')),
                 ('description', models.TextField(blank=True, default='', verbose_name='Tavsif')),
-                ('permissions', models.JSONField(default=list, verbose_name="Ruxsatlar (kodlar ro'yxati)")),
-                ('is_system', models.BooleanField(default=False, verbose_name="Tizim roli (o'chirib bo'lmaydi)")),
+                ('permissions', models.JSONField(default=list, verbose_name="Ruxsatlar (kodlar röyxati)")),
+                ('is_system', models.BooleanField(default=False, verbose_name="Tizim roli (öçirib bölmaydi)")),
                 ('is_active', models.BooleanField(default=True, verbose_name='Faol')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Yordamchi rol',
-                'verbose_name_plural': 'Yordamchi rollar',
+                'verbose_name': 'Yordamçi rol',
+                'verbose_name_plural': 'Yordamçi rollar',
                 'ordering': ['name'],
             },
         ),
         migrations.AddField(
             model_name='customuser',
             name='assistant_role',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='users', to='accounts.assistantrole', verbose_name='Yordamchi rol (permission profili)'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='users', to='accounts.assistantrole', verbose_name='Yordamçi rol (permission profili)'),
         ),
         migrations.CreateModel(
             name='AssistantActionLog',
@@ -66,9 +66,9 @@ class Migration(migrations.Migration):
                 ('target_id', models.CharField(blank=True, default='', max_length=64, verbose_name='Obyekt ID')),
                 ('description', models.CharField(blank=True, default='', max_length=500, verbose_name='Tavsif')),
                 ('ip_address', models.GenericIPAddressField(blank=True, null=True, verbose_name='IP manzil')),
-                ('extra', models.JSONField(blank=True, default=dict, verbose_name="Qo'shimcha")),
+                ('extra', models.JSONField(blank=True, default=dict, verbose_name="Qöşimça")),
                 ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
-                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assistant_action_logs', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvchi')),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assistant_action_logs', to=settings.AUTH_USER_MODEL, verbose_name='Foydalanuvçi')),
             ],
             options={
                 'verbose_name': 'Admin harakati',
@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='customuser',
             name='is_finished',
-            field=models.BooleanField(default=False, verbose_name="Kursni tugatgan o'quvchi"),
+            field=models.BooleanField(default=False, verbose_name="Kursni tugatgan öquvçi"),
         ),
         migrations.AddField(
             model_name='profession',

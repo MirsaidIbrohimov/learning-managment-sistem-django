@@ -11,22 +11,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if settings.EMAIL_BACKEND != 'django.core.mail.backends.smtp.EmailBackend':
-            raise CommandError('Email backend SMTP emas. EMAIL_BACKEND sozlamasini tekshiring.')
+            raise CommandError('Email backend SMTP emas. EMAIL_BACKEND sozlamasini tekşiring.')
         if not settings.EMAIL_HOST or not settings.EMAIL_HOST_USER or not settings.EMAIL_HOST_PASSWORD:
-            raise CommandError('EMAIL_HOST, EMAIL_HOST_USER yoki EMAIL_HOST_PASSWORD to‘ldirilmagan.')
+            raise CommandError('EMAIL_HOST, EMAIL_HOST_USER yoki EMAIL_HOST_PASSWORD töldirilmagan.')
         if '@' in settings.EMAIL_HOST or '://' in settings.EMAIL_HOST:
-            raise CommandError('EMAIL_HOST email yoki URL bo‘lmasligi kerak. Gmail uchun EMAIL_HOST=smtp.gmail.com yozing. Email manzili EMAIL_HOST_USER qatoriga yoziladi.')
+            raise CommandError('EMAIL_HOST email yoki URL bölmasligi kerak. Gmail uçun EMAIL_HOST=smtp.gmail.com yozing. Email manzili EMAIL_HOST_USER qatoriga yoziladi.')
         connection = get_connection()
         try:
             connection.open()
         except smtplib.SMTPAuthenticationError:
-            raise CommandError('SMTP login rad etildi. Gmail ishlatilsa, 2-Step Verification va Google App passwordni tekshiring.') from None
+            raise CommandError('SMTP login rad etildi. Gmail işlatilsa, 2-Step Verification va Google App passwordni tekşiring.') from None
         except smtplib.SMTPException as exc:
             raise CommandError('SMTP server xatosi: ' + type(exc).__name__) from None
         except (OSError, ValueError) as exc:
-            raise CommandError('SMTP ulanish xatosi: ' + type(exc).__name__ + '. Server, port va TLS/SSL sozlamalarini tekshiring.') from None
+            raise CommandError('SMTP ulaniş xatosi: ' + type(exc).__name__ + '. Server, port va TLS/SSL sozlamalarini tekşiring.') from None
         else:
-            self.stdout.write(self.style.SUCCESS('SMTP ulanishi va autentifikatsiya muvaffaqiyatli. Hech qanday xat yuborilmadi.'))
+            self.stdout.write(self.style.SUCCESS('SMTP ulanişi va autentifikatsiya muvaffaqiyatli. Heç qanday xat yuborilmadi.'))
         finally:
             try:
                 connection.close()

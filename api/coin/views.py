@@ -36,7 +36,7 @@ PREMIUM_PLANS_BASE = {
 
 
 def get_premium_plans_for_user(user):
-    """Foydalanuvchiga mos premium narxlarni hisoblash (hozirgi balansga qarab)"""
+    """Foydalanuvçiga mos premium narxlarni hisoblaş (hozirgi balansga qarab)"""
     total_earned = user.coins
     plans = {}
     for key, base in PREMIUM_PLANS_BASE.items():
@@ -54,7 +54,7 @@ def get_premium_plans_for_user(user):
 
 
 def can_user_buy_premium(user):
-    """Foydalanuvchi kamida 1 oy oldin ro'yxatdan o'tganmi"""
+    """Foydalanuvçi kamida 1 oy oldin röyxatdan ötganmi"""
     if not user.date_joined:
         return False
     return (timezone.now() - user.date_joined).days >= 30
@@ -152,7 +152,7 @@ def coin_summary(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def market_stats(request):
-    """Marketing UI uchun umumiy statistika: social proof, urgency taymer, trending mahsulotlar."""
+    """Marketing UI uçun umumiy statistika: social proof, urgency taymer, trending mahsulotlar."""
     from django.db.models import Count
 
     now = timezone.now()
@@ -221,20 +221,20 @@ def toggle_like(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def purchase_product(request, pk):
-    # Kursni tugatgan (muzlatilgan) o'quvchilar magazindan xarid qila olmaydi
+    # Kursni tugatgan (muzlatilgan) öquvçilar magazindan xarid qila olmaydi
     if request.user.is_finished:
         return Response(
-            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar magazindan xarid qila olmaydi."},
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan öquvçilar magazindan xarid qila olmaydi."},
             status=status.HTTP_403_FORBIDDEN
         )
     product = get_object_or_404(Product, pk=pk)
     final_price = get_product_price(product, request.user)
     has_discount = request.user.is_premium and final_price < product.coin_price
 
-    # Balans va zaxira TEKSHIRUVI yechish bilan bir atomic blokda bo'lishi
-    # shart. Ilgari tekshiruv blokdan tashqarida edi: parallel ikki so'rov bir
-    # xil balansni ko'rib ikkisi ham o'tib ketardi (double-spend) va zaxira
-    # manfiyga tushardi (oversell).
+    # Balans va zaxira TEKŞIRUVI yeçiş bilan bir atomic blokda bölişi
+    # şart. Ilgari tekşiruv blokdan taşqarida edi: parallel ikki sörov bir
+    # xil balansni körib ikkisi ham ötib ketardi (double-spend) va zaxira
+    # manfiyga tuşardi (oversell).
     with transaction.atomic():
         stock_taken = Product.objects.filter(pk=product.pk, stock__gt=0).update(
             stock=F('stock') - 1
@@ -246,7 +246,7 @@ def purchase_product(request, pk):
         if not request.user.try_spend_coins(
             final_price, f"Mahsulot sotib olindi: {product.name}{discount_label}"
         ):
-            # Zaxirani qaytarib qo'yamiz — pul yechilmadi, tovar band bo'lmasin.
+            # Zaxirani qaytarib qöyamiz — pul yeçilmadi, tovar band bölmasin.
             Product.objects.filter(pk=product.pk).update(stock=F('stock') + 1)
             return Response({'error': "Coinlaringiz yetarli emas!"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -281,13 +281,13 @@ def purchase_product(request, pk):
                 f"🪙 Narxi: <b>{final_price}</b> coin\n\n"
                 f"📋 Buyurtma #{purchase.pk}\n"
                 f"⏳ Holat: Kutilmoqda\n\n"
-                f"❌ Bekor qilish uchun saytga kiring."
+                f"❌ Bekor qiliş uçun saytga kiring."
             )
 
         Message.objects.create(
             recipient=request.user,
             title=f"✅ Buyurtma #{purchase.pk} qabul qilindi",
-            content=f"Siz '{product.name}' mahsulotini {final_price} coin ga sotib oldingiz. Buyurtmangiz kutilmoqda. Agar bekor qilmoqchi bo'lsangiz, 'Mening xaridlarim' bo'limiga o'ting.",
+            content=f"Siz '{product.name}' mahsulotini {final_price} coin ga sotib oldingiz. Buyurtmangiz kutilmoqda. Agar bekor qilmoqçi bölsangiz, 'Mening xaridlarim' bölimiga öting.",
             message_type='system'
         )
 
@@ -305,27 +305,27 @@ def cancel_purchase(request, pk):
     purchase = get_object_or_404(ProductPurchase, pk=pk, user=request.user)
 
     if not purchase.can_cancel:
-        return Response({'error': "Bu buyurtmani bekor qilib bo'lmaydi!"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': "Bu buyurtmani bekor qilib bölmaydi!"}, status=status.HTTP_400_BAD_REQUEST)
 
     with transaction.atomic():
-        # Holatni shartli UPDATE bilan o'zgartiramiz: agar buyurtma allaqachon
-        # bekor qilingan bo'lsa 0 satr yangilanadi va biz chiqib ketamiz.
-        # Ilgari holat blokdan tashqarida tekshirilardi — bir vaqtda yuborilgan
-        # ikki "bekor qilish" so'rovi coinni ikki marta qaytarardi.
+        # Holatni şartli UPDATE bilan özgartiramiz: agar buyurtma allaqaçon
+        # bekor qilingan bölsa 0 satr yangilanadi va biz çiqib ketamiz.
+        # Ilgari holat blokdan taşqarida tekşirilardi — bir vaqtda yuborilgan
+        # ikki "bekor qiliş" sörovi coinni ikki marta qaytarardi.
         cancelled = ProductPurchase.objects.filter(
             pk=purchase.pk, status='pending', is_delivered=False
         ).update(status='cancelled', cancelled_at=timezone.now())
 
         if not cancelled:
             return Response(
-                {'error': "Bu buyurtmani bekor qilib bo'lmaydi!"},
+                {'error': "Bu buyurtmani bekor qilib bölmaydi!"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         purchase.refresh_from_db(fields=['status', 'cancelled_at'])
 
-        # Coin qaytarish — `add_coins` emas, chunki u muzlatilgan hisoblarni
-        # o'tkazib yuboradi, pul qaytarish esa har holatda bajarilishi kerak.
+        # Coin qaytariş — `add_coins` emas, chunki u muzlatilgan hisoblarni
+        # ötkazib yuboradi, pul qaytariş esa har holatda bajarilişi kerak.
         CustomUser.objects.filter(pk=purchase.user_id).update(
             coins=F('coins') + purchase.coins_spent
         )
@@ -367,7 +367,7 @@ def cancel_purchase(request, pk):
         Message.objects.create(
             recipient=purchase.user,
             title=f"❌ Buyurtma #{purchase.pk} bekor qilindi",
-            content=f"'{purchase.product.name}' mahsuloti uchun buyurtmangiz bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
+            content=f"'{purchase.product.name}' mahsuloti uçun buyurtmangiz bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
             message_type='system'
         )
 
@@ -390,7 +390,7 @@ def add_comment(request, pk):
 
     if recent_comment:
         return Response(
-            {'error': "Siz 1 soatda faqat bitta izoh qoldirishingiz mumkin! ⏰"},
+            {'error': "Siz 1 soatda faqat bitta izoh qoldirişingiz mumkin! ⏰"},
             status=status.HTTP_429_TOO_MANY_REQUESTS
         )
 
@@ -403,7 +403,7 @@ def add_comment(request, pk):
     if request.user.is_premium:
         request.user.add_coins(1, f"Mahsulotga izoh (Premium): {product.name}")
     else:
-        request.user.remove_coins(1, f"Mahsulotga izoh yozish: {product.name}")
+        request.user.remove_coins(1, f"Mahsulotga izoh yoziş: {product.name}")
 
     ActivityLog.objects.create(
         user=request.user,
@@ -417,10 +417,10 @@ def add_comment(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def request_premium(request):
-    # Kursni tugatgan (muzlatilgan) o'quvchilar coin sarflay olmaydi
+    # Kursni tugatgan (muzlatilgan) öquvçilar coin sarflay olmaydi
     if request.user.is_finished:
         return Response(
-            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar coin sarflay olmaydi."},
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan öquvçilar coin sarflay olmaydi."},
             status=status.HTTP_403_FORBIDDEN
         )
     serializer = PremiumRequestSerializer(data=request.data)
@@ -429,14 +429,14 @@ def request_premium(request):
 
     if not can_user_buy_premium(request.user):
         return Response(
-            {'error': "Premium sotib olish uchun kamida 1 oy oldin ro'yxatdan o'tgan bo'lishingiz kerak!"},
+            {'error': "Premium sotib oliş uçun kamida 1 oy oldin röyxatdan ötgan bölişingiz kerak!"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
     if pending:
         return Response(
-            {'error': "Sizda allaqachon kutilayotgan Premium so'rov bor!"},
+            {'error': "Sizda allaqaçon kutilayotgan Premium sörov bor!"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -446,21 +446,21 @@ def request_premium(request):
 
     if plan_info['too_cheap']:
         return Response(
-            {'error': f"Narx juda arzon! {plan_info['name']} uchun kamida {plan_info['min_price']} coin kerak. Coinlar yig'ishni davom eting!"},
+            {'error': f"Narx juda arzon! {plan_info['name']} uçun kamida {plan_info['min_price']} coin kerak. Coinlar yiğişni davom eting!"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     with transaction.atomic():
-        # Kutilayotgan so'rovni atomic blok ICHIDA yana bir marta tekshiramiz:
-        # aks holda bir vaqtda kelgan ikki so'rov ikki marta coin yechardi.
+        # Kutilayotgan sörovni atomic blok IÇIDA yana bir marta tekşiramiz:
+        # aks holda bir vaqtda kelgan ikki sörov ikki marta coin yeçardi.
         if PremiumRequest.objects.filter(user=request.user, status='pending').exists():
             return Response(
-                {'error': "Sizda allaqachon kutilayotgan Premium so'rov bor!"},
+                {'error': "Sizda allaqaçon kutilayotgan Premium sörov bor!"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         if not request.user.try_spend_coins(
-            price, f"✅ Premium so'rov ({plan_info['name']}) - {price} coin"
+            price, f"✅ Premium sörov ({plan_info['name']}) - {price} coin"
         ):
             return Response(
                 {'error': f"Coinlaringiz yetarli emas! {plan_info['name']} Premium narxi: {price} coin"},
@@ -483,7 +483,7 @@ def request_premium(request):
         ActivityLog.objects.create(
             user=request.user,
             action_type='purchase_product',
-            description=f"Premium so'rov yuborildi: {plan_info['name']} ({price} coin)"
+            description=f"Premium sörov yuborildi: {plan_info['name']} ({price} coin)"
         )
 
         admins = CustomUser.objects.filter(role='admin')
@@ -491,14 +491,14 @@ def request_premium(request):
             Message.objects.create(
                 sender=request.user,
                 recipient=admin,
-                title="Yangi Premium so'rov ✅",
-                content=f"{request.user.full_name} {plan_info['name']} Premium ({price} coin) uchun so'rov yubordi. Dashboard > Premium boshqaruv bo'limidan tasdiqlang.",
+                title="Yangi Premium sörov ✅",
+                content=f"{request.user.full_name} {plan_info['name']} Premium ({price} coin) uçun sörov yubordi. Dashboard > Premium boşqaruv bölimidan tasdiqlang.",
                 message_type='system'
             )
 
-    label = "uzaytirish " if is_ext else ""
+    label = "uzaytiriş " if is_ext else ""
     return Response(
-        {'message': f"Premium {label}so'rovingiz yuborildi! Admin tasdiqlashini kuting."},
+        {'message': f"Premium {label}sörovingiz yuborildi! Admin tasdiqlaşini kuting."},
         status=status.HTTP_201_CREATED
     )
 
@@ -534,7 +534,7 @@ def premium_plans(request):
             'created_at': pending.created_at.isoformat(),
         }
 
-    # Oxirgi 5 ta premium so'rovlar tarixi
+    # Oxirgi 5 ta premium sörovlar tarixi
     history = PremiumRequest.objects.filter(user=user).order_by('-created_at')[:5]
     data['request_history'] = [
         {
@@ -558,26 +558,26 @@ def premium_plans(request):
 
 
 def _clean_transfer_username(value):
-    """Frontend/user kiritmasidan kelgan username'ni normal holatga keltirish."""
+    """Frontend/user kiritmasidan kelgan username'ni normal holatga keltiriş."""
     return (value or '').strip().lstrip('@').strip()
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def search_user_for_transfer(request):
-    """Username yoki telefon raqam bo'yicha foydalanuvchi qidirish"""
+    """Username yoki telefon raqam böyiça foydalanuvçi qidiriş"""
     raw_query = request.query_params.get('username', '').strip()
     query = _clean_transfer_username(raw_query)
     if not query or len(query) < 2:
         return Response({'error': "Kamida 2 ta belgi kiriting"}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Kursni tugatgan (muzlatilgan) o'quvchilarga coin o'tkazib bo'lmaydi —
-    # ularning coinlari ko'paymasligi kerak
+    # Kursni tugatgan (muzlatilgan) öquvçilarga coin ötkazib bölmaydi —
+    # ularning coinlari köpaymasligi kerak
     base_qs = CustomUser.objects.filter(
         is_blocked=False, is_finished=False,
     ).exclude(pk=request.user.pk)
     
-    # Telefon raqam bo'yicha qidirish (raqam bilan boshlansa)
+    # Telefon raqam böyiça qidiriş (raqam bilan boşlansa)
     phone_digits = ''.join(ch for ch in raw_query if ch.isdigit())
     if phone_digits and len(phone_digits) >= 2:
         phone_q = Q(phone__icontains=phone_digits)
@@ -585,7 +585,7 @@ def search_user_for_transfer(request):
             phone_q |= Q(phone__icontains=phone_digits[3:])
         users = base_qs.filter(phone_q)[:5]
     else:
-        # Username yoki ism bo'yicha qidirish
+        # Username yoki ism böyiça qidiriş
         users = base_qs.filter(
             Q(username__icontains=query) |
             Q(telegram_username__icontains=query) |
@@ -601,11 +601,11 @@ def search_user_for_transfer(request):
 @permission_classes([IsAuthenticated, IsNotBlocked])
 @throttle_classes([CoinTransferRateThrottle])
 def initiate_transfer(request):
-    """Coin o'tkazmani boshlash — tasdiqlash kodi yuborish"""
-    # Kursni tugatgan (muzlatilgan) o'quvchilar coin o'tkaza olmaydi
+    """Coin ötkazmani boşlaş — tasdiqlaş kodi yuboriş"""
+    # Kursni tugatgan (muzlatilgan) öquvçilar coin ötkaza olmaydi
     if request.user.is_finished:
         return Response(
-            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar coin o'tkaza olmaydi."},
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan öquvçilar coin ötkaza olmaydi."},
             status=status.HTTP_403_FORBIDDEN
         )
     serializer = CoinTransferInitSerializer(data=request.data)
@@ -614,18 +614,18 @@ def initiate_transfer(request):
     receiver_username = _clean_transfer_username(serializer.validated_data['receiver_username'])
     amount = serializer.validated_data['amount']
     
-    # Qabul qiluvchini topish
+    # Qabul qiluvçini topiş
     receiver = CustomUser.objects.filter(username__iexact=receiver_username, is_blocked=False).first()
     if not receiver:
-        return Response({'error': "Foydalanuvchi topilmadi!"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': "Foydalanuvçi topilmadi!"}, status=status.HTTP_404_NOT_FOUND)
     
     if receiver.pk == request.user.pk:
-        return Response({'error': "O'zingizga coin o'tkaza olmaysiz!"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': "Özingizga coin ötkaza olmaysiz!"}, status=status.HTTP_400_BAD_REQUEST)
     
-    # Qabul qiluvchi kursni tugatgan (muzlatilgan) bo'lsa — coin o'tkazib bo'lmaydi
+    # Qabul qiluvçi kursni tugatgan (muzlatilgan) bölsa — coin ötkazib bölmaydi
     if getattr(receiver, 'is_finished', False):
         return Response(
-            {'error': "Bu foydalanuvchi hisobi muzlatilgan, unga coin o'tkazib bo'lmaydi."},
+            {'error': "Bu foydalanuvçi hisobi muzlatilgan, unga coin ötkazib bölmaydi."},
             status=status.HTTP_400_BAD_REQUEST
         )
     
@@ -638,14 +638,14 @@ def initiate_transfer(request):
             'error': f"Coinlaringiz yetarli emas! Kerak: {total_deducted} coin ({amount} + {fee} xizmat haqqi), Balansingiz: {request.user.coins}"
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Kutilayotgan o'tkazma bor-yo'qligini tekshirish
+    # Kutilayotgan ötkazma bor-yöqligini tekşiriş
     pending = CoinTransfer.objects.filter(sender=request.user, status='pending').first()
     if pending:
-        # Eskisini bekor qilish
+        # Eskisini bekor qiliş
         pending.status = 'cancelled'
         pending.save()
     
-    # Tasdiqlash kodi — pul harakatini himoyalaydi, shuning uchun `secrets`.
+    # Tasdiqlaş kodi — pul harakatini himoyalaydi, şuning uçun `secrets`.
     code = ''.join(secrets.choice(string.digits) for _ in range(6))
     
     transfer = CoinTransfer.objects.create(
@@ -662,19 +662,19 @@ def initiate_transfer(request):
         f"Coin transfer initiated: sender={request.user.username}, "
         f"receiver={receiver.username}, amount={amount}, fee={fee}, transfer_id={transfer.pk}"
     )
-    # Agar telegram ulangan bo'lsa — kodni telegramga yuborish
+    # Agar telegram ulangan bölsa — kodni telegramga yuboriş
     needs_telegram = bool(request.user.telegram_id)
     if needs_telegram:
         notify_user(
             request.user.telegram_id,
-            f"🔐 <b>Coin o'tkazma tasdiqlash kodi</b>\n\n"
-            f"👤 Qabul qiluvchi: <b>{receiver.full_name}</b> (@{receiver.username})\n"
+            f"🔐 <b>Coin ötkazma tasdiqlaş kodi</b>\n\n"
+            f"👤 Qabul qiluvçi: <b>{receiver.full_name}</b> (@{receiver.username})\n"
             f"🪙 Miqdor: <b>{amount}</b> coin\n"
             f"💰 Xizmat haqqi: <b>{fee}</b> coin\n"
             f"📊 Jami: <b>{total_deducted}</b> coin\n\n"
-            f"🔑 Tasdiqlash kodi: <b>{code}</b>\n\n"
+            f"🔑 Tasdiqlaş kodi: <b>{code}</b>\n\n"
             f"⏱ Kod 2 daqiqa amal qiladi!\n"
-            f"⚠️ Bu kodni hech kimga bermang!"
+            f"⚠️ Bu kodni heç kimga bermang!"
         )
     
     data = CoinTransferDetailSerializer(transfer).data
@@ -686,12 +686,12 @@ def initiate_transfer(request):
 @permission_classes([IsAuthenticated, IsNotBlocked])
 @throttle_classes([CoinTransferRateThrottle])
 def confirm_transfer(request):
-    """Coin o'tkazmani tasdiqlash"""
-    # Muzlatilgan hisob `initiate_transfer` da ham to'siladi — bu yerda ham
-    # tekshiramiz, chunki holat ikki so'rov orasida o'zgargan bo'lishi mumkin.
+    """Coin ötkazmani tasdiqlaş"""
+    # Muzlatilgan hisob `initiate_transfer` da ham tösiladi — bu yerda ham
+    # tekşiramiz, chunki holat ikki sörov orasida özgargan bölişi mumkin.
     if request.user.is_finished:
         return Response(
-            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar coin o'tkaza olmaydi."},
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan öquvçilar coin ötkaza olmaydi."},
             status=status.HTTP_403_FORBIDDEN
         )
     serializer = CoinTransferConfirmSerializer(data=request.data)
@@ -699,10 +699,10 @@ def confirm_transfer(request):
     
     transfer_id = serializer.validated_data['transfer_id']
     
-    # Tasdiqlash kodini SOLISHTIRISH va o'tkazmani BAJARISH bitta atomic
-    # blokda, o'tkazma satri qulflangan holda bo'lishi shart. Ilgari tekshiruv
-    # blokdan tashqarida edi: bir xil kod bilan parallel yuborilgan ikki so'rov
-    # ikkisi ham o'tib ketib, qabul qiluvchiga ikki barobar coin tushardi.
+    # Tasdiqlaş kodini SOLIŞTIRIŞ va ötkazmani BAJARIŞ bitta atomic
+    # blokda, ötkazma satri qulflangan holda bölişi şart. Ilgari tekşiruv
+    # blokdan taşqarida edi: bir xil kod bilan parallel yuborilgan ikki sörov
+    # ikkisi ham ötib ketib, qabul qiluvçiga ikki barobar coin tuşardi.
     with transaction.atomic():
         transfer = (
             CoinTransfer.objects.select_for_update()
@@ -711,56 +711,56 @@ def confirm_transfer(request):
         )
         if transfer is None:
             return Response(
-                {'error': "O'tkazma topilmadi yoki muddati o'tgan!"},
+                {'error': "Ötkazma topilmadi yoki muddati ötgan!"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Muddatni tekshirish (2 daqiqa)
+        # Muddatni tekşiriş (2 daqiqa)
         if (timezone.now() - transfer.created_at).total_seconds() > 120:
             transfer.status = 'cancelled'
             transfer.save(update_fields=['status'])
             return Response(
-                {'error': "O'tkazma muddati o'tdi! Qaytadan urinib ko'ring."},
+                {'error': "Ötkazma muddati ötdi! Qaytadan urinib köring."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Tasdiqlash: telegram kodi yoki parol
+        # Tasdiqlaş: telegram kodi yoki parol
         needs_telegram = bool(request.user.telegram_id)
 
         if needs_telegram:
-            # `compare_digest` — kodni bayt-bayt solishtirishda vaqt bo'yicha
-            # sizib chiqishni (timing leak) yopadi. `isdigit()` tekshiruvi
-            # ASCII bo'lmagan kirishda TypeError bo'lmasligi uchun.
+            # `compare_digest` — kodni bayt-bayt soliştirişda vaqt böyiça
+            # sizib çiqişni (timing leak) yopadi. `isdigit()` tekşiruvi
+            # ASCII bölmagan kirişda TypeError bölmasligi uçun.
             code = str(serializer.validated_data.get('code', '') or '').strip()
             if not code.isdigit() or not secrets.compare_digest(code, transfer.verification_code):
-                return Response({'error': "Tasdiqlash kodi noto'g'ri!"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "Tasdiqlaş kodi notöğri!"}, status=status.HTTP_400_BAD_REQUEST)
         else:
             password = serializer.validated_data.get('password', '')
             if not password or not request.user.check_password(password):
-                return Response({'error': "Parol noto'g'ri!"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': "Parol notöğri!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Holatni shartli UPDATE bilan band qilamiz — o'tkazma faqat bir marta
-        # 'completed' ga o'tishi kafolatlanadi.
+        # Holatni şartli UPDATE bilan band qilamiz — ötkazma faqat bir marta
+        # 'completed' ga ötişi kafolatlanadi.
         claimed = CoinTransfer.objects.filter(pk=transfer.pk, status='pending').update(
             status='completed', completed_at=timezone.now()
         )
         if not claimed:
             return Response(
-                {'error': "O'tkazma allaqachon bajarilgan!"},
+                {'error': "Ötkazma allaqaçon bajarilgan!"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         transfer.refresh_from_db(fields=['status', 'completed_at'])
 
-        # Yuboruvchidan yechish — balans yetarli bo'lmasa hech narsa yechilmaydi.
+        # Yuboruvçidan yeçiş — balans yetarli bölmasa heç narsa yeçilmaydi.
         if not request.user.try_spend_coins(
             transfer.total_deducted,
-            f"Coin o'tkazma: {transfer.receiver.full_name} ga {transfer.amount} coin "
+            f"Coin ötkazma: {transfer.receiver.full_name} ga {transfer.amount} coin "
             f"({transfer.fee} xizmat haqqi)",
         ):
             transaction.set_rollback(True)
             return Response({'error': "Coinlaringiz yetarli emas!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Qabul qiluvchiga qo'shish
+        # Qabul qiluvçiga qöşiş
         CustomUser.objects.filter(pk=transfer.receiver_id).update(
             coins=F('coins') + transfer.amount
         )
@@ -777,25 +777,25 @@ def confirm_transfer(request):
         ActivityLog.objects.create(
             user=request.user,
             action_type='earn_coins',
-            description=f"Coin o'tkazdi: {transfer.receiver.full_name} ga {transfer.amount} coin"
+            description=f"Coin ötkazdi: {transfer.receiver.full_name} ga {transfer.amount} coin"
         )
         
-        # Qabul qiluvchiga telegram xabar
+        # Qabul qiluvçiga telegram xabar
         if transfer.receiver.telegram_id:
             notify_user(
                 transfer.receiver.telegram_id,
                 f"🪙 <b>Coin qabul qildingiz!</b>\n\n"
-                f"👤 Yuboruvchi: <b>{request.user.full_name}</b>\n"
+                f"👤 Yuboruvçi: <b>{request.user.full_name}</b>\n"
                 f"🪙 Miqdor: <b>{transfer.amount}</b> coin\n\n"
                 f"💰 Yangi balans: <b>{transfer.receiver.coins}</b> coin"
             )
         
-        # Yuboruvchiga telegram xabar
+        # Yuboruvçiga telegram xabar
         if request.user.telegram_id:
             notify_user(
                 request.user.telegram_id,
-                f"✅ <b>Coin o'tkazma muvaffaqiyatli!</b>\n\n"
-                f"👤 Qabul qiluvchi: <b>{transfer.receiver.full_name}</b>\n"
+                f"✅ <b>Coin ötkazma muvaffaqiyatli!</b>\n\n"
+                f"👤 Qabul qiluvçi: <b>{transfer.receiver.full_name}</b>\n"
                 f"🪙 Miqdor: <b>{transfer.amount}</b> coin\n"
                 f"💰 Xizmat haqqi: <b>{transfer.fee}</b> coin\n"
                 f"📊 Yangi balans: <b>{request.user.coins}</b> coin"
@@ -804,8 +804,8 @@ def confirm_transfer(request):
         # Xabar (Message)
         Message.objects.create(
             recipient=transfer.receiver,
-            title=f"🪙 {request.user.full_name} sizga coin o'tkazdi",
-            content=f"{request.user.full_name} sizga {transfer.amount} coin o'tkazdi. Yangi balansingiz: {transfer.receiver.coins} coin.",
+            title=f"🪙 {request.user.full_name} sizga coin ötkazdi",
+            content=f"{request.user.full_name} sizga {transfer.amount} coin ötkazdi. Yangi balansingiz: {transfer.receiver.coins} coin.",
             message_type='system'
         )
     
@@ -814,6 +814,6 @@ def confirm_transfer(request):
         f"receiver={transfer.receiver.username}, amount={transfer.amount}, transfer_id={transfer.pk}"
     )
     return Response({
-        'message': f"Muvaffaqiyatli! {transfer.amount} coin {transfer.receiver.full_name} ga o'tkazildi.",
+        'message': f"Muvaffaqiyatli! {transfer.amount} coin {transfer.receiver.full_name} ga ötkazildi.",
         'new_balance': request.user.coins,
     })

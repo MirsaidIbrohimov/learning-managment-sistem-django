@@ -1,7 +1,7 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
 
-{% block title %}O'quvchilar{% endblock %}
-{% block page_title %}O'quvchilar ({{ total_count }}){% endblock %}
+{% block title %}Öquvçilar{% endblock %}
+{% block page_title %}Öquvçilar ({{ total_count }}){% endblock %}
 
 {% block content %}
 <div class="card border-0 shadow-sm">
@@ -12,7 +12,7 @@
             </div>
             <div class="col-md-3">
                 <select name="profession" class="form-select form-select-sm">
-                    <option value="">— Barcha yo'nalishlar —</option>
+                    <option value="">— Barça yönalişlar —</option>
                     {% for p in professions %}
                         <option value="{{ p.pk }}" {% if profession_id == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
                     {% endfor %}
@@ -20,14 +20,14 @@
             </div>
             <div class="col-md-3">
                 <select name="status" class="form-select form-select-sm">
-                    <option value="">— Barcha holatlar —</option>
+                    <option value="">— Barça holatlar —</option>
                     <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
                     <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>Bloklangan</option>
                     <option value="premium" {% if status == 'premium' %}selected{% endif %}>Premium</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <button class="btn btn-warning btn-sm w-100"><i class="bi bi-search"></i> Qidirish</button>
+                <button class="btn btn-warning btn-sm w-100"><i class="bi bi-search"></i> Qidiriş</button>
             </div>
         </form>
     </div>
@@ -37,9 +37,9 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead style="background:rgba(245,158,11,0.06);">
                     <tr>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Telefon</th>
-                        <th>Yo'nalish</th>
+                        <th>Yönaliş</th>
                         <th>Coinlar</th>
                         <th>Holati</th>
                         <th>Oxirgi faollik</th>
@@ -108,7 +108,7 @@
         {% else %}
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
-                <p class="mt-2 mb-0">O'quvchilar topilmadi</p>
+                <p class="mt-2 mb-0">Öquvçilar topilmadi</p>
             </div>
         {% endif %}
     </div>

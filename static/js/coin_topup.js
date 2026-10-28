@@ -32,19 +32,19 @@
     amount = raw ? (valid ? Number(raw.replaceAll(' ', '')) : NaN) : Number(radios.find(r => r.checked)?.value);
     const purchase = quote(amount);
     const ok = Number.isSafeInteger(amount) && amount >= 1000 && amount <= 2147483647 && Number.isSafeInteger(purchase.payable) && purchase.payable >= Number(form.dataset.min) && purchase.payable <= Number(form.dataset.max);
-    error.textContent = ok || form.dataset.ready !== 'true' ? '' : (Number.isSafeInteger(amount) && amount < 1000 ? 'Eng kam xarid — 1 000 tanga.' : 'Tanga miqdorini tekshiring. To‘lov summasi ko‘rsatilgan so‘m chegaralari ichida bo‘lishi kerak.');
+    error.textContent = ok || form.dataset.ready !== 'true' ? '' : (Number.isSafeInteger(amount) && amount < 1000 ? 'Eng kam xarid — 1 000 tanga.' : 'Tanga miqdorini tekşiring. Tölov summasi körsatilgan söm çegaralari içida bölişi kerak.');
     custom.setAttribute('aria-invalid', raw && !ok ? 'true' : 'false');
     const readable = Number.isSafeInteger(amount) && amount > 0;
     document.getElementById('ct-receive').textContent = (readable ? fmt(amount) : '—') + ' tanga';
-    document.getElementById('ct-pay').textContent = (readable ? fmt(purchase.payable) : '—') + ' so‘m';
-    document.getElementById('ct-gross').textContent = (readable ? fmt(purchase.gross) : '—') + ' so‘m';
+    document.getElementById('ct-pay').textContent = (readable ? fmt(purchase.payable) : '—') + ' söm';
+    document.getElementById('ct-gross').textContent = (readable ? fmt(purchase.gross) : '—') + ' söm';
     document.getElementById('ct-savings-row').hidden = !readable || !purchase.selected;
-    document.getElementById('ct-savings').textContent = readable ? fmt(purchase.gross - purchase.payable) + ' so‘m' : '—';
-    document.getElementById('ct-discount').textContent = readable && purchase.selected ? purchase.selected.name + ' chegirmasi qo‘llandi.' : '';
+    document.getElementById('ct-savings').textContent = readable ? fmt(purchase.gross - purchase.payable) + ' söm' : '—';
+    document.getElementById('ct-discount').textContent = readable && purchase.selected ? purchase.selected.name + ' çegirmasi qöllandi.' : '';
     submit.disabled = busy || !ok || form.dataset.ready !== 'true';
     paintMoney(readable && amount >= 1000 ? purchase.payable : NaN);
   }
-  // ── Pul balansidan (oylik to'lovdan ortgan mablag') tanga sotib olish ──
+  // ── Pul balansidan (oylik tölovdan ortgan mablag') tanga sotib oliş ──
   const moneyEl = document.getElementById('ct-money'), balanceBtn = document.getElementById('ct-balance-btn');
   const moneyHint = document.getElementById('ct-money-hint');
   let moneyBusy = false;
@@ -55,13 +55,13 @@
     const can = Number.isSafeInteger(payable) && payable > 0 && payable <= money;
     balanceBtn.disabled = moneyBusy || !can;
     moneyHint.textContent = !Number.isSafeInteger(payable) ? 'Kamida 1 000 tanga tanlang.'
-      : can ? 'To‘lovdan keyin balansda ' + fmt(money - payable) + ' so‘m qoladi.'
-      : 'Balans yetmaydi: yana ' + fmt(payable - money) + ' so‘m kerak.';
+      : can ? 'Tölovdan keyin balansda ' + fmt(money - payable) + ' söm qoladi.'
+      : 'Balans yetmaydi: yana ' + fmt(payable - money) + ' söm kerak.';
   }
   if (balanceBtn) balanceBtn.addEventListener('click', async () => {
     update();
     const payable = quote(amount).payable;
-    if (balanceBtn.disabled || !confirm('Pul balansingizdan ' + fmt(payable) + ' so‘m yechiladi va ' + fmt(amount) + ' tanga qo‘shiladi. Davom etasizmi?')) return;
+    if (balanceBtn.disabled || !confirm('Pul balansingizdan ' + fmt(payable) + ' söm yeçiladi va ' + fmt(amount) + ' tanga qöşiladi. Davom etasizmi?')) return;
     moneyBusy = true; balanceBtn.disabled = true; error.textContent = '';
     const label = balanceBtn.innerHTML; balanceBtn.textContent = 'Sotib olinmoqda…';
     try {
@@ -72,15 +72,15 @@
       const response = await fetch(balanceBtn.dataset.url, {method:'POST', body:data, headers:{'X-CSRFToken':csrf,'Accept':'application/json'}, credentials:'same-origin', signal:AbortSignal.timeout(20000)});
       const payload = await response.json();
       if (Number.isSafeInteger(payload.money_balance)) moneyEl.dataset.value = payload.money_balance;
-      if (!response.ok || !payload.ok) throw new Error(payload.error || 'Xarid amalga oshmadi.');
+      if (!response.ok || !payload.ok) throw new Error(payload.error || 'Xarid amalga oşmadi.');
       balance.textContent = fmt(payload.balance);
       const marketBalance = document.getElementById('mkBalanceValue');
       if (marketBalance) marketBalance.textContent = fmt(payload.balance);
       result.hidden = false;
-      result.textContent = 'Balansingizga ' + fmt(payload.coins) + ' tanga qo‘shildi! Pul balansidan ' + fmt(payload.paid) + ' so‘m yechildi.';
+      result.textContent = 'Balansingizga ' + fmt(payload.coins) + ' tanga qöşildi! Pul balansidan ' + fmt(payload.paid) + ' söm yeçildi.';
       document.dispatchEvent(new CustomEvent('coin-payment-confirmed'));
     } catch (e) {
-      error.textContent = e.message && e.message !== 'pricing' ? e.message : 'Xarid amalga oshmadi. Qayta urinib ko‘ring.';
+      error.textContent = e.message && e.message !== 'pricing' ? e.message : 'Xarid amalga oşmadi. Qayta urinib köring.';
     } finally {
       moneyBusy = false; balanceBtn.innerHTML = label; update();
     }
@@ -104,7 +104,7 @@
   }
   setInterval(paintEnds, 1000);
   function paintPricing() {
-    document.getElementById('ct-rate-label').textContent = '1 tanga = ' + fmt(pricing.rate) + ' so‘m';
+    document.getElementById('ct-rate-label').textContent = '1 tanga = ' + fmt(pricing.rate) + ' söm';
     const offers = document.getElementById('ct-offers');
     offers.replaceChildren();
     for (const discount of pricing.discounts) {
@@ -114,11 +114,11 @@
       const copy = document.createElement('div'); copy.className = 'cp-copy';
       const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'premium' ? 'PREMIUM TAKLIF' : discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
       const name = document.createElement('h3'); name.textContent = discount.name;
-      const threshold = document.createElement('p'); threshold.textContent = discount.theme === 'premium' ? 'Siz uchun barcha tanga xaridlari yarim narxda' : discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' so‘m' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
+      const threshold = document.createElement('p'); threshold.textContent = discount.theme === 'premium' ? 'Siz uçun barça tanga xaridlari yarim narxda' : discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' söm' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
       copy.append(label, name, threshold);
       if (discount.ends_at) { const left = document.createElement('small'); left.className = 'cp-ends'; left.dataset.endsAt = discount.ends_at; copy.append(left); }
       const value = document.createElement('div'); value.className = 'cp-value';
-      const badge = document.createElement('strong'); badge.textContent = discount.discount_type === 'package' ? fmt(discount.value) + ' so‘m' : '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' so‘m'); value.append(badge);
+      const badge = document.createElement('strong'); badge.textContent = discount.discount_type === 'package' ? fmt(discount.value) + ' söm' : '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' söm'); value.append(badge);
       card.append(art, copy, value); offers.append(card);
     }
     document.getElementById('ct-offers-section').hidden = !pricing.discounts.length;
@@ -126,7 +126,7 @@
     document.querySelectorAll('.ct-package-cost').forEach(el => {
       const purchase = quote(Number(el.dataset.coins)); el.replaceChildren();
       if (purchase.selected) { const old = document.createElement('del'); old.textContent = fmt(purchase.gross); el.append(old, ' → '); }
-      el.append(fmt(purchase.payable) + ' so‘m');
+      el.append(fmt(purchase.payable) + ' söm');
     });
     update();
   }
@@ -144,14 +144,14 @@
       form.dataset.min = data.limits?.[0] || 0; form.dataset.max = data.limits?.[1] || 0;
       form.dataset.ready = data.ready ? 'true' : 'false';
       paintPricing();
-      document.getElementById('ct-rate-status').textContent = 'Joriy narx tekshirildi';
+      document.getElementById('ct-rate-status').textContent = 'Joriy narx tekşirildi';
       return changed;
     })();
     try { return await refreshing; } finally { refreshing = null; }
   }
   function backgroundRefresh() {
     if (busy || document.hidden) return;
-    refreshPricing().catch(() => { document.getElementById('ct-rate-status').textContent = 'Narxni yangilash kutilmoqda'; });
+    refreshPricing().catch(() => { document.getElementById('ct-rate-status').textContent = 'Narxni yangilaş kutilmoqda'; });
   }
   window.addEventListener('pageshow', backgroundRefresh);
   window.addEventListener('focus', backgroundRefresh);
@@ -160,12 +160,12 @@
   form.addEventListener('submit', async event => {
     event.preventDefault(); update();
     if (submit.disabled) return;
-    busy = true; submit.disabled = true; submit.textContent = 'To‘lov yaratilmoqda…'; error.textContent = '';
+    busy = true; submit.disabled = true; submit.textContent = 'Tölov yaratilmoqda…'; error.textContent = '';
     const data = new FormData(form); data.set('amount', String(amount));
-    let failureMessage = 'To‘lov yaratilmadi yoki bog‘lanishda xato yuz berdi. Qayta urinib ko‘ring.';
+    let failureMessage = 'Tölov yaratilmadi yoki boğlanişda xato yuz berdi. Qayta urinib köring.';
     try {
       const changed = await refreshPricing();
-      if (changed) { failureMessage = 'Narx yoki chegirma yangilandi. Yangi summani tekshirib, qayta to‘lashni bosing.'; throw new Error('changed'); }
+      if (changed) { failureMessage = 'Narx yoki çegirma yangilandi. Yangi summani tekşirib, qayta tölaşni bosing.'; throw new Error('changed'); }
       if (form.dataset.ready !== 'true' || quote(amount).payable < Number(form.dataset.min) || quote(amount).payable > Number(form.dataset.max)) throw new Error('limits');
       data.set('pricing_token', form.querySelector('[name=pricing_token]').value);
       const response = await fetch(form.action, {method:'POST',body:data,headers:{'X-CSRFToken':csrf,'Accept':'application/json'},credentials:'same-origin',signal:AbortSignal.timeout(25000)});
@@ -176,15 +176,15 @@
       }
       window.location.assign(payload.payment_url);
     } catch (e) {
-      busy = false; submit.innerHTML = '<i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash'; update();
+      busy = false; submit.innerHTML = '<i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn tölaş'; update();
       error.textContent = failureMessage;
     }
   });
   async function poll(url) {
     currentUrl = url; const generation = ++pollGeneration;
     recheck.hidden = true; result.hidden = false;
-    result.textContent = 'To‘lovingiz tekshirilmoqda…';
-    const labels = {failed:'To‘lov amalga oshmadi.', cancelled:'To‘lov bekor qilindi.', expired:'To‘lov muddati tugadi.', review:'To‘lov administrator tomonidan tekshirilishi kerak.', refunded:'To‘lov qaytarilgan.'};
+    result.textContent = 'Tölovingiz tekşirilmoqda…';
+    const labels = {failed:'Tölov amalga oşmadi.', cancelled:'Tölov bekor qilindi.', expired:'Tölov muddati tugadi.', review:'Tölov administrator tomonidan tekşirilişi kerak.', refunded:'Tölov qaytarilgan.'};
     for (let i = 0; i < 24 && generation === pollGeneration; i++) {
       try {
         const response = await fetch(url, {method:'POST',headers:{'X-CSRFToken':csrf},credentials:'same-origin',signal:AbortSignal.timeout(10000)});
@@ -194,13 +194,13 @@
         if (state.credited) {
           balance.textContent = fmt(state.balance);
           document.dispatchEvent(new CustomEvent('coin-payment-confirmed'));
-          result.textContent = `Balansingizga ${fmt(state.coins)} tanga qo‘shildi!`;
-          document.querySelectorAll(`[data-status-url="${url}"]`).forEach(el => el.textContent = 'To‘langan');
+          result.textContent = `Balansingizga ${fmt(state.coins)} tanga qöşildi!`;
+          document.querySelectorAll(`[data-status-url="${url}"]`).forEach(el => el.textContent = 'Tölangan');
           return;
         }
-        if (state.status !== 'pending') { result.textContent = labels[state.status] || 'To‘lov holatini administrator bilan aniqlashtiring.'; return; }
-        result.textContent = 'To‘lov kutilmoqda. To‘lovingiz tekshirilmoqda; tasdiq kelgach tangalar balansga qo‘shiladi.';
-      } catch (_) { result.textContent = 'To‘lov holatini hozir olib bo‘lmadi. Qayta tekshirishingiz mumkin.'; break; }
+        if (state.status !== 'pending') { result.textContent = labels[state.status] || 'Tölov holatini administrator bilan aniqlaştiring.'; return; }
+        result.textContent = 'Tölov kutilmoqda. Tölovingiz tekşirilmoqda; tasdiq kelgaç tangalar balansga qöşiladi.';
+      } catch (_) { result.textContent = 'Tölov holatini hozir olib bölmadi. Qayta tekşirişingiz mumkin.'; break; }
       await new Promise(resolve => setTimeout(resolve, 5000));
     }
     if (generation === pollGeneration) recheck.hidden = false;

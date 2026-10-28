@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='testquestion',
             name='explanation',
-            field=models.TextField(blank=True, null=True, verbose_name='Izoh (tushuntirish)'),
+            field=models.TextField(blank=True, null=True, verbose_name='Izoh (tuşuntiriş)'),
         ),
     ]

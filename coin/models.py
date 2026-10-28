@@ -109,7 +109,7 @@ class ProductPurchase(models.Model):
 class CoinTransaction(models.Model):
 
     ACTION_TYPES = (
-        ('add', 'Qo‘shildi'),
+        ('add', 'Qöşildi'),
         ('remove', 'Ayirildi'),
         ('purchase', 'Xarid qilindi'),
     )
@@ -154,21 +154,21 @@ class ActivityLog(models.Model):
 
     ACTION_TYPES = (
         ('login', 'Tizimga kirdi'),
-        ('logout', 'Tizimdan chiqdi'),
+        ('logout', 'Tizimdan çiqdi'),
         ('like_post', 'Postga like bosdi'),
         ('comment_post', 'Postga izoh qoldirdi'),
         ('like_product', 'Mahsulotga like bosdi'),
         ('comment_product', 'Mahsulotga izoh qoldirdi'),
-        ('submit_homework', 'Vazifa topshirdi'),
+        ('submit_homework', 'Vazifa topşirdi'),
         ('homework_graded', 'Vazifasi baholandi'),
-        ('submit_test', 'Test topshirdi'),
-        ('watch_video', 'Video ko‘rdi'),
+        ('submit_test', 'Test topşirdi'),
+        ('watch_video', 'Video kördi'),
         ('enroll_course', 'Kursga yozildi'),
         ('purchase_product', 'Mahsulot sotib oldi'),
         ('earn_coins', 'Coin oldi'),
         ('deploy_create', 'Loyiha deploy qildi'),
         ('deploy_edit', 'Loyihani tahrirladi'),
-        ('deploy_delete', "Loyihani o'chirdi"),
+        ('deploy_delete', "Loyihani öçirdi"),
     )
 
     user = models.ForeignKey(
@@ -200,7 +200,7 @@ class ActivityLog(models.Model):
 # =========================
 
 class CoinTransfer(models.Model):
-    """Foydalanuvchilar o'rtasida coin o'tkazmalar"""
+    """Foydalanuvçilar örtasida coin ötkazmalar"""
     
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
@@ -212,26 +212,26 @@ class CoinTransfer(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='sent_transfers',
-        verbose_name="Yuboruvchi"
+        verbose_name="Yuboruvçi"
     )
     receiver = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='received_transfers',
-        verbose_name="Qabul qiluvchi"
+        verbose_name="Qabul qiluvçi"
     )
     amount = models.PositiveIntegerField(verbose_name="Miqdor")
     fee = models.PositiveIntegerField(verbose_name="Xizmat haqqi (10%)")
-    total_deducted = models.PositiveIntegerField(verbose_name="Jami yechilgan")
-    verification_code = models.CharField(max_length=6, blank=True, verbose_name="Tasdiqlash kodi")
+    total_deducted = models.PositiveIntegerField(verbose_name="Jami yeçilgan")
+    verification_code = models.CharField(max_length=6, blank=True, verbose_name="Tasdiqlaş kodi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Coin o'tkazma"
-        verbose_name_plural = "Coin o'tkazmalar"
+        verbose_name = "Coin ötkazma"
+        verbose_name_plural = "Coin ötkazmalar"
         indexes = [
             models.Index(fields=['sender', '-created_at']),
             models.Index(fields=['receiver', '-created_at']),

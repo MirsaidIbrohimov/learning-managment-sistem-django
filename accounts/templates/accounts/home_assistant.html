@@ -1,33 +1,33 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-{% block title %}Bosh sahifa — Yordamchi | IT Creative{% endblock %}
+{% block title %}Boş sahifa — Yordamçi | IT Creative{% endblock %}
 {% block extra_css %}{% include 'accounts/dashboard/_motion_css.html' %}{% endblock %}
 
 {% block content %}
 <div class="pf3">
   <div class="pf3-bg" aria-hidden="true"></div>
 
-  <!-- ═══ SALOMLASHUV ═══ -->
-  <section class="hero3 hello glass" aria-label="Salomlashuv">
+  <!-- ═══ SALOMLAŞUV ═══ -->
+  <section class="hero3 hello glass" aria-label="Salomlaşuv">
     <div class="hero3-l">
       <div>
         <div class="clock"><i class="bi bi-calendar3"></i> <span id="date"></span> · <b id="time">--:--</b></div>
-        <div class="badges"><span class="bdg">Yordamchi</span></div>
-        <h1 id="heroTitle"><span class="split"><span data-greet>Xush kelibsiz</span>, {{ user.first_name|default:user.username }} 👋</span></h1>
-        <p class="msg">{% if pending_total %}<b>{{ pending_total }}</b> ta ish ko‘rib chiqilishini kutmoqda.{% else %}Kutilayotgan ishlar yo‘q — hammasi joyida!{% endif %}{% if overdue_rentals %} <b>{{ overdue_rentals }}</b> ta kitob ijarasi muddati o‘tgan.{% endif %}</p>
+        <div class="badges"><span class="bdg">Yordamçi</span></div>
+        <h1 id="heroTitle"><span class="split"><span data-greet>Xuş kelibsiz</span>, {{ user.first_name|default:user.username }} 👋</span></h1>
+        <p class="msg">{% if pending_total %}<b>{{ pending_total }}</b> ta iş körib çiqilişini kutmoqda.{% else %}Kutilayotgan işlar yöq — hammasi joyida!{% endif %}{% if overdue_rentals %} <b>{{ overdue_rentals }}</b> ta kitob ijarasi muddati ötgan.{% endif %}</p>
         <div class="todaybar" style="margin-top:14px">
           <span><span class="live"></span> Hozir onlayn: <b>{{ online_now }}</b></span>
           {% for t in today_stats %}<span><i class="bi bi-{{ t.icon }}"></i> {{ t.label }}: <b>{{ t.value }}</b></span>{% endfor %}
         </div>
       </div>
       <form class="search3" method="get" action="{% url 'yordamchi_students' %}" role="search">
-        <i class="bi bi-search"></i><input type="search" name="q" placeholder="O‘quvchini ism, username yoki telefon bo‘yicha qidirish…" aria-label="O‘quvchi qidirish"><button type="submit">Qidirish</button>
+        <i class="bi bi-search"></i><input type="search" name="q" placeholder="Öquvçini ism, username yoki telefon böyiça qidiriş…" aria-label="Öquvçi qidiriş"><button type="submit">Qidiriş</button>
       </form>
     </div>
     <div class="hero3-r" data-pf-orb aria-hidden="true">
-      <div class="fchip glass f1"><i class="bi bi-hourglass-split"></i><span><b>{{ pending_total }} ta</b><small>Kutilayotgan ishlar</small></span></div>
+      <div class="fchip glass f1"><i class="bi bi-hourglass-split"></i><span><b>{{ pending_total }} ta</b><small>Kutilayotgan işlar</small></span></div>
       <div class="fchip glass f2"><i class="bi bi-broadcast"></i><span><b>{{ online_now }} onlayn</b><small>Hozir saytda</small></span></div>
-      <div class="fchip glass f3"><i class="bi bi-check2-square"></i><span><b>{{ my_week_total }}</b><small>Shu hafta amallarim</small></span></div>
+      <div class="fchip glass f3"><i class="bi bi-check2-square"></i><span><b>{{ my_week_total }}</b><small>Şu hafta amallarim</small></span></div>
     </div>
   </section>
 
@@ -39,38 +39,38 @@
 
   <div class="dash">
     <section class="card3 glass s8" data-rv>
-      <div class="hd"><h2><i class="bi bi-hourglass-split" style="color:var(--gold)"></i> Kutilayotgan ishlar</h2>{% if pending_total %}<span class="chip3 warn">jami {{ pending_total }}</span>{% else %}<span class="chip3 ok">Hammasi bajarilgan</span>{% endif %}</div>
+      <div class="hd"><h2><i class="bi bi-hourglass-split" style="color:var(--gold)"></i> Kutilayotgan işlar</h2>{% if pending_total %}<span class="chip3 warn">jami {{ pending_total }}</span>{% else %}<span class="chip3 ok">Hammasi bajarilgan</span>{% endif %}</div>
       <div class="pend" data-stagger>{% for p in pending %}<a href="{{ p.url }}" class="{% if p.count %}hot{% endif %}"><i class="bi bi-{{ p.icon }}"></i><strong data-count="{{ p.count }}">{{ p.count }}</strong><span>{{ p.label }}</span></a>{% endfor %}</div>
     </section>
     <section class="card3 glass s4" data-rv>
       <div class="hd"><h2><i class="bi bi-book" style="color:var(--acc2)"></i> Kutubxona</h2><a class="more" href="{% url 'yordamchi_books' %}">Kitoblar →</a></div>
       <div class="lib"><div><strong data-count="{{ library.total }}">{{ library.total }}</strong><span>Jami</span></div><div><strong data-count="{{ library.rented }}">{{ library.rented }}</strong><span>Ijarada</span></div><div><strong data-count="{{ library.available }}">{{ library.available }}</strong><span>Mavjud</span></div></div>
-      {% if overdue_rentals %}<a class="li" href="{% url 'yordamchi_rentals_overdue' %}" style="margin-top:10px;background:color-mix(in srgb,var(--red) 10%,transparent)"><div class="av" style="background:var(--red)"><i class="bi bi-alarm"></i></div><div class="tx"><b>{{ overdue_rentals }} ta ijara muddati o‘tgan</b><small>Qaytarishni eslatish kerak</small></div><i class="bi bi-chevron-right rt"></i></a>{% endif %}
+      {% if overdue_rentals %}<a class="li" href="{% url 'yordamchi_rentals_overdue' %}" style="margin-top:10px;background:color-mix(in srgb,var(--red) 10%,transparent)"><div class="av" style="background:var(--red)"><i class="bi bi-alarm"></i></div><div class="tx"><b>{{ overdue_rentals }} ta ijara muddati ötgan</b><small>Qaytarişni eslatiş kerak</small></div><i class="bi bi-chevron-right rt"></i></a>{% endif %}
     </section>
 
     <section class="card3 glass s6" data-rv>
       <div class="hd"><h2><i class="bi bi-inbox" style="color:var(--pink)"></i> Yangi arizalar</h2><a class="more" href="{% url 'yordamchi_applications' %}">Hammasi →</a></div>
       {% if recent_applications %}
       <div class="list3">{% for a in recent_applications %}<a class="li" href="{% url 'yordamchi_applications' %}"><div class="av" style="background:linear-gradient(135deg,#db2777,#f59e0b)">{{ a.first_name|slice:":1"|default:"?" }}</div><div class="tx"><b>{{ a.first_name }} {{ a.last_name }}</b><small>{{ a.course_interest|default:"Kurs belgilanmagan" }} · {{ a.phone }}</small></div><span class="rt">{{ a.created_at|date:"d.m H:i" }}</span></a>{% endfor %}</div>
-      {% else %}<div class="empty3"><i class="bi bi-inbox"></i>Yangi arizalar yo‘q.</div>{% endif %}
+      {% else %}<div class="empty3"><i class="bi bi-inbox"></i>Yangi arizalar yöq.</div>{% endif %}
     </section>
     <section class="card3 glass s6" data-rv>
-      <div class="hd"><h2><i class="bi bi-life-preserver" style="color:var(--acc)"></i> Yordam so‘rovlari</h2>{% if recent_help %}<span class="chip3 warn">{{ recent_help|length }}</span>{% endif %}<a class="more" href="{% url 'yordamchi_help' %}">Hammasi →</a></div>
+      <div class="hd"><h2><i class="bi bi-life-preserver" style="color:var(--acc)"></i> Yordam sörovlari</h2>{% if recent_help %}<span class="chip3 warn">{{ recent_help|length }}</span>{% endif %}<a class="more" href="{% url 'yordamchi_help' %}">Hammasi →</a></div>
       {% if recent_help %}
       <div class="list3">{% for h in recent_help %}<a class="li" href="{% url 'yordamchi_help' %}"><div class="av">{{ h.user.first_name|slice:":1"|default:"?" }}</div><div class="tx"><b>{{ h.user.get_full_name|default:h.user.username }}</b><small>{{ h.subject|truncatechars:44 }}</small></div><span class="rt">{{ h.created_at|date:"d.m H:i" }}</span></a>{% endfor %}</div>
-      {% else %}<div class="empty3"><i class="bi bi-emoji-smile"></i>Ochiq yordam so‘rovlari yo‘q.</div>{% endif %}
+      {% else %}<div class="empty3"><i class="bi bi-emoji-smile"></i>Oçiq yordam sörovlari yöq.</div>{% endif %}
     </section>
 
     <section class="card3 glass s8" data-rv>
       <div class="hd"><h2><i class="bi bi-bar-chart" style="color:var(--acc)"></i> Haftalik arizalar</h2><span class="cnt">jami {{ week_total }}</span></div>
       {% if week_bars %}<div class="bars3">{% for b in week_bars %}<div class="b"><div class="col{% if forloop.last %} today{% endif %}" data-h="{{ b.pct }}"><span>{{ b.count }}</span></div><small>{{ b.label }}</small></div>{% endfor %}</div>
-      {% else %}<div class="empty3"><i class="bi bi-bar-chart"></i>Ma’lumot yo‘q</div>{% endif %}
+      {% else %}<div class="empty3"><i class="bi bi-bar-chart"></i>Ma’lumot yöq</div>{% endif %}
     </section>
     <section class="card3 glass s4" data-rv>
       <div class="hd"><h2><i class="bi bi-clock-history" style="color:var(--lime)"></i> Mening amallarim</h2><a class="more" href="{% url 'yordamchi_audit_log' %}">Jurnal →</a></div>
       {% if my_actions %}
       <div class="list3">{% for a in my_actions %}<div class="li"><div class="av" style="background:var(--lime);color:#0b1200"><i class="bi bi-check2"></i></div><div class="tx"><b>{{ a.description|default:a.action_code|truncatechars:60 }}</b></div><span class="rt">{{ a.created_at|date:"d.m H:i" }}</span></div>{% endfor %}</div>
-      {% else %}<div class="empty3"><i class="bi bi-clock-history"></i>Hali amallar yo‘q.</div>{% endif %}
+      {% else %}<div class="empty3"><i class="bi bi-clock-history"></i>Hali amallar yöq.</div>{% endif %}
     </section>
 
     {% if quick_actions %}
@@ -84,6 +84,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>(function(){var g=document.querySelector('#heroTitle [data-greet]');if(!g)return;var h=new Date().getHours();g.textContent=h<5?'Xayrli tun':h<12?'Xayrli tong':h<18?'Xayrli kun':'Xayrli kech';})();</script>
+<script>(function(){var g=document.querySelector('#heroTitle [data-greet]');if(!g)return;var h=new Date().getHours();g.textContent=h<5?'Xayrli tun':h<12?'Xayrli tong':h<18?'Xayrli kun':'Xayrli keç';})();</script>
 {% include 'accounts/dashboard/_motion_js.html' %}
 {% endblock %}

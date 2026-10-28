@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-{% block title %}Coin O'tkazma | IT Creative{% endblock %}
+{% block title %}Coin Ötkazma | IT Creative{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -407,7 +407,7 @@
   .ctp-code-inp { font-size:1.35rem; height:52px; letter-spacing:.35em; }
 }
 
-/* ===== Glass skin — home sahifasidagi shaffof shisha uslub ===== */
+/* ===== Glass skin — home sahifasidagi şaffof şişa uslub ===== */
 .dash {
     --card: var(--dash-glass, rgba(255,255,255,0.72));
     --border: var(--dash-glass-border, rgba(255,255,255,0.75));
@@ -431,7 +431,7 @@
   <div class="ctp">
 
   <a href="{% url 'coin:coin_history' %}" class="ctp-back">
-    <i class="bi bi-arrow-left"></i> Coin tarixiga qaytish
+    <i class="bi bi-arrow-left"></i> Coin tarixiga qaytiş
   </a>
 
   <!-- ══ HERO ══ -->
@@ -442,8 +442,8 @@
       <div class="ctp-hero-head">
         <div class="ctp-hero-ico"><i class="bi bi-send-fill"></i></div>
         <div>
-          <h1 class="ctp-hero-title">Coin O'tkazma</h1>
-          <p class="ctp-hero-sub">Boshqa foydalanuvchiga tez va xavfsiz coin yuboring</p>
+          <h1 class="ctp-hero-title">Coin Ötkazma</h1>
+          <p class="ctp-hero-sub">Boşqa foydalanuvçiga tez va xavfsiz coin yuboring</p>
         </div>
       </div>
       <div class="ctp-balance-chip">
@@ -469,8 +469,8 @@
           <div id="ctpStep3" class="ctp-step-dot"><span>3</span></div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:.3rem;padding:0 2px;">
-          <span id="ctpLbl1" class="ctp-step-label active" style="flex:0 0 28px;text-align:center;">Foydalanuvchi</span>
-          <span id="ctpLbl2" class="ctp-step-label" style="flex:1;text-align:center;">Tasdiqlash</span>
+          <span id="ctpLbl1" class="ctp-step-label active" style="flex:0 0 28px;text-align:center;">Foydalanuvçi</span>
+          <span id="ctpLbl2" class="ctp-step-label" style="flex:1;text-align:center;">Tasdiqlaş</span>
           <span id="ctpLbl3" class="ctp-step-label" style="flex:0 0 28px;text-align:center;">Tayyor</span>
         </div>
       </div>
@@ -484,7 +484,7 @@
       <!-- ══ STEP 1 ══ -->
       <div id="ctpPanel1">
 
-        <div class="ctp-section-lbl" style="margin-bottom:.5rem;">Qabul qiluvchini tanlang</div>
+        <div class="ctp-section-lbl" style="margin-bottom:.5rem;">Qabul qiluvçini tanlang</div>
         <div class="ctp-search-row">
           <i class="bi bi-search ctp-search-ico"></i>
           <input type="text" class="ctp-search-inp" id="ctpSearchInput"
@@ -516,14 +516,14 @@
         <!-- Fee summary -->
         <div id="ctpFeeBox" style="display:none;">
           <div class="ctp-fee-box">
-            <div class="ctp-fee-row"><span class="lbl">O'tkazma miqdori</span><span class="val" id="ctpFeeAmount">—</span></div>
+            <div class="ctp-fee-row"><span class="lbl">Ötkazma miqdori</span><span class="val" id="ctpFeeAmount">—</span></div>
             <div class="ctp-fee-row"><span class="lbl">Xizmat haqqi (10%)</span><span class="val" id="ctpFeeFee">—</span></div>
-            <div class="ctp-fee-row total"><span>Jami yechiladi</span><span class="val" id="ctpFeeTotal">—</span></div>
+            <div class="ctp-fee-row total"><span>Jami yeçiladi</span><span class="val" id="ctpFeeTotal">—</span></div>
           </div>
         </div>
 
         <button class="ctp-btn ctp-btn-primary" id="ctpNextBtn" disabled onclick="initiateTransfer()">
-          <i class="bi bi-arrow-right"></i> Davom etish
+          <i class="bi bi-arrow-right"></i> Davom etiş
         </button>
       </div>
 
@@ -531,19 +531,19 @@
       <div id="ctpPanel2" style="display:none;">
 
         <div class="ctp-confirm-box">
-          <div class="ctp-conf-row"><span class="ctp-conf-lbl">Qabul qiluvchi</span><span class="ctp-conf-val" id="ctpConfName"></span></div>
+          <div class="ctp-conf-row"><span class="ctp-conf-lbl">Qabul qiluvçi</span><span class="ctp-conf-val" id="ctpConfName"></span></div>
           <div class="ctp-conf-row"><span class="ctp-conf-lbl">Username</span><span class="ctp-conf-val" id="ctpConfUser"></span></div>
           <div class="ctp-conf-row"><span class="ctp-conf-lbl">Miqdor</span><span class="ctp-conf-val" id="ctpConfAmount" style="color:#f59e0b;"></span></div>
           <div class="ctp-conf-row"><span class="ctp-conf-lbl">Xizmat haqqi</span><span class="ctp-conf-val" id="ctpConfFee"></span></div>
           <div class="ctp-conf-row total">
-            <span class="ctp-conf-lbl">Jami yechiladi</span>
+            <span class="ctp-conf-lbl">Jami yeçiladi</span>
             <span class="ctp-conf-val" id="ctpConfTotal"></span>
           </div>
         </div>
 
         <!-- Telegram code -->
         <div id="ctpCodeSection">
-          <div class="ctp-code-lbl">Tasdiqlash kodi</div>
+          <div class="ctp-code-lbl">Tasdiqlaş kodi</div>
           <input type="text" class="ctp-code-inp" id="ctpCodeInput" maxlength="6" placeholder="— — — — — —" autocomplete="off">
           <div class="ctp-code-sub" id="ctpCodeHint">Telegramingizga yuborilgan 6 xonali kodni kiriting</div>
         </div>
@@ -552,7 +552,7 @@
         <div id="ctpPasswordSection" style="display:none;">
           <div class="ctp-code-lbl">Parolingizni kiriting</div>
           <input type="password" class="ctp-code-inp" id="ctpPasswordInput" placeholder="Parol" style="font-size:1rem;letter-spacing:.12em;">
-          <div class="ctp-code-sub">Telegram ulanmagan. Tasdiqlash uchun parolingizni kiriting</div>
+          <div class="ctp-code-sub">Telegram ulanmagan. Tasdiqlaş uçun parolingizni kiriting</div>
         </div>
 
         <div id="ctpCountdown" class="ctp-countdown">
@@ -565,7 +565,7 @@
           <i class="bi bi-arrow-left"></i> Orqaga
         </button>
         <button class="ctp-btn ctp-btn-primary" id="ctpConfirmBtn" onclick="confirmTransfer()">
-          <i class="bi bi-shield-check"></i> Tasdiqlash va yuborish
+          <i class="bi bi-shield-check"></i> Tasdiqlaş va yuboriş
         </button>
       </div>
 
@@ -581,10 +581,10 @@
           </div>
           <div class="ctp-success-btns">
             <a href="{% url 'coin:coin_transfer' %}" class="ctp-btn ctp-btn-secondary">
-              <i class="bi bi-arrow-repeat"></i> Yana yuborish
+              <i class="bi bi-arrow-repeat"></i> Yana yuboriş
             </a>
             <a href="{% url 'coin:coin_history' %}" class="ctp-btn ctp-btn-green">
-              <i class="bi bi-clock-history"></i> Tarixga o'tish
+              <i class="bi bi-clock-history"></i> Tarixga ötiş
             </a>
           </div>
         </div>
@@ -596,14 +596,14 @@
   <!-- ══ INFO ══ -->
   <div class="ctp-info-box">
     <div class="ctp-info-head">
-      <i class="bi bi-info-circle-fill"></i> O'tkazma qoidalari
+      <i class="bi bi-info-circle-fill"></i> Ötkazma qoidalari
     </div>
     <ul>
-      <li>Minimal o'tkazma: <b>100 coin</b></li>
-      <li>Maksimal o'tkazma: <b>10,000 coin</b></li>
-      <li>Xizmat haqqi: <b>10%</b> (miqdorga qo'shiladi)</li>
-      <li>Tasdiqlash kodi Telegram orqali yuboriladi (2 daqiqa amal qiladi)</li>
-      <li>O'tkazma amalga oshirilgandan so'ng bekor qilinmaydi</li>
+      <li>Minimal ötkazma: <b>100 coin</b></li>
+      <li>Maksimal ötkazma: <b>10,000 coin</b></li>
+      <li>Xizmat haqqi: <b>10%</b> (miqdorga qöşiladi)</li>
+      <li>Tasdiqlaş kodi Telegram orqali yuboriladi (2 daqiqa amal qiladi)</li>
+      <li>Ötkazma amalga oşirilgandan söng bekor qilinmaydi</li>
     </ul>
   </div>
 
@@ -668,7 +668,7 @@
       if (countdownSec <= 30) el.className = 'ctp-countdown danger';
       if (countdownSec <= 0) {
         stopCountdown();
-        el.innerHTML = '<div class="ctp-countdown-expired"><i class="bi bi-x-circle-fill"></i> Muddat tugadi! Orqaga qaytib qayta urinib ko\'ring</div>';
+        el.innerHTML = '<div class="ctp-countdown-expired"><i class="bi bi-x-circle-fill"></i> Muddat tugadi! Orqaga qaytib qayta urinib köring</div>';
         el.className = ''; btn.disabled = true;
       }
     }, 1000);
@@ -705,16 +705,16 @@
       document.getElementById('ctpResults').innerHTML =
         '<div style="text-align:center;padding:1.4rem;color:var(--text-muted,#aaa);font-size:.84rem;">'
         + '<i class="bi bi-person-slash" style="font-size:2rem;display:block;margin-bottom:.4rem;opacity:.3;"></i>'
-        + '<b>Foydalanuvchi topilmadi</b>'
-        + '<div style="opacity:.65;margin-top:.2rem;font-size:.75rem;">Boshqa so\'z bilan qidiring</div>'
+        + '<b>Foydalanuvçi topilmadi</b>'
+        + '<div style="opacity:.65;margin-top:.2rem;font-size:.75rem;">Boşqa söz bilan qidiring</div>'
         + '</div>';
       return;
     }
     searchUsers = data;
     document.getElementById('ctpResults').innerHTML = data.map(function(u,i){
       var init = (u.full_name||u.username||'?').charAt(0).toUpperCase();
-      var roleMap = {teacher:["O'qituvchi",'#3b82f6','rgba(59,130,246,.1)'],admin:['Admin','#8b5cf6','rgba(139,92,246,.1)']};
-      var r = roleMap[u.role] || ["O'quvchi",'#22c55e','rgba(34,197,94,.1)'];
+      var roleMap = {teacher:["Öqituvçi",'#3b82f6','rgba(59,130,246,.1)'],admin:['Admin','#8b5cf6','rgba(139,92,246,.1)']};
+      var r = roleMap[u.role] || ["Öquvçi",'#22c55e','rgba(34,197,94,.1)'];
       var isSel = selectedUser && selectedUser.username===u.username;
       return '<div class="ctp-u-card'+(isSel?' selected':'')+'" '
         +'onclick="selectUserByIndex(this,'+i+')"'
@@ -822,9 +822,9 @@
         var inp = data.needs_telegram_code?'ctpCodeInput':'ctpPasswordInput';
         document.getElementById(inp).focus();
       },200);
-    } catch(e){ showError("Server bilan aloqa yo'q!"); }
+    } catch(e){ showError("Server bilan aloqa yöq!"); }
     btn.disabled=false;
-    btn.innerHTML='<i class="bi bi-arrow-right"></i> Davom etish';
+    btn.innerHTML='<i class="bi bi-arrow-right"></i> Davom etiş';
   };
 
   window.backToStep1 = function(){
@@ -875,9 +875,9 @@
         area.appendChild(c);
         setTimeout(function(el){el.remove();},2200,c);
       }
-    } catch(e){ showError("Server bilan aloqa yo'q!"); }
+    } catch(e){ showError("Server bilan aloqa yöq!"); }
     btn.disabled=false;
-    btn.innerHTML='<i class="bi bi-shield-check"></i> Tasdiqlash va yuborish';
+    btn.innerHTML='<i class="bi bi-shield-check"></i> Tasdiqlaş va yuboriş';
   };
 
   setTimeout(function(){document.getElementById('ctpSearchInput').focus();},300);

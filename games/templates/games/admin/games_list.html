@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}O'yinlar boshqaruvi | Admin{% endblock %}
+{% block title %}Öyinlar boşqaruvi | Admin{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -145,7 +145,7 @@
     .admin-header h2 { font-size: 1.2rem; }
 }
 
-/* ── O'yin yoqish/o'chirish switch ── */
+/* ── Öyin yoqish/öchirish switch ── */
 .gt-form { display: inline-flex; margin: 0; }
 .gt-switch {
     --gt-w: 74px;
@@ -182,9 +182,9 @@
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
-        <h2 class="fw-bold mb-0"><i class="bi bi-controller text-primary"></i> O'yinlar boshqaruvi</h2>
+        <h2 class="fw-bold mb-0"><i class="bi bi-controller text-primary"></i> Öyinlar boşqaruvi</h2>
         <a href="{% url 'games:admin_game_add' %}" class="btn btn-add">
-            <i class="bi bi-plus-lg"></i> Yangi o'yin
+            <i class="bi bi-plus-lg"></i> Yangi öyin
         </a>
     </div>
 
@@ -198,7 +198,7 @@
                             <th>Nomi</th>
                             <th>Slug</th>
                             <th>Turi</th>
-                            <th>Topshiriqlar</th>
+                            <th>Topşiriqlar</th>
                             <th>Natijalar</th>
                             <th>Holat</th>
                             <th>Sana</th>
@@ -240,8 +240,8 @@
                                       {% if game.is_active %}onsubmit="return confirm('«{{ game.title|escapejs }}» o\'chirilsinmi? O\'quvchilar kira olmaydi.')"{% endif %}>
                                     {% csrf_token %}
                                     <button type="submit" class="gt-switch {% if game.is_active %}on{% else %}off{% endif %}"
-                                            title="{% if game.is_active %}O'chirish — o'quvchilarga yopiladi{% else %}Yoqish — o'quvchilarga ochiladi{% endif %}">
-                                        <span class="lbl">{% if game.is_active %}Faol{% else %}O'chiq{% endif %}</span>
+                                            title="{% if game.is_active %}Öçiriş — öquvçilarga yopiladi{% else %}Yoqiş — öquvçilarga oçiladi{% endif %}">
+                                        <span class="lbl">{% if game.is_active %}Faol{% else %}Öçiq{% endif %}</span>
                                         <span class="knob"><i class="bi {% if game.is_active %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></span>
                                     </button>
                                 </form>
@@ -260,7 +260,7 @@
                         <tr>
                             <td colspan="8" class="text-center py-4 text-muted">
                                 <i class="bi bi-controller" style="font-size: 2rem; opacity: 0.4;"></i>
-                                <p class="mt-2 mb-0">O'yinlar mavjud emas</p>
+                                <p class="mt-2 mb-0">Öyinlar mavjud emas</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -280,8 +280,8 @@
                       {% if game.is_active %}onsubmit="return confirm('«{{ game.title|escapejs }}» o\'chirilsinmi? O\'quvchilar kira olmaydi.')"{% endif %}>
                     {% csrf_token %}
                     <button type="submit" class="gt-switch {% if game.is_active %}on{% else %}off{% endif %}"
-                            title="{% if game.is_active %}O'chirish{% else %}Yoqish{% endif %}">
-                        <span class="lbl">{% if game.is_active %}Faol{% else %}O'chiq{% endif %}</span>
+                            title="{% if game.is_active %}Öçiriş{% else %}Yoqiş{% endif %}">
+                        <span class="lbl">{% if game.is_active %}Faol{% else %}Öçiq{% endif %}</span>
                         <span class="knob"><i class="bi {% if game.is_active %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></span>
                     </button>
                 </form>
@@ -295,7 +295,7 @@
                 <span>🎲 {{ game.jumanji_questions.count }} savol</span>
                 <span><i class="bi bi-bar-chart"></i> {{ game.jumanji_sessions.count }} sessiya</span>
                 {% else %}
-                <span><i class="bi bi-card-text"></i> {{ game.prompts.count }} topshiriq</span>
+                <span><i class="bi bi-card-text"></i> {{ game.prompts.count }} topşiriq</span>
                 <span><i class="bi bi-bar-chart"></i> {{ game.attempts.count }} natija</span>
                 {% endif %}
                 <span><i class="bi bi-calendar"></i> {{ game.created_at|date:"d.m.Y" }}</span>
@@ -325,7 +325,7 @@
         {% empty %}
         <div class="text-center py-4 text-muted">
             <i class="bi bi-controller" style="font-size: 2rem; opacity: 0.4;"></i>
-            <p class="mt-2 mb-0">O'yinlar mavjud emas</p>
+            <p class="mt-2 mb-0">Öyinlar mavjud emas</p>
         </div>
         {% endfor %}
     </div>

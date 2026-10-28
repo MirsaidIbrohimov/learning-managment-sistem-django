@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Darslarni boshqarish - LMS{% endblock %}
+{% block title %}Darslarni boşqariş - LMS{% endblock %}
 
 {% block content %}
 <style>
@@ -561,11 +561,11 @@
             </h1>
             <div class="ls-actions">
                 <a href="{% url 'add_section' profession.pk %}" class="ls-btn ls-btn-section">
-                    <i class="bi bi-folder-plus"></i> Bo'lim qo'shish
+                    <i class="bi bi-folder-plus"></i> Bölim qöşiş
                 </a>
                 <div class="ls-dropdown" id="addLessonDropdown">
                     <button class="ls-btn ls-btn-add" onclick="this.parentElement.classList.toggle('open')">
-                        <i class="bi bi-plus-lg"></i> Dars qo'shish
+                        <i class="bi bi-plus-lg"></i> Dars qöşiş
                         <i class="bi bi-chevron-down" style="font-size:12px;"></i>
                     </button>
                     <div class="ls-dropdown-menu">
@@ -583,7 +583,7 @@
                         </a>
                         <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=dictionary">
                             <div class="ls-type-icon dictionary" style="background:rgba(139,92,246,0.1);color:#8b5cf6;"><i class="bi bi-book-fill"></i></div>
-                            Lug'at
+                            Luğat
                         </a>
                         <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=speaking">
                             <div class="ls-type-icon speaking" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-mic-fill"></i></div>
@@ -598,7 +598,7 @@
     <!-- ===== SECTIONS ===== -->
     {% if sections %}
     <div class="ls-section-heading">
-        <i class="bi bi-folder2-open"></i> Bo'limlar
+        <i class="bi bi-folder2-open"></i> Bölimlar
     </div>
 
     {% for section in sections %}
@@ -616,10 +616,10 @@
                 {% endif %}
             </div>
             <div class="ls-section-actions" onclick="event.stopPropagation()">
-                <a href="{% url 'edit_section' section.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                <a href="{% url 'edit_section' section.pk %}" class="ls-icon-btn edit" title="Tahrirlaş">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
-                <a href="{% url 'delete_section' section.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                <a href="{% url 'delete_section' section.pk %}" class="ls-icon-btn delete" title="Öçiriş">
                     <i class="bi bi-trash-fill"></i>
                 </a>
             </div>
@@ -650,19 +650,19 @@
                     <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
                     <div class="ls-lesson-actions">
                         {% if lesson.lesson_type == 'test' %}{% with qz=lesson.quiz %}
-                        <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boshqarish" style="color:#6366f1;">
+                        <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boşqariş" style="color:#6366f1;">
                             <i class="bi bi-patch-question-fill"></i>
                         </a>
                         {% endwith %}{% endif %}
                         {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
-                        <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
+                        <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="Sözlar" style="color:#8b5cf6;">
                             <i class="bi bi-book"></i>
                         </a>
                         {% endif %}
-                        <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                        <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlaş">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
-                        <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                        <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="Öçiriş">
                             <i class="bi bi-trash-fill"></i>
                         </a>
                     </div>
@@ -671,7 +671,7 @@
             {% else %}
                 <div class="ls-empty">
                     <i class="bi bi-inbox"></i>
-                    Bu bo'limda hali darslar yo'q
+                    Bu bölimda hali darslar yöq
                 </div>
             {% endif %}
         </div>
@@ -682,7 +682,7 @@
     <!-- ===== LESSONS WITHOUT SECTION ===== -->
     <div class="ls-nosection">
         <div class="ls-nosection-head">
-            <i class="bi bi-collection-fill"></i> Bo'limsiz darslar
+            <i class="bi bi-collection-fill"></i> Bölimsiz darslar
         </div>
         {% if lessons_without_section %}
             {% for lesson in lessons_without_section %}
@@ -708,19 +708,19 @@
                 <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
                 <div class="ls-lesson-actions">
                     {% if lesson.lesson_type == 'test' %}{% with qz=lesson.quiz %}
-                    <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boshqarish" style="color:#6366f1;">
+                    <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boşqariş" style="color:#6366f1;">
                         <i class="bi bi-patch-question-fill"></i>
                     </a>
                     {% endwith %}{% endif %}
                     {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
-                    <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
+                    <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="Sözlar" style="color:#8b5cf6;">
                         <i class="bi bi-book"></i>
                     </a>
                     {% endif %}
-                    <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                    <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlaş">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
-                    <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                    <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="Öçiriş">
                         <i class="bi bi-trash-fill"></i>
                     </a>
                 </div>
@@ -729,8 +729,8 @@
         {% else %}
             <div class="ls-big-empty">
                 <div class="ls-big-empty-icon"><i class="bi bi-inbox"></i></div>
-                <h4>Hozircha darslar mavjud emas</h4>
-                <p>Yangi dars qo'shish uchun yuqoridagi "Dars qo'shish" tugmasini bosing</p>
+                <h4>Hozirça darslar mavjud emas</h4>
+                <p>Yangi dars qöşiş uçun yuqoridagi "Dars qöşiş" tugmasini bosing</p>
             </div>
         {% endif %}
     </div>

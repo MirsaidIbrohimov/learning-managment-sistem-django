@@ -189,14 +189,14 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
       <div class="sec-stat-val sev-high">{{ stats.high }}</div>
     </div>
     <div class="sec-stat-card">
-      <div class="sec-stat-label">So'nggi 24 soat</div>
+      <div class="sec-stat-label">Sönggi 24 soat</div>
       <div class="sec-stat-val" style="color:var(--sec-violet)">{{ stats.last24 }}</div>
     </div>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:20px">
 
-    <!-- IP Bloklash -->
+    <!-- IP Bloklaş -->
     <div>
       <div class="sec-block-form">
         <form method="post" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;width:100%">
@@ -208,16 +208,16 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
           <div>
             <label>Harakat</label>
             <select class="sec-select" name="action">
-              <option value="block_ip">🔒 Bloklash (24 soat)</option>
-              <option value="unblock_ip">🔓 Blokdan chiqarish</option>
+              <option value="block_ip">🔒 Bloklaş (24 soat)</option>
+              <option value="unblock_ip">🔓 Blokdan çiqariş</option>
             </select>
           </div>
-          <button type="submit" class="sec-btn sec-btn-red">Bajarish</button>
+          <button type="submit" class="sec-btn sec-btn-red">Bajariş</button>
         </form>
       </div>
     </div>
 
-    <!-- Top IPs (so'nggi 24 soat) -->
+    <!-- Top IPs (sönggi 24 soat) -->
     <div class="sec-top-ips">
       <h6><i class="bi bi-bar-chart"></i> Top IP (24 soat)</h6>
       {% for ip in stats.top_ips %}
@@ -232,7 +232,7 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         </form>
       </div>
       {% empty %}
-      <p style="color:var(--sec-muted);font-size:13px">Ma'lumot yo'q</p>
+      <p style="color:var(--sec-muted);font-size:13px">Ma'lumot yöq</p>
       {% endfor %}
     </div>
   </div>
@@ -240,25 +240,25 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   <!-- Filter bar -->
   <form method="get" class="sec-filters">
     <select class="sec-select" name="severity" onchange="this.form.submit()">
-      <option value="">Barcha xavf</option>
+      <option value="">Barça xavf</option>
       {% for val, label in sev_choices %}
       <option value="{{ val }}" {% if severity_f == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
     <select class="sec-select" name="event_type" onchange="this.form.submit()">
-      <option value="">Barcha tur</option>
+      <option value="">Barça tur</option>
       {% for val, label in event_choices %}
       <option value="{{ val }}" {% if event_type_f == val %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
     <select class="sec-select" name="resolved" onchange="this.form.submit()">
-      <option value="">Barchasi</option>
+      <option value="">Barçasi</option>
       <option value="0" {% if resolved_f == '0' %}selected{% endif %}>Hal qilinmagan</option>
       <option value="1" {% if resolved_f == '1' %}selected{% endif %}>Hal qilingan</option>
     </select>
-    <input class="sec-input" name="ip" value="{{ ip_f }}" placeholder="IP bo'yicha qidirish..." style="width:180px">
+    <input class="sec-input" name="ip" value="{{ ip_f }}" placeholder="IP böyiça qidiriş..." style="width:180px">
     <button type="submit" class="sec-btn sec-btn-blue">Filtr</button>
-    <a href="{% url 'admin_security_events' %}" class="sec-btn" style="background:var(--sec-card);color:var(--sec-text);text-decoration:none">Tozalash</a>
+    <a href="{% url 'admin_security_events' %}" class="sec-btn" style="background:var(--sec-card);color:var(--sec-text);text-decoration:none">Tozalaş</a>
   </form>
 
   <!-- Table -->
@@ -271,7 +271,7 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
           <th>Xavf</th>
           <th>Tur</th>
           <th>IP</th>
-          <th>Foydalanuvchi</th>
+          <th>Foydalanuvçi</th>
           <th>Tafsilot</th>
           <th>Holat</th>
         </tr>
@@ -316,7 +316,7 @@ table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
               <input type="hidden" name="action" value="resolve">
               <input type="hidden" name="ip" value="{{ ev.ip_address }}">
               <input type="hidden" name="event_pk" value="{{ ev.pk }}">
-              <button type="submit" class="sec-resolve-btn">✓ Hal qilish</button>
+              <button type="submit" class="sec-resolve-btn">✓ Hal qiliş</button>
             </form>
             {% endif %}
           </td>

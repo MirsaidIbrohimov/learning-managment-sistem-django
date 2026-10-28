@@ -1,7 +1,7 @@
-"""View'lar — yupqa qatlam: obyektni ol → ruxsatni tekshir → servisni chaqir.
+"""View'lar — yupqa qatlam: obyektni ol → ruxsatni tekşir → servisni çaqir.
 
 IDOR himoyasi: har bir view `slug`/`pk` orqali obyektni olgandan keyin
-`startup.permissions` funksiyasini chaqiradi. Ruxsat yo'q bo'lsa
+`startup.permissions` funksiyasini çaqiradi. Ruxsat yöq bölsa
 `PermissionDenied` → mavjud `templates/403.html`.
 """
 
@@ -64,11 +64,11 @@ def _get_startup(slug):
 
 def _require(condition):
     if not condition:
-        raise PermissionDenied('Bu boʻlimga ruxsatingiz yoʻq.')
+        raise PermissionDenied('Bu bölimga ruxsatingiz yöq.')
 
 
 def _access(user, startup):
-    """Template'lar uchun ruxsat bayroqlari."""
+    """Template'lar uçun ruxsat bayroqlari."""
     return {
         'is_owner': is_owner(user, startup),
         'is_mentor': is_mentor_of(user, startup),
@@ -111,7 +111,7 @@ def dashboard(request):
 def create(request):
     existing = get_active_startup(request.user)
     if existing is not None:
-        messages.info(request, 'Sizda allaqachon faol startup mavjud.')
+        messages.info(request, 'Sizda allaqaçon faol startup mavjud.')
         return redirect('startup:dashboard')
 
     form = StartupForm(request.POST or None, request.FILES or None)
@@ -256,11 +256,11 @@ def task_create(request, slug):
         task.created_by = request.user
         task.save()
         services.log_activity(startup, request.user, 'task_created',
-                              f'"{task.title}" vazifasi qoʻshildi')
+                              f'"{task.title}" vazifasi qöşildi')
         services.recompute_progress(startup)
-        messages.success(request, 'Vazifa qoʻshildi.')
+        messages.success(request, 'Vazifa qöşildi.')
     else:
-        messages.error(request, 'Vazifa qoʻshilmadi: formani tekshiring.')
+        messages.error(request, 'Vazifa qöşilmadi: formani tekşiring.')
     return redirect('startup:task_list', slug=startup.slug)
 
 
@@ -273,13 +273,13 @@ def task_submit(request, slug, pk):
     _require(can_submit_task(request.user, task))
 
     if task.status == 'COMPLETED':
-        messages.info(request, 'Bu vazifa allaqachon bajarilgan.')
+        messages.info(request, 'Bu vazifa allaqaçon bajarilgan.')
         return redirect('startup:task_detail', slug=startup.slug, pk=task.pk)
 
     form = SubmissionForm(request.POST, request.FILES)
     if form.is_valid():
         services.submit_task(task, request.user, form.cleaned_data)
-        messages.success(request, 'Topshiriq yuborildi — mentor tekshiradi.')
+        messages.success(request, 'Topşiriq yuborildi — mentor tekşiradi.')
     else:
         messages.error(request, form.errors.as_text())
     return redirect('startup:task_detail', slug=startup.slug, pk=task.pk)
@@ -289,18 +289,18 @@ def task_submit(request, slug, pk):
 @require_POST
 def task_review(request, slug, pk):
     startup = _get_startup(slug)
-    # Egasi ATAYLAB chiqarilgan — o'z vazifasini o'zi tasdiqlay olmaydi.
+    # Egasi ATAYLAB çiqarilgan — öz vazifasini özi tasdiqlay olmaydi.
     _require(can_review_submission(request.user, startup))
 
     task = get_object_or_404(StartupTask, pk=pk, startup=startup)
     submission = task.submissions.filter(status='pending').first()
     if submission is None:
-        messages.info(request, 'Tekshiruvda topshiriq yoʻq.')
+        messages.info(request, 'Tekşiruvda topşiriq yöq.')
         return redirect('startup:task_detail', slug=startup.slug, pk=task.pk)
 
     action = request.POST.get('action')
     if action not in ('approve', 'reject', 'changes'):
-        return HttpResponseBadRequest('Notoʻgʻri amal.')
+        return HttpResponseBadRequest('Notöğri amal.')
 
     services.review_submission(submission, request.user, action,
                                request.POST.get('comment', '').strip()[:2000])
@@ -345,9 +345,9 @@ def team_join(request, slug):
 
     _, created = services.request_join(startup, request.user)
     if created:
-        messages.success(request, 'Soʻrov yuborildi — egasi koʻrib chiqadi.')
+        messages.success(request, 'Sörov yuborildi — egasi körib çiqadi.')
     else:
-        messages.info(request, 'Soʻrovingiz allaqachon yuborilgan.')
+        messages.info(request, 'Sörovingiz allaqaçon yuborilgan.')
     return redirect('startup:team', slug=startup.slug)
 
 
@@ -361,13 +361,13 @@ def team_respond(request, slug, pk):
                                    pk=pk, startup=startup)
     action = request.POST.get('action')
     if action not in ('accept', 'reject'):
-        return HttpResponseBadRequest('Notoʻgʻri amal.')
+        return HttpResponseBadRequest('Notöğri amal.')
 
     # Rol `<select>` dagi qat'iy variantlardan keladi — noma'lum qiymat
-    # buzib yuborilgan so'rov, shuning uchun jimgina 'member'ga tushirilmaydi.
+    # buzib yuborilgan sörov, şuning uçun jimgina 'member'ga tuşirilmaydi.
     role = request.POST.get('role') or None
     if role is not None and role not in dict(StartupMember._meta.get_field('role').choices):
-        return HttpResponseBadRequest('Notoʻgʻri rol.')
+        return HttpResponseBadRequest('Notöğri rol.')
 
     services.respond_to_membership(membership, request.user, action, role)
     messages.success(request, 'Bajarildi.')
@@ -390,7 +390,7 @@ def team_invite(request, slug):
     if created:
         messages.success(request, 'Taklif yuborildi.')
     else:
-        messages.info(request, 'Bu foydalanuvchi allaqachon jamoada yoki taklif qilingan.')
+        messages.info(request, 'Bu foydalanuvçi allaqaçon jamoada yoki taklif qilingan.')
     return redirect('startup:team', slug=startup.slug)
 
 
@@ -399,7 +399,7 @@ def team_invite(request, slug):
 
 @login_required
 def mentor(request):
-    """Mentor paneli — biriktirilgan startuplar va tekshiruv navbati."""
+    """Mentor paneli — biriktirilgan startuplar va tekşiruv navbati."""
     _require(has_mentor_access(request.user))
 
     startups = services.mentor_startups(request.user)
@@ -421,7 +421,7 @@ def mentor(request):
 @require_POST
 def feedback(request, slug):
     startup = _get_startup(slug)
-    # Fikr bildirish huquqi tekshirish huquqi bilan bir xil: mentor yoki admin.
+    # Fikr bildiriş huquqi tekşiriş huquqi bilan bir xil: mentor yoki admin.
     _require(can_review_submission(request.user, startup))
 
     form = FeedbackForm(request.POST)
@@ -449,9 +449,9 @@ def finance(request, slug):
         _require(manage)
         if form.is_valid():
             services.add_finance_entry(startup, request.user, form)
-            messages.success(request, 'Yozuv qoʻshildi.')
+            messages.success(request, 'Yozuv qöşildi.')
             return redirect('startup:finance', slug=startup.slug)
-        messages.error(request, 'Formani tekshiring.')
+        messages.error(request, 'Formani tekşiring.')
 
     entries = (startup.finances.select_related('created_by')
                .order_by('-date', '-id'))
@@ -475,8 +475,8 @@ def finance_delete(request, slug, pk):
 
     entry = get_object_or_404(startup.finances, pk=pk)
     entry.delete()
-    services.log_activity(startup, request.user, 'finance_deleted', 'Moliya yozuvi oʻchirildi')
-    messages.success(request, 'Yozuv oʻchirildi.')
+    services.log_activity(startup, request.user, 'finance_deleted', 'Moliya yozuvi öçirildi')
+    messages.success(request, 'Yozuv öçirildi.')
     return redirect('startup:finance', slug=startup.slug)
 
 
@@ -491,9 +491,9 @@ def metrics(request, slug):
         _require(manage)
         if form.is_valid():
             services.add_metric_entry(startup, request.user, form)
-            messages.success(request, 'Koʻrsatkich qoʻshildi.')
+            messages.success(request, 'Körsatkiç qöşildi.')
             return redirect('startup:metrics', slug=startup.slug)
-        messages.error(request, 'Formani tekshiring.')
+        messages.error(request, 'Formani tekşiring.')
 
     series = services.metric_series(startup)
     labels = dict(METRIC_KEY_CHOICES)
@@ -520,8 +520,8 @@ def pitch(request, slug):
     startup = _get_startup(slug)
     _require(can_view_private(request.user, startup))
 
-    # Admin panelidan qo'lda yaratilgan startupda deck bo'lmasligi mumkin
-    # (`create_startup` doim yaratadi) — shuning uchun get_or_create.
+    # Admin panelidan qölda yaratilgan startupda deck bölmasligi mumkin
+    # (`create_startup` doim yaratadi) — şuning uçun get_or_create.
     deck, _ = PitchDeck.objects.get_or_create(startup=startup)
     editable = can_edit_pitch(request.user, startup)
 
@@ -534,7 +534,7 @@ def pitch(request, slug):
                                   'Pitch deck yangilandi')
             messages.success(request, 'Pitch deck saqlandi.')
             return redirect('startup:pitch', slug=startup.slug)
-        messages.error(request, 'Formani tekshiring.')
+        messages.error(request, 'Formani tekşiring.')
 
     context = {
         'startup': startup,
@@ -547,7 +547,7 @@ def pitch(request, slug):
     return render(request, 'startup/pitch.html', context)
 
 
-# ─────────────────────────── Ochiq ro'yxatlar ───────────────────────────
+# ─────────────────────────── Oçiq röyxatlar ───────────────────────────
 
 
 @login_required
@@ -579,7 +579,7 @@ def explore(request):
 @login_required
 def top(request):
     """Leaderboard. URL nomi ataylab `top` — `SectionBlockMiddleware`
-    `'leaderboard'` substring'ini bloklaganda bu boʻlim tasodifan yopilmasin."""
+    `'leaderboard'` substring'ini bloklaganda bu bölim tasodifan yopilmasin."""
     period = request.GET.get('period', 'all')
     if period not in ('all', 'month', 'week'):
         period = 'all'

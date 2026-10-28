@@ -42,7 +42,7 @@ def _validate_image_upload(file_obj):
     if ext not in ALLOWED_IMAGE_EXTENSIONS:
         raise ValidationError({'image': "Faqat rasm formatida (.jpg, .jpeg, .png) qabul qilinadi."})
     if file_obj.size > MAX_IMAGE_UPLOAD_SIZE:
-        raise ValidationError({'image': "Rasm hajmi 5 MB dan oshmasligi kerak."})
+        raise ValidationError({'image': "Rasm hajmi 5 MB dan oşmasligi kerak."})
 
 
 def _select_questions_for_attempt(quiz):
@@ -152,7 +152,7 @@ def _finalize_attempt(attempt):
         (quiz.legacy_test_id) so a student can't double-collect coins for
         "the same" exam while both systems run in parallel.
 
-    Dual-write shim: if the quiz was migrated from a legacy Test
+    Dual-write şim: if the quiz was migrated from a legacy Test
     (quiz.legacy_test_id is set), finalizing also creates a matching
     accounts.TestResult row -- see _dual_write_legacy_test_result below for
     why and its deliberately limited scope.
@@ -217,7 +217,7 @@ def _finalize_attempt(attempt):
     if not has_manual and passed and is_first_attempt and not already_awarded_legacy and correct_count > 0:
         coins_per_correct = 2 if attempt.student.is_premium else 1
         coins_to_award = correct_count * coins_per_correct
-        attempt.student.add_coins(coins_to_award, reason=f"Test topshirdi: {attempt.quiz.title}")
+        attempt.student.add_coins(coins_to_award, reason=f"Test topşirdi: {attempt.quiz.title}")
         attempt.coin_awarded = True
         attempt.coins_earned = coins_to_award
 
@@ -236,10 +236,10 @@ def _finalize_attempt(attempt):
     ActivityLog.objects.create(
         user=attempt.student,
         action_type='submit_test',
-        description=f"\"{attempt.quiz.title}\" testini topshirdi: {score}% ({'o‘tdi' if passed else 'o‘tmadi'})",
+        description=f"\"{attempt.quiz.title}\" testini topşirdi: {score}% ({'o‘tdi' if passed else 'o‘tmadi'})",
     )
 
-    # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+    # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
     if passed and attempt.quiz.lesson_id and attempt.student.role == 'student':
         try:
             lesson = attempt.quiz.lesson
@@ -257,7 +257,7 @@ def _dual_write_legacy_test_result(attempt):
     """
     Mirrors a just-finalized Attempt into a legacy accounts.TestResult row,
     only for quizzes migrated from a legacy Test (attempt.quiz.legacy_test_id
-    is set). Temporary shim: 8 files outside the `quiz` app still query
+    is set). Temporary şim: 8 files outside the `quiz` app still query
     accounts.TestResult directly and are not Attempt-aware --
     teacher/views.py, parents/views.py, parents/portal_views.py,
     accounts/parent_views.py, api/views.py, api/assistant/views.py,
@@ -361,7 +361,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
             quiz = get_object_or_404(Quiz, pk=quiz_id)
             user = request.user
             if not (user.is_admin or user.is_assistant_admin) and not can_access_quiz(user, quiz):
-                raise PermissionDenied("Bu testni o'zgartirish huquqi yo'q.")
+                raise PermissionDenied("Bu testni özgartiriş huquqi yöq.")
 
         with transaction.atomic():
             response = super().create(request, *args, **kwargs)
@@ -544,18 +544,18 @@ class QuestionViewSet(viewsets.ModelViewSet):
         try:
             section_id = int(data.get('section_id'))
         except (TypeError, ValueError):
-            raise ValidationError({'section_id': "Bo'lim tanlanmagan."})
+            raise ValidationError({'section_id': "Bölim tanlanmagan."})
 
         section = get_object_or_404(
             Section.objects.select_related('profession'), pk=section_id
         )
 
-        # Ruxsat: admin/yordamchi hammasini; ustoz faqat o'z kurslarini
+        # Ruxsat: admin/yordamchi hammasini; ustoz faqat öz kurslarini
         if not (user.is_admin or user.is_assistant_admin):
             if not user.teaching_professions.filter(pk=section.profession_id).exists():
-                raise PermissionDenied("Bu kursga ruxsatingiz yo'q.")
+                raise PermissionDenied("Bu kursga ruxsatingiz yöq.")
 
-        # Shu va shungacha bo'lgan bo'limlar (order bo'yicha)
+        # Şu va şungaça bölgan bölimlar (order böyiça)
         prev_sections = Section.objects.filter(
             profession=section.profession,
             order__lte=section.order,
@@ -573,12 +573,12 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         if not video_lessons.exists():
             return Response(
-                {'errors': ["Tanlangan (va oldingi) bo'limlarda video dars topilmadi."],
+                {'errors': ["Tanlangan (va oldingi) bölimlarda video dars topilmadi."],
                  'questions': []},
                 status=400,
             )
 
-        # Har bir videodan transkript yig'amiz (jami hajmni cheklaymiz)
+        # Har bir videodan transkript yiğamiz (jami hajmni çeklaymiz)
         MAX_TOTAL = 14000
         MAX_PER_VIDEO = 4000
         parts = []
@@ -603,13 +603,13 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
         if not parts:
             return Response(
-                {'errors': ["Videolardan transkript olib bo'lmadi (subtitr yo'q yoki YouTube emas)."],
+                {'errors': ["Videolardan transkript olib bölmadi (subtitr yöq yoki YouTube emas)."],
                  'questions': []},
                 status=400,
             )
 
         transcript = "\n\n".join(parts)
-        topic = f"{section.profession.name} — {section.title} (va oldingi bo'limlar) video darslari"
+        topic = f"{section.profession.name} — {section.title} (va oldingi bölimlar) video darslari"
 
         questions, errors = generate_questions(
             topic=topic,
@@ -656,7 +656,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
         if not file_obj:
             raise ValidationError({'file': "Fayl yuklanmagan."})
         if file_obj.size and file_obj.size > 5 * 1024 * 1024:
-            raise ValidationError({'file': "Fayl 5 MB dan kichik bo'lishi kerak."})
+            raise ValidationError({'file': "Fayl 5 MB dan kiçik bölişi kerak."})
 
         questions, errors = parse_file(file_obj, file_obj.name)
         if errors:
@@ -679,14 +679,14 @@ class QuestionViewSet(viewsets.ModelViewSet):
         quiz_id = data.get('quiz_id')  # optional — attach saved questions to this quiz
 
         if not isinstance(questions, list) or not questions:
-            raise ValidationError({'questions': "Saqlanadigan savollar ro'yxati bo'sh."})
+            raise ValidationError({'questions': "Saqlanadigan savollar röyxati böş."})
 
         quiz = None
         if quiz_id:
             quiz = get_object_or_404(Quiz, pk=quiz_id)
             user = request.user
             if not (user.is_admin or user.is_assistant_admin) and not can_access_quiz(user, quiz):
-                raise PermissionDenied("Bu testni o'zgartirish huquqi yo'q.")
+                raise PermissionDenied("Bu testni özgartiriş huquqi yöq.")
 
         # Re-validate server-side -- don't trust the client's `_errors` field.
         accepted = []
@@ -718,7 +718,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return Response({
                 'created': 0, 'attached': 0,
                 'rejected': rejected,
-                'detail': "Hech qaysi savol saqlanmadi -- barchasida xatolik bor.",
+                'detail': "Heç qaysi savol saqlanmadi -- barçasida xatolik bor.",
             }, status=400)
 
         created_questions = []
@@ -808,7 +808,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         # would silently wipe their results. Archive is the safe path there.
         if instance.attempts.exists():
             raise ValidationError(
-                "Bu testni talabalar topshirgan — o'chirib bo'lmaydi. Uning o'rniga arxivlang."
+                "Bu testni talabalar topşirgan — öçirib bölmaydi. Uning örniga arxivlang."
             )
         instance.delete()
 
@@ -840,7 +840,7 @@ class QuizViewSet(viewsets.ModelViewSet):
     def publish(self, request, pk=None):
         quiz = self.get_object()
         if not quiz.quiz_questions.exists():
-            raise ValidationError("Chop etish uchun kamida 1 ta savol qo'shing.")
+            raise ValidationError("Çop etiş uçun kamida 1 ta savol qöşing.")
         quiz.status = Quiz.Status.PUBLISHED
         quiz.save(update_fields=['status'])
         return Response(self.get_serializer(quiz).data)
@@ -892,7 +892,7 @@ class QuizViewSet(viewsets.ModelViewSet):
         qs = qs.exclude(pk__in=taken_lesson_ids.values_list('lesson_id', flat=True))
 
         # Exact profession/section filters -- used by the Quiz Builder's
-        # Kurs/Bo'lim pickers to list only the lessons already sitting in
+        # Kurs/Bölim pickers to list only the lessons already sitting in
         # the chosen course+section, as opposed to `search` below which is a
         # free-text match across all of them.
         profession_id = request.query_params.get('profession_id')
@@ -937,15 +937,15 @@ class QuizViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='course-tree')
     def course_tree(self, request):
         """
-        Kurs (Profession) -> Bo'lim (Section) daraxti, Quiz Builder'dagi
-        "Dars" tanlagichida ishlatiladi: o'qituvchi/admin avval qaysi kursga,
-        keyin o'sha kursning qaysi bo'limiga testni biriktirishini tanlaydi.
+        Kurs (Profession) -> Bölim (Section) daraxti, Quiz Builder'dagi
+        "Dars" tanlagiçida işlatiladi: öqituvchi/admin avval qaysi kursga,
+        keyin öşa kursning qaysi bölimiga testni biriktirişini tanlaydi.
         Scoping available_lessons bilan bir xil -- admin/yordamchi-admin
-        barcha kurslarni, o'qituvchi faqat teaching_professions'ini ko'radi.
+        barça kurslarni, öqituvçi faqat teaching_professions'ini köradi.
 
-        Barcha bo'limlar bitta so'rovda qaytariladi (kurslar/bo'limlar soni
-        odatda kichik) -- shuning uchun bo'lim tanlanganda alohida so'rov
-        yubormasdan, frontend darhol bo'limlar ro'yxatini ko'rsata oladi.
+        Barça bölimlar bitta sörovda qaytariladi (kurslar/bölimlar soni
+        odatda kiçik) -- şuning uçun bölim tanlanganda alohida sörov
+        yubormasdan, frontend darhol bölimlar röyxatini körsata oladi.
         """
         from accounts.models import Profession
 
@@ -971,20 +971,20 @@ class QuizViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='create-lesson-slot')
     def create_lesson_slot(self, request):
         """
-        Tanlangan kurs (va ixtiyoriy bo'lim) ichida ushbu test uchun yangi
+        Tanlangan kurs (va ixtiyoriy bölim) içida uşbu test uçun yangi
         'test' turidagi Lesson yaratadi va uni available_lessons bilan bir
-        xil shaklda qaytaradi -- shu sababli frontend uni to'g'ridan-to'g'ri
-        selectLesson() orqali tanlangan dars sifatida ishlata oladi.
+        xil şaklda qaytaradi -- şu sababli frontend uni töğridan-töğri
+        selectLesson() orqali tanlangan dars sifatida işlata oladi.
 
-        Bungacha "testni biror darsga biriktirish" faqat allaqachon mavjud
-        bo'lgan bo'sh 'test' darsini tanlash orqali ishlar edi -- o'qituvchi
-        avval alohida "Darslarni boshqarish" bo'limiga o'tib bo'sh dars
-        yaratishi, keyin qaytib shu yerdan uni qidirib topishi kerak edi.
-        Bu action o'sha ikki bosqichli ishni bitta qadamga tushiradi.
+        Bungaça "testni biror darsga biriktiriş" faqat allaqaçon mavjud
+        bölgan böş 'test' darsini tanlaş orqali işlar edi -- öqituvçi
+        avval alohida "Darslarni boşqariş" bölimiga ötib böş dars
+        yaratişi, keyin qaytib şu yerdan uni qidirib topişi kerak edi.
+        Bu action öşa ikki bosqiçli işni bitta qadamga tuşiradi.
 
         Legacy `Test` obyekti atayin yaratilmaydi -- yangi quiz tizimida
-        Quiz.lesson orqali to'g'ridan-to'g'ri bog'lanadi, eski Test modeliga
-        umuman ehtiyoj yo'q (available_lessons ham buni `has_legacy_test`
+        Quiz.lesson orqali töğridan-töğri boğlanadi, eski Test modeliga
+        umuman ehtiyoj yöq (available_lessons ham buni `has_legacy_test`
         orqali aks ettiradi -- yangi darsda bu doim False).
         """
         from accounts.models import Lesson, Profession, Section
@@ -995,11 +995,11 @@ class QuizViewSet(viewsets.ModelViewSet):
         title = (request.data.get('title') or '').strip()
 
         if not profession_id or not title:
-            raise ValidationError({'detail': "Kurs va dars nomi kiritilishi shart."})
+            raise ValidationError({'detail': "Kurs va dars nomi kiritilişi şart."})
 
         profession = get_object_or_404(Profession, pk=profession_id)
         if not (user.is_admin or user.is_assistant_admin) and not user.teaching_professions.filter(pk=profession.pk).exists():
-            raise PermissionDenied("Bu kursga dars qo'shish huquqingiz yo'q.")
+            raise PermissionDenied("Bu kursga dars qöşiş huquqingiz yöq.")
 
         section = None
         if section_id:
@@ -1121,7 +1121,7 @@ class AttemptViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
             raise PermissionDenied("You're not enrolled in this course.")
         if not quiz_prerequisites_met(student, quiz):
             raise PermissionDenied(
-                "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring."
+                "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring."
             )
         if not hasattr(quiz, 'settings'):
             raise ValidationError("This quiz has no settings configured.")
@@ -1157,7 +1157,7 @@ class AttemptViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
                     # quiz_id into the string "1" on the wire instead of the
                     # integer 1 every other id field in this API returns.
                     return Response({
-                        'detail': "Qayta urinish uchun to'lov talab qilinadi.",
+                        'detail': "Qayta uriniş uçun tölov talab qilinadi.",
                         'code': 'payment_required',
                         'quiz_id': quiz.id,
                     }, status=status.HTTP_402_PAYMENT_REQUIRED)
@@ -1168,7 +1168,7 @@ class AttemptViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
                 if settings_.attempts_allowed and prior_count >= settings_.attempts_allowed:
                     raise ValidationError("You've used all of your attempts for this quiz.")
                 retry_cost = 25 if student.is_premium else 50
-                student.remove_coins(retry_cost, reason=f"Qayta urinish: {quiz.title}")
+                student.remove_coins(retry_cost, reason=f"Qayta uriniş: {quiz.title}")
 
         question_ids, option_order = _select_questions_for_attempt(quiz)
         if not question_ids:

@@ -1,21 +1,21 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}{% if competition %}Musobaqani tahrirlash{% else %}Yangi musobaqa{% endif %} - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Yozish musobaqalari{% endblock %}
+{% block title %}{% if competition %}Musobaqani tahrirlaş{% else %}Yangi musobaqa{% endif %} - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Yoziş musobaqalari{% endblock %}
 
 {% block teacher_content %}
 {% include 'games/teacher/_styles.html' %}
 <div class="tc">
     <div class="tc-head">
-        <h1><i class="bi bi-trophy"></i> {% if competition %}Musobaqani tahrirlash{% else %}Yangi musobaqa{% endif %}</h1>
+        <h1><i class="bi bi-trophy"></i> {% if competition %}Musobaqani tahrirlaş{% else %}Yangi musobaqa{% endif %}</h1>
         <span class="tc-coin" title="Coin balansingiz"><b>₵</b>{{ user.coins }}</span>
         <a href="{% url 'games:teacher_competitions' %}" class="tc-btn ghost"><i class="bi bi-arrow-left"></i> Orqaga</a>
     </div>
 
     {% if not games %}
-    <div class="tc-warn err">Hozircha faol yozish o'yini yo'q — administratorga murojaat qiling.</div>
+    <div class="tc-warn err">Hozirça faol yoziş öyini yöq — administratorga murojaat qiling.</div>
     {% elif not study_groups %}
-    <div class="tc-warn err">Sizga biriktirilgan faol guruh yo'q. Musobaqa faqat o'z guruhlaringiz o'quvchilari uchun yoqiladi.</div>
+    <div class="tc-warn err">Sizga biriktirilgan faol guruh yöq. Musobaqa faqat öz guruhlaringiz öquvçilari uçun yoqiladi.</div>
     {% else %}
     <form method="post" id="compForm" class="row g-3">
         {% csrf_token %}
@@ -23,55 +23,55 @@
             <div class="tc-card">
                 <h3><i class="bi bi-flag"></i> Musobaqa</h3>
                 <div class="tc-f"><label for="fTitle">Nomi</label>
-                    <input id="fTitle" name="title" value="{{ form.title }}" maxlength="200" required placeholder="Haftalik tezlik chempionati">
+                    <input id="fTitle" name="title" value="{{ form.title }}" maxlength="200" required placeholder="Haftalik tezlik çempionati">
                 </div>
-                <div class="tc-f"><label for="fGame">O'yin va ko'rinish</label>
+                <div class="tc-f"><label for="fGame">Öyin va köriniş</label>
                     <select id="fGame" name="game">
                         {% include 'games/_game_choice_options.html' with selected_game_id=form.game.pk selected_ui=form.play_ui %}
                     </select>
                 </div>
                 <div class="row g-2">
-                    <div class="col-sm-6 tc-f"><label for="fStart">Boshlanish</label>
+                    <div class="col-sm-6 tc-f"><label for="fStart">Boşlaniş</label>
                         <input id="fStart" type="datetime-local" name="start_time" value="{{ form.start_time|date:'Y-m-d\TH:i' }}" required>
                     </div>
-                    <div class="col-sm-6 tc-f"><label for="fEnd">Tugash</label>
+                    <div class="col-sm-6 tc-f"><label for="fEnd">Tugaş</label>
                         <input id="fEnd" type="datetime-local" name="end_time" value="{{ form.end_time|date:'Y-m-d\TH:i' }}" required>
                     </div>
                 </div>
 
-                <div class="tc-f"><span class="tc-lbl">Kimlar uchun</span>
+                <div class="tc-f"><span class="tc-lbl">Kimlar uçun</span>
                     <div class="tc-seg" id="audSeg">
                         <label><input type="radio" name="audience_type" value="groups"{% if form.audience_type != 'students' %} checked{% endif %}><span><i class="bi bi-collection"></i> Guruhlarim</span></label>
-                        <label><input type="radio" name="audience_type" value="students"{% if form.audience_type == 'students' %} checked{% endif %}><span><i class="bi bi-person-check"></i> Tanlangan o'quvchilar</span></label>
+                        <label><input type="radio" name="audience_type" value="students"{% if form.audience_type == 'students' %} checked{% endif %}><span><i class="bi bi-person-check"></i> Tanlangan öquvçilar</span></label>
                     </div>
                 </div>
                 <div class="tc-f" id="audGroups">
                     <div class="tc-checks">
                         {% for g in study_groups %}
                         <label class="tc-check"><input type="checkbox" name="group_ids" value="{{ g.pk }}"{% if g.pk in form.group_ids %} checked{% endif %}>
-                            <span>{{ g.name }}</span><small>{{ g.student_count }} o'quvchi</small></label>
+                            <span>{{ g.name }}</span><small>{{ g.student_count }} öquvçi</small></label>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="tc-f" id="audStudents" hidden>
-                    <input type="search" id="stSearch" placeholder="O'quvchini qidirish…" class="mb-2">
+                    <input type="search" id="stSearch" placeholder="Öquvçini qidiriş…" class="mb-2">
                     <div class="tc-checks" id="stList"></div>
                 </div>
 
                 <div class="row g-2">
-                    <div class="col-sm-6 tc-f"><label for="fMax">Urinishlar soni</label>
+                    <div class="col-sm-6 tc-f"><label for="fMax">Urinişlar soni</label>
                         <input id="fMax" type="number" name="max_attempts" min="1" max="20" value="{{ form.max_attempts }}">
                     </div>
                     <div class="col-sm-6 tc-f"><span class="tc-lbl">&nbsp;</span>
                         <label class="tc-toggle mb-0"><input type="checkbox" name="allow_retry"{% if form.allow_retry %} checked{% endif %}>
-                            <span>Cheksiz qayta urinish</span><span class="sw"></span></label>
+                            <span>Çeksiz qayta uriniş</span><span class="sw"></span></label>
                     </div>
                 </div>
 
                 <label class="tc-toggle">
                     <input type="checkbox" name="is_active"{% if form.is_active %} checked{% endif %}>
                     <i class="bi bi-broadcast" style="font-size:22px;color:var(--tc-lime)"></i>
-                    <div><b>Musobaqa yoqilgan</b><div class="tc-note">O'chirsangiz — o'quvchilar kira olmaydi (bron saqlanadi)</div></div>
+                    <div><b>Musobaqa yoqilgan</b><div class="tc-note">Öçirsangiz — öquvçilar kira olmaydi (bron saqlanadi)</div></div>
                     <span class="sw"></span>
                 </label>
 
@@ -81,11 +81,11 @@
                         <div>🥈<input type="number" min="0" name="coin_2nd" value="{{ form.coin_2nd }}" class="js-prize"{% if prizes_locked %} readonly{% endif %}></div>
                         <div>🥉<input type="number" min="0" name="coin_3rd" value="{{ form.coin_3rd }}" class="js-prize"{% if prizes_locked %} readonly{% endif %}></div>
                     </div>
-                    {% if prizes_locked %}<div class="tc-note mt-2"><i class="bi bi-lock"></i> Musobaqa boshlangan — sovrinlar qulflangan.</div>{% endif %}
+                    {% if prizes_locked %}<div class="tc-note mt-2"><i class="bi bi-lock"></i> Musobaqa boşlangan — sovrinlar qulflangan.</div>{% endif %}
                 </div>
 
                 <button class="tc-btn w-100" type="submit" id="submitBtn">
-                    <i class="bi bi-rocket-takeoff"></i> {% if competition %}Saqlash{% else %}Musobaqani yoqish{% endif %}
+                    <i class="bi bi-rocket-takeoff"></i> {% if competition %}Saqlaş{% else %}Musobaqani yoqiş{% endif %}
                 </button>
             </div>
         </div>
@@ -93,11 +93,11 @@
         <div class="col-lg-5">
             <div class="tc-card tc-ledger" style="position:sticky;top:90px">
                 <h3><i class="bi bi-wallet2"></i> Sovrin kimdan?</h3>
-                <p class="tc-note mb-2">Siz yoqqan musobaqada sovrin <b>sizning coin hisobingizdan</b> yechiladi.</p>
+                <p class="tc-note mb-2">Siz yoqqan musobaqada sovrin <b>sizning coin hisobingizdan</b> yeçiladi.</p>
                 <div class="r"><span>{% if competition %}Balans + joriy bron{% else %}Hozirgi balansingiz{% endif %}</span><b id="lAvail">{{ available_coins }}</b></div>
                 <div class="r minus"><span>Sovrin fondi (bron qilinadi)</span><b id="lFund">0</b></div>
                 <div class="after" id="lAfterRow"><span>Musobaqadan keyin</span><b id="lAfter">{{ available_coins }}</b></div>
-                <div class="tc-warn" id="lWarn"><i class="bi bi-info-circle"></i> Coin musobaqa yaratilganda <b>bron</b> qilinadi va g'oliblarga o'tkaziladi. Ishtirokchi yetmasa — qolgani sizga qaytadi.</div>
+                <div class="tc-warn" id="lWarn"><i class="bi bi-info-circle"></i> Coin musobaqa yaratilganda <b>bron</b> qilinadi va ğoliblarga ötkaziladi. Iştirokçi yetmasa — qolgani sizga qaytadi.</div>
             </div>
         </div>
     </form>
@@ -129,12 +129,12 @@
                 var user = document.createElement('small'); user.textContent = '@' + s.username;
                 row.append(cb, name, user); list.appendChild(row);
             });
-            if (!students.length) list.innerHTML = '<div class="tc-note p-2">Guruhlaringizda o\'quvchi yo\'q.</div>';
+            if (!students.length) list.innerHTML = '<div class="tc-note p-2">Guruhlaringizda öquvçi yöq.</div>';
         }
         search.addEventListener('input', renderStudents);
         renderStudents();
 
-        // Sovrin hisoblagichi — prototipdagi "Sovrin kimdan?" kartasi
+        // Sovrin hisoblagiçi — prototipdagi "Sovrin kimdan?" kartasi
         var avail = {{ available_coins }};
         var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
         function calc() {
@@ -147,8 +147,8 @@
             var warn = document.getElementById('lWarn');
             warn.classList.toggle('err', bad || !order);
             if (bad) warn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Balans yetarli emas: yana <b>' + fmt(-after) + '</b> coin kerak.';
-            else if (!order) warn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Sovrinlar kamayib borishi kerak: 1-o\'rin ≥ 2-o\'rin ≥ 3-o\'rin.';
-            else warn.innerHTML = '<i class="bi bi-info-circle"></i> Coin musobaqa yaratilganda <b>bron</b> qilinadi va g\'oliblarga o\'tkaziladi. Ishtirokchi yetmasa — qolgani sizga qaytadi.';
+            else if (!order) warn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> Sovrinlar kamayib borişi kerak: 1-örin ≥ 2-örin ≥ 3-örin.';
+            else warn.innerHTML = '<i class="bi bi-info-circle"></i> Coin musobaqa yaratilganda <b>bron</b> qilinadi va ğoliblarga ötkaziladi. Iştirokçi yetmasa — qolgani sizga qaytadi.';
             document.getElementById('submitBtn').disabled = bad || !order;
         }
         form.querySelectorAll('.js-prize').forEach(function (i) { i.addEventListener('input', calc); });

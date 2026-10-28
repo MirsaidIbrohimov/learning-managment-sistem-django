@@ -8,7 +8,7 @@ class Post(models.Model):
         ('tutorial', 'Darslik'),
         ('tips', 'Maslahatlar'),
         ('announcement', 'E\'lon'),
-        ('other', 'Boshqa'),
+        ('other', 'Boşqa'),
     )
     
     title = models.CharField(max_length=300, verbose_name="Sarlavha")
@@ -18,7 +18,7 @@ class Post(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    is_published = models.BooleanField(default=True, verbose_name="Chop etilgan")
+    is_published = models.BooleanField(default=True, verbose_name="Çop etilgan")
     
     class Meta:
         ordering = ['-created_at']

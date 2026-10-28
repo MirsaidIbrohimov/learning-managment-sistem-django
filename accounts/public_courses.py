@@ -1,9 +1,9 @@
-"""Sotuvdagi (bir martalik to'lovli) kurslar uchun ochiq SEO sahifalari.
+"""Sotuvdagi (bir martalik tölovli) kurslar uçun oçiq SEO sahifalari.
 
-Login talab qilinmaydi — Google va boshqa qidiruv tizimlari kurs sahifasini
-indekslab, foydalanuvchini to'g'ridan-to'g'ri xarid sahifasiga olib keladi.
-Faqat marketing ma'lumoti ko'rsatiladi: dars nomlari, narx, ustozlar.
-Dars mazmuni (video, vazifa, test) yopiqligicha qoladi.
+Login talab qilinmaydi — Google va boşqa qidiruv tizimlari kurs sahifasini
+indekslab, foydalanuvçini töğridan-töğri xarid sahifasiga olib keladi.
+Faqat marketing ma'lumoti körsatiladi: dars nomlari, narx, ustozlar.
+Dars mazmuni (video, vazifa, test) yopiqligiça qoladi.
 """
 import json
 
@@ -19,15 +19,15 @@ from .models import Lesson, Profession
 
 FAQ = (
     ("Kursga qanday yoziladi?",
-     "«Sotib olish» tugmasini bosing, tizimga kiring yoki ro'yxatdan o'ting va onlayn to'lovni amalga "
-     "oshiring. To'lov tasdiqlangan zahoti kurs avtomatik ochiladi — so'rov kutish shart emas."),
-    ("To'lov bir martalikmi?",
-     "Ha. Kurs uchun bir marta to'laysiz va unga umrbod kirish huquqini olasiz. Oylik to'lov talab qilinmaydi."),
-    ("Qanday to'lash mumkin?",
+     "«Sotib oliş» tugmasini bosing, tizimga kiring yoki röyxatdan öting va onlayn tölovni amalga "
+     "oşiring. Tölov tasdiqlangan zahoti kurs avtomatik oçiladi — sörov kutiş şart emas."),
+    ("Tölov bir martalikmi?",
+     "Ha. Kurs uçun bir marta tölaysiz va unga umrbod kiriş huquqini olasiz. Oylik tölov talab qilinmaydi."),
+    ("Qanday tölaş mumkin?",
      "Click, Payme, Uzum Pay, Paynet hamda HUMO va Uzcard kartalari orqali onlayn. Hisobingizdagi "
-     "balansdan ham to'lashingiz mumkin."),
-    ("Kurs tugagach sertifikat beriladimi?",
-     "Sertifikat joriy qilingan kurslarda barcha darslarni tugatgan o'quvchiga sertifikat beriladi."),
+     "balansdan ham tölaşingiz mumkin."),
+    ("Kurs tugagaç sertifikat beriladimi?",
+     "Sertifikat joriy qilingan kurslarda barça darslarni tugatgan öquvçiga sertifikat beriladi."),
 )
 
 
@@ -47,7 +47,7 @@ def _summary(profession, limit=160):
 
 
 def _ld(data):
-    # </script> ni yopib qo'ymasligi uchun.
+    # </script> ni yopib qöymasligi uçun.
     return json.dumps(data, ensure_ascii=False).replace('</', '<\\/')
 
 
@@ -78,7 +78,7 @@ def catalog(request):
 def course_landing(request, pk, slug=None):
     course = get_object_or_404(sale_courses().prefetch_related('teachers'), pk=pk)
     if slug != course.seo_slug:
-        # Yagona kanonik URL — dublikat sahifalar indeksga tushmasin.
+        # Yagona kanonik URL — dublikat sahifalar indeksga tuşmasin.
         return redirect(course.public_url, permanent=True)
 
     origin = _origin()
@@ -115,7 +115,7 @@ def course_landing(request, pk, slug=None):
         {
             '@context': 'https://schema.org', '@type': 'BreadcrumbList',
             'itemListElement': [
-                {'@type': 'ListItem', 'position': 1, 'name': 'Bosh sahifa', 'item': origin + '/'},
+                {'@type': 'ListItem', 'position': 1, 'name': 'Boş sahifa', 'item': origin + '/'},
                 {'@type': 'ListItem', 'position': 2, 'name': 'Kurslar', 'item': origin + '/kurslar/'},
                 {'@type': 'ListItem', 'position': 3, 'name': course.name, 'item': url},
             ],

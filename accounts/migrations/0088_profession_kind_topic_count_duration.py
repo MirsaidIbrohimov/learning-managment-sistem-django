@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='topic_count',
             field=models.PositiveIntegerField(
                 default=0,
-                help_text="0 = cheksiz. Belgilangan sondan ortiq dars (mavzu) qo'shib bo'lmaydi.",
+                help_text="0 = çeksiz. Belgilangan sondan ortiq dars (mavzu) qöşib bölmaydi.",
                 verbose_name='Mavzular (darslar) soni'),
         ),
         migrations.AddField(
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             name='duration_months',
             field=models.PositiveIntegerField(
                 blank=True, null=True,
-                help_text="O'qish necha oy davom etadi (masalan: 6).",
-                verbose_name="O'qish davomiyligi (oy)"),
+                help_text="Öqiş neça oy davom etadi (masalan: 6).",
+                verbose_name="Öqiş davomiyligi (oy)"),
         ),
     ]

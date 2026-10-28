@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════
-   ROLE HOME (admin / yordamchi admin / o'qituvchi) — jonli qatlam.
+   ROLE HOME (admin / yordamçi admin / öqituvçi) — jonli qatlam.
    • sana + soat            → #rhDate, #rhClock
    • raqamlarni count-up    → [data-countup]
    • donut ringlar          → [data-ring="0..100"]
    • scroll reveal          → .reveal (dashboard.css'dagi .is-in)
-   prefers-reduced-motion hurmat qilinadi: animatsiya o'rniga oxirgi
-   qiymat darhol qo'yiladi.
+   prefers-reduced-motion hurmat qilinadi: animatsiya örniga oxirgi
+   qiymat darhol qöyiladi.
    ══════════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -13,8 +13,8 @@
   var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
                 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr'];
-  var DAYS = ['Yakshanba', 'Dushanba', 'Seshanba', 'Chorshanba',
-              'Payshanba', 'Juma', 'Shanba'];
+  var DAYS = ['Yakşanba', 'Duşanba', 'Seşanba', 'Çorşanba',
+              'Payşanba', 'Juma', 'Şanba'];
 
   /* ── sana + jonli soat ─────────────────────────────────────────── */
   function tickClock() {

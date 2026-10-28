@@ -17,14 +17,14 @@ class Migration(migrations.Migration):
             name='TelegramBroadcastMessage',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('recipient_type', models.CharField(choices=[('all', 'Barcha foydalanuvchilar'), ('students', "Faqat o'quvchilar"), ('teachers', "Faqat o'qituvchilar"), ('group', 'Guruhga'), ('individual', 'Tanlangan foydalanuvchilar')], max_length=20, verbose_name='Qabul qiluvchi turi')),
+                ('recipient_type', models.CharField(choices=[('all', 'Barça foydalanuvçilar'), ('students', "Faqat öquvçilar"), ('teachers', "Faqat öqituvçilar"), ('group', 'Guruhga'), ('individual', 'Tanlangan foydalanuvçilar')], max_length=20, verbose_name='Qabul qiluvçi turi')),
                 ('text', models.TextField(verbose_name='Xabar matni')),
                 ('image', models.ImageField(blank=True, null=True, upload_to='telegram_broadcasts/', verbose_name='Rasm')),
                 ('recipients_count', models.IntegerField(default=0, verbose_name='Yuborilganlar soni')),
                 ('success_count', models.IntegerField(default=0, verbose_name='Muvaffaqiyatli')),
                 ('failed_count', models.IntegerField(default=0, verbose_name='Xatolik')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('sender', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sent_broadcasts', to=settings.AUTH_USER_MODEL, verbose_name='Yuboruvchi')),
+                ('sender', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sent_broadcasts', to=settings.AUTH_USER_MODEL, verbose_name='Yuboruvçi')),
             ],
             options={
                 'verbose_name': 'Yuborilgan xabar',

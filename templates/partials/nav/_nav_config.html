@@ -1,8 +1,8 @@
 {% load static %}{% comment %}
-  Navigatsiya sozlamalari konfiguratsiyasi + nav-prefs.js. nav_ctx='panel' — o'qituvchi/admin panellari.
+  Navigatsiya sozlamalari konfiguratsiyasi + nav-prefs.js. nav_ctx='panel' — öqituvchi/admin panellari.
 {% endcomment %}{% if user.is_authenticated %}<script>
   window.ITC_NAV = { saveUrl: "{% url 'save_navigation_preferences' %}", csrf: "{{ csrf_token }}", prefs: { layout: "{{ nav_prefs.layout }}", sidebar: "{{ nav_prefs.sidebar }}", theme: "{{ nav_prefs.theme }}", motion: {{ nav_prefs.motion|yesno:'true,false' }}, autosave: {{ nav_prefs.autosave|yesno:'true,false' }} }{% if nav_ctx == 'panel' %},
     desktopQuery: "(min-width: 993px)", railSel: "#adminSidebar",
-    hints: { compact: "Panelning hozirgi ko‘rinishi. Yig‘ilgan — faqat ikonkalar, nomlar tooltip’da. Tezkor tugma: Ctrl + B." }{% endif %} };
+    hints: { compact: "Panelning hozirgi körinişi. Yiğilgan — faqat ikonkalar, nomlar tooltip’da. Tezkor tugma: Ctrl + B." }{% endif %} };
 </script>
 <script src="{% static 'js/nav-prefs.js' %}?v=2" defer></script>{% endif %}

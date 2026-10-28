@@ -1,11 +1,11 @@
 {% comment %}
-Video Mid-Quiz o'quvchi vidjeti — video_lesson.html ichiga include qilinadi.
-Video belgilangan soniyaga yetganda pauza qilib, premium modal chiqaradi.
-Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
+Video Mid-Quiz öquvçi vidjeti — video_lesson.html içiga include qilinadi.
+Video belgilangan soniyaga yetganda pauza qilib, premium modal çiqaradi.
+Javob bermasdan davom etib bölmaydi (ESC/tashqi bosiş yopmaydi).
 {% endcomment %}
 
 <style>
-/* ===== Video Mid-Quiz: o'quvchi modali ===== */
+/* ===== Video Mid-Quiz: öquvçi modali ===== */
 .vqp-overlay {
     display: none; position: fixed; inset: 0; z-index: 99990;
     background: rgba(3, 7, 18, .62);
@@ -155,13 +155,13 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             <div class="vqp-top-ic"><i class="bi bi-lightning-charge-fill"></i></div>
             <div>
                 <b>Video savol! <span class="vqp-counter" id="vqpCounter"></span></b>
-                <small>Davom etish uchun javob bering</small>
+                <small>Davom etiş uçun javob bering</small>
             </div>
             <div class="vqp-coins">
                 <span class="p">✓ +<span id="vqpRew">3</span> coin</span><br>
                 <span class="m">✗ -<span id="vqpPen">5</span> coin</span>
             </div>
-            <div class="vqp-timer" id="vqpTimer" title="Javob berish uchun qolgan vaqt">
+            <div class="vqp-timer" id="vqpTimer" title="Javob beriş uçun qolgan vaqt">
                 <i class="bi bi-stopwatch-fill"></i>
                 <span id="vqpTimerTxt">0:35</span>
             </div>
@@ -172,9 +172,9 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             <div class="vqp-desc" id="vqpDesc"></div>
             <div class="vqp-opts" id="vqpOpts"></div>
             <button type="button" class="vqp-submit" id="vqpSubmit" disabled>
-                <i class="bi bi-send"></i> Javobni yuborish
+                <i class="bi bi-send"></i> Javobni yuboriş
             </button>
-            <div class="vqp-kbd-hint">Klaviatura: <kbd>A</kbd>–<kbd>D</kbd> yoki <kbd>1</kbd>–<kbd>4</kbd> tanlash, <kbd>Enter</kbd> yuborish</div>
+            <div class="vqp-kbd-hint">Klaviatura: <kbd>A</kbd>–<kbd>D</kbd> yoki <kbd>1</kbd>–<kbd>4</kbd> tanlaş, <kbd>Enter</kbd> yuboriş</div>
             <div class="vqp-result" id="vqpResult">
                 <div class="big" id="vqpResIcon"></div>
                 <h4 id="vqpResTitle"></h4>
@@ -182,7 +182,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
                 <div class="vqp-explain" id="vqpExplain" style="display:none;"></div>
                 <small id="vqpResumeHint" style="display:block;margin:8px 0;color:#94a3b8;"></small>
                 <button type="button" class="vqp-continue" id="vqpContinue">
-                    <i class="bi bi-play-fill"></i> Davom etish
+                    <i class="bi bi-play-fill"></i> Davom etiş
                 </button>
             </div>
         </div>
@@ -192,15 +192,15 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
 
 <script>
 /* ================================================================
-   Video Mid-Quiz — o'quvchi pleer integratsiyasi
-   YouTube (window._vqYT) va Vimeo (vimeoPlayer) pleerlarini qo'llaydi.
+   Video Mid-Quiz — öquvçi pleer integratsiyasi
+   YouTube (window._vqYT) va Vimeo (vimeoPlayer) pleerlarini qöllaydi.
    ================================================================ */
 (function() {
     'use strict';
     const API_LIST = "{% if portal %}{{ portal.vq_list_url }}{% else %}{% url 'video_quiz:api_player_quizzes' video.pk %}{% endif %}";
     const API_SUBMIT = "{% if portal %}{{ portal.vq_submit_url }}{% else %}{% url 'video_quiz:api_player_submit' %}{% endif %}";
     const CSRF = '{{ csrf_token }}';
-    // Har savolga javob berish uchun beriladigan vaqt (soniya).
+    // Har savolga javob beriş uçun beriladigan vaqt (soniya).
     const ANSWER_LIMIT_SEC = 35;
 
     let quizzes = [];
@@ -211,13 +211,13 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     let progTimer = null;      // countdown intervali
     let autoContinueTimer = null;
     let secondsLeft = 0;       // qolgan vaqt (soniya)
-    let deadline = 0;          // wall-clock muddat (ms) — fon tabda ham aniq ishlaydi
-    let timedOut = false;      // shu savol vaqt tugab avtomatik yopilganmi
+    let deadline = 0;          // wall-clock muddat (ms) — fon tabda ham aniq işlaydi
+    let timedOut = false;      // şu savol vaqt tugab avtomatik yopilganmi
 
     const overlay = document.getElementById('vqpOverlay');
     const box = document.getElementById('vqpBox');
 
-    /* ---------- Pleer boshqaruvi ---------- */
+    /* ---------- Pleer boşqaruvi ---------- */
     function getTime(cb) {
         try {
             if (window._vqYT && typeof window._vqYT.getCurrentTime === 'function') {
@@ -239,10 +239,10 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         try { if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) vimeoPlayer.play(); } catch (e) {}
     }
 
-    /* ---------- Fullscreen boshqaruvi ---------- */
+    /* ---------- Fullscreen boşqaruvi ---------- */
     // YouTube/Vimeo iframe fullscreen paytida modal iframe ostida qoladi
-    // (browserlar HTML5 fullscreen elementidan tashqaridagi hech nimani ko'rsatmaydi).
-    // Yechim: quiz ochilishidan oldin fullscreen'dan chiqamiz, davom etganda qaytaramiz.
+    // (browserlar HTML5 fullscreen elementidan taşqaridagi heç nimani körsatmaydi).
+    // Yeçim: quiz oçilişidan oldin fullscreen'dan çiqamiz, davom etganda qaytaramiz.
     let _wasFullscreen = false;
     let _fsElement = null;
 
@@ -328,13 +328,13 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         } else if (secondsLeft <= 15) {
             chip.classList.add('warn'); progWrap.classList.add('warn');
         }
-        // Progress bar 0 -> 100% ni to'ldirib boradi (kamayib emas)
+        // Progress bar 0 -> 100% ni töldirib boradi (kamayib emas)
         const elapsed = ANSWER_LIMIT_SEC - secondsLeft;
         prog.style.width = Math.min(100, (elapsed / ANSWER_LIMIT_SEC) * 100) + '%';
     }
-    // Muddat wall-clock (Date.now) bo'yicha o'lchanadi: brauzer fon tabda
-    // setInterval'ni sekinlashtirsa ham (throttling) yoki telefon uxlab qolsa
-    // ham, keyingi tik'da real o'tgan vaqt hisobga olinib timeout darhol beriladi.
+    // Muddat wall-clock (Date.now) böyiça ölçanadi: brauzer fon tabda
+    // setInterval'ni sekinlaştirsa ham (throttling) yoki telefon uxlab qolsa
+    // ham, keyingi tik'da real ötgan vaqt hisobga olinib timeout darhol beriladi.
     function countdownTick() {
         if (!deadline) return;
         secondsLeft = Math.ceil((deadline - Date.now()) / 1000);
@@ -365,20 +365,20 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         const hint = document.getElementById('vqpResumeHint');
         function tick() {
             if (!modalOpen || !current || !current.answered) return;
-            if (hint) hint.textContent = 'Video ' + seconds + ' soniyada davom etadi. Hoziroq davom etish uchun tugmani bosing.';
+            if (hint) hint.textContent = 'Video ' + seconds + ' soniyada davom etadi. Hoziroq davom etiş uçun tugmani bosing.';
             if (seconds <= 0) { finishQuiz(); return; }
             seconds -= 1;
             autoContinueTimer = setTimeout(tick, 1000);
         }
         tick();
     }
-    // Tab qayta faollashganda muddatni darhol tekshirish (fon tabda interval
-    // 1 daqiqagacha kechikishi mumkin)
+    // Tab qayta faollaşganda muddatni darhol tekşiriş (fon tabda interval
+    // 1 daqiqagaça keçikişi mumkin)
     document.addEventListener('visibilitychange', function() {
         if (!document.hidden && modalOpen) countdownTick();
     });
 
-    /* Timeout javobini serverga yuborish — tarmoq xatosida 3 martagacha urinadi. */
+    /* Timeout javobini serverga yuboriş — tarmoq xatosida 3 martagaça urinadi. */
     async function submitTimeout() {
         const payload = JSON.stringify({
             quiz_id: current.id, selected: null, timeout: true,
@@ -399,9 +399,9 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         return null;
     }
 
-    /* Vaqt tugadi — javob noto'g'ri deb yoziladi (penalty) va natija oynasi
-       ALBATTA ko'rsatiladi. Server bilan bog'lanib bo'lmasa ham modal jim
-       yopilmaydi — natija ko'rsatilib, jarima keyingi imkoniyatda yoziladi. */
+    /* Vaqt tugadi — javob notöğri deb yoziladi (penalty) va natija oynasi
+       ALBATTA körsatiladi. Server bilan boğlanib bölmasa ham modal jim
+       yopilmaydi — natija körsatilib, jarima keyingi imkoniyatda yoziladi. */
     async function onTimeout() {
         if (!current || !modalOpen || timedOut) return;
         timedOut = true;
@@ -430,14 +430,14 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             else { exp.style.display = 'none'; }
             current.answered = true;
         } else if (data && data.error) {
-            // Masalan: bu savolga allaqachon javob berilgan
+            // Masalan: bu savolga allaqaçon javob berilgan
             coinEl.textContent = '';
             exp.textContent = '⚠️ ' + data.error;
             exp.style.display = 'block';
-            current.answered = data.error.toLowerCase().includes('allaqachon');
+            current.answered = data.error.toLowerCase().includes('allaqaçon');
         } else {
-            // Tarmoq uzildi — natija ko'rsatiladi; yozuv pagehide beacon yoki
-            // keyingi ochilishda amalga oshadi (answered=false qoldiriladi)
+            // Tarmoq uzildi — natija körsatiladi; yozuv pagehide beacon yoki
+            // keyingi oçilişda amalga oşadi (answered=false qoldiriladi)
             coinEl.textContent = '🪙 -' + (current.penalty_coin || 0) + ' coin';
             exp.textContent = "⚠️ Internet aloqasi uzildi — natija keyinroq saqlanadi";
             exp.style.display = 'block';
@@ -450,12 +450,12 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     function showQuiz(q) {
         current = q; selected = null; modalOpen = true; openedAt = Date.now();
         pauseVideo();
-        // Fullscreen'dan chiqamiz — aks holda modal iframe ostida qoladi
+        // Fullscreen'dan çiqamiz — aks holda modal iframe ostida qoladi
         _wasFullscreen = isFullscreen();
         _fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
                      document.mozFullScreenElement || document.msFullscreenElement || null;
         if (_wasFullscreen) exitFullscreen();
-        // Savol hisoblagichi: nechanchi savol / jami
+        // Savol hisoblagiçi: neçançi savol / jami
         const answeredCount = quizzes.filter(function(x){ return x.answered; }).length;
         document.getElementById('vqpCounter').textContent = (answeredCount + 1) + ' / ' + quizzes.length;
         document.getElementById('vqpQ').textContent = q.question;
@@ -482,7 +482,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             };
             opts.appendChild(btn);
         });
-        // 35 soniyalik countdown ishga tushiriladi
+        // 35 soniyalik countdown işga tuşiriladi
         document.getElementById('vqpProg').style.width = '0';
         document.getElementById('vqpProg').parentElement.classList.remove('warn','danger');
         startCountdown();
@@ -491,11 +491,11 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
 
     async function submit() {
         if (!selected || !current || timedOut) return;
-        // Foydalanuvchi javob berdi — countdown to'xtaydi
+        // Foydalanuvçi javob berdi — countdown töxtaydi
         stopCountdown();
         const btn = document.getElementById('vqpSubmit');
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:vqpPulse .7s linear infinite;"></span> Tekshirilmoqda...';
+        btn.innerHTML = '<span style="display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:vqpPulse .7s linear infinite;"></span> Tekşirilmoqda...';
         let data;
         try {
             const res = await fetch(API_SUBMIT, {
@@ -508,12 +508,12 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             });
             data = await res.json();
         } catch (e) { data = {error: 'Tarmoq xatosi'}; }
-        btn.innerHTML = '<i class="bi bi-send"></i> Javobni yuborish';
+        btn.innerHTML = '<i class="bi bi-send"></i> Javobni yuboriş';
         clearInterval(progTimer);
         document.getElementById('vqpProg').style.width = '100%';
 
         if (data.error) {
-            // Xato (masalan, allaqachon javob berilgan) — davom etishga ruxsat
+            // Xato (masalan, allaqaçon javob berilgan) — davom etişga ruxsat
             toast('⚠️ ' + data.error);
             finishQuiz();
             return;
@@ -531,7 +531,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         const exp = document.getElementById('vqpExplain');
         if (data.correct) {
             document.getElementById('vqpResIcon').textContent = '🎉';
-            document.getElementById('vqpResTitle').textContent = "To'g'ri javob!";
+            document.getElementById('vqpResTitle').textContent = "Töğri javob!";
             document.getElementById('vqpResCoin').className = 'coin-fx p';
             document.getElementById('vqpResCoin').textContent = '🪙 +' + data.coins_change + ' coin (balans: ' + data.balance + ')';
             exp.style.display = 'none';
@@ -539,7 +539,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             toast('🪙 +' + data.coins_change + ' Coin');
         } else {
             document.getElementById('vqpResIcon').textContent = '😔';
-            document.getElementById('vqpResTitle').textContent = "Noto'g'ri javob";
+            document.getElementById('vqpResTitle').textContent = "Notöğri javob";
             document.getElementById('vqpResCoin').className = 'coin-fx m';
             document.getElementById('vqpResCoin').textContent = '🪙 ' + data.coins_change + ' coin (balans: ' + data.balance + ')';
             if (data.explanation) { exp.textContent = '💡 ' + data.explanation; exp.style.display = 'block'; }
@@ -561,7 +561,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         overlay.classList.remove('open');
         stopCountdown();
         playVideo();
-        // Fullscreen'ni tiklaymiz (user activation "Davom etish" tugmasi orqali kelgan)
+        // Fullscreen'ni tiklaymiz (user activation "Davom etiş" tugmasi orqali kelgan)
         if (_wasFullscreen && _fsElement) {
             requestFullscreen(_fsElement);
         }
@@ -571,9 +571,9 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     document.getElementById('vqpSubmit').addEventListener('click', submit);
     document.getElementById('vqpContinue').addEventListener('click', finishQuiz);
 
-    // Savol ochiq turganda sahifadan chiqib ketish (F5, yopish, boshqa sahifa) —
+    // Savol oçiq turganda sahifadan çiqib ketiş (F5, yopiş, boşqa sahifa) —
     // javob bermaslik hisoblanadi: timeout beacon bilan serverga yoziladi.
-    // Shu tufayli o'quvchi sahifani yangilab jarimadan qochib qutula olmaydi.
+    // Şu tufayli öquvçi sahifani yangilab jarimadan qoçib qutula olmaydi.
     window.addEventListener('pagehide', function() {
         if (!modalOpen || !current || current.answered || !navigator.sendBeacon) return;
         try {
@@ -585,7 +585,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         } catch (e) {}
     });
 
-    // ESC va tashqi bosish bilan YOPILMAYDI + klaviatura boshqaruvi
+    // ESC va taşqi bosiş bilan YOPILMAYDI + klaviatura boşqaruvi
     document.addEventListener('keydown', function(e) {
         if (!modalOpen) return;
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return; }
@@ -594,7 +594,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             if (e.key === 'Enter') { e.preventDefault(); finishQuiz(); }
             return;
         }
-        // A-D yoki 1-4 bilan variant tanlash
+        // A-D yoki 1-4 bilan variant tanlaş
         const keyMap = {'a':'A','b':'B','c':'C','d':'D','1':'A','2':'B','3':'C','4':'D'};
         const letter = keyMap[e.key.toLowerCase()];
         if (letter) {
@@ -625,11 +625,11 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             if (!data.is_student || !data.quizzes || !data.quizzes.length) return;
             quizzes = data.quizzes.sort(function(a,b){ return a.trigger_second - b.trigger_second; });
             setInterval(function(){ if (!modalOpen) getTime(check); }, 500);
-        } catch (e) { /* jim — pleer ishlayveradi */ }
+        } catch (e) { /* jim — pleer işlayveradi */ }
     }
     init();
 })();
 </script>
 
-{# Bu fayl: o'quvchi video ko'rayotganda belgilangan soniyada pleerni pauza #}
-{# qilib premium savol modalini chiqaradi; coin, konfeti, ovoz va toast bilan. #}
+{# Bu fayl: öquvçi video körayotganda belgilangan soniyada pleerni pauza #}
+{# qilib premium savol modalini çiqaradi; coin, konfeti, ovoz va toast bilan. #}

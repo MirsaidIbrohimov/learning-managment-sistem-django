@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}{{ u1.full_name }} & {{ u2.full_name }} - Shaxsiy chat{% endblock %}
-{% block topbar_title %}Shaxsiy chat{% endblock %}
+{% block title %}{{ u1.full_name }} & {{ u2.full_name }} - Şaxsiy çat{% endblock %}
+{% block topbar_title %}Şaxsiy çat{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -59,7 +59,7 @@
     font-size: .72rem; font-weight: 700; color: #6366f1;
 }
 
-/* ── Sana ajratgich ───────────────────────────────── */
+/* ── Sana ajratgiç ───────────────────────────────── */
 .adcd-day { display: flex; align-items: center; gap: .8rem; margin: 1rem 0 .6rem; }
 .adcd-day::before, .adcd-day::after { content: ''; flex: 1; height: 1px; background: var(--border-color, rgba(0,0,0,.1)); }
 .adcd-day span {
@@ -134,28 +134,28 @@ mark { background: #fde68a; border-radius: 3px; padding: 0 1px; }
         </div>
         <div>
             <div class="adcd-title">
-                {{ u1.full_name }} <span class="adcd-role {{ u1.role }}">{% if u1.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}</span>
+                {{ u1.full_name }} <span class="adcd-role {{ u1.role }}">{% if u1.role == 'teacher' %}Öqituvçi{% else %}Öquvçi{% endif %}</span>
                 <i class="bi bi-arrow-left-right text-muted" style="font-size:0.72rem;"></i>
-                {{ u2.full_name }} <span class="adcd-role {{ u2.role }}">{% if u2.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}</span>
+                {{ u2.full_name }} <span class="adcd-role {{ u2.role }}">{% if u2.role == 'teacher' %}Öqituvçi{% else %}Öquvçi{% endif %}</span>
             </div>
             <div class="adcd-sub">@{{ u1.username }} &middot; @{{ u2.username }}</div>
         </div>
         <div class="adcd-stats">
             <span class="adcd-chip total"><i class="bi bi-chat-dots"></i> {{ thread_stats.total }}</span>
-            {% if thread_stats.deleted %}<span class="adcd-chip del" title="Foydalanuvchilar o'chirgan xabarlar"><i class="bi bi-trash3"></i> {{ thread_stats.deleted }}</span>{% endif %}
+            {% if thread_stats.deleted %}<span class="adcd-chip del" title="Foydalanuvçilar öçirgan xabarlar"><i class="bi bi-trash3"></i> {{ thread_stats.deleted }}</span>{% endif %}
             {% if thread_stats.edited %}<span class="adcd-chip edt" title="Tahrirlangan xabarlar"><i class="bi bi-pencil"></i> {{ thread_stats.edited }}</span>{% endif %}
         </div>
     </div>
 
     <div class="adcd-notice">
         <i class="bi bi-eye"></i>
-        <span>Faqat ko'rish rejimi. <b>O'chirilgan</b> va <b>tahrirlangan</b> xabarlar ham asl holicha ko'rsatiladi (foydalanuvchilarga ko'rinmaydi).</span>
+        <span>Faqat köriş rejimi. <b>Öçirilgan</b> va <b>tahrirlangan</b> xabarlar ham asl holiça körsatiladi (foydalanuvçilarga körinmaydi).</span>
     </div>
 
     {% if messages_chrono %}
     <div class="adcd-find">
         <i class="bi bi-search"></i>
-        <input type="text" id="threadFind" placeholder="Suhbat ichidan izlash..." autocomplete="off">
+        <input type="text" id="threadFind" placeholder="Suhbat içidan izlaş..." autocomplete="off">
         <span class="cnt" id="findCnt"></span>
     </div>
 
@@ -184,11 +184,11 @@ mark { background: #fde68a; border-radius: 3px; padding: 0 1px; }
             <div class="adcd-msg-meta">
                 <span>{{ m.created_at|date:"d.m.Y H:i" }}</span>
                 {% if m.is_deleted %}
-                <span class="adcd-flag-del"><i class="bi bi-trash3"></i> o'chirilgan{% if m.deleted_at %} ({{ m.deleted_at|date:"d.m.Y H:i" }}){% endif %}</span>
+                <span class="adcd-flag-del"><i class="bi bi-trash3"></i> öçirilgan{% if m.deleted_at %} ({{ m.deleted_at|date:"d.m.Y H:i" }}){% endif %}</span>
                 {% endif %}
                 {% if m.is_edited %}
                 <span class="adcd-flag-edt" onclick="toggleHistory(this)">
-                    <i class="bi bi-pencil"></i> tahrirlangan{% if m.edit_history.all %} — asl matnni ko'rish{% endif %}
+                    <i class="bi bi-pencil"></i> tahrirlangan{% if m.edit_history.all %} — asl matnni köriş{% endif %}
                 </span>
                 {% endif %}
             </div>
@@ -219,7 +219,7 @@ mark { background: #fde68a; border-radius: 3px; padding: 0 1px; }
     {% else %}
     <div class="adcd-empty">
         <i class="bi bi-chat-square"></i>
-        Bu ikki foydalanuvchi o'rtasida hali xabar yo'q.
+        Bu ikki foydalanuvçi örtasida hali xabar yöq.
     </div>
     {% endif %}
 </div>
@@ -232,7 +232,7 @@ function toggleHistory(el) {
     if (box) box.classList.toggle('open');
 }
 
-/* Suhbat ichidan matn bo'yicha jonli qidiruv */
+/* Suhbat içidan matn böyiça jonli qidiruv */
 (function () {
     const input = document.getElementById('threadFind');
     const cnt = document.getElementById('findCnt');

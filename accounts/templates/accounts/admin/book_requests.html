@@ -125,7 +125,7 @@
   <div class="brq-header">
     <div class="brq-header-left">
       <h1><i class="bi bi-send"></i> Kitob arizalari</h1>
-      <div class="brq-header-sub">O'quvchilarning kitob ijarasi arizalari</div>
+      <div class="brq-header-sub">Öquvçilarning kitob ijarasi arizalari</div>
     </div>
     <div class="brq-header-actions">
       <a href="{% url 'admin_books' %}" class="brq-btn brq-btn-outline"><i class="bi bi-book"></i> Kitoblar</a>
@@ -133,7 +133,7 @@
     </div>
   </div>
 
-  <!-- Stats (API orqali to'ldiriladi) -->
+  <!-- Stats (API orqali töldiriladi) -->
   <div class="brq-stats" id="statsRow">
     <div class="brq-stat-card">
       <div class="brq-stat-icon warning"><i class="bi bi-clock"></i></div>
@@ -161,20 +161,20 @@
   <div class="brq-filter">
     <div class="brq-filter-row">
       <div class="brq-filter-group" style="flex:3">
-        <label><i class="bi bi-search"></i> Qidirish</label>
-        <input type="text" id="searchInput" placeholder="Kitob nomi yoki o'quvchi..." oninput="debounce()">
+        <label><i class="bi bi-search"></i> Qidiriş</label>
+        <input type="text" id="searchInput" placeholder="Kitob nomi yoki öquvçi..." oninput="debounce()">
       </div>
       <div class="brq-filter-group" style="flex:1.5; min-width:130px;">
         <label><i class="bi bi-funnel"></i> Holat</label>
         <select id="statusFilter" onchange="loadRequests()">
-          <option value="">Barchasi</option>
+          <option value="">Barçasi</option>
           <option value="pending">Kutilmoqda</option>
           <option value="approved">Tasdiqlangan</option>
           <option value="rejected">Rad etilgan</option>
           <option value="cancelled">Bekor qilingan</option>
         </select>
       </div>
-      <button class="brq-filter-btn" onclick="loadRequests()"><i class="bi bi-search"></i> Qidirish</button>
+      <button class="brq-filter-btn" onclick="loadRequests()"><i class="bi bi-search"></i> Qidiriş</button>
     </div>
   </div>
 
@@ -189,19 +189,19 @@
   <div class="brq-mobile-list" id="mobileList"></div>
 </div>
 
-<!-- Tasdiqlash modal -->
+<!-- Tasdiqlaş modal -->
 <div class="modal fade" id="approveModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:16px;border:1px solid var(--border-color,#dee2e6)">
       <div class="modal-header" style="border-bottom:1px solid var(--border-color,#dee2e6)">
-        <h5 class="modal-title fw-bold"><i class="bi bi-check-circle text-success me-2"></i>Arizani tasdiqlash</h5>
+        <h5 class="modal-title fw-bold"><i class="bi bi-check-circle text-success me-2"></i>Arizani tasdiqlaş</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div id="approveBookInfo" class="mb-3"></div>
         <div class="brq-modal-body">
           <div class="mb-3">
-            <label class="form-label">Qaytarish muddati (kun)</label>
+            <label class="form-label">Qaytariş muddati (kun)</label>
             <div class="brq-days-input">
               <input type="number" id="approveDays" value="14" min="1" max="90">
               <span style="color:var(--bs-secondary-color,#6c757d);font-size:.85rem">kun</span>
@@ -216,32 +216,32 @@
       <div class="modal-footer" style="border-top:1px solid var(--border-color,#dee2e6)">
         <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Bekor</button>
         <button class="btn btn-success rounded-3 fw-bold" id="approveConfirmBtn" onclick="confirmApprove()">
-          <i class="bi bi-check-lg me-1"></i>Tasdiqlash
+          <i class="bi bi-check-lg me-1"></i>Tasdiqlaş
         </button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Rad etish modal -->
+<!-- Rad etiş modal -->
 <div class="modal fade" id="rejectModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:16px;border:1px solid var(--border-color,#dee2e6)">
       <div class="modal-header" style="border-bottom:1px solid var(--border-color,#dee2e6)">
-        <h5 class="modal-title fw-bold"><i class="bi bi-x-circle text-danger me-2"></i>Arizani rad etish</h5>
+        <h5 class="modal-title fw-bold"><i class="bi bi-x-circle text-danger me-2"></i>Arizani rad etiş</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
         <div id="rejectBookInfo" class="mb-3"></div>
         <div class="brq-modal-body">
-          <label class="form-label">Rad etish sababi (ixtiyoriy)</label>
+          <label class="form-label">Rad etiş sababi (ixtiyoriy)</label>
           <textarea id="rejectNote" class="form-control" rows="2" placeholder="Sabab..."></textarea>
         </div>
       </div>
       <div class="modal-footer" style="border-top:1px solid var(--border-color,#dee2e6)">
         <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Bekor</button>
         <button class="btn btn-danger rounded-3 fw-bold" id="rejectConfirmBtn" onclick="confirmReject()">
-          <i class="bi bi-x-lg me-1"></i>Rad etish
+          <i class="bi bi-x-lg me-1"></i>Rad etiş
         </button>
       </div>
     </div>
@@ -305,7 +305,7 @@ async function loadRequests() {
 function renderTable(reqs) {
   const tw = document.getElementById('tableWrap');
   if (!reqs.length) {
-    tw.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar topilmadi</h5><p>Hali hech qanday ariza yo\'q.</p></div>';
+    tw.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar topilmadi</h5><p>Hali heç qanday ariza yöq.</p></div>';
     return;
   }
 
@@ -336,7 +336,7 @@ function renderTable(reqs) {
         ${r.status === 'pending' ? `
           <div class="brq-act-wrap">
             <button class="brq-act-btn approve" onclick="openApprove(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
-              <i class="bi bi-check-lg"></i> Tasdiqlash
+              <i class="bi bi-check-lg"></i> Tasdiqlaş
             </button>
             <button class="brq-act-btn reject" onclick="openReject(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
               <i class="bi bi-x-lg"></i> Rad
@@ -349,7 +349,7 @@ function renderTable(reqs) {
     <table class="brq-table">
       <thead>
         <tr>
-          <th>Kitob</th><th>O'quvchi</th><th>Holat</th><th>Sana</th><th>Izoh</th><th>Amal</th>
+          <th>Kitob</th><th>Öquvçi</th><th>Holat</th><th>Sana</th><th>Izoh</th><th>Amal</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -359,7 +359,7 @@ function renderTable(reqs) {
 function renderMobile(reqs) {
   const ml = document.getElementById('mobileList');
   if (!reqs.length) {
-    ml.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar yo\'q</h5></div>';
+    ml.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar yöq</h5></div>';
     return;
   }
   ml.innerHTML = reqs.map((r, i) => `
@@ -377,10 +377,10 @@ function renderMobile(reqs) {
       ${r.status === 'pending' ? `
         <div class="brq-act-wrap">
           <button class="brq-act-btn approve" style="flex:1;justify-content:center" onclick="openApprove(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
-            <i class="bi bi-check-lg"></i> Tasdiqlash
+            <i class="bi bi-check-lg"></i> Tasdiqlaş
           </button>
           <button class="brq-act-btn reject" style="flex:1;justify-content:center" onclick="openReject(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
-            <i class="bi bi-x-lg"></i> Rad etish
+            <i class="bi bi-x-lg"></i> Rad etiş
           </button>
         </div>` : ''}
     </div>`).join('');
@@ -391,7 +391,7 @@ function openApprove(id, bookTitle, studentName) {
   document.getElementById('approveBookInfo').innerHTML = `
     <div style="background:rgba(16,185,129,.08);border-radius:10px;padding:.75rem 1rem;border:1px solid rgba(16,185,129,.2)">
       <div style="font-weight:700;font-size:.95rem">${esc(bookTitle)}</div>
-      <div style="font-size:.82rem;color:var(--bs-secondary-color)">O'quvchi: ${esc(studentName)}</div>
+      <div style="font-size:.82rem;color:var(--bs-secondary-color)">Öquvçi: ${esc(studentName)}</div>
     </div>`;
   document.getElementById('approveDays').value = 14;
   document.getElementById('approveNote').value = '';
@@ -421,7 +421,7 @@ async function confirmApprove() {
     }
   } catch { showToast('Xatolik.', 'danger'); }
   btn.disabled = false;
-  btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Tasdiqlash';
+  btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Tasdiqlaş';
 }
 
 function openReject(id, bookTitle, studentName) {
@@ -429,7 +429,7 @@ function openReject(id, bookTitle, studentName) {
   document.getElementById('rejectBookInfo').innerHTML = `
     <div style="background:rgba(239,68,68,.08);border-radius:10px;padding:.75rem 1rem;border:1px solid rgba(239,68,68,.2)">
       <div style="font-weight:700;font-size:.95rem">${esc(bookTitle)}</div>
-      <div style="font-size:.82rem;color:var(--bs-secondary-color)">O'quvchi: ${esc(studentName)}</div>
+      <div style="font-size:.82rem;color:var(--bs-secondary-color)">Öquvçi: ${esc(studentName)}</div>
     </div>`;
   document.getElementById('rejectNote').value = '';
   new bootstrap.Modal(document.getElementById('rejectModal')).show();
@@ -457,7 +457,7 @@ async function confirmReject() {
     }
   } catch { showToast('Xatolik.', 'danger'); }
   btn.disabled = false;
-  btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Rad etish';
+  btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Rad etiş';
 }
 
 function debounce() {
@@ -479,7 +479,7 @@ function esc(s) {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Inline onclick="fn('...')" ichidagi JS satri uchun xavfsiz escape (apostrof, backslash, HTML)
+// Inline onclick="fn('...')" içidagi JS satri uçun xavfsiz escape (apostrof, backslash, HTML)
 function escJs(s) {
   const jsEscaped = String(s || '')
     .replace(/\\/g, '\\\\')

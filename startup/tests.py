@@ -3,13 +3,13 @@
 Ikki nozik joy bor va ikkisi ham `StartupTestMixin` da hal qilingan:
 
 1. `force_login()` yetarli emas — `DeviceLimitMiddleware` sessiya kaliti
-   bo'yicha faol `UserSession` qatorini talab qiladi, aks holda sessiyani
-   bekor qilingan deb hisoblab /login/ ga yo'naltiradi (quiz/tests.py dagi
+   böyiça faol `UserSession` qatorini talab qiladi, aks holda sessiyani
+   bekor qilingan deb hisoblab /login/ ga yönaltiradi (quiz/tests.py dagi
    bilan bir xil sabab).
-2. XP, coin va bildirishnomalar `transaction.on_commit` ichida beriladi.
-   `TestCase` har testni transaksiyaga o'raydi, ya'ni commit hech qachon
-   bo'lmaydi — shuning uchun yozish amallari `captureOnCommitCallbacks`
-   ichida chaqiriladi.
+2. XP, coin va bildirişnomalar `transaction.on_commit` içida beriladi.
+   `TestCase` har testni transaksiyaga öraydi, ya'ni commit heç qaçon
+   bölmaydi — şuning uçun yoziş amallari `captureOnCommitCallbacks`
+   içida çaqiriladi.
 """
 
 from datetime import date, timedelta
@@ -47,12 +47,12 @@ def make_user(username, role='student', **extra):
 
 
 def seed_templates():
-    """Ikki bosqich, uchta vazifa — progressni bashorat qilish uchun yetarli."""
-    idea = StageTemplate.objects.create(key='IDEA', title='Gʻoya', order=1, weight=10)
-    validation = StageTemplate.objects.create(key='VALIDATION', title='Tekshirish', order=2, weight=10)
-    TaskTemplate.objects.create(stage_template=idea, title='Gʻoyani yozish', points=10, order=1)
-    TaskTemplate.objects.create(stage_template=idea, title='Muammoni aniqlash', points=10, order=2)
-    TaskTemplate.objects.create(stage_template=validation, title='10 kishi bilan suhbat', points=20, order=1)
+    """Ikki bosqiç, uçta vazifa — progressni başorat qiliş uçun yetarli."""
+    idea = StageTemplate.objects.create(key='IDEA', title='Ğoya', order=1, weight=10)
+    validation = StageTemplate.objects.create(key='VALIDATION', title='Tekşiriş', order=2, weight=10)
+    TaskTemplate.objects.create(stage_template=idea, title='Ğoyani yoziş', points=10, order=1)
+    TaskTemplate.objects.create(stage_template=idea, title='Muammoni aniqlaş', points=10, order=2)
+    TaskTemplate.objects.create(stage_template=validation, title='10 kişi bilan suhbat', points=20, order=1)
     return idea, validation
 
 
@@ -66,8 +66,8 @@ class StartupTestMixin:
             is_active=True,
         )
         # `TestCase` DB'ni rollback qiladi, lekin cache'ni emas — `DeviceLimitMiddleware`
-        # `active_session_<user_id>` kalitini keshlaydi va qayta ishlatilgan ID orqali
-        # oldingi testning sessiya kaliti "faol" bo'lib qoladi → logout → 302.
+        # `active_session_<user_id>` kalitini keşlaydi va qayta işlatilgan ID orqali
+        # oldingi testning sessiya kaliti "faol" bölib qoladi → logout → 302.
         cache.clear()
 
     def _make_startup(self, owner, name='Test Startup', **extra):
@@ -138,14 +138,14 @@ class StartupCreationTests(StartupTestMixin, TestCase):
         self._make_startup(self.owner)
         with self.assertRaises(IntegrityError):
             with transaction.atomic():
-                Startup.objects.create(owner=self.owner, name='Ikkinchi', short_description='x')
+                Startup.objects.create(owner=self.owner, name='Ikkinçi', short_description='x')
 
     def test_archived_startup_frees_the_slot(self):
         first = self._make_startup(self.owner)
         first.status = 'archived'
         first.save(update_fields=['status'])
 
-        second = self._make_startup(self.owner, name='Yangi urinish')
+        second = self._make_startup(self.owner, name='Yangi uriniş')
         self.assertEqual(second.status, 'active')
         self.assertEqual(Startup.objects.filter(owner=self.owner).count(), 2)
 
@@ -202,7 +202,7 @@ class PermissionTests(StartupTestMixin, TestCase):
         self.assertTrue(resp.context['can_view_private'])
 
     def test_owner_cannot_review_own_submission(self):
-        """Eng muhim qoida: o'z vazifasini o'zi tasdiqlab XP yig'ish mumkin emas."""
+        """Eng muhim qoida: öz vazifasini özi tasdiqlab XP yiğiş mumkin emas."""
         self._submit(self.task, self.owner)
         submission = StartupTaskSubmission.objects.get(task=self.task)
 
@@ -225,7 +225,7 @@ class PermissionTests(StartupTestMixin, TestCase):
         self._login(self.mentor)
         resp = self._post(
             f'/startup/{self.startup.slug}/tasks/{self.task.pk}/review/',
-            {'action': 'approve', 'comment': 'Yaxshi'},
+            {'action': 'approve', 'comment': 'Yaxşi'},
         )
         self.assertEqual(resp.status_code, 302)
         self.task.refresh_from_db()
@@ -240,13 +240,13 @@ class PermissionTests(StartupTestMixin, TestCase):
         self._login(self.outsider)
         resp = self._post(
             f'/startup/{self.startup.slug}/tasks/new/',
-            {'title': 'Yashirin vazifa', 'points': 999},
+            {'title': 'Yaşirin vazifa', 'points': 999},
         )
         self.assertEqual(resp.status_code, 403)
-        self.assertFalse(StartupTask.objects.filter(title='Yashirin vazifa').exists())
+        self.assertFalse(StartupTask.objects.filter(title='Yaşirin vazifa').exists())
 
     def test_task_from_another_startup_returns_404(self):
-        other = self._make_startup(make_user('other_owner_perm'), name='Boshqa Startup')
+        other = self._make_startup(make_user('other_owner_perm'), name='Boşqa Startup')
         other_task = StartupTask.objects.filter(startup=other).first()
 
         self._login(self.owner)
@@ -259,12 +259,12 @@ class PermissionTests(StartupTestMixin, TestCase):
 
         self._login(self.owner)
         self._post(f'/startup/{self.startup.slug}/tasks/new/', {
-            'title': 'Chetdan bosqich',
+            'title': 'Çetdan bosqiç',
             'stage': foreign_stage.pk,
             'points': 10,
             'priority': 'medium',
         })
-        self.assertFalse(StartupTask.objects.filter(title='Chetdan bosqich').exists())
+        self.assertFalse(StartupTask.objects.filter(title='Çetdan bosqiç').exists())
 
 
 class TeamTests(StartupTestMixin, TestCase):
@@ -349,7 +349,7 @@ class TeamTests(StartupTestMixin, TestCase):
         self.assertEqual(membership.status, 'rejected')
 
     def test_team_builder_achievement_unlocks_on_second_member(self):
-        """`check_achievements` sharti: kamida 2 faol aʻzo (founder + 1)."""
+        """`check_achievements` şarti: kamida 2 faol aʻzo (founder + 1)."""
         self.assertFalse(self.startup.achievements.filter(code='team_builder').exists())
 
         membership, _ = services.request_join(self.startup, self.applicant)
@@ -412,7 +412,7 @@ class TaskFlowTests(StartupTestMixin, TestCase):
         self._submit(self.task, self.owner)
         submission = StartupTaskSubmission.objects.get(task=self.task)
         self._review(submission, self.mentor, 'approve')
-        self._review(submission, self.mentor, 'reject', 'Fikr oʻzgardi')
+        self._review(submission, self.mentor, 'reject', 'Fikr özgardi')
 
         submission.refresh_from_db()
         self.task.refresh_from_db()
@@ -470,7 +470,7 @@ class XPDedupeTests(StartupTestMixin, TestCase):
         xp_after_first = self.startup.total_xp
         coins_after_first = CustomUser.objects.get(pk=self.owner.pk).coins
 
-        # Vazifa allaqachon COMPLETED — ikkinchi topshiriq va tasdiq XP bermasligi kerak.
+        # Vazifa allaqaçon COMPLETED — ikkinçi topşiriq va tasdiq XP bermasligi kerak.
         self._approve_task(self.task, self.owner, self.mentor)
 
         self.startup.refresh_from_db()
@@ -641,7 +641,7 @@ class FinanceTests(StartupTestMixin, TestCase):
 
     def test_first_revenue_achievement_unlocks(self):
         StartupFinance.objects.create(
-            startup=self.startup, type='REVENUE', description='Birinchi mijoz',
+            startup=self.startup, type='REVENUE', description='Birinçi mijoz',
             amount=Decimal('200000'),
         )
         services.check_achievements(self.startup)
@@ -700,7 +700,7 @@ class DashboardTests(StartupTestMixin, TestCase):
         self.assertEqual(startup.total_xp, services.CREATE_STARTUP_XP)
 
     def test_second_startup_creation_is_blocked_for_same_owner(self):
-        self._make_startup(self.user, name='Birinchi Startup')
+        self._make_startup(self.user, name='Birinçi Startup')
         self._login(self.user)
         resp = self.client.get('/startup/create/')
         self.assertEqual(resp.status_code, 302)
@@ -741,7 +741,7 @@ class MentorPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(self.client.get('/startup/mentor/').status_code, 403)
 
     def test_admin_sees_all_startups(self):
-        self._make_startup(make_user('owner_mpanel_2'), name='Ikkinchi Startup')
+        self._make_startup(make_user('owner_mpanel_2'), name='Ikkinçi Startup')
         self._login(self.admin)
         resp = self.client.get('/startup/mentor/')
         self.assertEqual(resp.status_code, 200)
@@ -813,7 +813,7 @@ class FeedbackTests(StartupTestMixin, TestCase):
     def test_mentor_can_leave_feedback(self):
         self._login(self.mentor)
         resp = self._post(f'/startup/{self.startup.slug}/feedback/',
-                          {'message': 'Bozorni chuqurroq tekshiring', 'rating': 4})
+                          {'message': 'Bozorni çuqurroq tekşiring', 'rating': 4})
         self.assertEqual(resp.status_code, 302)
 
         feedback = StartupFeedback.objects.get(startup=self.startup)
@@ -823,7 +823,7 @@ class FeedbackTests(StartupTestMixin, TestCase):
     def test_owner_cannot_leave_feedback_about_own_startup(self):
         self._login(self.owner)
         resp = self._post(f'/startup/{self.startup.slug}/feedback/',
-                          {'message': 'Oʻzimni maqtayman', 'rating': 5})
+                          {'message': 'Özimni maqtayman', 'rating': 5})
         self.assertEqual(resp.status_code, 403)
         self.assertFalse(StartupFeedback.objects.exists())
 
@@ -859,7 +859,7 @@ class FinanceViewTests(StartupTestMixin, TestCase):
         self._login(self.owner)
         resp = self._post(f'/startup/{self.startup.slug}/finance/', {
             'type': 'REVENUE', 'amount': '250000',
-            'description': 'Birinchi sotuv', 'date': date.today().isoformat(),
+            'description': 'Birinçi sotuv', 'date': date.today().isoformat(),
         })
         self.assertEqual(resp.status_code, 302)
         self.assertEqual(StartupFinance.objects.filter(startup=self.startup).count(), 1)
@@ -979,13 +979,13 @@ class PitchDeckTests(StartupTestMixin, TestCase):
         self.assertIsNotNone(resp.context['form'])
 
         resp = self._post(f'/startup/{self.startup.slug}/pitch/', {
-            'problem': 'Fermerlar hosilni yoʻqotadi',
+            'problem': 'Fermerlar hosilni yöqotadi',
             'solution': 'IoT sensorlar',
         })
         self.assertEqual(resp.status_code, 302)
 
         deck = PitchDeck.objects.get(startup=self.startup)
-        self.assertEqual(deck.problem, 'Fermerlar hosilni yoʻqotadi')
+        self.assertEqual(deck.problem, 'Fermerlar hosilni yöqotadi')
         self.assertEqual(deck.filled_count, 2)
 
     def test_mentor_can_read_but_not_edit(self):
@@ -1005,7 +1005,7 @@ class PitchDeckTests(StartupTestMixin, TestCase):
 
     def test_deck_is_created_for_startup_without_one(self):
         bare = Startup.objects.create(owner=make_user('owner_pitch_bare'),
-                                      name='Deck yoʻq', short_description='Qisqa')
+                                      name='Deck yöq', short_description='Qisqa')
         self._login(bare.owner)
         resp = self.client.get(f'/startup/{bare.slug}/pitch/')
         self.assertEqual(resp.status_code, 200)
@@ -1145,7 +1145,7 @@ class StartupAPITests(StartupTestMixin, TestCase):
 
 
 class AchievementBoardTests(StartupTestMixin, TestCase):
-    """Yutuqlar taxtasi ochilgan va ochilmaganlarni birga koʻrsatadi."""
+    """Yutuqlar taxtasi oçilgan va oçilmaganlarni birga körsatadi."""
 
     def setUp(self):
         cache.clear()
@@ -1181,7 +1181,7 @@ class AchievementBoardTests(StartupTestMixin, TestCase):
 
 
 class StageAdvanceTests(StartupTestMixin, TestCase):
-    """Bosqich oshganda egasiga bildirishnoma boradi, orqaga ketganda emas."""
+    """Bosqiç oşganda egasiga bildirişnoma boradi, orqaga ketganda emas."""
 
     def setUp(self):
         cache.clear()
@@ -1200,7 +1200,7 @@ class StageAdvanceTests(StartupTestMixin, TestCase):
         self.assertEqual(self.startup.current_stage, 'VALIDATION')
         self.assertTrue(
             Message.objects.filter(recipient=self.owner,
-                                   title__icontains='Yangi bosqich').exists()
+                                   title__icontains='Yangi bosqiç').exists()
         )
         self.assertTrue(
             self.startup.activities.filter(action_type='stage_advanced').exists()
@@ -1230,11 +1230,11 @@ class StageAdvanceTests(StartupTestMixin, TestCase):
 
 
 class AdminPanelTests(StartupTestMixin, TestCase):
-    """`dashboard/startups/` — LMS admin panelidagi startup boshqaruvi.
+    """`dashboard/startups/` — LMS admin panelidagi startup boşqaruvi.
 
     Ikki nozik joyga alohida e'tibor: (1) `startup_one_active_per_owner`
-    constraint'i forma darajasida ushlanishi (aks holda IntegrityError → 500),
-    (2) import `dry_run` rejimida bazaga hech narsa yozmasligi.
+    constraint'i forma darajasida uşlanişi (aks holda IntegrityError → 500),
+    (2) import `dry_run` rejimida bazaga heç narsa yozmasligi.
     """
 
     def setUp(self):
@@ -1261,7 +1261,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response['Location'])
 
-    # ─────────────── Ro'yxat va filtrlar ───────────────
+    # ─────────────── Röyxat va filtrlar ───────────────
 
     def test_admin_sees_list(self):
         self._login(self.admin)
@@ -1287,7 +1287,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         StartupMentor.objects.create(startup=self.startup, mentor=self.teacher)
         self.assertNotContains(self.client.get('/dashboard/startups/?mentor=no'), 'SmartAgro')
 
-    # ─────────────── Batafsil, tahrirlash, holat ───────────────
+    # ─────────────── Batafsil, tahrirlaş, holat ───────────────
 
     def test_detail_opens(self):
         self._login(self.admin)
@@ -1315,17 +1315,17 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(self.startup.problem, 'Suv isrofi')
 
     def test_edit_cannot_create_second_active_startup(self):
-        second = self._make_startup(self.other, name='Boshqa startup')
+        second = self._make_startup(self.other, name='Boşqa startup')
         self._login(self.admin)
         response = self.client.post(f'/dashboard/startups/{second.slug}/edit/', {
-            'name': 'Boshqa startup',
+            'name': 'Boşqa startup',
             'short_description': 'Qisqa tavsif',
             'category': 'AI',
             'owner': self.student.pk,
             'status': 'active',
         })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'allaqachon faol startup bor')
+        self.assertContains(response, 'allaqaçon faol startup bor')
         second.refresh_from_db()
         self.assertEqual(second.owner, self.other)
 
@@ -1344,7 +1344,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(self.startup.status, 'active')
 
     def test_status_activate_is_blocked_when_owner_has_active(self):
-        second = self._make_startup(self.other, name='Ikkinchi')
+        second = self._make_startup(self.other, name='Ikkinçi')
         Startup.objects.filter(pk=second.pk).update(owner=self.student, status='paused')
 
         self._login(self.admin)
@@ -1363,7 +1363,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self._post(f'/dashboard/startups/{self.startup.slug}/delete/')
         self.assertEqual(Startup.objects.count(), 1)
 
-    # ─────────────── Mentor, XP, topshiriq ───────────────
+    # ─────────────── Mentor, XP, topşiriq ───────────────
 
     def test_mentor_can_be_assigned_and_removed(self):
         self._login(self.admin)
@@ -1395,7 +1395,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self._login(self.admin)
         before = self.startup.total_xp
         self._post(f'/dashboard/startups/{self.startup.slug}/xp/',
-                   {'amount': 50, 'description': 'Hackathon gʻolibi'})
+                   {'amount': 50, 'description': 'Hackathon ğolibi'})
         self.startup.refresh_from_db()
         self.assertEqual(self.startup.total_xp, before + 50)
         self.assertTrue(StartupXPTransaction.objects.filter(
@@ -1487,7 +1487,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
     HEADERS = ['Egasi (username)', 'Startup nomi', 'Qisqa tavsif', 'Muammo', 'Kategoriya']
 
     def _xlsx(self, rows, headers=None):
-        """Xotirada `.xlsx` yasaydi — import view'iga yuklash uchun."""
+        """Xotirada `.xlsx` yasaydi — import view'iga yuklaş uçun."""
         import openpyxl
         workbook = openpyxl.Workbook()
         sheet = workbook.active
@@ -1513,7 +1513,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
     def test_import_creates_startup_with_roadmap(self):
         self._login(self.admin)
         response = self._import([
-            ['other_sa', 'EduBot', 'Maktablar uchun bot', 'Darslar tarqoq', 'EdTech'],
+            ['other_sa', 'EduBot', 'Maktablar uçun bot', 'Darslar tarqoq', 'EdTech'],
         ])
         self.assertEqual(response.status_code, 200)
 
@@ -1521,15 +1521,15 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(startup.name, 'EduBot')
         self.assertEqual(startup.category, 'EdTech')
         self.assertEqual(startup.problem, 'Darslar tarqoq')
-        # Yangi startup roadmap va pitch deck bilan tugʻilishi kerak.
+        # Yangi startup roadmap va pitch deck bilan tuğilişi kerak.
         self.assertEqual(startup.stages.count(), 2)
         self.assertTrue(startup.tasks.exists())
         self.assertTrue(PitchDeck.objects.filter(startup=startup).exists())
 
     def test_import_does_not_send_creation_notification(self):
-        """Ommaviy import oʻquvchini "startup yaratildi" xabari bilan bezovta qilmasin."""
+        """Ommaviy import öquvçini "startup yaratildi" xabari bilan bezovta qilmasin."""
         self._login(self.admin)
-        self._import([['other_sa', 'EduBot', 'Maktablar uchun bot', '', 'EdTech']])
+        self._import([['other_sa', 'EduBot', 'Maktablar uçun bot', '', 'EdTech']])
         self.assertFalse(Message.objects.filter(
             recipient=self.other, title__icontains='Startup yaratildi').exists())
 
@@ -1541,7 +1541,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
 
     def test_import_skips_owner_with_active_startup(self):
         self._login(self.admin)
-        response = self._import([['student_sa', 'Ikkinchisi', 'Tavsif', '', 'AI']])
+        response = self._import([['student_sa', 'Ikkinçisi', 'Tavsif', '', 'AI']])
         self.assertContains(response, 'faol startup bor')
         self.assertEqual(Startup.objects.filter(owner=self.student).count(), 1)
 
@@ -1553,7 +1553,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
     def test_import_dry_run_writes_nothing(self):
         self._login(self.admin)
         response = self._import(
-            [['other_sa', 'EduBot', 'Maktablar uchun bot', '', 'EdTech']],
+            [['other_sa', 'EduBot', 'Maktablar uçun bot', '', 'EdTech']],
             dry_run='on',
         )
         self.assertContains(response, 'Yaratildi')
@@ -1573,7 +1573,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
     def test_import_update_mode_skips_owner_without_startup(self):
         self._login(self.admin)
         response = self._import([['other_sa', 'EduBot', 'Tavsif', '', 'AI']], mode='update')
-        self.assertContains(response, 'yangilash uchun hech narsa topilmadi')
+        self.assertContains(response, 'yangilaş uçun heç narsa topilmadi')
         self.assertFalse(Startup.objects.filter(owner=self.other).exists())
 
     def test_import_rejects_non_xlsx_file(self):
@@ -1589,7 +1589,7 @@ class AdminPanelTests(StartupTestMixin, TestCase):
         self.assertEqual(Startup.objects.count(), 1)
 
     def test_export_file_can_be_imported_back(self):
-        """Eksport → import aylanishi: sarlavhalar mos kelishi kerak."""
+        """Eksport → import aylanişi: sarlavhalar mos kelişi kerak."""
         self._login(self.admin)
         exported = self.client.post('/dashboard/startups/export/',
                                     {'fields': ['owner_username', 'name',
@@ -1603,14 +1603,14 @@ class AdminPanelTests(StartupTestMixin, TestCase):
                               {'file': upload, 'mode': 'update'})
         self.assertContains(response, 'Yangilandi')
 
-    # ─────────────── O'quvchi profilidagi tab ───────────────
+    # ─────────────── Öquvçi profilidagi tab ───────────────
 
     def test_user_view_shows_startup_tab(self):
         self._login(self.admin)
         response = self.client.get(f'/dashboard/users/{self.student.pk}/')
         self.assertEqual(response.status_code, 200)
-        # Sahifadagi `<style>` blokida ham "Startup / G'oya" izohi bor —
-        # shuning uchun tab'ning o'zi `data-tab` bo'yicha tekshiriladi.
+        # Sahifadagi `<style>` blokida ham "Startup / Ğoya" izohi bor —
+        # şuning uçun tab'ning özi `data-tab` böyiça tekşiriladi.
         self.assertContains(response, 'data-tab="startup"')
         self.assertContains(response, 'SmartAgro')
 

@@ -82,7 +82,7 @@ class CourseCheckoutTests(TestCase):
 
     def test_paid_course_reopens_without_new_payment(self):
         _apply_successful_payment(self.order(), self.data)
-        CourseEnrollment.objects.all().delete()  # O'quvchi kursdan chiqqan.
+        CourseEnrollment.objects.all().delete()  # Öquvçi kursdan çiqqan.
         response = self.client.get(reverse('enroll_course', args=[self.course.pk]))
         self.assertRedirects(response, reverse('profession_detail', args=[self.course.pk]), fetch_redirect_response=False)
         self.assertTrue(CourseEnrollment.objects.filter(user=self.student, profession=self.course).exists())

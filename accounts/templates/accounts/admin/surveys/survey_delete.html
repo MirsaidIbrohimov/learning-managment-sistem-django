@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}So'rovnoma o'chirish - Admin{% endblock %}
-{% block topbar_title %}So'rovnomalar{% endblock %}
+{% block title %}Sörovnoma öçiriş - Admin{% endblock %}
+{% block topbar_title %}Sörovnomalar{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/survey.css' %}">
@@ -17,29 +17,29 @@
             <i class="bi bi-trash3"></i>
         </div>
 
-        <h1 class="sv-title" style="font-size: 1.35rem;">O'chirishni tasdiqlang</h1>
+        <h1 class="sv-title" style="font-size: 1.35rem;">Öçirişni tasdiqlang</h1>
         <p class="sv-subtitle" style="margin: 0.6rem auto 0;">
-            <b>{{ survey.title }}</b> so'rovnomasi butunlay o'chiriladi.
+            <b>{{ survey.title }}</b> sörovnomasi butunlay öçiriladi.
         </p>
 
         <div class="sv-note" style="text-align: left;">
             <i class="bi bi-exclamation-triangle"></i>
             <span>
-                Birga o'chiriladi: <b>{{ survey.question_count }}</b> ta savol va
-                <b>{{ survey.response_count }}</b> ta javob. Bu amalni qaytarib bo'lmaydi —
-                javoblar kerak bo'lsa, avval Excel faylni yuklab oling.
+                Birga öçiriladi: <b>{{ survey.question_count }}</b> ta savol va
+                <b>{{ survey.response_count }}</b> ta javob. Bu amalni qaytarib bölmaydi —
+                javoblar kerak bölsa, avval Excel faylni yuklab oling.
             </span>
         </div>
 
         <form method="post" style="margin-top: 1.5rem;">
             {% csrf_token %}
             <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-                <a href="{% url 'admin_surveys' %}" class="sv-btn sv-btn-ghost sv-btn-lg">Bekor qilish</a>
+                <a href="{% url 'admin_surveys' %}" class="sv-btn sv-btn-ghost sv-btn-lg">Bekor qiliş</a>
                 <a href="{% url 'admin_survey_responses_excel' survey.pk %}" class="sv-btn sv-btn-soft sv-btn-lg">
                     <i class="bi bi-file-earmark-arrow-down"></i> Excel
                 </a>
                 <button type="submit" class="sv-btn sv-btn-solid-danger sv-btn-lg">
-                    <i class="bi bi-trash3"></i> O'chirish
+                    <i class="bi bi-trash3"></i> Öçiriş
                 </button>
             </div>
         </form>

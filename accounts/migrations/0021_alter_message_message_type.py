@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='message',
             name='message_type',
-            field=models.CharField(choices=[('all', 'Barchaga'), ('students', "O'quvchilarga"), ('teachers', "O'qituvchilarga"), ('personal', 'Shaxsiy'), ('system', 'Tizim xabari'), ('payment', "To'lov eslatmasi"), ('motivation', "Rag'batlantirish"), ('warning', 'Ogohlantirish'), ('achievement', 'Yutuq'), ('reminder', 'Eslatma'), ('recommendation', 'Tavsiya'), ('security', 'Xavfsizlik')], default='all', max_length=20),
+            field=models.CharField(choices=[('all', 'Barçaga'), ('students', "Öquvçilarga"), ('teachers', "Öqituvçilarga"), ('personal', 'Şaxsiy'), ('system', 'Tizim xabari'), ('payment', "Tölov eslatmasi"), ('motivation', "Rağbatlantiriş"), ('warning', 'Ogohlantiriş'), ('achievement', 'Yutuq'), ('reminder', 'Eslatma'), ('recommendation', 'Tavsiya'), ('security', 'Xavfsizlik')], default='all', max_length=20),
         ),
     ]

@@ -14,7 +14,7 @@
 .mp-tabs-holder { margin-bottom: 1.25rem; animation: mktFadeUp 0.5s ease 0.08s both; }
 .mp-tab { flex: 0 1 auto; }
 
-/* Ro'yxat */
+/* Röyxat */
 .mp-list { display: flex; flex-direction: column; gap: 0.8rem; }
 
 .mp-card {
@@ -160,9 +160,9 @@
         <div class="mp-hero-top">
             <div>
                 <h1><i class="bi bi-bag-check-fill"></i> Mening xaridlarim</h1>
-                <p class="sub">Barcha buyurtmalaringiz va ularning holati</p>
+                <p class="sub">Barça buyurtmalaringiz va ularning holati</p>
             </div>
-            <a href="{% url 'coin:market_list' %}" class="mkt-back"><i class="bi bi-arrow-left"></i> Marketga qaytish</a>
+            <a href="{% url 'coin:market_list' %}" class="mkt-back"><i class="bi bi-arrow-left"></i> Marketga qaytiş</a>
         </div>
         <div class="mp-stats">
             <div class="mkt-stat">
@@ -187,7 +187,7 @@
     <!-- TABS -->
     <div class="mp-tabs-holder">
         <div class="mkt-tabs" id="mpTabs">
-            <button class="mkt-tab mp-tab active" onclick="filterStatus(this,'')"><i class="bi bi-grid-3x3-gap"></i> Barchasi <span class="cnt" id="badgeAll">0</span></button>
+            <button class="mkt-tab mp-tab active" onclick="filterStatus(this,'')"><i class="bi bi-grid-3x3-gap"></i> Barçasi <span class="cnt" id="badgeAll">0</span></button>
             <button class="mkt-tab mp-tab" onclick="filterStatus(this,'pending')"><i class="bi bi-clock"></i> Kutilmoqda <span class="cnt" id="badgePending">0</span></button>
             <button class="mkt-tab mp-tab" onclick="filterStatus(this,'delivered')"><i class="bi bi-check-circle"></i> Yetkazildi <span class="cnt" id="badgeDelivered">0</span></button>
             <button class="mkt-tab mp-tab" onclick="filterStatus(this,'cancelled')"><i class="bi bi-x-circle"></i> Bekor <span class="cnt" id="badgeCancelled">0</span></button>
@@ -205,12 +205,12 @@
 <div class="mp-modal-overlay" id="cancelModal">
     <div class="mp-modal">
         <div class="mp-modal-icon">⚠️</div>
-        <h3>Buyurtmani bekor qilish</h3>
+        <h3>Buyurtmani bekor qiliş</h3>
         <p id="cancelProductName"></p>
         <div class="mp-modal-coins" id="cancelCoinsInfo"><i class="bi bi-coin"></i> <span></span> coin qaytariladi</div>
         <div class="mp-modal-actions">
-            <button class="mp-modal-no" onclick="closeCancel()">Yo'q, kerak emas</button>
-            <button class="mp-modal-yes" id="cancelConfirmBtn" onclick="confirmCancel()"><i class="bi bi-x-circle"></i> Ha, bekor qilish</button>
+            <button class="mp-modal-no" onclick="closeCancel()">Yöq, kerak emas</button>
+            <button class="mp-modal-yes" id="cancelConfirmBtn" onclick="confirmCancel()"><i class="bi bi-x-circle"></i> Ha, bekor qiliş</button>
         </div>
     </div>
 </div>
@@ -254,7 +254,7 @@
     }
 
     // Server javobidagi matn (mahsulot nomi, izoh, xato xabari) `innerHTML` ga
-    // tushadi — shu sababli avval escape qilinadi (stored XSS).
+    // tuşadi — şu sababli avval escape qilinadi (stored XSS).
     function esc(s) {
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
             return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
@@ -346,12 +346,12 @@
             if (!d.results.length) {
                 let emptyMsg = statusFilter
                     ? "Bu statusdagi buyurtmalar topilmadi"
-                    : "Hali hech narsa xarid qilmagansiz";
+                    : "Hali heç narsa xarid qilmagansiz";
                 list.innerHTML = '<div class="mp-empty">' +
                     '<div class="mp-empty-icon"><i class="bi bi-bag-x"></i></div>' +
-                    '<h4>' + (statusFilter ? 'Buyurtmalar topilmadi' : "Xaridlar bo'sh") + '</h4>' +
+                    '<h4>' + (statusFilter ? 'Buyurtmalar topilmadi' : "Xaridlar böş") + '</h4>' +
                     '<p>' + emptyMsg + '</p>' +
-                    (!statusFilter ? '<a href="/market/" class="mp-empty-btn"><i class="bi bi-shop"></i> Marketga o\'tish</a>' : '') +
+                    (!statusFilter ? '<a href="/market/" class="mp-empty-btn"><i class="bi bi-shop"></i> Marketga ötiş</a>' : '') +
                     '</div>';
                 return;
             }
@@ -359,12 +359,12 @@
             list.innerHTML = d.results.map(function(p, i) {
                 var cancelBtn = '';
                 if (p.can_cancel) {
-                    // Mahsulot nomini `onclick` atributiga qo'yish xavfli edi ("
-                    // belgisi atributdan chiqib ketardi) — data-* + delegation.
+                    // Mahsulot nomini `onclick` atributiga qöyiş xavfli edi ("
+                    // belgisi atributdan çiqib ketardi) — data-* + delegation.
                     cancelBtn = '<button class="mp-cancel-btn" data-cancel-id="' + esc(p.id) +
                         '" data-cancel-name="' + esc(p.product_name) +
                         '" data-cancel-coins="' + esc(p.coins_spent) +
-                        '"><i class="bi bi-x-lg"></i> Bekor qilish</button>';
+                        '"><i class="bi bi-x-lg"></i> Bekor qiliş</button>';
                 }
 
                 var extraInfo = '';
@@ -408,7 +408,7 @@
                 pag.innerHTML = h;
             }
         } catch(e) {
-            list.innerHTML = '<div class="mp-empty"><div class="mp-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h4>Xatolik yuz berdi</h4><p>Sahifani yangilang yoki keyinroq urinib ko\'ring</p></div>';
+            list.innerHTML = '<div class="mp-empty"><div class="mp-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h4>Xatolik yuz berdi</h4><p>Sahifani yangilang yoki keyinroq urinib köring</p></div>';
         }
     }
 
@@ -426,7 +426,7 @@
 
     window.openCancel = function(id, name, coins) {
         cancelId = id;
-        document.getElementById('cancelProductName').textContent = '"' + name + '" buyurtmasini bekor qilmoqchimisiz?';
+        document.getElementById('cancelProductName').textContent = '"' + name + '" buyurtmasini bekor qilmoqçimisiz?';
         document.getElementById('cancelCoinsInfo').innerHTML = '<i class="bi bi-coin"></i> ' + esc(coins) + ' coin qaytariladi';
         document.getElementById('cancelModal').classList.add('show');
     };
@@ -457,7 +457,7 @@
             toast(e.error || 'Xatolik yuz berdi', 'error');
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-circle"></i> Ha, bekor qilish';
+            btn.innerHTML = '<i class="bi bi-x-circle"></i> Ha, bekor qiliş';
         }
     };
 

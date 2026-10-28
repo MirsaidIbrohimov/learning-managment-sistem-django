@@ -1,18 +1,18 @@
-"""Yuklangan fayllar uchun xavfsiz saqlash backend'i.
+"""Yuklangan fayllar uçun xavfsiz saqlaş backend'i.
 
 NEGA KERAK: loyihada 60 dan ortiq `request.FILES` nuqtasi bor va ularning
-ko'pi hech qanday tekshiruvdan o'tmaydi. Har bir ko'rinishni alohida
-tuzatish o'rniga, oxirgi umumiy nuqta — diskka yozish — himoyalanadi:
+köpi heç qanday tekşiruvdan ötmaydi. Har bir körinişni alohida
+tuzatiş örniga, oxirgi umumiy nuqta — diskka yoziş — himoyalanadi:
 
-  * `.htaccess` kabi nuqtali fayllar `media/` ga tushmaydi (Apache ularni
-    o'qib, PHP bajarilishini qayta yoqib yuborishi mumkin edi);
+  * `.htaccess` kabi nuqtali fayllar `media/` ga tuşmaydi (Apache ularni
+    öqib, PHP bajarilişini qayta yoqib yuborişi mumkin edi);
   * `.php`, `.exe` kabi bajariladigan kengaytmalar `.txt` bilan
-    zararsizlantiriladi — yuklash muvaffaqiyatsiz bo'lib, foydalanuvchi
-    ishini yo'qotmaydi, lekin fayl bajarilmaydi;
-  * fayl nomidagi katalogdan chiqish va boshqaruv belgilari tozalanadi.
+    zararsizlantiriladi — yuklaş muvaffaqiyatsiz bölib, foydalanuvçi
+    işini yöqotmaydi, lekin fayl bajarilmaydi;
+  * fayl nomidagi katalogdan çiqiş va boşqaruv belgilari tozalanadi.
 
-Bu forma/API validatorlarini ALMASHTIRMAYDI — ular foydalanuvchiga tushunarli
-xato beradi. Bu esa oxirgi to'siq (defence in depth).
+Bu forma/API validatorlarini ALMAŞTIRMAYDI — ular foydalanuvçiga tuşunarli
+xato beradi. Bu esa oxirgi tösiq (defence in depth).
 """
 
 import logging
@@ -28,9 +28,9 @@ logger = logging.getLogger('security')
 class SafeMediaStorage(FileSystemStorage):
     """Fayl nomini tozalab, bajariladigan kengaytmalarni zararsizlantiradi.
 
-    Tozalash `get_available_name()` ichida bajariladi — bu Django'da yagona
-    nuqta bo'lib, model maydoni orqali saqlash ham, `default_storage.save()`
-    ni to'g'ridan-to'g'ri chaqirish ham shu yerdan o'tadi.
+    Tozalaş `get_available_name()` içida bajariladi — bu Django'da yagona
+    nuqta bölib, model maydoni orqali saqlaş ham, `default_storage.save()`
+    ni töğridan-töğri çaqiriş ham şu yerdan ötadi.
     """
 
     def get_valid_name(self, name):

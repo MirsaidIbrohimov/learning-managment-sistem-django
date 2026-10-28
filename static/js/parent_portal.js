@@ -1,7 +1,7 @@
 /* Ota-ona paneli — motion qatlami.
-   data-reveal   → ko'rinishga kirganda .in (ichidagi data-count/data-w/data-ring/data-h ham ishga tushadi)
-   data-count    → 0 dan sanab chiqadi (data-decimals, data-suffix)
-   data-w        → kenglik % (progress chiziq)
+   data-reveal   → körinişga kirganda .in (içidagi data-count/data-w/data-ring/data-h ham işga tuşadi)
+   data-count    → 0 dan sanab çiqadi (data-decimals, data-suffix)
+   data-w        → kenglik % (progress çiziq)
    data-ring     → halqa foizi
    data-h        → balandlik % (ustunli grafik)
    data-seg      → segmentli tab; tugmalar data-filter="x", qatorlar data-state="x y"
@@ -38,7 +38,7 @@
         });
     });
 
-    /* ── Hisoblagich / chiziq / halqa / ustun ── */
+    /* ── Hisoblagiç / çiziq / halqa / ustun ── */
     function countUp(el) {
         if (el.dataset.done) return; el.dataset.done = '1';
         var to = parseFloat(el.dataset.count) || 0, dec = parseInt(el.dataset.decimals || (to % 1 ? 1 : 0), 10);
@@ -64,7 +64,7 @@
 
     /* ── Reveal ── */
     var items = $$('[data-reveal]');
-    // Bir guruhdagi elementlar ketma-ket (stagger) chiqadi
+    // Bir guruhdagi elementlar ketma-ket (stagger) çiqadi
     var groups = new Map();
     items.forEach(function (el) {
         var p = el.parentElement, n = groups.get(p) || 0;
@@ -92,7 +92,7 @@
         play(document);
     }
 
-    /* ── Kursor ortidan yorug'lik ── */
+    /* ── Kursor ortidan yoruğlik ── */
     document.addEventListener('pointermove', function (e) {
         var c = e.target.closest && e.target.closest('.pp-card');
         if (!c) return;
@@ -132,7 +132,7 @@
     $$('[data-menu-open]').forEach(function (b) { b.addEventListener('click', function () { drawer(true); }); });
     if (scrim) scrim.addEventListener('click', function () { drawer(false); });
 
-    /* ── Farzand almashtirgich ── */
+    /* ── Farzand almaştirgiç ── */
     $$('.pp-kid').forEach(function (k) {
         var btn = k.querySelector('.pp-kid-btn');
         if (!btn) return;
@@ -194,12 +194,12 @@
         if (s.hasAttribute('data-open')) openSheet(s);
     });
 
-    /* ── Forma yuborilganda tugmada yuklanish holati ── */
+    /* ── Forma yuborilganda tugmada yuklaniş holati ── */
     $$('form[data-loading]').forEach(function (f) {
         f.addEventListener('submit', function () { var b = f.querySelector('[type=submit]'); if (b) b.classList.add('loading'); });
     });
 
-    /* ── Sahifadan chiqishda yumshoq o'tish (view transition bo'lmasa) ── */
+    /* ── Sahifadan çiqişda yumşoq ötiş (view transition bölmasa) ── */
     var main = $('.pp-main');
     var hasVT = CSS && CSS.supports && CSS.supports('view-transition-name: none') && 'onpagereveal' in window;
     if (main && !hasVT) {

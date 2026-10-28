@@ -3,4 +3,4 @@ from config.settings import *  # noqa: F403,F401
 from django.core.exceptions import ImproperlyConfigured
 
 if DEBUG:  # noqa: F405
-    raise ImproperlyConfigured('Production uchun .env da DEBUG=False bo‘lishi shart.')
+    raise ImproperlyConfigured('Production uçun .env da DEBUG=False bölişi şart.')

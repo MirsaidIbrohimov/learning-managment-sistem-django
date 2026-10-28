@@ -1,17 +1,17 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ game.title }} - O'ynash | LMS{% endblock %}
+{% block title %}{{ game.title }} - Öynaş | LMS{% endblock %}
 
 {% block extra_css %}
 <style>
-/* ============ YOZISH MASHQI — o'yinbop dizayn tokenlari ============ */
+/* ============ YOZIŞ MAŞQI — öyinbop dizayn tokenlari ============ */
 :root {
     --tg-card: #ffffff;
     --tg-border: rgba(124, 58, 237, 0.14);
     --tg-text: #1e1b2e;
     --tg-sub: #c3bcd6;
     --tg-dim: #7c748f;
-    --tg-accent: #7c3aed;               /* binafsha */
+    --tg-accent: #7c3aed;               /* binafşa */
     --tg-accent-2: #ec4899;             /* pushti */
     --tg-accent-soft: rgba(124, 58, 237, 0.1);
     --tg-grad: linear-gradient(135deg, #7c3aed, #ec4899);
@@ -178,7 +178,7 @@
     margin-top: 2px;
 }
 
-/* ============ Progress chiziq ============ */
+/* ============ Progress çiziq ============ */
 .tg-progress {
     height: 10px;
     background: var(--tg-accent-soft);
@@ -234,7 +234,7 @@
 .tg-word.correct { color: var(--tg-text); opacity: 0.85; }
 .tg-word.wrong { color: var(--tg-bad); text-decoration: underline wavy; animation: tgShake 0.35s ease; }
 
-/* Joriy so'z: harfma-harf */
+/* Joriy söz: harfma-harf */
 .ltr-ok   { color: var(--tg-ok); }
 .ltr-bad  { color: var(--tg-bad); background: rgba(239,68,68,0.14); border-radius: 3px; }
 .ltr-todo { color: var(--tg-dim); }
@@ -249,7 +249,7 @@
     animation: tgCaret 1s step-end infinite;
 }
 
-/* ============ Yozish maydoni ============ */
+/* ============ Yoziş maydoni ============ */
 .tg-input-row { margin-top: 1.4rem; position: relative; }
 
 .tg-input {
@@ -311,7 +311,7 @@
 .tg-btn.ghost { background: transparent; color: var(--tg-dim); border: 1px solid var(--tg-border); }
 .tg-btn.ghost:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
 
-/* ============ Ogohlantirish pillar ============ */
+/* ============ Ogohlantiriş pillar ============ */
 .tg-pill {
     position: fixed;
     left: 50%;
@@ -436,14 +436,14 @@
     .tg-result-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-/* ============ O'YINBOP QO'SHIMCHALAR ============ */
+/* ============ ÖYINBOP QÖŞIMÇALAR ============ */
 /* Rang-barang natija kataklari */
 .tg-result-grid .cell:nth-child(1) { background: rgba(99, 102, 241, 0.15); }
 .tg-result-grid .cell:nth-child(2) { background: rgba(34, 197, 94, 0.15); }
 .tg-result-grid .cell:nth-child(3) { background: rgba(245, 158, 11, 0.15); }
 .tg-result-grid .cell:nth-child(4) { background: rgba(239, 68, 68, 0.15); }
 
-/* Combo / streak — ketma-ket to'g'ri so'zlar */
+/* Combo / streak — ketma-ket töğri sözlar */
 .tg-combo {
     position: fixed; right: 20px; top: 120px; z-index: 9000;
     display: flex; align-items: center; gap: 8px;
@@ -510,9 +510,9 @@
 <div class="container py-4">
     <div class="tg-wrap">
 
-        <!-- Ogohlantirishlar -->
+        <!-- Ogohlantirişlar -->
         <div class="tg-pill caps" id="capsPill"><i class="bi bi-capslock-fill"></i> Caps Lock yoqilgan!</div>
-        <div class="tg-pill tab" id="tabPill">⚠️ Tab almashish aniqlandi (<span id="tabCount">0</span>/3)</div>
+        <div class="tg-pill tab" id="tabPill">⚠️ Tab almaşiş aniqlandi (<span id="tabCount">0</span>/3)</div>
         <div class="tg-pill toast" id="errToast"></div>
 
         <!-- Yuqori panel -->
@@ -523,12 +523,12 @@
             {% if competition %}
             <span class="tg-mode competition"><i class="bi bi-trophy-fill"></i> {{ competition.title }}</span>
             {% else %}
-            <span class="tg-mode practice"><i class="bi bi-joystick"></i> Mashq rejimi</span>
+            <span class="tg-mode practice"><i class="bi bi-joystick"></i> Maşq rejimi</span>
             {% endif %}
             <div class="tg-tools">
                 <span class="tg-word-counter d-none d-sm-inline">
-                    {% if prompt.difficulty == 'easy' %}Oson{% elif prompt.difficulty == 'medium' %}O'rta{% else %}Qiyin{% endif %}
-                    · {{ prompt.word_count }} so'z
+                    {% if prompt.difficulty == 'easy' %}Oson{% elif prompt.difficulty == 'medium' %}Örta{% else %}Qiyin{% endif %}
+                    · {{ prompt.word_count }} söz
                 </span>
                 <button class="tg-icon-btn" id="soundBtn" type="button" title="Ovoz effektlari">
                     <i class="bi bi-volume-up-fill" id="soundIcon"></i>
@@ -552,7 +552,7 @@
             </div>
             <div class="tg-stat">
                 <div class="val" id="wordCounter">0/{{ prompt.word_count }}</div>
-                <div class="lbl">So'zlar</div>
+                <div class="lbl">Sözlar</div>
             </div>
         </div>
 
@@ -562,14 +562,14 @@
         <div class="tg-card" id="textCard">
             <div class="tg-words" id="promptWords"></div>
             <div class="tg-input-row">
-                <textarea class="tg-input" id="typingArea" rows="1" placeholder="Sanoq tugagach shu yerga yozing…"
+                <textarea class="tg-input" id="typingArea" rows="1" placeholder="Sanoq tugagaç şu yerga yozing…"
                     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled></textarea>
                 <span class="tg-input-hint"><i class="bi bi-keyboard"></i></span>
             </div>
         </div>
 
         <div class="tg-under">
-            <span class="tg-word-counter"><i class="bi bi-info-circle"></i> Probel — so'zni tasdiqlaydi</span>
+            <span class="tg-word-counter"><i class="bi bi-info-circle"></i> Probel — sözni tasdiqlaydi</span>
             <div class="d-flex gap-2">
                 {% if not competition %}
                 <a href="{% url 'games:game_play' game.slug %}" class="tg-btn restart" id="restartBtn">
@@ -577,7 +577,7 @@
                 </a>
                 {% endif %}
                 <button class="tg-btn finish" id="finishBtn" style="display:none;" type="button">
-                    <i class="bi bi-flag-fill"></i> Tugatish
+                    <i class="bi bi-flag-fill"></i> Tugatiş
                 </button>
             </div>
         </div>
@@ -587,7 +587,7 @@
 <!-- Countdown -->
 <div class="tg-count-overlay" id="countOverlay">
     <div class="tg-count-num" id="countNum">3</div>
-    <div class="tg-count-label">Tayyor bo'ling…</div>
+    <div class="tg-count-label">Tayyor böling…</div>
 </div>
 
 <!-- Natija -->
@@ -612,11 +612,11 @@
 
         <div class="tg-result-actions">
             <a href="{% url 'games:game_detail' game.slug %}" class="tg-btn ghost">
-                <i class="bi bi-list-ul"></i> O'yin sahifasi
+                <i class="bi bi-list-ul"></i> Öyin sahifasi
             </a>
             {% if not competition %}
             <a href="{% url 'games:game_play' game.slug %}" class="tg-btn primary">
-                <i class="bi bi-arrow-repeat"></i> Qayta o'ynash
+                <i class="bi bi-arrow-repeat"></i> Qayta öynaş
             </a>
             {% else %}
             <a href="{% url 'games:competition_leaderboard' competition.pk %}" class="tg-btn primary">
@@ -638,25 +638,25 @@
     <input type="hidden" name="is_touch" id="hiddenIsTouch" value="0">
 </form>
 
-<!-- Combo / streak ko'rsatkichi -->
+<!-- Combo / streak körsatkiçi -->
 <div class="tg-combo" id="comboBox"><span class="flame">🔥</span> <span id="comboText">x2</span></div>
 
 <!-- Konfetti -->
 <canvas id="confettiCanvas"></canvas>
 
-<!-- Interaktiv tur (faqat birinchi marta) -->
+<!-- Interaktiv tur (faqat birinçi marta) -->
 <div class="tg-tour" id="tourRoot" aria-hidden="true">
     <div class="tg-tour-mask" id="tourMask"></div>
     <div class="tg-tour-ring" id="tourRing"></div>
     <div class="tg-tour-tip" id="tourTip">
         <div class="emoji" id="tourEmoji">👋</div>
         <div class="step" id="tourStep">1 / 5</div>
-        <h4 id="tourTitle">Xush kelibsiz!</h4>
+        <h4 id="tourTitle">Xuş kelibsiz!</h4>
         <p id="tourBody"></p>
         <div class="row">
             <div class="tg-tour-dots" id="tourDots"></div>
             <div class="tg-tour-btns">
-                <button class="tg-tour-skip" id="tourSkip" type="button">O'tkazish</button>
+                <button class="tg-tour-skip" id="tourSkip" type="button">Ötkaziş</button>
                 <button class="tg-tour-next" id="tourNext" type="button">Keyingi</button>
             </div>
         </div>
@@ -666,7 +666,7 @@
 
 {% block extra_js %}
 <script>
-// ===== ANTI-CHEAT: Pre-init descriptor saqlash =====
+// ===== ANTI-CHEAT: Pre-init descriptor saqlaş =====
 (function(){
     try {
         var _taProto = HTMLTextAreaElement.prototype;
@@ -676,11 +676,11 @@
         window._$d = {tv: _taValDesc, iv: _iiValDesc};
     } catch(e) {}
 
-    // Automation tool aniqlash
+    // Automation tool aniqlaş
     if (navigator.webdriver || window.__selenium_unwrapped || window.__webdriver_evaluate
         || window._phantom || window.callPhantom || window._selenium
         || document.__webdriver_script_fn || window.domAutomation) {
-        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Avtomatlashtirish vositasi aniqlandi. O\'yin bloklandi.</div>';
+        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Avtomatlaştiriş vositasi aniqlandi. Öyin bloklandi.</div>';
     }
 })();
 </script>
@@ -708,10 +708,10 @@
     const words = promptText.split(/\s+/);
 
     // ===== 📵 MUSOBAQADA TELEFON/PLANSHET TAQIQI (mijoz tomoni) =====
-    // Server UA orqali bloklaydi. iPad "desktop rejimi" UA'ni yashirgani uchun
-    // bu yerda sensor (touch) bo'yicha qo'shimcha aniqlaymiz va serverga signal beramiz.
+    // Server UA orqali bloklaydi. iPad "desktop rejimi" UA'ni yaşirgani uçun
+    // bu yerda sensor (touch) böyiça qöşimça aniqlaymiz va serverga signal beramiz.
     // Sensorli ekranli noutbuklar (maxTouchPoints > 0, lekin sichqoncha/trackpad bor) kompyuter
-    // hisoblanadi. Telefon/planshet: asosiy kiritish barmoq YOKI sensor bor-u, aniq ko'rsatkich yo'q.
+    // hisoblanadi. Telefon/planshet: asosiy kiritiş barmoq YOKI sensor bor-u, aniq körsatkiç yöq.
     var _mm = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
     var _isTouchDevice = _mm('(pointer: coarse)')
         || (((navigator.maxTouchPoints || 0) > 0 || ('ontouchstart' in window)) && !_mm('(any-pointer: fine)'));
@@ -725,9 +725,9 @@
             + 'font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif;">'
             + '<div style="font-size:3.6rem;">📵</div>'
             + '<h2 style="color:#7c3aed;margin:16px 0 10px;font-weight:800;">Musobaqa faqat kompyuterda</h2>'
-            + '<p style="color:#6b7280;font-size:1.02rem;line-height:1.65;">Telefon va planshetda musobaqada '
-            + 'qatnashib bo\'lmaydi. Iltimos, kompyuter yoki noutbukdan kiring. '
-            + 'Mashq rejimi barcha qurilmalarda ochiq.</p>'
+            + '<p style="color:#6b7280;font-size:1.02rem;line-height:1.65;">Telefon va planşetda musobaqada '
+            + 'qatnaşib bölmaydi. Iltimos, kompyuter yoki noutbukdan kiring. '
+            + 'Maşq rejimi barça qurilmalarda oçiq.</p>'
             + '<a href="' + _backUrl + '" style="display:inline-block;margin-top:20px;padding:11px 24px;'
             + 'background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;border-radius:12px;'
             + 'text-decoration:none;font-weight:700;">← Orqaga</a>'
@@ -754,13 +754,13 @@
     let timerInterval = null;
     let tabSwitchCount = 0;
     let finished = false;
-    let gameReady = false;   // countdown tugagach true
+    let gameReady = false;   // countdown tugagaç true
     let keystrokeCount = 0;
     let cheated = false;
     const typedWordsList = [];
-    const wpmSamples = [];   // jonli WPM grafigi uchun
+    const wpmSamples = [];   // jonli WPM grafigi uçun
 
-    // ===== OVOZ EFFEKTLARI (WebAudio — tashqi faylsiz) =====
+    // ===== OVOZ EFFEKTLARI (WebAudio — taşqi faylsiz) =====
     let soundOn = true;
     try { soundOn = localStorage.getItem('tgSoundOn') !== '0'; } catch(e) {}
     let audioCtx = null;
@@ -812,7 +812,7 @@
         typingArea.focus();
     });
 
-    // ===== Xato toasti (alert o'rniga) =====
+    // ===== Xato toasti (alert örniga) =====
     let toastTimer = null;
     function showToast(msg) {
         errToast.textContent = msg;
@@ -826,8 +826,8 @@
     const _keyTimings = [];
 
     function _onCheatDetected(reason) {
-        // Yozish mashqida anti-cheat noto'g'ri ishlab, o'yinni to'xtatib qo'ymasligi uchun
-        // shubhali holatlar faqat e'tiborsiz qoldiriladi.
+        // Yoziş maşqida anti-cheat notöğri işlab, öyinni töxtatib qöymasligi uçun
+        // şubhali holatlar faqat e'tiborsiz qoldiriladi.
         return;
     }
 
@@ -854,7 +854,7 @@
         return _origValueDesc ? _origValueDesc.get.call(typingArea) : typingArea.value;
     }
 
-    // ===== Caps Lock ogohlantirishi =====
+    // ===== Caps Lock ogohlantirişi =====
     function checkCaps(e) {
         if (!e.getModifierState) return;
         var on = e.getModifierState('CapsLock');
@@ -883,7 +883,7 @@
         keystrokeCount++;
         _keyTimings.push(Date.now());
 
-        // Bot aniqlagich: oxirgi 15 ta bosish oralig'i
+        // Bot aniqlagiç: oxirgi 15 ta bosiş oraliği
         if (_keyTimings.length >= 15) {
             var recent = _keyTimings.slice(-15);
             var intervals = [];
@@ -922,7 +922,7 @@
         }
     });
 
-    // ===== ANTI-CHEAT: Paste/Copy/Cut/Drag bloklash =====
+    // ===== ANTI-CHEAT: Paste/Copy/Cut/Drag bloklaş =====
     ['paste','copy','cut','drop'].forEach(function(evt) {
         typingArea.addEventListener(evt, function(e) { e.preventDefault(); });
     });
@@ -931,7 +931,7 @@
     // Matn kartasi bosilganda inputga fokus
     textCard.addEventListener('click', function() { if (gameReady && !finished) typingArea.focus(); });
 
-    // ===== So'zlarni chizish =====
+    // ===== Sözlarni çiziş =====
     words.forEach(function(w, i) {
         var span = document.createElement('span');
         span.className = 'tg-word' + (i === 0 ? ' current' : '');
@@ -949,7 +949,7 @@
             var sec = elapsed % 60;
             timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
             updateStats();
-            // WPM namunasi (grafik uchun)
+            // WPM namunasi (grafik uçun)
             var totalTyped = correctCount + wrongCount;
             var minutes = getElapsedSeconds() / 60 || 0.01;
             wpmSamples.push(Math.round(totalTyped / minutes));
@@ -993,7 +993,7 @@
         if (currentIndex < words.length) {
             var nextEl = document.getElementById('word-' + currentIndex);
             nextEl.className = 'tg-word current';
-            // Uzun matnlarda joriy so'z ko'rinib turishi uchun
+            // Uzun matnlarda joriy söz körinib turişi uçun
             if (nextEl.scrollIntoView) {
                 nextEl.scrollIntoView({block: 'nearest', behavior: 'smooth'});
             }
@@ -1010,7 +1010,7 @@
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // Joriy so'z: harfma-harf jonli ko'rsatish + caret
+    // Joriy söz: harfma-harf jonli körsatiş + caret
     function highlightCurrentWord(typed) {
         if (finished || currentIndex >= words.length) return;
         var wordEl = document.getElementById('word-' + currentIndex);
@@ -1070,7 +1070,7 @@
         ctx.lineJoin = 'round';
         ctx.stroke();
 
-        // Gradient to'ldirish
+        // Gradient töldiriş
         ctx.lineTo(W - pad, H - pad);
         ctx.lineTo(pad, H - pad);
         ctx.closePath();
@@ -1120,8 +1120,8 @@
         function showResult(s, w, a, t) {
             var emoji, headline;
             if (s >= 100) { emoji = '🚀'; headline = 'Ajoyib natija!'; }
-            else if (s >= 70) { emoji = '🔥'; headline = 'Zo\'r natija!'; }
-            else if (s >= 40) { emoji = '👍'; headline = 'Yaxshi natija!'; }
+            else if (s >= 70) { emoji = '🔥'; headline = 'Zör natija!'; }
+            else if (s >= 40) { emoji = '👍'; headline = 'Yaxşi natija!'; }
             else { emoji = '🌱'; headline = 'Davom eting!'; }
             document.getElementById('resultEmoji').textContent = emoji;
             document.getElementById('resultHeadline').textContent = headline;
@@ -1171,7 +1171,7 @@
         }
     }
 
-    // ===== KONFETTI (tashqi kutubxonasiz) =====
+    // ===== KONFETTI (taşqi kutubxonasiz) =====
     function confettiBurst() {
         var cv = document.getElementById('confettiCanvas');
         if (!cv || !cv.getContext) return;
@@ -1212,14 +1212,14 @@
         })();
     }
 
-    // ===== INTERAKTIV TUR (faqat birinchi marta) =====
+    // ===== INTERAKTIV TUR (faqat birinçi marta) =====
     var TOUR_KEY = 'tg_tour_done_v1';
     var tourSteps = [
-        { sel: null, emoji: '👋', title: 'Xush kelibsiz!', body: "Bu — Yozish mashqi. Berilgan matnni tez va aniq ko'chirib yozing. Keling, qisqacha ko'rsatib beray." },
-        { sel: '.tg-stats', emoji: '📊', title: "Ko'rsatkichlar", body: "Bu yerda WPM (daqiqada so'z), aniqlik, o'tgan vaqt va yozilgan so'zlar soni jonli ko'rinadi." },
-        { sel: '#promptWords', emoji: '⌨️', title: 'Matn', body: "Shu matnni yozing. Joriy so'z belgilanadi; harf to'g'ri bo'lsa yashil, xato bo'lsa qizil bo'ladi." },
-        { sel: '#typingArea', emoji: '␣', title: 'Yozish maydoni', body: "Shu yerga yozing. Har so'zdan keyin PROBEL bosing — so'z shu bilan tasdiqlanadi." },
-        { sel: '.tg-progress', emoji: '🔥', title: 'Combo va ball', body: "Ketma-ket to'g'ri yozsangiz — combo yig'iladi! Oxirida ball, WPM va tezlik grafigi chiqadi. Omad!" }
+        { sel: null, emoji: '👋', title: 'Xuş kelibsiz!', body: "Bu — Yoziş maşqi. Berilgan matnni tez va aniq köçirib yozing. Keling, qisqaça körsatib beray." },
+        { sel: '.tg-stats', emoji: '📊', title: "Körsatkiçlar", body: "Bu yerda WPM (daqiqada söz), aniqlik, ötgan vaqt va yozilgan sözlar soni jonli körinadi." },
+        { sel: '#promptWords', emoji: '⌨️', title: 'Matn', body: "Şu matnni yozing. Joriy söz belgilanadi; harf töğri bölsa yaşil, xato bölsa qizil böladi." },
+        { sel: '#typingArea', emoji: '␣', title: 'Yoziş maydoni', body: "Şu yerga yozing. Har sözdan keyin PROBEL bosing — söz şu bilan tasdiqlanadi." },
+        { sel: '.tg-progress', emoji: '🔥', title: 'Combo va ball', body: "Ketma-ket töğri yozsangiz — combo yiğiladi! Oxirida ball, WPM va tezlik grafigi çiqadi. Omad!" }
     ];
     var _tourIdx = 0;
     function positionTour(step) {
@@ -1254,7 +1254,7 @@
         var dots = '';
         for (var i = 0; i < tourSteps.length; i++) dots += '<i class="' + (i === _tourIdx ? 'on' : '') + '"></i>';
         document.getElementById('tourDots').innerHTML = dots;
-        document.getElementById('tourNext').textContent = (_tourIdx === tourSteps.length - 1) ? 'Boshladik!' : 'Keyingi';
+        document.getElementById('tourNext').textContent = (_tourIdx === tourSteps.length - 1) ? 'Boşladik!' : 'Keyingi';
         positionTour(s);
     }
     function _tourResize() { renderTour(); }
@@ -1262,7 +1262,7 @@
         var root = document.getElementById('tourRoot');
         var overlay = document.getElementById('countOverlay');
         if (!root) { onDone(); return; }
-        overlay.classList.add('hidden');   // sanoqni tur tugagach ko'rsatamiz
+        overlay.classList.add('hidden');   // sanoqni tur tugagaç körsatamiz
         root.classList.add('show');
         _tourIdx = 0; renderTour();
         function finish() {
@@ -1290,7 +1290,7 @@
             if (n > 0) {
                 numEl.textContent = n;
                 numEl.style.animation = 'none';
-                void numEl.offsetWidth; // reflow — animatsiyani qayta boshlash
+                void numEl.offsetWidth; // reflow — animatsiyani qayta boşlaş
                 numEl.style.animation = 'tgPop 0.9s ease both';
                 sfx.tick();
                 n--;
@@ -1311,18 +1311,18 @@
                 }, 450);
             }
         }
-        // Birinchi bosishda audio kontekstni uyg'otish uchun
+        // Birinçi bosişda audio kontekstni uyğotiş uçun
         document.addEventListener('pointerdown', ensureAudio, {once: true});
         step();
     }
 
-    // Birinchi marta kirgan foydalanuvchiga avval interaktiv tur, so'ng sanoq
+    // Birinçi marta kirgan foydalanuvçiga avval interaktiv tur, söng sanoq
     var _seenTour = false;
     try { _seenTour = !!localStorage.getItem(TOUR_KEY); } catch (e) { _seenTour = true; }
     if (_seenTour) runCountdown();
     else startTour(runCountdown);
 
-    // ===== ANTI-CHEAT: Tab/Window almashish =====
+    // ===== ANTI-CHEAT: Tab/Window almaşiş =====
     document.addEventListener('visibilitychange', function() {
         if (document.hidden && startTime && !finished) {
             tabSwitchCount++;
@@ -1333,14 +1333,14 @@
         }
     });
 
-    // ===== ANTI-CHEAT: Keyboard shortcuts bloklash =====
+    // ===== ANTI-CHEAT: Keyboard shortcuts bloklaş =====
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F12') { e.preventDefault(); return; }
         if (e.ctrlKey && e.shiftKey && /^[ijcIJC]$/.test(e.key)) { e.preventDefault(); return; }
         if (e.ctrlKey && /^[uUsSpP]$/.test(e.key)) { e.preventDefault(); return; }
     });
 
-    // ===== ANTI-CHEAT: DevTools aniqlash =====
+    // ===== ANTI-CHEAT: DevTools aniqlaş =====
     var _dtOpen = false;
     (function _dtCheck() {
         var w = window.outerWidth - window.innerWidth > 300;
@@ -1352,14 +1352,14 @@
         if (!finished) setTimeout(_dtCheck, 2000);
     })();
 
-    // ===== ANTI-CHEAT: Textarea DOM o'zgarishini kuzatish =====
+    // ===== ANTI-CHEAT: Textarea DOM özgarişini kuzatiş =====
     var taObserver = new MutationObserver(function(mutations) {
         if (finished || !gameReady) return;
-        // O'yin davomida disabled/readonly'ni tashqi o'zgartirish — shubhali
+        // Öyin davomida disabled/readonly'ni taşqi özgartiriş — şubhali
         _untrustedInputs++;
         if (_untrustedInputs > 15) _onCheatDetected('dom_mutate');
     });
-    // Countdown o'zi disabled'ni olib tashlaydi — observer'ni gameReady'dan keyin ulaymiz
+    // Countdown özi disabled'ni olib taşlaydi — observer'ni gameReady'dan keyin ulaymiz
     var _obsTimer = setInterval(function() {
         if (gameReady) {
             taObserver.observe(typingArea, {attributes: true, attributeFilter: ['disabled','readonly']});
@@ -1367,7 +1367,7 @@
         }
     }, 300);
 
-    // ===== ANTI-CHEAT: Yangi script injection aniqlash =====
+    // ===== ANTI-CHEAT: Yangi script injection aniqlaş =====
     var bodyObserver = new MutationObserver(function(mutations) {
         mutations.forEach(function(m) {
             m.addedNodes.forEach(function(node) {
@@ -1380,12 +1380,12 @@
     });
     bodyObserver.observe(document.body || document.documentElement, {childList: true, subtree: true});
 
-    // ===== ANTI-CHEAT: iframe ichida ochilishni bloklash =====
+    // ===== ANTI-CHEAT: iframe içida oçilişni bloklaş =====
     if (window.self !== window.top) {
-        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Iframe aniqlandi. O\'yin bloklandi.</div>';
+        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Iframe aniqlandi. Öyin bloklandi.</div>';
     }
 
-    // ===== ANTI-CHEAT: alert/confirm/prompt bloklash =====
+    // ===== ANTI-CHEAT: alert/confirm/prompt bloklaş =====
     (function() {
         ['alert', 'confirm', 'prompt'].forEach(function(fn) {
             try {
@@ -1398,7 +1398,7 @@
         });
     })();
 
-    // ===== ANTI-CHEAT: Matn tanlash / drag-drop bloklash =====
+    // ===== ANTI-CHEAT: Matn tanlaş / drag-drop bloklaş =====
     promptWordsEl.style.userSelect = 'none';
     promptWordsEl.style.webkitUserSelect = 'none';
     document.addEventListener('selectstart', function(e) {
@@ -1407,7 +1407,7 @@
     document.addEventListener('dragstart', function(e) { e.preventDefault(); });
     document.addEventListener('drop', function(e) { e.preventDefault(); });
 
-    // ===== ANTI-CHEAT: Focus yo'qolishi monitoring =====
+    // ===== ANTI-CHEAT: Focus yöqolişi monitoring =====
     var _focusLostCount = 0;
     window.addEventListener('blur', function() {
         if (startTime && !finished) {

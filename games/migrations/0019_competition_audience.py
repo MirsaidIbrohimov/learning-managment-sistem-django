@@ -1,4 +1,4 @@
-# Musobaqa auditoriyasi: hammaga / tanlangan guruhlar / tanlangan o'quvchilar
+# Musobaqa auditoriyasi: hammaga / tanlangan guruhlar / tanlangan öquvçilar
 
 from django.conf import settings
 from django.db import migrations, models
@@ -17,11 +17,11 @@ class Migration(migrations.Migration):
             model_name='competition',
             name='audience_type',
             field=models.CharField(
-                choices=[('all', 'Hammaga'), ('groups', 'Tanlangan guruhlar'), ('students', "Tanlangan o'quvchilar")],
+                choices=[('all', 'Hammaga'), ('groups', 'Tanlangan guruhlar'), ('students', "Tanlangan öquvçilar")],
                 default='all',
-                help_text="Musobaqa hammaga, tanlangan guruhlarga yoki tanlangan o'quvchilarga ochiq bo'ladi.",
+                help_text="Musobaqa hammaga, tanlangan guruhlarga yoki tanlangan öquvçilarga oçiq böladi.",
                 max_length=10,
-                verbose_name='Kimlar uchun',
+                verbose_name='Kimlar uçun',
             ),
         ),
         migrations.AddField(
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
             name='groups',
             field=models.ManyToManyField(
                 blank=True,
-                help_text="Faqat 'Tanlangan guruhlar' rejimida ishlatiladi.",
+                help_text="Faqat 'Tanlangan guruhlar' rejimida işlatiladi.",
                 related_name='competitions',
                 to='accounts.studygroup',
                 verbose_name='Guruhlar',
@@ -40,11 +40,11 @@ class Migration(migrations.Migration):
             name='participants',
             field=models.ManyToManyField(
                 blank=True,
-                help_text="Faqat 'Tanlangan o'quvchilar' rejimida ishlatiladi.",
+                help_text="Faqat 'Tanlangan öquvçilar' rejimida işlatiladi.",
                 limit_choices_to={'role': 'student'},
                 related_name='invited_competitions',
                 to=settings.AUTH_USER_MODEL,
-                verbose_name="Tanlangan o'quvchilar",
+                verbose_name="Tanlangan öquvçilar",
             ),
         ),
     ]

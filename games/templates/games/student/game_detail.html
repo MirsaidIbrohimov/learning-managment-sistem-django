@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ game.title }} | O'yinlar{% endblock %}
+{% block title %}{{ game.title }} | Öyinlar{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -301,15 +301,15 @@
         <!-- Hero -->
         <div class="tgd-hero">
             <a href="{% url 'games:games_list' %}" class="tgd-back">
-                <i class="bi bi-arrow-left"></i> Barcha o'yinlar
+                <i class="bi bi-arrow-left"></i> Barça öyinlar
             </a>
             <h1><i class="bi {{ game.icon }}"></i> {{ game.title }}</h1>
             <p>{{ game.description }}</p>
             <div class="tgd-chips">
-                <span class="tgd-chip"><i class="bi bi-arrow-repeat"></i> Urinishlar: <span class="num">{{ user_attempts_count }}</span></span>
-                <span class="tgd-chip"><i class="bi bi-joystick"></i> Mashq: <span class="num">{{ practice_count }}</span></span>
+                <span class="tgd-chip"><i class="bi bi-arrow-repeat"></i> Urinişlar: <span class="num">{{ user_attempts_count }}</span></span>
+                <span class="tgd-chip"><i class="bi bi-joystick"></i> Maşq: <span class="num">{{ practice_count }}</span></span>
                 {% if best_practice %}
-                <span class="tgd-chip"><i class="bi bi-trophy"></i> Eng yaxshi: <span class="num">{{ best_practice.score }}</span> ball</span>
+                <span class="tgd-chip"><i class="bi bi-trophy"></i> Eng yaxşi: <span class="num">{{ best_practice.score }}</span> ball</span>
                 <span class="tgd-chip"><i class="bi bi-speedometer2"></i> <span class="num">{{ best_practice.wpm }}</span> WPM</span>
                 {% endif %}
             </div>
@@ -320,17 +320,17 @@
                 <!-- Practice -->
                 <div class="tgd-card tgd-practice" style="animation-delay: 0.05s;">
                     <div class="icon"><i class="bi bi-joystick"></i></div>
-                    <h4>Mashq rejimi</h4>
-                    <p>Cheksiz mashq qiling — natijalaringiz faqat sizga ko'rinadi va reytingga ta'sir qilmaydi.</p>
+                    <h4>Maşq rejimi</h4>
+                    <p>Çeksiz maşq qiling — natijalaringiz faqat sizga körinadi va reytingga ta'sir qilmaydi.</p>
                     <div class="d-flex flex-wrap gap-2">
                         <a href="{% url 'games:game_play_v2' game.slug %}" class="tgd-btn start">
-                            <i class="bi bi-lightning-charge-fill"></i> Yozish mashqi 2.0
+                            <i class="bi bi-lightning-charge-fill"></i> Yoziş maşqi 2.0
                         </a>
                         <a href="{% url 'games:game_play' game.slug %}" class="tgd-btn ghost">
-                            <i class="bi bi-play-fill"></i> Klassik mashq
+                            <i class="bi bi-play-fill"></i> Klassik maşq
                         </a>
                         <a href="{% url 'games:rooms_lobby' %}" class="tgd-btn ghost">
-                            <i class="bi bi-car-front-fill"></i> Sheriklar bilan poyga
+                            <i class="bi bi-car-front-fill"></i> Şeriklar bilan poyga
                         </a>
                     </div>
                 </div>
@@ -356,7 +356,7 @@
                                 </div>
                                 {% endif %}
                                 <div class="tgd-attempts">
-                                    <i class="bi bi-arrow-repeat"></i> Urinish: {{ comp.used_attempts }}/{{ comp.max_attempts }}
+                                    <i class="bi bi-arrow-repeat"></i> Uriniş: {{ comp.used_attempts }}/{{ comp.max_attempts }}
                                     {% if comp.remaining_attempts > 0 %}
                                         <span class="left">({{ comp.remaining_attempts }} ta qoldi)</span>
                                     {% else %}
@@ -366,7 +366,7 @@
                             </div>
                             <div class="text-end">
                                 {% if comp.status == 'upcoming' %}
-                                <span class="tgd-status upcoming"><i class="bi bi-clock"></i> Boshlanmagan</span>
+                                <span class="tgd-status upcoming"><i class="bi bi-clock"></i> Boşlanmagan</span>
                                 <div class="tgd-countdown mt-1" data-target="{{ comp.start_time|date:'U' }}" data-prefix="Boshlanishiga:"></div>
                                 {% elif comp.status == 'active' %}
                                 <span class="tgd-status active"><i class="bi bi-lightning-fill"></i> Faol</span>
@@ -380,22 +380,22 @@
                             {% if comp.status == 'active' %}
                                 {% if comp.can_play %}
                                     {% if is_mobile %}
-                                    <span class="tgd-status ended" title="Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin">
+                                    <span class="tgd-status ended" title="Musobaqada faqat kompyuter yoki noutbukda qatnaşiş mumkin">
                                         <i class="bi bi-laptop"></i> Faqat kompyuterda
                                     </span>
                                     {% else %}
                                     {% if comp.is_v2 %}
                                     <a href="{% url 'games:game_play_v2_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
-                                        <i class="bi bi-flag-fill"></i> Poygada qatnashish (2.0)
+                                        <i class="bi bi-flag-fill"></i> Poygada qatnaşiş (2.0)
                                     </a>
                                     {% else %}
                                     <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
-                                        <i class="bi bi-play-fill"></i> Qatnashish
+                                        <i class="bi bi-play-fill"></i> Qatnaşiş
                                     </a>
                                     {% endif %}
                                     {% endif %}
                                 {% else %}
-                                <span class="tgd-status ended">Urinishlar tugadi</span>
+                                <span class="tgd-status ended">Urinişlar tugadi</span>
                                 {% endif %}
                             {% endif %}
                             <a href="{% url 'games:competition_leaderboard' comp.pk %}" class="tgd-btn ghost">
@@ -416,7 +416,7 @@
                             <i class="bi bi-person"></i> Mening
                         </button>
                         <button class="tgd-tab" data-tab="all-results" type="button">
-                            <i class="bi bi-people"></i> Barcha
+                            <i class="bi bi-people"></i> Barça
                         </button>
                     </div>
 
@@ -432,7 +432,7 @@
                                 {% if attempt.competition %}
                                 <span class="tgd-badge comp">🏆 Musobaqa</span>
                                 {% else %}
-                                <span class="tgd-badge practice">Mashq</span>
+                                <span class="tgd-badge practice">Maşq</span>
                                 {% endif %}
                                 <div class="when">{{ attempt.created_at|timesince }} oldin</div>
                             </div>
@@ -440,13 +440,13 @@
                         {% endfor %}
                         <div class="text-center mt-3">
                             <a href="{% url 'games:my_results' %}?game={{ game.pk }}" class="tgd-btn ghost">
-                                Barchasi <i class="bi bi-arrow-right"></i>
+                                Barçasi <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
                         {% else %}
                         <div class="tgd-empty">
                             <i class="bi bi-emoji-smile"></i>
-                            <p class="mt-2 mb-0">Hali natijalar yo'q</p>
+                            <p class="mt-2 mb-0">Hali natijalar yöq</p>
                         </div>
                         {% endif %}
                     </div>
@@ -464,7 +464,7 @@
                                 {% if attempt.competition %}
                                 <span class="tgd-badge comp">🏆</span>
                                 {% else %}
-                                <span class="tgd-badge practice">Mashq</span>
+                                <span class="tgd-badge practice">Maşq</span>
                                 {% endif %}
                                 <div class="when">{{ attempt.created_at|timesince }} oldin</div>
                             </div>
@@ -473,7 +473,7 @@
                         {% else %}
                         <div class="tgd-empty">
                             <i class="bi bi-emoji-smile"></i>
-                            <p class="mt-2 mb-0">Hali natijalar yo'q</p>
+                            <p class="mt-2 mb-0">Hali natijalar yöq</p>
                         </div>
                         {% endif %}
                     </div>
@@ -508,7 +508,7 @@
             this.dataset.starting = '1';
             this.style.pointerEvents = 'none';
             this.setAttribute('aria-disabled', 'true');
-            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda...';
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Oçilmoqda...';
         });
     });
 
@@ -540,7 +540,7 @@
                 el.textContent = el.dataset.prefix + ' ' + text;
             }
         });
-        // Musobaqa boshlanishi/tugashi sodir bo'lganda sahifani yangilash
+        // Musobaqa boshlanishi/tugashi sodir bölganda sahifani yangilaş
         if (needReload) { setTimeout(function() { location.reload(); }, 1200); }
     }
 

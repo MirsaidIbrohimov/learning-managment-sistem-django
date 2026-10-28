@@ -1,6 +1,6 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}{% if discount %}Chegirmani tahrirlash{% else %}Chegirma qo'shish{% endif %} - Admin{% endblock %}
+{% block title %}{% if discount %}Çegirmani tahrirlaş{% else %}Çegirma qöşiş{% endif %} - Admin{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -23,7 +23,7 @@
 <div class="top-bar">
     <h1 class="page-title">
         <i class="bi bi-percent me-2"></i>
-        {% if discount %}Chegirmani tahrirlash{% else %}Yangi kurs chegirmasi{% endif %}
+        {% if discount %}Çegirmani tahrirlaş{% else %}Yangi kurs çegirmasi{% endif %}
     </h1>
 </div>
 
@@ -36,7 +36,7 @@
                     {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors|join:" " }}</div>{% endif %}
 
                     <div class="mb-4">
-                        <label class="form-label" for="{{ form.name.id_for_label }}">Chegirma nomi *</label>
+                        <label class="form-label" for="{{ form.name.id_for_label }}">Çegirma nomi *</label>
                         {{ form.name }}
                         {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                     </div>
@@ -46,21 +46,21 @@
                             <label class="form-label" for="{{ form.profession.id_for_label }}">Kurs</label>
                             {{ form.profession }}
                             {% if form.profession.errors %}<div class="text-danger small mt-1">{{ form.profession.errors.0 }}</div>{% endif %}
-                            <small class="text-muted">Faqat bir martalik to'lov bilan sotiladigan kurslar.</small>
+                            <small class="text-muted">Faqat bir martalik tölov bilan sotiladigan kurslar.</small>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="{{ form.discount_type.id_for_label }}">Chegirma turi *</label>
+                            <label class="form-label" for="{{ form.discount_type.id_for_label }}">Çegirma turi *</label>
                             {{ form.discount_type }}
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="{{ form.discount_value.id_for_label }}" id="dc-value-label">Yangi narx (so'm) *</label>
+                            <label class="form-label" for="{{ form.discount_value.id_for_label }}" id="dc-value-label">Yangi narx (söm) *</label>
                             {{ form.discount_value }}
                             {% if form.discount_value.errors %}<div class="text-danger small mt-1">{{ form.discount_value.errors.0 }}</div>{% endif %}
-                            <small class="text-muted" id="dc-value-help">Masalan: 90 000 so'mlik kurs uchun 50 000.</small>
+                            <small class="text-muted" id="dc-value-help">Masalan: 90 000 sömlik kurs uçun 50 000.</small>
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
                             <div class="dc-preview w-100" id="dc-preview" aria-live="polite">
-                                <span class="text-muted small w-100">O'quvchi to'laydigan narx</span>
+                                <span class="text-muted small w-100">Öquvçi tölaydigan narx</span>
                                 <del id="dc-old">—</del><strong id="dc-new">—</strong><span class="dc-tag" id="dc-percent" hidden></span>
                             </div>
                         </div>
@@ -74,17 +74,17 @@
                             {% endfor %}
                         </div>
                         {% if form.duration.errors %}<div class="text-danger small mt-1">{{ form.duration.errors.0 }}</div>{% endif %}
-                        <small class="text-muted d-block mt-2" id="dc-duration-help">Chegirma saqlangan paytdan boshlanadi va muddat tugashi bilan narx o'zi asl holiga qaytadi.</small>
+                        <small class="text-muted d-block mt-2" id="dc-duration-help">Çegirma saqlangan paytdan boşlanadi va muddat tugaşi bilan narx özi asl holiga qaytadi.</small>
                     </div>
 
                     <div class="row mb-4 g-3" id="dc-dates">
                         <div class="col-md-6">
-                            <label class="form-label" for="{{ form.valid_from.id_for_label }}">Boshlanish (bo'sh — hozirdan)</label>
+                            <label class="form-label" for="{{ form.valid_from.id_for_label }}">Boşlaniş (böş — hozirdan)</label>
                             {{ form.valid_from }}
                             {% if form.valid_from.errors %}<div class="text-danger small mt-1">{{ form.valid_from.errors.0 }}</div>{% endif %}
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="{{ form.valid_until.id_for_label }}">Tugash *</label>
+                            <label class="form-label" for="{{ form.valid_until.id_for_label }}">Tugaş *</label>
                             {{ form.valid_until }}
                             {% if form.valid_until.errors %}<div class="text-danger small mt-1">{{ form.valid_until.errors.0 }}</div>{% endif %}
                         </div>
@@ -98,24 +98,24 @@
                     <div class="mb-4">
                         <div class="form-check form-switch">
                             <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if form.is_active.value %}checked{% endif %}>
-                            <label class="form-check-label" for="isActive">Faol (narx darhol o'zgaradi)</label>
+                            <label class="form-check-label" for="isActive">Faol (narx darhol özgaradi)</label>
                         </div>
                         <div class="form-check form-switch mt-2">
                             <input type="checkbox" name="announce" class="form-check-input" id="announce" {% if form.announce.value %}checked{% endif %}>
-                            <label class="form-check-label" for="announce">O'quvchilarga saytda va Telegram guruhida e'lon qilish</label>
+                            <label class="form-check-label" for="announce">Öquvçilarga saytda va Telegram guruhida e'lon qiliş</label>
                         </div>
                     </div>
 
                     <div class="d-flex gap-3">
                         <button type="submit" class="btn btn-primary px-4">
-                            <i class="bi bi-check-lg me-2"></i>Saqlash
+                            <i class="bi bi-check-lg me-2"></i>Saqlaş
                         </button>
                         <a href="{% url 'admin_discounts' %}" class="btn btn-outline-secondary">
-                            Bekor qilish
+                            Bekor qiliş
                         </a>
                         {% if discount %}
                         <a href="{% url 'admin_discount_delete' discount.pk %}" class="btn btn-outline-danger ms-auto">
-                            <i class="bi bi-trash me-2"></i>O'chirish
+                            <i class="bi bi-trash me-2"></i>Öçiriş
                         </a>
                         {% endif %}
                     </div>
@@ -132,9 +132,9 @@
   const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
   const MIN = 1000;
   const help = {
-    price: ["Yangi narx (so'm) *", "Masalan: 90 000 so'mlik kurs uchun 50 000."],
-    percentage: ["Chegirma (%) *", "1 dan 99 gacha."],
-    fixed: ["Ayiriladigan summa (so'm) *", "Masalan: 40 000 — narxdan shuncha kamayadi."],
+    price: ["Yangi narx (söm) *", "Masalan: 90 000 sömlik kurs uçun 50 000."],
+    percentage: ["Çegirma (%) *", "1 dan 99 gaça."],
+    fixed: ["Ayiriladigan summa (söm) *", "Masalan: 40 000 — narxdan şunça kamayadi."],
   };
   function render() {
     const type = form.elements.discount_type.value, value = Number(form.elements.discount_value.value) || 0;
@@ -145,13 +145,13 @@
     const dur = form.querySelector('[name=duration]:checked')?.value;
     document.getElementById('dc-dates').hidden = dur !== 'custom';
     const old = document.getElementById('dc-old'), now = document.getElementById('dc-new'), pct = document.getElementById('dc-percent');
-    if (!original) { old.textContent = ''; now.textContent = type === 'price' ? 'Kursni tanlang' : 'Barcha kurslarga'; pct.hidden = true; return; }
+    if (!original) { old.textContent = ''; now.textContent = type === 'price' ? 'Kursni tanlang' : 'Barça kurslarga'; pct.hidden = true; return; }
     // Server bilan bir xil: accounts/course_pricing.py discounted_price
     let price = type === 'price' ? value : type === 'percentage' ? original - Math.floor(original * Math.min(value, 99) / 100) : original - value;
-    old.textContent = fmt(original) + " so'm";
-    if (!value || price >= original) { now.textContent = 'Chegirma yo‘q'; pct.hidden = true; return; }
-    if (price < MIN) { now.textContent = 'Kamida ' + fmt(MIN) + " so'm"; pct.hidden = true; return; }
-    now.textContent = fmt(price) + " so'm";
+    old.textContent = fmt(original) + " söm";
+    if (!value || price >= original) { now.textContent = 'Çegirma yöq'; pct.hidden = true; return; }
+    if (price < MIN) { now.textContent = 'Kamida ' + fmt(MIN) + " söm"; pct.hidden = true; return; }
+    now.textContent = fmt(price) + " söm";
     pct.hidden = false; pct.textContent = '−' + Math.round((original - price) * 100 / original) + '%';
   }
   form.addEventListener('input', render);

@@ -9,19 +9,19 @@ from accounts.models import Lesson, Profession, Section, VideoLesson
 
 
 class PublicCoursePagesTests(TestCase):
-    """Sotuvdagi kurslar Google uchun login'siz ochiq bo'lishi kerak."""
+    """Sotuvdagi kurslar Google uçun login'siz oçiq bölişi kerak."""
 
     def setUp(self):
         cache.clear()
         cache.set('birthday_check_done', True, 86400)
         self.course = Profession.objects.create(
-            name="Python dasturlash asoslari", photo='professions/p.jpg',
-            description='<p>Noldan <b>Python</b> o‘rganing va loyihalar yarating.</p>',
+            name="Python dasturlaş asoslari", photo='professions/p.jpg',
+            description='<p>Noldan <b>Python</b> örganing va loyihalar yarating.</p>',
             is_paid=True, one_time_payment=True, one_time_price=350000, duration_months=3)
-        section = Section.objects.create(profession=self.course, title="Kirish", order=1)
-        video = Lesson.objects.create(profession=self.course, section=section, title="O'zgaruvchilar", lesson_type='video')
+        section = Section.objects.create(profession=self.course, title="Kiriş", order=1)
+        video = Lesson.objects.create(profession=self.course, section=section, title="Özgaruvçilar", lesson_type='video')
         VideoLesson.objects.create(lesson=video, youtube_url='https://youtu.be/SECRETVIDEO1')
-        self.request_course = Profession.objects.create(name='So‘rovli kurs', photo='p.jpg', description='d', is_paid=True)
+        self.request_course = Profession.objects.create(name='Sörovli kurs', photo='p.jpg', description='d', is_paid=True)
 
     def test_landing_is_public_and_seo_ready(self):
         self.assertEqual(self.course.seo_slug, 'python-dasturlash-asoslari')
@@ -30,7 +30,7 @@ class PublicCoursePagesTests(TestCase):
         html = response.content.decode()
         self.assertIn('content="index, follow', html)
         self.assertIn(f'<link rel="canonical" href="https://itc-academy.uz{self.course.public_url}">', html)
-        self.assertIn("O&#x27;zgaruvchilar", html)               # dastur ko'rinadi
+        self.assertIn("Özgaruvçilar", html)               # dastur körinadi
         self.assertNotIn('SECRETVIDEO1', html)                   # dars mazmuni yopiq
         self.assertIn(reverse('enroll_course', args=[self.course.pk]), html)
 
@@ -42,9 +42,9 @@ class PublicCoursePagesTests(TestCase):
 
     def test_home_landing_lists_all_and_paid_courses(self):
         html = self.client.get(reverse('home')).content.decode()
-        self.assertIn('id="pullik"', html)                       # pullik kurslar bo'limi
+        self.assertIn('id="pullik"', html)                       # pullik kurslar bölimi
         self.assertIn(self.course.public_url, html)               # sotuvdagi kurs havolasi
-        self.assertIn(self.request_course.name, html)             # barcha yo'nalishlar ro'yxati
+        self.assertIn(self.request_course.name, html)             # barça yönalişlar röyxati
         self.assertIn('name="csrfmiddlewaretoken"', html)         # ariza formasi
 
     def test_wrong_or_missing_slug_redirects_to_canonical(self):

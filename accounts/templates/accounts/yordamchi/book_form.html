@@ -1,6 +1,6 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
-{% block title %}{% if action == 'edit' %}Kitobni tahrirlash{% else %}Yangi kitob{% endif %}{% endblock %}
-{% block page_title %}{% if action == 'edit' %}"{{ book.title }}" — tahrirlash{% else %}Yangi kitob qo'shish{% endif %}{% endblock %}
+{% block title %}{% if action == 'edit' %}Kitobni tahrirlaş{% else %}Yangi kitob{% endif %}{% endblock %}
+{% block page_title %}{% if action == 'edit' %}"{{ book.title }}" — tahrirlaş{% else %}Yangi kitob qöşiş{% endif %}{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -42,7 +42,7 @@
                             {% if action == 'edit' and book.cover_image %}
                             <div class="mb-2 d-flex align-items-center gap-3">
                                 <img src="{{ book.cover_image.url }}" style="width:50px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;">
-                                <span class="text-muted" style="font-size:.82rem;">Joriy muqova — yangi rasm yuklasangiz o'zgaradi</span>
+                                <span class="text-muted" style="font-size:.82rem;">Joriy muqova — yangi rasm yuklasangiz özgaradi</span>
                             </div>
                             {% endif %}
                             <input type="file" name="cover_image" accept="image/*" class="form-control">
@@ -51,10 +51,10 @@
                     <div class="mt-4 d-flex gap-2">
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-check-lg"></i>
-                            {% if action == 'edit' %}Saqlash{% else %}Qo'shish{% endif %}
+                            {% if action == 'edit' %}Saqlaş{% else %}Qöşiş{% endif %}
                         </button>
                         <a href="{% url 'yordamchi_books' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> Bekor qilish
+                            <i class="bi bi-arrow-left"></i> Bekor qiliş
                         </a>
                     </div>
                 </form>

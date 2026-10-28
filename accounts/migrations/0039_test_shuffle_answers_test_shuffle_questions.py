@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='test',
             name='shuffle_answers',
-            field=models.BooleanField(default=False, verbose_name='Javoblar tartibini aralashtirish'),
+            field=models.BooleanField(default=False, verbose_name='Javoblar tartibini aralaştiriş'),
         ),
         migrations.AddField(
             model_name='test',
             name='shuffle_questions',
-            field=models.BooleanField(default=False, verbose_name='Savollar tartibini aralashtirish'),
+            field=models.BooleanField(default=False, verbose_name='Savollar tartibini aralaştiriş'),
         ),
     ]

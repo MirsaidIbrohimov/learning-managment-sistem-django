@@ -13,11 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profession',
             name='blocked_reason',
-            field=models.CharField(blank=True, max_length=300, null=True, verbose_name='Bloklash sababi'),
+            field=models.CharField(blank=True, max_length=300, null=True, verbose_name='Bloklaş sababi'),
         ),
         migrations.AddField(
             model_name='profession',
             name='is_blocked',
-            field=models.BooleanField(default=False, verbose_name='Vaqtincha bloklangan'),
+            field=models.BooleanField(default=False, verbose_name='Vaqtinça bloklangan'),
         ),
     ]

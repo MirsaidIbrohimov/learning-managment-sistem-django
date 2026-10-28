@@ -1,13 +1,13 @@
-# Akkaunt tasdiqlash (verify) + metrika hujjati maydonlari.
+# Akkaunt tasdiqlaş (verify) + metrika hujjati maydonlari.
 #
 # Yangi maydonlar:
 #   document_type  — 'passport' yoki 'metrka' (qaysi hujjat kiritilgani)
 #   metrka_series  — metrika seriyasi (masalan: I-GZ), JSHSHIRsiz
 #   metrka_number  — metrika raqami
-#   is_verified    — hujjat to'ldirilib akkaunt tasdiqlangani belgisi
+#   is_verified    — hujjat töldirilib akkaunt tasdiqlangani belgisi
 #
-# Maqsad: yangi foydalanuvchi pasport YOKI metrika kiritib akkauntini tasdiqlaydi;
-# forma o'tkazib yuborilishi mumkin, lekin to'ldirilmaguncha user "verified" emas.
+# Maqsad: yangi foydalanuvçi pasport YOKI metrika kiritib akkauntini tasdiqlaydi;
+# forma ötkazib yuborilişi mumkin, lekin töldirilmagunça user "verified" emas.
 
 from django.db import migrations, models
 
@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 max_length=10,
                 choices=[
                     ('passport', 'Pasport / ID karta'),
-                    ('metrka', "Metrika (tug'ilganlik guvohnomasi)"),
+                    ('metrka', "Metrika (tuğilganlik guvohnomasi)"),
                 ],
                 verbose_name='Hujjat turi',
             ),
@@ -58,4 +58,4 @@ class Migration(migrations.Migration):
     ]
 
 
-# Bu fayl: CustomUser'ga verify + metrika hujjati maydonlarini qo'shadi.
+# Bu fayl: CustomUser'ga verify + metrika hujjati maydonlarini qöşadi.

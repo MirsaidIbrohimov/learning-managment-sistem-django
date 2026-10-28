@@ -12,13 +12,13 @@
 
     const STATUS_LABELS = {
         draft: ['Qoralama', 'bg-secondary'],
-        published: ['Chop etilgan', 'bg-success'],
+        published: ['Çop etilgan', 'bg-success'],
         archived: ['Arxivlangan', 'bg-warning text-dark'],
     };
     const TYPE_LABELS = {
-        single_choice: "Bitta to'g'ri javob",
-        multiple_choice: "Bir nechta to'g'ri javob",
-        true_false: "To'g'ri / Noto'g'ri",
+        single_choice: "Bitta töğri javob",
+        multiple_choice: "Bir neçta töğri javob",
+        true_false: "Töğri / Notöğri",
         short_answer: 'Qisqa javob',
         essay: 'Esse',
     };
@@ -84,10 +84,10 @@
     }
 
     function clientSideValidate(payload) {
-        if (!payload.title) return "Test nomi bo'sh bo'lishi mumkin emas.";
-        if (payload.settings.time_limit_minutes < 1) return "Vaqt chegarasi kamida 1 daqiqa bo'lishi kerak.";
+        if (!payload.title) return "Test nomi böş bölişi mumkin emas.";
+        if (payload.settings.time_limit_minutes < 1) return "Vaqt çegarasi kamida 1 daqiqa bölişi kerak.";
         if (payload.settings.passing_score < 0 || payload.settings.passing_score > 100) {
-            return "O'tish bali 0 va 100 orasida bo'lishi kerak.";
+            return "Ötiş bali 0 va 100 orasida bölişi kerak.";
         }
         return null;
     }
@@ -103,7 +103,7 @@
     }
 
     function populateForm(quiz) {
-        els.title.textContent = 'Testni tahrirlash';
+        els.title.textContent = 'Testni tahrirlaş';
         els.titleInput.value = quiz.title;
         els.description.value = quiz.description || '';
         els.lessonId.value = quiz.lesson || '';
@@ -124,7 +124,7 @@
     function updatePublishReadiness() {
         if (!els.publishBtn) return;
         const hasQuestions = links.length > 0;
-        els.publishBtn.title = hasQuestions ? '' : "Chop etish uchun kamida 1 ta savol qo'shing";
+        els.publishBtn.title = hasQuestions ? '' : "Çop etiş uçun kamida 1 ta savol qöşing";
         els.publishBtn.style.opacity = hasQuestions ? '' : '0.55';
     }
 
@@ -135,7 +135,7 @@
             els.questionsList.innerHTML =
                 '<div class="alert alert-warning py-2 small mb-0">' +
                 '<i class="bi bi-exclamation-triangle me-1"></i>' +
-                "Hali savol biriktirilmagan. Testni chop etish uchun kamida 1 ta savol qo'shing." +
+                "Hali savol biriktirilmagan. Testni çop etiş uçun kamida 1 ta savol qöşing." +
                 '</div>';
             return;
         }
@@ -188,7 +188,7 @@
     async function detachQuestion(questionId) {
         try {
             await window.QuizApi.post(`quizzes/${quizId}/questions/detach/`, { question_id: questionId });
-            window.QuizApi.toast('Savol olib tashlandi.');
+            window.QuizApi.toast('Savol olib taşlandi.');
             await loadQuestions();
         } catch (err) {
             window.QuizApi.toast(err.message, 'error');
@@ -215,7 +215,7 @@
                             <div>${q.text}</div>
                             <span class="badge quizui-type-badge">${TYPE_LABELS[q.type] || q.type}</span>
                         </div>
-                        <button class="btn btn-sm btn-primary flex-shrink-0"><i class="bi bi-plus-lg"></i> Qo'shish</button>
+                        <button class="btn btn-sm btn-primary flex-shrink-0"><i class="bi bi-plus-lg"></i> Qöşiş</button>
                     `;
                     item.querySelector('button').addEventListener('click', () => attachQuestion(q.id));
                     els.bankResults.appendChild(item);
@@ -229,7 +229,7 @@
     let courseTree = []; // [{id, name, sections:[{id, title}]}]
 
     function showSelectedLesson(label) {
-        els.lessonSelected.innerHTML = `Tanlangan dars: ${label} <a href="#" class="qz-lesson-clear">(bekor qilish)</a>`;
+        els.lessonSelected.innerHTML = `Tanlangan dars: ${label} <a href="#" class="qz-lesson-clear">(bekor qiliş)</a>`;
         els.lessonSelected.classList.remove('d-none');
         els.lessonPicker.classList.add('d-none');
     }
@@ -261,7 +261,7 @@
         const profId = Number(els.courseSelect.value) || null;
         const prof = courseTree.find((p) => p.id === profId);
 
-        els.sectionSelect.innerHTML = '<option value="">Bo\'limsiz</option>' +
+        els.sectionSelect.innerHTML = '<option value="">Bölimsiz</option>' +
             (prof ? prof.sections.map((s) => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('') : '');
         els.sectionSelect.disabled = !prof;
         els.newLessonTitle.disabled = !prof;
@@ -292,7 +292,7 @@
         try {
             const lessons = await window.QuizApi.get(`quizzes/available-lessons/?${params.toString()}`);
             if (!lessons.length) {
-                els.lessonList.innerHTML = '<div class="text-muted small px-2 py-1">Bu bo\'limda bo\'sh test darsi yo\'q — pastdan yangisini yarating.</div>';
+                els.lessonList.innerHTML = '<div class="text-muted small px-2 py-1">Bu bölimda böş test darsi yöq — pastdan yangisini yarating.</div>';
                 return;
             }
             els.lessonList.innerHTML = '';
@@ -386,7 +386,7 @@
     els.saveBtn.addEventListener('click', save);
     els.publishBtn.addEventListener('click', () => {
         if (links.length === 0) {
-            window.QuizApi.toast("Chop etish uchun kamida 1 ta savol qo'shing.", 'error');
+            window.QuizApi.toast("Çop etiş uçun kamida 1 ta savol qöşing.", 'error');
             return;
         }
         transition('publish');

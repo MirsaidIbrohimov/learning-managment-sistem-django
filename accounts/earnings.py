@@ -1,30 +1,30 @@
-"""Ustoz daromadini kasb (Profession) stavkalari bo'yicha hisoblash.
+"""Ustoz daromadini kasb (Profession) stavkalari böyiça hisoblaş.
 
-Har kasbning o'z stavkasi bor: ``Profession.price_per_video`` /
-``price_per_test`` / ``price_per_homework``. Ustoz bir nechta kasbga
-biriktirilgan bo'lsa, daromad har kasb bo'yicha alohida hisoblanib jamlanadi.
+Har kasbning öz stavkasi bor: ``Profession.price_per_video`` /
+``price_per_test`` / ``price_per_homework``. Ustoz bir neçta kasbga
+biriktirilgan bölsa, daromad har kasb böyiça alohida hisoblanib jamlanadi.
 
 Bu modul teacher va admin panellaridagi daromad hisob-kitobini bitta joyda
-saqlaydi — kod takrorlanishining oldini oladi (DRY).
+saqlaydi — kod takrorlanişining oldini oladi (DRY).
 
-Eslatma: video ichidagi "video-quiz" mukofoti (5+ savol uchun bir martalik)
+Eslatma: video içidagi "video-quiz" mukofoti (5+ savol uçun bir martalik)
 alohida mexanizm (``video_quiz`` app) va bu yerda hisoblanmaydi.
 """
 from django.db.models import Count
 
 from .models import Lesson
 
-# Ustozga to'lanadigan dars turlari (qolganlari bepul: dictionary, speaking).
+# Ustozga tölanadigan dars turlari (qolganlari bepul: dictionary, speaking).
 PAID_LESSON_TYPES = ('video', 'test', 'homework')
 
 
 def _rate_map(professions, lesson_type):
-    """{profession_id: stavka} — berilgan dars turi uchun."""
+    """{profession_id: stavka} — berilgan dars turi uçun."""
     return {p.id: p.teacher_rate(lesson_type) for p in professions}
 
 
 def _aggregate(prof_count_rows, rate_by_prof):
-    """Sof (DB'siz) yordamchi — test qilinadi.
+    """Sof (DB'siz) yordamçi — test qilinadi.
 
     prof_count_rows : ``[(profession_id, count), ...]``
     rate_by_prof    : ``{profession_id: rate}``
@@ -50,11 +50,11 @@ def _filter_lessons(professions, lesson_type, created_by=None, start=None, end=N
 
 
 def type_earnings(professions, lesson_type, *, created_by=None, start=None, end=None):
-    """Bitta dars turi uchun ``(count, total)`` — kasb stavkalariga qarab.
+    """Bitta dars turi uçun ``(count, total)`` — kasb stavkalariga qarab.
 
-    professions : Profession ro'yxati/queryset (ustoz biriktirilgan kasblar)
-    created_by  : faqat shu foydalanuvchi yaratgan darslar (ixtiyoriy)
-    start, end  : ``created_at`` oralig'i ``[start, end)`` (ixtiyoriy)
+    professions : Profession röyxati/queryset (ustoz biriktirilgan kasblar)
+    created_by  : faqat şu foydalanuvçi yaratgan darslar (ixtiyoriy)
+    start, end  : ``created_at`` oraliği ``[start, end)`` (ixtiyoriy)
     """
     professions = list(professions)
     if not professions:
@@ -66,7 +66,7 @@ def type_earnings(professions, lesson_type, *, created_by=None, start=None, end=
 
 
 def lesson_items(professions, lesson_type, *, created_by=None, start=None, end=None):
-    """Batafsil ro'yxat — har element o'z stavkasi (``rate``) bilan.
+    """Batafsil röyxat — har element öz stavkasi (``rate``) bilan.
 
     Har element: ``{id, title, profession__name, created_at, rate}``.
     """
@@ -82,10 +82,10 @@ def lesson_items(professions, lesson_type, *, created_by=None, start=None, end=N
 
 
 def period_summary(professions, *, created_by=None, start=None, end=None, with_items=False):
-    """video/test/homework bo'yicha ``{count, total[, items]}`` lug'ati.
+    """video/test/homework böyiça ``{count, total[, items]}`` luğati.
 
-    ``with_items=True`` bo'lsa, har tur uchun ro'yxat ham qaytadi va count/total
-    o'sha ro'yxatdan hisoblanadi (qo'shimcha aggregate so'rovsiz).
+    ``with_items=True`` bölsa, har tur uçun röyxat ham qaytadi va count/total
+    öşa röyxatdan hisoblanadi (qöşimça aggregate sörovsiz).
     """
     professions = list(professions)
     data = {}
@@ -105,7 +105,7 @@ def period_summary(professions, *, created_by=None, start=None, end=None, with_i
 
 
 def profession_rate_rows(professions):
-    """Shablon uchun stavkalar jadvali: ``[{name, video, test, homework}, ...]``."""
+    """Şablon uçun stavkalar jadvali: ``[{name, video, test, homework}, ...]``."""
     return [{
         'name': p.name,
         'video': p.price_per_video,
@@ -115,9 +115,9 @@ def profession_rate_rows(professions):
 
 
 def uniform_rate(professions, lesson_type):
-    """Barcha kasblarda stavka bir xil bo'lsa — o'sha qiymat; aks holda ``None``.
+    """Barça kasblarda stavka bir xil bölsa — öşa qiymat; aks holda ``None``.
 
-    Shablonda "Har biri X so'm" yozuvini ko'rsatish/berkitish uchun ishlatiladi.
+    Şablonda "Har biri X söm" yozuvini körsatish/berkitish uçun işlatiladi.
     """
     vals = {p.teacher_rate(lesson_type) for p in professions}
     return vals.pop() if len(vals) == 1 else None

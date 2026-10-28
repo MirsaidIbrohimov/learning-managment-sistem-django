@@ -16,12 +16,12 @@ def is_web_project(text):
 
 @register.filter
 def submission_plain(text):
-    """Rich-editor (contenteditable) HTML javobini toza, o'qiladigan matnga aylantiradi.
+    """Rich-editor (contenteditable) HTML javobini toza, öqiladigan matnga aylantiradi.
 
-    Masalan o'quvchi kod yozsa, muharrir uni `<div>&lt;!DOCTYPE...&gt;</div>` ko'rinishda
+    Masalan öquvçi kod yozsa, muharrir uni `<div>&lt;!DOCTYPE...&gt;</div>` körinişda
     saqlaydi. Bu filtr: <div>/<p> -> yangi qator, <br> -> yangi qator, qolgan teglarni
-    olib tashlaydi va &lt; kabi entitilarni dekod qiladi. Natija oddiy matn bo'lib qaytadi
-    (auto-escape qilinib ko'rsatiladi — XSS xavfsiz, kod/matn o'z holicha o'qiladi)."""
+    olib taşlaydi va &lt; kabi entitilarni dekod qiladi. Natija oddiy matn bölib qaytadi
+    (auto-escape qilinib körsatiladi — XSS xavfsiz, kod/matn öz holiça öqiladi)."""
     if not text:
         return ''
     from accounts.web_homework import decode_project, project_source
@@ -32,7 +32,7 @@ def submission_plain(text):
     t = re.sub(r'</(div|p|h[1-6]|li|tr|pre)\s*>', '\n', t, flags=re.IGNORECASE)
     t = re.sub(r'<br\s*/?>', '\n', t, flags=re.IGNORECASE)
     t = re.sub(r'<[^>]+>', '', t)          # qolgan teglar
-    t = _html.unescape(t)                  # &lt; -> < , &amp; -> & , &nbsp; -> bo'shliq
+    t = _html.unescape(t)                  # &lt; -> < , &amp; -> & , &nbsp; -> böşliq
     t = t.replace('\xa0', ' ')
     t = re.sub(r'\n{3,}', '\n\n', t)
     return t.strip()
@@ -200,8 +200,8 @@ def premium_name(user):
     name = user.full_name if hasattr(user, 'full_name') else str(user)
     
     if hasattr(user, 'is_premium') and user.is_premium:
-        # `format_html` ismni escape qiladi — ism foydalanuvchi kiritadigan maydon,
-        # `mark_safe(f'{name} ...')` bo'lsa XSS ochilib qolar edi.
+        # `format_html` ismni escape qiladi — ism foydalanuvçi kiritadigan maydon,
+        # `mark_safe(f'{name} ...')` bölsa XSS oçilib qolar edi.
         return format_html(
             '{} <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>',
             name,
@@ -223,11 +223,11 @@ def chr(value):
 
 @register.filter(name='safe_html')
 def safe_html(value):
-    """Saqlangan boy matnni (rich text) tozalab ko'rsatadi.
+    """Saqlangan boy matnni (rich text) tozalab körsatadi.
 
-    `|safe` o'rniga ishlatiladi: formatlash saqlanadi, lekin skript, `onerror=`
-    kabi hodisa atributlari va `javascript:` havolalar olib tashlanadi. Tozalash
-    o'qish paytida bajarilgani uchun bazadagi eski kontent ham himoyalanadi.
+    `|safe` örniga işlatiladi: formatlaş saqlanadi, lekin skript, `onerror=`
+    kabi hodisa atributlari va `javascript:` havolalar olib taşlanadi. Tozalaş
+    öqiş paytida bajarilgani uçun bazadagi eski kontent ham himoyalanadi.
     """
     from accounts.security import sanitize_html
     return mark_safe(sanitize_html(value or ''))

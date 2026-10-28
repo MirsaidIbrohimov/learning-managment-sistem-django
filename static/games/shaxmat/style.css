@@ -1,17 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════
- *  ROYAL CLUB — SHAXMAT overridelari (0 dan qayta yozilgan)
+ *  ROYAL CLUB — ŞAXMAT overridelari (0 dan qayta yozilgan)
  *  ../shashka/style.css (umumiy tizim) USTIDAN yuklanadi.
  *
- *  Bu yerda: 5 shaxmat temasi, figuralar (unicode), shox holati,
+ *  Bu yerda: 5 şaxmat temasi, figuralar (unicode), şox holati,
  *  hint nuqtalari, yegan figuralar, promotion tanlovi.
  * ═══════════════════════════════════════════════════════════════════ */
 
-/* ───────────────── 1. SHAXMAT TEMALARI (5) ───────────────────────── */
-/* Shashka'ning bazaviy tokenlari ustidan yoziladi                    */
+/* ───────────────── 1. ŞAXMAT TEMALARI (5) ───────────────────────── */
+/* Şaşka'ning bazaviy tokenlari ustidan yoziladi                    */
 
 :root, body[data-theme="navy"] {
     --accent: #7286c9; --accent-2: #a3b3e8;
-    --felt: #232c4e;                     /* tungi ko'k baxmal */
+    --felt: #232c4e;                     /* tungi kök baxmal */
     --felt-edge: #171e38;
     --sq-light: #e8e4d5;
     --sq-dark: #4a5583;
@@ -21,7 +21,7 @@
     --pc-white-face: #f7f1de;            /* oq figura yuzi */
     --pc-white-edge: #8a6527;            /* oq figura konturi */
     --pc-black-face: #262133;            /* qora figura yuzi */
-    --pc-black-edge: #a3b3e8;            /* qora figura yaltirog'i */
+    --pc-black-edge: #a3b3e8;            /* qora figura yaltiroği */
     --glow: rgba(114, 134, 201, 0.35);
 }
 body[data-theme="classic"] {
@@ -61,7 +61,7 @@ body[data-theme="crimson"] {
     --glow: rgba(198, 91, 100, 0.38);
 }
 
-/* Shaxmat swatch ranglari (shashka'nikini almashtiradi) */
+/* Şaxmat swatch ranglari (şaşka'nikini almaştiradi) */
 .theme-swatch[data-theme="navy"]    { background: linear-gradient(135deg, #232c4e, #7286c9); }
 .theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #6b4620, #f0d9b5); }
 .theme-swatch[data-theme="emerald"] { background: linear-gradient(135deg, #14532d, #3fae7c); }
@@ -98,7 +98,7 @@ body[data-theme="crimson"] {
         0 4px 7px rgba(0, 0, 0, 0.55);
     filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.45));
 }
-/* Qora figuralar — qora lak, tema rangida yaltiroq gardish */
+/* Qora figuralar — qora lak, tema rangida yaltiroq gardiş */
 #board .cell .piece-wrap.black {
     color: var(--pc-black-face);
     text-shadow:
@@ -108,9 +108,9 @@ body[data-theme="crimson"] {
     filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.55));
 }
 
-/* ───────────────── 3. SHAXMATGA XOS KATAK HOLATLARI ──────────────── */
+/* ───────────────── 3. ŞAXMATGA XOS KATAK HOLATLARI ──────────────── */
 
-/* Yurish mumkin (hint) — bo'sh katakka oltin nuqta */
+/* Yuriş mumkin (hint) — böş katakka oltin nuqta */
 #board .cell.hint { cursor: pointer; }
 #board .cell.hint::after {
     content: '';
@@ -123,7 +123,7 @@ body[data-theme="crimson"] {
     pointer-events: none;
     z-index: 1;
 }
-/* Figurali katakka hint — yeyish: qizil nishon halqa */
+/* Figurali katakka hint — yeyiş: qizil nişon halqa */
 #board .cell.hint:has(.piece-wrap)::after {
     width: auto; height: auto;
     inset: 8%;
@@ -134,7 +134,7 @@ body[data-theme="crimson"] {
     animation: captureRing 0.9s ease-in-out infinite;
 }
 
-/* Shox (in-check) — qizil xavf katagi */
+/* Şox (in-check) — qizil xavf katagi */
 #board .cell.in-check {
     box-shadow:
         inset 0 0 0 3px var(--danger),
@@ -178,11 +178,11 @@ body[data-theme="crimson"] {
     text-shadow: 0 0 14px var(--glow), 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
-/* ───────────────── 6. MOBIL MOSLASHUV ────────────────────────────── */
+/* ───────────────── 6. MOBIL MOSLAŞUV ────────────────────────────── */
 @media (max-width: 640px) {
     #board .cell .piece-wrap { font-size: clamp(1.35rem, 8.4vmin, 2.4rem); }
     .cap-pc { width: 25px; height: 25px; font-size: 1.1rem; }
 }
 
-/* Bu fayl: shaxmatning Royal Club qiyofasi — 5 tema, unicode figuralar,
+/* Bu fayl: şaxmatning Royal Club qiyofasi — 5 tema, unicode figuralar,
  * shox/hint/yeyish holatlari, yegan figuralar va promotion modali. */

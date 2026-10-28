@@ -59,8 +59,8 @@ def _request(method, path, *, json_body=None, idempotency_key=None):
         response = requests.request(method, endpoint, json=json_body, headers=_headers(idempotency_key),
                                     timeout=(5, 15))
     except requests.RequestException as exc:
-        logger.warning('inPAY so‘rovi bajarilmadi: %s', type(exc).__name__)
-        raise InpayError('inPAY bilan bog‘lanib bo‘lmadi. Keyinroq qayta urinib ko‘ring.') from None
+        logger.warning('inPAY sörovi bajarilmadi: %s', type(exc).__name__)
+        raise InpayError('inPAY bilan boğlanib bölmadi. Keyinroq qayta urinib köring.') from None
     try:
         payload = response.json()
     except ValueError:
@@ -73,20 +73,20 @@ def _request(method, path, *, json_body=None, idempotency_key=None):
     logger.warning('inPAY rad etdi: HTTP %s, code=%s, request_id=%s',
                    response.status_code, code or 'unknown', error.get('request_id', ''))
     if response.status_code == 404 or code == 'resource_missing':
-        raise InpayPaymentUnavailable('Oldingi to‘lov havolasi endi mavjud emas.')
+        raise InpayPaymentUnavailable('Oldingi tölov havolasi endi mavjud emas.')
     messages = {
         'invalid_api_key': 'inPAY kaliti yaroqsiz. Administratorga xabar bering.',
         'missing_authorization': 'inPAY kaliti yaroqsiz. Administratorga xabar bering.',
         'merchant_inactive': 'inPAY kassasi faol emas. Administratorga xabar bering.',
-        'ip_not_whitelisted': 'Server IP manzili inPAY oq ro‘yxatida yo‘q. Administratorga xabar bering.',
+        'ip_not_whitelisted': 'Server IP manzili inPAY oq röyxatida yöq. Administratorga xabar bering.',
         'domain_not_whitelisted': 'Sayt domeni inPAY kassasida ruxsat etilmagan. Administratorga xabar bering.',
-        'amount_too_small': 'inPAY orqali eng kam to‘lov 1 000 so‘m.',
+        'amount_too_small': 'inPAY orqali eng kam tölov 1 000 söm.',
     }
     if response.status_code == 429:
-        raise InpayError('inPAY hozir band. Birozdan so‘ng qayta urinib ko‘ring.', code)
+        raise InpayError('inPAY hozir band. Birozdan söng qayta urinib köring.', code)
     if response.status_code >= 500:
-        raise InpayError('inPAY vaqtincha javob bermayapti. Keyinroq qayta urinib ko‘ring.', code)
-    raise InpayError(messages.get(code, 'inPAY to‘lovni rad etdi. Administratorga xabar bering.'), code)
+        raise InpayError('inPAY vaqtinça javob bermayapti. Keyinroq qayta urinib köring.', code)
+    raise InpayError(messages.get(code, 'inPAY tölovni rad etdi. Administratorga xabar bering.'), code)
 
 
 def _title(order):
@@ -97,7 +97,7 @@ def _title(order):
         return f"Kurs xaridi — {order.course.name if order.course_id else ''} — #{order.student_id}"[:200]
     if order.purpose == 'exam':
         return f'Yakuniy imtihon — #{order.student_id}'
-    return f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"
+    return f"Oylik tölov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"
 
 
 def _webhook_url(return_url):
@@ -114,7 +114,7 @@ def _checked_checkout_url(value):
     parsed = urlparse(str(value or ''))
     host = parsed.hostname or ''
     if parsed.scheme != 'https' or not (host == 'inpay.uz' or host.endswith('.inpay.uz')):
-        raise InpayError('inPAY javobida kutilmagan to‘lov havolasi qaytdi.')
+        raise InpayError('inPAY javobida kutilmagan tölov havolasi qaytdi.')
     return str(value)
 
 
@@ -127,10 +127,10 @@ def _amount_minor(value):
 def create_bill(*, order, return_url):
     """Create one fixed-amount inPAY payment; callers persist the URL at once."""
     if order.currency != 'UZS' or order.amount_minor % 100:
-        raise InpayError('inPAY faqat butun so‘mdagi UZS to‘lovlarini qabul qiladi.')
+        raise InpayError('inPAY faqat butun sömdagi UZS tölovlarini qabul qiladi.')
     amount = order.amount_minor // 100
     if amount < MIN_AMOUNT_SOM:
-        raise InpayError('inPAY orqali eng kam to‘lov 1 000 so‘m.')
+        raise InpayError('inPAY orqali eng kam tölov 1 000 söm.')
     body = {
         'amount': amount,
         'currency': 'UZS',
@@ -148,7 +148,7 @@ def create_bill(*, order, return_url):
     data = _request('POST', '/payments/', json_body=body, idempotency_key=f'lms-{order.external_reference}')
     payment_id = data.get('id')
     if not isinstance(payment_id, str) or not payment_id or len(payment_id) > 100:
-        raise InpayError('inPAY javobida to‘lov identifikatori topilmadi.')
+        raise InpayError('inPAY javobida tölov identifikatori topilmadi.')
     metadata = data.get('metadata') if isinstance(data.get('metadata'), dict) else {}
     if (('amount' in data and data['amount'] != amount)
             or ('external_reference' in metadata and metadata['external_reference'] != order.external_reference)):
@@ -194,7 +194,7 @@ def normalize_payment(data, *, livemode=None):
 def fetch_bill(bill_id):
     """Retrieve the authoritative payment state for reconciliation."""
     if not isinstance(bill_id, str) or not bill_id:
-        raise InpayError('inPAY to‘lov identifikatori yo‘q.')
+        raise InpayError('inPAY tölov identifikatori yöq.')
     return normalize_payment(_request('GET', f'/payments/{quote(bill_id, safe="")}'))
 
 

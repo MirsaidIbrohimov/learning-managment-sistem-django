@@ -56,7 +56,7 @@
         });
     }
 
-    // Kurs dropdown'ini to'ldirish
+    // Kurs dropdown'ini töldiriş
     if (els.course) {
         courses.forEach((c) => {
             const opt = document.createElement('option');
@@ -69,11 +69,11 @@
             els.section.innerHTML = '';
             if (!c || !c.sections.length) {
                 els.section.disabled = true;
-                els.section.innerHTML = '<option value="">— Bo\'lim yo\'q —</option>';
+                els.section.innerHTML = '<option value="">— Bölim yöq —</option>';
                 return;
             }
             els.section.disabled = false;
-            els.section.appendChild(new Option('— Bo\'limni tanlang —', ''));
+            els.section.appendChild(new Option('— Bölimni tanlang —', ''));
             c.sections.forEach((s) => {
                 els.section.appendChild(new Option(s.title, s.id));
             });
@@ -86,8 +86,8 @@
 
     const TYPE_LABEL = {
         single_choice: 'Bitta tanlov',
-        multiple_choice: "Ko'p tanlov",
-        true_false: "To'g'ri / Noto'g'ri",
+        multiple_choice: "Köp tanlov",
+        true_false: "Töğri / Notöğri",
     };
 
     // ── Generate ───────────────────────────────────────────────────────────
@@ -102,7 +102,7 @@
                 return;
             }
             if (!sectionId) {
-                QuizApi.toast("Bo'limni tanlang.", 'error');
+                QuizApi.toast("Bölimni tanlang.", 'error');
                 return;
             }
             endpoint = 'questions/ai-preview-transcript/';
@@ -135,12 +135,12 @@
             const data = await QuizApi.post(endpoint, payload);
             drafts = (data.questions || []).map(normaliseDraft);
             if (!drafts.length) {
-                QuizApi.toast('AI bo\'sh natija qaytardi. Yana urinib ko\'ring.', 'error');
-                renderEmpty('Hech narsa qaytmadi.');
+                QuizApi.toast('AI böş natija qaytardi. Yana urinib köring.', 'error');
+                renderEmpty('Heç narsa qaytmadi.');
                 return;
             }
             renderDrafts();
-            QuizApi.toast(`${drafts.length} ta savol yaratildi. Ko'rib chiqing va saqlang.`, 'success');
+            QuizApi.toast(`${drafts.length} ta savol yaratildi. Körib çiqing va saqlang.`, 'success');
         } catch (e) {
             const errs = e.payload && Array.isArray(e.payload.errors) ? e.payload.errors.join(' ') : e.message;
             QuizApi.toast('Xatolik: ' + errs, 'error');
@@ -155,12 +155,12 @@
         const selected = drafts.filter((d) => d._selected !== false);
         const valid = selected.filter((d) => d._errors.length === 0);
         if (!valid.length) {
-            QuizApi.toast("Hech qaysi tanlangan savol to'liq emas. Xatoliklarni tuzating.", 'error');
+            QuizApi.toast("Heç qaysi tanlangan savol töliq emas. Xatoliklarni tuzating.", 'error');
             return;
         }
         if (selected.length > valid.length) {
             const skipped = selected.length - valid.length;
-            const ok = confirm(`${valid.length} ta savol saqlanadi. ${skipped} ta xato bo'lgani uchun o'tkazib yuboriladi. Davom etamizmi?`);
+            const ok = confirm(`${valid.length} ta savol saqlanadi. ${skipped} ta xato bölgani uçun ötkazib yuboriladi. Davom etamizmi?`);
             if (!ok) return;
         }
 
@@ -171,7 +171,7 @@
         els.saveBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Saqlanmoqda...';
         try {
             const data = await QuizApi.post('questions/ai-commit/', payload);
-            let msg = `${data.created} ta savol bazaga qo'shildi`;
+            let msg = `${data.created} ta savol bazaga qöşildi`;
             if (data.attached) msg += `, ${data.attached} tasi testga ulandi`;
             QuizApi.toast(msg + '.', 'success');
             if (data.rejected && data.rejected.length) {
@@ -186,9 +186,9 @@
                 }
             }, 800);
         } catch (e) {
-            QuizApi.toast('Saqlashda xatolik: ' + e.message, 'error');
+            QuizApi.toast('Saqlaşda xatolik: ' + e.message, 'error');
             els.saveBtn.disabled = false;
-            els.saveBtn.innerHTML = '<i class="bi bi-check2-circle"></i> Tanlanganlarni saqlash';
+            els.saveBtn.innerHTML = '<i class="bi bi-check2-circle"></i> Tanlanganlarni saqlaş';
         }
     });
 
@@ -197,7 +197,7 @@
         els.generateBtn.disabled = loading;
         els.generateBtn.innerHTML = loading
             ? '<i class="bi bi-hourglass-split"></i> Yaratilmoqda...'
-            : '<i class="bi bi-magic"></i> Yaratish';
+            : '<i class="bi bi-magic"></i> Yaratiş';
         if (loading) {
             els.previewBody.innerHTML = `
                 <div class="qz-empty">
@@ -205,7 +205,7 @@
                         <i class="bi bi-cpu"></i>
                     </div>
                     <h4>AI savollar yaratmoqda...</h4>
-                    <p>Bu 10-30 soniya davom etishi mumkin.</p>
+                    <p>Bu 10-30 soniya davom etişi mumkin.</p>
                 </div>`;
         }
     }
@@ -218,7 +218,7 @@
                     <i class="bi bi-exclamation-triangle"></i>
                 </div>
                 <h4>Natija topilmadi</h4>
-                <p>${escapeHtml(msg || "Yana urinib ko'ring.")}</p>
+                <p>${escapeHtml(msg || "Yana urinib köring.")}</p>
             </div>`;
         els.saveBtn.classList.add('d-none');
         els.selectedSummary.classList.add('d-none');
@@ -335,7 +335,7 @@
         const total = drafts.length;
         const selected = drafts.filter((d) => d._selected !== false);
         const ok = selected.filter((d) => d._errors.length === 0).length;
-        els.selectedSummary.textContent = `${ok} / ${selected.length} tanlangan to'g'ri (${total} jami)`;
+        els.selectedSummary.textContent = `${ok} / ${selected.length} tanlangan töğri (${total} jami)`;
         els.selectedSummary.classList.toggle('d-none', total === 0);
         els.saveBtn.classList.toggle('d-none', total === 0);
         els.saveBtn.disabled = ok === 0;
@@ -344,12 +344,12 @@
     // ── Validation (mirrors quiz/importers.py _validate_row) ──────────────
     function validateDraft(d) {
         const errors = [];
-        if (!d.text || !d.text.trim()) errors.push("Savol matni bo'sh.");
+        if (!d.text || !d.text.trim()) errors.push("Savol matni böş.");
         const nonEmpty = d.options.filter((o) => o.text && o.text.trim());
         if (nonEmpty.length < 2) errors.push('Kamida 2 ta variant kerak.');
         const correct = nonEmpty.filter((o) => o.is_correct);
-        if (correct.length === 0) errors.push("To'g'ri javob belgilanmagan.");
-        if (d.type === 'single_choice' && correct.length > 1) errors.push("Faqat bitta to'g'ri javob bo'lishi kerak.");
+        if (correct.length === 0) errors.push("Töğri javob belgilanmagan.");
+        if (d.type === 'single_choice' && correct.length > 1) errors.push("Faqat bitta töğri javob bölişi kerak.");
         const seen = new Set();
         for (const o of nonEmpty) {
             const t = o.text.trim().toLowerCase();

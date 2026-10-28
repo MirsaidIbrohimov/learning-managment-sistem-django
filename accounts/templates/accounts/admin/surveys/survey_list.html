@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load static %}
 
-{% block title %}So'rovnomalar - Admin{% endblock %}
-{% block topbar_title %}So'rovnomalar{% endblock %}
+{% block title %}Sörovnomalar - Admin{% endblock %}
+{% block topbar_title %}Sörovnomalar{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/survey.css' %}">
@@ -14,12 +14,12 @@
 <div class="sv-wrap">
     <div class="sv-head">
         <div>
-            <div class="sv-eyebrow">Boshqaruv</div>
-            <h1 class="sv-title">So'rovnomalar</h1>
-            <p class="sv-subtitle">Formalar yarating, kimga ko'rinishini belgilang va to'plangan javoblarni tahlil qiling.</p>
+            <div class="sv-eyebrow">Boşqaruv</div>
+            <h1 class="sv-title">Sörovnomalar</h1>
+            <p class="sv-subtitle">Formalar yarating, kimga körinişini belgilang va töplangan javoblarni tahlil qiling.</p>
         </div>
         <a href="{% url 'admin_survey_create' %}" class="sv-btn sv-btn-primary sv-btn-lg">
-            <i class="bi bi-plus-lg"></i> Yangi so'rovnoma
+            <i class="bi bi-plus-lg"></i> Yangi sörovnoma
         </a>
     </div>
 
@@ -55,11 +55,11 @@
     <div class="sv-toolbar">
         <div class="sv-search">
             <i class="bi bi-search"></i>
-            <input type="search" id="svSearch" placeholder="Nomi bo'yicha qidirish..." autocomplete="off">
+            <input type="search" id="svSearch" placeholder="Nomi böyiça qidiriş..." autocomplete="off">
         </div>
         <div class="sv-chips" id="svChips">
             <button type="button" class="sv-chip is-active" data-filter="all">
-                Barchasi <span class="sv-chip-count">{{ total_count }}</span>
+                Barçasi <span class="sv-chip-count">{{ total_count }}</span>
             </button>
             <button type="button" class="sv-chip" data-filter="active">
                 Faol <span class="sv-chip-count">{{ active_count }}</span>
@@ -83,8 +83,8 @@
                 <span class="sv-badge">
                     <i class="bi bi-people"></i>
                     {% if row.obj.target_role == 'all' %}Hammaga
-                    {% elif row.obj.target_role == 'student' %}O'quvchilar
-                    {% else %}O'qituvchilar{% endif %}
+                    {% elif row.obj.target_role == 'student' %}Öquvçilar
+                    {% else %}Öqituvçilar{% endif %}
                 </span>
 
                 {% if row.obj.is_required %}
@@ -116,7 +116,7 @@
 
             <div>
                 <div class="sv-fill-row">
-                    <span>To'ldirilganlik{% if row.target %} &middot; {{ row.responses }}/{{ row.target }}{% endif %}</span>
+                    <span>Töldirilganlik{% if row.target %} &middot; {{ row.responses }}/{{ row.target }}{% endif %}</span>
                     <span class="sv-fill-pct">{{ row.percent }}%</span>
                 </div>
                 <div class="sv-track">
@@ -128,21 +128,21 @@
                 <a href="{% url 'admin_survey_responses' row.obj.pk %}" class="sv-btn sv-btn-soft">
                     <i class="bi bi-bar-chart"></i> Javoblar
                 </a>
-                <a href="{% url 'admin_survey_responses_excel' row.obj.pk %}" class="sv-btn sv-btn-success" title="Excel formatda yuklab olish">
+                <a href="{% url 'admin_survey_responses_excel' row.obj.pk %}" class="sv-btn sv-btn-success" title="Excel formatda yuklab oliş">
                     <i class="bi bi-file-earmark-arrow-down"></i> Excel
                 </a>
                 <div class="sv-card-icons">
-                <a href="{% url 'admin_survey_edit' row.obj.pk %}" class="sv-btn sv-btn-soft sv-btn-icon" title="Tahrirlash">
+                <a href="{% url 'admin_survey_edit' row.obj.pk %}" class="sv-btn sv-btn-soft sv-btn-icon" title="Tahrirlaş">
                     <i class="bi bi-pencil"></i>
                 </a>
                 <form method="post" action="{% url 'admin_survey_toggle' row.obj.pk %}">
                     {% csrf_token %}
                     <button type="submit" class="sv-btn {% if row.obj.is_active %}sv-btn-soft{% else %}sv-btn-success{% endif %} sv-btn-icon"
-                            title="{% if row.obj.is_active %}To'xtatish{% else %}Faollashtirish{% endif %}">
+                            title="{% if row.obj.is_active %}Töxtatiş{% else %}Faollaştiriş{% endif %}">
                         <i class="bi {% if row.obj.is_active %}bi-pause-fill{% else %}bi-play-fill{% endif %}"></i>
                     </button>
                 </form>
-                <a href="{% url 'admin_survey_delete' row.obj.pk %}" class="sv-btn sv-btn-danger sv-btn-icon" title="O'chirish">
+                <a href="{% url 'admin_survey_delete' row.obj.pk %}" class="sv-btn sv-btn-danger sv-btn-icon" title="Öçiriş">
                     <i class="bi bi-trash3"></i>
                 </a>
                 </div>
@@ -153,16 +153,16 @@
 
     <div class="sv-no-result" id="svNoResult">
         <i class="bi bi-search" style="font-size:1.6rem; display:block; margin-bottom:0.6rem; opacity:.4;"></i>
-        Qidiruvga mos so'rovnoma topilmadi.
+        Qidiruvga mos sörovnoma topilmadi.
     </div>
 
     {% else %}
     <div class="sv-empty">
         <div class="sv-empty-icon"><i class="bi bi-ui-checks-grid"></i></div>
-        <h5>Hozircha so'rovnoma yo'q</h5>
-        <p>Birinchi formani yaratib, o'quvchi va o'qituvchilardan fikr to'plashni boshlang.</p>
+        <h5>Hozirça sörovnoma yöq</h5>
+        <p>Birinçi formani yaratib, öquvçi va öqituvçilardan fikr töplaşni boşlang.</p>
         <a href="{% url 'admin_survey_create' %}" class="sv-btn sv-btn-primary" style="margin-top:1.25rem;">
-            <i class="bi bi-plus-lg"></i> Yangi so'rovnoma
+            <i class="bi bi-plus-lg"></i> Yangi sörovnoma
         </a>
     </div>
     {% endif %}
@@ -172,7 +172,7 @@
 {% block extra_js %}
 <script>
 (function () {
-    // Progress barlarni animatsiya bilan to'ldirish
+    // Progress barlarni animatsiya bilan töldiriş
     requestAnimationFrame(function () {
         document.querySelectorAll('.sv-track-bar').forEach(function (bar) {
             bar.style.width = (bar.dataset.pct || 0) + '%';

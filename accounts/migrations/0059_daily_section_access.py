@@ -16,14 +16,14 @@ class Migration(migrations.Migration):
             name='DailySectionAccess',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('accessed_date', models.DateField(verbose_name='Kirish sanasi')),
+                ('accessed_date', models.DateField(verbose_name='Kiriş sanasi')),
                 ('profession', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.profession')),
                 ('section', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='accounts.section')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='daily_section_accesses', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Kunlik bo'lim kirish",
-                'verbose_name_plural': "Kunlik bo'lim kirishlar",
+                'verbose_name': "Kunlik bölim kiriş",
+                'verbose_name_plural': "Kunlik bölim kirişlar",
                 'unique_together': {('user', 'profession', 'accessed_date')},
             },
         ),

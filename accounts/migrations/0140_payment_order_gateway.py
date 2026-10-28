@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tezcheckpaymentorder',
             name='gateway',
-            field=models.CharField(choices=[('tezcheck', 'Tezcheck'), ('inpay', 'inPAY')], db_index=True, default='tezcheck', max_length=16, verbose_name="To'lov tizimi"),
+            field=models.CharField(choices=[('tezcheck', 'Tezcheck'), ('inpay', 'inPAY')], db_index=True, default='tezcheck', max_length=16, verbose_name="Tölov tizimi"),
         ),
         migrations.AddField(
             model_name='tezcheckpaymentorder',

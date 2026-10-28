@@ -76,7 +76,7 @@
     <div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-2">
-                <li class="breadcrumb-item"><a href="{% url 'admin_users' %}">Foydalanuvchilar</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'admin_users' %}">Foydalanuvçilar</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'admin_user_view' target_user.pk %}">{{ target_user.full_name }}</a></li>
                 <li class="breadcrumb-item active">Qurilmalar</li>
             </ol>
@@ -90,8 +90,8 @@
         {% if devices.count > 0 %}
         <form method="post" action="{% url 'admin_logout_all_user_devices' target_user.pk %}" style="display:inline;">
             {% csrf_token %}
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Barcha qurilmalardan chiqarilsinmi?')">
-                <i class="bi bi-box-arrow-right me-1"></i>Barchasidan chiqarish
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Barça qurilmalardan çiqarilsinmi?')">
+                <i class="bi bi-box-arrow-right me-1"></i>Barçasidan çiqariş
             </button>
         </form>
         {% endif %}
@@ -132,7 +132,7 @@
                         {% for d in devices %}{% if d.is_trusted %}{% with c=1 %}{{ c }}{% endwith %}{% endif %}{% empty %}0{% endfor %}
                     </div>
                     {% endwith %}
-                    <div class="text-muted small">Ishonchli qurilmalar</div>
+                    <div class="text-muted small">Işonçli qurilmalar</div>
                 </div>
             </div>
         </div>
@@ -142,7 +142,7 @@
 <!-- Devices List -->
 <div class="ios-card">
     <div class="p-3 border-bottom" style="border-color: var(--card-border) !important;">
-        <i class="bi bi-list me-2"></i>Qurilmalar ro'yxati
+        <i class="bi bi-list me-2"></i>Qurilmalar röyxati
     </div>
     
     {% if devices %}
@@ -164,7 +164,7 @@
             <div class="d-flex align-items-center gap-2">
                 <strong style="color: var(--text-main);">{{ device.device_name }}</strong>
                 {% if device.is_trusted %}
-                <span class="badge bg-success">Ishonchli</span>
+                <span class="badge bg-success">Işonçli</span>
                 {% endif %}
                 {% if device.sessions.filter.is_active %}
                 <span class="badge bg-primary">Faol</span>
@@ -183,8 +183,8 @@
         <div>
             <a href="{% url 'admin_logout_user_device' target_user.pk device.pk %}" 
                class="btn btn-sm btn-outline-danger rounded-pill"
-               onclick="return confirm('Bu qurilmadan chiqarilsinmi?')">
-                <i class="bi bi-box-arrow-right me-1"></i>Chiqarish
+               onclick="return confirm('Bu qurilmadan çiqarilsinmi?')">
+                <i class="bi bi-box-arrow-right me-1"></i>Çiqariş
             </a>
         </div>
     </div>
@@ -192,8 +192,8 @@
     {% else %}
     <div class="text-center py-5 text-muted">
         <i class="bi bi-laptop fs-1"></i>
-        <h5 class="mt-3">Qurilmalar yo'q</h5>
-        <p>Bu foydalanuvchi hali hech qanday qurilmadan kirmagan</p>
+        <h5 class="mt-3">Qurilmalar yöq</h5>
+        <p>Bu foydalanuvçi hali heç qanday qurilmadan kirmagan</p>
     </div>
     {% endif %}
 </div>

@@ -36,9 +36,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('given_date', models.DateField(auto_now_add=True, verbose_name='Berilgan sana')),
-                ('return_date', models.DateField(verbose_name='Qaytarish sanasi')),
+                ('return_date', models.DateField(verbose_name='Qaytariş sanasi')),
                 ('actual_return_date', models.DateField(blank=True, null=True, verbose_name='Haqiqiy qaytarilgan sana')),
-                ('status', models.CharField(choices=[('active', 'Faol'), ('returned', 'Qaytarilgan'), ('overdue', "Muddati o'tgan")], default='active', max_length=20, verbose_name='Holat')),
+                ('status', models.CharField(choices=[('active', 'Faol'), ('returned', 'Qaytarilgan'), ('overdue', "Muddati ötgan")], default='active', max_length=20, verbose_name='Holat')),
                 ('notes', models.TextField(blank=True, null=True, verbose_name='Izoh')),
                 ('reminder_sent_3days', models.BooleanField(default=False, verbose_name='3 kun oldin eslatma yuborildi')),
                 ('reminder_sent_today', models.BooleanField(default=False, verbose_name='Bugun eslatma yuborildi')),
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('book', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rentals', to='accounts.book', verbose_name='Kitob')),
                 ('given_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='books_given', to=settings.AUTH_USER_MODEL, verbose_name='Kim berdi')),
                 ('returned_to', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='books_received', to=settings.AUTH_USER_MODEL, verbose_name='Kim qabul qildi')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='book_rentals', to=settings.AUTH_USER_MODEL, verbose_name="O'quvchi")),
+                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='book_rentals', to=settings.AUTH_USER_MODEL, verbose_name="Öquvçi")),
             ],
             options={
                 'verbose_name': 'Kitob ijarasi',

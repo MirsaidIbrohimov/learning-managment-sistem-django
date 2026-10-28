@@ -1,28 +1,28 @@
 """
-Telegram'dan HAQIQIY (tekshirilgan) custom_emoji_id va stiker file_id larni
-yig'ib, telegram_bot/premium_assets.json fayliga yozadi.
+Telegram'dan HAQIQIY (tekşirilgan) custom_emoji_id va stiker file_id larni
+yiğib, telegram_bot/premium_assets.json fayliga yozadi.
 
 Bu buyruq Telegram serverga ulana oladigan joyda (sizning serveringizda yoki
-lokal mashinangizda) ishlatilishi kerak.
+lokal maşinangizda) işlatilişi kerak.
 
-Ishlatish:
+Işlatiş:
 
-  # Custom emoji to'plamidan (animatsiyali premium emoji) emoji->id xaritasi:
+  # Custom emoji töplamidan (animatsiyali premium emoji) emoji->id xaritasi:
   python manage.py discover_telegram_assets --emoji-set <emoji_set_short_name>
 
-  # Oddiy stiker to'plamidan file_id larni ko'rish/biriktirish:
+  # Oddiy stiker töplamidan file_id larni körish/biriktirish:
   python manage.py discover_telegram_assets --sticker-set <sticker_set_short_name>
 
-  # Bir necha to'plam birga:
+  # Bir neça töplam birga:
   python manage.py discover_telegram_assets \
       --emoji-set MySet --sticker-set MyStickers
 
 Eslatma:
-  * --emoji-set faqat "custom emoji" (custom_emoji_id bo'lgan) to'plamlar uchun.
-  * --sticker-set oddiy stikerlar uchun. Buyruq har bir stikerni emojisi bilan
-    chiqaradi va emoji bo'yicha voqealarga (welcome/success/error...) avtomatik
-    biriktirishga harakat qiladi. Keyin premium_assets.json'ni qo'lda
-    tahrirlashingiz mumkin.
+  * --emoji-set faqat "custom emoji" (custom_emoji_id bölgan) töplamlar uçun.
+  * --sticker-set oddiy stikerlar uçun. Buyruq har bir stikerni emojisi bilan
+    çiqaradi va emoji böyiça voqealarga (welcome/success/error...) avtomatik
+    biriktirişga harakat qiladi. Keyin premium_assets.json'ni qölda
+    tahrirlaşingiz mumkin.
 """
 
 import json
@@ -37,7 +37,7 @@ _BASE_DIR = os.path.dirname(
 )
 _ASSETS_PATH = os.path.join(_BASE_DIR, "premium_assets.json")
 
-# Stiker emojisi -> voqea nomi (avtomatik biriktirish uchun taxminiy xarita)
+# Stiker emojisi -> voqea nomi (avtomatik biriktiriş uçun taxminiy xarita)
 _EVENT_BY_EMOJI = {
     "👋": "welcome", "🤝": "welcome",
     "✅": "success", "👍": "success", "🎯": "success",
@@ -52,13 +52,13 @@ _EVENT_BY_EMOJI = {
 
 
 class Command(BaseCommand):
-    help = "Telegram'dan haqiqiy custom_emoji_id va stiker file_id larni yig'adi"
+    help = "Telegram'dan haqiqiy custom_emoji_id va stiker file_id larni yiğadi"
 
     def add_arguments(self, parser):
         parser.add_argument("--emoji-set", action="append", default=[],
-                            help="Custom emoji to'plami short_name (bir nechta marta)")
+                            help="Custom emoji töplami short_name (bir neçta marta)")
         parser.add_argument("--sticker-set", action="append", default=[],
-                            help="Oddiy stiker to'plami short_name (bir nechta marta)")
+                            help="Oddiy stiker töplami short_name (bir neçta marta)")
 
     def _get_set(self, bot_token, name):
         url = f"https://api.telegram.org/bot{bot_token}/getStickerSet"
@@ -93,7 +93,7 @@ class Command(BaseCommand):
         sticker_sets = opts["sticker_set"]
         if not emoji_sets and not sticker_sets:
             self.stdout.write(self.style.WARNING(
-                "Hech narsa berilmadi. Misol:\n"
+                "Heç narsa berilmadi. Misol:\n"
                 "  python manage.py discover_telegram_assets --emoji-set <name>\n"
                 "  python manage.py discover_telegram_assets --sticker-set <name>"))
             return
@@ -102,9 +102,9 @@ class Command(BaseCommand):
         assets.setdefault("custom_emoji", {})
         assets.setdefault("stickers", {})
 
-        # --- Custom emoji to'plamlari ---
+        # --- Custom emoji töplamlari ---
         for name in emoji_sets:
-            self.stdout.write(f"Custom emoji to'plami: {name}")
+            self.stdout.write(f"Custom emoji töplami: {name}")
             result = self._get_set(bot_token, name)
             if not result:
                 continue
@@ -116,11 +116,11 @@ class Command(BaseCommand):
                     assets["custom_emoji"][emoji] = str(eid)
                     count += 1
             self.stdout.write(self.style.SUCCESS(
-                f"  ✓ {count} ta custom emoji qo'shildi"))
+                f"  ✓ {count} ta custom emoji qöşildi"))
 
-        # --- Oddiy stiker to'plamlari ---
+        # --- Oddiy stiker töplamlari ---
         for name in sticker_sets:
-            self.stdout.write(f"Stiker to'plami: {name}")
+            self.stdout.write(f"Stiker töplami: {name}")
             result = self._get_set(bot_token, name)
             if not result:
                 continue
@@ -139,4 +139,4 @@ class Command(BaseCommand):
             f"\nSaqlandi: {_ASSETS_PATH}\n"
             f"  custom_emoji: {len(assets['custom_emoji'])} ta\n"
             f"  stickers: {sum(1 for v in assets['stickers'].values() if v)} ta biriktirilgan\n"
-            "Kerak bo'lsa faylni qo'lda tahrirlab voqealarga to'g'ri stiker biriktiring."))
+            "Kerak bölsa faylni qölda tahrirlab voqealarga töğri stiker biriktiring."))

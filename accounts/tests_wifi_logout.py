@@ -48,4 +48,4 @@ class WiFiAutoLogoutTest(TestCase):
 
         # Check that warning message is added
         messages = list(get_messages(response.wsgi_request))
-        self.assertTrue(any("Wi-Fi tarmog'ingiz o'zgarganligi sababli" in str(m) for m in messages))
+        self.assertTrue(any("Wi-Fi tarmoğingiz özgarganligi sababli" in str(m) for m in messages))

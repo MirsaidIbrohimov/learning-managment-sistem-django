@@ -5,13 +5,13 @@ from django.conf import settings
 
 
 class Command(BaseCommand):
-    help = "Bot webhookni doimiy qayta sozlash va serverning sleep bo'lishini oldini olish"
+    help = "Bot webhookni doimiy qayta sozlaş va serverning sleep bölişini oldini oliş"
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--once',
             action='store_true',
-            help='Faqat bir marta ishlatish (cron uchun)',
+            help='Faqat bir marta işlatiş (cron uçun)',
         )
         parser.add_argument(
             '--interval',
@@ -34,7 +34,7 @@ class Command(BaseCommand):
 
         interval = options['interval']
         self.stdout.write(self.style.SUCCESS(
-            f"Bot keep-alive ishga tushdi (har {interval} soniyada)..."
+            f"Bot keep-alive işga tuşdi (har {interval} soniyada)..."
         ))
 
         while True:
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             time.sleep(interval)
 
     def _do_keepalive(self, bot_token, site_url):
-        # 1. Saytga ping — sleep mode'dan uyg'otish
+        # 1. Saytga ping — sleep mode'dan uyğotiş
         try:
             resp = requests.get(f"{site_url}/telegrambotlms/health/", timeout=15)
             self.stdout.write(f"Ping: {resp.status_code}")
@@ -57,7 +57,7 @@ class Command(BaseCommand):
             except Exception:
                 pass
 
-        # 2. Webhook holatini tekshirish
+        # 2. Webhook holatini tekşiriş
         webhook_url = f"{site_url}/telegrambotlms/webhook/"
         try:
             resp = requests.get(
@@ -72,7 +72,7 @@ class Command(BaseCommand):
             if last_error:
                 self.stderr.write(f"Webhook xatolik: {last_error}")
 
-            # Webhook buzilgan yoki URL noto'g'ri bo'lsa qayta o'rnatish
+            # Webhook buzilgan yoki URL notöğri bölsa qayta örnatiş
             need_reset = (
                 current_url != webhook_url
                 or last_error
@@ -80,9 +80,9 @@ class Command(BaseCommand):
             )
 
             if need_reset:
-                self.stdout.write("Webhook qayta o'rnatilmoqda...")
-                # deleteWebhook chaqirilmaydi: setWebhook URL'ni o'zi
-                # almashtiradi, ketma-ket ikkita chaqiruv esa 429 beradi.
+                self.stdout.write("Webhook qayta örnatilmoqda...")
+                # deleteWebhook çaqirilmaydi: setWebhook URL'ni özi
+                # almaştiradi, ketma-ket ikkita çaqiruv esa 429 beradi.
                 resp = requests.post(
                     f"https://api.telegram.org/bot{bot_token}/setWebhook",
                     json={
@@ -97,11 +97,11 @@ class Command(BaseCommand):
                 data = resp.json()
                 if data.get('ok'):
                     self.stdout.write(self.style.SUCCESS(
-                        f"Webhook o'rnatildi: {webhook_url}"
+                        f"Webhook örnatildi: {webhook_url}"
                     ))
                 elif data.get('error_code') == 429:
                     # Keyingi keep-alive siklida qayta uriniladi.
-                    self.stdout.write("Telegram cheklovi (429) — keyingi siklda qayta uriniladi.")
+                    self.stdout.write("Telegram çeklovi (429) — keyingi siklda qayta uriniladi.")
                 else:
                     self.stderr.write(f"Webhook xatolik: {data}")
             else:
@@ -109,4 +109,4 @@ class Command(BaseCommand):
                     f"Webhook OK (pending: {pending})"
                 )
         except Exception as e:
-            self.stderr.write(f"Webhook tekshirishda xatolik: {e}")
+            self.stderr.write(f"Webhook tekşirişda xatolik: {e}")

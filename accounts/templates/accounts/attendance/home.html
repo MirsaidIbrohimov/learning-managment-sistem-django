@@ -1,7 +1,7 @@
 {% extends 'accounts/attendance/_base.html' %}
 
 {% block title %}Davomat — Guruhlar{% endblock %}
-{% block topbar_title %}O'quvchilar davomati{% endblock %}
+{% block topbar_title %}Öquvçilar davomati{% endblock %}
 {% block topbar_actions %}
     {% if user.role == 'teacher' %}
     <a href="{% url 'teacher:dashboard' %}" class="att-back">
@@ -227,9 +227,9 @@
             <h2>Guruhlarni tanlang</h2>
             <div class="subtitle">
                 {% if user.role == 'teacher' %}
-                    O'zingiz olib boradigan guruhlar
+                    Özingiz olib boradigan guruhlar
                 {% else %}
-                    Barcha faol guruhlar
+                    Barça faol guruhlar
                 {% endif %}
                 &nbsp;·&nbsp; {{ today|date:"d.m.Y, l" }}
             </div>
@@ -279,7 +279,7 @@
             <div class="ah-card-row">
                 <i class="bi bi-people"></i>
                 <div>
-                    <strong>{{ g.students_count }} o'quvchi</strong>
+                    <strong>{{ g.students_count }} öquvçi</strong>
                 </div>
             </div>
             {% with status=group_status_map|default_if_none:'' %}
@@ -296,7 +296,7 @@
         </div>
         <div class="ah-card-footer">
             <a href="{% url 'attendance_mark' g.pk %}" class="ah-btn ah-btn-primary">
-                <i class="bi bi-check2-square"></i> Davomat qilish
+                <i class="bi bi-check2-square"></i> Davomat qiliş
             </a>
             <a href="{% url 'attendance_report' g.pk %}" class="ah-btn ah-btn-outline" title="Hisobot">
                 <i class="bi bi-file-earmark-bar-graph"></i>
@@ -308,10 +308,10 @@
 </div>
 {% endif %}
 
-<!-- Barcha guruhlar -->
+<!-- Barça guruhlar -->
 {% if groups %}
 <div class="ah-section-title">
-    <h5><i class="bi bi-collection-fill"></i> Barcha guruhlar</h5>
+    <h5><i class="bi bi-collection-fill"></i> Barça guruhlar</h5>
     <span class="count-badge">{{ groups|length }} guruh</span>
 </div>
 <div class="ah-grid">
@@ -341,7 +341,7 @@
             </div>
             <div class="ah-card-row">
                 <i class="bi bi-people"></i>
-                <div><strong>{{ g.students_count }}</strong> o'quvchi</div>
+                <div><strong>{{ g.students_count }}</strong> öquvçi</div>
             </div>
             {% if g.teacher and can_edit_all %}
             <div class="ah-card-row">
@@ -364,12 +364,12 @@
 {% else %}
 <div class="ah-empty">
     <div class="ah-empty-icon"><i class="bi bi-clipboard-x"></i></div>
-    <h5>Hozircha guruh yo'q</h5>
+    <h5>Hozirça guruh yöq</h5>
     <p>
         {% if user.role == 'teacher' %}
             Sizga hali biror guruh biriktirilmagan.
         {% else %}
-            Hozircha faol guruh mavjud emas.
+            Hozirça faol guruh mavjud emas.
         {% endif %}
     </p>
 </div>

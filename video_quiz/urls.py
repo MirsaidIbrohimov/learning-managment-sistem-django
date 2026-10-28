@@ -19,15 +19,15 @@ urlpatterns = [
     path('api/quiz/<int:pk>/toggle/', views.api_quiz_toggle, name='api_quiz_toggle'),
     path('api/quiz/<int:pk>/duplicate/', views.api_quiz_duplicate, name='api_quiz_duplicate'),
 
-    # O'quvchi pleer API
+    # Öquvçi pleer API
     path('api/player/<int:video_id>/', views.api_player_quizzes, name='api_player_quizzes'),
     path('api/player/submit/', views.api_player_submit, name='api_player_submit'),
 
     # Admin sahifasi
     path('admin/', views.admin_quiz_list, name='admin_list'),
 
-    # O'quvchi tarixi
+    # Öquvçi tarixi
     path('history/', views.student_history, name='student_history'),
 ]
 
-# Bu fayl: video-quiz modulining URL marshrutlari (sahifalar + JSON API).
+# Bu fayl: video-quiz modulining URL marşrutlari (sahifalar + JSON API).

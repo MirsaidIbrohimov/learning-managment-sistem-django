@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='blockedsection',
             name='section',
-            field=models.CharField(choices=[('sozlamalar', 'Sozlamalar'), ('qurilmalar', 'Qurilmalar'), ('reyting', 'Reyting'), ('postlar', 'Postlar'), ('market', 'Market'), ('yordam', 'Yordam'), ('vazifalar', 'Vazifalar'), ('xabarlar', 'Xabarlar'), ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'), ('profili', 'Profile'), ('startup', 'MY StartUp')], max_length=50, unique=True, verbose_name="Bo'lim"),
+            field=models.CharField(choices=[('sozlamalar', 'Sozlamalar'), ('qurilmalar', 'Qurilmalar'), ('reyting', 'Reyting'), ('postlar', 'Postlar'), ('market', 'Market'), ('yordam', 'Yordam'), ('vazifalar', 'Vazifalar'), ('xabarlar', 'Xabarlar'), ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'), ('profili', 'Profile'), ('startup', 'MY StartUp')], max_length=50, unique=True, verbose_name="Bölim"),
         ),
     ]

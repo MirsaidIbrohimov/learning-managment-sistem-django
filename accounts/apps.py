@@ -10,16 +10,16 @@ from django.db.backends.signals import connection_created
 def _tune_sqlite(sender, connection, **kwargs):
     """SQLite sozlamalari.
 
-    journal_mode bu yerda o'zgartirilmaydi — u config/__init__.py da (DELETE)
-    belgilanadi. Ikki joyda turli rejim (WAL/DELETE) qo'yilsa, har yangi
-    ulanish rejimni almashtirishga urinib "database is locked" beradi.
+    journal_mode bu yerda özgartirilmaydi — u config/__init__.py da (DELETE)
+    belgilanadi. Ikki joyda turli rejim (WAL/DELETE) qöyilsa, har yangi
+    ulaniş rejimni almaştirişga urinib "database is locked" beradi.
     """
     if connection.vendor != 'sqlite':
         return
     with connection.cursor() as cursor:
         cursor.execute('PRAGMA synchronous=NORMAL;')
 
-# Management buyruqlarida (migrate va h.k.) auto-tuzatishni o'tkazib yuboramiz
+# Management buyruqlarida (migrate va h.k.) auto-tuzatishni ötkazib yuboramiz
 _FIX_SKIP = {'migrate', 'makemigrations', 'collectstatic', 'createsuperuser',
              'shell', 'dbshell', 'test', 'fix_encoding', 'check', 'loaddata', 'dumpdata'}
 
@@ -32,27 +32,27 @@ class AccountsConfig(AppConfig):
         from django.conf import settings
         connection_created.connect(_tune_sqlite, dispatch_uid='accounts-sqlite-wal')
         from . import email_signals  # noqa: F401 — register transactional email hooks
-        from . import attendance_auto  # noqa: F401 — login bo'lganda avtomatik davomat
+        from . import attendance_auto  # noqa: F401 — login bölganda avtomatik davomat
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return
         if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true' and '--noreload' not in sys.argv:
             return
         if os.environ.get('RUN_MAIN') == 'true' or not os.environ.get('RUN_MAIN'):
-            # Ikki marta ishga tushishini oldini olish
+            # Ikki marta işga tuşişini oldini oliş
             if getattr(self.__class__, '_ai_checker_started', False):
                 return
             self.__class__._ai_checker_started = True
 
-            # ── Auto-tuzatish: shablonlardagi UTF-8 bo'lmagan baytlar ──
-            # (UnicodeDecodeError 0x97 kabi xatolar serverda qayta ishga
-            #  tushganda avtomatik tuzatiladi — qo'lda hech narsa kerak emas)
+            # ── Auto-tuzatish: şablonlardagi UTF-8 bölmagan baytlar ──
+            # (UnicodeDecodeError 0x97 kabi xatolar serverda qayta işga
+            #  tuşganda avtomatik tuzatiladi — qölda heç narsa kerak emas)
             if settings.RUN_STARTUP_TEMPLATE_REPAIR and not _FIX_SKIP.intersection(sys.argv):
                 try:
                     from accounts.management.commands.fix_encoding import repair_templates
                     fixed, scanned = repair_templates(dry=False, log=lambda m: None)
                     if fixed:
-                        print(f"[fix_encoding] Avtomatik tuzatildi: {fixed} ta shablon fayl "
-                              f"({scanned} tekshirildi). UnicodeDecodeError bartaraf etildi.")
+                        print(f"[fix_encoding] Avtomatik tuzatildi: {fixed} ta şablon fayl "
+                              f"({scanned} tekşirildi). UnicodeDecodeError bartaraf etildi.")
                 except Exception as e:
                     print(f"[fix_encoding] Auto-tuzatish xatosi (e'tiborsiz): {e}")
 
@@ -79,8 +79,8 @@ class AccountsConfig(AppConfig):
 
     @staticmethod
     def _ai_homework_loop():
-        """Har 5 daqiqada tekshirilmagan vazifalarni AI bilan tekshiradi"""
-        time.sleep(30)  # Server to'liq ishga tushguncha kutish
+        """Har 5 daqiqada tekşirilmagan vazifalarni AI bilan tekşiradi"""
+        time.sleep(30)  # Server töliq işga tuşgunça kutiş
         while True:
             try:
                 from accounts.management.commands.check_ai_homework import Command

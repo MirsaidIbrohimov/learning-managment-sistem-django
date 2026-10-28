@@ -1,25 +1,25 @@
 ﻿<section class="card3 glass" id="personal-info" data-rv>
-    <div class="hd"><h2><i class="bi bi-person" style="color:var(--acc)"></i> Men haqimda</h2><a class="btn3" href="{% url 'profile_edit' %}#personal" data-mag><i class="bi bi-pencil"></i> Tahrirlash</a></div>
+    <div class="hd"><h2><i class="bi bi-person" style="color:var(--acc)"></i> Men haqimda</h2><a class="btn3" href="{% url 'profile_edit' %}#personal" data-mag><i class="bi bi-pencil"></i> Tahrirlaş</a></div>
     <dl class="info3" data-stagger>
         <div><small>Ism</small><dd><b{% if not user.first_name %} class="empty"{% endif %}>{{ user.first_name|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Familiya</small><dd><b{% if not user.last_name %} class="empty"{% endif %}>{{ user.last_name|default:"Kiritilmagan" }}</b></dd></div>
-        <div><small>Tug‘ilgan sana</small><dd><b{% if not user.birth_date %} class="empty"{% endif %}>{{ user.birth_date|date:"d.m.Y"|default:"Kiritilmagan" }}</b></dd></div>
+        <div><small>Tuğilgan sana</small><dd><b{% if not user.birth_date %} class="empty"{% endif %}>{{ user.birth_date|date:"d.m.Y"|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Jinsi</small><dd><b{% if not user.gender %} class="empty"{% endif %}>{{ user.get_gender_display|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Telefon raqami</small><dd><b{% if not user.phone %} class="empty"{% endif %}>{{ user.phone|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Email</small><dd><b{% if not user.email %} class="empty"{% endif %}>{{ user.email|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Millati</small><dd><b{% if not user.nationality %} class="empty"{% endif %}>{{ user.nationality|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Manzil</small><dd><b{% if not user.address %} class="empty"{% endif %}>{{ user.address|default:"Kiritilmagan" }}</b></dd></div>
     </dl>
-    {% if user.pending_email %}<p class="note3"><i class="bi bi-envelope" style="color:var(--gold)"></i> {{ user.pending_email }} — email tasdiqlanishi kutilmoqda.</p>{% endif %}
-    <div class="bio"><b style="color:var(--ink);display:block;margin-bottom:4px">Qisqacha tanishuv</b>{{ user.bio|default:"O‘zingiz haqingizda hali ma’lumot kiritmagansiz."|linebreaksbr }}</div>
-    {% if user.obektivka %}<details class="disc"><summary>Obyektivkani ko‘rish</summary><p>{{ user.obektivka|linebreaksbr }}</p></details>{% endif %}
+    {% if user.pending_email %}<p class="note3"><i class="bi bi-envelope" style="color:var(--gold)"></i> {{ user.pending_email }} — email tasdiqlanişi kutilmoqda.</p>{% endif %}
+    <div class="bio"><b style="color:var(--ink);display:block;margin-bottom:4px">Qisqaça tanişuv</b>{{ user.bio|default:"Özingiz haqingizda hali ma’lumot kiritmagansiz."|linebreaksbr }}</div>
+    {% if user.obektivka %}<details class="disc"><summary>Obyektivkani köriş</summary><p>{{ user.obektivka|linebreaksbr }}</p></details>{% endif %}
 </section>
 
 {% if user.role == 'student' %}
 <section class="card3 glass" id="education-info" data-rv>
     <h2><i class="bi bi-mortarboard" style="color:var(--acc2)"></i> Ta’lim va oila</h2>
     <dl class="info3" data-stagger>
-        <div><small>Yo‘nalish</small><dd><b>{{ user.profession.name|default:"Belgilanmagan" }}</b></dd></div>
+        <div><small>Yönaliş</small><dd><b>{{ user.profession.name|default:"Belgilanmagan" }}</b></dd></div>
         <div><small>Maktab</small><dd><b>{{ user.school_name|default:"Kiritilmagan" }}{% if user.school_number %} · {{ user.school_number }}-maktab{% endif %}</b></dd></div>
         <div><small>Otasining ismi</small><dd><b>{{ user.father_name|default:"Kiritilmagan" }}{% if user.father_deceased %} (vafot etgan){% endif %}</b></dd></div>
         <div><small>Otasining telefoni</small><dd><b>{{ user.father_phone|default:"Kiritilmagan" }}</b></dd></div>
@@ -27,24 +27,24 @@
         <div><small>Onasining telefoni</small><dd><b>{{ user.mother_phone|default:"Kiritilmagan" }}</b></dd></div>
         <div><small>Ota-ona aloqa raqami</small><dd><b>{{ user.parent_phone|default:"Kiritilmagan" }}</b></dd></div>
     </dl>
-    <p class="note3"><i class="bi bi-info-circle"></i> Ta’lim va oila ma’lumotlarini tuzatish uchun administratorga murojaat qiling.</p>
+    <p class="note3"><i class="bi bi-info-circle"></i> Ta’lim va oila ma’lumotlarini tuzatiş uçun administratorga murojaat qiling.</p>
 </section>
 {% endif %}
 
 <section class="card3 glass" id="documents-info" data-rv>
-    <div class="hd"><h2><i class="bi bi-folder2" style="color:var(--acc2)"></i> Shaxsiy hujjatlarim</h2><a class="btn3" href="{% url 'profile_edit' %}#documents" data-mag><i class="bi bi-upload"></i> Fayl yuklash</a></div>
+    <div class="hd"><h2><i class="bi bi-folder2" style="color:var(--acc2)"></i> Şaxsiy hujjatlarim</h2><a class="btn3" href="{% url 'profile_edit' %}#documents" data-mag><i class="bi bi-upload"></i> Fayl yuklaş</a></div>
     <div class="docs" data-stagger>
-        <div class="doc"><i class="bi bi-person-vcard"></i><div><b>ID karta / Pasport</b><small>{% if user.id_card %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></div>{% if user.id_card %}<a href="{{ user.id_card.url }}" target="_blank" rel="noopener" aria-label="ID karta yoki pasportni ko‘rish">Ko‘rish ↗</a>{% endif %}</div>
-        <div class="doc"><i class="bi bi-file-earmark-text"></i><div><b>Tug‘ilganlik guvohnomasi</b><small>{% if user.birth_certificate %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></div>{% if user.birth_certificate %}<a href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener" aria-label="Tug‘ilganlik guvohnomasini ko‘rish">Ko‘rish ↗</a>{% endif %}</div>
+        <div class="doc"><i class="bi bi-person-vcard"></i><div><b>ID karta / Pasport</b><small>{% if user.id_card %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></div>{% if user.id_card %}<a href="{{ user.id_card.url }}" target="_blank" rel="noopener" aria-label="ID karta yoki pasportni köriş">Köriş ↗</a>{% endif %}</div>
+        <div class="doc"><i class="bi bi-file-earmark-text"></i><div><b>Tuğilganlik guvohnomasi</b><small>{% if user.birth_certificate %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></div>{% if user.birth_certificate %}<a href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener" aria-label="Tuğilganlik guvohnomasini köriş">Köriş ↗</a>{% endif %}</div>
     </div>
-    <details class="disc"><summary>Hujjat rekvizitlarini ko‘rish</summary>
+    <details class="disc"><summary>Hujjat rekvizitlarini köriş</summary>
         <dl class="info3">
             <div><small>Hujjat turi</small><dd><b>{{ user.get_document_type_display|default:"Kiritilmagan" }}</b></dd></div>
             <div><small>Pasport seriyasi va raqami</small><dd><b>{{ user.passport_series|default:"—" }} {{ user.passport_number|default:"—" }}</b></dd></div>
-            <div><small>JSHSHIR</small><dd><b>{{ user.jshshir|default:"Kiritilmagan" }}</b></dd></div>
+            <div><small>JŞŞIR</small><dd><b>{{ user.jshshir|default:"Kiritilmagan" }}</b></dd></div>
             <div><small>Berilgan sana</small><dd><b>{{ user.passport_issued_date|date:"d.m.Y"|default:"Kiritilmagan" }}</b></dd></div>
             <div><small>Metrika seriyasi va raqami</small><dd><b>{{ user.metrka_series|default:"—" }} {{ user.metrka_number|default:"—" }}</b></dd></div>
         </dl>
-        <p>Rekvizitlarni tuzatish uchun administratorga murojaat qiling.</p>
+        <p>Rekvizitlarni tuzatiş uçun administratorga murojaat qiling.</p>
     </details>
 </section>

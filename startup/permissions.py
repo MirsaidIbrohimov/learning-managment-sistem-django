@@ -1,14 +1,14 @@
-"""Object-level ruxsatlar (`quiz.permissions` naqshi — oddiy funksiyalar).
+"""Object-level ruxsatlar (`quiz.permissions` naqşi — oddiy funksiyalar).
 
-IDOR himoyasining yadrosi shu modul: har bir view slug/pk orqali obyektni
-olgandan keyin ALBATTA shu funksiyalardan birini chaqiradi. Slug ishlatilishi
-enumeratsiyani qiyinlashtiradi, lekin himoya emas — himoya shu tekshiruvlar.
+IDOR himoyasining yadrosi şu modul: har bir view slug/pk orqali obyektni
+olgandan keyin ALBATTA şu funksiyalardan birini çaqiradi. Slug işlatilişi
+enumeratsiyani qiyinlaştiradi, lekin himoya emas — himoya şu tekşiruvlar.
 
 Rollar:
-  * owner — startup egasi (o'quvchi);
+  * owner — startup egasi (öquvçi);
   * active member — qabul qilingan jamoa a'zosi;
   * mentor — `StartupMentor` orqali biriktirilgan `teacher`/`admin`;
-  * staff admin — `admin` yoki `assistant_admin` (to'liq huquq).
+  * staff admin — `admin` yoki `assistant_admin` (töliq huquq).
 """
 
 from .models import Startup, StartupMember, StartupMentor
@@ -19,7 +19,7 @@ def is_staff_admin(user):
 
 
 def get_active_startup(user):
-    """Foydalanuvchining o'zi yaratgan faol startupi (yo'q bo'lsa None)."""
+    """Foydalanuvçining özi yaratgan faol startupi (yöq bölsa None)."""
     if not user.is_authenticated:
         return None
     return (Startup.objects
@@ -29,7 +29,7 @@ def get_active_startup(user):
 
 
 def member_of(user, startup):
-    """Foydalanuvchining a'zolik yozuvi (har qanday holatda) yoki None."""
+    """Foydalanuvçining a'zolik yozuvi (har qanday holatda) yoki None."""
     if not user.is_authenticated:
         return None
     return StartupMember.objects.filter(startup=startup, user=user).first()
@@ -54,7 +54,7 @@ def is_mentor_of(user, startup):
 
 
 def can_view_startup(user, startup):
-    """Ochiq karta: nom, logo, qisqa tavsif, bosqich, progress, jamoa ro'yxati."""
+    """Oçiq karta: nom, logo, qisqa tavsif, bosqiç, progress, jamoa röyxati."""
     if startup.status == 'archived':
         return is_active_member(user, startup) or is_mentor_of(user, startup) or is_staff_admin(user)
     return bool(user.is_authenticated)
@@ -72,7 +72,7 @@ def can_edit_startup(user, startup):
 
 
 def can_manage_tasks(user, startup):
-    """Vazifa yaratish / biriktirish / o'chirish."""
+    """Vazifa yaratiş / biriktiriş / öçiriş."""
     return is_owner(user, startup) or is_mentor_of(user, startup) or is_staff_admin(user)
 
 
@@ -83,24 +83,24 @@ def can_submit_task(user, task):
 
 
 def can_review_submission(user, startup):
-    """Vazifani tasdiqlash/rad etish — FAQAT mentor yoki admin.
+    """Vazifani tasdiqlash/rad etiş — FAQAT mentor yoki admin.
 
-    Egasi ATAYLAB chiqarib tashlangan: aks holda o'quvchi o'z vazifasini
-    o'zi tasdiqlab cheksiz XP va LMS coin yigʻa olardi.
+    Egasi ATAYLAB çiqarib taşlangan: aks holda öquvçi öz vazifasini
+    özi tasdiqlab çeksiz XP va LMS coin yiğa olardi.
     """
     return is_mentor_of(user, startup) or is_staff_admin(user)
 
 
 def can_manage_team(user, startup):
-    """Taklif yuborish va so'rovlarni qabul qilish/rad etish."""
+    """Taklif yuboriş va sörovlarni qabul qilish/rad etiş."""
     return is_owner(user, startup) or is_staff_admin(user)
 
 
 def can_manage_finance(user, startup):
-    """Moliya va metrika yozuvlarini kiritish — faqat egasi yoki admin.
+    """Moliya va metrika yozuvlarini kiritiş — faqat egasi yoki admin.
 
-    Oddiy jamoa a'zosi ATAYLAB chiqarilgan: daromad yozuvi `first_revenue`
-    yutugʻini ochadi va leaderboard'da koʻrinadi, ya'ni bu ishonch talab
+    Oddiy jamoa a'zosi ATAYLAB çiqarilgan: daromad yozuvi `first_revenue`
+    yutuğini oçadi va leaderboard'da körinadi, ya'ni bu işonç talab
     qiladigan ma'lumot.
     """
     return is_owner(user, startup) or is_staff_admin(user)
@@ -111,7 +111,7 @@ def can_edit_pitch(user, startup):
 
 
 def has_mentor_access(user):
-    """Mentor paneliga kirish huquqi: admin yoki kamida bitta biriktirilgan startup."""
+    """Mentor paneliga kiriş huquqi: admin yoki kamida bitta biriktirilgan startup."""
     if not user.is_authenticated:
         return False
     if is_staff_admin(user):

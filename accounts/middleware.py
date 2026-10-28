@@ -14,23 +14,23 @@ from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, 
 
 logger = logging.getLogger(__name__)
 
-# PWA / Android TWA ommaviy fayllari (config/pwa.py): foydalanuvchi ma'lumotisiz,
-# statik fayl kabi. Yo'naltirilsa (profil, to'lov, texnik xizmat) brauzer manifest
-# va service worker'ni o'qiy olmaydi, Android ilova esa domenni tasdiqlay olmaydi.
+# PWA / Android TWA ommaviy fayllari (config/pwa.py): foydalanuvçi ma'lumotisiz,
+# statik fayl kabi. Yönaltirilsa (profil, tölov, texnik xizmat) brauzer manifest
+# va service worker'ni öqiy olmaydi, Android ilova esa domenni tasdiqlay olmaydi.
 _PWA_PUBLIC_PATHS = ('/manifest.webmanifest', '/sw.js', '/.well-known/assetlinks.json')
-# Static/media so'rovlarini tezkor o'tkazish uchun (BlockedUserMiddleware va boshqalar)
+# Static/media sörovlarini tezkor ötkaziş uçun (BlockedUserMiddleware va boşqalar)
 _SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/') + _PWA_PUBLIC_PATHS
-# API ni ham o'tkazib yuboradigan middleware lar uchun.
-# DIQQAT: sessiya nazorati (timeout, qurilma limiti) bu ro'yxatdan
-# FOYDALANMAYDI — aks holda o'g'irlangan yoki bekor qilingan sessiya cookie'si
-# `/api/` orqali cheksiz ishlatilishi mumkin bo'lardi.
+# API ni ham ötkazib yuboradigan middleware lar uçun.
+# DIQQAT: sessiya nazorati (timeout, qurilma limiti) bu röyxatdan
+# FOYDALANMAYDI — aks holda öğirlangan yoki bekor qilingan sessiya cookie'si
+# `/api/` orqali çeksiz işlatilişi mumkin bölardi.
 _SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/') + _PWA_PUBLIC_PATHS
 
 
 def _session_expired_response(request, redirect_to='login'):
     """
-    Sessiya nazorati buzilganda javob. `/api/` uchun JSON 401 qaytaradi:
-    HTML redirect JSON mijozni "muvaffaqiyat" deb yanglishtirardi.
+    Sessiya nazorati buzilganda javob. `/api/` uçun JSON 401 qaytaradi:
+    HTML redirect JSON mijozni "muvaffaqiyat" deb yangliştirardi.
     """
     if request.path.startswith('/api/'):
         from django.http import JsonResponse
@@ -43,8 +43,8 @@ def _session_expired_response(request, redirect_to='login'):
 
 @lru_cache(maxsize=1)
 def _external_games_frame_src() -> str:
-    """CSP frame-src uchun tashqi o'yin URL'larini qaytaradi.
-    .env'dan EXTERNAL_GAME_FRAME_SRC (vergul bilan ajratilgan) o'qiydi.
+    """CSP frame-src uçun taşqi öyin URL'larini qaytaradi.
+    .env'dan EXTERNAL_GAME_FRAME_SRC (vergul bilan ajratilgan) öqiydi.
 
     Misol:  EXTERNAL_GAME_FRAME_SRC=https://game.itc-academy.uz,https://shashka.example.uz
     """
@@ -55,7 +55,7 @@ def _external_games_frame_src() -> str:
 
 class BirthdayCheckMiddleware:
     """
-    O'quvchi tug'ilgan kun bo'lsa, bildirishnoma ko'rsatadi.
+    Öquvçi tuğilgan kun bölsa, bildirişnoma körsatadi.
     Kuniga 1 marta Telegram orqali tabrik yuboradi.
     """
     
@@ -73,7 +73,7 @@ class BirthdayCheckMiddleware:
                     request.user.birth_date.day == today.day):
                     request.birthday_today = True
         
-        # Kuniga 1 marta tug'ilgan kun tabrikini Telegram orqali yuborish (non-blocking)
+        # Kuniga 1 marta tuğilgan kun tabrikini Telegram orqali yuboriş (non-blocking)
         cache_key = 'birthday_check_done'
         if not cache.get(cache_key):
             cache.set(cache_key, True, 86400)  # 24 soat
@@ -88,8 +88,8 @@ class BirthdayCheckMiddleware:
 
 class UpdateLastActivityMiddleware:
     """
-    Foydalanuvchi oxirgi faolligini yangilaydi va jami online vaqtini hisoblaydi.
-    Soniyalarni session da to'playdi, 1 daqiqa to'lganda DB ga yozadi.
+    Foydalanuvçi oxirgi faolligini yangilaydi va jami online vaqtini hisoblaydi.
+    Soniyalarni session da töplaydi, 1 daqiqa tölganda DB ga yozadi.
     """
     
     def __init__(self, get_response):
@@ -103,7 +103,7 @@ class UpdateLastActivityMiddleware:
             now = timezone.now()
             now_ts = now.timestamp()
 
-            # 🔥 Kunlik streak — kuniga faqat bir marta tekshiriladi (session orqali)
+            # 🔥 Kunlik streak — kuniga faqat bir marta tekşiriladi (session orqali)
             today_str = timezone.localdate().isoformat()
             if request.session.get('_streak_checked_date') != today_str:
                 request.session['_streak_checked_date'] = today_str
@@ -120,7 +120,7 @@ class UpdateLastActivityMiddleware:
 
             last_saved = request.session.get('_last_activity_saved', 0)
 
-            # Faqat 60 sekundda bir marta ishlash
+            # Faqat 60 sekundda bir marta işlaş
             if last_saved and (now_ts - last_saved) <= 60:
                 return response
             
@@ -148,8 +148,8 @@ class UpdateLastActivityMiddleware:
 
 class BlockedUserMiddleware:
     """
-    Bloklangan foydalanuvchilar faqat /tolov/ sahifasiga yo'naltiriladi.
-    API so'rovlari 403 qaytaradi.
+    Bloklangan foydalanuvçilar faqat /tolov/ sahifasiga yönaltiriladi.
+    API sörovlari 403 qaytaradi.
     """
     # Bu URL larga bloklangan user ham kira oladi
     ALLOWED_PATHS = ('/tolov/', '/tolovlarim/', '/tezcheck/', '/password-reset/', '/logout/', '/static/', '/media/', '/api/v1/games/')
@@ -162,17 +162,17 @@ class BlockedUserMiddleware:
             return self.get_response(request)
         if request.user.is_authenticated:
             user = request.user
-            # Student bo'lsa va hozircha bloklanmagan bo'lsa — next_payment_date tekshir
+            # Student bölsa va hozirça bloklanmagan bölsa — next_payment_date tekşir
             if user.role == 'student' and not user.is_blocked:
                 self._check_auto_block(user)
-                # Agar hozirgina bloklangan bo'lsa, cache flag orqali bilamiz
+                # Agar hozirgina bloklangan bölsa, cache flag orqali bilamiz
                 if cache.get(f'auto_blocked_{user.id}'):
                     cache.delete(f'auto_blocked_{user.id}')
                     user.is_blocked = True
 
             if hasattr(user, 'is_blocked') and user.is_blocked:
-                # To'lov sababli blokda faqat sotib olingan kurslar portali ochiq;
-                # portalning har bir sahifasi kurs xaridini o'zi tekshiradi.
+                # Tölov sababli blokda faqat sotib olingan kurslar portali oçiq;
+                # portalning har bir sahifasi kurs xaridini özi tekşiradi.
                 if request.path.startswith('/kurslarim/'):
                     from kurslarim.access import is_payment_blocked
                     if is_payment_blocked(user):
@@ -180,7 +180,7 @@ class BlockedUserMiddleware:
                 if request.path.startswith('/api/'):
                     from django.http import JsonResponse
                     return JsonResponse(
-                        {'detail': "Akkaunt bloklangan. To'lov sahifasiga o'ting."},
+                        {'detail': "Akkaunt bloklangan. Tölov sahifasiga öting."},
                         status=403
                     )
                 for allowed in self.ALLOWED_PATHS:
@@ -192,10 +192,10 @@ class BlockedUserMiddleware:
     @staticmethod
     def _check_auto_block(user):
         """
-        next_payment_date o'tgan bo'lsa va shartnoma emas bo'lsa → avtomatik bloklash.
-        Saytga har kirganida emas, cache orqali soatiga 1 marta tekshiriladi.
+        next_payment_date ötgan bölsa va şartnoma emas bölsa → avtomatik bloklaş.
+        Saytga har kirganida emas, cache orqali soatiga 1 marta tekşiriladi.
         """
-        # Kursni tugatgan (muzlatilgan) o'quvchilar oylik to'lovga tekshirilmaydi
+        # Kursni tugatgan (muzlatilgan) öquvçilar oylik tölovga tekşirilmaydi
         if getattr(user, 'is_finished', False):
             return
         try:
@@ -212,10 +212,10 @@ class BlockedUserMiddleware:
                 if cache.get(cache_key):
                     return
                 cache.set(cache_key, True, 3600)
-                # Balansdan avtomatik yechib, keyingi oyga surishga urinamiz
+                # Balansdan avtomatik yeçib, keyingi oyga surişga urinamiz
                 if bal.advance_due_payment():
                     return
-                # Balans yetmadi -> bloklash
+                # Balans yetmadi -> bloklaş
                 user.is_blocked = True
                 user.save(update_fields=['is_blocked'])
                 cache.set(f'auto_blocked_{user.id}', True, 10)
@@ -229,7 +229,7 @@ class BlockedUserMiddleware:
 
 class PaymentCheckMiddleware:
     """
-    To'lov kutilayotgan o'quvchilarni ogohlantiradi
+    Tölov kutilayotgan öquvçilarni ogohlantiradi
     """
     
     def __init__(self, get_response):
@@ -260,7 +260,7 @@ class PaymentCheckMiddleware:
 
 class SessionTimeoutMiddleware:
     """
-    Session timeout qo'llaydi
+    Session timeout qöllaydi
     """
     
     SESSION_TIMEOUT = 2 * 60 * 60  # 2 soat
@@ -269,7 +269,7 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        # `/api/` ATAYIN o'tkazib yuborilmaydi: idle timeout API da ham amal qilsin.
+        # `/api/` ATAYIN ötkazib yuborilmaydi: idle timeout API da ham amal qilsin.
         if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         if request.user.is_authenticated:
@@ -287,7 +287,7 @@ class SessionTimeoutMiddleware:
                     request.session.flush()
                     return _session_expired_response(request)
 
-                # Faqat 60 sekundda bir marta session yangilash
+                # Faqat 60 sekundda bir marta session yangilaş
                 if now - last_activity > 60:
                     request.session['_last_activity'] = now
             else:
@@ -298,17 +298,17 @@ class SessionTimeoutMiddleware:
 
 class MaintenanceMiddleware:
     """
-    Texnik xizmat rejimi yoqilganda faqat admin kirishi mumkin
+    Texnik xizmat rejimi yoqilganda faqat admin kirişi mumkin
     """
     
-    # Bu URL lar har doim ishlaydi (login/logout/admin panel)
+    # Bu URL lar har doim işlaydi (login/logout/admin panel)
     EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance', 'home', 'register', 'ariza', 'qabul_it_shaharcha', 'qabul_it_creative']
     
     def __init__(self, get_response):
         self.get_response = get_response
     
     def __call__(self, request):
-        # Static/media fayllar uchun tekshirmaslik
+        # Static/media fayllar uçun tekşirmaslik
         if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         
@@ -324,7 +324,7 @@ class MaintenanceMiddleware:
         if not maintenance_active:
             return self.get_response(request)
         
-        # Admin va teacher har doim kirishga ruxsat
+        # Admin va teacher har doim kirişga ruxsat
         if request.user.is_authenticated and (request.user.is_admin or request.user.role == 'teacher'):
             return self.get_response(request)
         
@@ -346,20 +346,20 @@ class MaintenanceMiddleware:
             maintenance = None
         
         return render(request, 'accounts/maintenance.html', {
-            'message': maintenance.message if maintenance else 'Texnik ishlar olib borilmoqda',
+            'message': maintenance.message if maintenance else 'Texnik işlar olib borilmoqda',
         }, status=503)
 
 
 class SectionBlockMiddleware:
     """
-    Bo'limlar bloklangan bo'lsa, foydalanuvchilarga "Bloklangan" sahifasini ko'rsatadi
-    Database va cache dan bloklash infosini o'qiydi
+    Bölimlar bloklangan bölsa, foydalanuvçilarga "Bloklangan" sahifasini körsatadi
+    Database va cache dan bloklaş infosini öqiydi
     """
     
-    # Admin ruxsatiga ega bo'lsa, bloklangan bo'limlarni ko'rishga ruxsat
+    # Admin ruxsatiga ega bölsa, bloklangan bölimlarni körişga ruxsat
     ADMIN_EXEMPT = True
     
-    # Bloklash qo'llaniladigan URL patterns
+    # Bloklaş qöllaniladigan URL patterns
     BLOCKED_PATTERNS = {
         'sozlamalar': ['settings'],
         'qurilmalar': ['devices'],
@@ -378,11 +378,11 @@ class SectionBlockMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        # Admin bolsa, bloklash qo'llanmaydi
+        # Admin bolsa, bloklaş qöllanmaydi
         if self.ADMIN_EXEMPT and request.user.is_authenticated and request.user.is_admin:
             return self.get_response(request)
         
-        # Joriy URL ni aniqlash
+        # Joriy URL ni aniqlaş
         try:
             resolved = resolve(request.path)
             current_view = resolved.url_name or ''
@@ -390,7 +390,7 @@ class SectionBlockMiddleware:
         except:
             return self.get_response(request)
         
-        # Cache dan bloklangan bo'limlarni o'qish (60 sekund)
+        # Cache dan bloklangan bölimlarni öqiş (60 sekund)
         blocked_sections = cache.get('blocked_sections_db')
         if blocked_sections is None:
             try:
@@ -403,19 +403,19 @@ class SectionBlockMiddleware:
         if not blocked_sections:
             return self.get_response(request)
         
-        # Joriy URL qaysi bo'limga tegishli ekanini tekshirish
+        # Joriy URL qaysi bölimga tegişli ekanini tekşiriş
         for section_slug, patterns in self.BLOCKED_PATTERNS.items():
             if section_slug in blocked_sections:
                 for pattern in patterns:
                     if pattern in current_view or pattern in current_app:
-                        # Bo'lim bloklangan bo'lsa, bloklangan sahifasini ko'rsatish
+                        # Bölim bloklangan bölsa, bloklangan sahifasini körsatiş
                         section_info = blocked_sections[section_slug]
                         return render(
                             request, 
                             'accounts/section_blocked.html',
                             {
                                 'section': section_slug,
-                                'reason': section_info.get('reason', 'Tuzatish ishlari olib borilmoqda'),
+                                'reason': section_info.get('reason', 'Tuzatiş işlari olib borilmoqda'),
                             },
                             status=403
                         )
@@ -425,8 +425,8 @@ class SectionBlockMiddleware:
 
 class DeviceLimitMiddleware:
     """
-    Faqat 1 ta qurilmada online bo'ladi — boshqa joydan login bo'lsa,
-    avvalgi sessiya avtomatik chiqariladi. (Qurilma soni cheklanmagan.)
+    Faqat 1 ta qurilmada online böladi — boşqa joydan login bölsa,
+    avvalgi sessiya avtomatik çiqariladi. (Qurilma soni çeklanmagan.)
     """
     
     EXEMPT_URLS = ['login', 'logout', 'register', 'open_recovery_link', 'choose_recovery_password']
@@ -438,18 +438,18 @@ class DeviceLimitMiddleware:
         if not request.user.is_authenticated:
             return self.get_response(request)
         
-        # Admin uchun cheklov yo'q
+        # Admin uçun çeklov yöq
         if request.user.is_admin:
             return self.get_response(request)
         
-        # Static/media. `/api/` ATAYIN o'tkazib yuborilmaydi: aks holda bekor
-        # qilingan ("boshqa qurilmadan chiqarilgan") sessiya cookie'si bilan
-        # barcha `/api/v1/...` endpointlar, shu qatorda coin o'tkazma ham,
-        # cheksiz ishlatilishi mumkin bo'lardi.
+        # Static/media. `/api/` ATAYIN ötkazib yuborilmaydi: aks holda bekor
+        # qilingan ("boşqa qurilmadan çiqarilgan") sessiya cookie'si bilan
+        # barça `/api/v1/...` endpointlar, şu qatorda coin ötkazma ham,
+        # çeksiz işlatilişi mumkin bölardi.
         if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
 
-        # Exempt URL larni o'tkazib yuborish
+        # Exempt URL larni ötkazib yuboriş
         try:
             resolved = resolve(request.path)
             if resolved.url_name in self.EXEMPT_URLS:
@@ -457,12 +457,12 @@ class DeviceLimitMiddleware:
         except Exception:
             pass
 
-        # 🔒 Faqat 1 ta online: joriy sessiya ro'yxatdan o'tganmi tekshirish
+        # 🔒 Faqat 1 ta online: joriy sessiya röyxatdan ötganmi tekşiriş
         session_key = request.session.session_key
         if not session_key:
             return self.get_response(request)
 
-        # Cache orqali tekshirish — har requestda DB ga murojaat qilmaslik
+        # Cache orqali tekşiriş — har requestda DB ga murojaat qilmaslik
         cache_key = f'active_session_{request.user.id}'
         cached_session_key = cache.get(cache_key)
 
@@ -472,7 +472,7 @@ class DeviceLimitMiddleware:
         # A different worker may still cache the previous login's session key.
         # Confirm mismatches against the DB before invalidating a valid login.
 
-        # Cache da yo'q — DB dan o'qib, cache ga saqlash
+        # Cache da yöq — DB dan öqib, cache ga saqlaş
         from .models import UserSession
         active_session = UserSession.objects.filter(
             user=request.user, is_active=True
@@ -483,7 +483,7 @@ class DeviceLimitMiddleware:
             auth_logout(request)
             return _session_expired_response(request)
 
-        # 30 sekundga cache ga saqlash
+        # 30 sekundga cache ga saqlaş
         cache.set(cache_key, active_session, 120)
 
         if active_session != session_key:
@@ -496,8 +496,8 @@ class DeviceLimitMiddleware:
 
 class PremiumExpiryMiddleware:
     """
-    Premium muddati tugagan BARCHA foydalanuvchilarni avtomatik tekshiradi.
-    Har 10 daqiqada bir marta global tekshiruv o'tkazadi (istalgan request triggerda).
+    Premium muddati tugagan BARÇA foydalanuvçilarni avtomatik tekşiradi.
+    Har 10 daqiqada bir marta global tekşiruv ötkazadi (istalgan request triggerda).
     """
 
     def __init__(self, get_response):
@@ -523,7 +523,7 @@ class PremiumExpiryMiddleware:
                         Message(
                             recipient_id=uid,
                             title="Premium muddati tugadi",
-                            content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
+                            content="Sizning Premium obunangiz muddati tugadi.\n\nQayta oliş uçun Market bölimiga kiring.",
                             message_type='system'
                         ) for uid in expired_ids
                     ])
@@ -534,7 +534,7 @@ class PremiumExpiryMiddleware:
 
 class SecurityHeadersMiddleware:
     """
-    Barcha javoblarga xavfsizlik headerlarini qo'shadi
+    Barça javoblarga xavfsizlik headerlarini qöşadi
     """
     
     def __init__(self, get_response):
@@ -543,7 +543,7 @@ class SecurityHeadersMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
-        # Server ma'lumotlarini yashirish
+        # Server ma'lumotlarini yaşiriş
         if 'X-Powered-By' in response:
             del response['X-Powered-By']
         if 'Server' in response:
@@ -551,11 +551,11 @@ class SecurityHeadersMiddleware:
         
         # XSS himoya
         response['X-Content-Type-Options'] = 'nosniff'
-        response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP ishlatiladi
+        response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP işlatiladi
         response.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         # Geolokatsiya faqat login'dan keyingi rozilik sahifasida kerak.
-        # Global `geolocation=()` browser API'sini shu sahifada ham bloklab,
-        # foydalanuvchi rozilik oynasini ko'rishiga yo'l qo'ymas edi.
+        # Global `geolocation=()` browser API'sini şu sahifada ham bloklab,
+        # foydalanuvçi rozilik oynasini körişiga yöl qöymas edi.
         if request.path.rstrip('/') == '/login/location-consent':
             response['Permissions-Policy'] = 'geolocation=(self), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
         else:
@@ -564,11 +564,11 @@ class SecurityHeadersMiddleware:
         response['Cross-Origin-Resource-Policy'] = 'same-origin'
 
         # ════════════════════════════════════════════════════════════
-        # HISOBLAR ARALASHIB KETMASLIGI UCHUN — sessiyaga bog'liq (login
-        # qilingan) sahifalarni HECH QANDAY kesh saqlamasligi shart:
-        # brauzer bfcache, proxy, CDN/Cloudflare va LiteSpeed (cPanel) kesh.
-        # Aks holda umumiy kompyuter yoki proksida bitta foydalanuvchining
-        # sahifasi boshqasiga ko'rsatilib qolishi mumkin.
+        # HISOBLAR ARALAŞIB KETMASLIGI UÇUN — sessiyaga boğliq (login
+        # qilingan) sahifalarni HEÇ QANDAY keş saqlamasligi şart:
+        # brauzer bfcache, proxy, CDN/Cloudflare va LiteSpeed (cPanel) keş.
+        # Aks holda umumiy kompyuter yoki proksida bitta foydalanuvçining
+        # sahifasi boşqasiga körsatilib qolişi mumkin.
         # ════════════════════════════════════════════════════════════
         try:
             from django.conf import settings as _dj
@@ -581,10 +581,10 @@ class SecurityHeadersMiddleware:
                 response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
                 response['Pragma'] = 'no-cache'
                 response['Expires'] = '0'
-                # LiteSpeed / nginx reverse-proxy keshini ham o'chirish
+                # LiteSpeed / nginx reverse-proxy keşini ham öçiriş
                 response['X-LiteSpeed-Cache-Control'] = 'no-cache'
                 response['X-Accel-Expires'] = '0'
-                # Har qanday kesh javobni Cookie bo'yicha farqlasin
+                # Har qanday keş javobni Cookie böyiça farqlasin
                 _vary = response.get('Vary', '')
                 if 'cookie' not in _vary.lower():
                     response['Vary'] = (_vary + ', Cookie') if _vary else 'Cookie'
@@ -603,8 +603,8 @@ class SecurityHeadersMiddleware:
             f"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com { _external_games_frame_src() }".strip(),
             "frame-ancestors 'none'",
             "base-uri 'self'",
-            # form-action redirect manziliga ham qo'llanadi: /tezcheck/create-payment/
-            # POST'dan keyin tezcheck.uz yoki inpay.uz to'lov sahifasiga redirect bo'ladi.
+            # form-action redirect manziliga ham qöllanadi: /tezcheck/create-payment/
+            # POST'dan keyin tezcheck.uz yoki inpay.uz tölov sahifasiga redirect böladi.
             "form-action 'self' https://itc-academy.uz https://*.itc-academy.uz http://itc-academy.uz http://*.itc-academy.uz https://tezcheck.uz https://*.tezcheck.uz https://checkout.uz https://*.checkout.uz https://inpay.uz https://*.inpay.uz",
         ]
         response['Content-Security-Policy'] = '; '.join(csp_directives)
@@ -614,12 +614,12 @@ class SecurityHeadersMiddleware:
 
 class ProfileCompletionMiddleware:
     """
-    Profil to'ldirilmagan studentlarni complete_profile sahifasiga yo'naltiradi.
+    Profil töldirilmagan studentlarni complete_profile sahifasiga yönaltiradi.
     """
     EXEMPT_URLS = [
         'complete_profile', 'logout', 'login', 'register', 'admin', 'open_recovery_link', 'choose_recovery_password',
         'payment_wall', 'tezcheck_create_payment', 'tezcheck_return', 'exam_checkout', 'exam_checkout_status',
-        # Pochtadagi tasdiqlash havolasi profil to'ldirilmagan bo'lsa ham ishlashi kerak.
+        # Poçtadagi tasdiqlaş havolasi profil töldirilmagan bölsa ham işlaşi kerak.
         'verify_email',
     ]
 
@@ -630,9 +630,9 @@ class ProfileCompletionMiddleware:
         if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         if request.user.is_authenticated and request.user.role == 'student':
-            # Skip qilingan bo'lsa (shu sessiyada) majburlamaymiz — keyingi login'da so'raladi.
-            # Tug'ilgan sana majburiy: profil "to'ldirilgan" deb belgilangan bolsa ham
-            # sana yo'q bo'lsa (eski yozuvlar) qayta to'ldirish so'raladi.
+            # Skip qilingan bölsa (şu sessiyada) majburlamaymiz — keyingi login'da söraladi.
+            # Tuğilgan sana majburiy: profil "töldirilgan" deb belgilangan bolsa ham
+            # sana yöq bölsa (eski yozuvlar) qayta töldiriş söraladi.
             needs_profile = (
                 not request.user.is_profile_completed
                 or not getattr(request.user, 'birth_date', None)
@@ -655,13 +655,13 @@ class ProfileCompletionMiddleware:
 
 class GlobalRateLimitMiddleware:
     """
-    Barcha so'rovlar uchun IP-asosida global rate limiting.
-    Maqsad: DDoS va brute-force hujumlarini kamaytirish.
+    Barça sörovlar uçun IP-asosida global rate limiting.
+    Maqsad: DDoS va brute-force hujumlarini kamaytiriş.
 
     Limitlar (sozlanadi):
-      • Umumiy:   300 so'rov / daqiqa / IP
-      • API:      120 so'rov / daqiqa / IP
-      • Auth:      20 so'rov / 15 daqiqa / IP  (login, register, parol)
+      • Umumiy:   300 sörov / daqiqa / IP
+      • API:      120 sörov / daqiqa / IP
+      • Auth:      20 sörov / 15 daqiqa / IP  (login, register, parol)
     """
     # (prefix, limit, window_secs)
     _RULES = [
@@ -689,9 +689,9 @@ class GlobalRateLimitMiddleware:
         if is_ip_blocked(ip):
             _log_security_event('blocked_ip_request', ip=ip, detail=request.path[:200])
             if request.path.startswith('/api/'):
-                return JsonResponse({'ok': False, 'error': 'Kirishingiz cheklangan.'}, status=429)
+                return JsonResponse({'ok': False, 'error': 'Kirişingiz çeklangan.'}, status=429)
             return HttpResponse(
-                '<h2>429 — Kirish vaqtincha cheklangan</h2><p>Biroz kutib qayta urinib ko\'ring.</p>',
+                '<h2>429 — Kiriş vaqtinça çeklangan</h2><p>Biroz kutib qayta urinib köring.</p>',
                 status=429, content_type='text/html'
             )
 
@@ -705,11 +705,11 @@ class GlobalRateLimitMiddleware:
                                         severity='medium')
                     if request.path.startswith('/api/'):
                         return JsonResponse(
-                            {'ok': False, 'error': "So'rovlar juda tez yuborilmoqda. Biroz kutib turing."},
+                            {'ok': False, 'error': "Sörovlar juda tez yuborilmoqda. Biroz kutib turing."},
                             status=429
                         )
                     return HttpResponse(
-                        '<h2>429 — Juda ko\'p so\'rov</h2><p>Biroz kutib qayta urinib ko\'ring.</p>',
+                        '<h2>429 — Juda köp sörov</h2><p>Biroz kutib qayta urinib köring.</p>',
                         status=429, content_type='text/html'
                     )
                 break
@@ -719,12 +719,12 @@ class GlobalRateLimitMiddleware:
 
 class SuspiciousRequestMiddleware:
     """
-    Kiruvchi so'rovlarni SQL Injection, XSS, Path Traversal,
-    SSTI va Command Injection shablonlari uchun skanerlaydi.
+    Kiruvçi sörovlarni SQL Injection, XSS, Path Traversal,
+    SSTI va Command Injection şablonlari uçun skanerlaydi.
 
-    Shubhali so'rov aniqlansa:
+    Şubhali sörov aniqlansa:
       1. SecurityEvent yoziladi
-      2. IP ga "strike" qo'shiladi (10 strike = avtomatik bloklash)
+      2. IP ga "strike" qöşiladi (10 strike = avtomatik bloklaş)
       3. 400 qaytariladi
     """
     _SKIP = ('/static/', '/media/', '/admin/jsi18n/')
@@ -751,9 +751,9 @@ class SuspiciousRequestMiddleware:
                 severity='high',
             )
             if request.path.startswith('/api/'):
-                return JsonResponse({'ok': False, 'error': 'So\'rov rad etildi.'}, status=400)
+                return JsonResponse({'ok': False, 'error': 'Sörov rad etildi.'}, status=400)
             return HttpResponse(
-                '<h2>400 — Xavfli so\'rov rad etildi</h2>',
+                '<h2>400 — Xavfli sörov rad etildi</h2>',
                 status=400, content_type='text/html'
             )
 
@@ -762,13 +762,13 @@ class SuspiciousRequestMiddleware:
 
 class AdminLoginRateLimitMiddleware:
     """
-    Django admin login sahifasi uchun brute-force limiti.
+    Django admin login sahifasi uçun brute-force limiti.
 
-    Sayt login'i (accounts.views.login_view) o'zining rate-limitiga ega, lekin
-    /admin/login/ undan o'tmaydi — global IP limiti esa o'quvchilarni noto'g'ri
-    bloklaganligi uchun o'chirilgan. Shu sabab bu middleware FAQAT admin
-    login'iga yuborilgan POST so'rovlarni sanaydi: oddiy sahifalar,
-    o'quvchilar va bir tarmoqdagi ko'p foydalanuvchi ta'sirlanmaydi.
+    Sayt login'i (accounts.views.login_view) özining rate-limitiga ega, lekin
+    /admin/login/ undan ötmaydi — global IP limiti esa öquvçilarni notöğri
+    bloklaganligi uçun öçirilgan. Şu sabab bu middleware FAQAT admin
+    login'iga yuborilgan POST sörovlarni sanaydi: oddiy sahifalar,
+    öquvçilar va bir tarmoqdagi köp foydalanuvçi ta'sirlanmaydi.
     """
 
     def __init__(self, get_response):
@@ -796,7 +796,7 @@ class AdminLoginRateLimitMiddleware:
         if is_ip_blocked(ip):
             _log_security_event('blocked_ip_request', ip=ip, detail='admin login', severity='high')
             return HttpResponse(
-                "<h2>429 — Kirish vaqtincha cheklangan</h2>",
+                "<h2>429 — Kiriş vaqtinça çeklangan</h2>",
                 status=429, content_type='text/html',
             )
 
@@ -808,7 +808,7 @@ class AdminLoginRateLimitMiddleware:
                 severity='high',
             )
             return HttpResponse(
-                "<h2>429 — Juda ko'p urinish</h2><p>Biroz kutib qayta urinib ko'ring.</p>",
+                "<h2>429 — Juda köp uriniş</h2><p>Biroz kutib qayta urinib köring.</p>",
                 status=429, content_type='text/html',
             )
 
@@ -817,8 +817,8 @@ class AdminLoginRateLimitMiddleware:
 
 class RequestSizeLimitMiddleware:
     """
-    Juda katta so'rov tanasini (body) bloklash.
-    Nginx / Apache bu ishni qilmasa Django darajasida himoya qiladi.
+    Juda katta sörov tanasini (body) bloklaş.
+    Nginx / Apache bu işni qilmasa Django darajasida himoya qiladi.
     """
     MAX_BODY = 20 * 1024 * 1024   # 20 MB
 
@@ -834,7 +834,7 @@ class RequestSizeLimitMiddleware:
                     ip = get_client_ip(request)
                     _log_security_event('rate_limit_hit', ip=ip,
                                         detail=f'oversized body: {cl} bytes', severity='medium')
-                    return HttpResponse('413 — So\'rov hajmi juda katta', status=413)
+                    return HttpResponse('413 — Sörov hajmi juda katta', status=413)
             except (ValueError, TypeError):
                 pass
         return self.get_response(request)
@@ -842,18 +842,18 @@ class RequestSizeLimitMiddleware:
 
 class WiFiAutoLogoutMiddleware:
     """
-    Tizimga kirgan foydalanuvchi Wi-Fi (IP manzil) o'zgartirsa,
-    avtomatik ravishda tizimdan chiqarib yuboradi.
+    Tizimga kirgan foydalanuvçi Wi-Fi (IP manzil) özgartirsa,
+    avtomatik ravişda tizimdan çiqarib yuboradi.
     """
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        # Statik va media fayllarga so'rovlarni o'tkazib yuborish
+        # Statik va media fayllarga sörovlarni ötkazib yuboriş
         if request.path.startswith(('/static/', '/media/', '/admin/jsi18n/')):
             return self.get_response(request)
 
-        # Test muhitida (agar maxsus test sarlavhasi bo'lmasa) tekshiruvni chetlab o'tamiz
+        # Test muhitida (agar maxsus test sarlavhasi bölmasa) tekşiruvni çetlab ötamiz
         if request.META.get('SERVER_NAME') == 'testserver' and not request.META.get('HTTP_X_TEST_WIFI_LOGOUT'):
             return self.get_response(request)
 
@@ -868,11 +868,11 @@ class WiFiAutoLogoutMiddleware:
             if not session_ip:
                 request.session['user_login_ip'] = current_ip
             elif session_ip != current_ip:
-                # IP (Wi-Fi) o'zgardi -> logout qilamiz
+                # IP (Wi-Fi) özgardi -> logout qilamiz
                 auth_logout(request)
                 messages.warning(
                     request,
-                    "Xavfsizlik yuzasidan: Wi-Fi tarmog'ingiz o'zgarganligi sababli tizimdan chiqarildingiz. 🔒"
+                    "Xavfsizlik yuzasidan: Wi-Fi tarmoğingiz özgarganligi sababli tizimdan çiqarildingiz. 🔒"
                 )
                 return redirect('login')
 

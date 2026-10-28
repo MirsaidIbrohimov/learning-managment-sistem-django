@@ -10,7 +10,7 @@
     {% include 'partials/nav/_theme_head.html' %}
     <title>{% block title %}Admin Panel - LMS{% endblock %}</title>
     
-    <meta name="description" content="IT Creative Zomin - Zomin IT Park. Zomin hududida eng yaxshi dasturlash kurslari.">
+    <meta name="description" content="IT Creative Zomin - Zomin IT Park. Zomin hududida eng yaxşi dasturlaş kurslari.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
@@ -422,14 +422,14 @@
 </head>
 
 <body class="panel-admin pn{% if nav_prefs.sidebar == 'collapsed' and nav_prefs.layout != 'top' %} sidebar-collapsed{% endif %}">
-<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
 
     <!-- Sidebar Overlay (mobile) -->
     <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
     <!-- Sidebar -->
     <div class="sidebar" id="adminSidebar" role="navigation" aria-label="Panel menyusi">
-        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopish">
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopiş">
             <i class="bi bi-x-lg"></i>
         </button>
 
@@ -461,7 +461,7 @@
 
 
 
-            <div class="sidebar-group-label">O'quv jarayoni</div>
+            <div class="sidebar-group-label">Öquv jarayoni</div>
 
             <a href="{% url 'admin_professions' %}" class="nav-link {% if 'profession' in request.resolver_match.url_name %}active{% endif %}" data-title="Kasblar">
                 <div class="nav-icon-wrap"><i class="bi bi-briefcase"></i></div>
@@ -479,21 +479,21 @@
                 <div class="nav-icon-wrap"><i class="bi bi-calendar2-week"></i></div>
                 <span>Guruhlar & Jadval</span>
             </a>
-            <a href="{% url 'attendance_home' %}" class="nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}" data-title="O'quvchilar davomati">
+            <a href="{% url 'attendance_home' %}" class="nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}" data-title="Öquvçilar davomati">
                 <div class="nav-icon-wrap"><i class="bi bi-clipboard-check"></i></div>
-                <span>O'quvchilar davomati</span>
+                <span>Öquvçilar davomati</span>
             </a>
             <a href="{% url 'quizui:question_bank' %}" class="nav-link {% if 'question_bank' in request.resolver_match.url_name or 'question_create' in request.resolver_match.url_name or 'question_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Savollar bazasi">
                 <div class="nav-icon-wrap"><i class="bi bi-patch-question-fill"></i></div>
                 <span>Savollar bazasi</span>
             </a>
-            <a href="{% url 'quizui:quiz_list' %}" class="nav-link {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz boshqaruv">
+            <a href="{% url 'quizui:quiz_list' %}" class="nav-link {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz boşqaruv">
                 <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div>
                 <span>Quizlar</span>
             </a>
-            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz to'lovlari">
+            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz tölovlari">
                 <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div>
-                <span>Quiz to'lovlari</span>
+                <span>Quiz tölovlari</span>
             </a>
             <a href="{% url 'video_quiz:admin_list' %}" class="nav-link {% if request.resolver_match.namespace == 'video_quiz' %}active{% endif %}" data-title="Video Mid Quiz">
                 <div class="nav-icon-wrap"><i class="bi bi-play-circle-fill"></i></div>
@@ -504,45 +504,45 @@
                 <span>Vazifalar</span>
                 {% if admin_pending_homeworks %}<span class="sidebar-badge">{{ admin_pending_homeworks }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_sections_management' %}" class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}" data-title="Bo'limlar">
+            <a href="{% url 'admin_sections_management' %}" class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}" data-title="Bölimlar">
                 <div class="nav-icon-wrap"><i class="bi bi-layers"></i></div>
-                <span>Bo'limlar</span>
+                <span>Bölimlar</span>
             </a>
             <a href="{% url 'admin_certificates' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_certificates' or request.resolver_match.url_name == 'admin_certificate_issue' or request.resolver_match.url_name == 'admin_certificate_status' %}active{% endif %}" data-title="Sertifikatlar">
                 <div class="nav-icon-wrap"><i class="bi bi-award-fill"></i></div>
                 <span>Sertifikatlar</span>
             </a>
-            <div class="sidebar-group-label">Foydalanuvchilar</div>
+            <div class="sidebar-group-label">Foydalanuvçilar</div>
 
-            <a href="{% url 'admin_users' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" data-title="Foydalanuvchilar">
+            <a href="{% url 'admin_users' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" data-title="Foydalanuvçilar">
                 <div class="nav-icon-wrap"><i class="bi bi-people"></i></div>
-                <span>Foydalanuvchilar</span>
+                <span>Foydalanuvçilar</span>
             </a>
             <a href="{% url 'parents:admin_parents' %}" class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}" data-title="Ota-onalar">
                 <div class="nav-icon-wrap"><i class="bi bi-people-fill"></i></div>
                 <span>Ota-onalar</span>
             </a>
-            <a href="{% url 'admin_enrollment_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_enrollment_requests' %}active{% endif %}" data-title="So'rovlar">
+            <a href="{% url 'admin_enrollment_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_enrollment_requests' %}active{% endif %}" data-title="Sörovlar">
                 <div class="nav-icon-wrap"><i class="bi bi-person-plus"></i></div>
-                <span>So'rovlar</span>
+                <span>Sörovlar</span>
                 {% if admin_pending_enrollments %}<span class="sidebar-badge">{{ admin_pending_enrollments }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_unenroll_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_unenroll_requests' %}active{% endif %}" data-title="Chiqish so'rovlari">
+            <a href="{% url 'admin_unenroll_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_unenroll_requests' %}active{% endif %}" data-title="Çiqiş sörovlari">
                 <div class="nav-icon-wrap"><i class="bi bi-box-arrow-right"></i></div>
-                <span>Chiqish so'rovlari</span>
+                <span>Çiqiş sörovlari</span>
                 {% if admin_pending_unenrollments %}<span class="sidebar-badge" style="background:#ef4444;">{{ admin_pending_unenrollments }}</span>{% endif %}
             </a>
-            <a href="{% url 'teacher:admin_actions' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_actions' %}active{% endif %}" data-title="O'qituvchi amallari">
+            <a href="{% url 'teacher:admin_actions' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_actions' %}active{% endif %}" data-title="Öqituvçi amallari">
                 <div class="nav-icon-wrap"><i class="bi bi-journal-text"></i></div>
-                <span>O'qituvchi amallari</span>
+                <span>Öqituvçi amallari</span>
             </a>
 
 
-            <div class="sidebar-group-label">O'qituvchilar</div>
+            <div class="sidebar-group-label">Öqituvçilar</div>
 
-            <a href="{% url 'admin_teachers' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}" data-title="O'qituvchilar">
+            <a href="{% url 'admin_teachers' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}" data-title="Öqituvçilar">
                 <div class="nav-icon-wrap"><i class="bi bi-person-workspace"></i></div>
-                <span>O'qituvchilar</span>
+                <span>Öqituvçilar</span>
             </a>
             <a href="{% url 'admin_teacher_attendance' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teacher_attendance' %}active{% endif %}" data-title="Davomat">
                 <div class="nav-icon-wrap"><i class="bi bi-calendar-check"></i></div>
@@ -564,9 +564,9 @@
                 <span>Balans</span>
             </a>
 
-            <a href="{% url 'admin_tezcheck_payments' %}" class="nav-link {% if 'tezcheck' in request.resolver_match.url_name %}active{% endif %}" data-title="Onlayn to'lovlar">
+            <a href="{% url 'admin_tezcheck_payments' %}" class="nav-link {% if 'tezcheck' in request.resolver_match.url_name %}active{% endif %}" data-title="Onlayn tölovlar">
                 <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div>
-                <span>Onlayn to'lovlar</span>
+                <span>Onlayn tölovlar</span>
             </a>
             <a href="{% url 'coin:admin_products' %}" class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}" data-title="Mahsulotlar">
                 <div class="nav-icon-wrap"><i class="bi bi-shop"></i></div>
@@ -576,33 +576,33 @@
                 <div class="nav-icon-wrap"><i class="bi bi-bag-check"></i></div>
                 <span>Xaridlar</span>
             </a>
-            <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}" data-title="Coin berish">
+            <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}" data-title="Coin beriş">
                 <div class="nav-icon-wrap"><i class="bi bi-coin"></i></div>
-                <span>Coin berish</span>
+                <span>Coin beriş</span>
             </a>
-            <a href="{% url 'coin:admin_transfers' %}" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view != 'games' %}active{% endif %}" data-title="Coin o'tkazmalar">
+            <a href="{% url 'coin:admin_transfers' %}" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view != 'games' %}active{% endif %}" data-title="Coin ötkazmalar">
                 <div class="nav-icon-wrap"><i class="bi bi-send-fill"></i></div>
-                <span>Coin o'tkazmalar</span>
+                <span>Coin ötkazmalar</span>
             </a>
-            <a href="{% url 'coin:admin_transfers' %}?view=games" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view == 'games' %}active{% endif %}" data-title="Coin o'yinlar">
+            <a href="{% url 'coin:admin_transfers' %}?view=games" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view == 'games' %}active{% endif %}" data-title="Coin öyinlar">
                 <div class="nav-icon-wrap"><i class="bi bi-controller"></i></div>
-                <span>Coin o'yinlar</span>
+                <span>Coin öyinlar</span>
             </a>
             <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}" data-title="Premium">
                 <div class="nav-icon-wrap"><i class="bi bi-patch-check-fill"></i></div>
                 <span>Premium</span>
                 {% if admin_pending_premium %}<span class="sidebar-badge">{{ admin_pending_premium }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}" data-title="Chegirmalar">
+            <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}" data-title="Çegirmalar">
                 <div class="nav-icon-wrap"><i class="bi bi-percent"></i></div>
-                <span>Chegirmalar</span>
+                <span>Çegirmalar</span>
             </a>
 
-            <div class="sidebar-group-label">O'yinlar</div>
+            <div class="sidebar-group-label">Öyinlar</div>
 
-            <a href="{% url 'games:admin_games' %}" class="nav-link {% if 'admin_game' in request.resolver_match.url_name %}active{% endif %}" data-title="O'yinlar">
+            <a href="{% url 'games:admin_games' %}" class="nav-link {% if 'admin_game' in request.resolver_match.url_name %}active{% endif %}" data-title="Öyinlar">
                 <div class="nav-icon-wrap"><i class="bi bi-controller"></i></div>
-                <span>O'yinlar</span>
+                <span>Öyinlar</span>
             </a>
             <a href="{% url 'games:admin_competitions' %}" class="nav-link {% if 'competition' in request.resolver_match.url_name %}active{% endif %}" data-title="Musobaqalar">
                 <div class="nav-icon-wrap"><i class="bi bi-trophy"></i></div>
@@ -612,13 +612,13 @@
                 <div class="nav-icon-wrap"><i class="bi bi-dice-5"></i></div>
                 <span>Jumanji</span>
             </a>
-            <a href="{% url 'games:admin_results' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_results' %}active{% endif %}" data-title="O'yin natijalari">
+            <a href="{% url 'games:admin_results' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_results' %}active{% endif %}" data-title="Öyin natijalari">
                 <div class="nav-icon-wrap"><i class="bi bi-bar-chart-line"></i></div>
-                <span>O'yin natijalari</span>
+                <span>Öyin natijalari</span>
             </a>
-            <a href="{% url 'games:admin_word_suggestions' %}" class="nav-link {% if 'suggestion' in request.resolver_match.url_name %}active{% endif %}" data-title="So'z takliflari">
+            <a href="{% url 'games:admin_word_suggestions' %}" class="nav-link {% if 'suggestion' in request.resolver_match.url_name %}active{% endif %}" data-title="Söz takliflari">
                 <div class="nav-icon-wrap"><i class="bi bi-lightbulb"></i></div>
-                <span>So'z takliflari</span>
+                <span>Söz takliflari</span>
                 {% if admin_pending_suggestions %}<span class="sidebar-badge" style="background:#f59e0b;">{{ admin_pending_suggestions }}</span>{% endif %}
             </a>
 
@@ -628,13 +628,13 @@
                 <div class="nav-icon-wrap"><i class="bi bi-envelope"></i></div>
                 <span>Xabarlar</span>
             </a>
-            <a href="{% url 'admin_group_chats' %}" class="nav-link {% if 'group_chat' in request.resolver_match.url_name %}active{% endif %}" data-title="Guruh chatlari">
+            <a href="{% url 'admin_group_chats' %}" class="nav-link {% if 'group_chat' in request.resolver_match.url_name %}active{% endif %}" data-title="Guruh çatlari">
                 <div class="nav-icon-wrap"><i class="bi bi-chat-square-text"></i></div>
-                <span>Guruh chatlari</span>
+                <span>Guruh çatlari</span>
             </a>
-            <a href="{% url 'admin_direct_chats' %}" class="nav-link {% if 'direct_chat' in request.resolver_match.url_name %}active{% endif %}" data-title="Shaxsiy chatlar">
+            <a href="{% url 'admin_direct_chats' %}" class="nav-link {% if 'direct_chat' in request.resolver_match.url_name %}active{% endif %}" data-title="Şaxsiy çatlar">
                 <div class="nav-icon-wrap"><i class="bi bi-incognito"></i></div>
-                <span>Shaxsiy chatlar</span>
+                <span>Şaxsiy çatlar</span>
             </a>
             <a href="{% url 'admin_books' %}" class="nav-link {% if request.resolver_match.url_name in 'admin_books,admin_book_add,admin_book_edit,admin_book_delete,admin_book_rentals,admin_give_book,admin_return_book' %}active{% endif %}" data-title="Kutubxona kitoblari">
                 <div class="nav-icon-wrap"><i class="bi bi-book"></i></div>
@@ -656,17 +656,17 @@
             <div class="sidebar-group-label">Tizim</div>
 
 
-            <a href="{% url 'admin_ai_checker' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_ai_checker' %}active{% endif %}" data-title="AI Tekshiruvchi">
+            <a href="{% url 'admin_ai_checker' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_ai_checker' %}active{% endif %}" data-title="AI Tekşiruvçi">
                 <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div>
-                <span>AI Tekshiruvchi</span>
+                <span>AI Tekşiruvçi</span>
             </a>
-            <a href="{% url 'ai_yordamchi:admin_chats' %}" class="nav-link {% if 'ai_yordamchi' in request.path %}active{% endif %}" data-title="AI Chatlar">
+            <a href="{% url 'ai_yordamchi:admin_chats' %}" class="nav-link {% if 'ai_yordamchi' in request.path %}active{% endif %}" data-title="AI Çatlar">
                 <div class="nav-icon-wrap"><i class="bi bi-robot"></i></div>
-                <span>AI Chatlar</span>
+                <span>AI Çatlar</span>
             </a>
-            <a href="{% url 'telegram_bot:admin_telegram' %}" class="nav-link {% if 'telegram' in request.path %}active{% endif %}" data-title="Ulanishlar">
+            <a href="{% url 'telegram_bot:admin_telegram' %}" class="nav-link {% if 'telegram' in request.path %}active{% endif %}" data-title="Ulanişlar">
                 <div class="nav-icon-wrap"><i class="bi bi-link-45deg"></i></div>
-                <span>Ulanishlar</span>
+                <span>Ulanişlar</span>
                 {% if admin_pending_telegram %}<span class="sidebar-badge" style="background:#0088cc;">{{ admin_pending_telegram }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_applications' %}" class="nav-link {% if 'applications' in request.path %}active{% endif %}" data-title="Arizalar">
@@ -679,22 +679,22 @@
                 <span>Yordam xatlari</span>
                 {% if admin_pending_help %}<span class="sidebar-badge">{{ admin_pending_help }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_surveys' %}" class="nav-link {% if 'surveys' in request.path %}active{% endif %}" data-title="So'rovnomalar">
+            <a href="{% url 'admin_surveys' %}" class="nav-link {% if 'surveys' in request.path %}active{% endif %}" data-title="Sörovnomalar">
                 <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div>
-                <span>So'rovnomalar</span>
+                <span>Sörovnomalar</span>
             </a>
-            <a href="{% url 'admin_app_releases' %}" class="nav-link {% if 'app_release' in request.resolver_match.url_name %}active{% endif %}" data-title="Ilovalar boshqaruvi">
+            <a href="{% url 'admin_app_releases' %}" class="nav-link {% if 'app_release' in request.resolver_match.url_name %}active{% endif %}" data-title="Ilovalar boşqaruvi">
                 <div class="nav-icon-wrap"><i class="bi bi-app-indicator"></i></div>
                 <span>Ilovalar</span>
             </a>
 
             <!-- Logout -->
-            <div class="sidebar-group-label" data-tn-skip>Chiqish</div>
-            <a href="{% url 'logout' %}" class="nav-link" data-title="Chiqish" style="color:rgba(239,68,68,0.75);">
+            <div class="sidebar-group-label" data-tn-skip>Çiqiş</div>
+            <a href="{% url 'logout' %}" class="nav-link" data-title="Çiqiş" style="color:rgba(239,68,68,0.75);">
                 <div class="nav-icon-wrap" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.15);color:#ef4444;">
                     <i class="bi bi-box-arrow-right"></i>
                 </div>
-                <span>Chiqish</span>
+                <span>Çiqiş</span>
             </a>
         </nav>
     </div>
@@ -713,7 +713,7 @@
             <button type="button" class="admin-theme-btn pn-navset d-none d-sm-flex" data-nav-settings title="Navigatsiya sozlamalari" aria-label="Navigatsiya sozlamalari" aria-controls="nsPanel">
                 <i class="bi bi-sliders" aria-hidden="true"></i>
             </button>
-            <button type="button" class="admin-theme-btn" id="themeToggle" title="Mavzu" aria-label="Yorug‘/qorong‘i rejimni almashtirish">
+            <button type="button" class="admin-theme-btn" id="themeToggle" title="Mavzu" aria-label="Yorug‘/qoronği rejimni almaştiriş">
                 <i class="bi bi-moon-fill" id="themeIcon"></i>
             </button>
 
@@ -734,7 +734,7 @@
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item rounded-3" href="{% url 'home' %}">
-                            <i class="bi bi-house me-2"></i>Saytga o'tish
+                            <i class="bi bi-house me-2"></i>Saytga ötiş
                         </a>
                     </li>
                     <li>
@@ -744,13 +744,13 @@
                     </li>
                     <li>
                         <button type="button" class="dropdown-item rounded-3" data-nav-settings>
-                            <i class="bi bi-sliders me-2"></i>Ko‘rinish sozlamalari
+                            <i class="bi bi-sliders me-2"></i>Köriniş sozlamalari
                         </button>
                     </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right me-2"></i>Chiqish
+                            <i class="bi bi-box-arrow-right me-2"></i>Çiqiş
                         </a>
                     </li>
                 </ul>
@@ -764,7 +764,7 @@
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopish"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopiş"></button>
         </div>
         {% endfor %}
         {% endif %}
@@ -818,7 +818,7 @@
 
         toggleBtn.addEventListener('click', () => {
             if (window.innerWidth > 992) {
-                // Desktop: yig'ish/kengaytirish akkauntga saqlanadi (nav-prefs.js); holatni panel-nav.js qo'llaydi
+                // Desktop: yiğish/kengaytirish akkauntga saqlanadi (nav-prefs.js); holatni panel-nav.js qöllaydi
                 if (window.ITC_NAV && ITC_NAV.api) ITC_NAV.api.toggleSidebar();
                 else document.body.classList.toggle('sidebar-collapsed');
             } else {
@@ -836,7 +836,7 @@
             });
         });
 
-        // Desktop'ga qaytilganda ochiq mobil menyu yopiladi
+        // Desktop'ga qaytilganda oçiq mobil menyu yopiladi
         window.addEventListener('resize', () => { if (window.innerWidth > 992) closeSidebar(); }, { passive: true });
     </script>
     {% include 'partials/nav/_settings_panel.html' with nav_ctx='panel' %}

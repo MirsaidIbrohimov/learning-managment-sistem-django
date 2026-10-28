@@ -6,12 +6,12 @@
 <main class="kp-page">
     <section class="kp-hero kp-glass">
         <div>
-            <span class="kp-eyebrow">Shaxsiy kutubxona</span>
+            <span class="kp-eyebrow">Şaxsiy kutubxona</span>
             <h1>Salom, {{ request.user.first_name|default:request.user.username }}! 👋</h1>
-            <p>Bir martalik to'lov bilan olingan kurslaringiz — istalgan vaqtda, o'z sur'atingizda o'qing.</p>
+            <p>Bir martalik tölov bilan olingan kurslaringiz — istalgan vaqtda, öz sur'atingizda öqing.</p>
             <div class="kp-stats">
                 <span class="kp-stat"><i class="bi bi-collection-play-fill"></i><b>{{ courses|length }}</b> ta kurs</span>
-                <span class="kp-stat"><i class="bi bi-infinity"></i>Umrbod kirish</span>
+                <span class="kp-stat"><i class="bi bi-infinity"></i>Umrbod kiriş</span>
                 <span class="kp-stat"><i class="bi bi-cloud-check-fill"></i>Progress saqlanadi</span>
             </div>
         </div>
@@ -27,7 +27,7 @@
             <div class="kp-card-media">
                 {% if item.profession.photo %}<img src="{{ item.profession.photo.url }}" alt="" loading="lazy">{% endif %}
                 {% if not item.active %}
-                <span class="kp-chip">Kursdan chiqilgan</span>
+                <span class="kp-chip">Kursdan çiqilgan</span>
                 {% elif item.percent == 100 %}
                 <span class="kp-chip done"><i class="bi bi-trophy-fill me-1"></i>Tugatilgan</span>
                 {% else %}
@@ -42,13 +42,13 @@
                     <div class="kp-bar" role="progressbar" aria-label="Kurs progressi" aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"><i style="width:{{ item.percent }}%"></i></div>
                 </div>
                 <a href="{% url 'kurslarim:course' item.profession.pk %}" class="kp-btn kp-btn-primary kp-btn-block">
-                    {% if item.done %}<i class="bi bi-play-fill"></i>O'qishni davom ettirish{% else %}<i class="bi bi-rocket-takeoff-fill"></i>Boshlash{% endif %}
+                    {% if item.done %}<i class="bi bi-play-fill"></i>Öqişni davom ettiriş{% else %}<i class="bi bi-rocket-takeoff-fill"></i>Boşlaş{% endif %}
                 </a>
                 {% else %}
-                <p class="kp-muted small mb-0">Kurs sizniki — qayta yozilish uchun to'lov talab qilinmaydi.</p>
+                <p class="kp-muted small mb-0">Kurs sizniki — qayta yoziliş uçun tölov talab qilinmaydi.</p>
                 <form method="post" action="{% url 'kurslarim:rejoin' item.profession.pk %}" class="mt-auto">
                     {% csrf_token %}
-                    <button type="submit" class="kp-btn kp-btn-block"><i class="bi bi-arrow-repeat"></i>Kursga qayta yozilish</button>
+                    <button type="submit" class="kp-btn kp-btn-block"><i class="bi bi-arrow-repeat"></i>Kursga qayta yoziliş</button>
                 </form>
                 {% endif %}
             </div>
@@ -58,8 +58,8 @@
     {% else %}
     <div class="kp-glass kp-empty">
         <div class="kp-empty-icon"><i class="bi bi-bag-heart"></i></div>
-        <h2 class="h5 fw-bold">Hozircha sotib olingan kurs yo'q</h2>
-        <p class="kp-muted mb-0">Bir martalik to'lov bilan olingan kurslaringiz shu yerda paydo bo'ladi.</p>
+        <h2 class="h5 fw-bold">Hozirça sotib olingan kurs yöq</h2>
+        <p class="kp-muted mb-0">Bir martalik tölov bilan olingan kurslaringiz şu yerda paydo böladi.</p>
     </div>
     {% endif %}
 </main>

@@ -19,7 +19,7 @@
     @media print {
         body * { display: none !important; }
         body::after {
-            content: "Yakuniy test vaqtida chop etish taqiqlangan!";
+            content: "Yakuniy test vaqtida çop etiş taqiqlangan!";
             display: block; font-size: 24px; text-align: center; padding: 50px;
         }
     }
@@ -663,10 +663,10 @@
 <!-- Fullscreen Overlay -->
 <div class="fullscreen-overlay" id="fullscreenOverlay">
     <div class="fs-icon"><i class="bi bi-fullscreen"></i></div>
-    <h2>To'liq ekran rejimi talab etiladi</h2>
-    <p>Yakuniy test faqat to'liq ekran rejimida ishlaydi. Davom etish uchun quyidagi tugmani bosing.</p>
+    <h2>Töliq ekran rejimi talab etiladi</h2>
+    <p>Yakuniy test faqat töliq ekran rejimida işlaydi. Davom etiş uçun quyidagi tugmani bosing.</p>
     <button class="fullscreen-btn" onclick="enterFullscreen()">
-        <i class="bi bi-fullscreen"></i> To'liq ekranga o'tish
+        <i class="bi bi-fullscreen"></i> Töliq ekranga ötiş
     </button>
 </div>
 
@@ -679,19 +679,19 @@
         <div class="warning-modal-icon">
             <i class="bi bi-exclamation-triangle-fill"></i>
         </div>
-        <h3>Ogohlantirish!</h3>
+        <h3>Ogohlantiriş!</h3>
         <p id="warningMessage">Test vaqtida bu amal taqiqlangan!</p>
         <div class="warn-counter">
             <div class="warn-dot" id="warnDot1"></div>
             <div class="warn-dot" id="warnDot2"></div>
             <div class="warn-dot" id="warnDot3"></div>
-            <span class="warn-counter-text"><strong id="warnCount">0</strong> / 3 ogohlantirish</span>
+            <span class="warn-counter-text"><strong id="warnCount">0</strong> / 3 ogohlantiriş</span>
         </div>
         <div class="warn-danger-box" id="warnDangerBox">
             <i class="bi bi-exclamation-octagon-fill"></i>
             <span id="warnDangerText">Yana 1 marta qoidani buzsangiz test yakunlanadi!</span>
         </div>
-        <button class="warn-close-btn" id="warnCloseBtn">Tushundim</button>
+        <button class="warn-close-btn" id="warnCloseBtn">Tuşundim</button>
     </div>
 </div>
 
@@ -774,10 +774,10 @@
 
         <div class="submit-card">
             <div class="submit-icon"><i class="bi bi-send-check-fill"></i></div>
-            <h4>Testni yakunlash</h4>
-            <p>Javoblaringizni tekshiring va yakunlang</p>
+            <h4>Testni yakunlaş</h4>
+            <p>Javoblaringizni tekşiring va yakunlang</p>
             <button type="submit" class="submit-btn" id="submitBtn">
-                <i class="bi bi-check-circle-fill"></i> Yakunlash
+                <i class="bi bi-check-circle-fill"></i> Yakunlaş
             </button>
         </div>
     </form>
@@ -799,7 +799,7 @@
             </div>
         </div>
         <button class="bottom-submit-btn" onclick="submitTestAPI()">
-            <i class="bi bi-send-fill"></i> Yakunlash
+            <i class="bi bi-send-fill"></i> Yakunlaş
         </button>
     </div>
 </div>
@@ -873,7 +873,7 @@
         if (!document.fullscreenElement && !document.webkitFullscreenElement) {
             if (pageReady && !testSubmitted) {
                 elFullscreenOverlay.classList.remove('hidden');
-                showWarning("To'liq ekrandan chiqish aniqlandi!");
+                showWarning("Töliq ekrandan çiqiş aniqlandi!");
             }
         } else {
             elFullscreenOverlay.classList.add('hidden');
@@ -1033,7 +1033,7 @@
         elWatermark.classList.add('active');
 
         if (warnings >= 3) {
-            elWarnMsg.textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
+            elWarnMsg.textContent = "3 marta ogohlantiriş! Test yakunlanmoqda...";
             elDangerText.textContent = "Test yakunlanmoqda...";
             elDangerBox.classList.add('show');
             elWarnCloseBtn.disabled = true;
@@ -1050,11 +1050,11 @@
     /* ==================== ANTI-CHEAT EVENTS ==================== */
 
     /* Context menu */
-    document.addEventListener('contextmenu', function(e) { e.preventDefault(); showWarning("O'ng tugma taqiqlangan!"); });
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); showWarning("Öng tugma taqiqlangan!"); });
 
     /* Copy/Cut/Paste */
-    document.addEventListener('copy', function(e) { e.preventDefault(); showWarning("Nusxa olish taqiqlangan!"); });
-    document.addEventListener('cut', function(e) { e.preventDefault(); showWarning("Kesish taqiqlangan!"); });
+    document.addEventListener('copy', function(e) { e.preventDefault(); showWarning("Nusxa oliş taqiqlangan!"); });
+    document.addEventListener('cut', function(e) { e.preventDefault(); showWarning("Kesiş taqiqlangan!"); });
     document.addEventListener('paste', function(e) { e.preventDefault(); });
 
     /* Keyboard */
@@ -1072,13 +1072,13 @@
             if (e.key === 'Tab' || e.key === 'F4') { e.preventDefault(); showWarning("Alt tugma taqiqlangan!"); return false; }
         }
         if (e.metaKey) { e.preventDefault(); return false; }
-        if (e.key === 'Escape') { e.preventDefault(); showWarning("Chiqish taqiqlangan!"); return false; }
-        if (e.key === 'PrintScreen') { e.preventDefault(); showWarning("Skrinshot taqiqlangan!"); }
+        if (e.key === 'Escape') { e.preventDefault(); showWarning("Çiqiş taqiqlangan!"); return false; }
+        if (e.key === 'PrintScreen') { e.preventDefault(); showWarning("Skrinşot taqiqlangan!"); }
     });
 
     document.addEventListener('keyup', function(e) {
         if (e.key === 'PrintScreen') {
-            showWarning("Skrinshot taqiqlangan!");
+            showWarning("Skrinşot taqiqlangan!");
             if (elTestPage) { elTestPage.style.filter = 'blur(20px)'; setTimeout(function() { elTestPage.style.filter = 'none'; }, 1500); }
         }
     });
@@ -1088,14 +1088,14 @@
 
     /* Visibility */
     document.addEventListener('visibilitychange', function() {
-        if (document.hidden && pageReady) { showWarning("Sahifadan chiqish aniqlandi!"); }
+        if (document.hidden && pageReady) { showWarning("Sahifadan çiqiş aniqlandi!"); }
     });
 
     /* Window blur */
     window.addEventListener('blur', function() {
         if (!pageReady) return;
         elWatermark.classList.add('active');
-        showWarning("Oynadan chiqish aniqlandi!");
+        showWarning("Oynadan çiqiş aniqlandi!");
     });
     window.addEventListener('focus', function() {
         setTimeout(function() { elWatermark.classList.remove('active'); }, 1000);
@@ -1122,18 +1122,18 @@
         }
     }, 1000);
 
-    /* Console bloklash */
+    /* Console bloklaş */
     var noop = function() { return undefined; };
     ['log','warn','error','info','debug','table','dir','trace','group','groupEnd','clear','count','assert','time','timeEnd'].forEach(function(m) {
         try { if (typeof console[m] === 'function') console[m] = noop; } catch(e) {}
     });
 
-    /* Fetch bloklash */
+    /* Fetch bloklaş */
     var origFetch = window.fetch;
     if (origFetch) {
         window.fetch = function(url) {
             if (typeof url === 'string' && url.indexOf('http') === 0 && url.indexOf(window.location.origin) !== 0) {
-                showWarning("Tashqi so'rov taqiqlangan!");
+                showWarning("Taşqi sörov taqiqlangan!");
                 return Promise.reject(new Error('Blocked'));
             }
             return origFetch.apply(this, arguments);

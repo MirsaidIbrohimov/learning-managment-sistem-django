@@ -47,13 +47,13 @@
 <div class="jd-wrap">
     <div class="jd-hero">
         <h1>🎲 {{ game.title }}</h1>
-        <p>{{ game.description|default:"Savolga to'g'ri javob bering, nard toshini yumalating va doskada oldinga siljing." }}</p>
+        <p>{{ game.description|default:"Savolga töğri javob bering, nard toşini yumalating va doskada oldinga siljing." }}</p>
         <div class="jd-rules">
-            <span>🎤 Og'zaki javob</span>
+            <span>🎤 Oğzaki javob</span>
             <span>⏱ Har savolga vaqt</span>
-            <span>🎲 To'g'ri javob → zarba</span>
+            <span>🎲 Töğri javob → zarba</span>
             <span>❄️ 🐍 🪜 ⭐ katak effektlari</span>
-            <span>🏆 FINISH ga birinchi yetgan g'olib</span>
+            <span>🏆 FINISH ga birinçi yetgan ğolib</span>
         </div>
     </div>
 
@@ -68,24 +68,24 @@
                     <div class="fw-semibold">{{ comp.title }}</div>
                     <small class="text-muted">
                         {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}
-                        {% if comp.coin_1st %} · 🪙 1-o'rin {{ comp.coin_1st }}{% endif %}
+                        {% if comp.coin_1st %} · 🪙 1-örin {{ comp.coin_1st }}{% endif %}
                     </small>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     {% if comp.live_session %}
                         <span class="jd-live">● Jonli</span>
                         <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn jd-enter">
-                            Xonaga kirish
+                            Xonaga kiriş
                         </a>
                     {% else %}
-                        <span class="jd-wait">Lobby ochilmagan</span>
+                        <span class="jd-wait">Lobby oçilmagan</span>
                     {% endif %}
                 </div>
             </div>
             {% empty %}
             <div class="text-center py-5 text-muted">
                 <div style="font-size: 2.2rem; opacity: 0.4;">🎲</div>
-                <p class="mt-2 mb-0">Hozircha Jumanji musobaqasi yo'q</p>
+                <p class="mt-2 mb-0">Hozirça Jumanji musobaqasi yöq</p>
             </div>
             {% endfor %}
         </div>

@@ -49,7 +49,7 @@ class ChatSessionAdmin(admin.ModelAdmin):
     def user_link(self, obj):
         url = reverse('admin:accounts_customuser_change', args=[obj.user.pk])
         return format_html('<a href="{}">{}</a>', url, obj.user.full_name)
-    user_link.short_description = "Foydalanuvchi"
+    user_link.short_description = "Foydalanuvçi"
     user_link.admin_order_field = 'user__first_name'
     
     def message_count(self, obj):
@@ -80,7 +80,7 @@ class ChatSessionAdmin(admin.ModelAdmin):
     def actions_column(self, obj):
         detail_url = reverse('ai_yordamchi:admin_chat_detail', args=[obj.pk])
         return format_html(
-            '<a href="{}" class="button" title="Batafsil ko\'rish">👁️</a>',
+            '<a href="{}" class="button" title="Batafsil köriş">👁️</a>',
             detail_url
         )
     actions_column.short_description = "Amallar"
@@ -148,8 +148,8 @@ class ChatMessageAdmin(admin.ModelAdmin):
     def image_preview_large(self, obj):
         if obj.image:
             return format_html('<img src="{}" style="max-width: 500px; max-height: 500px; border-radius: 8px;" />', obj.image.url)
-        return 'Rasm yo\'q'
-    image_preview_large.short_description = "Rasm ko'rinishi"
+        return 'Rasm yöq'
+    image_preview_large.short_description = "Rasm körinişi"
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('session', 'session__user')

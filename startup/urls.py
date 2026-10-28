@@ -5,9 +5,9 @@ from . import views
 app_name = 'startup'
 
 # DIQQAT: URL nomlarida `leaderboard, rating, profile, homework, messages,
-# settings, devices, help, books` substring'lari ISHLATILMAYDI —
-# `accounts.middleware.SectionBlockMiddleware` url_name'ni substring bo'yicha
-# bloklaydi va aks holda startup bo'limi tasodifan yopilib qolardi.
+# settings, devices, help, books` substring'lari IŞLATILMAYDI —
+# `accounts.middleware.SectionBlockMiddleware` url_name'ni substring böyiça
+# bloklaydi va aks holda startup bölimi tasodifan yopilib qolardi.
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('create/', views.create, name='create'),

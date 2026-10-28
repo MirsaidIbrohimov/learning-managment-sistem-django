@@ -1,8 +1,8 @@
 {% extends 'accounts/admin/base_admin.html' %}
 {% load custom_filters %}
 
-{% block title %}Onlayn to'lov nazorati | Admin{% endblock %}
-{% block page_title %}Onlayn to'lov nazorati{% endblock %}
+{% block title %}Onlayn tölov nazorati | Admin{% endblock %}
+{% block page_title %}Onlayn tölov nazorati{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -297,7 +297,7 @@
     color: var(--text-color, #1e293b);
 }
 
-/* O'quvchi ma'lumotlari dizayni */
+/* Öquvçi ma'lumotlari dizayni */
 .tz-student-cell {
     display: flex;
     align-items: center;
@@ -411,7 +411,7 @@
     text-decoration: underline;
 }
 
-/* Webhook bo'limi tab / toggle */
+/* Webhook bölimi tab / toggle */
 .tz-ref-code {
     font-family: monospace;
     font-size: 0.75rem;
@@ -428,25 +428,25 @@
         <div>
             <h1 class="tz-hero-title">
                 <i class="bi bi-credit-card-2-front-fill"></i>
-                Onlayn to'lov nazorati
+                Onlayn tölov nazorati
             </h1>
             <div class="tz-hero-subtitle">
-                Onlayn to‘lov hisoblari, kassa buyurtmalari, real vaqt holatlari va webhook auditi
+                Onlayn tölov hisoblari, kassa buyurtmalari, real vaqt holatlari va webhook auditi
             </div>
         </div>
         <div>
             {% if integration_configured %}
                 <span class="tz-badge-pill active">
-                    <i class="bi bi-patch-check-fill"></i> API va Kassa to'liq sozlangan
+                    <i class="bi bi-patch-check-fill"></i> API va Kassa töliq sozlangan
                 </span>
             {% else %}
                 <span class="tz-badge-pill warning">
-                    <i class="bi bi-exclamation-triangle-fill"></i> API kalitlari yoki Webhook to'liq emas
+                    <i class="bi bi-exclamation-triangle-fill"></i> API kalitlari yoki Webhook töliq emas
                 </span>
             {% endif %}
             {% for name, ready in gateway_status %}
                 <span class="tz-badge-pill {% if ready %}active{% else %}warning{% endif %}">
-                    <i class="bi {% if ready %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i> {{ name }}: {% if ready %}ishlayapti{% else %}sozlanmagan{% endif %}
+                    <i class="bi {% if ready %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i> {{ name }}: {% if ready %}işlayapti{% else %}sozlanmagan{% endif %}
                 </span>
             {% endfor %}
         </div>
@@ -459,8 +459,8 @@
                 <i class="bi bi-wallet2"></i>
             </div>
             <div>
-                <div class="tz-stat-val">{{ stats.total_paid_som|space_num }} so'm</div>
-                <div class="tz-stat-label">Muvaffaqiyatli tushum ({{ stats.paid_count }} ta)</div>
+                <div class="tz-stat-val">{{ stats.total_paid_som|space_num }} söm</div>
+                <div class="tz-stat-label">Muvaffaqiyatli tuşum ({{ stats.paid_count }} ta)</div>
             </div>
         </div>
 
@@ -480,7 +480,7 @@
             </div>
             <div>
                 <div class="tz-stat-val">{{ stats.pending_count }} ta</div>
-                <div class="tz-stat-label">To'lov kutilmoqda</div>
+                <div class="tz-stat-label">Tölov kutilmoqda</div>
             </div>
         </div>
 
@@ -500,7 +500,7 @@
         <div class="tz-box-head">
             <h2 class="tz-box-title">
                 <i class="bi bi-list-check text-primary"></i>
-                To'lov buyurtmalari ro'yxati
+                Tölov buyurtmalari röyxati
             </h2>
             <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill font-monospace">
@@ -514,26 +514,26 @@
             <form method="get" class="tz-filter-form">
                 <div class="tz-search-input">
                     <i class="bi bi-search"></i>
-                    <input type="search" name="q" value="{{ query }}" placeholder="O'quvchi ismi, telefon, ID yoki buyurtma kodi..." autocomplete="off">
+                    <input type="search" name="q" value="{{ query }}" placeholder="Öquvçi ismi, telefon, ID yoki buyurtma kodi..." autocomplete="off">
                 </div>
                 <select name="status" class="tz-filter-select" onchange="this.form.submit()">
-                    <option value="">Barcha holatlar (barchasi)</option>
+                    <option value="">Barça holatlar (barçasi)</option>
                     {% for value, label in status_choices %}
                         <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
                 <select name="gateway" class="tz-filter-select" onchange="this.form.submit()">
-                    <option value="">Barcha tizimlar</option>
+                    <option value="">Barça tizimlar</option>
                     {% for value, label in gateway_choices %}
                         <option value="{{ value }}" {% if gateway_filter == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
                 <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 fw-bold">
-                    <i class="bi bi-funnel"></i> Saralash
+                    <i class="bi bi-funnel"></i> Saralaş
                 </button>
                 {% if query or status_filter or gateway_filter %}
                     <a href="{% url 'admin_tezcheck_payments' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3">
-                        <i class="bi bi-x-circle"></i> Tozalash
+                        <i class="bi bi-x-circle"></i> Tozalaş
                     </a>
                 {% endif %}
             </form>
@@ -542,16 +542,16 @@
         <!-- Tezkor status filter tugmalari -->
         <div class="tz-quick-chips">
             <a href="?q={{ query|urlencode }}" class="tz-chip {% if not status_filter %}active{% endif %}">
-                Barchasi
+                Barçasi
             </a>
             <a href="?q={{ query|urlencode }}&status=paid" class="tz-chip {% if status_filter == 'paid' %}active{% endif %}">
-                <i class="bi bi-check-circle-fill text-success"></i> To'langan ({{ stats.paid_count }})
+                <i class="bi bi-check-circle-fill text-success"></i> Tölangan ({{ stats.paid_count }})
             </a>
             <a href="?q={{ query|urlencode }}&status=pending" class="tz-chip {% if status_filter == 'pending' %}active{% endif %}">
                 <i class="bi bi-clock text-warning"></i> Kutilmoqda ({{ stats.pending_count }})
             </a>
             <a href="?q={{ query|urlencode }}&status=review" class="tz-chip {% if status_filter == 'review' %}active{% endif %}">
-                <i class="bi bi-exclamation-diamond text-danger"></i> Tekshiruv kerak ({{ stats.review_count }})
+                <i class="bi bi-exclamation-diamond text-danger"></i> Tekşiruv kerak ({{ stats.review_count }})
             </a>
             <a href="?q={{ query|urlencode }}&status=expired" class="tz-chip {% if status_filter == 'expired' %}active{% endif %}">
                 <i class="bi bi-x-circle text-muted"></i> Eskirgan / Bekor
@@ -564,13 +564,13 @@
                 <thead>
                     <tr>
                         <th>Sana va Vaqt</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Davr</th>
-                        <th>To'lov Summasi</th>
+                        <th>Tölov Summasi</th>
                         <th>Holat</th>
                         <th>Provayder / ID</th>
                         <th>Hisob Ma'lumoti</th>
-                        <th style="text-align: right;">Boshqarish</th>
+                        <th style="text-align: right;">Boşqariş</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -582,7 +582,7 @@
                             <div class="text-muted small">{{ order.created_at|date:'H:i' }}</div>
                         </td>
 
-                        <!-- O'quvchi -->
+                        <!-- Öquvçi -->
                         <td>
                             <div class="tz-student-cell">
                                 <div class="tz-avatar-circle">
@@ -611,9 +611,9 @@
 
                         <!-- Summa -->
                         <td>
-                            <div class="tz-amount-val">{{ order.amount_som|space_num }} so'm</div>
+                            <div class="tz-amount-val">{{ order.amount_som|space_num }} söm</div>
                             {% if order.net_som %}
-                                <div class="tz-fee-sub">Sof: {{ order.net_som|space_num }} so'm</div>
+                                <div class="tz-fee-sub">Sof: {{ order.net_som|space_num }} söm</div>
                             {% endif %}
                         </td>
 
@@ -621,7 +621,7 @@
                         <td>
                             {% if order.status == 'paid' %}
                                 <span class="tz-status-tag tz-status-paid">
-                                    <i class="bi bi-check-circle-fill"></i> To'langan
+                                    <i class="bi bi-check-circle-fill"></i> Tölangan
                                 </span>
                             {% elif order.status == 'pending' %}
                                 <span class="tz-status-tag tz-status-pending">
@@ -629,7 +629,7 @@
                                 </span>
                             {% elif order.status == 'review' %}
                                 <span class="tz-status-tag tz-status-review">
-                                    <i class="bi bi-exclamation-triangle-fill"></i> Tekshiruv
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Tekşiruv
                                 </span>
                             {% elif order.status == 'expired' %}
                                 <span class="tz-status-tag tz-status-expired">
@@ -637,7 +637,7 @@
                                 </span>
                             {% elif order.status == 'failed' %}
                                 <span class="tz-status-tag tz-status-failed">
-                                    <i class="bi bi-x-circle-fill"></i> Bekor bo'lgan
+                                    <i class="bi bi-x-circle-fill"></i> Bekor bölgan
                                 </span>
                             {% elif order.status == 'refunded' %}
                                 <span class="tz-status-tag tz-status-refunded">
@@ -667,7 +667,7 @@
                         <td>
                             {% if order.payment_url and order.status == 'pending' %}
                                 <a href="{{ order.payment_url }}" target="_blank" rel="noopener" class="tz-link-pay">
-                                    <i class="bi bi-box-arrow-up-right"></i> To'lov havolasi
+                                    <i class="bi bi-box-arrow-up-right"></i> Tölov havolasi
                                 </a>
                             {% endif %}
                             <div class="tz-ref-code mt-1">{{ order.bill_reference|default:order.external_reference }}</div>
@@ -678,13 +678,13 @@
                             {% endif %}
                         </td>
 
-                        <!-- Boshqarish / Tekshirish -->
+                        <!-- Boşqariş / Tekşiriş -->
                         <td style="text-align: right; white-space: nowrap;">
                             {% if order.bill_id and order.status != 'paid' %}
                                 <form method="post" action="{% url 'admin_sync_tezcheck_payment' order.pk %}" style="display: inline-block;">
                                     {% csrf_token %}
-                                    <button class="tz-btn-sync" type="submit" title="Onlayn to‘lov holatini tekshirish va LMS ga sinxronizatsiya qilish">
-                                        <i class="bi bi-arrow-repeat"></i> Tekshirish
+                                    <button class="tz-btn-sync" type="submit" title="Onlayn tölov holatini tekşiriş va LMS ga sinxronizatsiya qiliş">
+                                        <i class="bi bi-arrow-repeat"></i> Tekşiriş
                                     </button>
                                 </form>
                             {% else %}
@@ -696,7 +696,7 @@
                     <tr>
                         <td colspan="8" class="text-center py-5">
                             <i class="bi bi-receipt text-muted" style="font-size: 2.5rem;"></i>
-                            <div class="text-muted mt-2 fw-semibold">Ushbu so'rov bo'yicha to'lov buyurtmalari topilmadi.</div>
+                            <div class="text-muted mt-2 fw-semibold">Uşbu sörov böyiça tölov buyurtmalari topilmadi.</div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -726,15 +726,15 @@
         {% endif %}
     </div>
 
-    <!-- 4. Webhook auditi bo'limi -->
+    <!-- 4. Webhook auditi bölimi -->
     <div class="tz-box">
         <div class="tz-box-head">
             <h2 class="tz-box-title">
                 <i class="bi bi-broadcast text-warning"></i>
-                So'nggi webhook hodisalari auditi
+                Sönggi webhook hodisalari auditi
             </h2>
             <span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill small">
-                So'nggi 30 ta kelgan xabar
+                Sönggi 30 ta kelgan xabar
             </span>
         </div>
 
@@ -744,9 +744,9 @@
                     <tr>
                         <th>Qabul qilingan vaqt</th>
                         <th>Hodisa turi / ID</th>
-                        <th>Bog'langan Buyurtma</th>
+                        <th>Boğlangan Buyurtma</th>
                         <th>HMAC Imzo</th>
-                        <th>Bajarilish holati</th>
+                        <th>Bajariliş holati</th>
                         <th>Tafsilot / Xatolik</th>
                     </tr>
                 </thead>
@@ -774,11 +774,11 @@
                         <td>
                             {% if event.signature_valid %}
                                 <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill">
-                                    <i class="bi bi-shield-check"></i> To'g'ri
+                                    <i class="bi bi-shield-check"></i> Töğri
                                 </span>
                             {% else %}
                                 <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">
-                                    <i class="bi bi-shield-x"></i> Noto'g'ri
+                                    <i class="bi bi-shield-x"></i> Notöğri
                                 </span>
                             {% endif %}
                         </td>
@@ -804,7 +804,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center py-4 text-muted">
-                            Hali onlayn to‘lov tizimidan webhook xabarlari kelmagan.
+                            Hali onlayn tölov tizimidan webhook xabarlari kelmagan.
                         </td>
                     </tr>
                     {% endfor %}

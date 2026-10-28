@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Uyga vazifalar - O'qituvchi paneli{% endblock %}
+{% block title %}Uyga vazifalar - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Uyga vazifalar{% endblock %}
 
 {% block teacher_content %}
@@ -76,15 +76,15 @@
 
 <form method="GET" class="t-hw-filters">
     <select name="status" class="t-hw-filter-select" onchange="this.form.submit()">
-        <option value="">Barcha holatlar</option>
+        <option value="">Barça holatlar</option>
         <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
-        <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Ko'rilmoqda</option>
+        <option value="reviewing" {% if status_filter == 'reviewing' %}selected{% endif %}>Körilmoqda</option>
         <option value="graded" {% if status_filter == 'graded' %}selected{% endif %}>Baholangan</option>
-        <option value="revision" {% if status_filter == 'revision' %}selected{% endif %}>Qayta ishlash</option>
+        <option value="revision" {% if status_filter == 'revision' %}selected{% endif %}>Qayta işlaş</option>
         <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Qabul qilingan</option>
     </select>
     <select name="course" class="t-hw-filter-select" onchange="this.form.submit()">
-        <option value="">Barcha kurslar</option>
+        <option value="">Barça kurslar</option>
         {% for p in all_professions %}
         <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
         {% endfor %}
@@ -99,7 +99,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Vazifa</th>
                         <th>Kurs</th>
                         <th>Fayl</th>
@@ -124,7 +124,7 @@
                         <td>
                             {% if s.file %}
                             <a href="{{ s.file.url }}" target="_blank" class="t-hw-file-link">
-                                <i class="bi bi-file-earmark"></i> Yuklab olish
+                                <i class="bi bi-file-earmark"></i> Yuklab oliş
                             </a>
                             {% elif s.text_content %}
                             <span class="t-badge t-badge-secondary">Matn</span>
@@ -141,7 +141,7 @@
                         <td style="font-size:.82rem; color: var(--bs-secondary-color);">{{ s.submitted_at|date:"d.m.Y H:i" }}</td>
                         <td>
                             <a href="{% url 'teacher:grade_homework' s.pk %}" class="t-grade-btn">
-                                <i class="bi bi-pencil-square"></i> Baholash
+                                <i class="bi bi-pencil-square"></i> Baholaş
                             </a>
                         </td>
                     </tr>
@@ -152,8 +152,8 @@
         {% else %}
         <div class="t-empty">
             <div class="t-empty-icon"><i class="bi bi-journal-check"></i></div>
-            <h3>Vazifa topshiriqlar yo'q</h3>
-            <p>Hali hech kim vazifa topshirmagan.</p>
+            <h3>Vazifa topşiriqlar yöq</h3>
+            <p>Hali heç kim vazifa topşirmagan.</p>
         </div>
         {% endif %}
     </div>

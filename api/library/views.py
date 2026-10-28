@@ -1,4 +1,4 @@
-"""Kutubxona API views — Student va Admin uchun to'liq CRUD."""
+"""Kutubxona API views — Student va Admin uçun töliq CRUD."""
 
 from datetime import date, timedelta
 
@@ -33,7 +33,7 @@ def _is_admin_or_assistant(user):
 
 
 # ─────────────────────────────────────────────────────────────
-#  STUDENT: Kitoblar ro'yxati va detail
+#  STUDENT: Kitoblar röyxati va detail
 # ─────────────────────────────────────────────────────────────
 
 class BookListView(APIView):
@@ -82,13 +82,13 @@ class BookDetailView(APIView):
 
 
 # ─────────────────────────────────────────────────────────────
-#  STUDENT: Duplicate tekshirish (faqat GET, hamma uchun)
+#  STUDENT: Duplicate tekşiriş (faqat GET, hamma uçun)
 # ─────────────────────────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes(AUTH)
 def check_duplicate(request):
-    """?title=...&author=...&isbn=... → takrorlanish tekshiruvi"""
+    """?title=...&author=...&isbn=... → takrorlaniş tekşiruvi"""
     serializer = BookDuplicateCheckSerializer(data={
         'title': request.query_params.get('title', ''),
         'author': request.query_params.get('author', ''),
@@ -100,13 +100,13 @@ def check_duplicate(request):
 
 
 # ─────────────────────────────────────────────────────────────
-#  STUDENT: Ariza berish
+#  STUDENT: Ariza beriş
 # ─────────────────────────────────────────────────────────────
 
 @api_view(['POST'])
 @permission_classes(AUTH)
 def request_book(request, pk):
-    """O'quvchi kitob ijarasi arizasi beradi."""
+    """Öquvçi kitob ijarasi arizasi beradi."""
     try:
         book = Book.objects.get(pk=pk)
     except Book.DoesNotExist:
@@ -129,7 +129,7 @@ def request_book(request, pk):
             message_type='notification',
             content=(
                 f"📚 Yangi kitob arizasi!\n"
-                f"O'quvchi: {request.user.full_name}\n"
+                f"Öquvçi: {request.user.full_name}\n"
                 f"Kitob: «{book.title}» — {book.author}\n"
                 f"Ariza #{ req.pk }"
             ),
@@ -166,14 +166,14 @@ class MyRentalRequestsView(APIView):
 @api_view(['POST'])
 @permission_classes(AUTH)
 def cancel_request(request, pk):
-    """O'quvchi arizasini bekor qiladi."""
+    """Öquvçi arizasini bekor qiladi."""
     try:
         req = BookRentalRequest.objects.get(pk=pk, student=request.user)
     except BookRentalRequest.DoesNotExist:
         return Response({'detail': 'Ariza topilmadi.'}, status=404)
 
     if req.status != 'pending':
-        return Response({'detail': 'Faqat kutilayotgan arizani bekor qilish mumkin.'}, status=400)
+        return Response({'detail': 'Faqat kutilayotgan arizani bekor qiliş mumkin.'}, status=400)
 
     req.status = 'cancelled'
     req.save()
@@ -212,7 +212,7 @@ class AdminBookListCreateView(APIView):
 
     def get(self, request):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
         books = Book.objects.all()
         search = request.query_params.get('search', '').strip()
@@ -238,11 +238,11 @@ class AdminBookListCreateView(APIView):
 
     def post(self, request):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
         serializer = BookCreateSerializer(data=request.data)
         if not serializer.is_valid():
-            # Duplicate xatolikni to'g'ri qaytarish
+            # Duplicate xatolikni töğri qaytariş
             errors = serializer.errors
             if 'duplicate' in str(errors):
                 return Response(errors, status=409)
@@ -266,7 +266,7 @@ class AdminBookDetailView(APIView):
 
     def get(self, request, pk):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
         book = self._get_book(pk)
         if not book:
             return Response({'detail': 'Kitob topilmadi.'}, status=404)
@@ -274,7 +274,7 @@ class AdminBookDetailView(APIView):
 
     def put(self, request, pk):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
         book = self._get_book(pk)
         if not book:
             return Response({'detail': 'Kitob topilmadi.'}, status=404)
@@ -286,7 +286,7 @@ class AdminBookDetailView(APIView):
                 return Response(errors, status=409)
             return Response(errors, status=400)
 
-        # total_copies o'zgarganda available_copies ni moslashtirish
+        # total_copies özgarganda available_copies ni moslaştiriş
         old_total = book.total_copies
         new_total = serializer.validated_data.get('total_copies', old_total)
         diff = new_total - old_total
@@ -299,7 +299,7 @@ class AdminBookDetailView(APIView):
 
     def delete(self, request, pk):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
         book = self._get_book(pk)
         if not book:
             return Response({'detail': 'Kitob topilmadi.'}, status=404)
@@ -311,7 +311,7 @@ class AdminBookDetailView(APIView):
                 status=400
             )
         book.delete()
-        return Response({'detail': 'Kitob o\'chirildi.'}, status=204)
+        return Response({'detail': 'Kitob öçirildi.'}, status=204)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -323,7 +323,7 @@ class AdminRequestListView(APIView):
 
     def get(self, request):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
         requests_qs = BookRentalRequest.objects.select_related(
             'book', 'student', 'processed_by'
@@ -357,7 +357,7 @@ class AdminRequestListView(APIView):
 def approve_request(request, pk):
     """Admin arizani tasdiqlaydi va ijara yaratadi."""
     if not _is_admin_or_assistant(request.user):
-        return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+        return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
     try:
         req = BookRentalRequest.objects.select_related('book', 'student').get(pk=pk)
@@ -365,19 +365,19 @@ def approve_request(request, pk):
         return Response({'detail': 'Ariza topilmadi.'}, status=404)
 
     if req.status != 'pending':
-        return Response({'detail': 'Faqat kutilayotgan arizani tasdiqlash mumkin.'}, status=400)
+        return Response({'detail': 'Faqat kutilayotgan arizani tasdiqlaş mumkin.'}, status=400)
 
     book = req.book
     if not book.is_available:
         return Response({'detail': f'«{book.title}» kitobi hozirda mavjud emas.'}, status=400)
 
-    # Qaytarish sanasi (default 14 kun)
+    # Qaytariş sanasi (default 14 kun)
     days = int(request.data.get('days', 14))
     days = max(1, min(days, 90))
     return_date = date.today() + timedelta(days=days)
     admin_note = request.data.get('admin_note', '')
 
-    # Ijara yaratish
+    # Ijara yaratiş
     rental = BookRental.objects.create(
         book=book,
         student=req.student,
@@ -388,7 +388,7 @@ def approve_request(request, pk):
     book.available_copies -= 1
     book.save(update_fields=['available_copies'])
 
-    # Arizani yangilash
+    # Arizani yangilaş
     req.status = 'approved'
     req.processed_by = request.user
     req.processed_at = timezone.now()
@@ -396,7 +396,7 @@ def approve_request(request, pk):
     req.rental = rental
     req.save()
 
-    # O'quvchiga xabar
+    # Öquvçiga xabar
     Message.objects.create(
         sender=request.user,
         recipient=req.student,
@@ -404,8 +404,8 @@ def approve_request(request, pk):
         content=(
             f"✅ Sizning kitob arizangiz tasdiqlandi!\n"
             f"Kitob: «{book.title}» — {book.author}\n"
-            f"Qaytarish sanasi: {return_date.strftime('%d.%m.%Y')}\n"
-            f"Iltimos, kitobni o'z vaqtida qaytaring!"
+            f"Qaytariş sanasi: {return_date.strftime('%d.%m.%Y')}\n"
+            f"Iltimos, kitobni öz vaqtida qaytaring!"
         ),
     )
 
@@ -420,7 +420,7 @@ def approve_request(request, pk):
 def reject_request(request, pk):
     """Admin arizani rad etadi."""
     if not _is_admin_or_assistant(request.user):
-        return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+        return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
     try:
         req = BookRentalRequest.objects.select_related('book', 'student').get(pk=pk)
@@ -428,7 +428,7 @@ def reject_request(request, pk):
         return Response({'detail': 'Ariza topilmadi.'}, status=404)
 
     if req.status != 'pending':
-        return Response({'detail': 'Faqat kutilayotgan arizani rad etish mumkin.'}, status=400)
+        return Response({'detail': 'Faqat kutilayotgan arizani rad etiş mumkin.'}, status=400)
 
     admin_note = request.data.get('admin_note', '')
     req.status = 'rejected'
@@ -437,7 +437,7 @@ def reject_request(request, pk):
     req.admin_note = admin_note
     req.save()
 
-    # O'quvchiga xabar
+    # Öquvçiga xabar
     Message.objects.create(
         sender=request.user,
         recipient=req.student,
@@ -461,7 +461,7 @@ class AdminRentalListView(APIView):
 
     def get(self, request):
         if not _is_admin_or_assistant(request.user):
-            return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+            return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
         rentals = BookRental.objects.select_related('book', 'student', 'given_by').all()
 
@@ -506,7 +506,7 @@ class AdminRentalListView(APIView):
 def return_rental(request, pk):
     """Admin kitobni qaytarilgan deb belgilaydi."""
     if not _is_admin_or_assistant(request.user):
-        return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+        return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
     try:
         rental = BookRental.objects.select_related('book', 'student').get(pk=pk)
@@ -514,11 +514,11 @@ def return_rental(request, pk):
         return Response({'detail': 'Ijara topilmadi.'}, status=404)
 
     if rental.status == 'returned':
-        return Response({'detail': 'Bu ijara allaqachon qaytarilgan.'}, status=400)
+        return Response({'detail': 'Bu ijara allaqaçon qaytarilgan.'}, status=400)
 
     rental.mark_returned(request.user)
 
-    # O'quvchiga xabar
+    # Öquvçiga xabar
     Message.objects.create(
         sender=request.user,
         recipient=rental.student,
@@ -542,7 +542,7 @@ def return_rental(request, pk):
 @permission_classes(AUTH)
 def library_stats(request):
     if not _is_admin_or_assistant(request.user):
-        return Response({'detail': 'Ruxsat yo\'q.'}, status=403)
+        return Response({'detail': 'Ruxsat yöq.'}, status=403)
 
     today = date.today()
     all_books = Book.objects.all()

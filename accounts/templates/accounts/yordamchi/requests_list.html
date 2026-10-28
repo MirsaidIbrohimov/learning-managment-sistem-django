@@ -1,18 +1,18 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
-{% block title %}So'rovlar{% endblock %}
-{% block page_title %}Kurs / Premium so'rovlari{% endblock %}
+{% block title %}Sörovlar{% endblock %}
+{% block page_title %}Kurs / Premium sörovlari{% endblock %}
 
 {% block content %}
 {% if can_enroll %}
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
-        <h6 class="mb-0"><i class="bi bi-arrow-right-circle text-success me-2"></i> Kursga yozilish so'rovlari ({{ enrolls|length }})</h6>
+        <h6 class="mb-0"><i class="bi bi-arrow-right-circle text-success me-2"></i> Kursga yoziliş sörovlari ({{ enrolls|length }})</h6>
     </div>
     <div class="card-body p-0">
         {% if enrolls %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead style="background:rgba(16,185,129,0.06);"><tr><th>#</th><th>O'quvchi</th><th>Yo'nalish</th><th>Sana</th></tr></thead>
+                <thead style="background:rgba(16,185,129,0.06);"><tr><th>#</th><th>Öquvçi</th><th>Yönaliş</th><th>Sana</th></tr></thead>
                 <tbody>
                 {% for r in enrolls %}
                     <tr><td>{{ r.id }}</td>
@@ -24,7 +24,7 @@
                 </tbody>
             </table>
         </div>
-        {% else %}<div class="text-center py-3 text-muted small">Yangi so'rovlar yo'q</div>{% endif %}
+        {% else %}<div class="text-center py-3 text-muted small">Yangi sörovlar yöq</div>{% endif %}
     </div>
 </div>
 {% endif %}
@@ -32,13 +32,13 @@
 {% if can_unenroll %}
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
-        <h6 class="mb-0"><i class="bi bi-arrow-left-circle text-danger me-2"></i> Kursdan chiqish so'rovlari ({{ unenrolls|length }})</h6>
+        <h6 class="mb-0"><i class="bi bi-arrow-left-circle text-danger me-2"></i> Kursdan çiqiş sörovlari ({{ unenrolls|length }})</h6>
     </div>
     <div class="card-body p-0">
         {% if unenrolls %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead style="background:rgba(244,63,94,0.06);"><tr><th>#</th><th>O'quvchi</th><th>Yo'nalish</th><th>Sana</th></tr></thead>
+                <thead style="background:rgba(244,63,94,0.06);"><tr><th>#</th><th>Öquvçi</th><th>Yönaliş</th><th>Sana</th></tr></thead>
                 <tbody>
                 {% for r in unenrolls %}
                     <tr><td>{{ r.id }}</td>
@@ -50,7 +50,7 @@
                 </tbody>
             </table>
         </div>
-        {% else %}<div class="text-center py-3 text-muted small">Yangi so'rovlar yo'q</div>{% endif %}
+        {% else %}<div class="text-center py-3 text-muted small">Yangi sörovlar yöq</div>{% endif %}
     </div>
 </div>
 {% endif %}
@@ -58,13 +58,13 @@
 {% if can_premium %}
 <div class="card border-0 shadow-sm mb-3">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
-        <h6 class="mb-0"><i class="bi bi-star-fill text-warning me-2"></i> Premium so'rovlari ({{ premiums|length }})</h6>
+        <h6 class="mb-0"><i class="bi bi-star-fill text-warning me-2"></i> Premium sörovlari ({{ premiums|length }})</h6>
     </div>
     <div class="card-body p-0">
         {% if premiums %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead style="background:rgba(250,204,21,0.08);"><tr><th>#</th><th>Foydalanuvchi</th><th>Reja</th><th>Sana</th></tr></thead>
+                <thead style="background:rgba(250,204,21,0.08);"><tr><th>#</th><th>Foydalanuvçi</th><th>Reja</th><th>Sana</th></tr></thead>
                 <tbody>
                 {% for r in premiums %}
                     <tr><td>{{ r.id }}</td>
@@ -76,12 +76,12 @@
                 </tbody>
             </table>
         </div>
-        {% else %}<div class="text-center py-3 text-muted small">Yangi so'rovlar yo'q</div>{% endif %}
+        {% else %}<div class="text-center py-3 text-muted small">Yangi sörovlar yöq</div>{% endif %}
     </div>
 </div>
 {% endif %}
 
 {% if not can_enroll and not can_unenroll and not can_premium %}
-<div class="alert alert-warning"><i class="bi bi-shield-x"></i> Sizda so'rovlarni ko'rish uchun ruxsat yo'q.</div>
+<div class="alert alert-warning"><i class="bi bi-shield-x"></i> Sizda sörovlarni köriş uçun ruxsat yöq.</div>
 {% endif %}
 {% endblock %}

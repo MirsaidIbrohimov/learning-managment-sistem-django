@@ -253,32 +253,32 @@
     <div class="filter-card">
         <form method="get" class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label"><i class="bi bi-calendar-event"></i> Boshlanish</label>
+                <label class="form-label"><i class="bi bi-calendar-event"></i> Boşlaniş</label>
                 <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
             </div>
             <div class="col-md-3">
-                <label class="form-label"><i class="bi bi-calendar-event"></i> Tugash</label>
+                <label class="form-label"><i class="bi bi-calendar-event"></i> Tugaş</label>
                 <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
             </div>
             <div class="col-md-3">
                 <label class="form-label"><i class="bi bi-funnel"></i> Amal turi</label>
                 <select name="action_type" class="form-select">
-                    <option value="">Barchasi</option>
-                    <option value="login" {% if request.GET.action_type == 'login' %}selected{% endif %}>Kirish</option>
-                    <option value="logout" {% if request.GET.action_type == 'logout' %}selected{% endif %}>Chiqish</option>
+                    <option value="">Barçasi</option>
+                    <option value="login" {% if request.GET.action_type == 'login' %}selected{% endif %}>Kiriş</option>
+                    <option value="logout" {% if request.GET.action_type == 'logout' %}selected{% endif %}>Çiqiş</option>
                     <option value="like" {% if request.GET.action_type == 'like' %}selected{% endif %}>Like</option>
                     <option value="comment" {% if request.GET.action_type == 'comment' %}selected{% endif %}>Izoh</option>
                     <option value="purchase" {% if request.GET.action_type == 'purchase' %}selected{% endif %}>Xarid</option>
-                    <option value="coin_earned" {% if request.GET.action_type == 'coin_earned' %}selected{% endif %}>Coin olish</option>
-                    <option value="coin_spent" {% if request.GET.action_type == 'coin_spent' %}selected{% endif %}>Coin sarflash</option>
+                    <option value="coin_earned" {% if request.GET.action_type == 'coin_earned' %}selected{% endif %}>Coin oliş</option>
+                    <option value="coin_spent" {% if request.GET.action_type == 'coin_spent' %}selected{% endif %}>Coin sarflaş</option>
                     <option value="lesson_complete" {% if request.GET.action_type == 'lesson_complete' %}selected{% endif %}>Dars</option>
                     <option value="homework_submit" {% if request.GET.action_type == 'homework_submit' %}selected{% endif %}>Vazifa</option>
                 </select>
             </div>
             <div class="col-md-2">
-                <label class="form-label"><i class="bi bi-person"></i> Foydalanuvchi</label>
+                <label class="form-label"><i class="bi bi-person"></i> Foydalanuvçi</label>
                 <select name="user" class="form-select">
-                    <option value="">Barchasi</option>
+                    <option value="">Barçasi</option>
                     {% for u in users %}
                     <option value="{{ u.pk }}" {% if request.GET.user == u.pk|stringformat:"i" %}selected{% endif %}>
                         {{ u.full_name }}
@@ -301,7 +301,7 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Foydalanuvchi</th>
+                            <th>Foydalanuvçi</th>
                             <th>Amal</th>
                             <th>Tavsif</th>
                             <th>Sana</th>
@@ -322,9 +322,9 @@
                             </td>
                             <td>
                                 {% if activity.action_type == 'login' %}
-                                    <span class="act-badge info"><i class="bi bi-box-arrow-in-right"></i> Kirish</span>
+                                    <span class="act-badge info"><i class="bi bi-box-arrow-in-right"></i> Kiriş</span>
                                 {% elif activity.action_type == 'logout' %}
-                                    <span class="act-badge dim"><i class="bi bi-box-arrow-right"></i> Chiqish</span>
+                                    <span class="act-badge dim"><i class="bi bi-box-arrow-right"></i> Çiqiş</span>
                                 {% elif activity.action_type == 'like_product' or activity.action_type == 'like_post' %}
                                     <span class="act-badge danger"><i class="bi bi-heart-fill"></i> Like</span>
                                 {% elif activity.action_type == 'comment_product' or activity.action_type == 'comment_post' %}

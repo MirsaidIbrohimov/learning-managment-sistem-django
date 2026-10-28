@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True)),
             ],
             options={
-                'verbose_name': 'Bilim bo\'lagi',
+                'verbose_name': 'Bilim bölagi',
                 'verbose_name_plural': 'Bilim bazasi',
             },
         ),

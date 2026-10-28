@@ -63,12 +63,12 @@ class CommentForm(forms.ModelForm):
 
         if len(letters) < 10 or len(words) < 2 or meaningful_words < 2:
             raise forms.ValidationError(
-                "Iltimos, kamida ikki tushunarli so'zdan iborat mazmunli izoh yozing."
+                "Iltimos, kamida ikki tuşunarli sözdan iborat mazmunli izoh yozing."
             )
 
         if len(set(letters)) < 4 or re.search(r'(.)\1{3,}', letters):
             raise forms.ValidationError(
-                "Izohda takroriy yoki tasodifiy belgilar ko'p. Fikringizni tushunarli yozing."
+                "Izohda takroriy yoki tasodifiy belgilar köp. Fikringizni tuşunarli yozing."
             )
 
         return content

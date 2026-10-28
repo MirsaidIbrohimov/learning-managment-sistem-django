@@ -9,11 +9,11 @@ audit_logger = logging.getLogger('api.audit')
 
 
 def _client_ip(request):
-    """Audit jurnaliga yozish uchun IP.
+    """Audit jurnaliga yoziş uçun IP.
 
-    Avval `X-Forwarded-For` ning ENG CHAP qiymati olinardi — u butunlay
-    mijoz nazoratida, ya'ni admin amallari jurnalida IP soxtalashtirilishi
-    mumkin edi. `get_client_ip` ishonchli proxy sonini hisobga oladi.
+    Avval `X-Forwarded-For` ning ENG ÇAP qiymati olinardi — u butunlay
+    mijoz nazoratida, ya'ni admin amallari jurnalida IP soxtalaştirilişi
+    mumkin edi. `get_client_ip` işonçli proxy sonini hisobga oladi.
     """
     if not request:
         return None
@@ -24,7 +24,7 @@ def _client_ip(request):
 def log_action(request, action_code: str, *,
                target=None, target_type: str = '', target_id=None,
                description: str = '', extra: Optional[dict] = None):
-    """Admin/assistant tomonidan bajarilgan amalni jurnalga yozish.
+    """Admin/assistant tomonidan bajarilgan amalni jurnalga yoziş.
 
     Misol:
         log_action(request, 'users.block', target=user, description=f"{user.username} bloklandi")

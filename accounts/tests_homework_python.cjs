@@ -19,7 +19,7 @@ test('Python editor preserves version/stdin and terminates execution on completi
   const project={language:'python',code:'print(input())',version:'3.13',stdin:'Ali\n'};
   const root=new Element(),editor=context.window.HomeworkCode.create(root,project,true);
   assert.deepEqual(JSON.parse(JSON.stringify(editor.get())),project);
-  root.children[0].children.find(el=>el.textContent?.includes('Ishga tushirish')).handlers.click();
+  root.children[0].children.find(el=>el.textContent?.includes('Işga tuşiriş')).handlers.click();
   assert.equal(call.options.version,'3.13');assert.equal(call.options.stdin,'Ali\n');
   call.receive({type:'running',text:'3.13'});call.receive({type:'stdout',text:'Ali\n'});call.receive({type:'done'});
   assert.equal(terminated,true);

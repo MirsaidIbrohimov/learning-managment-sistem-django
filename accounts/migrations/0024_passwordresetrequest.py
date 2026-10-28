@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='password_reset_requests', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'verbose_name': "Parol tiklash so'rovi",
-                'verbose_name_plural': "Parol tiklash so'rovlari",
+                'verbose_name': "Parol tiklaş sörovi",
+                'verbose_name_plural': "Parol tiklaş sörovlari",
                 'ordering': ['-created_at'],
             },
         ),

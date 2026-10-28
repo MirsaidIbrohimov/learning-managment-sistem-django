@@ -89,7 +89,7 @@ class InpayClientTests(TestCase):
     def test_error_code_becomes_safe_message(self):
         error = {'success': False, 'error': {'code': 'ip_not_whitelisted', 'message': 'IP 1.2.3.4'}}
         with patch('accounts.inpay.requests.request', return_value=api_response(403, error)):
-            with self.assertRaisesMessage(inpay.InpayError, 'oq ro‘yxatida'):
+            with self.assertRaisesMessage(inpay.InpayError, 'oq röyxatida'):
                 inpay.create_bill(order=self.order, return_url='https://itc-academy.uz/')
 
     def test_fetch_normalizes_state_and_missing_payment(self):

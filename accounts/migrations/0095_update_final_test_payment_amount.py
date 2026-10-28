@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='finaltestpayment',
             name='amount',
-            field=models.DecimalField(decimal_places=0, default=43000, max_digits=15, verbose_name="To'lov summasi"),
+            field=models.DecimalField(decimal_places=0, default=43000, max_digits=15, verbose_name="Tölov summasi"),
         ),
     ]

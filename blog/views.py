@@ -54,7 +54,7 @@ def post_detail(request, pk):
             return redirect_to_login(request.get_full_path(), login_url='login')
         form = CommentForm(request.POST)
         if form.is_valid():
-            # 1 soatda 1 ta izoh cheklovi
+            # 1 soatda 1 ta izoh çeklovi
             from datetime import timedelta
             from django.utils import timezone
             one_hour_ago = timezone.now() - timedelta(hours=1)
@@ -64,7 +64,7 @@ def post_detail(request, pk):
             ).exists()
             
             if recent_comment:
-                messages.warning(request, "Siz 1 soatda faqat 1 ta izoh yozishingiz mumkin. Keyinroq urinib ko'ring.")
+                messages.warning(request, "Siz 1 soatda faqat 1 ta izoh yozişingiz mumkin. Keyinroq urinib köring.")
                 return redirect('blog:post_detail', pk=pk)
             
             comment = form.save(commit=False)
@@ -76,7 +76,7 @@ def post_detail(request, pk):
                 request.user.add_coins(1, f"Postga izoh (Premium): {post.title}")
                 messages.success(request, "Izoh qoldirildi (+1 coin Premium bonus)! ✨")
             else:
-                request.user.remove_coins(1, f"Postga izoh yozish: {post.title}")
+                request.user.remove_coins(1, f"Postga izoh yoziş: {post.title}")
                 messages.success(request, "Izoh qoldirildi (-1 coin)")
             ActivityLog.objects.create(
                 user=request.user,
@@ -98,7 +98,7 @@ def post_detail(request, pk):
 @login_required
 def post_create(request):
     if not (request.user.is_teacher or request.user.is_admin):
-        messages.error(request, "Faqat o'qituvchilar va adminlar post qo'shishi mumkin!")
+        messages.error(request, "Faqat öqituvçilar va adminlar post qöşişi mumkin!")
         return redirect('blog:post_list')
         
     if request.method == 'POST':
@@ -128,7 +128,7 @@ def post_create(request):
                         f"📂 Turi: {type_name}\n"
                         f"✍️ Muallif: {author_name}\n\n"
                         f"📖 {content_preview}\n\n"
-                        f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
+                        f"🔗 <a href=\"{post_url}\">Saytda töliq öqing!</a>"
                     )
                     from accounts.models import CustomUser
                     users = CustomUser.objects.filter(
@@ -137,11 +137,11 @@ def post_create(request):
                     for u in users:
                         notify_user(
                             u.telegram_id,
-                            f"📰 <b>Yangi post chiqdi!</b>\n\n"
+                            f"📰 <b>Yangi post çiqdi!</b>\n\n"
                             f"📌 <b>{post_title}</b>\n"
                             f"📂 {type_name}\n"
                             f"✍️ {author_name}\n\n"
-                            f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
+                            f"🔗 <a href=\"{post_url}\">Saytda töliq öqing!</a>"
                         )
                 except Exception as e:
                     print(f"Post notification xatolik: {e}")
@@ -163,8 +163,8 @@ def toggle_like(request, pk):
     if like:
         coin_back = 2 if request.user.is_premium else 1
         if like.coin_awarded:
-            request.user.remove_coins(coin_back, f"Postga like olib tashlandi: {post.title}")
-            messages.info(request, f"Like olib tashlandi (-{coin_back} coin)")
+            request.user.remove_coins(coin_back, f"Postga like olib taşlandi: {post.title}")
+            messages.info(request, f"Like olib taşlandi (-{coin_back} coin)")
         like.delete()
     else:
         coin_amount = 2 if request.user.is_premium else 1
@@ -183,7 +183,7 @@ def toggle_like(request, pk):
 @login_required
 def admin_posts(request):
     if not (request.user.is_teacher or request.user.is_admin):
-        messages.error(request, "Bu sahifaga kirish huquqingiz yo'q!")
+        messages.error(request, "Bu sahifaga kiriş huquqingiz yöq!")
         return redirect('blog:post_list')
     
     posts = Post.objects.all()
@@ -210,7 +210,7 @@ def post_edit(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
     if not request.user.is_admin and post.author != request.user:
-        messages.error(request, "Bu postni tahrirlash huquqingiz yo'q!")
+        messages.error(request, "Bu postni tahrirlaş huquqingiz yöq!")
         return redirect('blog:post_list')
     
     if request.method == 'POST':
@@ -230,12 +230,12 @@ def post_delete(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
     if not request.user.is_admin and post.author != request.user:
-        messages.error(request, "Bu postni o'chirish huquqingiz yo'q!")
+        messages.error(request, "Bu postni öçiriş huquqingiz yöq!")
         return redirect('blog:post_list')
     
     if request.method == 'POST':
         post.delete()
-        messages.success(request, "Post o'chirildi!")
+        messages.success(request, "Post öçirildi!")
         return redirect('blog:admin_posts')
     
     return render(request, 'blog/post_delete.html', {'post': post})
@@ -249,8 +249,8 @@ def toggle_comment_like(request, pk):
     if like:
         coin_back = 2 if request.user.is_premium else 1
         like.delete()
-        comment.user.remove_coins(coin_back, f"Izohga like olib tashlandi")
-        messages.info(request, f"Like olib tashlandi (-{coin_back} coin izoh egasidan)")
+        comment.user.remove_coins(coin_back, f"Izohga like olib taşlandi")
+        messages.info(request, f"Like olib taşlandi (-{coin_back} coin izoh egasidan)")
     else:
         coin_amount = 2 if request.user.is_premium else 1
         CommentLike.objects.create(comment=comment, user=request.user)

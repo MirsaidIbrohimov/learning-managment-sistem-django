@@ -1,10 +1,10 @@
 const box = document.getElementById("weather_effect");
 
-/* Sozlamalardan o'qish */
+/* Sozlamalardan öqiş */
 const savedEffect = localStorage.getItem('weatherEffect') || 'auto';
 console.log('Weather effect setting:', savedEffect);
 
-/* Agar o'chirilgan bo'lsa, box ni yashiramiz va to'xtatamiz */
+/* Agar öçirilgan bölsa, box ni yaşiramiz va töxtatamiz */
 if (savedEffect === 'off') {
     console.log('Weather OFF - hiding box');
     if (box) {
@@ -15,7 +15,7 @@ if (savedEffect === 'off') {
     let season;
     
     if (savedEffect === 'auto') {
-        /* fasl aniqlash */
+        /* fasl aniqlaş */
         const m = new Date().getMonth() + 1;
         season = "winter";
         
@@ -23,7 +23,7 @@ if (savedEffect === 'off') {
         else if(m>=6 && m<=8) season="summer";
         else if(m>=9 && m<=11) season="autumn";
     } else {
-        /* Foydalanuvchi tanlagan */
+        /* Foydalanuvçi tanlagan */
         season = savedEffect;
     }
     

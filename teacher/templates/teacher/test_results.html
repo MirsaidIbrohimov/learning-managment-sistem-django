@@ -1,6 +1,6 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Test natijalari - O'qituvchi paneli{% endblock %}
+{% block title %}Test natijalari - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Test natijalari{% endblock %}
 
 {% block teacher_content %}
@@ -59,17 +59,17 @@
     </div>
     <div class="t-mini-stat delay-2">
         <div class="t-mini-stat-val" style="color: #0d6efd;">{{ stats.passed|default:0 }}</div>
-        <div class="t-mini-stat-lbl">O'tganlar</div>
+        <div class="t-mini-stat-lbl">Ötganlar</div>
     </div>
     <div class="t-mini-stat delay-3">
         <div class="t-mini-stat-val" style="color: #f59e0b;">{{ stats.avg_score|floatformat:1|default:"0" }}%</div>
-        <div class="t-mini-stat-lbl">O'rtacha ball</div>
+        <div class="t-mini-stat-lbl">Örtaça ball</div>
     </div>
 </div>
 
 <form method="GET" class="t-filter-bar">
     <select name="course" class="t-filter-select" onchange="this.form.submit()">
-        <option value="">Barcha kurslar</option>
+        <option value="">Barça kurslar</option>
         {% for p in all_professions %}
         <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
         {% endfor %}
@@ -84,7 +84,7 @@
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>O'quvchi</th>
+                        <th>Öquvçi</th>
                         <th>Test</th>
                         <th>Kurs</th>
                         <th>Ball</th>
@@ -115,9 +115,9 @@
                         </td>
                         <td>
                             {% if r.passed %}
-                            <span class="t-badge t-badge-success"><i class="bi bi-check-circle-fill"></i> O'tdi</span>
+                            <span class="t-badge t-badge-success"><i class="bi bi-check-circle-fill"></i> Ötdi</span>
                             {% else %}
-                            <span class="t-badge t-badge-danger"><i class="bi bi-x-circle-fill"></i> O'tmadi</span>
+                            <span class="t-badge t-badge-danger"><i class="bi bi-x-circle-fill"></i> Ötmadi</span>
                             {% endif %}
                         </td>
                         <td style="font-size:.82rem; color: var(--bs-secondary-color);">{{ r.completed_at|date:"d.m.Y H:i" }}</td>
@@ -130,8 +130,8 @@
         {% else %}
         <div class="t-empty">
             <div class="t-empty-icon"><i class="bi bi-clipboard-data"></i></div>
-            <h3>Test natijalari yo'q</h3>
-            <p>Hali hech kim test topshirmagan.</p>
+            <h3>Test natijalari yöq</h3>
+            <p>Hali heç kim test topşirmagan.</p>
         </div>
         {% endif %}
     </div>

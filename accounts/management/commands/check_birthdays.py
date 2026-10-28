@@ -19,7 +19,7 @@ class Command(BaseCommand):
             already_sent_personal = Message.objects.filter(
                 recipient=user,
                 message_type='personal',
-                title__contains="Tug'ilgan kuningiz bilan",
+                title__contains="Tuğilgan kuningiz bilan",
                 created_at__date=today
             ).exists()
             
@@ -27,8 +27,8 @@ class Command(BaseCommand):
                 Message.objects.create(
                     recipient=user,
                     message_type='personal',
-                    title="Tug'ilgan kuningiz bilan! 🎂",
-                    content=f"Hurmatli {user.first_name}, sizni tug'ilgan kuningiz bilan tabriklaymiz! Sizga sog'-salomatlik, o'qishlaringizda omad tilaymiz!",
+                    title="Tuğilgan kuningiz bilan! 🎂",
+                    content=f"Hurmatli {user.first_name}, sizni tuğilgan kuningiz bilan tabriklaymiz! Sizga sog'-salomatlik, öqişlaringizda omad tilaymiz!",
                     sender=None # System
                 )
                 self.stdout.write(f"Sent personal message to {user.username}")
@@ -38,7 +38,7 @@ class Command(BaseCommand):
             already_sent_public = Message.objects.filter(
                 message_type='all',
                 content__contains=user.full_name,
-                title__contains="tug'ilgan kun",
+                title__contains="tuğilgan kun",
                 created_at__date=today
             ).exists()
             
@@ -46,8 +46,8 @@ class Command(BaseCommand):
                 Message.objects.create(
                     recipient=None,
                     message_type='all',
-                    title="Bugun tug'ilgan kun! 🎉",
-                    content=f"Hurmatli foydalanuvchilar! Bugun {user.full_name}ning tug'ilgan kuni. Shu sababdan uni jamoamiz nomidan chin qalbimizdan tabriklaymiz!",
+                    title="Bugun tuğilgan kun! 🎉",
+                    content=f"Hurmatli foydalanuvçilar! Bugun {user.full_name}ning tuğilgan kuni. Şu sababdan uni jamoamiz nomidan çin qalbimizdan tabriklaymiz!",
                     sender=None
                 )
                 self.stdout.write(f"Sent public message about {user.username}")

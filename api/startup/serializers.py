@@ -1,9 +1,9 @@
-"""MY StartUp API serializerlari — faqat o'qish uchun.
+"""MY StartUp API serializerlari — faqat öqiş uçun.
 
-Yozish amallari (vazifa topshirish, tasdiqlash, taklif) ataylab REST'ga
-chiqarilmagan: ular XP/coin beradi va `startup.services` ichidagi
-`transaction.atomic` oqimiga bog'liq. API kengaytirilganda o'sha servis
-funksiyalari qayta ishlatilishi kerak, mantiq takrorlanmasin.
+Yoziş amallari (vazifa topşiriş, tasdiqlaş, taklif) ataylab REST'ga
+çiqarilmagan: ular XP/coin beradi va `startup.services` içidagi
+`transaction.atomic` oqimiga boğliq. API kengaytirilganda öşa servis
+funksiyalari qayta işlatilişi kerak, mantiq takrorlanmasin.
 """
 
 from rest_framework import serializers
@@ -30,7 +30,7 @@ class UserBriefSerializer(serializers.Serializer):
 
 
 class StartupCardSerializer(serializers.ModelSerializer):
-    """Ochiq karta — har qanday tizimga kirgan foydalanuvchi ko'ra oladi."""
+    """Oçiq karta — har qanday tizimga kirgan foydalanuvçi köra oladi."""
 
     owner = UserBriefSerializer(read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)

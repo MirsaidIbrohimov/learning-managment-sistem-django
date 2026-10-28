@@ -17,7 +17,7 @@ class PremiumTelegramTests(SimpleTestCase):
         )
 
     def test_uncategorized_message_gets_default_sticker(self):
-        self.assertEqual(premium.pick_sticker("Oddiy bildirishnoma"), "messages")
+        self.assertEqual(premium.pick_sticker("Oddiy bildirişnoma"), "messages")
 
     def test_successful_message_is_single_message_with_premium_emoji(self):
         response = Mock(status_code=200, text="")

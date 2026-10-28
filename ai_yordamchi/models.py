@@ -3,7 +3,7 @@ from django.conf import settings
 
 
 class ChatFolder(models.Model):
-    """User-defined folder to organize chat sessions."""
+    """User-defined folder to organize çat sessions."""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_folders')
     name = models.CharField(max_length=100, verbose_name="Nomi")
     color = models.CharField(max_length=20, default='#6366f1')
@@ -38,7 +38,7 @@ class ChatSession(models.Model):
 
 class ChatMessage(models.Model):
     ROLE_CHOICES = (
-        ('user', 'Foydalanuvchi'),
+        ('user', 'Foydalanuvçi'),
         ('assistant', 'Creative AI'),
     )
     
@@ -92,16 +92,16 @@ class ChatMessage(models.Model):
 
 
 class AIDailyUsage(models.Model):
-    """Kunlik AI limiti hisoblagichi (Toshkent sanasi bo'yicha).
+    """Kunlik AI limiti hisoblagiçi (Toşkent sanasi böyiça).
 
-    Xabarlardan mustaqil: suhbatni o'chirish, tarixni tozalash yoki qayta
-    login qilish ishlatilgan limitni qaytarmaydi.
+    Xabarlardan mustaqil: suhbatni öçiriş, tarixni tozalaş yoki qayta
+    login qiliş işlatilgan limitni qaytarmaydi.
     """
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_daily_usage')
     date = models.DateField()
     messages = models.PositiveIntegerField(default=0)
     images = models.PositiveIntegerField(default=0)
-    generated_images = models.PositiveIntegerField(default=0, verbose_name="Chizilgan rasmlar")
+    generated_images = models.PositiveIntegerField(default=0, verbose_name="Çizilgan rasmlar")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -116,7 +116,7 @@ class AIDailyUsage(models.Model):
 class KnowledgeChunk(models.Model):
     """A chunk of course material (lesson text) + its embedding, for RAG.
 
-    Populated by the `build_ai_knowledge` management command. The AI chat
+    Populated by the `build_ai_knowledge` management command. The AI çat
     retrieves the most relevant chunks and grounds its answer in them.
     """
     profession_id = models.IntegerField(null=True, blank=True, db_index=True)
@@ -128,7 +128,7 @@ class KnowledgeChunk(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Bilim bo'lagi"
+        verbose_name = "Bilim bölagi"
         verbose_name_plural = "Bilim bazasi"
 
     def __str__(self):
@@ -136,10 +136,10 @@ class KnowledgeChunk(models.Model):
 
 
 class AIJob(models.Model):
-    """Fonda bajarilayotgan AI so'rovi natijasi (ai_yordamchi/jobs.py).
+    """Fonda bajarilayotgan AI sörovi natijasi (ai_yordamchi/jobs.py).
 
-    Natija bazada saqlanadi: kutish so'rovlari boshqa Passenger jarayoniga
-    tushsa ham javobni ola oladi.
+    Natija bazada saqlanadi: kutiş sörovlari boşqa Passenger jarayoniga
+    tuşsa ham javobni ola oladi.
     """
     STATUS_CHOICES = (('pending', 'Kutilmoqda'), ('done', 'Tayyor'))
 

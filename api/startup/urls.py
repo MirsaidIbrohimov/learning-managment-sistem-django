@@ -2,9 +2,9 @@ from django.urls import path
 
 from . import views
 
-# URL nomlari ataylab `leaderboard`/`rating` so'zlaridan xoli:
-# `SectionBlockMiddleware` url_name ichidan substring qidiradi va "reyting"
-# bo'limi bloklansa API HTML "bloklangan" sahifasini qaytarib qo'yardi.
+# URL nomlari ataylab `leaderboard`/`rating` sözlaridan xoli:
+# `SectionBlockMiddleware` url_name içidan substring qidiradi va "reyting"
+# bölimi bloklansa API HTML "bloklangan" sahifasini qaytarib qöyardi.
 urlpatterns = [
     path('top/', views.leaderboard, name='startup_top'),
     path('me/', views.me, name='startup_me'),

@@ -7,7 +7,7 @@
 <div class="pp-head">
     <div>
         <h1><span class="ic"><i class="bi bi-journal-check"></i></span>Uyga vazifalar</h1>
-        <p>{% if selected_child %}{{ selected_child.full_name }} — topshirilgan, baholangan va qolib ketgan vazifalar.{% endif %}</p>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — topşirilgan, baholangan va qolib ketgan vazifalar.{% endif %}</p>
     </div>
 </div>
 
@@ -16,25 +16,25 @@
 {% else %}
 <section class="pp-grid c4 pp-mb">
     <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-list-task"></i></span></div>
-        <div class="num"><span data-count="{{ counts.submitted }}">0</span><small>/{{ counts.all }}</small></div><div class="lbl">Topshirilgan</div>
+        <div class="num"><span data-count="{{ counts.submitted }}">0</span><small>/{{ counts.all }}</small></div><div class="lbl">Topşirilgan</div>
         <div class="pp-bar sm" style="margin-top:12px;"><i data-w="{{ counts.submitted|pct:counts.all }}"></i></div></div>
     <div class="pp-card pp-kpi tone-{{ summary.avg_grade|tone:10 }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-star-fill"></i></span></div>
-        <div class="num"><span data-count="{{ summary.avg_grade|dot }}">0</span><small>/10</small></div><div class="lbl">O‘rtacha baho</div>
+        <div class="num"><span data-count="{{ summary.avg_grade|dot }}">0</span><small>/10</small></div><div class="lbl">Örtaça baho</div>
         <div class="sub">{{ summary.graded }} ta baholangan</div></div>
     <div class="pp-card pp-kpi tone-info" data-reveal><div class="top"><span class="ic"><i class="bi bi-hourglass-split"></i></span></div>
-        <div class="num"><span data-count="{{ summary.pending }}">0</span></div><div class="lbl">Tekshirilmoqda</div>
-        <div class="sub">{{ summary.revision }} ta qayta ishlash kerak</div></div>
+        <div class="num"><span data-count="{{ summary.pending }}">0</span></div><div class="lbl">Tekşirilmoqda</div>
+        <div class="sub">{{ summary.revision }} ta qayta işlaş kerak</div></div>
     <div class="pp-card pp-kpi tone-bad" data-reveal><div class="top"><span class="ic"><i class="bi bi-exclamation-octagon-fill"></i></span></div>
-        <div class="num"><span data-count="{{ summary.missed }}">0</span></div><div class="lbl">Muddatida topshirilmagan</div>
-        <div class="sub">{{ summary.late }} ta kech topshirilgan</div></div>
+        <div class="num"><span data-count="{{ summary.missed }}">0</span></div><div class="lbl">Muddatida topşirilmagan</div>
+        <div class="sub">{{ summary.late }} ta keç topşirilgan</div></div>
 </section>
 
 <section class="pp-card flat" data-reveal>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--pp-line);">
-        <h3 style="margin:0;font-size:1rem;font-weight:800;">Vazifalar ro‘yxati</h3>
+        <h3 style="margin:0;font-size:1rem;font-weight:800;">Vazifalar röyxati</h3>
         <div class="pp-seg" data-seg="hwTable" role="group" aria-label="Filtr">
-            <button type="button" data-filter="all" class="on">Barchasi <span class="n">{{ counts.all }}</span></button>
-            <button type="button" data-filter="submitted">Topshirilgan <span class="n">{{ counts.submitted }}</span></button>
+            <button type="button" data-filter="all" class="on">Barçasi <span class="n">{{ counts.all }}</span></button>
+            <button type="button" data-filter="submitted">Topşirilgan <span class="n">{{ counts.submitted }}</span></button>
             <button type="button" data-filter="todo">Kutilmoqda <span class="n">{{ counts.todo }}</span></button>
             <button type="button" data-filter="missed">Muammoli <span class="n">{{ counts.missed }}</span></button>
         </div>
@@ -49,18 +49,18 @@
                     {% if r.submission.feedback %}<span class="sub" style="color:var(--pp-text-2);max-width:420px;white-space:normal;"><i class="bi bi-chat-quote"></i> {{ r.submission.feedback|truncatechars:140 }}</span>{% endif %}</td>
                 <td>{% if r.homework.due_date %}<span style="{% if r.state == 'missed' %}color:var(--pp-bad);font-weight:700;{% endif %}">{{ r.homework.due_date|date:"d.m.Y" }}</span><span class="sub">{{ r.homework.due_date|date:"H:i" }}</span>{% else %}<span class="pp-dim">—</span>{% endif %}</td>
                 <td>
-                    {% if r.state == 'missed' %}<span class="pp-badge bad"><i class="bi bi-x-circle"></i>Topshirilmagan</span>
+                    {% if r.state == 'missed' %}<span class="pp-badge bad"><i class="bi bi-x-circle"></i>Topşirilmagan</span>
                     {% elif r.state == 'todo' %}<span class="pp-badge warn"><i class="bi bi-hourglass"></i>Kutilmoqda</span>
                     {% elif r.submission.status == 'graded' %}<span class="pp-badge ok"><i class="bi bi-check2-circle"></i>Baholangan</span>
                     {% elif r.submission.status == 'accepted' %}<span class="pp-badge ok"><i class="bi bi-check2"></i>Qabul qilindi</span>
-                    {% elif r.submission.status == 'revision' %}<span class="pp-badge warn"><i class="bi bi-arrow-repeat"></i>Qayta ishlash</span>
-                    {% else %}<span class="pp-badge info"><i class="bi bi-eye"></i>Tekshirilmoqda</span>{% endif %}
-                    {% if r.submission.is_late %}<span class="sub" style="color:var(--pp-warn)"><i class="bi bi-clock-history"></i> Kech topshirilgan</span>{% endif %}
+                    {% elif r.submission.status == 'revision' %}<span class="pp-badge warn"><i class="bi bi-arrow-repeat"></i>Qayta işlaş</span>
+                    {% else %}<span class="pp-badge info"><i class="bi bi-eye"></i>Tekşirilmoqda</span>{% endif %}
+                    {% if r.submission.is_late %}<span class="sub" style="color:var(--pp-warn)"><i class="bi bi-clock-history"></i> Keç topşirilgan</span>{% endif %}
                 </td>
                 <td style="text-align:right;">{% if r.submission.grade is not None %}<span class="pp-badge {{ r.submission.grade|tone:10 }}" style="font-size:.85rem;">{{ r.submission.grade }}/10</span>{% else %}<span class="pp-dim">—</span>{% endif %}</td>
             </tr>
             {% endfor %}
-            <tr data-filter-empty class="{% if rows %}pp-hide{% endif %}"><td colspan="4"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-inbox"></i></div><p>Bu bo‘limda vazifa yo‘q.</p></div></td></tr>
+            <tr data-filter-empty class="{% if rows %}pp-hide{% endif %}"><td colspan="4"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-inbox"></i></div><p>Bu bölimda vazifa yöq.</p></div></td></tr>
             </tbody>
         </table>
     </div>

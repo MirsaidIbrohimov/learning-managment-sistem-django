@@ -1,8 +1,8 @@
-/* Profil — tashqi hisobni (Google / Facebook) ulash: animatsiyali ko'rsatma
-   (accounts/_connect_overlay.html). [data-sc-open="google|facebook"] bosilganda mos oyna ochiladi;
-   mini brauzerda kursor haqiqiy oqimni bosib chiqadi: sayt → hisob tanlash → ruxsat → saytga qaytish.
+/* Profil — taşqi hisobni (Google / Facebook) ulaş: animatsiyali körsatma
+   (accounts/_connect_overlay.html). [data-sc-open="google|facebook"] bosilganda mos oyna oçiladi;
+   mini brauzerda kursor haqiqiy oqimni bosib çiqadi: sayt → hisob tanlaş → ruxsat → saytga qaytiş.
    Holat .sc-stage[data-state] orqali CSS da. Matnlar va manzillar oynaning data-* atributlarida.
-   Haqiqiy ulash — oynadagi "... bilan ulash" havolasi (/auth/<xizmat>/connect/). */
+   Haqiqiy ulaş — oynadagi "... bilan ulaş" havolasi (/auth/<xizmat>/connect/). */
 (function () {
     'use strict';
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -13,11 +13,11 @@
 
     function init(ov) {
         var provider = ov.id.replace('scOverlay-', '');
-        // Ota konteynerdagi transform/stacking context modalni ko'mib qo'ymasligi uchun
+        // Ota konteynerdagi transform/stacking context modalni kömib qöymasligi uçun
         if (ov.parentNode !== document.body) document.body.appendChild(ov);
 
         var d = ov.dataset;
-        // then: bosilgandan keyin — 'nav' (manzil satrida yuklanish) yoki 'busy' (progress chizig'i)
+        // then: bosilgandan keyin — 'nav' (manzil satrida yuklaniş) yoki 'busy' (progress çiziği)
         var FLOW = [
             { state: 'profile', url: 'itc-academy.uz/profile', target: '.sc-t-connect', moveAt: 600, then: 'nav', cap: d.cap1 },
             { state: 'choose', url: d.urlChoose, target: '.sc-t-acc', moveAt: 800, then: 'busy', cap: d.cap2 },
@@ -42,7 +42,7 @@
         function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
         function clear() { timers.forEach(clearTimeout); timers = []; }
 
-        // Element markazining sahnaga nisbatan koordinatasi (oyna ochilishidagi scale hisobga olinadi)
+        // Element markazining sahnaga nisbatan koordinatasi (oyna oçilişidagi scale hisobga olinadi)
         function pointIn(el, fx, fy) {
             var s = stage.getBoundingClientRect(), r = el.getBoundingClientRect();
             var k = stage.offsetWidth / s.width || 1;
@@ -87,7 +87,7 @@
             }
         }
 
-        // auto=true — oqim o'zi davom etmoqda (kursor joyida qoladi); false — boshidan / qadam bosildi
+        // auto=true — oqim özi davom etmoqda (kursor joyida qoladi); false — boşidan / qadam bosildi
         function show(i, auto) {
             clear();
             var sc = FLOW[i];

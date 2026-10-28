@@ -1,9 +1,9 @@
-"""Alohida Yordamchi admin paneli uchun view'lar.
+"""Alohida Yordamçi admin paneli uçun view'lar.
 
 URL prefiksi: /yordamchi/
 
-Faqat `role='assistant_admin'` yoki `role='admin'` foydalanuvchilar kira oladi.
-Granular permission tekshiruvi (`has_assistant_perm`) ham qo'llanilishi mumkin.
+Faqat `role='assistant_admin'` yoki `role='admin'` foydalanuvçilar kira oladi.
+Granular permission tekşiruvi (`has_assistant_perm`) ham qöllanilişi mumkin.
 """
 
 from django.contrib import messages
@@ -52,7 +52,7 @@ def _check_access(request):
 
 
 def _require_perm(request, perm_code: str) -> bool:
-    """Granular permission tekshiruvi. False -> 'home'ga redirect kerak."""
+    """Granular permission tekşiruvi. False -> 'home'ga redirect kerak."""
     if not _check_access(request):
         return False
     user = request.user
@@ -62,13 +62,13 @@ def _require_perm(request, perm_code: str) -> bool:
 
 
 def _audit_client_ip(request):
-    """Audit uchun IP — proxy ortida ham to'g'ri qiymat (soxtalashtirilmaydi)."""
+    """Audit uçun IP — proxy ortida ham töğri qiymat (soxtalaştirilmaydi)."""
     from accounts.security import get_client_ip
     return get_client_ip(request)
 
 
 def _log_action(request, action_code: str, target_type='', target_id='', description='', extra=None):
-    """AssistantActionLog yozish."""
+    """AssistantActionLog yoziş."""
     try:
         AssistantActionLog.objects.create(
             user=request.user if request.user.is_authenticated else None,
@@ -89,7 +89,7 @@ def _log_action(request, action_code: str, target_type='', target_id='', descrip
 
 @login_required
 def yordamchi_dashboard(request):
-    """Yordamchi admin uchun asosiy dashboard — tezkor statistika."""
+    """Yordamçi admin uçun asosiy dashboard — tezkor statistika."""
     if not _check_access(request):
         return redirect('home')
 
@@ -109,7 +109,7 @@ def yordamchi_dashboard(request):
         'parents_total': Parent.objects.count(),
     }
 
-    # API token (eski dashboard tab'lari uchun ham keraksiz, lekin saqlab qo'yamiz)
+    # API token (eski dashboard tab'lari uçun ham keraksiz, lekin saqlab qöyamiz)
     from rest_framework.authtoken.models import Token
     token, _ = Token.objects.get_or_create(user=request.user)
 
@@ -121,7 +121,7 @@ def yordamchi_dashboard(request):
 
 @login_required
 def yordamchi_audit_log(request):
-    """Foydalanuvchining o'z harakatlar jurnali."""
+    """Foydalanuvçining öz harakatlar jurnali."""
     if not _check_access(request):
         return redirect('home')
 
@@ -174,12 +174,12 @@ def yordamchi_profile(request):
 
 
 # ============================================================
-# OQUVCHILAR
+# OQUVÇILAR
 # ============================================================
 
 @login_required
 def yordamchi_students(request):
-    """O'quvchilar ro'yxati — qidiruv, filtr, sahifalash."""
+    """Öquvçilar röyxati — qidiruv, filtr, sahifalaş."""
     if not _require_perm(request, 'users.view'):
         return redirect('home')
 
@@ -220,7 +220,7 @@ def yordamchi_students(request):
 
 @login_required
 def yordamchi_student_detail(request, pk):
-    """O'quvchi haqida to'liq ma'lumot + statistika + reyting o'rni."""
+    """Öquvçi haqida töliq ma'lumot + statistika + reyting örni."""
     if not _require_perm(request, 'users.view'):
         return redirect('home')
 
@@ -246,12 +246,12 @@ def yordamchi_student_detail(request, pk):
     avg_score = tests.aggregate(a=Avg('score'))['a'] or 0
     pass_rate = round((test_passed / test_total) * 100, 1) if test_total else 0
 
-    # ---- REYTING O'RNI (umumiy va kurs bo'yicha) ----
+    # ---- REYTING ÖRNI (umumiy va kurs böyiça) ----
     coins_rank_qs = CustomUser.objects.filter(role='student', is_blocked=False).order_by('-coins')
     coins_total_students = coins_rank_qs.count()
     coins_rank = list(coins_rank_qs.values_list('id', flat=True)).index(student.id) + 1 if coins_total_students and coins_rank_qs.filter(id=student.id).exists() else None
 
-    # Ball reytingi (vazifa baholari yig'indisi)
+    # Ball reytingi (vazifa baholari yiğindisi)
     score_data = list(
         CustomUser.objects.filter(role='student', is_blocked=False)
         .annotate(total_grade=Sum('homework_submissions__grade',
@@ -268,7 +268,7 @@ def yordamchi_student_detail(request, pk):
             student_score = s['total_grade'] or 0
             break
 
-    # Kurs bo'yicha reyting (asosiy kursi)
+    # Kurs böyiça reyting (asosiy kursi)
     course_rank = None
     course_total_in_course = None
     if student.profession_id:
@@ -285,7 +285,7 @@ def yordamchi_student_detail(request, pk):
     recent_tests = tests.select_related('test__lesson').order_by('-completed_at')[:5]
 
     _log_action(request, 'users.view_detail', target_type='CustomUser', target_id=student.pk,
-                description=f"O'quvchi profili ko'rildi: {student.full_name}")
+                description=f"Öquvçi profili körildi: {student.full_name}")
 
     return render(request, 'accounts/yordamchi/student_detail.html', {
         'student': student,
@@ -317,7 +317,7 @@ def yordamchi_student_detail(request, pk):
 
 
 # ============================================================
-# OQITUVCHILAR
+# OQITUVÇILAR
 # ============================================================
 
 @login_required
@@ -353,7 +353,7 @@ def yordamchi_homework(request):
     qs = HomeworkSubmission.objects.select_related(
         'student', 'homework__lesson__profession'
     ).prefetch_related(
-        # O'quvchining guruh(lar)ini ro'yxatda ko'rsatish uchun
+        # Öquvçining guruh(lar)ini röyxatda körsatiş uçun
         Prefetch(
             'student__study_groups',
             queryset=StudyGroup.objects.select_related('teacher').only(
@@ -373,7 +373,7 @@ def yordamchi_homework(request):
     page_obj = paginator.get_page(request.GET.get('page'))
     submissions = list(page_obj.object_list)
 
-    # Sahifadagi kurslar bo'yicha o'qituvchilarni bitta so'rovda yig'ish
+    # Sahifadagi kurslar böyiça öqituvçilarni bitta sörovda yiğiş
     prof_ids = {
         s.homework.lesson.profession_id
         for s in submissions
@@ -393,7 +393,7 @@ def yordamchi_homework(request):
         lesson = s.homework.lesson if s.homework_id and s.homework.lesson_id else None
         prof_id = lesson.profession_id if lesson else None
         s.course_teachers = teachers_by_prof.get(prof_id, [])
-        # Avval kursga mos guruhlar; topilmasa o'quvchining barcha guruhlari
+        # Avval kursga mos guruhlar; topilmasa öquvçining barça guruhlari
         student_groups = list(s.student.study_groups.all())
         matched = [g for g in student_groups if prof_id and g.profession_id == prof_id]
         s.student_groups = matched or student_groups
@@ -438,21 +438,21 @@ def yordamchi_tests(request):
 
 
 # ============================================================
-# TEST HULOSALARI (chuqurlashtirilgan test tahlili)
+# TEST HULOSALARI (çuqurlaştirilgan test tahlili)
 # ============================================================
 
 @login_required
 def yordamchi_test_summary(request):
-    """Test hulosalari — kim qaysi testni necha marta ishlagan, ko'rsatkichlar
-    bilan. Yangi (quiz.Attempt) + eski (TestResult) ma'lumotlar birlashtirilgan.
-    Assistant admin barcha kurslarni ko'radi."""
+    """Test hulosalari — kim qaysi testni neça marta işlagan, körsatkiçlar
+    bilan. Yangi (quiz.Attempt) + eski (TestResult) ma'lumotlar birlaştirilgan.
+    Assistant admin barça kurslarni köradi."""
     if not _require_perm(request, 'tests.view'):
         return redirect('home')
 
     from quiz import analytics
 
     context = analytics.build_summary_context(
-        allowed_profession_ids=None,  # assistant -> barcha kurslar
+        allowed_profession_ids=None,  # assistant -> barça kurslar
         professions=Profession.objects.order_by('name'),
         summary_url_name='yordamchi_test_summary',
         detail_url_name='yordamchi_test_summary_detail',
@@ -466,7 +466,7 @@ def yordamchi_test_summary(request):
 
 @login_required
 def yordamchi_test_summary_detail(request, ref):
-    """Bitta test bo'yicha chuqur tahlil: har bir o'quvchining urinishlari +
+    """Bitta test böyiça çuqur tahlil: har bir öquvçining urinişlari +
     savollar tahlili."""
     if not _require_perm(request, 'tests.view'):
         return redirect('home')
@@ -485,13 +485,13 @@ def yordamchi_test_summary_detail(request, ref):
 
 
 # ============================================================
-# SERTIFIKAT SO'ROVLARI
+# SERTIFIKAT SÖROVLARI
 # ============================================================
 
 @login_required
 def yordamchi_certificates(request):
-    """Berilgan sertifikatlar ro'yxati (so'rovlar tizimi olib tashlangan —
-    sertifikatlar yakuniy testdan o'tganda avtomatik beriladi)."""
+    """Berilgan sertifikatlar röyxati (sörovlar tizimi olib taşlangan —
+    sertifikatlar yakuniy testdan ötganda avtomatik beriladi)."""
     if not _require_perm(request, 'certificate_requests.view'):
         return redirect('home')
     status = request.GET.get('status', '').strip()
@@ -509,7 +509,7 @@ def yordamchi_certificates(request):
 
 
 # ============================================================
-# PAROL TIKLASH SO'ROVLARI
+# PAROL TIKLAŞ SÖROVLARI
 # ============================================================
 
 @login_required
@@ -553,7 +553,7 @@ def yordamchi_parents(request):
 
 
 # ============================================================
-# KURSGA YOZILISH / CHIQISH / PREMIUM SO'ROVLARI
+# KURSGA YOZILIŞ / ÇIQIŞ / PREMIUM SÖROVLARI
 # ============================================================
 
 @login_required
@@ -662,7 +662,7 @@ def yordamchi_applications(request):
 
 @login_required
 def yordamchi_application_status(request, pk):
-    """Yordamchi admin: ariza statusini o'zgartirish + kim bog'langanini yozib qo'yish."""
+    """Yordamçi admin: ariza statusini özgartiriş + kim boğlanganini yozib qöyiş."""
     if not _require_perm(request, 'applications.edit'):
         return redirect('home')
 
@@ -680,7 +680,7 @@ def yordamchi_application_status(request, pk):
             _log_action(
                 request, 'applications.edit',
                 target_type='CourseApplication', target_id=application.pk,
-                description=f"Ariza holati o'zgartirildi: {application.get_status_display()}",
+                description=f"Ariza holati özgartirildi: {application.get_status_display()}",
             )
             messages.success(request, "Ariza holati yangilandi!")
 
@@ -691,12 +691,12 @@ def yordamchi_application_status(request, pk):
 
 
 # ============================================================
-# PROFIL TAHRIRLASH
+# PROFIL TAHRIRLAŞ
 # ============================================================
 
 @login_required
 def yordamchi_profile_edit(request):
-    """Foydalanuvchi o'z profilini tahrirlash."""
+    """Foydalanuvçi öz profilini tahrirlaş."""
     if not _check_access(request):
         return redirect('home')
 
@@ -714,7 +714,7 @@ def yordamchi_profile_edit(request):
             return redirect('yordamchi_profile_edit')
 
         if CustomUser.objects.filter(phone=phone).exclude(pk=user.pk).exists():
-            messages.error(request, "Bu telefon raqam allaqachon band!")
+            messages.error(request, "Bu telefon raqam allaqaçon band!")
             return redirect('yordamchi_profile_edit')
 
         user.first_name = first_name
@@ -727,14 +727,14 @@ def yordamchi_profile_edit(request):
 
         if new_password:
             if len(new_password) < 6:
-                messages.error(request, "Parol kamida 6 belgi bo'lishi kerak!")
+                messages.error(request, "Parol kamida 6 belgi bölişi kerak!")
                 return redirect('yordamchi_profile_edit')
             user.set_password(new_password)
 
         user.save()
 
         _log_action(request, 'profile.self_edit', target_type='CustomUser', target_id=user.pk,
-                    description="O'z profilini tahrirladi")
+                    description="Öz profilini tahrirladi")
 
         if new_password:
             messages.success(request, "Profil yangilandi! Yangi parol bilan qaytadan kiring.")
@@ -754,7 +754,7 @@ def yordamchi_profile_edit(request):
 
 @login_required
 def yordamchi_books(request):
-    """Kitoblar ro'yxati + qo'shish formasi."""
+    """Kitoblar röyxati + qöşiş formasi."""
     if not _require_perm(request, 'library.view'):
         return redirect('home')
 
@@ -782,7 +782,7 @@ def yordamchi_books(request):
 
 @login_required
 def yordamchi_book_add(request):
-    """Yangi kitob qo'shish."""
+    """Yangi kitob qöşiş."""
     if not _require_perm(request, 'library.book_add'):
         return redirect('home')
 
@@ -807,8 +807,8 @@ def yordamchi_book_add(request):
             cover_image=request.FILES.get('cover_image'),
         )
         _log_action(request, 'library.book_add', target_type='Book', target_id=book.pk,
-                    description=f"Yangi kitob qo'shildi: {book.title}")
-        messages.success(request, f'Kitob "{book.title}" qo\'shildi!')
+                    description=f"Yangi kitob qöşildi: {book.title}")
+        messages.success(request, f'Kitob "{book.title}" qöşildi!')
         return redirect('yordamchi_books')
 
     return render(request, 'accounts/yordamchi/book_form.html', {'action': 'add'})
@@ -816,7 +816,7 @@ def yordamchi_book_add(request):
 
 @login_required
 def yordamchi_book_edit(request, pk):
-    """Kitobni tahrirlash."""
+    """Kitobni tahrirlaş."""
     if not _require_perm(request, 'library.book_edit'):
         return redirect('home')
 
@@ -857,7 +857,7 @@ def yordamchi_book_edit(request, pk):
 
 @login_required
 def yordamchi_book_delete(request, pk):
-    """Kitobni o'chirish."""
+    """Kitobni öçiriş."""
     if not _require_perm(request, 'library.book_delete'):
         return redirect('home')
 
@@ -866,9 +866,9 @@ def yordamchi_book_delete(request, pk):
     if request.method == 'POST':
         title = book.title
         _log_action(request, 'library.book_delete', target_type='Book', target_id=book.pk,
-                    description=f"Kitob o'chirildi: {title}")
+                    description=f"Kitob öçirildi: {title}")
         book.delete()
-        messages.success(request, f'"{title}" o\'chirildi!')
+        messages.success(request, f'"{title}" öçirildi!')
 
     return redirect('yordamchi_books')
 
@@ -879,7 +879,7 @@ def yordamchi_book_delete(request, pk):
 
 @login_required
 def yordamchi_rentals(request):
-    """Faol va barcha ijaralar."""
+    """Faol va barça ijaralar."""
     if not _require_perm(request, 'library.view'):
         return redirect('home')
     status = request.GET.get('status', 'active').strip()
@@ -904,7 +904,7 @@ def yordamchi_rentals(request):
 
 @login_required
 def yordamchi_rentals_overdue(request):
-    """Kechikkan ijaralar (muddati o'tgan)."""
+    """Keçikkan ijaralar (muddati ötgan)."""
     if not _require_perm(request, 'library.view'):
         return redirect('home')
 
@@ -926,7 +926,7 @@ def yordamchi_rentals_overdue(request):
 
 @login_required
 def yordamchi_rental_add(request):
-    """Kitobni o'quvchiga ijaraga berish."""
+    """Kitobni öquvçiga ijaraga beriş."""
     if not _require_perm(request, 'library.rental_add'):
         return redirect('home')
 
@@ -940,11 +940,11 @@ def yordamchi_rental_add(request):
         student = CustomUser.objects.filter(pk=student_id, role='student').first()
 
         if not book or not student or not return_date:
-            messages.error(request, "Kitob, o'quvchi va qaytarish sanasi majburiy!")
+            messages.error(request, "Kitob, öquvçi va qaytariş sanasi majburiy!")
             return redirect('yordamchi_rental_add')
 
         if book.available_copies < 1:
-            messages.error(request, "Bu kitobning mavjud nusxasi yo'q!")
+            messages.error(request, "Bu kitobning mavjud nusxasi yöq!")
             return redirect('yordamchi_rental_add')
 
         rental = BookRental.objects.create(
@@ -968,12 +968,12 @@ def yordamchi_rental_add(request):
 
 @login_required
 def yordamchi_rental_return(request, pk):
-    """Ijarani qaytarilgan deb belgilash."""
+    """Ijarani qaytarilgan deb belgilaş."""
     if not _require_perm(request, 'library.rental_return'):
         return redirect('home')
     rental = get_object_or_404(BookRental, pk=pk)
     if rental.status == 'returned':
-        messages.warning(request, "Bu ijara allaqachon qaytarilgan.")
+        messages.warning(request, "Bu ijara allaqaçon qaytarilgan.")
     else:
         rental.mark_returned(request.user)
         _log_action(request, 'library.rental_return', target_type='BookRental', target_id=rental.pk,
@@ -988,7 +988,7 @@ def yordamchi_rental_return(request, pk):
 
 @login_required
 def yordamchi_book_requests(request):
-    """Kitob ijarasi arizalari ro'yxati — ko'rish va boshqarish."""
+    """Kitob ijarasi arizalari röyxati — köriş va boşqariş."""
     if not _require_perm(request, 'library.view'):
         return redirect('home')
 
@@ -1031,7 +1031,7 @@ def yordamchi_book_requests(request):
 
 @login_required
 def yordamchi_approve_book_request(request, pk):
-    """Kitob arizasini tasdiqlash va ijara yaratish."""
+    """Kitob arizasini tasdiqlaş va ijara yaratiş."""
     if not _require_perm(request, 'library.rental_add'):
         return redirect('home')
     if request.method != 'POST':
@@ -1040,7 +1040,7 @@ def yordamchi_approve_book_request(request, pk):
     req = get_object_or_404(BookRentalRequest.objects.select_related('book', 'student'), pk=pk)
 
     if req.status != 'pending':
-        messages.warning(request, "Bu ariza allaqachon ko'rib chiqilgan.")
+        messages.warning(request, "Bu ariza allaqaçon körib çiqilgan.")
         return redirect('yordamchi_book_requests')
 
     book = req.book
@@ -1082,8 +1082,8 @@ def yordamchi_approve_book_request(request, pk):
         content=(
             f"✅ Sizning kitob arizangiz tasdiqlandi!\n"
             f"Kitob: «{book.title}» — {book.author}\n"
-            f"Qaytarish sanasi: {return_date.strftime('%d.%m.%Y')}\n"
-            f"Iltimos, kitobni o'z vaqtida qaytaring!"
+            f"Qaytariş sanasi: {return_date.strftime('%d.%m.%Y')}\n"
+            f"Iltimos, kitobni öz vaqtida qaytaring!"
         ),
     )
 
@@ -1095,7 +1095,7 @@ def yordamchi_approve_book_request(request, pk):
 
 @login_required
 def yordamchi_reject_book_request(request, pk):
-    """Kitob arizasini rad etish."""
+    """Kitob arizasini rad etiş."""
     if not _require_perm(request, 'library.rental_add'):
         return redirect('home')
     if request.method != 'POST':
@@ -1104,7 +1104,7 @@ def yordamchi_reject_book_request(request, pk):
     req = get_object_or_404(BookRentalRequest.objects.select_related('book', 'student'), pk=pk)
 
     if req.status != 'pending':
-        messages.warning(request, "Bu ariza allaqachon ko'rib chiqilgan.")
+        messages.warning(request, "Bu ariza allaqaçon körib çiqilgan.")
         return redirect('yordamchi_book_requests')
 
     admin_note = request.POST.get('admin_note', '').strip()

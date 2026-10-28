@@ -54,7 +54,7 @@
         const data = text ? JSON.parse(text) : null;
 
         if (!response.ok) {
-            const message = summarizeApiError(data) || `So'rov bajarilmadi (${response.status})`;
+            const message = summarizeApiError(data) || `Sörov bajarilmadi (${response.status})`;
             throw new ApiError(message, response.status, data);
         }
         return data;

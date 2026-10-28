@@ -28,8 +28,8 @@
   function create(root, project, editable) {
     root.classList.add('hw-code');
     const editors = {};
-    const language = document.createElement('select'); language.setAttribute('aria-label','Dasturlash tili');
-    const languages = {web:'HTML / CSS / JavaScript',python:'Python',php:'PHP',javascript:'JavaScript',typescript:'TypeScript',java:'Java',cpp:'C++',c:'C',csharp:'C#',go:'Go',rust:'Rust',ruby:'Ruby',swift:'Swift',kotlin:'Kotlin',sql:'SQL',bash:'Bash',other:'Boshqa til'};
+    const language = document.createElement('select'); language.setAttribute('aria-label','Dasturlaş tili');
+    const languages = {web:'HTML / CSS / JavaScript',python:'Python',php:'PHP',javascript:'JavaScript',typescript:'TypeScript',java:'Java',cpp:'C++',c:'C',csharp:'C#',go:'Go',rust:'Rust',ruby:'Ruby',swift:'Swift',kotlin:'Kotlin',sql:'SQL',bash:'Bash',other:'Boşqa til'};
     if(project.language) languages[project.language] = languages[project.language] || project.language;
     for(const [key,name] of Object.entries(languages)){const o=document.createElement('option');o.value=key;o.textContent=name;language.append(o);}
     language.value=project.language || 'web';language.disabled=!editable;
@@ -41,8 +41,8 @@
     const version=document.createElement('select');version.setAttribute('aria-label','Python versiyasi');
     for(const v of ['3.12','3.13','3.14']){const o=document.createElement('option');o.value=v;o.textContent='Python '+v;version.append(o);}
     version.value=project.version || '3.12';version.disabled=!editable;versionLabel.append(version);
-    const inputLabel=document.createElement('label');inputLabel.textContent='input() uchun ma’lumotlar (har bir javob alohida qatorda)';
-    const stdin=document.createElement('textarea');stdin.value=project.stdin || '';stdin.rows=3;stdin.placeholder='Ali\n20';stdin.setAttribute('aria-label','Python kirish ma’lumotlari');inputLabel.append(stdin);
+    const inputLabel=document.createElement('label');inputLabel.textContent='input() uçun ma’lumotlar (har bir javob alohida qatorda)';
+    const stdin=document.createElement('textarea');stdin.value=project.stdin || '';stdin.rows=3;stdin.placeholder='Ali\n20';stdin.setAttribute('aria-label','Python kiriş ma’lumotlari');inputLabel.append(stdin);
     pythonOptions.append(versionLabel,inputLabel);root.append(pythonOptions);
     version.addEventListener('change',()=>{stop();root.dispatchEvent(new Event('input',{bubbles:true}));});
     const panes = document.createElement('div');
@@ -76,17 +76,17 @@
     let runToken = '';
     const get = () => language.value === 'web' ? Object.fromEntries(['html','css','js'].map(k=>[k,editors[k].value])) : {language:language.value,code:editors.code.value,...(language.value==='python'?{version:version.value,stdin:stdin.value}:{})};
     const hint=document.createElement('p');hint.className='hw-code-hint';root.append(hint);
-    function refresh(){const web=language.value==='web';for(const [k,a] of Object.entries(editors)) a.parentElement.hidden=web?k==='code':k!=='code';panes.classList.toggle('hw-code-single',!web);result.hidden=!web;pythonOptions.hidden=language.value!=='python';hint.textContent=language.value==='python'?'Python kodini ishga tushiring. Birinchi yuklanish biroz vaqt oladi. input() javoblarini yuqoridagi maydonga yozing.':web?'HTML, CSS va JavaScript natijasini ko\u2018ring.':'Kod ustozga yuboriladi. Bu til brauzerda bajarilmaydi.';}
+    function refresh(){const web=language.value==='web';for(const [k,a] of Object.entries(editors)) a.parentElement.hidden=web?k==='code':k!=='code';panes.classList.toggle('hw-code-single',!web);result.hidden=!web;pythonOptions.hidden=language.value!=='python';hint.textContent=language.value==='python'?'Python kodini işga tuşiring. Birinçi yuklaniş biroz vaqt oladi. input() javoblarini yuqoridagi maydonga yozing.':web?'HTML, CSS va JavaScript natijasini köring.':'Kod ustozga yuboriladi. Bu til brauzerda bajarilmaydi.';}
     language.addEventListener('change',()=>{stop();refresh();root.dispatchEvent(new Event('input',{bubbles:true}));});refresh();
-    function stop() { clearTimeout(pythonTimer); if(stopPython){stopPython();stopPython=null;output.textContent += '\nTo\u2018xtatildi.\n';} if (frame) frame.remove(); frame = null; runToken = ''; }
+    function stop() { clearTimeout(pythonTimer); if(stopPython){stopPython();stopPython=null;output.textContent += '\nTöxtatildi.\n';} if (frame) frame.remove(); frame = null; runToken = ''; }
     function run() {
       stop(); output.textContent = '';
-      if (!valid(get())) { output.textContent = 'Kod yoki kirish ma\u2019lumotlari hajmi limitdan oshdi.'; return; }
+      if (!valid(get())) { output.textContent = 'Kod yoki kiriş ma\u2019lumotlari hajmi limitdan oşdi.'; return; }
       if(language.value==='python'){
         if(!window.HomeworkPython){output.textContent='Python moduli yuklanmadi. Sahifani yangilang.';return;}
         output.textContent='Python '+version.value+' yuklanmoqda...\n';
         const finish=()=>{clearTimeout(pythonTimer);if(stopPython)stopPython();stopPython=null;};
-        const timeout=ms=>{clearTimeout(pythonTimer);pythonTimer=setTimeout(()=>{finish();output.textContent+='\nVaqt tugadi. Kodni tekshiring yoki qayta urinib ko\u2018ring.\n';},ms);};
+        const timeout=ms=>{clearTimeout(pythonTimer);pythonTimer=setTimeout(()=>{finish();output.textContent+='\nVaqt tugadi. Kodni tekşiring yoki qayta urinib köring.\n';},ms);};
         timeout(120000);
         stopPython=HomeworkPython.start(root,{version:version.value,code:editors.code.value,stdin:stdin.value},message=>{
           if(message.type==='running'){timeout(15000);output.textContent+='Python '+message.text+'\n';}
@@ -122,12 +122,12 @@
         output.textContent = (output.textContent + '[' + e.data.level + '] ' + e.data.text.slice(0,4000) + '\n').slice(-25000);
       }
     });
-    for (const [text, fn] of [['▶ Ishga tushirish', run], ['■ To‘xtatish', stop]]) {
+    for (const [text, fn] of [['▶ Işga tuşiriş', run], ['■ Töxtatiş', stop]]) {
       const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = text;
       btn.className = 'sp-dl-btn'; btn.addEventListener('click', fn); controls.append(btn);
     }
-    const expand=document.createElement('button');expand.type='button';expand.className='sp-dl-btn';expand.textContent='To\u2018liq ekran';
-    function toggle(){const full=root.classList.toggle('hw-code-fullscreen');expand.textContent=full?'Kichraytirish (Esc)':'To\u2018liq ekran';expand.setAttribute('aria-pressed',String(full));}
+    const expand=document.createElement('button');expand.type='button';expand.className='sp-dl-btn';expand.textContent='Töliq ekran';
+    function toggle(){const full=root.classList.toggle('hw-code-fullscreen');expand.textContent=full?'Kiçraytiriş (Esc)':'Töliq ekran';expand.setAttribute('aria-pressed',String(full));}
     expand.addEventListener('click',toggle);controls.append(expand);
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('hw-code-fullscreen'))toggle();});
     return {get,set(p){language.value=p.language||'web';version.value=p.version||'3.12';stdin.value=p.stdin||'';for(const k of Object.keys(editors))editors[k].value=p[k]||'';stop();refresh();},stop};

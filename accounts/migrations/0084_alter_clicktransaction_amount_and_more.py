@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='clicktransaction',
             name='amount',
-            field=models.DecimalField(decimal_places=2, default=0, max_digits=14, verbose_name="Summa (so'm)"),
+            field=models.DecimalField(decimal_places=2, default=0, max_digits=14, verbose_name="Summa (söm)"),
         ),
         migrations.AlterField(
             model_name='clicktransaction',
@@ -28,6 +28,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='paymetransaction',
             name='time',
-            field=models.BigIntegerField(default=0, verbose_name='Yaratilish vaqti (ms)'),
+            field=models.BigIntegerField(default=0, verbose_name='Yaratiliş vaqti (ms)'),
         ),
     ]

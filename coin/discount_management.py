@@ -16,7 +16,7 @@ DURATION_CHOICES = [('keep', 'Hozirgi muddat'), ('none', 'Muddatsiz'), ('1', '1 
 
 
 class CoinRateForm(forms.ModelForm):
-    som_per_coin = forms.IntegerField(min_value=1, max_value=1000000, label="1 coin narxi (so'm)")
+    som_per_coin = forms.IntegerField(min_value=1, max_value=1000000, label="1 coin narxi (söm)")
 
     class Meta:
         model = CoinPricingSettings
@@ -24,11 +24,11 @@ class CoinRateForm(forms.ModelForm):
 
 
 class CoinDiscountForm(forms.ModelForm):
-    name = forms.CharField(max_length=120, label='Chegirma nomi')
+    name = forms.CharField(max_length=120, label='Çegirma nomi')
     discount_type = forms.ChoiceField(choices=CoinPurchaseDiscount._meta.get_field('discount_type').choices, label='Turi')
     value = forms.IntegerField(min_value=1, max_value=2147483647, label='Qiymati')
     min_coins = forms.IntegerField(min_value=1, max_value=2147483647, label='Eng kam coin miqdori')
-    is_active = forms.BooleanField(required=False, label='Darhol yoqish va xabar berish')
+    is_active = forms.BooleanField(required=False, label='Darhol yoqiş va xabar beriş')
     theme = forms.ChoiceField(choices=CoinPurchaseDiscount.THEME_CHOICES, required=False, label='Bayram bezagi')
     duration = forms.ChoiceField(choices=DURATION_CHOICES, required=False, label='Aksiya muddati')
 
@@ -47,12 +47,12 @@ class CoinDiscountForm(forms.ModelForm):
         data['theme'] = data.get('theme') or 'celebration'
         kind, value, coins = data.get('discount_type'), data.get('value') or 0, data.get('min_coins') or 0
         if kind == 'percentage' and value > 99:
-            self.add_error('value', 'Foiz 1 dan 99 gacha bo‘lishi kerak.')
+            self.add_error('value', 'Foiz 1 dan 99 gaça bölişi kerak.')
         if kind == 'package':
             if coins < 1000:
-                self.add_error('min_coins', 'Maxsus narx kamida 1 000 tanga uchun beriladi (eng kam xarid).')
+                self.add_error('min_coins', 'Maxsus narx kamida 1 000 tanga uçun beriladi (eng kam xarid).')
             elif value >= coins * CoinPricingSettings.current().som_per_coin:
-                self.add_error('value', 'Maxsus narx oddiy narxdan arzon bo‘lishi kerak.')
+                self.add_error('value', 'Maxsus narx oddiy narxdan arzon bölişi kerak.')
         data['duration'] = data.get('duration') or ('keep' if self.instance.valid_until else 'none')
         if data['duration'] == 'keep' and data.get('is_active') and self.instance.is_expired:
             self.add_error('duration', 'Aksiya muddati tugagan. Yangi muddat tanlang.')
@@ -73,13 +73,13 @@ def announce(discount, sender):
     if discount.discount_type == 'package':
         offer = f'{discount.name}: {label}! '
     else:
-        offer = (f'{discount.name}: coin xaridiga {label} chegirma! '
+        offer = (f'{discount.name}: coin xaridiga {label} çegirma! '
                  f'Kamida {discount.min_coins} coin xarid qiling. ')
-    until = (f'Aksiya {timezone.localtime(discount.valid_until):%d.%m.%Y %H:%M} gacha. '
+    until = (f'Aksiya {timezone.localtime(discount.valid_until):%d.%m.%Y %H:%M} gaça. '
              if discount.valid_until else '')
-    content = (offer + until + 'Market → Tanga sotib olish bo‘limida chegirma avtomatik qo‘llanadi. '
-               'Bir nechta aksiya orasidan eng foydalisi tanlanadi.')
-    Message.objects.create(title='Coin xaridiga chegirma!', content=content,
+    content = (offer + until + 'Market → Tanga sotib oliş bölimida çegirma avtomatik qöllanadi. '
+               'Bir neçta aksiya orasidan eng foydalisi tanlanadi.')
+    Message.objects.create(title='Coin xaridiga çegirma!', content=content,
                            message_type='all', sender=sender)
     from telegram_bot.utils import notify_group
     transaction.on_commit(lambda: notify_group(escape(content)))
@@ -100,7 +100,7 @@ def manage(request):
             rate_form = CoinRateForm(request.POST, instance=settings)
             if rate_form.is_valid():
                 rate_form.save()
-                messages.success(request, f'Narx saqlandi: 1 tanga = {rate_form.instance.som_per_coin} so‘m. Marketdagi yangi xaridlar shu narxda hisoblanadi.')
+                messages.success(request, f'Narx saqlandi: 1 tanga = {rate_form.instance.som_per_coin} söm. Marketdagi yangi xaridlar şu narxda hisoblanadi.')
                 return redirect('admin_discounts')
         elif action in ('add', 'edit'):
             if action == 'edit':
@@ -112,19 +112,19 @@ def manage(request):
                     discount = discount_form.save()
                     if discount.is_active and (not was_active or discount_form.has_changed()):
                         announce(discount, request.user)
-                messages.success(request, 'Coin chegirmasi saqlandi.')
+                messages.success(request, 'Coin çegirmasi saqlandi.')
                 return redirect('admin_discounts')
         elif action in ('enable', 'disable'):
             with transaction.atomic():
                 discount = get_object_or_404(CoinPurchaseDiscount, pk=request.POST.get('discount_id'))
                 enabled = action == 'enable'
                 if enabled and discount.is_expired:
-                    messages.error(request, 'Aksiya muddati tugagan. «Tahrirlash» orqali yangi muddat tanlang.')
+                    messages.error(request, 'Aksiya muddati tugagan. «Tahrirlaş» orqali yangi muddat tanlang.')
                     return redirect('admin_discounts')
                 changed = CoinPurchaseDiscount.objects.filter(pk=discount.pk, is_active=not enabled).update(is_active=enabled)
                 if changed and enabled:
                     announce(discount, request.user)
-            messages.success(request, 'Coin chegirmasi yoqildi.' if enabled else 'Coin chegirmasi o‘chirildi.')
+            messages.success(request, 'Coin çegirmasi yoqildi.' if enabled else 'Coin çegirmasi öçirildi.')
             return redirect('admin_discounts')
     discounts = list(CoinPurchaseDiscount.objects.all())
     return {'coin_rate_form': rate_form, 'coin_discount_form': discount_form, 'coin_editing': editing,

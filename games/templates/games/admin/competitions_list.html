@@ -168,15 +168,15 @@
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>O'yin</th>
+                            <th>Öyin</th>
                             <th>Nomi</th>
-                            <th>Kimlar uchun</th>
-                            <th>Boshlanish</th>
-                            <th>Tugash</th>
+                            <th>Kimlar uçun</th>
+                            <th>Boşlaniş</th>
+                            <th>Tugaş</th>
                             <th>Holat</th>
                             <th>Matnlar</th>
-                            <th>Ishtirokchi</th>
-                            <th>Urinishlar</th>
+                            <th>Iştirokçi</th>
+                            <th>Urinişlar</th>
                             <th>Faol</th>
                             <th>Amallar</th>
                         </tr>
@@ -192,7 +192,7 @@
                                     <i class="bi bi-diagram-3"></i> {{ comp.audience_display|truncatechars:30 }}
                                 </span>
                                 {% elif comp.audience_type == 'students' %}
-                                <span class="badge bg-info text-dark" style="border-radius: 8px;" title="Tanlangan o'quvchilar">
+                                <span class="badge bg-info text-dark" style="border-radius: 8px;" title="Tanlangan öquvçilar">
                                     <i class="bi bi-person-check"></i> {{ comp.audience_display }}
                                 </span>
                                 {% else %}
@@ -205,7 +205,7 @@
                             <td>{{ comp.end_time|date:"d.m.Y H:i" }}</td>
                             <td>
                                 {% if comp.status == 'upcoming' %}
-                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">Boshlanmagan</span>
+                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">Boşlanmagan</span>
                                 {% elif comp.status == 'active' %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
                                 {% else %}
@@ -237,21 +237,21 @@
                             <td>
                                 {% if comp.game.game_type == 'jumanji' %}
                                     {% if comp.live_session %}
-                                    <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn btn-sm btn-success action-btn" title="Jonli xonaga kirish">
+                                    <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn btn-sm btn-success action-btn" title="Jonli xonaga kiriş">
                                         🎲 Xona
                                     </a>
                                     {% else %}
                                     <button type="button" class="btn btn-sm btn-outline-success action-btn js-open-lobby"
                                             data-action="{% url 'games:jumanji_open_lobby' comp.pk %}"
-                                            data-title="{{ comp.title }}" title="Jumanji lobbysini ochish">
+                                            data-title="{{ comp.title }}" title="Jumanji lobbysini oçiş">
                                         🎲 Lobby
                                     </button>
                                     {% endif %}
                                 {% endif %}
                                 {% if comp.status != 'ended' %}
-                                <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqchimisiz?')">
+                                <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqçimisiz?')">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-outline-success action-btn" title="Tugatish">
+                                    <button type="submit" class="btn btn-sm btn-outline-success action-btn" title="Tugatiş">
                                         <i class="bi bi-check-circle"></i>
                                     </button>
                                 </form>
@@ -288,7 +288,7 @@
             <div class="card-top">
                 <span class="card-title-m">{{ comp.title }}</span>
                 {% if comp.status == 'upcoming' %}
-                <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.72rem;">Boshlanmagan</span>
+                <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.72rem;">Boşlanmagan</span>
                 {% elif comp.status == 'active' %}
                 <span class="badge bg-success" style="border-radius: 8px; font-size: 0.72rem;">Faol</span>
                 {% else %}
@@ -304,11 +304,11 @@
                     {{ comp.audience_display|truncatechars:40 }}
                 </div>
                 <div><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}</div>
-                <div><i class="bi bi-arrow-repeat"></i> {{ comp.max_attempts }} urinish {% if comp.allow_retry %} · Qayta urinish: Ha{% endif %}</div>
+                <div><i class="bi bi-arrow-repeat"></i> {{ comp.max_attempts }} uriniş {% if comp.allow_retry %} · Qayta uriniş: Ha{% endif %}</div>
                 <div>
                     <i class="bi bi-card-text"></i>
                     {% if comp.selected_prompts_count %}{{ comp.selected_prompts_count }} ta maxsus matn{% else %}Umumiy pool{% endif %}
-                    · <i class="bi bi-people"></i> {{ comp.typing_participants|add:comp.word_participants }} ishtirokchi
+                    · <i class="bi bi-people"></i> {{ comp.typing_participants|add:comp.word_participants }} iştirokçi
                 </div>
             </div>
             <div class="card-footer-m">
@@ -326,13 +326,13 @@
                         {% else %}
                         <button type="button" class="btn btn-sm btn-outline-success action-btn js-open-lobby"
                                 data-action="{% url 'games:jumanji_open_lobby' comp.pk %}"
-                                data-title="{{ comp.title }}" title="Lobby ochish">🎲</button>
+                                data-title="{{ comp.title }}" title="Lobby oçiş">🎲</button>
                         {% endif %}
                     {% endif %}
                     {% if comp.status != 'ended' %}
-                    <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqchimisiz?')">
+                    <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqçimisiz?')">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-success action-btn" title="Tugatish">
+                        <button type="submit" class="btn btn-sm btn-outline-success action-btn" title="Tugatiş">
                             <i class="bi bi-check-circle"></i>
                         </button>
                     </form>
@@ -355,29 +355,29 @@
     </div>
 </div>
 
-<!-- Jumanji lobby ochish -->
+<!-- Jumanji lobby oçiş -->
 <div class="modal fade" id="jumanjiLobbyModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <form method="post" id="jumanjiLobbyForm" class="modal-content" style="border-radius: 18px;">
             {% csrf_token %}
             <div class="modal-header" style="background: linear-gradient(135deg, #15803d, #65a30d); color:#fff; border:none; border-radius: 18px 18px 0 0;">
-                <h5 class="modal-title">🎲 Jumanji lobbysini ochish</h5>
+                <h5 class="modal-title">🎲 Jumanji lobbysini oçiş</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p class="text-muted small">
-                    <strong id="jumanjiLobbyTitle"></strong> uchun lobby ochiladi. O'quvchilar xonaga
-                    kirib qo'shila boshlaydi, o'yinni admin yoki o'qituvchi boshlaydi.
+                    <strong id="jumanjiLobbyTitle"></strong> uçun lobby oçiladi. Öquvçilar xonaga
+                    kirib qöşila boşlaydi, öyinni admin yoki öqituvçi boşlaydi.
                 </p>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small">Yo'nalish (kurs)</label>
+                    <label class="form-label fw-semibold small">Yönaliş (kurs)</label>
                     <select name="profession" class="form-select" style="border-radius: 12px;">
-                        <option value="">Umumiy — barcha savollar</option>
+                        <option value="">Umumiy — barça savollar</option>
                         {% for p in professions %}
                         <option value="{{ p.pk }}">{{ p.name }}</option>
                         {% endfor %}
                     </select>
-                    <small class="text-muted">Savollar shu yo'nalishdan tanlanadi.</small>
+                    <small class="text-muted">Savollar şu yönalişdan tanlanadi.</small>
                 </div>
                 <div class="mb-1">
                     <label class="form-label fw-semibold small">Doska kattaligi (katak)</label>
@@ -386,8 +386,8 @@
                 </div>
             </div>
             <div class="modal-footer border-0">
-                <button type="button" class="btn btn-outline-secondary" style="border-radius: 12px;" data-bs-dismiss="modal">Bekor qilish</button>
-                <button type="submit" class="btn btn-success" style="border-radius: 12px;">Lobbyni ochish</button>
+                <button type="button" class="btn btn-outline-secondary" style="border-radius: 12px;" data-bs-dismiss="modal">Bekor qiliş</button>
+                <button type="submit" class="btn btn-success" style="border-radius: 12px;">Lobbyni oçiş</button>
             </div>
         </form>
     </div>

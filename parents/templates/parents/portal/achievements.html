@@ -25,7 +25,7 @@
 <div class="pp-head">
     <div>
         <h1><span class="ic"><i class="bi bi-trophy-fill"></i></span>Yutuqlar</h1>
-        <p>{% if selected_child %}{{ selected_child.full_name }} — sertifikatlar, nishonlar va reytingdagi o‘rni.{% endif %}</p>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — sertifikatlar, nişonlar va reytingdagi örni.{% endif %}</p>
     </div>
 </div>
 
@@ -35,44 +35,44 @@
 <section class="pp-grid c4 pp-mb">
     <div class="pp-card pp-kpi tone-warn" data-reveal><div class="top"><span class="ic"><i class="bi bi-coin"></i></span></div>
         <div class="num"><span data-count="{{ ranking.coins }}">0</span></div><div class="lbl">Coin balansi</div>
-        <div class="sub">Jami yig‘ilgan: {{ coins_earned }}</div></div>
-    <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-bar-chart-steps"></i></span>{% if ranking.above_avg %}<span class="pp-badge ok">o‘rtachadan yuqori</span>{% endif %}</div>
-        <div class="num"><span data-count="{{ ranking.position }}">0</span><small>-o‘rin</small></div><div class="lbl">Umumiy reyting ({{ ranking.total }} o‘quvchi)</div>
-        <div class="sub">O‘rtacha: {{ ranking.average }} coin</div></div>
+        <div class="sub">Jami yiğilgan: {{ coins_earned }}</div></div>
+    <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-bar-chart-steps"></i></span>{% if ranking.above_avg %}<span class="pp-badge ok">örtaçadan yuqori</span>{% endif %}</div>
+        <div class="num"><span data-count="{{ ranking.position }}">0</span><small>-örin</small></div><div class="lbl">Umumiy reyting ({{ ranking.total }} öquvçi)</div>
+        <div class="sub">Örtaça: {{ ranking.average }} coin</div></div>
     <div class="pp-card pp-kpi tone-info" data-reveal><div class="top"><span class="ic"><i class="bi bi-patch-check-fill"></i></span></div>
         <div class="num"><span data-count="{{ certificates|length }}">0</span></div><div class="lbl">Sertifikatlar</div></div>
     <div class="pp-card pp-kpi tone-bad" data-reveal><div class="top"><span class="ic"><i class="bi bi-fire"></i></span></div>
         <div class="num"><span data-count="{{ streak }}">0</span><small> kun</small></div><div class="lbl">Ketma-ket faol kunlar</div></div>
 </section>
 
-<!-- Yo'nalishdagi o'rni -->
+<!-- Yönalişdagi örni -->
 <section class="pp-card pp-mb" data-reveal>
-    <div class="pp-card-h"><span class="ic tone-pri"><i class="bi bi-bar-chart-line-fill"></i></span><h3>O‘z yo‘nalishidagi o‘rni</h3>
-        <span class="more pp-dim" style="color:var(--pp-text-3);font-weight:600;">shu kursda o‘qiyotgan o‘quvchilar orasida</span></div>
+    <div class="pp-card-h"><span class="ic tone-pri"><i class="bi bi-bar-chart-line-fill"></i></span><h3>Öz yönalişidagi örni</h3>
+        <span class="more pp-dim" style="color:var(--pp-text-3);font-weight:600;">şu kursda öqiyotgan öquvçilar orasida</span></div>
     {% for r in course_ranks %}
     <div style="{% if not forloop.first %}margin-top:18px;padding-top:18px;border-top:1px dashed var(--pp-line);{% endif %}">
         <b style="display:flex;align-items:center;gap:8px;font-size:1rem;margin-bottom:12px;"><i class="bi bi-mortarboard-fill" style="color:var(--pp-vio)"></i>{{ r.profession.name }}</b>
         <div class="pp-grid c2 keep1">
             {% with s=r.score %}
             <div class="rk tone-{% if s %}{{ s.beat|tone }}{% else %}info{% endif %}">
-                <div class="rk-top"><span class="rk-ic"><i class="bi bi-star-fill"></i></span><span class="rk-lbl">Ball bo‘yicha</span></div>
+                <div class="rk-top"><span class="rk-ic"><i class="bi bi-star-fill"></i></span><span class="rk-lbl">Ball böyiça</span></div>
                 {% if s %}
-                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-o‘rin / {{ s.total }}</small>{% if s.position <= 3 %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
+                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-örin / {{ s.total }}</small>{% if s.position <= 3 %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
                 <div class="pp-bar" style="margin:10px 0 6px;"><i data-w="{{ s.beat }}"></i></div>
-                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% o‘quvchidan oldinda{% else %}Kursda hozircha yagona{% endif %}</div>
-                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs o‘rtachasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
+                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% öquvçidan oldinda{% else %}Kursda hozirça yagona{% endif %}</div>
+                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs örtaçasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
                 {% else %}
-                <p class="pp-muted" style="margin:6px 0 0;font-size:.86rem;">Hali baholangan test yoki vazifa yo‘q — o‘rin hisoblanmadi.</p>
+                <p class="pp-muted" style="margin:6px 0 0;font-size:.86rem;">Hali baholangan test yoki vazifa yöq — örin hisoblanmadi.</p>
                 {% endif %}
             </div>
             {% endwith %}
             {% with s=r.coins %}
             <div class="rk tone-{{ s.beat|tone }}">
-                <div class="rk-top"><span class="rk-ic"><i class="bi bi-coin"></i></span><span class="rk-lbl">Coin bo‘yicha</span></div>
-                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-o‘rin / {{ s.total }}</small>{% if s.position <= 3 and s.value %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
+                <div class="rk-top"><span class="rk-ic"><i class="bi bi-coin"></i></span><span class="rk-lbl">Coin böyiça</span></div>
+                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-örin / {{ s.total }}</small>{% if s.position <= 3 and s.value %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
                 <div class="pp-bar" style="margin:10px 0 6px;"><i data-w="{{ s.beat }}"></i></div>
-                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% o‘quvchidan oldinda{% else %}Kursda hozircha yagona{% endif %}</div>
-                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs o‘rtachasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
+                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% öquvçidan oldinda{% else %}Kursda hozirça yagona{% endif %}</div>
+                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs örtaçasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
             </div>
             {% endwith %}
         </div>
@@ -80,11 +80,11 @@
     {% empty %}
     <p class="pp-muted" style="margin:0;">Farzandingiz hali kursga yozilmagan.</p>
     {% endfor %}
-    <p class="pp-dim" style="font-size:.76rem;margin:14px 0 0;"><i class="bi bi-info-circle"></i> Ball — kursdagi testlar o‘rtachasi va vazifa bahosi (×10) ning o‘rtachasi. Boshqa o‘quvchilarning ismi ko‘rsatilmaydi.</p>
+    <p class="pp-dim" style="font-size:.76rem;margin:14px 0 0;"><i class="bi bi-info-circle"></i> Ball — kursdagi testlar örtaçasi va vazifa bahosi (×10) ning örtaçasi. Boşqa öquvçilarning ismi körsatilmaydi.</p>
 </section>
 
 <section class="pp-card pp-mb" data-reveal>
-    <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-award-fill"></i></span><h3>Nishonlar</h3>
+    <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-award-fill"></i></span><h3>Nişonlar</h3>
         <span class="pp-badge" style="margin-left:auto;">{{ earned_count }}/{{ badges|length }}</span></div>
     <div class="pp-grid c4" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
         {% for b in badges %}
@@ -110,7 +110,7 @@
             <td>{{ cert.valid_from|date:"d.m.Y" }}</td>
             <td>{{ cert.valid_until|date:"d.m.Y"|default:"Muddatsiz" }}</td>
             <td><span class="pp-badge {% if cert.status == 'active' %}ok{% elif cert.status == 'expired' %}warn{% elif cert.status == 'frozen' %}info{% else %}bad{% endif %}">{{ cert.get_status_display }}</span></td>
-            <td style="text-align:right;"><a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener"><i class="bi bi-shield-check"></i> Tekshirish</a></td>
+            <td style="text-align:right;"><a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener"><i class="bi bi-shield-check"></i> Tekşiriş</a></td>
         </tr>
         {% empty %}
         <tr><td colspan="6"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-patch-question"></i></div><p>Hali sertifikat olinmagan. Kursni yakuniy test bilan tugatganda beriladi.</p></div></td></tr>

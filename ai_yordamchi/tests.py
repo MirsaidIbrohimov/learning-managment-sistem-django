@@ -43,10 +43,10 @@ class AiCoinHistoryTests(TestCase):
             user=self.user,
             amount=1,
             action='remove',
-            reason='AI yordamchi bilan suhbat',
+            reason='AI yordamçi bilan suhbat',
         ).exists())
 
-        history_response = self.client.get('/api/v1/coin/transactions/?search=AI+yordamchi')
+        history_response = self.client.get('/api/v1/coin/transactions/?search=AI+yordamçi')
         self.assertEqual(history_response.status_code, 200)
         self.assertEqual(history_response.json()['count'], 1)
 
@@ -68,12 +68,12 @@ class AiCoinHistoryTests(TestCase):
             user=self.user,
             amount=1,
             action='remove',
-            reason='AI yordamchi bilan suhbat',
+            reason='AI yordamçi bilan suhbat',
         ).count(), 1)
 
 
 class AiDailyLimitTests(TestCase):
-    """Kunlik limit o'chirish, tozalash yoki qayta login bilan qaytmasligi kerak."""
+    """Kunlik limit öçiriş, tozalaş yoki qayta login bilan qaytmasligi kerak."""
 
     def setUp(self):
         from unittest.mock import patch
@@ -101,7 +101,7 @@ class AiDailyLimitTests(TestCase):
             codes = [self.send(session).status_code for _ in range(4)]
         self.assertEqual(codes, [200, 200, 200, 400])
         self.user.refresh_from_db()
-        self.assertEqual(self.user.coins, 497)  # rad etilgan xabar uchun coin yechilmaydi
+        self.assertEqual(self.user.coins, 497)  # rad etilgan xabar uçun coin yeçilmaydi
 
     def test_deleting_or_clearing_chats_does_not_reset_limit(self):
         with self.limit(3):
@@ -156,7 +156,7 @@ class AiDailyLimitTests(TestCase):
 
 
 class AiImageGenerationTests(TestCase):
-    """Rasm chizish: faqat Premium, kuniga 3 ta, xatoda limit qaytariladi."""
+    """Rasm çiziş: faqat Premium, kuniga 3 ta, xatoda limit qaytariladi."""
 
     PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00'
            b'\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00'
@@ -179,7 +179,7 @@ class AiImageGenerationTests(TestCase):
         UserSession.objects.create(user=self.user, session_key=self.client.session.session_key,
                                    expires_at=timezone.now() + timedelta(hours=1))
 
-    def draw(self, prompt='Kosmosdagi mushuk'):
+    def draw(self, prompt='Kosmosdagi muşuk'):
         return self.client.post(reverse('ai_yordamchi:generate_image', args=[self.session.pk]),
                                 {'prompt': prompt}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
 
@@ -226,7 +226,7 @@ class AiImageGenerationTests(TestCase):
         url = reverse('ai_yordamchi:chat_session', args=[self.session.pk])
         self.assertContains(self.client.get(url), 'id="drawBtn"')
         self.user.is_premium = False
-        self.user.coins = 5  # coin bo'lmasa kiritish maydoni umuman chiqmaydi
+        self.user.coins = 5  # coin bölmasa kiritiş maydoni umuman çiqmaydi
         self.user.save(update_fields=['is_premium', 'coins'])
         page = self.client.get(url)
         self.assertNotContains(page, 'id="drawBtn"')
@@ -299,7 +299,7 @@ class AiJobTests(TestCase):
         homework = Homework.objects.create(lesson=lesson, description='for sikli yozing')
         submission = HomeworkSubmission.objects.create(
             homework=homework, student=student, submission_type='text', text_content='for i in range(3): print(i)')
-        grade = {'grade': 9, 'status': 'graded', 'feedback': 'Yaxshi'}
+        grade = {'grade': 9, 'status': 'graded', 'feedback': 'Yaxşi'}
         with patch('accounts.views._get_ai_grade', return_value=grade) as ai, \
                 patch('accounts.views._notify_ai_graded'):
             response = self.client.post(reverse('grade_homework', args=[submission.pk]), {'action': 'ai_grade'})

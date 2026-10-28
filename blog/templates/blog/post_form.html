@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load widget_tweaks %}
 
-{% block title %}{% if edit_mode %}Postni tahrirlash{% else %}Yangi post yaratish{% endif %} - Blog{% endblock %}
+{% block title %}{% if edit_mode %}Postni tahrirlaş{% else %}Yangi post yaratiş{% endif %} - Blog{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
@@ -528,7 +528,7 @@
     <!-- Back Link -->
     <a href="{% if edit_mode %}{% url 'blog:admin_posts' %}{% else %}{% url 'blog:post_list' %}{% endif %}" class="back-link">
         <i class="bi bi-arrow-left"></i>
-        Orqaga qaytish
+        Orqaga qaytiş
     </a>
 
     <!-- Page Header -->
@@ -536,13 +536,13 @@
         <h1>
             {% if edit_mode %}
             <i class="bi bi-pencil-square"></i>
-            Postni tahrirlash
+            Postni tahrirlaş
             {% else %}
             <i class="bi bi-plus-circle"></i>
-            Yangi post yaratish
+            Yangi post yaratiş
             {% endif %}
         </h1>
-        <p>{% if edit_mode %}Postni tahrirlang va saqlang{% else %}Blog uchun yangi post yozing{% endif %}</p>
+        <p>{% if edit_mode %}Postni tahrirlang va saqlang{% else %}Blog uçun yangi post yozing{% endif %}</p>
     </div>
 
     <!-- Form Card -->
@@ -584,7 +584,7 @@
                         {{ form.image }}
                         <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
                         <div class="upload-text">
-                            <strong>Rasm tanlang</strong> yoki bu yerga tashlang
+                            <strong>Rasm tanlang</strong> yoki bu yerga taşlang
                         </div>
                     </div>
                     {% if edit_mode and post.image %}
@@ -623,8 +623,8 @@
                 <label class="pf-checkbox">
                     {{ form.is_published }}
                     <div class="pf-checkbox-text">
-                        <span class="pf-checkbox-label">Nashr qilish</span>
-                        <span class="pf-checkbox-hint">Post barcha foydalanuvchilarga ko'rinadi</span>
+                        <span class="pf-checkbox-label">Naşr qiliş</span>
+                        <span class="pf-checkbox-hint">Post barça foydalanuvçilarga körinadi</span>
                     </div>
                 </label>
             </div>
@@ -634,15 +634,15 @@
         <div class="form-actions">
             <a href="{% if edit_mode %}{% url 'blog:admin_posts' %}{% else %}{% url 'blog:post_list' %}{% endif %}" class="btn-cancel">
                 <i class="bi bi-x-lg"></i>
-                Bekor qilish
+                Bekor qiliş
             </a>
             <button type="submit" class="btn-submit">
                 {% if edit_mode %}
                 <i class="bi bi-check-lg"></i>
-                Saqlash
+                Saqlaş
                 {% else %}
                 <i class="bi bi-send"></i>
-                Chop etish
+                Çop etiş
                 {% endif %}
             </button>
         </div>

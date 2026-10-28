@@ -336,15 +336,15 @@ class QuizRetryPayment(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='quiz_retry_payments',
     )
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='retry_payments')
-    receipt_image = models.ImageField(upload_to='quiz_retry_receipts/', verbose_name="To'lov cheki")
-    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="To'lov summasi")
+    receipt_image = models.ImageField(upload_to='quiz_retry_receipts/', verbose_name="Tölov çeki")
+    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="Tölov summasi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     reviewed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='quiz_retry_payments_reviewed', verbose_name="Tekshiruvchi",
+        related_name='quiz_retry_payments_reviewed', verbose_name="Tekşiruvçi",
     )
-    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan sana")
-    reject_reason = models.CharField(max_length=500, blank=True, verbose_name="Rad etish sababi")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekşirilgan sana")
+    reject_reason = models.CharField(max_length=500, blank=True, verbose_name="Rad etiş sababi")
     created_at = models.DateTimeField(auto_now_add=True)
 
     # Traceability if a legacy FinalTestPayment is ever backfilled for a
@@ -353,8 +353,8 @@ class QuizRetryPayment(models.Model):
 
     class Meta:
         ordering = ['-created_at']
-        verbose_name = "Test qayta urinish to'lovi"
-        verbose_name_plural = "Test qayta urinish to'lovlari"
+        verbose_name = "Test qayta uriniş tölovi"
+        verbose_name_plural = "Test qayta uriniş tölovlari"
 
     def __str__(self):
         return f"{self.student.full_name} - {self.quiz.title} ({self.get_status_display()})"

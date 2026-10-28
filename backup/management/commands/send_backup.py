@@ -12,7 +12,7 @@ from backup.utils import Storage, checksum, compress, documents, dump_database, 
 
 
 class Command(BaseCommand):
-    help = 'SQLite/PostgreSQL/MySQL SQL gzip backupini Telegram kanalga yuborish (Linux).'
+    help = 'SQLite/PostgreSQL/MySQL SQL gzip backupini Telegram kanalga yuboriş (Linux).'
     requires_system_checks = []
 
     def handle(self, *args, **options):
@@ -29,14 +29,14 @@ class Command(BaseCommand):
                         raise ValueError
                     return value
                 except ValueError:
-                    raise BackupError(f'{key} musbat butun son bo‘lishi kerak.') from None
+                    raise BackupError(f'{key} musbat butun son bölişi kerak.') from None
             telegram.timeout = integer('BACKUP_HTTP_TIMEOUT', 120)
             root = Path(os.getenv('BACKUP_DIR') or settings.BASE_DIR / 'private_backups').expanduser()
             if not root.is_absolute():
-                raise BackupError('BACKUP_DIR mutlaq yo‘l bo‘lishi kerak.')
+                raise BackupError('BACKUP_DIR mutlaq yöl bölişi kerak.')
             root.mkdir(mode=0o700, parents=True, exist_ok=True)
             if root.is_symlink() or root.stat().st_mode & 0o077:
-                raise BackupError('BACKUP_DIR symlink bo‘lmasin; chmod 700 talab qilinadi.')
+                raise BackupError('BACKUP_DIR symlink bölmasin; chmod 700 talab qilinadi.')
             storage = Storage(root, integer('BACKUP_MAX_DISK_MB', 1024) * 1_000_000,
                               integer('BACKUP_MIN_FREE_MB', 100) * 1_000_000,
                               integer('BACKUP_RETENTION_DAYS', 7))
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 name = timezone.localtime(timezone.now()).strftime('backup_%Y_%m_%d_%H_%M.sql.gz')
                 target = root / name
                 if target.exists():
-                    raise BackupError('Shu daqiqadagi backup mavjud; keyingi daqiqada qayta urining.')
+                    raise BackupError('Şu daqiqadagi backup mavjud; keyingi daqiqada qayta urining.')
                 # Temporary files and credentials disappear on all ordinary error paths.
                 with tempfile.TemporaryDirectory(prefix='.send-backup-', dir=root) as temp:
                     directory = Path(temp)
@@ -64,15 +64,15 @@ class Command(BaseCommand):
                     marker.write_text('send_backup-v1')
                     target.chmod(0o600)
                     telegram.message(f'Backup muvaffaqiyatli: {name}\nSHA256: {digest}\n'
-                                     'Bo‘laklarni part raqami bo‘yicha birlashtiring, keyin gzipni oching.')
+                                     'Bölaklarni part raqami böyiça birlaştiring, keyin gzipni oçing.')
             self.stdout.write(self.style.SUCCESS(f'Backup yuborildi: {name}'))
         except Exception as exc:
             # Only our fixed messages are safe. Never print raw subprocess, HTTP,
             # filesystem, Django DB exceptions, URLs, credentials or tracebacks.
-            message = str(exc) if isinstance(exc, BackupError) else 'Backup ichki/disk/quota xatosi; staging sozlamalarini tekshiring.'
+            message = str(exc) if isinstance(exc, BackupError) else 'Backup ichki/disk/quota xatosi; staging sozlamalarini tekşiring.'
             self.stderr.write(message)
             try:
                 telegram.message('Backup muvaffaqiyatsiz: ' + message)
             except Exception:
-                self.stderr.write('Telegram xato xabarini yuborish ham muvaffaqiyatsiz.')
+                self.stderr.write('Telegram xato xabarini yuboriş ham muvaffaqiyatsiz.')
             raise CommandError(message) from None

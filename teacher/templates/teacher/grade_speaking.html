@@ -1,7 +1,7 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Speaking vazifani baholash - O'qituvchi paneli{% endblock %}
-{% block topbar_title %}Speaking vazifani baholash{% endblock %}
+{% block title %}Speaking vazifani baholaş - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Speaking vazifani baholaş{% endblock %}
 
 {% block teacher_content %}
 <style>
@@ -69,14 +69,14 @@
 
 <div class="t-grade-page">
     <a href="{% url 'teacher:speaking_tasks' %}" class="t-grade-back">
-        <i class="bi bi-arrow-left"></i> Speaking vazifalar ro'yxatiga qaytish
+        <i class="bi bi-arrow-left"></i> Speaking vazifalar röyxatiga qaytiş
     </a>
 
     <!-- Student & Task info -->
     <div class="t-grade-info">
         <div class="t-grade-info-grid">
             <div class="t-grade-info-item">
-                <label>O'quvchi</label>
+                <label>Öquvçi</label>
                 <div>{{ submission.student.full_name }}</div>
             </div>
             <div class="t-grade-info-item">
@@ -92,7 +92,7 @@
                 <div>{{ submission.speaking_task.get_target_level_display }}</div>
             </div>
             <div class="t-grade-info-item">
-                <label>Topshirilgan sana</label>
+                <label>Topşirilgan sana</label>
                 <div>{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
             </div>
             <div class="t-grade-info-item">
@@ -115,10 +115,10 @@
             {% if submission.audio_file %}
             <audio controls class="t-audio-player">
                 <source src="{{ submission.audio_file.url }}">
-                Brauzeringiz audio elementini qo'llab-quvvatlamaydi.
+                Brauzeringiz audio elementini qöllab-quvvatlamaydi.
             </audio>
             <a href="{{ submission.audio_file.url }}" target="_blank" class="t-btn t-btn-outline" style="font-size: .85rem;">
-                <i class="bi bi-download"></i> Yuklab olish
+                <i class="bi bi-download"></i> Yuklab oliş
             </a>
             {% else %}
             <p style="color: var(--bs-secondary-color);">Audio fayl mavjud emas.</p>
@@ -162,7 +162,7 @@
                     <div class="t-score-val" style="color: #0d6efd;">{{ submission.grammar_score|default:"—" }}/10</div>
                 </div>
                 <div class="t-score-item">
-                    <div class="t-score-label">Lug'at boyligi</div>
+                    <div class="t-score-label">Luğat boyligi</div>
                     <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.vocabulary_score|default:0 }}0%; background: #f59e0b;"></div></div>
                     <div class="t-score-val" style="color: #f59e0b;">{{ submission.vocabulary_score|default:"—" }}/10</div>
                 </div>
@@ -171,10 +171,10 @@
     </div>
     {% endif %}
 
-    <!-- AI bilan baholash -->
+    <!-- AI bilan baholaş -->
     <div style="background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden; animation: fadeInUp 0.58s ease;">
         <div style="padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color); font-weight: 700; display: flex; align-items: center; gap: .5rem;">
-            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholash
+            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholaş
         </div>
         <div style="padding: 24px;">
             {% if request.user.is_teacher and not request.user.ai_access_enabled %}
@@ -182,7 +182,7 @@
                 <i class="bi bi-shield-lock-fill" style="font-size:1.4rem;color:#ef4444;flex-shrink:0;margin-top:2px;"></i>
                 <div style="font-size:.88rem;line-height:1.5;color:var(--bs-body-color);">
                     <strong style="color:#ef4444;">AI funksiyasi bloklangan</strong><br>
-                    AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.
+                    AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.
                 </div>
             </div>
             <button type="button" class="t-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; width: 100%; justify-content: center; color:#fff; cursor:not-allowed;" onclick="showAiBlockedNotice()">
@@ -190,13 +190,13 @@
             </button>
             {% else %}
             <p style="font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 1rem;">
-                AI o'quvchining speaking vazifasini tekshirib, talaffuz, ravonlik, grammatika va lug'at boyligini baholaydi.
+                AI öquvçining speaking vazifasini tekşirib, talaffuz, ravonlik, grammatika va luğat boyligini baholaydi.
             </p>
             <form method="POST" id="aiGradeForm">
                 {% csrf_token %}
                 <input type="hidden" name="action" value="ai_grade">
-                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
-                    <i class="bi bi-robot"></i> AI bilan baholash
+                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekşirmoqda...'; this.form.submit();">
+                    <i class="bi bi-robot"></i> AI bilan baholaş
                 </button>
             </form>
             {% endif %}
@@ -206,7 +206,7 @@
     <!-- Manual Grade form -->
     <div class="t-grade-form">
         <div class="t-grade-form-head">
-            <i class="bi bi-pencil-square" style="color: #8b5cf6;"></i> Baholash
+            <i class="bi bi-pencil-square" style="color: #8b5cf6;"></i> Baholaş
         </div>
         <div class="t-grade-form-body">
             <form method="POST">
@@ -220,7 +220,7 @@
                         <label class="t-label">Holat *</label>
                         <select name="status" class="t-input">
                             <option value="graded" {% if submission.status == 'graded' %}selected{% endif %}>Baholangan</option>
-                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta ishlash kerak</option>
+                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta işlaş kerak</option>
                         </select>
                     </div>
                 </div>
@@ -240,20 +240,20 @@
                         <input type="number" name="grammar_score" class="t-input" min="1" max="10" value="{{ submission.grammar_score|default:'' }}">
                     </div>
                     <div class="t-grade-field">
-                        <label class="t-label">Lug'at boyligi (1-10)</label>
+                        <label class="t-label">Luğat boyligi (1-10)</label>
                         <input type="number" name="vocabulary_score" class="t-input" min="1" max="10" value="{{ submission.vocabulary_score|default:'' }}">
                     </div>
                 </div>
                 <div class="t-grade-field">
                     <label class="t-label">Izoh</label>
-                    <textarea name="feedback" class="t-input" rows="4" placeholder="O'quvchiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
+                    <textarea name="feedback" class="t-input" rows="4" placeholder="Öquvçiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
                 </div>
                 <div class="t-grade-actions">
                     <a href="{% url 'teacher:speaking_tasks' %}" class="t-btn t-btn-outline">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
+                        <i class="bi bi-x-lg"></i> Bekor qiliş
                     </a>
                     <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
-                        <i class="bi bi-check-lg"></i> Saqlash
+                        <i class="bi bi-check-lg"></i> Saqlaş
                     </button>
                 </div>
             </form>
@@ -262,7 +262,7 @@
 </div>
 <script>
 function showAiBlockedNotice(customMsg) {
-    const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.";
+    const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalaniş uçun admin bilan boğlaning.";
     let backdrop = document.getElementById('aiBlockedBackdrop');
     if (!backdrop) {
         backdrop = document.createElement('div');
@@ -276,7 +276,7 @@ function showAiBlockedNotice(customMsg) {
                 <h3 style="margin:0 0 .5rem;font-size:1.2rem;font-weight:800;">AI funksiyasi bloklangan</h3>
                 <p id="aiBlockedMsg" style="margin:0 0 1.25rem;font-size:.92rem;color:var(--bs-secondary-color,#666);line-height:1.5;"></p>
                 <button type="button" onclick="document.getElementById('aiBlockedBackdrop').remove()" style="padding:.7rem 1.5rem;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);">
-                    Tushunarli
+                    Tuşunarli
                 </button>
             </div>`;
         document.body.appendChild(backdrop);

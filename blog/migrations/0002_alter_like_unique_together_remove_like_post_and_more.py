@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='post',
             name='is_published',
-            field=models.BooleanField(default=True, verbose_name='Chop etilgan'),
+            field=models.BooleanField(default=True, verbose_name='Çop etilgan'),
         ),
         migrations.AddField(
             model_name='post',
@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='post',
             name='post_type',
-            field=models.CharField(choices=[('news', 'Yangiliklar'), ('tutorial', 'Darslik'), ('tips', 'Maslahatlar'), ('announcement', "E'lon"), ('other', 'Boshqa')], default='news', max_length=20, verbose_name='Post turi'),
+            field=models.CharField(choices=[('news', 'Yangiliklar'), ('tutorial', 'Darslik'), ('tips', 'Maslahatlar'), ('announcement', "E'lon"), ('other', 'Boşqa')], default='news', max_length=20, verbose_name='Post turi'),
         ),
         migrations.AlterField(
             model_name='post',

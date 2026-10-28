@@ -51,7 +51,7 @@ def admin_parents(request):
 
 @login_required
 def admin_parent_messages(request):
-    """Ota-onalardan kelgan xabarlar qutisi: ko'rish va javob yozish."""
+    """Ota-onalardan kelgan xabarlar qutisi: köriş va javob yoziş."""
     if not request.user.is_admin:
         return redirect('home')
 
@@ -84,7 +84,7 @@ def admin_parent_messages(request):
         )
     qs = qs.order_by('-created_at')[:200]
     items = list(qs)
-    # Ochilgan xabarlar admin tomonidan o'qilgan deb belgilanadi
+    # Oçilgan xabarlar admin tomonidan öqilgan deb belgilanadi
     ParentMessage.objects.filter(id__in=[m.id for m in items if not m.is_read]).update(is_read=True)
 
     all_parent = ParentMessage.objects.filter(sender_type='parent')
@@ -98,18 +98,18 @@ def admin_parent_messages(request):
     })
 
 
-WORDS_A = ['Bahor', 'Quyosh', 'Osmon', 'Daryo', 'Lola', 'Yulduz', 'Bulut', 'Tog', 'Bog', 'Nur']
+WORDS_A = ['Bahor', 'Quyoş', 'Osmon', 'Daryo', 'Lola', 'Yulduz', 'Bulut', 'Tog', 'Bog', 'Nur']
 WORDS_B = ['Kitob', 'Qalam', 'Maktab', 'Dars', 'Bilim', 'Ilm', 'Daftar', 'Sinf', 'Ustoz', 'Zakovat']
 
 
 def generate_parent_password():
-    """Eslab qolish oson, lekin parol siyosatidan o'tadigan parol: Bahor-4827-Kitob."""
+    """Eslab qoliş oson, lekin parol siyosatidan ötadigan parol: Bahor-4827-Kitob."""
     import secrets
     return f"{secrets.choice(WORDS_A)}-{secrets.randbelow(9000) + 1000}-{secrets.choice(WORDS_B)}"
 
 
 def _parent_form(request, parent=None):
-    """Qo'shish va tahrirlash uchun umumiy forma (bitta joyda tekshiriladi)."""
+    """Qöşiş va tahrirlaş uçun umumiy forma (bitta joyda tekşiriladi)."""
     from .phone import UZ_PHONE_ERROR, local_part, normalize_uz_phone
 
     students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')         .prefetch_related('enrollments__profession', 'parents')
@@ -140,11 +140,11 @@ def _parent_form(request, parent=None):
         elif phone is None:
             error = UZ_PHONE_ERROR
         elif others.filter(phone=phone).exists():
-            error = "Bu telefon raqam boshqa ota-onaga biriktirilgan."
+            error = "Bu telefon raqam boşqa ota-onaga biriktirilgan."
         elif not username:
             error = "Login kiriting."
         elif others.filter(username=username).exists():
-            error = f"“{username}” logini band. Boshqa login kiriting."
+            error = f"“{username}” logini band. Boşqa login kiriting."
         elif password:
             error = validate_parent_password(password) or None
 
@@ -160,7 +160,7 @@ def _parent_form(request, parent=None):
             parent.save()
             parent.children.set(CustomUser.objects.filter(id__in=selected, role='student'))
             if password:
-                # Parol cookie/flash orqali emas, shu javobning o'zida bir marta ko'rsatiladi
+                # Parol cookie/flash orqali emas, şu javobning özida bir marta körsatiladi
                 return render(request, 'parents/parent_credentials.html', {
                     'parent': parent, 'password': password, 'is_new': is_new,
                     'login_url': request.build_absolute_uri(reverse('parent_login')),
@@ -173,7 +173,7 @@ def _parent_form(request, parent=None):
         'form': form,
         'students': students,
         'selected_children': selected,
-        'title': "Ota-onani tahrirlash" if parent else "Ota-ona qo'shish",
+        'title': "Ota-onani tahrirlaş" if parent else "Ota-ona qöşiş",
         'suggested_password': generate_parent_password(),
     })
 
@@ -270,7 +270,7 @@ def admin_parent_toggle(request, pk):
     parent.is_active = not parent.is_active
     parent.save(update_fields=['is_active'])
 
-    status_text = "faollashtirildi" if parent.is_active else "nofaol qilindi"
+    status_text = "faollaştirildi" if parent.is_active else "nofaol qilindi"
     messages.success(request, f"{parent.full_name} {status_text}!")
     return redirect('parents:admin_parents')
 
@@ -283,7 +283,7 @@ def admin_parent_delete(request, pk):
     parent = get_object_or_404(Parent, pk=pk)
     parent_name = parent.full_name
     parent.delete()
-    messages.success(request, f"{parent_name} muvaffaqiyatli o'chirildi!")
+    messages.success(request, f"{parent_name} muvaffaqiyatli öçirildi!")
     return redirect('parents:admin_parents')
 
 
@@ -313,7 +313,7 @@ def approve_parent_password_reset(request, pk):
     reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
 
     if reset_request.status == 'pending':
-        # `new_password` so'rov paytida hashlangan — qayta hashlamaymiz.
+        # `new_password` sörov paytida haşlangan — qayta haşlamaymiz.
         reset_request.parent.password = reset_request.new_password
         reset_request.parent.save(update_fields=['password'])
 
@@ -340,6 +340,6 @@ def reject_parent_password_reset(request, pk):
         reset_request.reviewed_at = timezone.now()
         reset_request.save()
 
-        messages.info(request, f"{reset_request.parent.full_name} parol so'rovi rad etildi.")
+        messages.info(request, f"{reset_request.parent.full_name} parol sörovi rad etildi.")
 
     return redirect('parents:admin_parent_password_requests')

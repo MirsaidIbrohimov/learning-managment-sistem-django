@@ -1,4 +1,4 @@
-"""Facebook hisobni profilga ulash, Facebook orqali kirish va huquqiy sahifalar."""
+"""Facebook hisobni profilga ulaş, Facebook orqali kiriş va huquqiy sahifalar."""
 from unittest import mock
 from urllib.parse import parse_qs, urlparse
 
@@ -11,7 +11,7 @@ SKIP_SESSION_MIDDLEWARE = modify_settings(MIDDLEWARE={'remove': [
     'accounts.middleware.DeviceLimitMiddleware',
     'accounts.middleware.ProfileCompletionMiddleware',
 ]})
-# Telefon bilan ochilgan Facebook akkauntida email bo'lmasligi mumkin
+# Telefon bilan oçilgan Facebook akkauntida email bölmasligi mumkin
 PROFILE = {'uid': '10223344556677', 'email': '', 'email_verified': True, 'name': 'Ali Valiyev', 'picture': ''}
 
 
@@ -116,6 +116,6 @@ class FacebookAuthTests(TestCase):
 
 class LegalPagesTests(TestCase):
     def test_public_pages(self):
-        for name, text in (('privacy_policy', 'Maxfiylik siyosati'), ('data_deletion', 'Ma’lumotlarni o‘chirish')):
+        for name, text in (('privacy_policy', 'Maxfiylik siyosati'), ('data_deletion', 'Ma’lumotlarni öçiriş')):
             resp = self.client.get(reverse(name))
             self.assertContains(resp, text)

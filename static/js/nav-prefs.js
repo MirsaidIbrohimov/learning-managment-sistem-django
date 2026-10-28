@@ -1,7 +1,7 @@
 /* IT Creative — navigatsiya sozlamalari: rejim, yon panel, mavzu, animatsiya.
    Holat <html data-layout data-sb data-motion> atributlarida; server tomonda accounts.NavigationPreference.
    Konfiguratsiya: window.ITC_NAV = { saveUrl, csrf, prefs } (partials/nav/_nav_config.html).
-   O'qituvchi/admin panellari qo'shimcha beradi: desktopQuery, railSel, hints. */
+   Öqituvchi/admin panellari qöşimça beradi: desktopQuery, railSel, hints. */
 (function () {
   'use strict';
   var cfg = window.ITC_NAV;
@@ -19,9 +19,9 @@
   var ALLOWED = { layout: ['classic', 'compact', 'top', 'hybrid'], sidebar: ['expanded', 'collapsed'], theme: ['light', 'dark', 'system'] };
   var NAMES = { classic: 'Classic Sidebar', compact: 'Compact Sidebar', top: 'Top Navigation', hybrid: 'Modern Hybrid' };
   var HINTS = Object.assign({
-    classic: 'Yig‘ilgan holatda faqat ikonkalar qoladi, nomlar tooltip’da chiqadi. Tezkor tugma: Ctrl + B.',
-    compact: 'Kengaytirilgan — sichqoncha olib borilganda panel silliq kengayadi. Yig‘ilgan — doim ikonka + tooltip.',
-    top: 'Top Navigation rejimida yon panel yo‘q — barcha menyular yuqorida.',
+    classic: 'Yiğilgan holatda faqat ikonkalar qoladi, nomlar tooltip’da çiqadi. Tezkor tugma: Ctrl + B.',
+    compact: 'Kengaytirilgan — siçqonça olib borilganda panel silliq kengayadi. Yiğilgan — doim ikonka + tooltip.',
+    top: 'Top Navigation rejimida yon panel yöq — barça menyular yuqorida.',
     hybrid: 'Header ostidagi yon panel kengligi. Tezkor tugma: Ctrl + B.'
   }, cfg.hints);
 
@@ -38,11 +38,11 @@
   }
 
   var initial = cfg.prefs || {};
-  // Mavzu hali akkauntda tanlanmagan bo'lsa — qurilmadagi tanlov ko'rsatiladi
+  // Mavzu hali akkauntda tanlanmagan bölsa — qurilmadagi tanlov körsatiladi
   var S = sanitize(Object.assign({}, initial, { theme: initial.theme || currentMode() }));
   var dirty = false, applyingTheme = false, saveTimer = 0, pending = {};
 
-  /* ───────── Qo'llash ───────── */
+  /* ───────── Qöllaş ───────── */
   function resolve(mode) { return mode === 'system' ? (mqDark.matches ? 'dark' : 'light') : mode; }
 
   function applyTheme() {
@@ -64,7 +64,7 @@
     var col = $('#nrCollapse'), exp = S.sidebar === 'expanded';
     if (col) {
       col.setAttribute('aria-expanded', String(exp));
-      col.setAttribute('aria-label', exp ? 'Yon panelni yig‘ish' : 'Yon panelni kengaytirish');
+      col.setAttribute('aria-label', exp ? 'Yon panelni yiğiş' : 'Yon panelni kengaytiriş');
       col.innerHTML = '<i class="bi bi-' + (exp ? 'layout-sidebar-inset' : 'layout-sidebar') + '" aria-hidden="true"></i>';
     }
     syncControls();
@@ -86,10 +86,10 @@
     var lp = $('#nsLive');
     lp.setAttribute('data-l', layout);
     lp.setAttribute('data-c', layout === 'top' ? 'expanded' : S.sidebar);
-    $('#nsLiveCaption').textContent = (layout === S.layout ? 'Jonli ko‘rinish · ' : 'Oldindan ko‘rish · ') + NAMES[layout];
+    $('#nsLiveCaption').textContent = (layout === S.layout ? 'Jonli köriniş · ' : 'Oldindan köriş · ') + NAMES[layout];
   }
 
-  /* ───────── Saqlash (server) ───────── */
+  /* ───────── Saqlaş (server) ───────── */
   function setState(kind, html) {
     var el = $('#nsState');
     el.className = 'ns-state ' + kind;
@@ -115,10 +115,10 @@
       var tm = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
       setState('ok', '<i class="bi bi-cloud-check" aria-hidden="true"></i> Akkauntga saqlandi · ' + tm);
     }).catch(function () {
-      // Saqlanmagan qiymatlar keyingi urinishga qaytariladi
+      // Saqlanmagan qiymatlar keyingi urinişga qaytariladi
       for (var k in body) if (!(k in pending)) pending[k] = body[k];
       dirty = true;
-      setState('err', '<i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Saqlab bo‘lmadi — internetni tekshiring');
+      setState('err', '<i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Saqlab bölmadi — internetni tekşiring');
       $('#nsSave').hidden = false;
     });
   }
@@ -128,7 +128,7 @@
     saveTimer = setTimeout(flush, now ? 0 : 450);
   }
 
-  /** Barcha o'zgarishlar shu yerdan o'tadi: qo'llash + (avto)saqlash */
+  /** Barça özgarişlar şu yerdan ötadi: qöllaş + (avto)saqlaş */
   function commit(patch, opts) {
     opts = opts || {};
     var prev = S, changes = {}, k;
@@ -141,7 +141,7 @@
     else {
       for (k in changes) pending[k] = changes[k];
       dirty = true;
-      setState('dirty', '<i class="bi bi-dot" aria-hidden="true"></i> Saqlanmagan o‘zgarishlar');
+      setState('dirty', '<i class="bi bi-dot" aria-hidden="true"></i> Saqlanmagan özgarişlar');
     }
   }
 
@@ -151,7 +151,7 @@
     hideTip();
     lastFocus = document.activeElement;
     root.classList.add('ns-open', 'ns-lock');
-    // Mobil profil menyusidan (offcanvas) ochilsa — u yopilib fokusni qaytargandan keyin
+    // Mobil profil menyusidan (offcanvas) oçilsa — u yopilib fokusni qaytargandan keyin
     var delay = $('.offcanvas.show, .offcanvas.showing') ? 420 : 60;
     setTimeout(function () { ($('input:checked', panel) || $('#nsClose')).focus(); }, delay);
   }
@@ -159,7 +159,7 @@
     if (!root.classList.contains('ns-open')) return;
     root.classList.remove('ns-open', 'ns-lock');
     setPreview(S.layout);
-    if (dirty && !S.autosave) toast('O‘zgarishlar saqlanmadi', 'Saqlash', function () { flush(); });
+    if (dirty && !S.autosave) toast('Özgarişlar saqlanmadi', 'Saqlaş', function () { flush(); });
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   function trapFocus(e) {
@@ -186,9 +186,9 @@
     toastTimer = setTimeout(function () { t.classList.remove('show'); }, label ? 6000 : 2600);
   }
 
-  /* ───────── Tooltip (yig'ilgan yon panel va header ikonkalari) ───────── */
+  /* ───────── Tooltip (yiğilgan yon panel va header ikonkalari) ───────── */
   var tip = $('#nsTip'), tipFor = null;
-  // Yon panel havolalari: brauzerning title tooltipi o'rniga tezkor tooltip
+  // Yon panel havolalari: brauzerning title tooltipi örniga tezkor tooltip
   $$(railSel + ' .nr-link[title]').forEach(function (a) { a.setAttribute('data-nav-tip', a.getAttribute('title')); a.removeAttribute('title'); });
   $$(railSel + ' .nav-link[data-title]').forEach(function (a) { a.setAttribute('data-nav-tip', a.getAttribute('data-title')); });
   function iconMode() {
@@ -217,7 +217,7 @@
   function resetPrefs() {
     var before = Object.assign({}, S);
     commit(DEFAULTS, { forceSave: true });
-    toast('Standart sozlamalar tiklandi', 'Qaytarish', function () { commit(before, { forceSave: true }); });
+    toast('Standart sozlamalar tiklandi', 'Qaytariş', function () { commit(before, { forceSave: true }); });
   }
 
   document.addEventListener('click', function (e) {
@@ -229,7 +229,7 @@
   $('#nsSave').addEventListener('click', function () { var all = Object.assign({}, S); queue(all, true); });
   var col = $('#nrCollapse');
   if (col) col.addEventListener('click', toggleSidebar);
-  cfg.api = { toggleSidebar: toggleSidebar }; // panellardagi o'z yig'ish tugmasi uchun
+  cfg.api = { toggleSidebar: toggleSidebar }; // panellardagi öz yiğiş tugmasi uçun
 
   panel.addEventListener('change', function (e) {
     var i = e.target;
@@ -264,14 +264,14 @@
     }
     if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === 'b' || e.key === 'B')) {
       var a = document.activeElement, tag = (a && a.tagName) || '';
-      if (/INPUT|TEXTAREA|SELECT/.test(tag) || (a && a.isContentEditable)) return; // matn muharririda Ctrl+B — qalin shrift
+      if (/INPUT|TEXTAREA|SELECT/.test(tag) || (a && a.isContentEditable)) return; // matn muharririda Ctrl+B — qalin şrift
       if (S.layout === 'top' || !mqDesk.matches) return;
       e.preventDefault();
       toggleSidebar();
     }
   });
 
-  // Header tugmasi yoki sozlamalar sahifasida mavzu almashtirilsa — akkauntga ham yoziladi
+  // Header tugmasi yoki sozlamalar sahifasida mavzu almaştirilsa — akkauntga ham yoziladi
   document.addEventListener('itc:themechange', function (e) {
     if (applyingTheme) return;
     var t = e.detail === 'dark' ? 'dark' : 'light';
@@ -283,7 +283,7 @@
   mqDark.addEventListener('change', function () { if (S.theme === 'system') applyTheme(); });
   mqDesk.addEventListener('change', hideTip);
   addEventListener('pagehide', function () {
-    // Sahifadan chiqishda kutilayotgan saqlashni yo'qotmaslik
+    // Sahifadan çiqişda kutilayotgan saqlaşni yöqotmaslik
     if (!Object.keys(pending).length || !S.autosave) return;
     clearTimeout(saveTimer);
     try {
@@ -291,13 +291,13 @@
     } catch (er) {}
   });
 
-  /* ───────── Ishga tushirish ───────── */
+  /* ───────── Işga tuşiriş ───────── */
   var MINI = '<span class="m-sb"><i></i><i></i><i></i><i></i><i></i></span><span class="m-hd"></span><span class="m-main"><i></i><i></i><i></i><i></i></span>';
   $$('.ns-mini', panel).forEach(function (m) { m.innerHTML = MINI; });
   apply();
   setState(S.autosave ? 'ok' : 'dirty', S.autosave
-    ? '<i class="bi bi-cloud-check" aria-hidden="true"></i> Avtomatik saqlash yoqilgan'
-    : '<i class="bi bi-pause-circle" aria-hidden="true"></i> Avtomatik saqlash o‘chiq');
-  // Mavzu boshqa panelda (o'qituvchi/admin) almashtirilgan bo'lsa — akkauntga yetkaziladi
+    ? '<i class="bi bi-cloud-check" aria-hidden="true"></i> Avtomatik saqlaş yoqilgan'
+    : '<i class="bi bi-pause-circle" aria-hidden="true"></i> Avtomatik saqlaş öçiq');
+  // Mavzu boşqa panelda (öqituvchi/admin) almaştirilgan bölsa — akkauntga yetkaziladi
   if (window.__itcThemePush) queue({ theme: window.__itcThemePush });
 })();

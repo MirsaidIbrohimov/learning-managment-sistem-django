@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activitylog',
             name='action_type',
-            field=models.CharField(choices=[('login', 'Tizimga kirdi'), ('logout', 'Tizimdan chiqdi'), ('like_post', 'Postga like bosdi'), ('comment_post', 'Postga izoh qoldirdi'), ('like_product', 'Mahsulotga like bosdi'), ('comment_product', 'Mahsulotga izoh qoldirdi'), ('submit_homework', 'Vazifa topshirdi'), ('homework_graded', 'Vazifasi baholandi'), ('submit_test', 'Test topshirdi'), ('watch_video', 'Video ko‘rdi'), ('enroll_course', 'Kursga yozildi'), ('purchase_product', 'Mahsulot sotib oldi'), ('earn_coins', 'Coin oldi'), ('deploy_create', 'Loyiha deploy qildi'), ('deploy_edit', 'Loyihani tahrirladi'), ('deploy_delete', "Loyihani o'chirdi")], max_length=30),
+            field=models.CharField(choices=[('login', 'Tizimga kirdi'), ('logout', 'Tizimdan çiqdi'), ('like_post', 'Postga like bosdi'), ('comment_post', 'Postga izoh qoldirdi'), ('like_product', 'Mahsulotga like bosdi'), ('comment_product', 'Mahsulotga izoh qoldirdi'), ('submit_homework', 'Vazifa topşirdi'), ('homework_graded', 'Vazifasi baholandi'), ('submit_test', 'Test topşirdi'), ('watch_video', 'Video kördi'), ('enroll_course', 'Kursga yozildi'), ('purchase_product', 'Mahsulot sotib oldi'), ('earn_coins', 'Coin oldi'), ('deploy_create', 'Loyiha deploy qildi'), ('deploy_edit', 'Loyihani tahrirladi'), ('deploy_delete', "Loyihani öçirdi")], max_length=30),
         ),
     ]

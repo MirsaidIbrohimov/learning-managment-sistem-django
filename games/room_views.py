@@ -1,4 +1,4 @@
-""""Sheriklar bilan" poyga xonalari: lobby, xona sahifasi va polling API."""
+""""Şeriklar bilan" poyga xonalari: lobby, xona sahifasi va polling API."""
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -50,12 +50,12 @@ def lobby(request):
 def create(request):
     game = rooms.typing_games().filter(pk=_int(request.POST.get('game'), 0)).first() or rooms.typing_games().first()
     if not game:
-        messages.error(request, "Hozircha faol yozish o'yini yo'q.")
+        messages.error(request, "Hozirça faol yoziş öyini yöq.")
         return redirect('games:rooms_lobby')
     try:
         room = rooms.create_room(
             request.user, game,
-            # O'z miqdori kiritilsa — u ustun (boshqa coinli o'yinlardagidek erkin tikish)
+            # Öz miqdori kiritilsa — u ustun (boşqa coinli öyinlardagidek erkin tikiş)
             stake=_int(request.POST.get('custom_stake') or request.POST.get('stake'), 0),
             max_players=_int(request.POST.get('max_players'), 4),
             is_public=request.POST.get('is_public') == 'on',

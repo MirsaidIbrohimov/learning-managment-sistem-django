@@ -1,4 +1,4 @@
-/* IT Creative — profil sahifasi motion. GSAP + ScrollTrigger bo'lmasa ham kontent to'liq ko'rinadi. */
+/* IT Creative — profil sahifasi motion. GSAP + ScrollTrigger bölmasa ham kontent töliq körinadi. */
 (function () {
   const chars = t => (window.Intl && Intl.Segmenter) ? [...new Intl.Segmenter('uz', { granularity: 'grapheme' }).segment(t)].map(x => x.segment) : [...t];
   const root = document.querySelector('.pf3'); if (!root) return;
@@ -14,7 +14,7 @@
     s.innerHTML = s.textContent.trim().split(' ').map(w => `<span class="w">${chars(w).map(c => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
   });
 
-  /* ── Raqamlar, halqalar, chiziqlar: animatsiyasiz ham yakuniy qiymat ko'rinadi ── */
+  /* ── Raqamlar, halqalar, çiziqlar: animatsiyasiz ham yakuniy qiymat körinadi ── */
   const counters = [...root.querySelectorAll('[data-count]')];
   const rings = [...root.querySelectorAll('.ring[data-p]')];
   const bars = [...root.querySelectorAll('[data-w]')];
@@ -31,7 +31,7 @@
       G.to(o, { p: +r.dataset.p, duration: 1.8, ease: 'expo.out', scrollTrigger: { trigger: r, start: 'top 92%' }, onUpdate: () => r.style.setProperty('--p', o.p) }); });
     bars.forEach(b => G.to(b, { width: b.dataset.w + '%', duration: 1.6, ease: 'expo.out', scrollTrigger: { trigger: b, start: 'top 95%' } }));
 
-    /* Kirish: hero → overview → bo'limlar */
+    /* Kiriş: hero → overview → bölimlar */
     G.timeline({ delay: .1 })
       .from('.hero3', { y: 40, opacity: 0, duration: 1, ease: 'expo.out' })
       .from('.ava', { scale: .4, rotate: -30, opacity: 0, duration: 1.1, ease: 'back.out(1.8)' }, '-=.7')
@@ -41,15 +41,15 @@
       .from('.ov > div', { y: 30, opacity: 0, duration: .8, stagger: .07, ease: 'expo.out', clearProps: 'transform,opacity' }, '-=.6');
     G.to('.fchip', { yPercent: 16, duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1, stagger: { each: .5 } });
 
-    /* Scroll'da paydo bo'lish */
+    /* Scroll'da paydo böliş */
     G.utils.toArray('.pf3 [data-rv]').forEach(el => G.from(el, { y: 50, opacity: 0, duration: 1, ease: 'expo.out', clearProps: 'transform,opacity', scrollTrigger: { trigger: el, start: 'top 90%' } }));
-    // Shrift / rasm yuklangach balandliklar o'zgaradi — trigger nuqtalarini qayta hisoblash
+    // Şrift / rasm yuklangaç balandliklar özgaradi — trigger nuqtalarini qayta hisoblaş
     addEventListener('load', () => ST.refresh());
     document.fonts && document.fonts.ready.then(() => ST.refresh());
     G.utils.toArray('.pf3 [data-stagger]').forEach(box => G.from(box.children, { y: 30, opacity: 0, scale: .96, duration: .8, stagger: .06, ease: 'expo.out', scrollTrigger: { trigger: box, start: 'top 90%' } }));
   }
 
-  /* ── Chap menyu: scroll bo'yicha faol bo'lim + sirpanuvchi pill ── */
+  /* ── Çap menyu: scroll böyiça faol bölim + sirpanuvçi pill ── */
   const nav = root.querySelector('.nav3');
   if (nav) {
     const links = [...nav.querySelectorAll('a[href^="#"]')], pill = nav.querySelector('.pill');
@@ -88,7 +88,7 @@
     });
   }
 
-  /* ── O'quvchi ID: nusxa olish ── */
+  /* ── Öquvçi ID: nusxa oliş ── */
   const sid = document.getElementById('sidCard');
   sid && sid.addEventListener('click', () => {
     const num = document.getElementById('sidNumber').textContent.trim();

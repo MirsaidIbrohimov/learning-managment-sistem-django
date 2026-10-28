@@ -1,7 +1,7 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
 
-{% block title %}{{ student.full_name }} — O'quvchi profili{% endblock %}
-{% block page_title %}O'quvchi profili{% endblock %}
+{% block title %}{{ student.full_name }} — Öquvçi profili{% endblock %}
+{% block page_title %}Öquvçi profili{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -37,7 +37,7 @@
 
 {% block content %}
 <a href="{% url 'yordamchi_students' %}" class="text-muted small text-decoration-none mb-2 d-inline-block">
-    <i class="bi bi-arrow-left"></i> O'quvchilar ro'yxatiga qaytish
+    <i class="bi bi-arrow-left"></i> Öquvçilar röyxatiga qaytiş
 </a>
 
 <!-- HERO -->
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<!-- REYTING O'RNI -->
+<!-- REYTING ÖRNI -->
 <div class="row g-3 mt-1">
     <div class="col-md-4">
         <div class="std-rank-card text-center">
@@ -75,7 +75,7 @@
             <div class="std-rank-num">
                 {% if ranks.coins_rank %}#{{ ranks.coins_rank }}{% else %}—{% endif %}
             </div>
-            <div class="std-rank-of">{{ ranks.coins_total }} ta o'quvchidan</div>
+            <div class="std-rank-of">{{ ranks.coins_total }} ta öquvçidan</div>
             <div class="std-rank-label">Umumiy reyting (coin)</div>
         </div>
     </div>
@@ -85,7 +85,7 @@
             <div class="std-rank-num" style="color:#115e59;">
                 {% if ranks.score_rank %}#{{ ranks.score_rank }}{% else %}—{% endif %}
             </div>
-            <div class="std-rank-of" style="color:#0f766e;">{{ ranks.score_total }} ta o'quvchidan</div>
+            <div class="std-rank-of" style="color:#0f766e;">{{ ranks.score_total }} ta öquvçidan</div>
             <div class="std-rank-label" style="color:#115e59;">Ball reytingi ({{ ranks.student_score }} ball)</div>
         </div>
     </div>
@@ -96,18 +96,18 @@
                 {% if ranks.course_rank %}#{{ ranks.course_rank }}{% else %}—{% endif %}
             </div>
             <div class="std-rank-of" style="color:#166534;">
-                {% if ranks.course_total %}{{ ranks.course_total }} ta o'quvchidan{% else %}Kurs tanlanmagan{% endif %}
+                {% if ranks.course_total %}{{ ranks.course_total }} ta öquvçidan{% else %}Kurs tanlanmagan{% endif %}
             </div>
-            <div class="std-rank-label" style="color:#14532d;">Kurs ichidagi o'rni</div>
+            <div class="std-rank-label" style="color:#14532d;">Kurs içidagi örni</div>
         </div>
     </div>
 </div>
 
-<!-- QISQACHA STATISTIKA -->
-<h6 class="mt-4 mb-2 fw-bold"><i class="bi bi-graph-up text-warning me-2"></i> Qisqacha xulosa</h6>
+<!-- QISQAÇA STATISTIKA -->
+<h6 class="mt-4 mb-2 fw-bold"><i class="bi bi-graph-up text-warning me-2"></i> Qisqaça xulosa</h6>
 <div class="std-grid">
     <div class="std-stat">
-        <div class="std-stat-label">Topshirilgan vazifalar</div>
+        <div class="std-stat-label">Topşirilgan vazifalar</div>
         <div class="std-stat-value">{{ stats.sub_total }}</div>
         <div class="std-stat-sub">
             <span class="text-success">{{ stats.sub_graded }} baholangan</span> ·
@@ -115,7 +115,7 @@
         </div>
     </div>
     <div class="std-stat">
-        <div class="std-stat-label">O'rtacha baho</div>
+        <div class="std-stat-label">Örtaça baho</div>
         <div class="std-stat-value">{{ stats.avg_grade }}</div>
         <div class="std-stat-sub">10 ballik tizimda</div>
     </div>
@@ -123,14 +123,14 @@
         <div class="std-stat-label">Test natijalari</div>
         <div class="std-stat-value">{{ stats.test_total }}</div>
         <div class="std-stat-sub">
-            <span class="text-success">{{ stats.test_passed }} o'tdi</span> ·
-            <span class="text-danger">{{ stats.test_failed }} o'tmadi</span>
+            <span class="text-success">{{ stats.test_passed }} ötdi</span> ·
+            <span class="text-danger">{{ stats.test_failed }} ötmadi</span>
         </div>
     </div>
     <div class="std-stat">
-        <div class="std-stat-label">O'rtacha ball</div>
+        <div class="std-stat-label">Örtaça ball</div>
         <div class="std-stat-value">{{ stats.avg_score }}%</div>
-        <div class="std-stat-sub">{{ stats.pass_rate }}% o'tish</div>
+        <div class="std-stat-sub">{{ stats.pass_rate }}% ötiş</div>
     </div>
     <div class="std-stat">
         <div class="std-stat-label">Kurslar</div>
@@ -145,20 +145,20 @@
 </div>
 
 <div class="row g-3 mt-1">
-    <!-- SHAXSIY MA'LUMOT -->
+    <!-- ŞAXSIY MA'LUMOT -->
     <div class="col-lg-6">
         <div class="std-section h-100">
-            <h6><i class="bi bi-person-fill text-primary"></i> Shaxsiy ma'lumot</h6>
+            <h6><i class="bi bi-person-fill text-primary"></i> Şaxsiy ma'lumot</h6>
             <div class="std-info-row"><div class="label">F.I.O.</div><div class="value">{{ student.full_name }}</div></div>
-            <div class="std-info-row"><div class="label">Tug'ilgan kuni</div><div class="value">{{ student.birth_date|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Tuğilgan kuni</div><div class="value">{{ student.birth_date|default:"—" }}</div></div>
             <div class="std-info-row"><div class="label">Jinsi</div><div class="value">{{ student.get_gender_display|default:"—" }}</div></div>
             <div class="std-info-row"><div class="label">Millati</div><div class="value">{{ student.nationality|default:"—" }}</div></div>
-            <div class="std-info-row"><div class="label">JSHSHIR</div><div class="value">{{ student.jshshir|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">JŞŞIR</div><div class="value">{{ student.jshshir|default:"—" }}</div></div>
             <div class="std-info-row"><div class="label">Pasport</div><div class="value">{{ student.passport_series }} {{ student.passport_number }}</div></div>
             <div class="std-info-row"><div class="label">Manzil</div><div class="value">{{ student.address|default:"—" }}</div></div>
             <div class="std-info-row"><div class="label">Maktab</div><div class="value">{{ student.school_name|default:"—" }} {% if student.school_number %}#{{ student.school_number }}{% endif %}</div></div>
-            <div class="std-info-row"><div class="label">Profil to'liqligi</div><div class="value">{{ student.profile_completion_percent }}%</div></div>
-            <div class="std-info-row"><div class="label">Ro'yxatdan o'tgan</div><div class="value">{{ student.date_joined|date:"d.m.Y H:i" }}</div></div>
+            <div class="std-info-row"><div class="label">Profil töliqligi</div><div class="value">{{ student.profile_completion_percent }}%</div></div>
+            <div class="std-info-row"><div class="label">Röyxatdan ötgan</div><div class="value">{{ student.date_joined|date:"d.m.Y H:i" }}</div></div>
         </div>
     </div>
 
@@ -182,7 +182,7 @@
     <div class="table-responsive">
         <table class="table table-sm mb-0">
             <thead>
-                <tr><th>Yo'nalish</th><th>Yozilgan sana</th><th>O'qituvchilari</th></tr>
+                <tr><th>Yönaliş</th><th>Yozilgan sana</th><th>Öqituvçilari</th></tr>
             </thead>
             <tbody>
                 {% for e in enrollments %}
@@ -223,7 +223,7 @@
                         </tbody>
                     </table>
                 </div>
-            {% else %}<div class="text-muted small">Hozircha vazifa topshirmagan</div>{% endif %}
+            {% else %}<div class="text-muted small">Hozirça vazifa topşirmagan</div>{% endif %}
         </div>
     </div>
     <div class="col-lg-6">
@@ -239,8 +239,8 @@
                                 <td style="font-size:.85rem;">{{ t.test.title|default:"—"|truncatechars:40 }}</td>
                                 <td>{{ t.score }}%</td>
                                 <td>
-                                    {% if t.passed %}<span class="badge bg-success">O'tdi</span>
-                                    {% else %}<span class="badge bg-danger">O'tmadi</span>{% endif %}
+                                    {% if t.passed %}<span class="badge bg-success">Ötdi</span>
+                                    {% else %}<span class="badge bg-danger">Ötmadi</span>{% endif %}
                                 </td>
                                 <td style="font-size:.78rem;color:#6b7280;">{{ t.completed_at|date:"d.m H:i" }}</td>
                             </tr>
@@ -248,7 +248,7 @@
                         </tbody>
                     </table>
                 </div>
-            {% else %}<div class="text-muted small">Hozircha test ishlamagan</div>{% endif %}
+            {% else %}<div class="text-muted small">Hozirça test işlamagan</div>{% endif %}
         </div>
     </div>
 </div>

@@ -13,12 +13,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='courseapplication',
             name='age',
-            field=models.IntegerField(blank=True, null=True, verbose_name='Yoshi'),
+            field=models.IntegerField(blank=True, null=True, verbose_name='Yoşi'),
         ),
         migrations.AddField(
             model_name='courseapplication',
             name='is_shaharcha',
-            field=models.BooleanField(default=False, verbose_name='IT Shaharcha arizasimi'),
+            field=models.BooleanField(default=False, verbose_name='IT Şaharça arizasimi'),
         ),
         migrations.AddField(
             model_name='courseapplication',

@@ -1,15 +1,15 @@
 /* ============================================================
-   ITSAuth — Login / Register sahifalari uchun umumiy runtime
+   ITSAuth — Login / Register sahifalari uçun umumiy runtime
    - Kursorga javob beradigan fon (2D canvas konstellatsiya)
-   - Dark / Light tema (tun ↔ kun) silliq o'tish bilan
-   - Toast, parol ko'rsatish, telefon formatlash, segment tablar
+   - Dark / Light tema (tun ↔ kun) silliq ötiş bilan
+   - Toast, parol körsatiş, telefon formatlaş, segment tablar
    ============================================================ */
 (function (global) {
   'use strict';
 
   var THEME_KEY = 'its-theme';
-  var SITE_THEME_KEY = 'theme'; // base.html shu kalitni o'qiydi — tanlov saytga ham o'tadi
-  var sceneApi = null; // mount qilingan fon (tema o'zgarishida kerak)
+  var SITE_THEME_KEY = 'theme'; // base.html şu kalitni öqiydi — tanlov saytga ham ötadi
+  var sceneApi = null; // mount qilingan fon (tema özgarişida kerak)
 
   /* ────────────────────────────────────────────
      TEMA
@@ -61,7 +61,7 @@
   }
 
   /* ────────────────────────────────────────────
-     PAROL KO'RSATISH / YASHIRISH
+     PAROL KÖRSATIŞ / YAŞIRIŞ
   ──────────────────────────────────────────── */
   function togglePw(id, btn) {
     var inp = document.getElementById(id);
@@ -73,7 +73,7 @@
   }
 
   /* ────────────────────────────────────────────
-     TELEFON FORMATLASH  (style: 'plain' → 90 123 45 67,
+     TELEFON FORMATLAŞ  (style: 'plain' → 90 123 45 67,
                           'paren' → (90) 123 45 67)
   ──────────────────────────────────────────── */
   function formatUzPhone(input, style) {
@@ -96,7 +96,7 @@
   }
 
   /* ────────────────────────────────────────────
-     RAQAM SANASH ANIMATSIYASI
+     RAQAM SANAŞ ANIMATSIYASI
   ──────────────────────────────────────────── */
   function countUp(el, target, suffix) {
     if (!el) return;
@@ -113,7 +113,7 @@
   }
 
   /* ────────────────────────────────────────────
-     CAPS LOCK OGOHLANTIRISHI
+     CAPS LOCK OGOHLANTIRIŞI
   ──────────────────────────────────────────── */
   function capsHint(input, hint) {
     if (!input || !hint) return;
@@ -127,7 +127,7 @@
   }
 
   /* ────────────────────────────────────────────
-     SEGMENT TABLAR (suzuvchi pill indikator bilan)
+     SEGMENT TABLAR (suzuvçi pill indikator bilan)
   ──────────────────────────────────────────── */
   function initSegTabs(seg) {
     if (!seg) return;
@@ -166,8 +166,8 @@
 
   /* ============================================================
      FON — "Kursor konstellatsiyasi" (2D canvas)
-     Kursor atrofidagi tugunlar yorishadi, kursor uchiga nur tortadi
-     va maydon ochilib beriladi. Bosilganda to'lqin tarqaladi.
+     Kursor atrofidagi tugunlar yorişadi, kursor uçiga nur tortadi
+     va maydon oçilib beriladi. Bosilganda tölqin tarqaladi.
      t = 0 → tun (dark)   |   t = 1 → kun (light)
   ============================================================ */
   function mountScene(canvas, opts) {
@@ -178,7 +178,7 @@
       return null;
     }
     opts = opts || {};
-    var side = opts.side === 'right' ? 1 : -1; // kursor tegmaganda fon shu tomonda jonlanadi
+    var side = opts.side === 'right' ? 1 : -1; // kursor tegmaganda fon şu tomonda jonlanadi
     var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
     var TAU = Math.PI * 2;
 
@@ -221,8 +221,8 @@
         var x = Math.random() * W, y = Math.random() * H;
         nodes.push({
           x: x, y: y,
-          hx: x, hy: y,                   // uy nuqtasi — kursor o'tgach shu yerga qaytadi
-          dx: (Math.random() - 0.5) * 17, // doimiy sekin siljish
+          hx: x, hy: y,                   // uy nuqtasi — kursor ötgaç şu yerga qaytadi
+          dx: (Math.random() - 0.5) * 17, // doimiy sekin siljiş
           dy: (Math.random() - 0.5) * 17,
           vx: 0, vy: 0,
           r: 1 + Math.random() * 1.7,
@@ -300,8 +300,8 @@
       }
     }
 
-    /* Chizishni tejash: har bir chiziq/nuqta uchun alohida stroke() o'rniga
-       shaffoflik bo'yicha guruhlab, guruhga bitta path chizamiz. */
+    /* Çizişni tejaş: har bir chiziq/nuqta uçun alohida stroke() örniga
+       şaffoflik böyiça guruhlab, guruhga bitta path çizamiz. */
     function buckets(n) { var a = []; while (n--) a.push([]); return a; }
     var bLink = buckets(5), bLinkHot = buckets(5), bRay = buckets(4);
     var bDot = buckets(2), bDotHot = buckets(3);
@@ -370,7 +370,7 @@
       var LMAX = day ? 0.36 : 0.3;
       clearB();
 
-      /* Ulanishlar — kursor yonidagilari yorqin guruhga tushadi */
+      /* Ulanişlar — kursor yonidagilari yorqin guruhga tuşadi */
       for (var i = 0; i < nodes.length; i++) {
         var a = nodes[i];
         for (var j = i + 1; j < nodes.length; j++) {
@@ -386,7 +386,7 @@
         }
       }
 
-      /* Tugunlar va kursor uchiga tortilgan nurlar */
+      /* Tugunlar va kursor uçiga tortilgan nurlar */
       for (i = 0; i < nodes.length; i++) {
         var n = nodes[i];
         var rr = n.r * (1 + n.hot * 1.7);
@@ -401,7 +401,7 @@
       fillDots(bDot, mix('dot'), 0.55, 0.62);
       fillDots(bDotHot, mix('dotHot'), 0.7, 1);
 
-      /* Bosishdagi to'lqinlar */
+      /* Bosişdagi tölqinlar */
       ctx.strokeStyle = cRay;
       ctx.lineWidth = 1.6;
       for (var q = 0; q < rings.length; q++) {

@@ -3,7 +3,7 @@
   if (!document.body.classList.contains('is-premium')) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-  // Fonda suzib yuruvchi oltin zarralar (yengil: 14 ta CSS element).
+  // Fonda suzib yuruvçi oltin zarralar (yengil: 14 ta CSS element).
   const dust = document.createElement('div');
   dust.className = 'pm-dust';
   dust.setAttribute('aria-hidden', 'true');
@@ -18,7 +18,7 @@
   }
   document.body.prepend(dust);
 
-  // Tugma va havolalar bosilganda oltin uchqunlar.
+  // Tugma va havolalar bosilganda oltin uçqunlar.
   document.addEventListener('pointerdown', event => {
     if (!event.target.closest('a, button, .btn, [role=button]')) return;
     for (let i = 0; i < 8; i++) {

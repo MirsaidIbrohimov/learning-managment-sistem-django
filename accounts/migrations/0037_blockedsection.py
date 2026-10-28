@@ -16,15 +16,15 @@ class Migration(migrations.Migration):
             name='BlockedSection',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('section', models.CharField(choices=[('sozlamalar', 'Sozlamalar'), ('qurilmalar', 'Qurilmalar'), ('reyting', 'Reyting'), ('postlar', 'Postlar'), ('market', 'Market'), ('coding', 'Coding'), ('yordam', 'Yordam'), ('vazifalar', 'Vazifalar'), ('xabarlar', 'Xabarlar'), ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'), ('profili', 'Profile')], max_length=50, unique=True, verbose_name="Bo'lim")),
+                ('section', models.CharField(choices=[('sozlamalar', 'Sozlamalar'), ('qurilmalar', 'Qurilmalar'), ('reyting', 'Reyting'), ('postlar', 'Postlar'), ('market', 'Market'), ('coding', 'Coding'), ('yordam', 'Yordam'), ('vazifalar', 'Vazifalar'), ('xabarlar', 'Xabarlar'), ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'), ('profili', 'Profile')], max_length=50, unique=True, verbose_name="Bölim")),
                 ('is_blocked', models.BooleanField(default=False, verbose_name='Bloklangan')),
-                ('reason', models.CharField(blank=True, max_length=500, verbose_name='Bloklash sababi')),
-                ('blocked_at', models.DateTimeField(auto_now=True, verbose_name='Bloklash vaqti')),
+                ('reason', models.CharField(blank=True, max_length=500, verbose_name='Bloklaş sababi')),
+                ('blocked_at', models.DateTimeField(auto_now=True, verbose_name='Bloklaş vaqti')),
                 ('blocked_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='blocked_sections', to=settings.AUTH_USER_MODEL, verbose_name='Admin')),
             ],
             options={
-                'verbose_name': "Bloklangan bo'lim",
-                'verbose_name_plural': "Bloklangan bo'limlar",
+                'verbose_name': "Bloklangan bölim",
+                'verbose_name_plural': "Bloklangan bölimlar",
             },
         ),
     ]

@@ -1,9 +1,9 @@
 {% extends 'parents/portal/auth_base.html' %}
-{% block title %}Ota-ona sifatida kirish{% endblock %}
+{% block title %}Ota-ona sifatida kiriş{% endblock %}
 
 {% block card %}
-<h2 data-in>Xush kelibsiz 👋</h2>
-<p class="sub" data-in>Farzandingizning o‘qishini kuzatish uchun kiring.</p>
+<h2 data-in>Xuş kelibsiz 👋</h2>
+<p class="sub" data-in>Farzandingizning öqişini kuzatiş uçun kiring.</p>
 
 <div class="tabs" data-tabs="#panes" role="tablist" data-in>
   <span class="pill"></span>
@@ -17,10 +17,10 @@
       {% csrf_token %}
       <input type="hidden" name="login_mode" value="username">
       <div class="fx{% if error and login_mode != 'phone' %} bad{% endif %}"><input type="text" name="username" id="pUser" placeholder="Login" autocomplete="username" required value="{% if login_mode != 'phone' %}{{ username|default:'' }}{% endif %}"><label for="pUser">Login</label><i class="bi bi-person"></i></div>
-      <div class="fx{% if error and login_mode != 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass" placeholder="Parol" autocomplete="current-password" required><label for="pPass">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko‘rsatish"><i class="bi bi-eye"></i></button></div>
+      <div class="fx{% if error and login_mode != 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass" placeholder="Parol" autocomplete="current-password" required><label for="pPass">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni körsatiş"><i class="bi bi-eye"></i></button></div>
       <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
       <div class="opts"><span></span><a class="link" href="{% url 'parent_password_reset_request' %}">Parolni unutdingizmi?</a></div>
-      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kirish</button>
+      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kiriş</button>
     </form>
   </div>
 
@@ -29,28 +29,28 @@
       {% csrf_token %}
       <input type="hidden" name="login_mode" value="phone">
       <div class="fx pre{% if error and login_mode == 'phone' %} bad{% endif %}"><span class="pre-tag">+998</span><input type="tel" name="phone" id="pPhone" data-uz-phone placeholder="90 123 45 67" maxlength="12" inputmode="numeric" autocomplete="tel" required value="{{ phone_local|default:'' }}"><label for="pPhone">Telefon raqam</label><i class="bi bi-phone"></i></div>
-      <div class="fx{% if error and login_mode == 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass2" placeholder="Parol" autocomplete="current-password" required><label for="pPass2">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko‘rsatish"><i class="bi bi-eye"></i></button></div>
+      <div class="fx{% if error and login_mode == 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass2" placeholder="Parol" autocomplete="current-password" required><label for="pPass2">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni körsatiş"><i class="bi bi-eye"></i></button></div>
       <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
-      <p class="hint">O‘quv markaziga bergan telefon raqamingiz va parolingiz bilan kiring.</p>
-      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kirish</button>
+      <p class="hint">Öquv markaziga bergan telefon raqamingiz va parolingiz bilan kiring.</p>
+      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kiriş</button>
     </form>
   </div>
 </div>
 
 <div class="foot" data-in>
-  <span>Login yoki parol yo‘qmi? <a class="link" href="{% url 'parent_password_reset_request' %}">Parolni tiklash →</a></span>
-  <a class="link" href="{% url 'login' %}" style="color:var(--muted);font-weight:500"><i class="bi bi-mortarboard"></i> O‘quvchi sifatida kirish</a>
+  <span>Login yoki parol yöqmi? <a class="link" href="{% url 'parent_password_reset_request' %}">Parolni tiklaş →</a></span>
+  <a class="link" href="{% url 'login' %}" style="color:var(--muted);font-weight:500"><i class="bi bi-mortarboard"></i> Öquvçi sifatida kiriş</a>
 </div>
 {% endblock %}
 
 {% block stage %}
 <div class="chip glass c1"><i class="bi bi-graph-up-arrow"></i><span><b>Baholar va natijalar</b><small>Test, vazifa, speaking</small></span></div>
 <div class="chip glass c2"><i class="bi bi-calendar2-check"></i><span><b>Davomat va jadval</b><small>Keldi-ketdi har kuni</small></span></div>
-<div class="chip glass c3"><i class="bi bi-wallet2"></i><span><b>To‘lov bir bosishda</b><small>Click, Payme, karta</small></span></div>
+<div class="chip glass c3"><i class="bi bi-wallet2"></i><span><b>Tölov bir bosişda</b><small>Click, Payme, karta</small></span></div>
 <div class="stage-copy">
-  <div class="eyebrow">Ota-onalar uchun panel</div>
-  <h1><span class="split">Farzandingiz o‘qishi</span><br><span class="split grad">kaftingizda.</span></h1>
-  <p>Darslar, davomat, reyting va to‘lovlar — barchasi bir joyda.</p>
+  <div class="eyebrow">Ota-onalar uçun panel</div>
+  <h1><span class="split">Farzandingiz öqişi</span><br><span class="split grad">kaftingizda.</span></h1>
+  <p>Darslar, davomat, reyting va tölovlar — barçasi bir joyda.</p>
 </div>
 {% endblock %}
 

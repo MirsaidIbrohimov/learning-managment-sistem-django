@@ -1,12 +1,12 @@
 """Xavfsizlik regressiya testlari.
 
-Har bir test aniq bir zaiflikni qaytib kelishidan saqlaydi. Fayl nomi
-`tests_security.py` — Django test loader `accounts` app ichidan topadi:
+Har bir test aniq bir zaiflikni qaytib kelişidan saqlaydi. Fayl nomi
+`tests_security.py` — Django test loader `accounts` app içidan topadi:
 
     python manage.py test accounts.tests_security
 
-MUHIM: bu testlarda real API key/token ISHLATILMAYDI. Barcha maxfiy qiymatlar
-soxta ("dummy") va faqat test doirasida yashaydi.
+MUHIM: bu testlarda real API key/token IŞLATILMAYDI. Barça maxfiy qiymatlar
+soxta ("dummy") va faqat test doirasida yaşaydi.
 """
 
 from django.core.cache import cache
@@ -36,7 +36,7 @@ _phone_counter = itertools.count(1)
 
 
 def make_user(username, **extra):
-    """Test foydalanuvchisi. `phone` unique bo'lgani uchun avtomatik beriladi."""
+    """Test foydalanuvçisi. `phone` unique bölgani uçun avtomatik beriladi."""
     extra.setdefault('phone', f'+9989000{next(_phone_counter):05d}')
     extra.setdefault('role', 'student')
     extra.setdefault('password', 'Str0ng-Passw0rd!x7')
@@ -44,7 +44,7 @@ def make_user(username, **extra):
 
 
 def set_coins(user, amount):
-    """Balansni to'g'ridan-to'g'ri DB da o'rnatadi (add_coins qoidalarini chetlab)."""
+    """Balansni töğridan-töğri DB da örnatadi (add_coins qoidalarini çetlab)."""
     CustomUser.objects.filter(pk=user.pk).update(coins=amount)
     user.refresh_from_db(fields=['coins'])
 
@@ -57,10 +57,10 @@ def login_with_session(client, user, ip='127.0.0.1'):
     """
     `force_login` + real login yaratadigan `UserSession` qatori.
 
-    `DeviceLimitMiddleware` faol `UserSession` bo'lmasa sessiyani bekor qiladi
-    ("boshqa qurilmadan chiqarilgan" holati). Ilgari bu tekshiruv `/api/` ni
-    o'tkazib yuborardi, endi yuboradi — shuning uchun API testlari ham haqiqiy
-    login kabi sessiya qatorini ro'yxatdan o'tkazishi kerak.
+    `DeviceLimitMiddleware` faol `UserSession` bölmasa sessiyani bekor qiladi
+    ("boşqa qurilmadan çiqarilgan" holati). Ilgari bu tekşiruv `/api/` ni
+    ötkazib yuborardi, endi yuboradi — şuning uçun API testlari ham haqiqiy
+    login kabi sessiya qatorini röyxatdan ötkazişi kerak.
     """
     from datetime import timedelta
 
@@ -85,11 +85,11 @@ def login_with_session(client, user, ip='127.0.0.1'):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Ro'yxatdan o'tishda rol ko'tarilishi (privilege escalation)
+# Röyxatdan ötişda rol kötarilişi (privilege escalation)
 # ─────────────────────────────────────────────────────────────────────────────
 
 class RegistrationRoleEscalationTest(_NoRateLimitMixin, TestCase):
-    """`role` maydoni HiddenInput bo'lgani uchun POST orqali o'zgartirilardi."""
+    """`role` maydoni HiddenInput bölgani uçun POST orqali özgartirilardi."""
 
     BASE_POST = {
         'first_name': 'Ali',
@@ -140,11 +140,11 @@ class RegistrationRoleEscalationTest(_NoRateLimitMixin, TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Mijoz IP aniqlash — X-Forwarded-For spoofing
+# Mijoz IP aniqlaş — X-Forwarded-For spoofing
 # ─────────────────────────────────────────────────────────────────────────────
 
 class ClientIpSpoofingTest(TestCase):
-    """XFF ning eng chap qiymati mijoz nazoratida — undan foydalanib bo'lmaydi."""
+    """XFF ning eng çap qiymati mijoz nazoratida — undan foydalanib bölmaydi."""
 
     def _request(self, **meta):
         from django.test import RequestFactory
@@ -154,8 +154,8 @@ class ClientIpSpoofingTest(TestCase):
 
     @override_settings(USE_X_FORWARDED_FOR=True, TRUSTED_PROXY_COUNT=1)
     def test_spoofed_left_entry_is_ignored(self):
-        # Hujumchi "1.2.3.4" ni o'zi yubordi, proxy o'zining ko'rgan IP sini
-        # (203.0.113.9) ro'yxat oxiriga qo'shdi.
+        # Hujumçi "1.2.3.4" ni özi yubordi, proxy özining körgan IP sini
+        # (203.0.113.9) röyxat oxiriga qöşdi.
         request = self._request(
             HTTP_X_FORWARDED_FOR='1.2.3.4, 203.0.113.9',
             REMOTE_ADDR='127.0.0.1',
@@ -203,7 +203,7 @@ class ClientIpSpoofingTest(TestCase):
 
 
 class DrfThrottleIdentTest(TestCase):
-    """DRF throttle bucket'i soxta XFF bilan aylanib o'tilmasin."""
+    """DRF throttle bucket'i soxta XFF bilan aylanib ötilmasin."""
 
     def _drf_request(self, **meta):
         from django.test import RequestFactory
@@ -213,7 +213,7 @@ class DrfThrottleIdentTest(TestCase):
         return Request(raw)
 
     def test_num_proxies_is_configured(self):
-        # `NUM_PROXIES` berilmasa DRF XFF ning eng chap (soxta) qiymatini oladi.
+        # `NUM_PROXIES` berilmasa DRF XFF ning eng çap (soxta) qiymatini oladi.
         from django.conf import settings
         self.assertIn('NUM_PROXIES', settings.REST_FRAMEWORK)
         self.assertEqual(
@@ -233,7 +233,7 @@ class DrfThrottleIdentTest(TestCase):
             HTTP_X_FORWARDED_FOR='9.9.9.9, 203.0.113.9',
             REMOTE_ADDR='127.0.0.1',
         ))
-        # Hujumchi chap qiymatni har so'rovda o'zgartirdi — bucket o'zgarmadi.
+        # Hujumçi çap qiymatni har sörovda özgartirdi — bucket özgarmadi.
         self.assertEqual(first, second)
         self.assertEqual(first, '203.0.113.9')
 
@@ -267,7 +267,7 @@ _DUMMY_WEBHOOK_SECRET = 'test-only-webhook-secret-0000'
     SECURE_SSL_REDIRECT=False,
 )
 class TelegramWebhookAuthTest(TestCase):
-    """Webhook @csrf_exempt — secret token bo'lmasa har kim soxta update yubora olardi."""
+    """Webhook @csrf_exempt — secret token bölmasa har kim soxta update yubora olardi."""
 
     def setUp(self):
         self.url = reverse('telegram_bot:bot_webhook')
@@ -305,7 +305,7 @@ class TelegramWebhookAuthTest(TestCase):
 
     @override_settings(TELEGRAM_WEBHOOK_SECRET='')
     def test_unconfigured_secret_keeps_endpoint_closed(self):
-        """Sozlanmagan holat "hammaga ochiq" degani BO'LMASIN."""
+        """Sozlanmagan holat "hammaga oçiq" degani BÖLMASIN."""
         self.assertEqual(self._post().status_code, 403)
 
     def test_oversized_body_is_rejected(self):
@@ -323,7 +323,7 @@ class TelegramWebhookAuthTest(TestCase):
 
 
 class TelegramWebhookSecretDerivationTest(TestCase):
-    """Env sozlanmasa ham secret bo'sh qolmasligi kerak."""
+    """Env sozlanmasa ham secret böş qolmasligi kerak."""
 
     def test_secret_is_always_non_empty(self):
         from django.conf import settings
@@ -349,7 +349,7 @@ class TelegramWebhookSecretDerivationTest(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class TelegramLoginCodeTest(_NoRateLimitMixin, TestCase):
-    """Kod kriptografik tasodifiy, bir martalik va urinishi cheklangan bo'lishi kerak."""
+    """Kod kriptografik tasodifiy, bir martalik va urinişi çeklangan bölişi kerak."""
 
     def setUp(self):
         super().setUp()
@@ -401,7 +401,7 @@ class TelegramLoginCodeTest(_NoRateLimitMixin, TestCase):
         self._login_with_code(code)
         self.assertEqual(int(self.client.session.get('_auth_user_id', 0)), self.user.pk)
 
-        # Ikkinchi marta — kod ishlatilgan, qayta login bo'lmasin.
+        # Ikkinçi marta — kod işlatilgan, qayta login bölmasin.
         self.client.logout()
         self._login_with_code(code)
         self.assertNotIn('_auth_user_id', self.client.session)
@@ -440,11 +440,11 @@ class TelegramLoginCodeTest(_NoRateLimitMixin, TestCase):
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_brute_force_is_rate_limited_within_ten_tries(self):
-        """Har taxmin turli kod bo'lsa ham cheklov ishlashi kerak.
+        """Har taxmin turli kod bölsa ham çeklov işlaşi kerak.
 
-        Kodning o'zi — taxmin qilinayotgan sir. Uni rate-limit identifikatori
-        qilib berilganda har urinish yangi kalitga tushadi va `id_limit` hech
-        qachon ishlamaydi. Shuning uchun sessiya tokeniga bog'langan.
+        Kodning özi — taxmin qilinayotgan sir. Uni rate-limit identifikatori
+        qilib berilganda har uriniş yangi kalitga tuşadi va `id_limit` heç
+        qaçon işlamaydi. Şuning uçun sessiya tokeniga boğlangan.
         """
         from telegram_bot.models import TelegramLoginCode
 
@@ -454,7 +454,7 @@ class TelegramLoginCodeTest(_NoRateLimitMixin, TestCase):
         for attempt in range(1, 13):
             self._login_with_code(f'{100000 + attempt}')
             token = self.client.session.get('login_token', '')
-            self.assertTrue(token, "sessiyada login_token bo'lishi kerak")
+            self.assertTrue(token, "sessiyada login_token bölişi kerak")
             counter = cache.get(f'{_RL_PREFIX}login:id:tgcode:{token[:32]}') or 0
             if counter > 5:
                 blocked_at = attempt
@@ -462,24 +462,24 @@ class TelegramLoginCodeTest(_NoRateLimitMixin, TestCase):
 
         self.assertIsNotNone(
             blocked_at,
-            "12 ta noto'g'ri kod urinishidan keyin ham bloklanmadi — brute-force ochiq",
+            "12 ta notöğri kod urinişidan keyin ham bloklanmadi — brute-force oçiq",
         )
         self.assertLessEqual(blocked_at, 10)
 
-        # Blok haqiqiy bo'lishi kerak: cheklovdan keyin TO'G'RI kod ham
-        # kiritmasin, aks holda hisoblagich shunchaki dekorativ bo'ladi.
+        # Blok haqiqiy bölişi kerak: çeklovdan keyin TÖĞRI kod ham
+        # kiritmasin, aks holda hisoblagiç şunçaki dekorativ böladi.
         valid_code = TelegramLoginCode.generate_code()
         TelegramLoginCode.objects.create(telegram_id=999001, code=valid_code)
         self._login_with_code(valid_code)
         self.assertNotIn(
             '_auth_user_id', self.client.session,
-            'Cheklov e\'lon qilindi-yu, kirishga to\'sqinlik qilmadi',
+            'Çeklov e\'lon qilindi-yu, kirişga tösqinlik qilmadi',
         )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class LoginLockoutBypassTest(_NoRateLimitMixin, TestCase):
-    """login_token POST dan olinganda lockout butunlay chetlab o'tilardi."""
+    """login_token POST dan olinganda lockout butunlay çetlab ötilardi."""
 
     def setUp(self):
         super().setUp()
@@ -493,8 +493,8 @@ class LoginLockoutBypassTest(_NoRateLimitMixin, TestCase):
 
         from .models import LoginAttempt
 
-        # Har urinishda YANGI login_token yuboramiz — eski kodda bu lockoutni
-        # butunlay o'chirardi.
+        # Har urinişda YANGI login_token yuboramiz — eski kodda bu lockoutni
+        # butunlay öçirardi.
         for _ in range(8):
             self.client.post(self.url, {
                 'login_mode': 'username',
@@ -504,14 +504,14 @@ class LoginLockoutBypassTest(_NoRateLimitMixin, TestCase):
             })
 
         session_token = self.client.session.get('login_token', '')
-        self.assertTrue(session_token, 'sessiyada login_token bo\'lishi kerak')
+        self.assertTrue(session_token, 'sessiyada login_token bölişi kerak')
 
         recorded = LoginAttempt.objects.filter(
             login_token=session_token, was_successful=False
         ).count()
         self.assertGreaterEqual(
             recorded, 5,
-            'Urinishlar sessiya tokeniga yozilmagan — lockout chetlab o\'tilyapti',
+            'Urinişlar sessiya tokeniga yozilmagan — lockout çetlab ötilyapti',
         )
         self.assertTrue(LoginAttempt.is_token_blocked(session_token, 5, 15))
 
@@ -520,8 +520,8 @@ class LoginLockoutBypassTest(_NoRateLimitMixin, TestCase):
 
         from . import views
 
-        # Izohlarni chiqarib tashlaymiz: eski zaif satr izoh sifatida
-        # hujjatlashtirilgan, u kod deb hisoblanmasligi kerak.
+        # Izohlarni çiqarib taşlaymiz: eski zaif satr izoh sifatida
+        # hujjatlaştirilgan, u kod deb hisoblanmasligi kerak.
         code_only = '\n'.join(
             line for line in inspect.getsource(views.login_view).splitlines()
             if not line.lstrip().startswith('#')
@@ -536,11 +536,11 @@ class LoginLockoutBypassTest(_NoRateLimitMixin, TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class CoinAtomicBalanceTest(TestCase):
-    """Balans o'zgarishlari SQL darajasida atomik bo'lishi kerak.
+    """Balans özgarişlari SQL darajasida atomik bölişi kerak.
 
-    "Stale instance" — bir so'rov obyektni o'qigan, ikkinchisi shu orada
-    balansni o'zgartirgan holat. Ilgari `self.coins -= amount` yozilgani uchun
-    birinchi so'rov eski qiymatni qaytarib yozib, double-spend yuz berardi.
+    "Stale instance" — bir sörov obyektni öqigan, ikkinçisi şu orada
+    balansni özgartirgan holat. Ilgari `self.coins -= amount` yozilgani uçun
+    birinçi sörov eski qiymatni qaytarib yozib, double-spend yuz berardi.
     """
 
     def setUp(self):
@@ -568,8 +568,8 @@ class CoinAtomicBalanceTest(TestCase):
         self.assertFalse(CoinTransaction.objects.filter(user=self.user).exists())
 
     def test_stale_instance_cannot_double_spend(self):
-        # Parallel so'rov balansni allaqachon nolga tushirdi; bizning obyekt
-        # hali eski 100 ni ushlab turadi.
+        # Parallel sörov balansni allaqaçon nolga tuşirdi; bizning obyekt
+        # hali eski 100 ni uşlab turadi.
         CustomUser.objects.filter(pk=self.user.pk).update(coins=0)
         self.assertEqual(self.user.coins, 100)
 
@@ -582,10 +582,10 @@ class CoinAtomicBalanceTest(TestCase):
         self.assertEqual(self._db_coins(), 0)
 
     def test_add_coins_does_not_lose_concurrent_update(self):
-        # Boshqa so'rov +50 qildi, bizning obyekt eski qiymatni ushlab turadi.
+        # Boşqa sörov +50 qildi, bizning obyekt eski qiymatni uşlab turadi.
         CustomUser.objects.filter(pk=self.user.pk).update(coins=150)
         self.user.add_coins(10, 'test')
-        # Ikki o'zgarish ham saqlanishi kerak: 100 + 50 + 10
+        # Ikki özgariş ham saqlanişi kerak: 100 + 50 + 10
         self.assertEqual(self._db_coins(), 160)
 
     def test_remove_coins_does_not_lose_concurrent_update(self):
@@ -601,7 +601,7 @@ class CoinAtomicBalanceTest(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class CoinPurchaseRaceTest(TestCase):
-    """Xarid: balans/zaxira tekshiruvi yechish bilan bir atomic blokda."""
+    """Xarid: balans/zaxira tekşiruvi yeçiş bilan bir atomic blokda."""
 
     def setUp(self):
         from coin.models import Product
@@ -675,11 +675,11 @@ class CoinPurchaseRaceTest(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class CoinTransferRaceTest(TestCase):
-    """O'tkazma: bir kod bilan ikki marta tasdiqlash pulni ko'paytirmasin."""
+    """Ötkazma: bir kod bilan ikki marta tasdiqlaş pulni köpaytirmasin."""
 
     def setUp(self):
         cache.clear()
-        # telegram_id bor — tasdiqlash telegram kodi orqali ketadi.
+        # telegram_id bor — tasdiqlaş telegram kodi orqali ketadi.
         self.sender = make_user('sender', telegram_id=888001)
         self.receiver = make_user('receiver')
         set_coins(self.sender, 100)
@@ -718,7 +718,7 @@ class CoinTransferRaceTest(TestCase):
             content_type='application/json',
         )
         self.assertEqual(second.status_code, 404)
-        # Qabul qiluvchi ikki marta kredit olmasin.
+        # Qabul qiluvçi ikki marta kredit olmasin.
         self.assertEqual(self._coins(self.receiver), 50)
         self.assertEqual(self._coins(self.sender), 45)
 
@@ -733,7 +733,7 @@ class CoinTransferRaceTest(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(self._coins(self.sender), 100)
         self.assertEqual(self._coins(self.receiver), 0)
-        # Rollback: o'tkazma 'completed' bo'lib qolmasin.
+        # Rollback: ötkazma 'completed' bölib qolmasin.
         transfer.refresh_from_db()
         self.assertEqual(transfer.status, 'pending')
         self.assertIsNone(transfer.completed_at)
@@ -794,7 +794,7 @@ class CoinTransferRaceTest(TestCase):
         self.assertEqual(transfer.status, 'pending')
 
     def test_non_ascii_code_does_not_crash(self):
-        """`compare_digest` ASCII bo'lmagan str da TypeError beradi."""
+        """`compare_digest` ASCII bölmagan str da TypeError beradi."""
         transfer = self._pending_transfer()
 
         response = self.client.post(
@@ -810,7 +810,7 @@ class CoinTransferRaceTest(TestCase):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class ProductionSettingsTest(TestCase):
-    """DEBUG qattiq `True` bo'lib qolsa, pastdagi barcha himoya o'chadi."""
+    """DEBUG qattiq `True` bölib qolsa, pastdagi barça himoya öçadi."""
 
     def test_debug_is_env_driven_not_hardcoded(self):
         import inspect
@@ -826,9 +826,9 @@ class ProductionSettingsTest(TestCase):
         self.assertNotIn('*', settings.ALLOWED_HOSTS)
 
     def test_secret_key_is_not_the_dev_placeholder(self):
-        # Lokal .env (DEBUG=True) dan qat'i nazar production holati tekshiriladi:
-        # kalit berilsa u ishlatiladi, berilmasa sayt umuman ishga tushmaydi —
-        # dev placeholder hech qachon production'ga tushmaydi.
+        # Lokal .env (DEBUG=True) dan qat'i nazar production holati tekşiriladi:
+        # kalit berilsa u işlatiladi, berilmasa sayt umuman işga tuşmaydi —
+        # dev placeholder heç qaçon production'ga tuşmaydi.
         from django.core.exceptions import ImproperlyConfigured
 
         prod = self._load_settings_with_argv(['passenger_wsgi.py'])
@@ -843,8 +843,8 @@ class ProductionSettingsTest(TestCase):
         self.assertEqual(settings.X_FRAME_OPTIONS, 'DENY')
         self.assertTrue(settings.SECURE_CONTENT_TYPE_NOSNIFF)
 
-    # Production'ga o'xshash muhit: lokal .env dagi DEBUG=True kabi qiymatlar
-    # testga ta'sir qilmasin (load_dotenv mavjud o'zgaruvchilarni almashtirmaydi).
+    # Production'ga öxşaş muhit: lokal .env dagi DEBUG=True kabi qiymatlar
+    # testga ta'sir qilmasin (load_dotenv mavjud özgaruvçilarni almaştirmaydi).
     PROD_ENV = {
         'DEBUG': 'False',
         'DJANGO_SECRET_KEY': 'test-production-key-' + 'x' * 40,
@@ -855,11 +855,11 @@ class ProductionSettingsTest(TestCase):
         """
         `config/settings.py` ni ALOHIDA modul sifatida berilgan `sys.argv` bilan
         qayta yuklaydi. Haqiqiy `config.settings` ga tegilmaydi. Fayl faqat
-        konfiguratsiyadan iborat (DB/tarmoq/katalog yaratish yo'q) — xavfsiz.
+        konfiguratsiyadan iborat (DB/tarmoq/katalog yaratiş yöq) — xavfsiz.
 
-        Manba matnini `assertIn` bilan tekshirishdan afzalligi: bu yerda
+        Manba matnini `assertIn` bilan tekşirişdan afzalligi: bu yerda
         sozlamaning HAQIQIY qiymati hisoblanadi, ya'ni kelajakda mantiq
-        o'zgarib tuynuk ochilib qolsa ham test yiqiladi.
+        özgarib tuynuk oçilib qolsa ham test yiqiladi.
         """
         import importlib.util
         import sys
@@ -872,7 +872,7 @@ class ProductionSettingsTest(TestCase):
             '_settings_probe', Path(live_settings.BASE_DIR) / 'config' / 'settings.py'
         )
         module = importlib.util.module_from_spec(spec)
-        # 'pytest' sys.modules da bo'lsa RUNNING_TESTS majburan True bo'lib qoladi.
+        # 'pytest' sys.modules da bölsa RUNNING_TESTS majburan True bölib qoladi.
         without_pytest = {k: v for k, v in sys.modules.items() if k != 'pytest'}
         environ = dict(self.PROD_ENV, **(env or {}))
         with mock.patch.object(sys, 'argv', argv), \
@@ -883,9 +883,9 @@ class ProductionSettingsTest(TestCase):
 
     def test_plain_http_escape_hatch_is_closed_in_production(self):
         """
-        Test runner va `runserver` uchun transport himoyasi bo'shashadi (ikkisi
+        Test runner va `runserver` uçun transport himoyasi böşaşadi (ikkisi
         ham HTTPS bermaydi). Bu tuynuk production'ga tarqab ketmasligi kerak:
-        WSGI da `argv` da na `test`, na `runserver` bo'ladi.
+        WSGI da `argv` da na `test`, na `runserver` böladi.
         """
         prod = self._load_settings_with_argv(['passenger_wsgi.py'])
 
@@ -899,13 +899,13 @@ class ProductionSettingsTest(TestCase):
         for origin in prod.CSRF_TRUSTED_ORIGINS:
             self.assertTrue(
                 origin.startswith('https://'),
-                f"Production CSRF origin HTTPS bo'lishi kerak: {origin}",
+                f"Production CSRF origin HTTPS bölişi kerak: {origin}",
             )
 
     def test_dev_server_allows_plain_http_without_enabling_debug(self):
         """
-        `runserver` bilan lokal http ishlashi kerak, LEKIN DEBUG yonmasligi
-        kerak — aks holda traceback va sozlamalar oshkor bo'lib qoladi.
+        `runserver` bilan lokal http işlaşi kerak, LEKIN DEBUG yonmasligi
+        kerak — aks holda traceback va sozlamalar oşkor bölib qoladi.
         """
         dev = self._load_settings_with_argv(['manage.py', 'runserver'])
 
@@ -917,8 +917,8 @@ class ProductionSettingsTest(TestCase):
 
     def test_ssl_redirect_is_only_disabled_for_the_test_runner(self):
         """
-        Joriy jarayonda (test runner) tuynuk ochiq ekanini tasdiqlaydi.
-        Production holati yuqoridagi testda tekshiriladi.
+        Joriy jarayonda (test runner) tuynuk oçiq ekanini tasdiqlaydi.
+        Production holati yuqoridagi testda tekşiriladi.
         """
         from django.conf import settings
 
@@ -932,11 +932,11 @@ class ProductionSettingsTest(TestCase):
 # ─────────────────────────────────────────────────────────────────────────────
 
 class SanitizeHtmlTest(TestCase):
-    """`sanitize_html` oq ro'yxatli parser — denylist regex bypass'lariga qarshi.
+    """`sanitize_html` oq röyxatli parser — denylist regex bypass'lariga qarşi.
 
     Eski implementatsiya regex denylist edi va `<img src=x onerror=alert(1)>`
-    (qo'shtirnoqsiz atribut) hamda `<scr<script>ipt>` kabi bo'lingan teglarni
-    o'tkazib yuborardi.
+    (qöştirnoqsiz atribut) hamda `<scr<script>ipt>` kabi bölingan teglarni
+    ötkazib yuborardi.
     """
 
     def clean(self, raw):
@@ -964,7 +964,7 @@ class SanitizeHtmlTest(TestCase):
     def test_split_script_tag_cannot_survive(self):
         out = self.clean('<scr<script>ipt>alert(1)</scr</script>ipt>')
         self.assertNotIn('<script', out.lower())
-        # Qolgan matn oddiy tekst: hech qanday teg ochilmagan.
+        # Qolgan matn oddiy tekst: heç qanday teg oçilmagan.
         self.assertNotIn('<', out)
 
     def test_javascript_href_is_removed_but_text_kept(self):
@@ -1044,7 +1044,7 @@ class SanitizeHtmlTest(TestCase):
 
 
 class SafeHtmlFilterTest(TestCase):
-    """`|safe_html` — `|safe` o'rniga; DB'da allaqachon yotgan satrlarni ham tozalaydi."""
+    """`|safe_html` — `|safe` örniga; DB'da allaqaçon yotgan satrlarni ham tozalaydi."""
 
     def render(self, template, ctx):
         from django.template import Context, Template
@@ -1073,11 +1073,11 @@ class SafeHtmlFilterTest(TestCase):
 
 
 class PremiumNameEscapingTest(TestCase):
-    """`premium_name` ism/familiyani HTML ichiga qo'yadi — escape shart.
+    """`premium_name` ism/familiyani HTML içiga qöyadi — escape şart.
 
     Modelning `save()` metodi ham ismni tozalaydi (`_clean_name`), lekin bu
-    ikkinchi qatlam: DB'ga boshqa yo'l bilan (`update()`, migratsiya, import)
-    tushgan satr filtr orqali ham xavfsiz chiqishi kerak.
+    ikkinçi qatlam: DB'ga boşqa yöl bilan (`update()`, migratsiya, import)
+    tuşgan satr filtr orqali ham xavfsiz çiqişi kerak.
     """
 
     def render_name(self, user):
@@ -1094,8 +1094,8 @@ class PremiumNameEscapingTest(TestCase):
 
     def test_premium_badge_escapes_markup_that_bypassed_save(self):
         user = make_user('xss_name_premium', last_name='Test')
-        # `save()` ni chetlab o'tib DB'ga xom HTML yozamiz — filtr o'zini
-        # himoya qila oladimi, shuni tekshiramiz.
+        # `save()` ni çetlab ötib DB'ga xom HTML yozamiz — filtr özini
+        # himoya qila oladimi, şuni tekşiramiz.
         CustomUser.objects.filter(pk=user.pk).update(
             first_name='<img src=x onerror=alert(1)>', is_premium=True,
         )
@@ -1113,9 +1113,9 @@ class PremiumNameEscapingTest(TestCase):
 
 
 class JsonScriptEscapingTest(TestCase):
-    """Server ma'lumoti `<script>` ichida `json_script` orqali berilishi kerak.
+    """Server ma'lumoti `<script>` içida `json_script` orqali berilişi kerak.
 
-    `{{ x|safe }}` bo'lganda matndagi `</script>` script tegini yopib, undan
+    `{{ x|safe }}` bölganda matndagi `</script>` script tegini yopib, undan
     keyingi hamma narsa HTML sifatida bajarilardi (stored XSS).
     """
 
@@ -1129,7 +1129,7 @@ class JsonScriptEscapingTest(TestCase):
         self.assertIn('id="probe"', out)
 
     def test_templates_do_not_pass_raw_json_into_script_tags(self):
-        """Regressiya: `|safe` ni `<script type="application/json">` ichiga qaytarmaslik."""
+        """Regressiya: `|safe` ni `<script type="application/json">` içiga qaytarmaslik."""
         import re
         from pathlib import Path
 
@@ -1153,11 +1153,11 @@ class JsonScriptEscapingTest(TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Fayl yuklash
+# Fayl yuklaş
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _png_bytes():
-    """Eng kichik haqiqiy PNG (Pillow ochadi)."""
+    """Eng kiçik haqiqiy PNG (Pillow oçadi)."""
     import io
 
     from PIL import Image
@@ -1186,7 +1186,7 @@ class UploadValidationTest(TestCase):
 
     def assert_accepted(self, upload, **kwargs):
         from .security import validate_safe_file
-        validate_safe_file(upload, **kwargs)   # ko'tarilmasa — o'tdi
+        validate_safe_file(upload, **kwargs)   # kötarilmasa — ötdi
 
     def test_executable_extensions_are_rejected(self):
         for name in ('virus.exe', 'run.bat', 'lib.dll', 'x.msi', 'x.ps1', 'x.hta'):
@@ -1197,14 +1197,14 @@ class UploadValidationTest(TestCase):
             self.assert_rejected(_upload(name))
 
     def test_htaccess_cannot_be_uploaded(self):
-        # `media/` ichidagi `.htaccess` Apache sozlamalarini qayta yoqib,
-        # PHP bajarilishiga yo'l ochishi mumkin edi.
+        # `media/` içidagi `.htaccess` Apache sozlamalarini qayta yoqib,
+        # PHP bajarilişiga yöl oçişi mumkin edi.
         self.assert_rejected(_upload('.htaccess', b'AddHandler php-script .jpg'))
         self.assert_rejected(_upload('.htpasswd'))
 
     def test_double_extension_chain_is_fully_checked(self):
-        # Eski tekshiruv faqat oxirgi ikkitasiga qarardi, shu sababli
-        # `shell.php.jpg.txt` o'tib ketardi.
+        # Eski tekşiruv faqat oxirgi ikkitasiga qarardi, şu sababli
+        # `shell.php.jpg.txt` ötib ketardi.
         for name in ('shell.php.jpg', 'shell.php.jpg.txt', 'x.exe.png', 'a.b.htaccess.txt'):
             self.assert_rejected(_upload(name))
 
@@ -1252,7 +1252,7 @@ class UploadValidationTest(TestCase):
 
 
 class SafeFilenameTest(TestCase):
-    """Saqlash nomi: katalogdan chiqish va yashirin fayllar."""
+    """Saqlaş nomi: katalogdan çiqiş va yaşirin fayllar."""
 
     def clean(self, name):
         from .security import _safe_filename
@@ -1277,7 +1277,7 @@ class SafeFilenameTest(TestCase):
 
 
 class HomeworkUploadValidatorTest(TestCase):
-    """Uy vazifasi API validatori (`chat_views` ham shuni ishlatadi)."""
+    """Uy vazifasi API validatori (`chat_views` ham şuni işlatadi)."""
 
     def check(self, name, content=b'salom', extra=None):
         from .api.homework_views import _validate_file
@@ -1288,8 +1288,8 @@ class HomeworkUploadValidatorTest(TestCase):
         self.assertFalse(ok)
 
     def test_extra_exts_cannot_reenable_dangerous_extension(self):
-        # Qora ro'yxat oq ro'yxatdan OLDIN ishlaydi — vazifa sozlamasi orqali
-        # `.php` ni qayta yoqib bo'lmaydi.
+        # Qora röyxat oq röyxatdan OLDIN işlaydi — vazifa sozlamasi orqali
+        # `.php` ni qayta yoqib bölmaydi.
         ok, err = self.check('shell.php', extra={'.php'})
         self.assertFalse(ok)
 
@@ -1314,14 +1314,14 @@ class HomeworkUploadValidatorTest(TestCase):
         self.assertTrue(ok, err)
 
     def test_html_homework_still_accepted(self):
-        # HTML uy vazifasi real ehtiyoj — yuklash mumkin, lekin brauzerda
-        # ochilmaydi (`serve_media` `attachment` qiladi).
+        # HTML uy vazifasi real ehtiyoj — yuklaş mumkin, lekin brauzerda
+        # oçilmaydi (`serve_media` `attachment` qiladi).
         ok, err = self.check('index.html', b'<h1>salom</h1>')
         self.assertTrue(ok, err)
 
 
 class MediaServingTest(TestCase):
-    """Yuklangan fayl bizning origin'imizdan skript sifatida ochilmasligi kerak."""
+    """Yuklangan fayl bizning origin'imizdan skript sifatida oçilmasligi kerak."""
 
     def setUp(self):
         import shutil
@@ -1382,7 +1382,7 @@ class MediaServingTest(TestCase):
 
 
 class SafeMediaStorageTest(TestCase):
-    """Oxirgi to'siq: tekshiruvsiz yuklash nuqtalari ham diskda xavfsiz qoladi."""
+    """Oxirgi tösiq: tekşiruvsiz yuklaş nuqtalari ham diskda xavfsiz qoladi."""
 
     def setUp(self):
         import shutil
@@ -1419,7 +1419,7 @@ class SafeMediaStorageTest(TestCase):
 
     def test_path_traversal_in_filename_cannot_escape(self):
         from django.core.exceptions import SuspiciousFileOperation
-        # Django o'zi ham to'sadi; bu test himoya olib tashlanmasligini kuzatadi.
+        # Django özi ham tösadi; bu test himoya olib taşlanmasligini kuzatadi.
         with self.assertRaises(SuspiciousFileOperation):
             self.save('uploads/../../../../evil.txt')
 
@@ -1453,7 +1453,7 @@ def make_parent(username='ota_ona', password=_PARENT_PASSWORD, **extra):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ParentLoginEnumerationTest(_NoRateLimitMixin, TestCase):
-    """Login mavjudligi javob matni orqali oshkor bo'lmasin."""
+    """Login mavjudligi javob matni orqali oşkor bölmasin."""
 
     def setUp(self):
         super().setUp()
@@ -1470,7 +1470,7 @@ class ParentLoginEnumerationTest(_NoRateLimitMixin, TestCase):
         unknown = self._post('ota_yoq', 'ParolXato12345')
         wrong = self._post('ota_bor', 'ParolXato12345')
         self.assertEqual(self._error(unknown), self._error(wrong))
-        # Ajratuvchi so'zlar chiqmasin.
+        # Ajratuvçi sözlar çiqmasin.
         self.assertNotIn('topilmadi', self._error(unknown))
 
     def test_inactive_parent_gets_the_same_error(self):
@@ -1492,7 +1492,7 @@ class ParentLoginEnumerationTest(_NoRateLimitMixin, TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ParentLoginBruteForceTest(_NoRateLimitMixin, TestCase):
-    """Bir login bo'yicha cheksiz parol sinab ko'rish mumkin bo'lmasin."""
+    """Bir login böyiça çeksiz parol sinab köriş mumkin bölmasin."""
 
     def setUp(self):
         super().setUp()
@@ -1506,10 +1506,10 @@ class ParentLoginBruteForceTest(_NoRateLimitMixin, TestCase):
                 self.url, {'username': 'ota_brute', 'password': f'Xato{attempt}Parol'}
             )
             error = (response.context or {}).get('error', '')
-            if 'urinish' in error:
+            if 'uriniş' in error:
                 blocked_at = attempt
                 break
-        self.assertIsNotNone(blocked_at, 'Rate limit hech qachon ishga tushmadi')
+        self.assertIsNotNone(blocked_at, 'Rate limit heç qaçon işga tuşmadi')
 
     def test_throttle_blocks_even_the_correct_password(self):
         for attempt in range(20):
@@ -1519,14 +1519,14 @@ class ParentLoginBruteForceTest(_NoRateLimitMixin, TestCase):
         response = self.client.post(
             self.url, {'username': 'ota_brute', 'password': _PARENT_PASSWORD}
         )
-        # Bloklangan holatda to'g'ri parol ham sessiya bermasin.
+        # Bloklangan holatda töğri parol ham sessiya bermasin.
         self.assertNotIn('parent_id', self.client.session)
         self.assertEqual(response.status_code, 200)
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ParentSessionSecurityTest(_NoRateLimitMixin, TestCase):
-    """Session fixation: hujumchi bergan sessiya ID si kirishdan keyin yashamasin."""
+    """Session fixation: hujumçi bergan sessiya ID si kirişdan keyin yaşamasin."""
 
     def setUp(self):
         super().setUp()
@@ -1560,7 +1560,7 @@ class ParentSessionSecurityTest(_NoRateLimitMixin, TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ParentPasswordResetTest(_NoRateLimitMixin, TestCase):
-    """Parol tiklash so'rovi: ochiq matn saqlanmasin, enumeration bo'lmasin."""
+    """Parol tiklaş sörovi: oçiq matn saqlanmasin, enumeration bölmasin."""
 
     def setUp(self):
         super().setUp()
@@ -1595,7 +1595,7 @@ class ParentPasswordResetTest(_NoRateLimitMixin, TestCase):
             (unknown.context or {}).get('success'),
         )
         self.assertIsNotNone((known.context or {}).get('success'))
-        # Mavjud bo'lmagan login uchun yozuv yaratilmasin.
+        # Mavjud bölmagan login uçun yozuv yaratilmasin.
         self.assertEqual(ParentPasswordResetRequest.objects.count(), 1)
 
     def test_weak_password_is_rejected(self):
@@ -1619,13 +1619,13 @@ class ParentPasswordResetTest(_NoRateLimitMixin, TestCase):
         )
 
         parent = Parent.objects.get(pk=self.parent.pk)
-        # Ikki marta hashlanib "o'lik" parolga aylanmasin.
+        # Ikki marta haşlanib "ölik" parolga aylanmasin.
         self.assertTrue(parent.check_password(raw))
         self.assertFalse(parent.check_password(_PARENT_PASSWORD))
 
 
 class ParentPasswordPolicyTest(TestCase):
-    """`AUTH_PASSWORD_VALIDATORS` ota-onaga ham qo'llanadi."""
+    """`AUTH_PASSWORD_VALIDATORS` ota-onaga ham qöllanadi."""
 
     def _check(self, password):
         from accounts.security import validate_parent_password
@@ -1645,15 +1645,15 @@ class ParentPasswordPolicyTest(TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Sessiya nazorati `/api/` da ham amal qilishi
+# Sessiya nazorati `/api/` da ham amal qilişi
 # ─────────────────────────────────────────────────────────────────────────────
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
     """
     `SessionTimeoutMiddleware` va `DeviceLimitMiddleware` ilgari `/api/` ni
-    o'tkazib yuborardi — o'g'irlangan yoki bekor qilingan sessiya cookie'si
-    bilan barcha API endpointlarni cheksiz ishlatish mumkin edi.
+    ötkazib yuborardi — öğirlangan yoki bekor qilingan sessiya cookie'si
+    bilan barça API endpointlarni çeksiz işlatiş mumkin edi.
     """
 
     def setUp(self):
@@ -1695,7 +1695,7 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
         from .models import UserSession
 
         login_with_session(self.client, self.user)
-        # "Boshqa qurilmadan chiqarish" — sessiya bekor qilinadi.
+        # "Boşqa qurilmadan çiqariş" — sessiya bekor qilinadi.
         UserSession.objects.filter(user=self.user).update(is_active=False)
         cache.delete(f'active_session_{self.user.pk}')
 
@@ -1709,7 +1709,7 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
         from .models import UserSession
 
         login_with_session(self.client, self.user)
-        # Faol sessiya boshqa qurilmaga tegishli — joriy cookie yaroqsiz.
+        # Faol sessiya boşqa qurilmaga tegişli — joriy cookie yaroqsiz.
         UserSession.objects.filter(user=self.user).update(
             session_key='boshqa-qurilma-kaliti'
         )
@@ -1734,7 +1734,7 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
         self.assertEqual(self.client.get(self.url).status_code, 401)
 
     def test_static_paths_stay_exempt(self):
-        # Sessiya nazorati static/media ni sekinlashtirmasin.
+        # Sessiya nazorati static/media ni sekinlaştirmasin.
         from .middleware import _SKIP_PREFIXES
 
         self.assertIn('/static/', _SKIP_PREFIXES)
@@ -1742,15 +1742,15 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
 
     def test_drf_token_client_is_not_blocked(self):
         """
-        Sessiya nazorati `/api/` ga kengaytirilgani token bilan ishlaydigan
+        Sessiya nazorati `/api/` ga kengaytirilgani token bilan işlaydigan
         mijozlarni buzmasligi kerak: `AuthenticationMiddleware` faqat Django
-        sessiyasini o'qiydi, DRF `TokenAuthentication` esa keyinroq — view
-        ichida — ishlaydi. Ya'ni middleware uchun bunday so'rov anonim.
+        sessiyasini öqiydi, DRF `TokenAuthentication` esa keyinroq — view
+        içida — işlaydi. Ya'ni middleware uçun bunday sörov anonim.
         """
         from rest_framework.authtoken.models import Token
 
         token = Token.objects.create(user=self.user)
-        # Sessiya butunlay yo'q — faqat token.
+        # Sessiya butunlay yöq — faqat token.
         self.client.logout()
         response = self.client.get(
             reverse('api:coin_summary'),
@@ -1760,15 +1760,15 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Tashqi o'yin natijasi: akkaunt holati tekshirilishi
+# Taşqi öyin natijasi: akkaunt holati tekşirilişi
 # ─────────────────────────────────────────────────────────────────────────────
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class GameResultAccountStateTest(_NoRateLimitMixin, TestCase):
     """
-    `submit_result` launch-token bilan ishlaydi va ilgari akkaunt holatini
-    umuman tekshirmasdi: o'chirilgan akkaunt token muddati tugagunicha natija
-    yozishda, bloklangan o'quvchi esa coin ishlashda davom eta olardi.
+    `submit_result` launch-token bilan işlaydi va ilgari akkaunt holatini
+    umuman tekşirmasdi: öçirilgan akkaunt token muddati tugaguniça natija
+    yozişda, bloklangan öquvçi esa coin işlaşda davom eta olardi.
     """
 
     def setUp(self):
@@ -1776,7 +1776,7 @@ class GameResultAccountStateTest(_NoRateLimitMixin, TestCase):
         from games.models import Game
 
         self.game = Game.objects.create(
-            title='Shaxmat (tashqi)', slug='tashqi-shaxmat',
+            title='Şaxmat (taşqi)', slug='tashqi-shaxmat',
             game_type='external', is_active=True,
             config={'engine': 'chess', 'min_time_seconds': 1,
                     'ai_coin_rewards': {'easy': 25}},
@@ -1812,8 +1812,8 @@ class GameResultAccountStateTest(_NoRateLimitMixin, TestCase):
         set_coins(user, 0)
         response = self._submit(user)
         self.assertEqual(response.status_code, 200, response.content)
-        # O'ynashi mumkin, lekin coin marketda pul o'rnida ishlatiladi —
-        # to'lov qarzi bor o'quvchi coin ishlab olmasin.
+        # Öynaşi mumkin, lekin coin marketda pul örnida işlatiladi —
+        # tölov qarzi bor öquvçi coin işlab olmasin.
         self.assertEqual(db_coins(user), 0)
 
     def test_active_student_earns_coins(self):
@@ -1825,16 +1825,16 @@ class GameResultAccountStateTest(_NoRateLimitMixin, TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Chat: DM endpointlari orqali foydalanuvchi katalogini yig'ib olish
+# Çat: DM endpointlari orqali foydalanuvçi katalogini yiğib oliş
 # ─────────────────────────────────────────────────────────────────────────────
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ChatDirectAuthorizationTest(_NoRateLimitMixin, TestCase):
     """
     `direct_messages` javobida `partner` profili (ism, username, rol, online
-    holati) qaytadi. Tekshiruvsiz bu pk=1..N bo'ylab butun foydalanuvchi
-    ro'yxatini yig'ib olish kanali edi — `user_search` esa ayni siyosatni
-    (`_can_dm`) allaqachon qo'llardi.
+    holati) qaytadi. Tekşiruvsiz bu pk=1..N böylab butun foydalanuvçi
+    röyxatini yiğib oliş kanali edi — `user_search` esa ayni siyosatni
+    (`_can_dm`) allaqaçon qöllardi.
     """
 
     def setUp(self):
@@ -1855,7 +1855,7 @@ class ChatDirectAuthorizationTest(_NoRateLimitMixin, TestCase):
         self.assertNotIn(self.stranger.username.encode(), response.content)
 
     def test_teacher_is_still_reachable(self):
-        # O'qituvchiga yozish har doim ruxsat — biznes logika buzilmasin.
+        # Öqituvçiga yoziş har doim ruxsat — biznes logika buzilmasin.
         self.assertEqual(self._dm(self.teacher).status_code, 200)
 
     def test_existing_thread_stays_readable(self):
@@ -1864,7 +1864,7 @@ class ChatDirectAuthorizationTest(_NoRateLimitMixin, TestCase):
         DirectMessage.objects.create(
             sender=self.stranger, recipient=self.student, message='salom',
         )
-        # Yozish huquqi yo'q bo'lsa ham mavjud tarix o'qilishi kerak.
+        # Yoziş huquqi yöq bölsa ham mavjud tarix öqilişi kerak.
         self.assertEqual(self._dm(self.stranger).status_code, 200)
 
     def test_cannot_pin_stranger(self):
@@ -1881,14 +1881,14 @@ class ChatDirectAuthorizationTest(_NoRateLimitMixin, TestCase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Istisno matni foydalanuvchiga chiqmasligi
+# Istisno matni foydalanuvçiga çiqmasligi
 # ─────────────────────────────────────────────────────────────────────────────
 
 class SafeErrorTest(TestCase):
     """
-    `str(e)` ni javobga qo'yish maxfiy ma'lumot chiqarardi: OpenAI SDK
-    xatoliklari so'rov URL i va tashkilot ID sini, DB xatoliklari esa
-    jadval/ustun nomlarini o'z ichiga oladi.
+    `str(e)` ni javobga qöyiş maxfiy ma'lumot çiqarardi: OpenAI SDK
+    xatoliklari sörov URL i va taşkilot ID sini, DB xatoliklari esa
+    jadval/ustun nomlarini öz içiga oladi.
     """
 
     def _raise(self, message):
@@ -1925,7 +1925,7 @@ class SafeErrorTest(TestCase):
         self.assertNotIn('internal detail', message)
 
     def test_exception_is_logged_for_debugging(self):
-        # Xato yashirilsa ham, server tomonda tekshirish imkoni qolishi kerak.
+        # Xato yaşirilsa ham, server tomonda tekşiriş imkoni qolişi kerak.
         with self.assertLogs('security', level='ERROR') as captured:
             self._raise('diagnostika-uchun-matn')
         self.assertIn('diagnostika-uchun-matn', '\n'.join(captured.output))

@@ -40,11 +40,11 @@
                 <div><i class="bi bi-envelope me-2"></i>{{ parent.email|default:"-" }}</div>
             </div>
             <div class="mb-2">
-                <small class="text-muted">Ro'yxatdan o'tgan</small>
+                <small class="text-muted">Röyxatdan ötgan</small>
                 <div><i class="bi bi-calendar me-2"></i>{{ parent.created_at|date:"d.m.Y H:i" }}</div>
             </div>
             <div>
-                <small class="text-muted">Oxirgi kirish</small>
+                <small class="text-muted">Oxirgi kiriş</small>
                 <div>
                     <i class="bi bi-clock me-2"></i>
                     {% if parent.last_login %}
@@ -59,12 +59,12 @@
         <!-- Actions -->
         <div class="d-grid gap-2">
             <a href="{% url 'parents:admin_parent_edit' parent.pk %}" class="btn btn-primary rounded-pill">
-                <i class="bi bi-pencil me-1"></i>Tahrirlash
+                <i class="bi bi-pencil me-1"></i>Tahrirlaş
             </a>
             <a href="{% url 'parents:admin_parent_toggle' parent.pk %}"
                class="btn {% if parent.is_active %}btn-warning{% else %}btn-success{% endif %} rounded-pill">
                 <i class="bi bi-{% if parent.is_active %}toggle-off{% else %}toggle-on{% endif %} me-1"></i>
-                {% if parent.is_active %}Nofaol qilish{% else %}Faol qilish{% endif %}
+                {% if parent.is_active %}Nofaol qiliş{% else %}Faol qiliş{% endif %}
             </a>
         </div>
     </div>
@@ -115,7 +115,7 @@
                 <i class="bi bi-people" style="font-size:2rem;"></i>
                 <p class="mt-2 mb-0">Farzandlar biriktirilmagan</p>
                 <a href="{% url 'parents:admin_parent_edit' parent.pk %}" class="btn btn-outline-primary btn-sm mt-2">
-                    <i class="bi bi-plus me-1"></i>Farzand biriktirish
+                    <i class="bi bi-plus me-1"></i>Farzand biriktiriş
                 </a>
             </div>
             {% endif %}

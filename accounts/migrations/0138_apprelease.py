@@ -25,7 +25,7 @@ class Migration(migrations.Migration):
                 ('min_os', models.CharField(blank=True, max_length=60, verbose_name='Talab (OS)')),
                 ('notes', models.TextField(blank=True, verbose_name='Yangiliklar / izoh')),
                 ('is_published', models.BooleanField(default=True, verbose_name="E'lon qilingan")),
-                ('download_count', models.PositiveIntegerField(default=0, verbose_name='Yuklab olishlar')),
+                ('download_count', models.PositiveIntegerField(default=0, verbose_name='Yuklab olişlar')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('uploaded_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to=settings.AUTH_USER_MODEL)),

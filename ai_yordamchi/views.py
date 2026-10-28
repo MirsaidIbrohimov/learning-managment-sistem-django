@@ -23,7 +23,7 @@ from coin.models import CoinTransaction, ActivityLog
 # ============================================================
 DAILY_MSG_LIMIT = {'premium': 120, 'regular': 60}
 DAILY_IMG_LIMIT = {'premium': 5, 'regular': 3}
-# AI rasm chizish — faqat Premium a'zolar uchun, kuniga shuncha ta.
+# AI rasm çiziş — faqat Premium a'zolar uçun, kuniga şunça ta.
 DAILY_GEN_LIMIT = 3
 IMAGE_GEN_PROMPT_MAX = 1000
 
@@ -32,10 +32,10 @@ OPENAI_MAX_TOKENS = 4096
 OPENAI_TEMPERATURE = 0.2
 
 IMAGE_EXTS = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')
-# `.php`, `.bat`, `.ini`, `.cfg`, `.env` ATAYLAB olib tashlandi:
-#   - `.php`/`.bat` — `media/` ichida bajarilib ketish xavfi (accounts.security);
+# `.php`, `.bat`, `.ini`, `.cfg`, `.env` ATAYLAB olib taşlandi:
+#   - `.php`/`.bat` — `media/` içida bajarilib ketiş xavfi (accounts.security);
 #   - `.env`/`.ini`/`.cfg` — konfiguratsiya fayllari, ularning mazmuni AI ga
-#     (ya'ni tashqi provayderga) yuborilardi; maxfiy kalitlar chiqib ketmasin.
+#     (ya'ni taşqi provayderga) yuborilardi; maxfiy kalitlar çiqib ketmasin.
 TEXT_EXTS = (
     '.py', '.js', '.ts', '.html', '.css', '.json', '.xml', '.sql', '.txt',
     '.md', '.csv', '.java', '.rb', '.c', '.cpp', '.h', '.go', '.rs',
@@ -46,10 +46,10 @@ AI_MAX_UPLOAD_BYTES = 5 * 1024 * 1024   # 5 MB
 
 
 def _validate_ai_upload(uploaded, images_only=False):
-    """AI chatga yuklangan faylni tekshiradi. Xato matnini yoki `None` qaytaradi.
+    """AI çatga yuklangan faylni tekşiradi. Xato matnini yoki `None` qaytaradi.
 
-    Avval hech qanday tekshiruv yo'q edi: `.htaccess`, `.exe` yoki cheksiz
-    hajmli fayl to'g'ridan-to'g'ri `media/` ga tushardi.
+    Avval heç qanday tekşiruv yöq edi: `.htaccess`, `.exe` yoki çeksiz
+    hajmli fayl töğridan-töğri `media/` ga tuşardi.
     """
     import os
 
@@ -67,13 +67,13 @@ def _validate_ai_upload(uploaded, images_only=False):
 
     raw_name = uploaded.name or ''
     if '\x00' in raw_name:
-        return "Fayl nomi xavfli belgilar o'z ichiga olgan."
+        return "Fayl nomi xavfli belgilar öz içiga olgan."
     if os.path.basename(raw_name).startswith('.'):
-        return "Nuqta bilan boshlanadigan fayl nomlari ruxsat etilmagan."
+        return "Nuqta bilan boşlanadigan fayl nomlari ruxsat etilmagan."
 
     for chain_ext in _extension_chain(raw_name):
         if chain_ext in DANGEROUS_EXTENSIONS:
-            return f"Yashirin xavfli kengaytma: {chain_ext}"
+            return f"Yaşirin xavfli kengaytma: {chain_ext}"
 
     ext = os.path.splitext(raw_name)[1].lower()
     if ext in DANGEROUS_EXTENSIONS:
@@ -90,43 +90,43 @@ def _validate_ai_upload(uploaded, images_only=False):
     return None
 
 # Single source of truth for the assistant persona + formatting rules.
-SYSTEM_PROMPT = """Siz LMS o'quv platformasining AI yordamchisisiz. Har doim O'zbek tilida javob bering.
+SYSTEM_PROMPT = """Siz LMS öquv platformasining AI yordamçisisiz. Har doim Özbek tilida javob bering.
 
-MUALLIF: Sizni Husan Suyunov Shavkat o'g'li yaratgan (husanbek-coder.uz).
+MUALLIF: Sizni Husan Suyunov Şavkat öğli yaratgan (husanbek-coder.uz).
 Telefon: +998975216686 | Telegram: @husanbek_coder | GitHub: https://github.com/xusanbek0039
-U IT Creative Zomin asoschisi va rahbari, Full-Stack dasturchi.
+U IT Creative Zomin asosçisi va rahbari, Full-Stack dasturçi.
 
 RASM TAHLILI:
-Foydalanuvchi rasm yuborsa, uni ko'rib tahlil qiling. Rasmdagi matn, kod, xato xabar,
-diagramma yoki formulani o'qing va shunga asosan javob bering. HECH QACHON
-"rasmni ko'ra olmayman" demang - siz rasmlarni ko'ra olasiz.
+Foydalanuvçi rasm yuborsa, uni körib tahlil qiling. Rasmdagi matn, kod, xato xabar,
+diagramma yoki formulani öqing va şunga asosan javob bering. HEÇ QAÇON
+"rasmni köra olmayman" demang - siz rasmlarni köra olasiz.
 
-KOD YOZISH QOIDALARI (JUDA MUHIM):
-1. Har qanday kodni FAQAT markdown code block ichida yozing: ```til_nomi ... ```
-2. Kod blokini har doim ``` bilan yoping - ochiq qoldirmang.
-3. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php,
+KOD YOZIŞ QOIDALARI (JUDA MUHIM):
+1. Har qanday kodni FAQAT markdown code block içida yozing: ```til_nomi ... ```
+2. Kod blokini har doim ``` bilan yoping - oçiq qoldirmang.
+3. Til nomini töğri yozing: python, javascript, html, css, sql, json, bash, java, php,
    ruby, typescript, cpp, c, go, rust.
-4. Bir nechta fayl bo'lsa, har birini alohida sarlavha va alohida code block bilan bering.
-5. Kod to'liq va ishlaydigan bo'lsin; izohlarni kod tashqarisida yozing.
+4. Bir neçta fayl bölsa, har birini alohida sarlavha va alohida code block bilan bering.
+5. Kod töliq va işlaydigan bölsin; izohlarni kod taşqarisida yozing.
 
 JAVOB STRUKTURASI:
-- Avval qisqa tushuntirish (1-3 gap).
+- Avval qisqa tuşuntiriş (1-3 gap).
 - Keyin kod yoki misollar.
-- Oxirida qisqa "Eslatma" yoki "Qanday ishlatish" bo'limi (kerak bo'lsa).
+- Oxirida qisqa "Eslatma" yoki "Qanday işlatiş" bölimi (kerak bölsa).
 
-FORMATLASH:
-- Havolalarni markdown ko'rinishida bering: [matn](https://example.com).
-- Muhim so'zlar uchun **qalin**, urg'u uchun *yotiq*, qisqa kod uchun `inline`.
-- Ro'yxat va jadvallar uchun markdown ishlating.
+FORMATLAŞ:
+- Havolalarni markdown körinişida bering: [matn](https://example.com).
+- Muhim sözlar uçun **qalin**, urğu uçun *yotiq*, qisqa kod uçun `inline`.
+- Röyxat va jadvallar uçun markdown işlating.
 
-USLUB: Sodda, do'stona, boshlovchilar uchun tushunarli, qisqa va aniq."""
+USLUB: Sodda, döstona, boşlovçilar uçun tuşunarli, qisqa va aniq."""
 
 
 # ============================================================
 #  USAGE / LIMITS
 # ============================================================
 def get_daily_usage(user):
-    """Bugungi (xabar, rasm) soni — Toshkent sanasi bo'yicha, o'chirilgan suhbatlar ham hisobda."""
+    """Bugungi (xabar, rasm) soni — Toşkent sanasi böyiça, öçirilgan suhbatlar ham hisobda."""
     from .usage import get_usage
     return get_usage(user)
 
@@ -169,10 +169,10 @@ def get_openai_client():
         from openai import OpenAI
         return OpenAI(api_key=api_key.strip(), timeout=60)
     except ImportError:
-        print("ERROR: 'openai' paketi o'rnatilmagan. `pip install openai` bajaring.")
+        print("ERROR: 'openai' paketi örnatilmagan. `pip install openai` bajaring.")
         return None
     except Exception as e:
-        print(f"ERROR: OpenAI client yaratishda xatolik: {e}")
+        print(f"ERROR: OpenAI client yaratişda xatolik: {e}")
         return None
 
 
@@ -180,9 +180,9 @@ def _service_unavailable_text():
     """User-facing message when the AI service cannot be reached."""
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
-        return ("⚠️ AI xizmati hozircha sozlanmagan. Administrator bilan bog'laning "
+        return ("⚠️ AI xizmati hozirça sozlanmagan. Administrator bilan boğlaning "
                 "(OPENAI_API_KEY topilmadi).")
-    return "⚠️ AI xizmatiga ulanib bo'lmadi. Iltimos, birozdan so'ng qayta urinib ko'ring."
+    return "⚠️ AI xizmatiga ulanib bölmadi. Iltimos, birozdan söng qayta urinib köring."
 
 
 def validate_and_reformat_response(response_text, user_query=""):
@@ -201,7 +201,7 @@ def validate_and_reformat_response(response_text, user_query=""):
 
 
 def _build_history(session):
-    """Build the OpenAI chat history from a session's stored messages."""
+    """Build the OpenAI çat history from a session's stored messages."""
     history = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages_list = list(session.messages.all())
     total = len(messages_list)
@@ -217,7 +217,7 @@ def _build_history(session):
             idx < total - 1 and messages_list[idx + 1].role == 'assistant'
         )
         fmt = ("\n\n⚠️ MUHIM: Kodlar faqat ```til_nomi va ``` orasida, "
-               "linklar URL formatida bo'lsin!") if is_last_user else ""
+               "linklar URL formatida bölsin!") if is_last_user else ""
         user_text = (msg.content or '') + fmt
 
         # Inline the content of small text/code files.
@@ -247,7 +247,7 @@ def _build_history(session):
                     mime = 'image/jpeg'
                 parts = [{
                     "type": "text",
-                    "text": user_text if user_text.strip() else "Bu rasmni tahlil qiling va tushuntiring.",
+                    "text": user_text if user_text.strip() else "Bu rasmni tahlil qiling va tuşuntiring.",
                 }, {
                     "type": "image_url",
                     "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"},
@@ -258,7 +258,7 @@ def _build_history(session):
                 if user_text.strip():
                     history.append({
                         "role": "user",
-                        "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)",
+                        "content": user_text + "\n\n(Rasm yuklandi, lekin öqişda xatolik yuz berdi)",
                     })
         elif user_text.strip():
             history.append({"role": "user", "content": user_text})
@@ -271,7 +271,7 @@ def _inject_rag_context(history, messages_list):
     """Ground the answer in course material when relevant (best-effort, never fatal).
 
     No-ops when the knowledge base is empty or embeddings are unavailable, so the
-    chat keeps working even before `build_ai_knowledge` has been run.
+    çat keeps working even before `build_ai_knowledge` has been run.
     """
     try:
         last_user = ''
@@ -285,10 +285,10 @@ def _inject_rag_context(history, messages_list):
         context = rag.build_context(rag.retrieve(last_user))
         if context:
             history.insert(1, {"role": "system", "content": (
-                "Quyida platformadagi kurs materiallaridan tegishli parchalar berilgan. "
-                "Agar savol shularga aloqador bo'lsa, javobni aynan shu materiallarga "
-                "tayangan holda bering (kerak bo'lsa dars nomini eslating). Aloqador "
-                "bo'lmasa, umumiy bilimingizdan foydalaning.\n\nKURS MATERIALLARI:\n" + context)})
+                "Quyida platformadagi kurs materiallaridan tegişli parçalar berilgan. "
+                "Agar savol şularga aloqador bölsa, javobni aynan şu materiallarga "
+                "tayangan holda bering (kerak bölsa dars nomini eslating). Aloqador "
+                "bölmasa, umumiy bilimingizdan foydalaning.\n\nKURS MATERIALLARI:\n" + context)})
     except Exception as e:
         print(f"RAG augment error: {e}")
 
@@ -308,7 +308,7 @@ def _complete_sync(session):
         return validate_and_reformat_response(response.choices[0].message.content or '')
     except Exception as e:
         print(f"OpenAI Error (sync): {e}")
-        return f"⚠️ AI bilan bog'lanishda xatolik: {e}"
+        return f"⚠️ AI bilan boğlanişda xatolik: {e}"
 
 
 def _sse(payload):
@@ -326,7 +326,7 @@ def _is_ajax(request):
 # ============================================================
 @login_required
 def chat_home(request):
-    """List the user's chat sessions, optionally filtered by folder/pinned."""
+    """List the user's çat sessions, optionally filtered by folder/pinned."""
     active = request.GET.get('folder', 'all')
     sessions = ChatSession.objects.filter(user=request.user, is_active=True).select_related('folder')
 
@@ -349,9 +349,9 @@ def chat_home(request):
 
 @login_required
 def new_session(request):
-    """Create a new chat session and open it.
+    """Create a new çat session and open it.
 
-    An optional ``?q=`` query param (e.g. from an "AI'dan so'rash" button on a
+    An optional ``?q=`` query param (e.g. from an "AI'dan söraş" button on a
     lesson/quiz page) pre-fills the composer so the student can review and send.
     """
     session = ChatSession.objects.create(user=request.user)
@@ -359,7 +359,7 @@ def new_session(request):
     if q:
         url = reverse('ai_yordamchi:chat_session', args=[session.pk])
         params = {'prefill': q[:1500]}
-        # Bosh sahifadagi "Bilasizmi?" tugmasi savolni darhol yuboradi.
+        # Boş sahifadagi "Bilasizmi?" tugmasi savolni darhol yuboradi.
         if request.GET.get('autosend') == '1':
             params['autosend'] = '1'
         return redirect(f"{url}?{urlencode(params)}")
@@ -368,7 +368,7 @@ def new_session(request):
 
 @login_required
 def chat_session(request, pk):
-    """Chat interface for a single session."""
+    """Çat interface for a single session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     return render(request, 'ai_yordamchi/chat_session.html', {
         'session': session,
@@ -406,9 +406,9 @@ def send_message(request, pk):
         return redirect('ai_yordamchi:chat_session', pk=pk)
 
     if not content and not image and not file:
-        return fail("Xabar, rasm yoki fayl yuborishingiz kerak.")
+        return fail("Xabar, rasm yoki fayl yuborişingiz kerak.")
 
-    # Fayl `media/` ga saqlanadi va mazmuni AI ga uzatiladi — avval tekshiriladi.
+    # Fayl `media/` ga saqlanadi va mazmuni AI ga uzatiladi — avval tekşiriladi.
     for uploaded, images_only in ((image, True), (file, False)):
         problem = _validate_ai_upload(uploaded, images_only=images_only)
         if problem:
@@ -417,20 +417,20 @@ def send_message(request, pk):
     is_premium = getattr(request.user, 'is_premium', False)
     from accounts import curiosity
     curiosity_free = curiosity.is_free_question(request, content) and not image and not file
-    # Bosh sahifadagi qiziqarli savolga javob tangasiz (kunlik limit baribir hisoblanadi).
+    # Boş sahifadagi qiziqarli savolga javob tangasiz (kunlik limit baribir hisoblanadi).
     charge = not is_premium and not curiosity_free
     if charge and request.user.coins < 1:
-        return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
+        return fail("Sizda yetarli coin yöq. AI bilan suhbatlaşiş uçun 1 coin kerak.")
 
     limits = get_user_limits(request.user)
     if limits['msg_left'] <= 0:
         cap = limits['msg_limit']
-        return fail(f"Kunlik xabar limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+        return fail(f"Kunlik xabar limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib köring.")
 
     has_image = bool(image) or (file and file.name.lower().endswith(IMAGE_EXTS))
     if has_image and limits['img_left'] <= 0:
         cap = limits['img_limit']
-        return fail(f"Kunlik rasm limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+        return fail(f"Kunlik rasm limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib köring.")
 
     # An uploaded image may arrive via the image field or the generic file field.
     uploaded_image = image
@@ -446,21 +446,21 @@ def send_message(request, pk):
     coin_cost = 1 if charge else 0
     from .usage import reserve
     with transaction.atomic():
-        # Limit atomar band qilinadi: parallel so'rovlar ham kunlik chegaradan oshmaydi.
+        # Limit atomar band qilinadi: parallel sörovlar ham kunlik çegaradan oşmaydi.
         if not reserve(request.user, limits['msg_limit'], limits['img_limit'], with_image=bool(has_image)):
             cap = limits['img_limit'] if has_image else limits['msg_limit']
             kind = 'rasm' if has_image else 'xabar'
-            return fail(f"Kunlik {kind} limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+            return fail(f"Kunlik {kind} limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib köring.")
         if charge:
             locked_user = request.user.__class__.objects.select_for_update().get(pk=request.user.pk)
             if locked_user.coins < 1:
                 transaction.set_rollback(True)  # band qilingan limit ham qaytariladi
-                return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
+                return fail("Sizda yetarli coin yöq. AI bilan suhbatlaşiş uçun 1 coin kerak.")
             locked_user.coins -= 1
             locked_user.save(update_fields=['coins'])
             CoinTransaction.objects.create(
                 user=locked_user, amount=1, action='remove',
-                reason="AI yordamchi bilan suhbat",
+                reason="AI yordamçi bilan suhbat",
             )
             request.user.coins = locked_user.coins
 
@@ -479,7 +479,7 @@ def send_message(request, pk):
     ActivityLog.objects.create(
         user=request.user,
         action_type='earn_coins',
-        description="AI yordamchi bilan suhbatlashdi" + (" (-1 coin)" if charge else ""),
+        description="AI yordamçi bilan suhbatlaşdi" + (" (-1 coin)" if charge else ""),
         ip_address=get_client_ip(request),
     )
 
@@ -503,7 +503,7 @@ def send_message(request, pk):
 
 
 def _generate_image_bytes(prompt):
-    """OpenAI orqali rasm chizadi va PNG baytlarini qaytaradi (xatoda istisno)."""
+    """OpenAI orqali rasm çizadi va PNG baytlarini qaytaradi (xatoda istisno)."""
     from openai import OpenAI
     import urllib.request
 
@@ -516,7 +516,7 @@ def _generate_image_bytes(prompt):
     item = result.data[0]
     if getattr(item, 'b64_json', None):
         return base64.b64decode(item.b64_json)
-    with urllib.request.urlopen(item.url, timeout=60) as resp:  # zaxira: URL qaytgan bo'lsa
+    with urllib.request.urlopen(item.url, timeout=60) as resp:  # zaxira: URL qaytgan bölsa
         return resp.read()
 
 
@@ -524,7 +524,7 @@ def _generate_image_bytes(prompt):
 @require_POST
 @ai_offload
 def generate_image(request, pk):
-    """Premium a'zo uchun matn tavsifidan rasm chizadi (kuniga DAILY_GEN_LIMIT ta)."""
+    """Premium a'zo uçun matn tavsifidan rasm çizadi (kuniga DAILY_GEN_LIMIT ta)."""
     import uuid
     from django.core.files.base import ContentFile
     from accounts.premium_bonus import is_active_premium
@@ -533,21 +533,21 @@ def generate_image(request, pk):
 
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     if not is_active_premium(request.user):
-        return JsonResponse({'error': "Rasm chizish faqat Premium a'zolar uchun.",
+        return JsonResponse({'error': "Rasm çiziş faqat Premium a'zolar uçun.",
                              'premium_required': True}, status=403)
 
     prompt = request.POST.get('prompt', '').strip()
     if not prompt:
-        return JsonResponse({'error': "Qanday rasm chizish kerakligini yozing."}, status=400)
+        return JsonResponse({'error': "Qanday rasm çiziş kerakligini yozing."}, status=400)
     if len(prompt) > IMAGE_GEN_PROMPT_MAX:
         return JsonResponse({'error': f"Tavsif juda uzun (maksimum {IMAGE_GEN_PROMPT_MAX} belgi)."}, status=400)
     if not (getattr(settings, 'OPENAI_API_KEY', '') or '').strip():
         return JsonResponse({'error': _service_unavailable_text()}, status=503)
 
-    # O'rin API chaqiruvidan oldin band qilinadi — parallel so'rovlar limitdan oshmaydi.
+    # Örin API çaqiruvidan oldin band qilinadi — parallel sörovlar limitdan oşmaydi.
     if not reserve_generation(request.user, DAILY_GEN_LIMIT):
-        return JsonResponse({'error': f"Bugungi rasm chizish limitingiz tugadi "
-                                      f"({DAILY_GEN_LIMIT}/{DAILY_GEN_LIMIT}). Ertaga qayta urinib ko'ring."},
+        return JsonResponse({'error': f"Bugungi rasm çiziş limitingiz tugadi "
+                                      f"({DAILY_GEN_LIMIT}/{DAILY_GEN_LIMIT}). Ertaga qayta urinib köring."},
                             status=429)
     try:
         image_bytes = _generate_image_bytes(prompt)
@@ -555,14 +555,14 @@ def generate_image(request, pk):
         release_generation(request.user)
         code = getattr(e, 'code', '') or ''
         if code in ('content_policy_violation', 'moderation_blocked'):
-            msg = "Bu tavsif bo'yicha rasm chizib bo'lmaydi (xavfsizlik qoidalari). Boshqacha yozib ko'ring."
+            msg = "Bu tavsif böyiça rasm çizib bölmaydi (xavfsizlik qoidalari). Boşqaça yozib köring."
         else:
-            msg = safe_error(e, 'ai_generate_image', "Rasm chizishda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+            msg = safe_error(e, 'ai_generate_image', "Rasm çizişda xatolik yuz berdi. Keyinroq qayta urinib köring.")
         return JsonResponse({'error': msg}, status=502)
 
     with transaction.atomic():
         user_message = ChatMessage(session=session, role='user', content=f"🎨 {prompt}")
-        user_message._usage_reserved = True  # xabar limitiga emas, rasm chizish limitiga yoziladi
+        user_message._usage_reserved = True  # xabar limitiga emas, rasm çiziş limitiga yoziladi
         user_message.save()
         reply = ChatMessage(session=session, role='assistant', content=f"🎨 Rasm tayyor: *{prompt[:200]}*")
         reply.image.save(f"ai_{uuid.uuid4().hex[:16]}.png", ContentFile(image_bytes), save=False)
@@ -575,7 +575,7 @@ def generate_image(request, pk):
     ActivityLog.objects.create(
         user=request.user,
         action_type='earn_coins',
-        description="AI yordamchi bilan rasm chizdi",
+        description="AI yordamçi bilan rasm çizdi",
         ip_address=get_client_ip(request),
     )
     limits = get_user_limits(request.user)
@@ -632,7 +632,7 @@ def stream_response(request, pk):
                         yield _sse({'type': 'delta', 'text': delta})
         except Exception as e:
             print(f"OpenAI Error (stream): {e}")
-            err = f"\n\n⚠️ AI bilan bog'lanishda xatolik: {e}"
+            err = f"\n\n⚠️ AI bilan boğlanişda xatolik: {e}"
             buffer.append(err)
             yield _sse({'type': 'delta', 'text': err})
 
@@ -669,12 +669,12 @@ def clear_history(request, pk):
 @login_required
 @require_POST
 def delete_session(request, pk):
-    """Delete a chat session."""
+    """Delete a çat session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     session.delete()
     if _is_ajax(request):
         return JsonResponse({'success': True})
-    messages.success(request, "Suhbat o'chirildi.")
+    messages.success(request, "Suhbat öçirildi.")
     return redirect('ai_yordamchi:chat_home')
 
 
@@ -701,11 +701,11 @@ def rate_message(request, pk):
 @login_required
 @require_POST
 def rename_session(request, pk):
-    """Rename a chat session."""
+    """Rename a çat session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     title = request.POST.get('title', '').strip()
     if not title:
-        return JsonResponse({'error': "Nom bo'sh bo'lishi mumkin emas."}, status=400)
+        return JsonResponse({'error': "Nom böş bölişi mumkin emas."}, status=400)
     session.title = title[:200]
     session.save(update_fields=['title'])
     if _is_ajax(request):
@@ -746,7 +746,7 @@ def create_folder(request):
     """Create a new folder."""
     name = request.POST.get('name', '').strip()
     if not name:
-        return JsonResponse({'error': "Papka nomi bo'sh bo'lishi mumkin emas."}, status=400)
+        return JsonResponse({'error': "Papka nomi böş bölişi mumkin emas."}, status=400)
     color = (request.POST.get('color', '') or '#6366f1').strip()
     folder = ChatFolder.objects.create(user=request.user, name=name[:100], color=color[:20])
     return JsonResponse({'success': True, 'id': folder.pk, 'name': folder.name, 'color': folder.color})
@@ -759,7 +759,7 @@ def rename_folder(request, pk):
     folder = get_object_or_404(ChatFolder, pk=pk, user=request.user)
     name = request.POST.get('name', '').strip()
     if not name:
-        return JsonResponse({'error': "Papka nomi bo'sh bo'lishi mumkin emas."}, status=400)
+        return JsonResponse({'error': "Papka nomi böş bölişi mumkin emas."}, status=400)
     folder.name = name[:100]
     folder.save(update_fields=['name'])
     return JsonResponse({'success': True, 'id': folder.pk, 'name': folder.name})
@@ -792,7 +792,7 @@ def admin_required(view_func):
 @login_required
 @admin_required
 def admin_chats(request):
-    """Admin: browse all chat sessions."""
+    """Admin: browse all çat sessions."""
     sessions = ChatSession.objects.select_related('user').prefetch_related('messages').all()
 
     user_id = request.GET.get('user')
@@ -820,7 +820,7 @@ def admin_chats(request):
 @login_required
 @admin_required
 def admin_chat_detail(request, pk):
-    """Admin: view a single chat session's messages."""
+    """Admin: view a single çat session's messages."""
     session = get_object_or_404(ChatSession, pk=pk)
     return render(request, 'ai_yordamchi/admin/chat_detail.html', {
         'session': session,
@@ -834,9 +834,9 @@ def admin_chat_detail(request, pk):
 def get_client_ip(request):
     """Best-effort client IP for activity logging.
 
-    `X-Forwarded-For` ning eng chap qiymati mijoz nazoratida — soxtalashtirish
-    mumkin edi. Umumiy `accounts.security.get_client_ip` ishonchli proxy
-    sonidan kelib chiqib to'g'ri qiymatni oladi.
+    `X-Forwarded-For` ning eng çap qiymati mijoz nazoratida — soxtalaştiriş
+    mumkin edi. Umumiy `accounts.security.get_client_ip` işonçli proxy
+    sonidan kelib çiqib töğri qiymatni oladi.
     """
     from accounts.security import get_client_ip as _get_client_ip
     return _get_client_ip(request)
