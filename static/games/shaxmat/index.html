@@ -2,193 +2,205 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Şaxmat — IT Creative LMS</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Manrope:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="../shashka/style.css?v=20">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="style.css?v=30">
 <link rel="stylesheet" href="../_shared/gamify.css?v=1">
 <script>
 (function(){try{var m=localStorage.getItem('shaxmat_mode');if(m!=='light'&&m!=='dark'){m=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mode',m);}catch(e){document.documentElement.setAttribute('data-mode','dark');}})();
 </script>
 </head>
-<body>
+<body data-theme="wood">
 
-<!-- ============== AUTH SCREEN ============== -->
-<div id="auth-screen" class="screen">
-    <div class="card auth-card">
-        <div class="logo-animated">
-            <span class="piece-anim w"><i class="bi bi-square"></i></span>
-            <span class="piece-anim b"><i class="bi bi-square-fill"></i></span>
-            <span class="piece-anim w"><i class="bi bi-grid-3x3-gap"></i></span>
-            <span class="piece-anim b"><i class="bi bi-grid-3x3-gap-fill"></i></span>
-        </div>
-        <h1>Şaxmat</h1>
+<!-- ============== AUTH ============== -->
+<div id="auth-screen" class="screen center-screen">
+    <div class="sheet auth-card">
+        <div class="seal">♞</div>
+        <h1 class="serif">Şaxmat</h1>
         <p id="auth-status">LMS bilan ulanmoqda...</p>
         <div class="spinner" id="auth-spinner"></div>
         <div id="auth-error" class="error-box hidden"></div>
     </div>
 </div>
 
-<!-- ============== MENU SCREEN ============== -->
+<!-- ============== MENYU ============== -->
 <div id="menu-screen" class="screen hidden">
-    <div class="menu-bg"></div>
-    <div class="menu-container">
-        <header class="menu-header">
-            <div class="menu-user">
-                <div class="avatar-circle" id="menu-avatar"><i class="bi bi-person-fill"></i></div>
-                <div>
-                    <div class="menu-name" id="menu-user-name">—</div>
-                    <div class="menu-group" id="menu-user-group"></div>
-                </div>
-            </div>
-            <button class="icon-btn" id="menu-mode" title="Yorug'/Tungi rejim"><i class="bi bi-moon-stars-fill"></i></button>
-            <button class="icon-btn" id="menu-sound" title="Ovoz" aria-pressed="false"><i class="bi bi-volume-mute"></i></button>
-            <button class="icon-btn" id="menu-fullscreen" title="Töliq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
-            <a id="btn-back" href="/" style="color:rgba(255,255,255,.45);font-size:.8rem;text-decoration:none;display:flex;align-items:center;gap:.3rem;"><i class="bi bi-arrow-left"></i> Öyinlar</a>
-        </header>
-
-        <div class="menu-hero">
-            <div class="menu-title">
-                <span class="logo-big"><i class="bi bi-grid-3x3-gap-fill"></i></span>
-                <h1>Şaxmat</h1>
-                <p>Özingiz uçun rejimni tanlang</p>
-            </div>
-
-            <div class="menu-grid">
-                <!-- AI Mode -->
-                <div class="mode-card mode-ai" id="card-ai">
-                    <div class="mode-icon"><i class="bi bi-robot"></i></div>
-                    <h3>AI bilan öynaş</h3>
-                    <p>Kompyuter raqib bilan kuraşing</p>
-                    <div class="difficulty-buttons">
-                        <button class="diff-btn easy"   data-mode="ai" data-diff="easy">
-                            <span class="diff-icon"><i class="bi bi-emoji-smile"></i></span> Oson
-                        </button>
-                        <button class="diff-btn medium" data-mode="ai" data-diff="medium">
-                            <span class="diff-icon"><i class="bi bi-emoji-neutral"></i></span> Örta
-                        </button>
-                        <button class="diff-btn hard"   data-mode="ai" data-diff="hard">
-                            <span class="diff-icon"><i class="bi bi-fire"></i></span> Qiyin
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Multiplayer Mode -->
-                <div class="mode-card mode-mp" id="card-mp">
-                    <div class="mode-icon"><i class="bi bi-people-fill"></i></div>
-                    <h3>Boşqa öquvçi bilan</h3>
-                    <p>Real onlayn raqib qidirib toping</p>
-                    <div class="difficulty-buttons">
-                        <button class="diff-btn casual" id="btn-find-casual">
-                            <span class="diff-icon"><i class="bi bi-controller"></i></span> Şunçaki
-                        </button>
-                        <button class="diff-btn coin" id="btn-find-coin">
-                            <span class="diff-icon"><i class="bi bi-coin"></i></span> Coin bilan
-                        </button>
-                    </div>
-                    <p class="mode-hint">LMS öquvçilari orasidan</p>
-                </div>
-            </div>
-
-            <div class="menu-stats" id="menu-stats">
-                <div class="stat-item">
-                    <span class="stat-num" id="stat-played">—</span>
-                    <span class="stat-label">Öynalgan</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-num win-color" id="stat-wins">—</span>
-                    <span class="stat-label">Ğalaba</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-num" id="stat-best">—</span>
-                    <span class="stat-label">Eng yuqori ball</span>
-                </div>
-            </div>
-
-            <div id="gamify-slot" style="margin:14px 0;"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ============== MATCHMAKING SCREEN ============== -->
-<div id="matchmaking-screen" class="screen hidden">
-    <div class="card mm-card">
-        <div class="mm-pulse"></div>
-        <h2 id="mm-title">Raqib qidirilmoqda...</h2>
-        <p id="mm-status">LMS öquvçilari orasidan boşqa öyinçini kutmoqdamiz</p>
-        <div class="mm-timer" id="mm-timer">0s</div>
-        <button class="ghost-btn" id="btn-cancel-mm"><i class="bi bi-x-lg"></i> Bekor qiliş</button>
-    </div>
-</div>
-
-<!-- ============== GAME SCREEN ============== -->
-<div id="game-screen" class="screen hidden">
-    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     <header class="topbar">
-        <div class="player-block player-self" id="player-self">
-            <span class="role-chip" id="role-self"><i class="bi bi-square"></i></span>
-            <div class="player-info">
-                <div class="name" id="player-name">—</div>
-                <div class="meta" id="player-meta"></div>
-            </div>
-        </div>
-
-        <div class="center-stats">
-            <div class="turn-pill" id="turn-indicator"><i class="bi bi-square"></i> Sizning yuriş</div>
-            <div class="game-meta">
-                <span class="meta-pill"><i class="bi bi-stopwatch"></i> <span id="timer">00:00</span></span>
-                <span class="meta-pill"><i class="bi bi-controller"></i> <span id="move-counter">0</span></span>
-                <span class="meta-pill mode-pill" id="mode-pill"><i class="bi bi-robot"></i> AI</span>
-            </div>
-        </div>
-
-        <div class="player-block player-opp" id="player-opp">
-            <div class="player-info">
-                <div class="name" id="opp-name">AI</div>
-                <div class="meta" id="opp-meta">Raqib</div>
-            </div>
-            <span class="role-chip" id="role-opp"><i class="bi bi-square-fill"></i></span>
+        <a id="btn-back" class="back-link" href="/" target="_top"><i class="bi bi-chevron-left"></i><span>Öyinlar</span></a>
+        <div class="brand"><b class="serif">Şaxmat</b><span>Turnir zali</span></div>
+        <div class="top-actions">
+            <button class="icon-btn" id="menu-mode" title="Yorug'/Tungi rejim" aria-label="Yorug' yoki tungi rejim"><i class="bi bi-moon-stars-fill"></i></button>
+            <button class="icon-btn" id="menu-sound" title="Ovoz" aria-label="Ovoz" aria-pressed="false"><i class="bi bi-volume-mute"></i></button>
+            <button class="icon-btn" id="menu-fullscreen" title="Töliq ekran" aria-label="Töliq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
         </div>
     </header>
 
-    <main class="game-main">
-        <aside class="side-panel left-panel">
-            <div class="captured-display">
-                <h4><i class="bi bi-square-fill"></i> Yegan donalar</h4>
-                <div id="captured-by-white" class="captured-row"></div>
+    <main class="menu">
+        <section class="menu-hero">
+            <div class="user-chip">
+                <div class="avatar" id="menu-avatar"><i class="bi bi-person-fill"></i></div>
+                <div class="user-text">
+                    <div class="user-name" id="menu-user-name">—</div>
+                    <div class="user-group" id="menu-user-group"></div>
+                </div>
             </div>
-            <div class="captured-display">
-                <h4><i class="bi bi-square"></i> Yegan donalar</h4>
-                <div id="captured-by-black" class="captured-row"></div>
-            </div>
-        </aside>
+            <h1 class="serif">Bugun qaysi partiyani öynaymiz?</h1>
+            <p>AI bilan maşq qiling yoki LMS öquvçilari bilan haqiqiy partiya öynang.</p>
+        </section>
 
-        <div class="board-wrapper">
-            <div class="board-container">
-                <div class="coords-top" id="coords-top"></div>
-                <div class="coords-left" id="coords-left"></div>
-                <div id="board" role="grid" aria-label="Şaxmat taxtasi"></div>
-                <div class="coords-right" id="coords-right"></div>
-                <div class="coords-bottom" id="coords-bottom"></div>
+        <section class="mode-grid">
+            <article class="mode-card">
+                <div class="mode-head">
+                    <span class="mode-icon"><i class="bi bi-cpu"></i></span>
+                    <div><h2>AI bilan</h2><p>Kompyuter raqib — istalgan payt</p></div>
+                </div>
+                <div class="choice-list">
+                    <button class="choice diff-btn" data-mode="ai" data-diff="easy">
+                        <span class="choice-ico easy"><i class="bi bi-emoji-smile"></i></span>
+                        <span class="choice-text"><b>Havaskor</b><small>Oson · yangi boşlovçilar uçun</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="choice diff-btn" data-mode="ai" data-diff="medium">
+                        <span class="choice-ico medium"><i class="bi bi-emoji-neutral"></i></span>
+                        <span class="choice-text"><b>Usta</b><small>Örta · kuçli klub darajasi</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="choice diff-btn" data-mode="ai" data-diff="hard">
+                        <span class="choice-ico hard"><i class="bi bi-fire"></i></span>
+                        <span class="choice-text"><b>Grossmeyster</b><small>Qiyin · eng kuçli AI</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </article>
+
+            <article class="mode-card">
+                <div class="mode-head">
+                    <span class="mode-icon mp"><i class="bi bi-people-fill"></i></span>
+                    <div><h2>Onlayn raqib</h2><p>LMS öquvçilari orasidan</p></div>
+                </div>
+                <div class="choice-list">
+                    <button class="choice" id="btn-find-casual">
+                        <span class="choice-ico casual"><i class="bi bi-controller"></i></span>
+                        <span class="choice-text"><b>Şunçaki</b><small>Coin tegmaydi</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button class="choice" id="btn-find-coin">
+                        <span class="choice-ico coin"><i class="bi bi-coin"></i></span>
+                        <span class="choice-text"><b>Coin bilan</b><small>Ğolib bankni oladi</small></span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </article>
+        </section>
+
+        <section class="menu-bottom">
+            <div class="theme-box">
+                <span class="label">Taxta</span>
+                <div class="swatches">
+                    <button class="theme-swatch" data-theme="wood" title="Yoğoç" aria-label="Yoğoç taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="walnut" title="Yonğoq" aria-label="Yonğoq taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="emerald" title="Yaşil" aria-label="Yaşil taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="ocean" title="Kök" aria-label="Kök taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="marble" title="Marmar" aria-label="Marmar taxta"><i></i><i></i></button>
+                </div>
             </div>
+            <div id="gamify-slot"></div>
+        </section>
+    </main>
+</div>
+
+<!-- ============== RAQIB QIDIRUV ============== -->
+<div id="matchmaking-screen" class="screen center-screen hidden">
+    <div class="sheet mm-card">
+        <div class="mm-pulse"><span>♞</span></div>
+        <h2 id="mm-title">Raqib qidirilmoqda...</h2>
+        <p id="mm-status">LMS öquvçilari orasidan boşqa öyinçini kutmoqdamiz</p>
+        <div class="mm-timer" id="mm-timer">0s</div>
+        <button class="btn btn-ghost" id="btn-cancel-mm"><i class="bi bi-x-lg"></i> Bekor qiliş</button>
+    </div>
+</div>
+
+<!-- ============== ÖYIN ============== -->
+<div id="game-screen" class="screen hidden">
+    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <header class="topbar game-top">
+        <div class="brand small"><b class="serif">Şaxmat</b></div>
+        <div class="game-meta">
+            <span class="meta-pill mode-pill" id="mode-pill"><i class="bi bi-robot"></i> AI</span>
+            <span class="meta-pill"><i class="bi bi-stopwatch"></i> <span id="timer">00:00</span></span>
+            <span class="meta-pill"><i class="bi bi-hash"></i> <span id="move-counter">0</span></span>
+        </div>
+        <div class="top-actions">
+            <button class="icon-btn" id="btn-eval-toggle" title="Baho şkalasi" aria-label="Baho şkalasini yoqiş yoki öçiriş" aria-pressed="true"><i class="bi bi-bar-chart-steps"></i></button>
+            <button class="icon-btn" id="btn-fullscreen" title="Töliq ekran" aria-label="Töliq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
+        </div>
+    </header>
+
+    <main class="hall">
+        <div class="eval" id="eval-bar" aria-hidden="true">
+            <div class="eval-fill" id="eval-fill"></div>
+            <span class="eval-num" id="eval-num">0.0</span>
         </div>
 
-        <aside class="side-panel right-panel">
-            <div class="moves-panel">
-                <h4>
-                    <span><i class="bi bi-list-ol"></i> Yurişlar tarixi</span>
-                    <button class="moves-copy-btn" id="btn-copy-moves" title="Nusxalaş" aria-label="Yurişlar tarixini nusxalaş"><i class="bi bi-clipboard"></i></button>
-                </h4>
-                <ol id="moves-list"></ol>
+        <section class="table">
+            <div class="player opp" id="player-opp">
+                <span class="role-chip" id="role-opp"><i class="bi bi-square-fill"></i></span>
+                <div class="player-info">
+                    <div class="name"><span id="opp-name">AI</span></div>
+                    <div class="meta"><span id="opp-meta">Raqib</span> <span class="caps" id="caps-opp"></span></div>
+                </div>
+                <div class="clock" id="clock-opp">0:00</div>
             </div>
-            <div class="game-actions">
-                <button class="action-btn" id="btn-fullscreen"><i class="bi bi-arrows-fullscreen"></i> Töliq ekran</button>
-                <button class="action-btn warn" id="btn-resign"><i class="bi bi-flag-fill"></i> Taslim</button>
-                <button class="action-btn" id="btn-menu"><i class="bi bi-arrow-left"></i> Menyu</button>
+
+            <div class="frame">
+                <div class="coords coords-top" id="coords-top"></div>
+                <div class="coords coords-left" id="coords-left"></div>
+                <div id="board" role="grid" aria-label="Şaxmat taxtasi"></div>
+                <div class="coords coords-right" id="coords-right"></div>
+                <div class="coords coords-bottom" id="coords-bottom"></div>
+            </div>
+
+            <div class="player self" id="player-self">
+                <span class="role-chip" id="role-self"><i class="bi bi-square"></i></span>
+                <div class="player-info">
+                    <div class="name"><span id="player-name">—</span></div>
+                    <div class="meta"><span id="player-meta"></span> <span class="caps" id="caps-self"></span></div>
+                </div>
+                <div class="clock" id="clock-self">0:00</div>
+            </div>
+        </section>
+
+        <aside class="desk">
+            <div class="turn-pill" id="turn-indicator"><i class="bi bi-square"></i> Sizning yuriş</div>
+
+            <div class="panel sheet-panel">
+                <div class="panel-head">
+                    <h3 class="serif">Yurişlar varaği</h3>
+                    <button class="mini-btn" id="btn-copy-moves" title="Nusxalaş" aria-label="Yurişlar tarixini nusxalaş"><i class="bi bi-clipboard"></i></button>
+                </div>
+                <ol id="moves-list" class="scoresheet"></ol>
+                <div class="sheet-empty">Oqlar boşlaydi. Figurani bosing yoki sudrang.</div>
+            </div>
+
+            <div class="panel actions">
+                <button class="btn btn-ghost" id="btn-menu"><i class="bi bi-arrow-left"></i> Menyu</button>
+                <button class="btn btn-danger" id="btn-resign"><i class="bi bi-flag-fill"></i> Taslim</button>
+            </div>
+
+            <div class="panel theme-box compact">
+                <span class="label">Taxta</span>
+                <div class="swatches">
+                    <button class="theme-swatch" data-theme="wood" title="Yoğoç" aria-label="Yoğoç taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="walnut" title="Yonğoq" aria-label="Yonğoq taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="emerald" title="Yaşil" aria-label="Yaşil taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="ocean" title="Kök" aria-label="Kök taxta"><i></i><i></i></button>
+                    <button class="theme-swatch" data-theme="marble" title="Marmar" aria-label="Marmar taxta"><i></i><i></i></button>
+                </div>
             </div>
         </aside>
     </main>
@@ -201,93 +213,78 @@
     </div>
 </div>
 
-<!-- ============== WAGER MODAL ============== -->
+<!-- ============== COIN TIKIŞ ============== -->
 <div id="wager-modal" class="modal-backdrop hidden">
     <div class="modal-box">
-        <div class="modal-icon"><i class="bi bi-coin"></i></div>
+        <div class="modal-icon gold"><i class="bi bi-coin"></i></div>
         <h3>Neça coin tikasiz?</h3>
         <p>Ğolib ikkalasining tikilişini oladi. Sizdagi: <strong id="wager-balance">0</strong></p>
         <div class="wager-presets">
-            <button class="ghost-btn wager-preset" data-amount="10">10</button>
-            <button class="ghost-btn wager-preset" data-amount="25">25</button>
-            <button class="ghost-btn wager-preset" data-amount="50">50</button>
-            <button class="ghost-btn wager-preset" data-amount="100">100</button>
+            <button class="btn btn-ghost wager-preset" data-amount="10">10</button>
+            <button class="btn btn-ghost wager-preset" data-amount="25">25</button>
+            <button class="btn btn-ghost wager-preset" data-amount="50">50</button>
+            <button class="btn btn-ghost wager-preset" data-amount="100">100</button>
         </div>
-        <input type="number" id="wager-input" min="1" placeholder="Yoki özingiz kiriting..." style="width:100%; padding:12px; margin:12px 0; border-radius:8px; border:1px solid #4b5563; background:#1f2937; color:#fff; font-size:1.1em; text-align:center;">
-        <!-- 15% xizmat haqi hisob-kitobi -->
-        <div id="wager-fee-info" class="wager-fee-box" style="display:none;">
-            <div class="fee-row"><span>Jami bank:</span><span id="fee-pot">—</span></div>
-            <div class="fee-row fee-highlight"><span>✂️ Xizmat haqi (15%):</span><span id="fee-amount" style="color:#f87171;">—</span></div>
-            <div class="fee-row fee-win"><span>🏆 Ğolib oladi:</span><span id="fee-payout" style="color:#4ade80; font-weight:700;">—</span></div>
-            <div class="fee-row fee-net"><span>📈 Sof yutuq:</span><span id="fee-net" style="color:#c084fc;">—</span></div>
+        <input type="number" id="wager-input" class="input" min="1" inputmode="numeric" placeholder="Yoki özingiz kiriting...">
+        <div id="wager-fee-info" class="fee-box" style="display:none;">
+            <div class="fee-row"><span>Jami bank</span><span id="fee-pot">—</span></div>
+            <div class="fee-row"><span>Xizmat haqi (15%)</span><span id="fee-amount" class="neg">—</span></div>
+            <div class="fee-row"><span>Ğolib oladi</span><span id="fee-payout" class="pos">—</span></div>
+            <div class="fee-row"><span>Sof yutuq</span><span id="fee-net" class="acc">—</span></div>
         </div>
         <div class="modal-actions">
-            <button class="primary-btn" id="wager-confirm"><i class="bi bi-check-lg"></i> Tikiş</button>
-            <button class="ghost-btn" id="wager-cancel">Bekor</button>
+            <button class="btn btn-ghost" id="wager-cancel">Bekor</button>
+            <button class="btn btn-primary" id="wager-confirm"><i class="bi bi-check-lg"></i> Tikiş</button>
         </div>
     </div>
 </div>
 
-<!-- ============== CONFIRM MODAL ============== -->
+<!-- ============== TASDIQLAŞ ============== -->
 <div id="confirm-modal" class="modal-backdrop hidden">
     <div class="modal-box">
         <div class="modal-icon" id="confirm-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
         <h3 id="confirm-title">Tasdiqlaysizmi?</h3>
         <p id="confirm-text">Davom etişni xohlaysizmi?</p>
         <div class="modal-actions">
-            <button class="primary-btn warn-btn" id="confirm-yes">Ha</button>
-            <button class="ghost-btn" id="confirm-no">Bekor qiliş</button>
+            <button class="btn btn-ghost" id="confirm-no">Bekor qiliş</button>
+            <button class="btn btn-danger" id="confirm-yes">Ha</button>
         </div>
     </div>
 </div>
 
-<!-- ============== PROMOTION MODAL ============== -->
+<!-- ============== PIYODANI AYLANTIRIŞ ============== -->
 <div id="promo-modal" class="modal-backdrop hidden">
     <div class="modal-box">
-        <div class="modal-icon"><i class="bi bi-star-fill"></i></div>
+        <div class="modal-icon gold"><i class="bi bi-star-fill"></i></div>
         <h3>Piyodani aylantiring</h3>
         <p>Qaysi figuraga aylantirmoqçisiz?</p>
         <div class="promo-choices" id="promo-choices"></div>
     </div>
 </div>
 
-<!-- ============== RESULT SCREEN ============== -->
-<div id="result-screen" class="screen hidden">
+<!-- ============== NATIJA ============== -->
+<div id="result-screen" class="screen center-screen hidden">
     <div class="result-bg" id="result-bg"></div>
-    <div class="card result-card">
-        <div class="result-card-inner">
-            <div class="result-stars" id="result-stars"></div>
-            <div class="result-emoji" id="result-emoji"><i class="bi bi-trophy-fill"></i></div>
-            <h1 id="result-title">Ğalaba!</h1>
-            <p id="result-subtitle">Ajoyib öyin!</p>
-            <div class="result-divider"></div>
-            <div class="result-stats-grid">
-                <div class="result-stat">
-                    <div class="rs-icon"><i class="bi bi-bullseye"></i></div>
-                    <div class="rs-value" id="result-score">0</div>
-                    <div class="rs-label">Ball</div>
-                </div>
-                <div class="result-stat">
-                    <div class="rs-icon"><i class="bi bi-stopwatch"></i></div>
-                    <div class="rs-value" id="result-time">0s</div>
-                    <div class="rs-label">Vaqt</div>
-                </div>
-                <div class="result-stat">
-                    <div class="rs-icon"><i class="bi bi-controller"></i></div>
-                    <div class="rs-value" id="result-moves">0</div>
-                    <div class="rs-label">Yurişlar</div>
-                </div>
-            </div>
-            <div id="submit-status" class="submit-status"><i class="bi bi-broadcast"></i> Natija LMS'ga yuborilmoqda...</div>
-            <div class="result-actions">
-                <button class="primary-btn" id="btn-play-again"><i class="bi bi-arrow-clockwise"></i> Yana öynaş</button>
-                <button class="ghost-btn" id="btn-result-menu"><i class="bi bi-house-fill"></i> Menyu</button>
-            </div>
+    <div class="sheet result-card">
+        <div class="result-stars" id="result-stars"></div>
+        <div class="seal big" id="result-emoji"><i class="bi bi-trophy-fill"></i></div>
+        <h1 class="serif" id="result-title">Ğalaba!</h1>
+        <p id="result-subtitle">Ajoyib öyin!</p>
+        <div class="result-stats">
+            <div><b id="result-score">0</b><span>Ball</span></div>
+            <div><b id="result-time">0s</b><span>Vaqt</span></div>
+            <div><b id="result-moves">0</b><span>Yurişlar</span></div>
+        </div>
+        <div id="submit-status" class="submit-status"><i class="bi bi-broadcast"></i> Natija LMS'ga yuborilmoqda...</div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" id="btn-result-menu"><i class="bi bi-house-fill"></i> Menyu</button>
+            <button class="btn btn-gold" id="btn-play-again"><i class="bi bi-arrow-clockwise"></i> Yana bir partiya</button>
         </div>
     </div>
 </div>
 
-<script src="app.js?v=11"></script>
+<script src="engine.js?v=1"></script>
+<script src="app.js?v=14"></script>
 <script src="../_shared/gamify.js?v=1"></script>
 </body>
 </html>

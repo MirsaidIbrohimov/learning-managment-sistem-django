@@ -20,17 +20,7 @@
 .gz a{text-decoration:none}
 
 /* ── Fon: aurora + sintveyv pol ── */
-.gz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-.gz-bg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.28;animation:gzDrift 18s ease-in-out infinite alternate}
-.gz-bg i:nth-child(1){width:520px;height:520px;left:-120px;top:-120px;background:#7c3aed}
-.gz-bg i:nth-child(2){width:460px;height:460px;right:-120px;top:20%;background:#06b6d4;animation-duration:22s;animation-delay:-6s}
-.gz-bg i:nth-child(3){width:420px;height:420px;left:30%;bottom:-200px;background:#db2777;animation-duration:26s;animation-delay:-12s}
-[data-bs-theme=light] .gz-bg i{opacity:.14}
-@keyframes gzDrift{to{transform:translate(80px,60px) scale(1.15)}}
-.gz-floor{position:absolute;left:-50%;right:-50%;bottom:-10%;height:46%;transform:perspective(420px) rotateX(62deg);transform-origin:50% 100%;
-  background-image:linear-gradient(color-mix(in srgb,var(--acc2) 30%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--acc2) 30%,transparent) 1px,transparent 1px);
-  background-size:60px 60px;animation:gzFloor 3s linear infinite;-webkit-mask:linear-gradient(transparent,#000 60%);mask:linear-gradient(transparent,#000 60%);opacity:.35}
-@keyframes gzFloor{to{background-position:0 60px}}
+/* Use the shared page background; keep decorative gradients inside cards. */
 
 /* ── Umumiy ── */
 .gz-pill{font:600 11.5px 'JetBrains Mono',monospace;padding:5px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
@@ -189,14 +179,13 @@
   .gz-spot{grid-template-columns:1fr}
 }
 @media (prefers-reduced-motion:reduce){
-  .gz *,.gz-bg *{animation:none!important;transition:none!important}
+  .gz *{animation:none!important;transition:none!important}
   .gz-card{transform:none!important}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="gz-bg" aria-hidden="true"><i></i><i></i><i></i><div class="gz-floor"></div></div>
 <div class="gz" id="gz">
 
     <!-- ═══════ HERO ═══════ -->

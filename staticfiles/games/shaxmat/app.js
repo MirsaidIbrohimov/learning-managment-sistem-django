@@ -24,10 +24,10 @@ let LMS_USER = null;
 
 // ============== TEMA TIZIMI ==============
 const THEME_KEY = 'shaxmat_theme';
-const THEMES = ['navy', 'classic', 'emerald', 'slate', 'crimson'];
+const THEMES = ['wood', 'walnut', 'emerald', 'ocean', 'marble'];
 
 function applyTheme(theme) {
-    if (!THEMES.includes(theme)) theme = 'navy';
+    if (!THEMES.includes(theme)) theme = 'wood';
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     document.querySelectorAll('.theme-swatch').forEach(btn => {
@@ -36,7 +36,7 @@ function applyTheme(theme) {
 }
 
 function initThemePicker() {
-    const saved = localStorage.getItem(THEME_KEY) || 'navy';
+    const saved = localStorage.getItem(THEME_KEY) || 'wood';
     applyTheme(saved);
     document.querySelectorAll('.theme-swatch').forEach(btn => {
         btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
@@ -45,7 +45,8 @@ function initThemePicker() {
 
 // Sahifa yuklanganda darhol tema qöllanilsin (flash oldini oliş)
 (function() {
-    const t = localStorage.getItem(THEME_KEY) || 'navy';
+    let t = localStorage.getItem(THEME_KEY) || 'wood';
+    if (!THEMES.includes(t)) t = 'wood';
     document.body.setAttribute('data-theme', t);
 })();
 
@@ -77,7 +78,9 @@ function appendMoveLi(li) {
 }
 // Copies the move history (PGN-like plain text) to the clipboard for export/sharing
 function copyMoveHistory() {
-    const lines = Array.from($('moves-list').children).map((li, i) => `${i + 1}. ${li.textContent}`);
+    const items = Array.from($('moves-list').children).map(li => li.textContent);
+    const lines = [];
+    for (let i = 0; i < items.length; i += 2) lines.push(`${i / 2 + 1}. ${items[i]}${items[i + 1] ? ' ' + items[i + 1] : ''}`);
     const text = lines.join('\n') || 'Yurişlar yöq';
     const btn = $('btn-copy-moves');
     const flash = () => {
@@ -279,6 +282,10 @@ const GLYPH = {
     black: { k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟' },
 };
 const VAL = { p:1, n:3, b:3, r:5, q:9, k:1000 };
+// Taxtadagi köriniş: ikkala rang uçun bir xil (töldirilgan) şakl, rang CSS bilan beriladi.
+// U+FE0E — emoji emas, matn köriniş (telefonlarda ♟ emoji bölib qolmasin).
+const SOLID = { k:'\u265A', q:'\u265B', r:'\u265C', b:'\u265D', n:'\u265E', p:'\u265F' };
+const pieceGlyph = (type) => SOLID[type] + '\uFE0E';
 
 // Centipawn material values (AI eval uçun)
 const CVAL = { p: 100, n: 320, b: 335, r: 500, q: 950, k: 20000 };
@@ -511,6 +518,31 @@ function askWager() {
     });
 }
 
+// Öyin boşlanganda töliq ekranga avtomatik ötiş. Brauzer buni faqat foydalanuvçi
+// bosganda ruxsat beradi: menyu tugmalari bosilganda darhol, aks holda (musobaqa,
+// multiplayer avtomatik boşlanişi) taxtaga birinçi bosişda bir marta urinamiz.
+let _autoFsPending = false;
+function enterFullscreen() {
+    const el = document.documentElement;
+    if (document.fullscreenElement || document.webkitFullscreenElement) return true;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (!req) return false;
+    try {
+        const r = req.call(el);
+        if (r && typeof r.catch === 'function') r.catch(() => {});
+    } catch (_) { return false; }
+    return true;
+}
+function autoFullscreen() {
+    _autoFsPending = true;
+    if (navigator.userActivation && !navigator.userActivation.isActive) return;  // bosiş yöq — keyinroq
+    if (enterFullscreen()) _autoFsPending = false;
+}
+document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement) _autoFsPending = false; });
+if ($('board')) $('board').addEventListener('pointerdown', () => {
+    if (_autoFsPending) { _autoFsPending = false; enterFullscreen(); }
+}, true);
+
 function toggleFullscreen() {
     const el = document.documentElement;
     if (!document.fullscreenElement) (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
@@ -531,6 +563,7 @@ function initBoard() {
 }
 
 function startGame(initialState = null) {
+    autoFullscreen();
     if (!initialState) initBoard(); else board = initialState.map(r => r.map(c => c ? {...c} : null));
     selected = null;
     possibleMoves = [];
@@ -544,6 +577,13 @@ function startGame(initialState = null) {
     if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
     const _ovl = document.getElementById('end-pause-overlay'); if (_ovl) _ovl.remove();
     gameStartTs = Date.now();
+    _gameSerial++;
+    positionKeys = [];
+    recordPosition();
+    resetClocks();
+    // Rangga qarab öyinçi kartoçkalari (oq/qora doira)
+    $('player-self')?.classList.toggle('is-black', PLAYER_COLOR === 'black');
+    $('player-opp')?.classList.toggle('is-black', PLAYER_COLOR !== 'black');
 
     if (COMPETITION_ID) {
         $('mode-pill').innerHTML = `<i class="bi bi-trophy-fill"></i> Musobaqa — AI Qiyin`;
@@ -592,13 +632,64 @@ function renderCoords() {
     $('coords-left').innerHTML   = ranks.map(r => `<span>${r}</span>`).join('');
     $('coords-right').innerHTML  = ranks.map(r => `<span>${r}</span>`).join('');
 }
+// Turnir soati: har tomon öz navbatida sarflagan vaqt
+let sideMs = { white: 0, black: 0 };
+let turnStartTs = 0;
+let clockTurn = 'white';
+function resetClocks() { sideMs = { white: 0, black: 0 }; turnStartTs = Date.now(); clockTurn = 'white'; }
+function switchClock() {
+    if (clockTurn === currentTurn) return;
+    const now = Date.now();
+    sideMs[clockTurn] += now - turnStartTs;
+    turnStartTs = now;
+    clockTurn = currentTurn;
+}
+function fmtClock(ms) {
+    const s = Math.floor(ms / 1000);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+function renderClocks() {
+    const frozen = resultSubmitted || _endPauseStarted;
+    const live = (c) => sideMs[c] + (!frozen && c === clockTurn ? Date.now() - turnStartTs : 0);
+    const opp = PLAYER_COLOR === 'white' ? 'black' : 'white';
+    if ($('clock-self')) $('clock-self').textContent = fmtClock(live(PLAYER_COLOR));
+    if ($('clock-opp')) $('clock-opp').textContent = fmtClock(live(opp));
+    $('player-self')?.classList.toggle('on', !frozen && currentTurn === PLAYER_COLOR);
+    $('player-opp')?.classList.toggle('on', !frozen && currentTurn !== PLAYER_COLOR);
+}
 function startTimer() {
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         const s = Math.floor((Date.now() - gameStartTs) / 1000);
         $('timer').textContent = `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+        renderClocks();
     }, 500);
 }
+
+// Baho şkalasi: kim ustunligi (pastki tomon — öyinçining rangi)
+const EVAL_KEY = 'shaxmat_eval';
+function updateEvalBar() {
+    const fill = $('eval-fill');
+    if (!fill) return;
+    let cp = 0;
+    try { cp = evaluate(board); } catch (_) { cp = 0; }
+    const mine = PLAYER_COLOR === 'white' ? cp : -cp;
+    const clamped = Math.max(-1000, Math.min(1000, mine));
+    fill.style.height = (50 + clamped / 20) + '%';
+    $('eval-num').textContent = (Math.abs(cp) / 100).toFixed(1);
+    $('eval-bar').classList.toggle('flipped', mine < 0);
+}
+function applyEvalPref(on) {
+    document.body.classList.toggle('eval-off', !on);
+    const b = $('btn-eval-toggle');
+    if (b) b.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
+applyEvalPref(localStorage.getItem(EVAL_KEY) !== '0');
+if ($('btn-eval-toggle')) $('btn-eval-toggle').onclick = () => {
+    const on = document.body.classList.contains('eval-off');
+    localStorage.setItem(EVAL_KEY, on ? '1' : '0');
+    applyEvalPref(on);
+};
 
 const PIECE_NAMES = { p: 'piyoda', n: 'ot', b: 'fil', r: 'ladya', q: 'vazir', k: 'şoh' };
 function renderBoard() {
@@ -656,7 +747,7 @@ function renderBoard() {
                     cell.appendChild(span);
                 }
                 span.className = 'piece-wrap ' + pc.color;
-                span.textContent = GLYPH[pc.color][pc.type];
+                span.textContent = pieceGlyph(pc.type);
                 const colorLabel = pc.color === 'white' ? 'oq' : 'qora';
                 cell.setAttribute('aria-label', `${square}, ${colorLabel} ${PIECE_NAMES[pc.type]}`);
             } else {
@@ -668,8 +759,16 @@ function renderBoard() {
 }
 
 function updateCapturedDisplay() {
-    $('captured-by-white').innerHTML = capturedByWhite.map(p => `<span class="cap-pc">${GLYPH.black[p]}</span>`).join('');
-    $('captured-by-black').innerHTML = capturedByBlack.map(p => `<span class="cap-pc">${GLYPH.white[p]}</span>`).join('');
+    // Yegan figuralar öyinçi kartoçkasida, material farqi (+3) bilan
+    const order = 'qrbnp';
+    const sum = (list) => list.reduce((a, p) => a + (VAL[p] || 0), 0);
+    const diff = sum(capturedByWhite) - sum(capturedByBlack);   // oq nuqtai nazaridan
+    const html = (list, adv) => list.slice().sort((a, b) => order.indexOf(a) - order.indexOf(b))
+        .map(p => pieceGlyph(p)).join('') + (adv > 0 ? `<span class="adv">+${adv}</span>` : '');
+    const mineW = PLAYER_COLOR === 'white';
+    const selfEl = $('caps-self'), oppEl = $('caps-opp');
+    if (selfEl) selfEl.innerHTML = html(mineW ? capturedByWhite : capturedByBlack, mineW ? diff : -diff);
+    if (oppEl) oppEl.innerHTML = html(mineW ? capturedByBlack : capturedByWhite, mineW ? -diff : diff);
 }
 
 function updateTurnUI() {
@@ -690,6 +789,9 @@ function updateTurnUI() {
         announce((MODE === 'ai' ? 'AI öylayapti' : 'Raqib yurmoqda') + (inCheck ? ', şox!' : ''));
     }
     $('move-counter').textContent = moveHistory.length;
+    switchClock();
+    renderClocks();
+    updateEvalBar();
 }
 
 // ============== CHESS RULES ==============
@@ -879,6 +981,69 @@ function simulateMove(b, m) {
     return nb;
 }
 
+// ============== SUDRAB YURIŞ ==============
+// Bosib-bosib yuriş (onCellClick) saqlanadi; sudraş — qöşimça qulaylik (sichqonça va barmoq).
+(function initDrag() {
+    const boardEl = $('board');
+    if (!boardEl || !window.PointerEvent) return;
+    let drag = null, suppressClick = false;
+    const cellAt = (x, y) => {
+        const el = document.elementFromPoint(x, y);
+        const cell = el && el.closest && el.closest('.cell');
+        return cell && boardEl.contains(cell) ? cell : null;
+    };
+    boardEl.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0) return;
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const r = +cell.dataset.r, c = +cell.dataset.c;
+        const pc = board[r] && board[r][c];
+        if (!pc || pc.color !== PLAYER_COLOR || currentTurn !== PLAYER_COLOR || resultSubmitted || _endPauseStarted) return;
+        drag = { r, c, cell, x: e.clientX, y: e.clientY, ghost: null, id: e.pointerId };
+    });
+    boardEl.addEventListener('pointermove', (e) => {
+        if (!drag || e.pointerId !== drag.id) return;
+        if (!drag.ghost) {
+            if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+            if (!selected || selected.r !== drag.r || selected.c !== drag.c) onCellClick(drag.r, drag.c);
+            const span = drag.cell.querySelector('.piece-wrap');
+            if (!span) { drag = null; return; }
+            const rect = drag.cell.getBoundingClientRect();
+            // Taxta kengligidagi konteyner — CSS ölçamlari (cqw) taxtadagidek qolsin
+            const g = document.createElement('div');
+            g.className = 'drag-ghost-wrap';
+            g.style.width = boardEl.clientWidth + 'px';
+            const clone = span.cloneNode(true);
+            clone.classList.add('drag-ghost');
+            clone.style.width = rect.width + 'px'; clone.style.height = rect.height + 'px';
+            g.appendChild(clone);
+            g._w = rect.width; g._h = rect.height;
+            document.body.appendChild(g);
+            drag.ghost = g;
+            drag.cell.classList.add('dragging');
+            try { boardEl.setPointerCapture(e.pointerId); } catch (_) {}
+        }
+        drag.ghost.style.left = (e.clientX - drag.ghost._w / 2) + 'px';
+        drag.ghost.style.top = (e.clientY - drag.ghost._h / 2) + 'px';
+        e.preventDefault();
+    });
+    const finish = (e) => {
+        if (!drag || e.pointerId !== drag.id) return;
+        const d = drag; drag = null;
+        if (!d.ghost) return;                 // oddiy bosiş — click özi işlaydi
+        d.ghost.remove();
+        d.cell.classList.remove('dragging');
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
+        const target = e.type === 'pointerup' ? cellAt(e.clientX, e.clientY) : null;
+        if (target && (+target.dataset.r !== d.r || +target.dataset.c !== d.c)) onCellClick(+target.dataset.r, +target.dataset.c);
+    };
+    boardEl.addEventListener('pointerup', finish);
+    boardEl.addEventListener('pointercancel', finish);
+    // Sudraşdan keyingi "click" tanlovni bekor qilib qöymasin
+    boardEl.addEventListener('click', (e) => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+})();
+
 // ============== INTERACTION ==============
 async function onCellClick(r, c) {
     if (currentTurn !== PLAYER_COLOR) return;
@@ -918,7 +1083,8 @@ function askPromotion(color) {
         list.innerHTML = '';
         for (const t of ['q','r','b','n']) {
             const b = document.createElement('button');
-            b.textContent = GLYPH[color][t];
+            b.innerHTML = `<span class="piece-wrap ${color}">${pieceGlyph(t)}</span>`;
+            b.setAttribute('aria-label', PIECE_NAMES[t]);
             b.onclick = () => { modal.classList.add('hidden'); resolve(t); };
             list.appendChild(b);
         }
@@ -946,6 +1112,7 @@ async function applyMove(m) {
 
     selected = null; possibleMoves = [];
     currentTurn = piece.color === 'white' ? 'black' : 'white';
+    recordPosition();
 
     logMove(m, piece);
     updateCapturedDisplay();
@@ -982,12 +1149,11 @@ async function applyMove(m) {
 
 function logMove(m, piece) {
     const file = ['a','b','c','d','e','f','g','h'];
-    const sym = piece.color === 'white' ? 'O' : 'X';
     let notation;
-    if (m.castle) notation = (piece.color === 'white' ? 'O: ' : 'X: ') + (m.castle === 'k' ? 'O-O' : 'O-O-O');
+    if (m.castle) notation = m.castle === 'k' ? 'O-O' : 'O-O-O';
     else {
         const pieceLetter = piece.type === 'p' ? '' : piece.type.toUpperCase();
-        notation = `${sym} ${pieceLetter}${file[m.from.c]}${8-m.from.r}${m.capture ? 'x' : '-'}${file[m.to.c]}${8-m.to.r}${m.promotion ? '='+(m.promoTo||'q').toUpperCase() : ''}`;
+        notation = `${pieceLetter}${file[m.from.c]}${8-m.from.r}${m.capture ? 'x' : '-'}${file[m.to.c]}${8-m.to.r}${m.promotion ? '='+(m.promoTo||'q').toUpperCase() : ''}`;
     }
     const li = document.createElement('li');
     if (piece.color !== PLAYER_COLOR) li.classList.add('opp');
@@ -1289,46 +1455,112 @@ function _negamax(b, depth, alpha, beta, sideToMove, ep, ply) {
     return best;
 }
 
-// Wrapper: "öylayapti" indikatorini körsatadi, brauzerga çizişga imkon
-// beradi (yield), keyin oğir sinxron qidiruvni bajaradi va indikatorni yaşiradi.
-function aiMove() {
-    if (resultSubmitted) return;
-    setAiThinking(true);
+// ============== AI: engine.js (Web Worker) ==============
+// Kuçli dvigatel alohida oqimda işlaydi — AI öylayotganda sahifa qotmaydi.
+// Worker işlamasa (eski brauzer) — xuddi şu dvigatel asosiy oqimda çaqiriladi.
+const AI_LEVELS = {
+    easy:   { timeMs: 600,  maxDepth: 4,  noise: 45 },  // Havaskor: kuçli, lekin yengsa böladi
+    medium: { timeMs: 2500, maxDepth: 64, noise: 0 },   // Usta: töliq kuç, 2.5 s
+    hard:   { timeMs: 6000, maxDepth: 64, noise: 0 },   // Grossmeyster: töliq kuç, 6 s
+};
+let _engineWorker = null, _engineReqId = 0, _gameSerial = 0;
+const _enginePending = new Map();
+function _initEngineWorker() {
+    if (_engineWorker || !window.Worker) return;
+    try {
+        _engineWorker = new Worker('engine.js?v=1');
+        _engineWorker.onmessage = (e) => {
+            const { id, result, error } = e.data || {};
+            const cb = _enginePending.get(id);
+            if (!cb) return;
+            _enginePending.delete(id);
+            cb(error ? null : result, error);
+        };
+        _engineWorker.onerror = () => {
+            // Worker yuklanmadi — kutayotganlarni asosiy oqimga ötkazamiz
+            _engineWorker = null;
+            const pending = Array.from(_enginePending.values());
+            _enginePending.clear();
+            pending.forEach(cb => cb(null, 'worker'));
+        };
+    } catch (_) { _engineWorker = null; }
+}
+_initEngineWorker();
+
+// Takrorlaniş va 50 yuriş qoidasi uçun pozitsiyalar tarixi
+let positionKeys = [];
+function recordPosition() {
+    try {
+        if (window.ChessEngine) positionKeys.push(ChessEngine.positionKey(board, currentTurn, enPassantTarget));
+    } catch (_) {}
+}
+function halfmoveClock() {
+    let n = 0;
+    for (let i = moveHistory.length - 1; i >= 0; i--) {
+        const m = moveHistory[i];
+        if (m.piece === 'p' || m.captured || m.capture) break;
+        n++;
+    }
+    return n;
+}
+
+function _engineRequest(req, cb) {
+    if (_engineWorker) {
+        const id = ++_engineReqId;
+        _enginePending.set(id, (res, err) => {
+            if (err === 'worker') return _engineSync(req, cb);
+            cb(res);
+        });
+        _engineWorker.postMessage({ id, req });
+    } else {
+        _engineSync(req, cb);
+    }
+}
+function _engineSync(req, cb) {
     setTimeout(() => {
-        try { _computeAiMove(); }
-        finally { setAiThinking(false); }
+        let res = null;
+        try { res = window.ChessEngine ? ChessEngine.bestMove(req) : null; } catch (_) { res = null; }
+        cb(res);
     }, 30);
 }
 
-function _computeAiMove() {
-    if (resultSubmitted) return;
+function aiMove() {
+    if (resultSubmitted || _endPauseStarted) return;
     const color = PLAYER_COLOR === 'white' ? 'black' : 'white';
     const moves = allLegalMoves(board, color, enPassantTarget);
     if (moves.length === 0) { checkGameEnd(); return; }
-
-    let chosen;
-
-    if (DIFFICULTY === 'easy') {
-        // Oson: sayoz qidiruv (çuqurlik 2) + qisqa quiescence.
-        _qSearchDepth = 2;
-        const cfg = { maxDepth: 2, timeMs: 700, window: 60 };
-        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
-    } else if (DIFFICULTY === 'medium') {
-        // Örta: kuçli klub darajasi (çuqurlik 10, 5s, quiescence 8).
-        _qSearchDepth = 8;
-        const cfg = { maxDepth: 10, timeMs: 5000, window: 0 };
-        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
-    } else {
-        // QIYIN: super-grandmaster darajasi — insonni yengiş deyarli imkonsiz.
-        // LMR + check-extension + null-move R=4 bilan amalda çeksiz çuqurlik,
-        // ~11 soniya byudjet (öyin ravon, kuç grandmaster darajasida). TT cache saqlanadi.
-        _qSearchDepth = 12;
-        const cfg = { maxDepth: 50, timeMs: 11000, window: 0 };
-        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
-    }
-
-    if (chosen.promotion) chosen.promoTo = 'q';
-    applyMove(chosen);
+    setAiThinking(true);
+    const serial = _gameSerial;
+    const startedAt = Date.now();
+    const lvl = AI_LEVELS[DIFFICULTY] || AI_LEVELS.medium;
+    const req = {
+        board, turn: color, ep: enPassantTarget,
+        history: positionKeys.slice(0, -1), halfmove: halfmoveClock(),
+        timeMs: lvl.timeMs, maxDepth: lvl.maxDepth, noise: lvl.noise,
+    };
+    _engineRequest(req, (res) => {
+        // Öyin almaşgan / tugagan bölsa — javobni taşlab yuboramiz
+        if (serial !== _gameSerial || resultSubmitted || _endPauseStarted) { setAiThinking(false); return; }
+        let chosen = null;
+        if (res) {
+            chosen = moves.find(m => m.from.r === res.from.r && m.from.c === res.from.c &&
+                                     m.to.r === res.to.r && m.to.c === res.to.c);
+            if (chosen && chosen.promotion) chosen = { ...chosen, promoTo: res.promo || 'q' };
+        }
+        if (!chosen) {
+            // Zaxira: eski ichki qidiruv (qisqa)
+            _qSearchDepth = 4;
+            chosen = _searchBestMove(board, color, enPassantTarget, { maxDepth: 4, timeMs: 800, window: 0 }) || _orderMoves(board, moves)[0];
+            if (chosen.promotion) chosen.promoTo = 'q';
+        }
+        // Juda tez javob insonga ğalati körinmasin — kamida ~0.4 s
+        const wait = Math.max(0, 400 - (Date.now() - startedAt));
+        setTimeout(() => {
+            setAiThinking(false);
+            if (serial !== _gameSerial || resultSubmitted || _endPauseStarted) return;
+            applyMove(chosen);
+        }, wait);
+    });
 }
 
 // Iterative deepening: vaqt tugagunça tobora çuqurroq qidiradi.
@@ -1743,7 +1975,7 @@ async function pollMatchState() {
             if (hasNewMove && m.last_move?.notation) {
                 const li = document.createElement('li');
                 li.classList.add('opp');
-                li.textContent = m.last_move.notation;
+                li.textContent = String(m.last_move.notation).replace(/^[OX]:?\s+/, '');
                 appendMoveLi(li);
                 moveHistory.push({ ...m.last_move });
                 // BUG FIX: opponent's captured piece must be recorded here too —
@@ -1755,6 +1987,7 @@ async function pollMatchState() {
                 }
             }
             lastSeenMoveCount = m.move_count || 0;   // serverga işonamiz (drift'ni tuzatadi)
+            if (hasNewMove) recordPosition();
             // En passant target reconstruction not critical client-side after server roundtrip
             enPassantTarget = null;
             selected = null;
