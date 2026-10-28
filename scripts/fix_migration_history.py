@@ -32,7 +32,9 @@ for key in applied:
             missing.add(anc)
 
 plan = [m for m, _ in executor.migration_plan(graph.leaf_nodes(), clean_start=True)]
-ordered = [m for m in plan if (m.app_label, m.name) in missing]
+# Bog'liqliklardan tashqari: yozilmagan, lekin jadvali allaqachon bor migratsiyalar ham
+# ("table already exists" xatosi) shu yerda tekshiriladi.
+ordered = [m for m in plan if (m.app_label, m.name) not in applied]
 
 
 def _tables():
@@ -64,7 +66,16 @@ def check(migration):
             if isinstance(op, ops.CreateModel):
                 results.append((f"jadval {op.name}", table_of(op.name) in tables))
             elif isinstance(op, ops.DeleteModel):
-                pass  # o'chirilgan model holatini tekshirib bo'lmaydi
+                prev = loader.project_state((migration.app_label, migration.name), at_end=False)
+                t = prev.apps.get_model(migration.app_label, op.name)._meta.db_table
+                results.append((f"jadval o'chirilgan {op.name}", t not in tables))
+            elif isinstance(op, ops.RemoveField):
+                prev = loader.project_state((migration.app_label, migration.name), at_end=False)
+                model = prev.apps.get_model(migration.app_label, op.model_name)
+                t = model._meta.db_table
+                col = model._meta.get_field(op.name).column
+                results.append((f"ustun o'chirilgan {op.model_name}.{op.name}",
+                                t in tables and col not in _columns(t)))
             elif isinstance(op, ops.AddField):
                 model = state.apps.get_model(migration.app_label, op.model_name)
                 field = model._meta.get_field(op.name)
@@ -88,14 +99,16 @@ def check(migration):
 
 
 if not ordered:
-    print("Tarix toza — tushib qolgan migratsiya yo'q.")
+    print("Tarix toza — yozilmagan migratsiya yo'q.")
 
 for migration in ordered:
     key = (migration.app_label, migration.name)
     results = check(migration)
     present = [n for n, ok in results if ok]
     absent = [n for n, ok in results if not ok]
-    if not absent:
+    if not results and key not in missing:
+        verdict = "BAJARISH (yangi migratsiya)"
+    elif not absent:
         verdict = "FAKE (bazada bor)" if results else "FAKE (tekshiriladigan sxema amali yo'q)"
     elif not present:
         verdict = "BAJARISH (bazada yo'q)"
@@ -107,7 +120,7 @@ for migration in ordered:
 
     if not APPLY or verdict.startswith("QISMAN"):
         continue
-    if absent:
+    if absent or verdict.startswith("BAJARISH"):
         state = loader.project_state(key, at_end=False)
         executor.apply_migration(state, migration)
         print("    -> bajarildi")

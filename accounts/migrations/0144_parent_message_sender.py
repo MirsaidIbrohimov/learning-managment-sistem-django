@@ -27,12 +27,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='parentmessage',
             name='reply_seen_by_parent',
-            field=models.BooleanField(default=False, verbose_name="Javobni ota-ona ko'rgan"),
+            field=models.BooleanField(default=False, verbose_name='Javobni ota-ona körgan'),
         ),
         migrations.AddField(
             model_name='parentmessage',
             name='sender_type',
-            field=models.CharField(choices=[('parent', 'Ota-ona'), ('system', 'Tizim bildirishnomasi')], db_index=True, default='parent', max_length=10, verbose_name='Yuboruvchi'),
+            field=models.CharField(choices=[('parent', 'Ota-ona'), ('system', 'Tizim bildirişnomasi')], db_index=True, default='parent', max_length=10, verbose_name='Yuboruvçi'),
         ),
         migrations.RunPython(backfill, migrations.RunPython.noop),
     ]

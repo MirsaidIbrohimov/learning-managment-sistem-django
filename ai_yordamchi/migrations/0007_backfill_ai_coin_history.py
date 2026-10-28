@@ -18,7 +18,7 @@ def backfill_ai_coin_history(apps, schema_editor):
             user_id=message.session.user_id,
             action='remove',
             amount=message.coins_spent,
-            reason__icontains='AI yordamchi',
+            reason__icontains='AI yordam',  # eski va yangi alifbo (yordamchi / yordamçi)
             created_at__gte=message.created_at - timedelta(seconds=5),
             created_at__lte=message.created_at + timedelta(seconds=5),
         ).exclude(pk__in=used_transaction_ids).order_by('created_at').first()
