@@ -626,6 +626,7 @@
                         <td>{{ req.user.phone }}</td>
                         <td>
                             <span class="profession-badge">{{ req.profession.name }}</span>
+                            {% with ts=req.profession.teachers.all %}{% if ts %}<div class="small text-muted mt-1"><i class="bi bi-person-workspace"></i> {% for t in ts %}{{ t.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}{% endwith %}
                         </td>
                         <td>
                             <span class="text-nowrap">{{ req.created_at|date:"d.m.Y" }}</span>
@@ -685,6 +686,7 @@
                                                     <div>
                                                         <div class="fw-semibold">{{ req.user.full_name }}</div>
                                                         <span class="profession-badge">{{ req.profession.name }}</span>
+                            {% with ts=req.profession.teachers.all %}{% if ts %}<div class="small text-muted mt-1"><i class="bi bi-person-workspace"></i> {% for t in ts %}{{ t.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}{% endwith %}
                                                     </div>
                                                 </div>
                                                 <div class="mb-3">
@@ -705,7 +707,7 @@
                             {% else %}
                             <span class="text-muted small">
                                 {% if req.reviewed_by %}
-                                {{ req.reviewed_by.full_name }}
+                                {{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})
                                 {% endif %}
                             </span>
                             {% endif %}
@@ -781,7 +783,7 @@
             {% if req.reviewed_by %}
             <div class="enroll-mobile-detail">
                 <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
-                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }}</span>
+                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})</span>
             </div>
             {% endif %}
         </div>
@@ -929,6 +931,7 @@
                         <td>{{ req.user.phone }}</td>
                         <td>
                             <span class="profession-badge">{{ req.profession.name }}</span>
+                            {% with ts=req.profession.teachers.all %}{% if ts %}<div class="small text-muted mt-1"><i class="bi bi-person-workspace"></i> {% for t in ts %}{{ t.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}{% endwith %}
                         </td>
                         <td>
                             <span class="reason-text" title="{{ req.reason }}">{{ req.reason|truncatewords:8 }}</span>
@@ -992,6 +995,7 @@
                                                     <div>
                                                         <div class="fw-semibold">{{ req.user.full_name }}</div>
                                                         <span class="profession-badge">{{ req.profession.name }}</span>
+                            {% with ts=req.profession.teachers.all %}{% if ts %}<div class="small text-muted mt-1"><i class="bi bi-person-workspace"></i> {% for t in ts %}{{ t.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</div>{% endif %}{% endwith %}
                                                     </div>
                                                 </div>
                                                 <div class="p-3 rounded-3 mb-3" style="background: rgba(239,68,68,0.06);">
@@ -1016,7 +1020,7 @@
                             {% else %}
                             <span class="text-muted small">
                                 {% if req.reviewed_by %}
-                                {{ req.reviewed_by.full_name }}
+                                {{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})
                                 {% endif %}
                             </span>
                             {% endif %}
@@ -1096,7 +1100,7 @@
             {% if req.reviewed_by %}
             <div class="enroll-mobile-detail">
                 <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
-                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }}</span>
+                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }} ({{ req.reviewed_by.get_role_display }})</span>
             </div>
             {% endif %}
         </div>

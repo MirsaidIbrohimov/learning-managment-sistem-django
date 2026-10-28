@@ -121,3 +121,28 @@ def student_payment_reminder(request):
         }
     }
 
+
+
+def teacher_badges(request):
+    """O'qituvchi paneli: kurslariga kelgan kutilayotgan so'rovlar soni."""
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or getattr(user, "role", None) != "teacher":
+        return {}
+
+    from django.core.cache import cache
+    cache_key = f"teacher_badges_{user.pk}"
+    badges = cache.get(cache_key)
+    if badges is not None:
+        return badges
+
+    from .models import CourseEnrollmentRequest, CourseUnenrollRequest
+
+    professions = user.teaching_professions.all()
+    badges = {
+        "teacher_pending_requests": (
+            CourseEnrollmentRequest.objects.filter(profession__in=professions, status="pending").count()
+            + CourseUnenrollRequest.objects.filter(profession__in=professions, status="pending").count()
+        ),
+    }
+    cache.set(cache_key, badges, 60)
+    return badges

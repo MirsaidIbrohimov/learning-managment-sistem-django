@@ -1,0 +1,50 @@
+/* O'quvchi qo'llanmasi (spotlight tur) — static/js/student_tour.js */
+.st-root {
+    --st-pri: #6366f1; --st-vio: #8b5cf6;
+    --st-surface: #ffffff; --st-surface-2: #f3f4f8; --st-line: #e3e5ee;
+    --st-text: #111827; --st-text-2: #4b5563; --st-text-3: #9ca3af;
+    --st-ease: cubic-bezier(.22, 1, .36, 1); --st-spring: cubic-bezier(.34, 1.56, .64, 1);
+    position: fixed; inset: 0; z-index: 3000; opacity: 0; transition: opacity .3s;
+}
+[data-theme="dark"] .st-root {
+    --st-surface: #141827; --st-surface-2: #1c2136; --st-line: #2a3050;
+    --st-text: #f3f4f6; --st-text-2: #c3c7d4; --st-text-3: #7d8399;
+}
+.st-root.in { opacity: 1; } .st-root.out { opacity: 0; }
+.st-spot { position: fixed; border-radius: 18px; pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(8, 10, 25, .62), 0 0 0 3px rgba(165, 180, 252, .9), 0 0 40px 6px rgba(129, 140, 248, .45);
+    transition: top .5s var(--st-ease), left .5s var(--st-ease), width .5s var(--st-ease), height .5s var(--st-ease), border-radius .4s; }
+.st-spot::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid rgba(165, 180, 252, .8); animation: stPulse 1.8s ease-out infinite; }
+@keyframes stPulse { from { opacity: .9; transform: scale(1); } to { opacity: 0; transform: scale(1.06); } }
+.st-spot.center { top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; }
+.st-spot.center::after { display: none; }
+.st-card { position: fixed; width: min(370px, calc(100vw - 20px)); padding: 20px; border-radius: 22px;
+    background: var(--st-surface); color: var(--st-text); border: 1px solid var(--st-line);
+    box-shadow: 0 30px 70px -20px rgba(0, 0, 0, .55); transition: left .5s var(--st-ease), top .5s var(--st-ease); }
+.st-card.center { left: 50% !important; top: 50% !important; transform: translate(-50%, -50%); text-align: center; }
+.st-card.pop { animation: stPop .5s var(--st-spring); }
+.st-card.center.pop { animation: stPopC .5s var(--st-spring); }
+@keyframes stPop { from { opacity: .4; scale: .94; } }
+@keyframes stPopC { from { opacity: .4; transform: translate(-50%, -46%) scale(.94); } }
+.st-ic { width: 46px; height: 46px; border-radius: 15px; display: grid; place-items: center; font-size: 1.3rem; color: #fff; margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--st-pri), var(--st-vio)); box-shadow: 0 12px 24px -12px var(--st-pri); }
+.st-card.center .st-ic { margin: 0 auto 12px; width: 60px; height: 60px; font-size: 1.7rem; border-radius: 19px; animation: stFloat 4s ease-in-out infinite; }
+@keyframes stFloat { 50% { transform: translateY(-5px); } }
+.st-card h4 { margin: 0 0 6px; font-size: 1.08rem; font-weight: 800; color: var(--st-text); }
+.st-card p { margin: 0; color: var(--st-text-2); font-size: .92rem; line-height: 1.55; }
+.st-dots { display: flex; gap: 5px; margin: 16px 0 12px; flex-wrap: wrap; }
+.st-card.center .st-dots { justify-content: center; }
+.st-dots i { width: 7px; height: 7px; border-radius: 99px; background: var(--st-line); transition: width .35s var(--st-spring), background .3s; }
+.st-dots i.done { background: rgba(99, 102, 241, .45); }
+.st-dots i.on { width: 22px; background: var(--st-pri); }
+.st-btns { display: flex; align-items: center; gap: 6px; }
+.st-btns button { border: 0; cursor: pointer; font-weight: 700; font-size: .84rem; border-radius: 12px; height: 38px; }
+.st-skip { background: transparent; color: var(--st-text-3); padding: 0 6px; }
+.st-prev { width: 38px; background: var(--st-surface-2); color: var(--st-text); }
+.st-next { padding: 0 16px; color: #fff; background: linear-gradient(135deg, var(--st-pri), var(--st-vio)); box-shadow: 0 10px 22px -12px var(--st-pri);
+    display: inline-flex; align-items: center; gap: 6px; transition: transform .3s var(--st-spring); }
+.st-next:hover { transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+    .st-spot, .st-card { transition: none; }
+    .st-spot::after, .st-card.pop, .st-card.center .st-ic { animation: none; }
+}

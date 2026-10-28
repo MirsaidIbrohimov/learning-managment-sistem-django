@@ -485,15 +485,15 @@
         <div class="nr-sec">MENYU</div>
         <nav class="nr-nav" data-cmd-group="SAHIFALAR">
           <a class="nr-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Bosh sahifa"><i class="bi bi-house"></i><span class="nr-tx">Bosh sahifa</span></a>
-          <a class="nr-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}" title="Kurslar"><i class="bi bi-book"></i><span class="nr-tx">Kurslar</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}" title="Kurslar" data-tour="courses"><i class="bi bi-book"></i><span class="nr-tx">Kurslar</span></a>
           {% if user.role != 'admin' and user.role != 'assistant_admin' %}
-          <a class="nr-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" title="Dars jadvalim"><i class="bi bi-calendar2-week"></i><span class="nr-tx">Dars jadvalim</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" title="Dars jadvalim" data-tour="schedule"><i class="bi bi-calendar2-week"></i><span class="nr-tx">Dars jadvalim</span></a>
           {% endif %}
-          <a class="nr-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}" title="Reyting"><i class="bi bi-trophy"></i><span class="nr-tx">Reyting</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}" title="Reyting" data-tour="rating"><i class="bi bi-trophy"></i><span class="nr-tx">Reyting</span></a>
           <a class="nr-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}" title="Postlar"><i class="bi bi-newspaper"></i><span class="nr-tx">Postlar</span></a>
-          <a class="nr-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}" title="Market"><i class="bi bi-shop"></i><span class="nr-tx">Market</span></a>
-          <a class="nr-link {% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" href="{% url 'chat_inbox' %}" title="Suhbatlar"><i class="bi bi-chat-dots"></i><span class="nr-tx">Suhbatlar</span></a>
-          <a class="nr-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}" title="Yordam"><i class="bi bi-question-circle"></i><span class="nr-tx">Yordam</span></a>
+          <a class="nr-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}" title="Market" data-tour="market"><i class="bi bi-shop"></i><span class="nr-tx">Market</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" href="{% url 'chat_inbox' %}" title="Suhbatlar" data-tour="chat"><i class="bi bi-chat-dots"></i><span class="nr-tx">Suhbatlar</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}" title="Yordam" data-tour="help"><i class="bi bi-question-circle"></i><span class="nr-tx">Yordam</span></a>
         </nav>
         {% if user.is_admin or user.is_teacher or user.is_assistant_admin %}
         <div class="nr-sec">BOSHQARUV</div>
@@ -544,7 +544,7 @@
         {% include 'partials/nav/_apps_menu.html' %}
 
         <!-- Coin -->
-        <a href="{% url 'coin:coin_history' %}" class="nr-coin" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin"><span class="c"><i class="bi bi-coin"></i></span><span class="v">{{ user.coins|default:0 }}</span></a>
+        <a href="{% url 'coin:coin_history' %}" class="nr-coin" data-tour="coin" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin"><span class="c"><i class="bi bi-coin"></i></span><span class="v">{{ user.coins|default:0 }}</span></a>
         <span class="nr-sep"></span>
 
         <!-- Navigatsiya sozlamalari (desktop; mobilda profil menyusida) -->
@@ -555,7 +555,7 @@
 
         <!-- Bildirishnomalar (notify.js shu id'lar bilan ishlaydi) -->
         <div class="dropdown">
-          <button type="button" class="nr-ib nbell-btn" id="nbBellBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
+          <button type="button" class="nr-ib nbell-btn" id="nbBellBtn" data-tour="bell" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
             <i class="bi bi-bell"></i>
             <span class="nb-badge" id="nbBellBadge" style="display:none;"></span>
           </button>
@@ -576,7 +576,7 @@
 
         <!-- Profil mega-menyusi (desktop) -->
         <div class="dropdown d-none d-lg-block">
-          <a class="nr-av" href="#" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
+          <a class="nr-av" href="#" data-tour="profile" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
             {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
           </a>
           <div class="dropdown-menu dropdown-menu-end nr-pop nr-mega">
@@ -616,6 +616,7 @@
             {% endif %}
             <div class="nr-foot" data-cmd-group="HISOB">
               <a href="{% url 'profile' %}" data-cmd-label="Profil"><i class="bi bi-person"></i> Profil</a>
+              {% if user.is_learner %}<a href="{% url 'home' %}?tour=1" data-cmd-label="Qo'llanma"><i class="bi bi-signpost-split"></i> Qo'llanma</a>{% endif %}
               <a href="{% url 'site_settings' %}" data-cmd-label="Sozlamalar"><i class="bi bi-gear"></i> Sozlamalar</a>
               <a href="{% url 'logout' %}" class="out" data-cmd-label="Chiqish"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
             </div>
@@ -635,10 +636,10 @@
     <!-- ═══ Mobil pastki dock ═══ -->
     <nav class="nr-dock nr-glass" aria-label="Mobil navigatsiya">
       <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}"><i class="bi bi-house{% if request.resolver_match.url_name == 'home' %}-fill{% endif %}"></i>Asosiy</a>
-      <a href="{% url 'professions' %}" class="{% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-book"></i>Kurslar</a>
+      <a href="{% url 'professions' %}" class="{% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" data-tour="courses"><i class="bi bi-book"></i>Kurslar</a>
       <button type="button" class="fab" data-nr-cmd aria-label="Qidirish"><i class="bi bi-search"></i></button>
-      <a href="{% url 'chat_inbox' %}" class="{% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}"><i class="bi bi-chat-dots"></i>Suhbat</a>
-      <button type="button" id="nrDockMenu" aria-controls="nbMobilePanel"><i class="bi bi-grid"></i>Menyu</button>
+      <a href="{% url 'chat_inbox' %}" class="{% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" data-tour="chat"><i class="bi bi-chat-dots"></i>Suhbat</a>
+      <button type="button" id="nrDockMenu" data-tour="profile" aria-controls="nbMobilePanel"><i class="bi bi-grid"></i>Menyu</button>
     </nav>
 
     <!-- ═══ Ctrl+K qidiruv oynasi ═══ -->
@@ -1149,6 +1150,12 @@
                     <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-person-fill"></i></div>
                     <span>Profil</span>
                 </a>
+                {% if user.is_learner %}
+                <a href="{% url 'home' %}?tour=1" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-signpost-split"></i></div>
+                    <span>Qo'llanma</span>
+                </a>
+                {% endif %}
                 <a href="{% url 'coin:coin_history' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-coin"></i></div>
                     <span>Coin tarixi</span>

@@ -236,7 +236,9 @@ def enroll_paid_student(user, profession):
     _, created = CourseEnrollment.objects.get_or_create(user=user, profession=profession)
     if created:
         from .views import _reset_course_progress
+        from .course_membership import notify_student_joined
         _reset_course_progress(user, profession)
+        notify_student_joined(user, profession, how="Kurs sotib olindi (to'lov orqali)")
     return created
 
 

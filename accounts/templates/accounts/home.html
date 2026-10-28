@@ -8,7 +8,7 @@
   <div class="pf3-bg" aria-hidden="true"></div>
 
   <!-- ═══ SALOMLASHUV ═══ -->
-  <section class="hero3 hello glass" aria-label="Salomlashuv">
+  <section class="hero3 hello glass" aria-label="Salomlashuv" data-tour="hero">
     <div class="hero3-l">
       <div>
         <div class="clock"><i class="bi bi-calendar3"></i> <span id="date"></span> · <b id="time">--:--</b></div>
@@ -38,7 +38,7 @@
   {% if sale_promos or coin_promos %}{% include 'accounts/_home_promos.html' %}{% endif %}
 
   <!-- ═══ Asosiy ko'rsatkichlar ═══ -->
-  <div class="metrics" style="margin-top:18px" data-stagger>
+  <div class="metrics" style="margin-top:18px" data-stagger data-tour="metrics">
     <div class="metric m1 glass"><i class="bi bi-lightning-charge"></i><strong>{{ level_number|default:1 }}</strong><span>Daraja · {{ xp_in_level|default:0 }}/100 XP</span></div>
     <div class="metric m2 glass"><i class="bi bi-coin"></i><strong data-count="{{ user.coins|default:0 }}">{{ user.coins|default:0 }}</strong><span>Coin balansi</span></div>
     <div class="metric m3 glass"><i class="bi bi-trophy"></i><strong>{% if user_rank %}#{{ user_rank }}{% else %}—{% endif %}</strong><span>Reytingdagi o‘rin</span></div>
@@ -94,7 +94,7 @@
     {% endif %}
 
     <!-- Kunlik vazifalar -->
-    <section class="card3 glass s6" data-rv>
+    <section class="card3 glass s6" data-rv data-tour="missions">
       <div class="hd"><h2><i class="bi bi-check2-circle" style="color:var(--lime)"></i> Kunlik vazifalar</h2><span class="cnt">{{ missions_done_count|default:0 }} / {{ missions_total|default:4 }} · +{{ missions_xp_earned|default:0 }} XP</span></div>
       {% if daily_missions %}
       <div class="mis">
@@ -120,7 +120,7 @@
     </section>
 
     <!-- O'qishni davom ettirish -->
-    <section class="card3 glass s12" data-rv>
+    <section class="card3 glass s12" data-rv data-tour="mycourses">
       <div class="hd"><h2><i class="bi bi-play-btn" style="color:var(--acc)"></i> O‘qishni davom ettiring</h2><a class="more" href="{% url 'professions' %}">Barcha kurslar →</a></div>
       {% if dashboard_courses %}
       <div class="courses3" data-stagger>
@@ -219,6 +219,11 @@
 
 {% block extra_js %}
 {% include 'accounts/dashboard/_motion_js.html' %}
+{% if user.is_learner %}
+<link rel="stylesheet" href="{% static 'css/student_tour.css' %}?v=20261028">
+<div id="stTourBoot" hidden data-name="{{ user.first_name }}" data-done-url="{% url 'onboarding_done' %}"{% if show_student_tour %} data-auto{% endif %}></div>
+<script src="{% static 'js/student_tour.js' %}?v=20261028" defer></script>
+{% endif %}
 <script>
 /* Kun savoli: javob serverga yuboriladi */
 (function () {

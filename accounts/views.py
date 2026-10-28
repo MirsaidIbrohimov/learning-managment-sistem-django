@@ -1946,6 +1946,14 @@ def _daily_question_log(user, today):
 
 
 @login_required
+@require_POST
+def onboarding_done(request):
+    """O'quvchi qo'llanmasi tugatildi/o'tkazib yuborildi — qayta avtomatik chiqmaydi."""
+    CustomUser.objects.filter(pk=request.user.pk).update(onboarding_done=True)
+    return JsonResponse({'ok': True})
+
+
+@login_required
 def daily_question_answer(request):
     """Kun savoliga javobni qabul qiladi: kunda faqat bir marta, to'g'ri javobga coin."""
     if request.method != 'POST':
@@ -2762,6 +2770,11 @@ def home_view(request):
     context['curiosity_question'] = curiosity.pick_question(user)
     curiosity.remember(request, context['curiosity_question'])
     curiosity.refresh_if_stale()
+
+    # Birinchi kirishdagi qo'llanma (yoki ?tour=1 — qayta ko'rish)
+    context['show_student_tour'] = user.is_learner and (
+        not user.onboarding_done or request.GET.get('tour') == '1'
+    )
 
     return render(request, 'accounts/home.html', context)
 
@@ -3771,8 +3784,11 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
-    if not profession.is_paid:
+    from .course_membership import has_teachers, notify_new_enroll_request, notify_student_joined
+
+    # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST).
+    # Kursga o'qituvchi biriktirilgan bo'lsa — yozilishni o'qituvchi tasdiqlaydi.
+    if not profession.is_paid and not has_teachers(profession):
         # Eski so'rovlarni tozalash (qayta yozilishga to'sqinlik qilmasligi uchun)
         CourseUnenrollRequest.objects.filter(user=request.user, profession=profession).delete()
         CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).delete()
@@ -3786,6 +3802,7 @@ def enroll_course(request, pk):
             f"📖 {profession.name}\n"
             f"💰 Bepul kurs"
         )
+        notify_student_joined(request.user, profession, how="Bepul kurs — o'zi yozildi")
         messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! O'qishni boshlashingiz mumkin.")
         return redirect('profession_detail', pk=pk)
 
@@ -3805,7 +3822,7 @@ def enroll_course(request, pk):
     
     if existing_request:
         if existing_request.status == 'pending':
-            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz admin tomonidan ko'rib chiqilmoqda.")
+            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz o'qituvchi/admin tomonidan ko'rib chiqilmoqda.")
             return redirect('profession_detail', pk=pk)
         elif existing_request.status in ('approved', 'rejected'):
             # Eski so'rovni o'chirib, qayta so'rov yuborishga ruxsat berish
@@ -3816,14 +3833,15 @@ def enroll_course(request, pk):
         if not reason:
             messages.error(request, "Iltimos, kursga yozilish sababini yozing!")
             return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
-        messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
-        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession, reason=reason)
+        messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! O'qituvchi yoki admin tasdiqlashini kuting.")
+        enroll_request = CourseEnrollmentRequest.objects.create(user=request.user, profession=profession, reason=reason)
         notify_admins(
             f"📋 <b>Kursga yozilish so'rovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📖 {profession.name}\n"
-            f"💰 Pullik kurs — tasdiq kutilmoqda"
+            f"{'💰 Pullik kurs' if profession.is_paid else '🆓 Bepul kurs'} — tasdiq kutilmoqda"
         )
+        notify_new_enroll_request(enroll_request)
         return redirect('profession_detail', pk=pk)
     
     return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
@@ -3850,7 +3868,7 @@ def unenroll_course(request, pk):
     # Allaqachon kutilayotgan so'rov bormi?
     existing = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
     if existing:
-        messages.info(request, "Sizning kursdan chiqish so'rovingiz allaqachon yuborilgan. Admin tasdiqlashini kuting.")
+        messages.info(request, "Sizning kursdan chiqish so'rovingiz allaqachon yuborilgan. O'qituvchi yoki admin tasdiqlashini kuting.")
         return redirect('profession_detail', pk=pk)
     
     if request.method == 'POST':
@@ -3864,18 +3882,20 @@ def unenroll_course(request, pk):
             user=request.user, profession=profession
         ).exclude(status='pending').delete()
         
-        CourseUnenrollRequest.objects.create(
+        unenroll_request = CourseUnenrollRequest.objects.create(
             user=request.user,
             profession=profession,
             reason=reason,
         )
+        from .course_membership import notify_new_unenroll_request
+        notify_new_unenroll_request(unenroll_request)
         notify_admins(
             f"🚪 <b>Kursdan chiqish so'rovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
             f"📖 {profession.name}\n"
             f"📝 Sabab: {reason[:200]}"
         )
-        messages.success(request, f"Kursdan chiqish so'rovi yuborildi. Admin ko'rib chiqishini kuting.")
+        messages.success(request, f"Kursdan chiqish so'rovi yuborildi. O'qituvchi yoki admin ko'rib chiqishini kuting.")
         return redirect('profession_detail', pk=pk)
     
     return redirect('profession_detail', pk=pk)
@@ -13809,42 +13829,11 @@ def approve_enrollment_request(request, pk):
     enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
     
     if request.method == 'POST':
-        enrollment_request.status = 'approved'
-        enrollment_request.reviewed_by = request.user
-        enrollment_request.save()
-        
-        # Eski chiqish so'rovlarini tozalash
-        CourseUnenrollRequest.objects.filter(
-            user=enrollment_request.user, profession=enrollment_request.profession
-        ).delete()
-        
-        # Kursga yozish
-        _, created = CourseEnrollment.objects.get_or_create(
-            user=enrollment_request.user,
-            profession=enrollment_request.profession
-        )
-        if created:
-            # Qayta yozilish bo'lsa — eski progressni tozalash
-            _reset_course_progress(enrollment_request.user, enrollment_request.profession)
-        
-        # Foydalanuvchiga xabar yuborish
-        Message.objects.create(
-            title=f"Kursga qabul qilindingiz!",
-            content=f"Sizning '{enrollment_request.profession.name}' kursiga yozilish so'rovingiz qabul qilindi. Endi o'qishni boshlashingiz mumkin!",
-            message_type='student',
-            recipient=enrollment_request.user,
-            sender=request.user
-        )
-        
-        if enrollment_request.user.telegram_id:
-            notify_user(
-                enrollment_request.user.telegram_id,
-                f"✅ <b>Kursga qabul qilindingiz!</b>\n\n"
-                f"📖 <b>{enrollment_request.profession.name}</b>\n\n"
-                f"🎉 So'rovingiz tasdiqlandi. Endi o'qishni boshlashingiz mumkin!"
-            )
-        
-        messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
+        from .course_membership import approve_enrollment
+        if approve_enrollment(enrollment_request, request.user):
+            messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
+        else:
+            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
     
     return redirect('admin_enrollment_requests')
 
@@ -13859,31 +13848,12 @@ def reject_enrollment_request(request, pk):
     enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
     
     if request.method == 'POST':
-        admin_message = request.POST.get('admin_message', "Sizga ushbu kursni o'qish imkoniyati berilmadi.")
-        
-        enrollment_request.status = 'rejected'
-        enrollment_request.admin_message = admin_message
-        enrollment_request.reviewed_by = request.user
-        enrollment_request.save()
-        
-        # Foydalanuvchiga xabar yuborish
-        Message.objects.create(
-            title=f"Kursga yozilish so'rovi rad etildi",
-            content=f"Sizning '{enrollment_request.profession.name}' kursiga yozilish so'rovingiz rad etildi.\n\nSabab: {admin_message}",
-            message_type='student',
-            recipient=enrollment_request.user,
-            sender=request.user
-        )
-        
-        if enrollment_request.user.telegram_id:
-            notify_user(
-                enrollment_request.user.telegram_id,
-                f"❌ <b>Kursga yozilish rad etildi</b>\n\n"
-                f"📖 <b>{enrollment_request.profession.name}</b>\n\n"
-                f"📝 Sabab: {admin_message[:300]}"
-            )
-        
-        messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
+        from .course_membership import reject_enrollment
+        admin_message = request.POST.get('admin_message', '').strip()
+        if reject_enrollment(enrollment_request, request.user, admin_message):
+            messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
+        else:
+            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
     
     return redirect('admin_enrollment_requests')
 
@@ -13924,82 +13894,13 @@ def approve_unenroll_request(request, pk):
     unenroll_req = get_object_or_404(CourseUnenrollRequest, pk=pk)
 
     if request.method == 'POST':
-        unenroll_req.status = 'approved'
-        unenroll_req.reviewed_by = request.user
-        unenroll_req.save()
-
-        # Kurs darslaridan olingan coinlarni hisoblash
-        course_lessons = Lesson.objects.filter(profession=unenroll_req.profession)
-        lesson_titles = list(course_lessons.values_list('title', flat=True))
-        
-        total_coins_earned = 0
-        if lesson_titles:
-            q_filter = Q()
-            for title in lesson_titles:
-                q_filter |= Q(reason__icontains=title)
-            
-            coin_sum = CoinTransaction.objects.filter(
-                user=unenroll_req.user,
-                action='add',
-            ).filter(q_filter).aggregate(total=Sum('amount'))
-            total_coins_earned = coin_sum['total'] or 0
-        
-        # Kurs bo'yicha ball (baho) larni hisoblash
-        hw_grades_count = HomeworkSubmission.objects.filter(
-            student=unenroll_req.user,
-            homework__lesson__profession=unenroll_req.profession,
-            status='graded'
-        ).count()
-        
-        test_results_count = TestResult.objects.filter(
-            student=unenroll_req.user,
-            test__lesson__profession=unenroll_req.profession,
-        ).count()
-        
-        # Coinlarni ayirish
-        if total_coins_earned > 0:
-            unenroll_req.user.remove_coins(
-                total_coins_earned,
-                f"Kursdan chiqish ({unenroll_req.profession.name}) - olingan coinlar qaytarildi"
-            )
-
-        # Kursdan chiqarish
-        CourseEnrollment.objects.filter(user=unenroll_req.user, profession=unenroll_req.profession).delete()
-        if unenroll_req.user.profession == unenroll_req.profession:
-            unenroll_req.user.profession = None
-            unenroll_req.user.save(update_fields=['profession'])
-
-        # Xabar tarkibi
-        coin_info = ""
-        if total_coins_earned > 0:
-            coin_info += f"\n\n🪙 Kursdan olingan {total_coins_earned} coin ayirildi."
-        if hw_grades_count > 0 or test_results_count > 0:
-            coin_info += f"\n📊 {hw_grades_count} ta vazifa bahosi va {test_results_count} ta test natijasi bekor qilindi."
-
-        Message.objects.create(
-            title="Kursdan chiqish tasdiqlandi",
-            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz tasdiqlandi.{coin_info}",
-            message_type='personal',
-            recipient=unenroll_req.user,
-            sender=request.user
-        )
-
-        if unenroll_req.user.telegram_id:
-            tg_coin_info = ""
-            if total_coins_earned > 0:
-                tg_coin_info += f"\n🪙 Kursdan olingan <b>{total_coins_earned}</b> coin ayirildi."
-            if hw_grades_count > 0 or test_results_count > 0:
-                tg_coin_info += f"\n📊 {hw_grades_count} ta vazifa bahosi va {test_results_count} ta test natijasi bekor qilindi."
-            
-            notify_user(
-                unenroll_req.user.telegram_id,
-                f"✅ <b>Kursdan chiqish tasdiqlandi</b>\n\n"
-                f"📖 <b>{unenroll_req.profession.name}</b>\n\n"
-                f"📋 So'rovingiz tasdiqlandi. Siz ushbu kursdan chiqarildingiz.{tg_coin_info}"
-            )
-
-        coin_msg = f" ({total_coins_earned} coin ayirildi)" if total_coins_earned > 0 else ""
-        messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!{coin_msg}")
+        from .course_membership import approve_unenroll
+        total_coins_earned = approve_unenroll(unenroll_req, request.user)
+        if total_coins_earned is None:
+            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        else:
+            coin_msg = f" ({total_coins_earned} coin ayirildi)" if total_coins_earned > 0 else ""
+            messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!{coin_msg}")
 
     return redirect('admin_unenroll_requests')
 
@@ -14013,29 +13914,12 @@ def reject_unenroll_request(request, pk):
     unenroll_req = get_object_or_404(CourseUnenrollRequest, pk=pk)
 
     if request.method == 'POST':
-        admin_message = request.POST.get('admin_message', "Kursdan chiqish rad etildi.")
-        unenroll_req.status = 'rejected'
-        unenroll_req.admin_message = admin_message
-        unenroll_req.reviewed_by = request.user
-        unenroll_req.save()
-
-        Message.objects.create(
-            title="Kursdan chiqish rad etildi",
-            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz rad etildi.\n\nSabab: {admin_message}",
-            message_type='personal',
-            recipient=unenroll_req.user,
-            sender=request.user
-        )
-
-        if unenroll_req.user.telegram_id:
-            notify_user(
-                unenroll_req.user.telegram_id,
-                f"❌ <b>Kursdan chiqish rad etildi</b>\n\n"
-                f"📖 <b>{unenroll_req.profession.name}</b>\n\n"
-                f"📝 Sabab: {admin_message[:300]}"
-            )
-
-        messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
+        from .course_membership import reject_unenroll
+        admin_message = request.POST.get('admin_message', '').strip()
+        if reject_unenroll(unenroll_req, request.user, admin_message):
+            messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
+        else:
+            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
 
     return redirect('admin_unenroll_requests')
 

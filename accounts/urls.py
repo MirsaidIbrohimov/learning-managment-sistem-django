@@ -17,6 +17,7 @@ from .api import notify_views as notify_api
 urlpatterns = [
     path('', views.home_view, name='home'),
     path('daily-question/answer/', views.daily_question_answer, name='daily_question_answer'),
+    path('onboarding/done/', views.onboarding_done, name='onboarding_done'),
     path('search/', views.global_search, name='global_search'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),

@@ -5,11 +5,11 @@
 {% with rm=request.resolver_match %}
 <nav class="nr-tn" aria-label="Asosiy navigatsiya (yuqori)">
   <a class="nr-tn-link {% if rm.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house" aria-hidden="true"></i><span>Bosh sahifa</span></a>
-  <a class="nr-tn-link {% if rm.url_name and 'profession' in rm.url_name %}active{% endif %}" href="{% url 'professions' %}"><i class="bi bi-book" aria-hidden="true"></i><span>Kurslar</span></a>
+  <a class="nr-tn-link {% if rm.url_name and 'profession' in rm.url_name %}active{% endif %}" href="{% url 'professions' %}" data-tour="courses"><i class="bi bi-book" aria-hidden="true"></i><span>Kurslar</span></a>
   {% if user.role != 'admin' and user.role != 'assistant_admin' %}
-  <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}"><i class="bi bi-calendar2-week" aria-hidden="true"></i><span>Dars jadvalim</span></a>
+  <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" data-tour="schedule"><i class="bi bi-calendar2-week" aria-hidden="true"></i><span>Dars jadvalim</span></a>
   {% endif %}
-  <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}"><i class="bi bi-trophy" aria-hidden="true"></i><span>Reyting</span></a>
+  <a class="nr-tn-link nr-tn-sec {% if rm.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}" data-tour="rating"><i class="bi bi-trophy" aria-hidden="true"></i><span>Reyting</span></a>
 
   <div class="dropdown">
     <button type="button" class="nr-tn-link nr-tn-dd" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-journal-bookmark" aria-hidden="true"></i><span>O‘qish</span><i class="bi bi-chevron-down nr-chev" aria-hidden="true"></i></button>

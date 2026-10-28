@@ -195,6 +195,10 @@ class CustomUser(AbstractUser):
 
     bio = models.TextField(blank=True, null=True, verbose_name="O'zi haqida")
     obektivka = models.TextField(blank=True, null=True, verbose_name="Obektivka")
+    onboarding_done = models.BooleanField(
+        default=False, verbose_name="Qo'llanmani ko'rgan",
+        help_text="Saytga birinchi kirishdagi o'quvchi qo'llanmasi ko'rsatilganmi.",
+    )
 
     # Gamification
     coins = models.IntegerField(default=0, verbose_name="Coinlar")

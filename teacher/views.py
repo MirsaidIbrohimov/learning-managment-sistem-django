@@ -462,6 +462,7 @@ def teacher_my_students(request):
         'filter_profession': filter_profession,
         'filter_search': filter_search,
         'filter_sort': filter_sort,
+        'teacher_coins': CustomUser.objects.filter(pk=user.pk).values_list('coins', flat=True).first() or 0,
     }
     return render(request, 'teacher/my_students.html', context)
 
@@ -2404,3 +2405,224 @@ def teacher_group_chats(request):
     return render(request, 'teacher/group_chats.html', {
         'professions': professions,
     })
+
+
+# ============ O'QUVCHILARNI BOSHQARISH (coin, kursga qo'shish/chiqarish) ============
+
+def _teacher_student_in_course(request, student_pk, profession_pk):
+    """O'qituvchining kursi va shu kursdagi o'quvchini qaytaradi (yoki 404)."""
+    from accounts.models import CustomUser, CourseEnrollment
+
+    profession = get_object_or_404(request.user.teaching_professions.all(), pk=profession_pk or 0)
+    student = get_object_or_404(CustomUser, pk=student_pk or 0)
+    if not CourseEnrollment.objects.filter(user=student, profession=profession).exists():
+        return profession, None
+    return profession, student
+
+
+def _parse_amount(raw):
+    try:
+        amount = int(raw)
+    except (TypeError, ValueError):
+        return 0
+    return amount if 0 < amount <= 100000 else 0
+
+
+def _back_to_students(request):
+    nxt = request.POST.get('next', '')
+    if nxt.startswith('/') and not nxt.startswith('//'):
+        return redirect(nxt)
+    return redirect('teacher:my_students')
+
+
+@teacher_required
+def teacher_student_coins(request):
+    """O'quvchiga coin berish (o'qituvchi balansidan) yoki ayirish."""
+    from accounts.course_membership import give_coins, take_coins
+
+    if request.method != 'POST':
+        return redirect('teacher:my_students')
+
+    profession, student = _teacher_student_in_course(
+        request, request.POST.get('student'), request.POST.get('profession')
+    )
+    if student is None:
+        messages.error(request, "Bu o'quvchi sizning kursingizda emas.")
+        return _back_to_students(request)
+
+    amount = _parse_amount(request.POST.get('amount'))
+    if not amount:
+        messages.error(request, "Coin miqdorini to'g'ri kiriting (1 — 100000).")
+        return _back_to_students(request)
+
+    reason = request.POST.get('reason', '').strip()[:300]
+    if request.POST.get('op') == 'take':
+        ok, msg = take_coins(request.user, student, profession, amount, reason)
+    else:
+        ok, msg = give_coins(request.user, student, profession, amount, reason)
+    (messages.success if ok else messages.error)(request, msg)
+    return _back_to_students(request)
+
+
+@teacher_required
+def teacher_add_student(request):
+    """O'quvchini ID / telefon / login bo'yicha topib kursga qo'shish."""
+    from accounts.course_membership import find_student, teacher_add_student as add_student
+
+    if request.method != 'POST':
+        return redirect('teacher:my_students')
+
+    profession = get_object_or_404(
+        request.user.teaching_professions.all(), pk=request.POST.get('profession') or 0
+    )
+    student = find_student(request.POST.get('query'))
+    if student is None:
+        messages.error(request, "O'quvchi topilmadi. ID raqami, telefon yoki loginni tekshiring.")
+        return _back_to_students(request)
+
+    ok, msg = add_student(request.user, student, profession)
+    (messages.success if ok else messages.error)(request, msg)
+    return _back_to_students(request)
+
+
+@teacher_required
+def teacher_remove_student(request):
+    """O'quvchini o'qituvchining kursidan chiqarish."""
+    from accounts.course_membership import teacher_remove_student as remove_student
+
+    if request.method != 'POST':
+        return redirect('teacher:my_students')
+
+    profession, student = _teacher_student_in_course(
+        request, request.POST.get('student'), request.POST.get('profession')
+    )
+    if student is None:
+        messages.error(request, "Bu o'quvchi sizning kursingizda emas.")
+        return _back_to_students(request)
+
+    ok, msg = remove_student(request.user, student, profession, request.POST.get('reason', '').strip()[:300])
+    (messages.success if ok else messages.error)(request, msg)
+    return _back_to_students(request)
+
+
+# ============ KURS SO'ROVLARI (yozilish / chiqish) ============
+
+@teacher_required
+def teacher_course_requests(request):
+    """O'qituvchi kurslariga kelgan yozilish va chiqish so'rovlari."""
+    from accounts.models import CourseEnrollmentRequest, CourseUnenrollRequest
+
+    professions = request.user.teaching_professions.all()
+    status = request.GET.get('status', 'pending')
+    if status not in ('pending', 'approved', 'rejected', 'all'):
+        status = 'pending'
+
+    enroll_qs = CourseEnrollmentRequest.objects.filter(
+        profession__in=professions
+    ).select_related('user', 'profession', 'reviewed_by')
+    unenroll_qs = CourseUnenrollRequest.objects.filter(
+        profession__in=professions
+    ).select_related('user', 'profession', 'reviewed_by')
+    if status != 'all':
+        enroll_qs = enroll_qs.filter(status=status)
+        unenroll_qs = unenroll_qs.filter(status=status)
+
+    context = {
+        'enroll_requests': enroll_qs[:200],
+        'unenroll_requests': unenroll_qs[:200],
+        'status': status,
+        'enroll_pending': CourseEnrollmentRequest.objects.filter(profession__in=professions, status='pending').count(),
+        'unenroll_pending': CourseUnenrollRequest.objects.filter(profession__in=professions, status='pending').count(),
+    }
+    return render(request, 'teacher/course_requests.html', context)
+
+
+@teacher_required
+def teacher_review_request(request, kind, pk, decision):
+    """kind: enroll | unenroll; decision: approve | reject."""
+    from accounts.models import CourseEnrollmentRequest, CourseUnenrollRequest
+    from accounts import course_membership as cm
+
+    if request.method != 'POST' or kind not in ('enroll', 'unenroll') or decision not in ('approve', 'reject'):
+        return redirect('teacher:course_requests')
+
+    model = CourseEnrollmentRequest if kind == 'enroll' else CourseUnenrollRequest
+    req = get_object_or_404(
+        model.objects.select_related('user', 'profession'),
+        pk=pk, profession__in=request.user.teaching_professions.all(),
+    )
+    note = request.POST.get('message', '').strip()[:500]
+
+    if kind == 'enroll' and decision == 'approve':
+        done = cm.approve_enrollment(req, request.user)
+        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursiga qabul qilindi."
+    elif kind == 'enroll':
+        done = cm.reject_enrollment(req, request.user, note)
+        ok_msg = f"{req.user.full_name} so'rovi rad etildi."
+    elif decision == 'approve':
+        coins = cm.approve_unenroll(req, request.user)
+        done = coins is not None
+        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursidan chiqarildi." + (
+            f" ({coins} coin ayirildi)" if coins else ""
+        )
+    else:
+        done = cm.reject_unenroll(req, request.user, note)
+        ok_msg = f"{req.user.full_name} chiqish so'rovi rad etildi."
+
+    cache.delete(f"teacher_badges_{request.user.pk}")
+    if done:
+        messages.success(request, ok_msg)
+    else:
+        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+    return redirect('teacher:course_requests')
+
+
+# ============ ADMIN: O'QITUVCHI AMALLARI JURNALI ============
+
+@login_required
+def admin_teacher_actions(request):
+    from accounts.models import CustomUser
+    from django.core.paginator import Paginator
+    from .models import TeacherStudentAction
+
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    qs = TeacherStudentAction.objects.select_related('actor', 'student', 'profession')
+    teacher_id = request.GET.get('teacher', '')
+    action = request.GET.get('action', '')
+    profession_id = request.GET.get('profession', '')
+    search = request.GET.get('q', '').strip()
+    if teacher_id.isdigit():
+        qs = qs.filter(actor_id=teacher_id)
+    if action:
+        qs = qs.filter(action=action)
+    if profession_id.isdigit():
+        qs = qs.filter(profession_id=profession_id)
+    if search:
+        qs = qs.filter(
+            Q(student__first_name__icontains=search) | Q(student__last_name__icontains=search) |
+            Q(student__phone__icontains=search) | Q(note__icontains=search)
+        )
+
+    totals = qs.aggregate(
+        given=Sum('amount', filter=Q(action='coin_give')),
+        taken=Sum('amount', filter=Q(action='coin_take')),
+        enrolled=Count('id', filter=Q(action__in=('enroll', 'approve_enroll'))),
+        removed=Count('id', filter=Q(action__in=('remove', 'approve_unenroll'))),
+    )
+    page = Paginator(qs, 50).get_page(request.GET.get('page'))
+    params = request.GET.copy()
+    params.pop('page', None)
+
+    context = {
+        'page_obj': page,
+        'totals': totals,
+        'teachers': CustomUser.objects.filter(role='teacher').order_by('first_name', 'last_name'),
+        'professions': Profession.objects.order_by('name'),
+        'action_choices': TeacherStudentAction.ACTION_CHOICES,
+        'f_teacher': teacher_id, 'f_action': action, 'f_profession': profession_id, 'f_q': search,
+        'query_string': params.urlencode(),
+    }
+    return render(request, 'teacher/admin_teacher_actions.html', context)

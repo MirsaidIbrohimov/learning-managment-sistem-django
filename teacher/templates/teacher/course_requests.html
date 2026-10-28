@@ -1,0 +1,99 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Kurs so'rovlari - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Kurs so'rovlari{% endblock %}
+
+{% block extra_css %}
+<style>
+.cr-page { animation: crFadeUp .4s ease; }
+.cr-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem; }
+.cr-header h1 { font-size: 1.6rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: .6rem; }
+.cr-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.cr-tab {
+    padding: 6px 14px; border-radius: 10px; font-size: .82rem; font-weight: 700;
+    border: 2px solid var(--bs-border-color); color: var(--bs-body-color); text-decoration: none;
+}
+.cr-tab.active { background: linear-gradient(135deg,#7c3aed,#8b5cf6); color: #fff; border-color: transparent; }
+.cr-section { margin-bottom: 1.75rem; }
+.cr-section h2 { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.cr-count { background: rgba(239,68,68,.12); color: #dc2626; font-size: .72rem; font-weight: 800; padding: 2px 9px; border-radius: 20px; }
+.cr-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: .9rem; }
+@media (max-width: 576px) { .cr-list { grid-template-columns: 1fr; } }
+.cr-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.cr-top { display: flex; align-items: center; gap: 12px; }
+.cr-avatar {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; font-weight: 800;
+    background: linear-gradient(135deg,#7c3aed,#a78bfa); color: #fff;
+}
+.cr-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.cr-name { font-weight: 700; }
+.cr-meta { font-size: .76rem; color: var(--bs-secondary-color); display: flex; gap: 10px; flex-wrap: wrap; }
+.cr-course { font-size: .78rem; font-weight: 700; padding: 3px 10px; border-radius: 8px; background: var(--bs-tertiary-bg); align-self: flex-start; }
+.cr-reason { font-size: .83rem; background: var(--bs-tertiary-bg); border-radius: 10px; padding: 8px 10px; white-space: pre-line; }
+.cr-status { font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 7px; margin-left: auto; white-space: nowrap; }
+.cr-status-pending { background: rgba(245,158,11,.12); color: #b45309; }
+.cr-status-approved { background: rgba(13,110,253,.12); color: #0a58ca; }
+.cr-status-rejected { background: rgba(239,68,68,.12); color: #dc2626; }
+.cr-actions { display: flex; gap: 6px; }
+.cr-actions form { flex: 1; }
+.cr-actions .btn { width: 100%; border-radius: 10px; font-weight: 700; font-size: .82rem; }
+.cr-reviewed { font-size: .75rem; color: var(--bs-secondary-color); }
+.cr-empty { text-align: center; padding: 2rem; border: 1px dashed var(--bs-border-color); border-radius: 14px; color: var(--bs-secondary-color); }
+@keyframes crFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</style>
+{% endblock %}
+
+{% block teacher_content %}
+<div class="cr-page">
+    <div class="cr-header">
+        <h1><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kurs so'rovlari</h1>
+        <div class="cr-tabs">
+            <a href="?status=pending" class="cr-tab {% if status == 'pending' %}active{% endif %}">Kutilmoqda</a>
+            <a href="?status=approved" class="cr-tab {% if status == 'approved' %}active{% endif %}">Tasdiqlangan</a>
+            <a href="?status=rejected" class="cr-tab {% if status == 'rejected' %}active{% endif %}">Rad etilgan</a>
+            <a href="?status=all" class="cr-tab {% if status == 'all' %}active{% endif %}">Barchasi</a>
+        </div>
+    </div>
+
+    <p class="text-muted small mb-3">
+        <i class="bi bi-info-circle"></i> Sizga biriktirilgan kurslarga kelgan so'rovlar. Siz yoki admin tasdiqlashi mumkin —
+        kim tasdiqlagani admin panelda ko'rinadi. Yangi so'rovlar haqida Telegram bot orqali xabar olasiz.
+    </p>
+
+    <!-- Kursga yozilish -->
+    <div class="cr-section">
+        <h2><i class="bi bi-box-arrow-in-right text-primary"></i> Kursga yozilish so'rovlari
+            {% if enroll_pending %}<span class="cr-count">{{ enroll_pending }} ta kutilmoqda</span>{% endif %}
+        </h2>
+        {% if enroll_requests %}
+        <div class="cr-list">
+            {% for req in enroll_requests %}
+            {% include 'teacher/_request_card.html' with req=req kind='enroll' %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="cr-empty">So'rovlar yo'q</div>
+        {% endif %}
+    </div>
+
+    <!-- Kursdan chiqish -->
+    <div class="cr-section">
+        <h2><i class="bi bi-box-arrow-right text-danger"></i> Kursdan chiqish so'rovlari
+            {% if unenroll_pending %}<span class="cr-count">{{ unenroll_pending }} ta kutilmoqda</span>{% endif %}
+        </h2>
+        {% if unenroll_requests %}
+        <div class="cr-list">
+            {% for req in unenroll_requests %}
+            {% include 'teacher/_request_card.html' with req=req kind='unenroll' %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="cr-empty">So'rovlar yo'q</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

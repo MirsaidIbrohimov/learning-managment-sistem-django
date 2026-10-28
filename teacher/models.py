@@ -121,3 +121,46 @@ class TeacherAttendance(models.Model):
 
     def __str__(self):
         return f"{self.teacher.full_name} - {self.date} - {self.get_status_display()}"
+
+
+class TeacherStudentAction(models.Model):
+    """O'qituvchi (yoki admin) tomonidan o'quvchi ustida bajarilgan amallar jurnali.
+
+    Admin panelda kim, kimga, qaysi kursda nima qilgani ko'rinib turishi uchun.
+    """
+    ACTION_CHOICES = (
+        ('coin_give', "Coin berdi"),
+        ('coin_take', "Coin ayirdi"),
+        ('enroll', "Kursga qo'shdi"),
+        ('remove', "Kursdan chiqardi"),
+        ('approve_enroll', "Yozilish so'rovini tasdiqladi"),
+        ('reject_enroll', "Yozilish so'rovini rad etdi"),
+        ('approve_unenroll', "Chiqish so'rovini tasdiqladi"),
+        ('reject_unenroll', "Chiqish so'rovini rad etdi"),
+    )
+
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='teacher_student_actions', verbose_name="Bajaruvchi",
+    )
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='received_teacher_actions', verbose_name="O'quvchi",
+    )
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='teacher_student_actions', verbose_name="Kurs",
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, db_index=True, verbose_name="Amal")
+    amount = models.PositiveIntegerField(default=0, verbose_name="Coin miqdori")
+    note = models.CharField(max_length=500, blank=True, verbose_name="Izoh")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "O'qituvchi amali"
+        verbose_name_plural = "O'qituvchi amallari"
+
+    def __str__(self):
+        actor = self.actor.full_name if self.actor else '—'
+        return f"{actor} → {self.student.full_name}: {self.get_action_display()}"

@@ -234,6 +234,10 @@
             <a href="{% url 'teacher:my_students' %}" class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}" data-title="O'quvchilarim">
                 <div class="nav-icon-wrap"><i class="bi bi-people"></i></div><span>O'quvchilarim</span>
             </a>
+            <a href="{% url 'teacher:course_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'course_requests' %}active{% endif %}" data-title="Kurs so'rovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-person-plus"></i></div><span>Kurs so'rovlari</span>
+                {% if teacher_pending_requests %}<span class="sidebar-badge" style="background:#ef4444;">{{ teacher_pending_requests }}</span>{% endif %}
+            </a>
             <a href="{% url 'my_study_schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" data-title="Dars jadvalim">
                 <div class="nav-icon-wrap"><i class="bi bi-calendar2-week-fill"></i></div><span>Dars jadvalim</span>
             </a>

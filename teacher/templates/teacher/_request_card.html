@@ -1,0 +1,41 @@
+<div class="cr-card">
+    <div class="cr-top">
+        <div class="cr-avatar">
+            {% if req.user.photo %}<img src="{{ req.user.photo.url }}" alt="">{% else %}{{ req.user.first_name.0 }}{{ req.user.last_name.0 }}{% endif %}
+        </div>
+        <div style="min-width:0;">
+            <div class="cr-name">{{ req.user.full_name }}</div>
+            <div class="cr-meta">
+                {% if req.user.student_id %}<span>ID: {{ req.user.student_id }}</span>{% endif %}
+                {% if req.user.phone %}<span><i class="bi bi-telephone-fill"></i> {{ req.user.phone }}</span>{% endif %}
+                <span><i class="bi bi-clock"></i> {{ req.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+        </div>
+        <span class="cr-status cr-status-{{ req.status }}">{{ req.get_status_display }}</span>
+    </div>
+    <span class="cr-course"><i class="bi bi-book me-1"></i>{{ req.profession.name }}</span>
+    {% if req.reason %}<div class="cr-reason">{{ req.reason }}</div>{% endif %}
+
+    {% if req.status == 'pending' %}
+    <div class="cr-actions">
+        <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'approve' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm"
+                    onclick="return confirm('{% if kind == 'enroll' %}O\'quvchini kursga qabul qilasizmi?{% else %}O\'quvchini kursdan chiqarasizmi? Kursdan olingan coinlar ayiriladi.{% endif %}')">
+                <i class="bi bi-check-lg"></i> Tasdiqlash
+            </button>
+        </form>
+        <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'reject' %}"
+              onsubmit="var m = prompt('Rad etish sababi (o\'quvchiga yuboriladi):'); if (m === null) return false; this.message.value = m; return true;">
+            {% csrf_token %}
+            <input type="hidden" name="message" value="">
+            <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-x-lg"></i> Rad etish</button>
+        </form>
+    </div>
+    {% else %}
+    <div class="cr-reviewed">
+        {% if req.reviewed_by %}<i class="bi bi-person-check"></i> Ko'rib chiqdi: <b>{{ req.reviewed_by.full_name }}</b> ({{ req.reviewed_by.get_role_display }}){% endif %}
+        {% if req.admin_message %}<div class="mt-1"><i class="bi bi-chat-left-text"></i> {{ req.admin_message }}</div>{% endif %}
+    </div>
+    {% endif %}
+</div>

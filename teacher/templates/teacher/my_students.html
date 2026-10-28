@@ -218,6 +218,34 @@
     font-size: .85rem; cursor: pointer; transition: all .2s;
 }
 .ms-view-btn.active { background: var(--bs-body-bg); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+/* Boshqaruv */
+.ms-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ms-balance {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+    border-radius: 10px; background: rgba(245,158,11,.12); color: #b45309;
+    font-weight: 800; font-size: .85rem;
+}
+.ms-btn-add {
+    background: linear-gradient(135deg,#7c3aed,#8b5cf6); color: #fff; border: none;
+    border-radius: 10px; padding: 7px 14px; font-weight: 600; font-size: .83rem;
+}
+.ms-btn-add:hover { color: #fff; filter: brightness(1.05); }
+.ms-actions {
+    display: flex; gap: 6px; padding: 10px 14px;
+    border-top: 1px solid var(--bs-border-color);
+}
+.ms-act {
+    flex: 1; border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
+    color: var(--bs-body-color); border-radius: 9px; padding: 6px 8px;
+    font-size: .76rem; font-weight: 700; display: inline-flex; align-items: center;
+    justify-content: center; gap: 5px; transition: all .2s;
+}
+.ms-act-give:hover { background: rgba(13,110,253,.1); border-color: #0d6efd; color: #0a58ca; }
+.ms-act-take:hover { background: rgba(245,158,11,.12); border-color: #f59e0b; color: #b45309; }
+.ms-act-remove:hover { background: rgba(239,68,68,.1); border-color: #ef4444; color: #dc2626; }
+.ms-table-acts { display: inline-flex; gap: 4px; }
+.ms-table-acts .ms-act { flex: none; padding: 4px 8px; }
 </style>
 {% endblock %}
 
@@ -227,9 +255,17 @@
     <!-- Header -->
     <div class="ms-header">
         <h1><i class="bi bi-people-fill" style="color: #7c3aed;"></i> O'quvchilarim <span class="ms-count">{{ total_students }}</span></h1>
-        <div class="ms-view-toggle">
-            <button class="ms-view-btn active" onclick="setView('card')" id="viewCardBtn"><i class="bi bi-grid-3x2-gap-fill"></i></button>
-            <button class="ms-view-btn" onclick="setView('table')" id="viewTableBtn"><i class="bi bi-list-ul"></i></button>
+        <div class="ms-header-right">
+            <span class="ms-balance" title="Sizning coin balansingiz — o'quvchiga berilgan coin shu yerdan yechiladi"><i class="bi bi-coin"></i> {{ teacher_coins }} coin</span>
+            {% if professions %}
+            <button type="button" class="btn ms-btn-add" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <i class="bi bi-person-plus-fill me-1"></i> O'quvchi qo'shish
+            </button>
+            {% endif %}
+            <div class="ms-view-toggle">
+                <button class="ms-view-btn active" onclick="setView('card')" id="viewCardBtn"><i class="bi bi-grid-3x2-gap-fill"></i></button>
+                <button class="ms-view-btn" onclick="setView('table')" id="viewTableBtn"><i class="bi bi-list-ul"></i></button>
+            </div>
         </div>
     </div>
 
@@ -363,6 +399,13 @@
                     <span class="ms-di-val">{{ data.coins }} <i class="bi bi-coin" style="color:#f59e0b;"></i></span>
                 </div>
             </div>
+
+            <!-- Boshqaruv -->
+            <div class="ms-actions">
+                <button type="button" class="ms-act ms-act-give" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i> Coin berish</button>
+                <button type="button" class="ms-act ms-act-take" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i> Coin ayirish</button>
+                <button type="button" class="ms-act ms-act-remove" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i> Chiqarish</button>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -383,6 +426,7 @@
                     <th class="text-center">Video</th>
                     <th class="text-center">Coin</th>
                     <th class="text-center">Holat</th>
+                    <th class="text-center">Amallar</th>
                 </tr>
             </thead>
             <tbody>
@@ -431,6 +475,13 @@
                             {% if data.status == 'faol' %}<i class="bi bi-circle-fill text-success"></i> Faol{% elif data.status == 'ortacha' %}<i class="bi bi-circle-fill text-warning"></i> O'rtacha{% else %}<i class="bi bi-circle-fill text-danger"></i> Sust{% endif %}
                         </span>
                     </td>
+                    <td class="text-center">
+                        <div class="ms-table-acts">
+                            <button type="button" class="ms-act ms-act-give" title="Coin berish" data-op="give" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-plus-circle"></i></button>
+                            <button type="button" class="ms-act ms-act-take" title="Coin ayirish" data-op="take" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-dash-circle"></i></button>
+                            <button type="button" class="ms-act ms-act-remove" title="Kursdan chiqarish" data-op="remove" data-student="{{ data.student.pk }}" data-name="{{ data.student.full_name }}" data-coins="{{ data.coins }}" data-courses="{% for p in data.professions %}{{ p.pk }}::{{ p.name }}{% if not forloop.last %};;{% endif %}{% endfor %}"><i class="bi bi-box-arrow-right"></i></button>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -444,6 +495,104 @@
     </div>
     {% endif %}
 
+</div>
+
+<!-- Coin modal -->
+<div class="modal fade" id="coinModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{% url 'teacher:student_coins' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="student" id="coinStudent">
+            <input type="hidden" name="op" id="coinOp">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="modal-header">
+                <h5 class="modal-title" id="coinTitle">Coin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2"><b id="coinName"></b> — hozir <b id="coinCurrent"></b> coin</div>
+                <div class="alert alert-warning py-2 small" id="coinGiveHint">
+                    <i class="bi bi-info-circle"></i> Berilgan coin <b>sizning balansingizdan</b> yechiladi (balans: {{ teacher_coins }} coin).
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Kurs</label>
+                    <select name="profession" class="form-select js-course-select" required></select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Miqdor</label>
+                    <input type="number" name="amount" min="1" max="100000" class="form-control" required>
+                </div>
+                <div>
+                    <label class="form-label small fw-bold">Sabab (ixtiyoriy)</label>
+                    <input type="text" name="reason" maxlength="300" class="form-control" placeholder="Masalan: darsda faol qatnashgani uchun">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="submit" class="btn btn-primary" id="coinSubmit">Tasdiqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Kursdan chiqarish modal -->
+<div class="modal fade" id="removeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{% url 'teacher:remove_student' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="student" id="removeStudent">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-box-arrow-right text-danger"></i> Kursdan chiqarish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><b id="removeName"></b> ni kursdan chiqarmoqchimisiz?</p>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">Kurs</label>
+                    <select name="profession" class="form-select js-course-select" required></select>
+                </div>
+                <div>
+                    <label class="form-label small fw-bold">Sabab</label>
+                    <textarea name="reason" rows="2" maxlength="300" class="form-control" placeholder="O'quvchiga yuboriladi"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="submit" class="btn btn-danger">Chiqarish</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- O'quvchi qo'shish modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="POST" action="{% url 'teacher:add_student' %}" class="modal-content">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person-plus-fill" style="color:#7c3aed;"></i> Kursga o'quvchi qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label small fw-bold">O'quvchi ID raqami, telefoni yoki logini</label>
+                    <input type="text" name="query" class="form-control" required placeholder="Masalan: 12345 yoki 901234567">
+                </div>
+                <div>
+                    <label class="form-label small fw-bold">Kurs</label>
+                    <select name="profession" class="form-select" required>
+                        {% for p in professions %}<option value="{{ p.pk }}">{{ p.name }}</option>{% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="submit" class="btn ms-btn-add">Qo'shish</button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}
 
@@ -467,6 +616,47 @@ function setView(mode) {
     }
     localStorage.setItem('studentsView', mode);
 }
+// Coin / chiqarish modallari
+var TEACHER_COINS = {{ teacher_coins|default:0 }};
+function fillCourses(select, raw) {
+    select.innerHTML = '';
+    (raw || '').split(';;').filter(Boolean).forEach(function (item) {
+        var parts = item.split('::');
+        var opt = document.createElement('option');
+        opt.value = parts[0];
+        opt.textContent = parts.slice(1).join('::');
+        select.appendChild(opt);
+    });
+}
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.ms-act[data-op]');
+    if (!btn) return;
+    var op = btn.dataset.op;
+    if (op === 'remove') {
+        document.getElementById('removeStudent').value = btn.dataset.student;
+        document.getElementById('removeName').textContent = btn.dataset.name;
+        fillCourses(document.querySelector('#removeModal .js-course-select'), btn.dataset.courses);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('removeModal')).show();
+        return;
+    }
+    var give = op === 'give';
+    document.getElementById('coinStudent').value = btn.dataset.student;
+    document.getElementById('coinOp').value = op;
+    document.getElementById('coinName').textContent = btn.dataset.name;
+    document.getElementById('coinCurrent').textContent = btn.dataset.coins;
+    document.getElementById('coinTitle').textContent = give ? "Coin berish" : "Coin ayirish";
+    document.getElementById('coinGiveHint').style.display = give ? '' : 'none';
+    var submit = document.getElementById('coinSubmit');
+    submit.className = 'btn ' + (give ? 'btn-primary' : 'btn-warning');
+    submit.textContent = give ? 'Berish' : 'Ayirish';
+    var amount = document.querySelector('#coinModal input[name=amount]');
+    amount.value = '';
+    var limit = give ? TEACHER_COINS : (parseInt(btn.dataset.coins, 10) || 0);
+    amount.max = Math.max(1, Math.min(100000, limit));
+    fillCourses(document.querySelector('#coinModal .js-course-select'), btn.dataset.courses);
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('coinModal')).show();
+});
+
 // Restore view preference
 (function() {
     var saved = localStorage.getItem('studentsView');

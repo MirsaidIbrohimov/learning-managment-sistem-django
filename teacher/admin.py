@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TeacherCertificate, TeacherSalary, TeacherAttendance
+from .models import TeacherCertificate, TeacherSalary, TeacherAttendance, TeacherStudentAction
 
 
 class TeacherCertificateInline(admin.TabularInline):
@@ -44,3 +44,17 @@ class TeacherAttendanceAdmin(admin.ModelAdmin):
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
+
+
+@admin.register(TeacherStudentAction)
+class TeacherStudentActionAdmin(admin.ModelAdmin):
+    list_display = ['created_at', 'actor', 'action', 'student', 'profession', 'amount', 'note']
+    list_filter = ['action', 'profession', 'created_at']
+    search_fields = ['actor__first_name', 'actor__last_name', 'student__first_name', 'student__last_name',
+                     'student__phone', 'note']
+    raw_id_fields = ['actor', 'student']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['actor', 'student', 'profession', 'action', 'amount', 'note', 'created_at']
+
+    def has_add_permission(self, request):
+        return False

@@ -371,6 +371,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.unread_messages',
                 'accounts.context_processors.admin_badges',
+                'accounts.context_processors.teacher_badges',
                 'accounts.context_processors.student_payment_reminder',
                 'startup.context_processors.my_startup',
             ],

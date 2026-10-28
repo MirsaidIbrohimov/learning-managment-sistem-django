@@ -11,6 +11,16 @@ urlpatterns = [
 
     # O'quvchilarim
     path('students/', views.teacher_my_students, name='my_students'),
+    path('students/coins/', views.teacher_student_coins, name='student_coins'),
+    path('students/add/', views.teacher_add_student, name='add_student'),
+    path('students/remove/', views.teacher_remove_student, name='remove_student'),
+
+    # Kurs so'rovlari (yozilish / chiqish)
+    path('requests/', views.teacher_course_requests, name='course_requests'),
+    path('requests/<str:kind>/<int:pk>/<str:decision>/', views.teacher_review_request, name='review_request'),
+
+    # Admin: o'qituvchi amallari jurnali
+    path('admin/actions/', views.admin_teacher_actions, name='admin_actions'),
 
     # Guruh chatlari
     path('group-chats/', views.teacher_group_chats, name='group_chats'),
