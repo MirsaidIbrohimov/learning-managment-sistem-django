@@ -1,0 +1,127 @@
+{% comment %}
+  Tashqi hisobni ulash — animatsiyali ko'rsatma oynasi (Google yoki Facebook).
+  Parametrlar: p ('google'|'facebook'), pname, sym, other_sym, other_name, connect_name.
+  JS oynani <body> ga ko'chiradi (stacking context sababli), shuning uchun ranglari
+  social-connect.css dagi .sc-ov o'zgaruvchilaridan olinadi.
+{% endcomment %}
+{% with em=user.email|default:"sizning@gmail.com" nm=user.get_full_name|default:user.username ini=user.first_name|default:user.username|slice:":1"|upper %}
+<div class="sc-ov is-{{ p }}" id="scOverlay-{{ p }}" role="dialog" aria-modal="true" aria-labelledby="scTitle-{{ p }}" hidden
+     {% if p == 'facebook' %}
+     data-url-choose="facebook.com/dialog/oauth" data-url-consent="facebook.com/dialog/oauth/confirm"
+     data-cap1="1. Profilingizdagi Facebook qatoridagi «Ulash» tugmasini bosasiz."
+     data-cap2="2. Facebook oynasi ochiladi — «{{ nm }} sifatida davom etish» ni bosasiz."
+     data-cap3="3. Ism, rasm va email ulashiladi — «Davom etish» ni bosib, ruxsat berasiz."
+     data-cap4="4. Tayyor! Endi login sahifasida «Facebook» tugmasi bilan bir bosishda kirasiz."
+     data-busy="Facebook ochilmoqda…"
+     {% else %}
+     data-url-choose="accounts.google.com/signin" data-url-consent="accounts.google.com/consent"
+     data-cap1="1. Profilingizdagi «Ulash» tugmasini bosasiz."
+     data-cap2="2. Google sahifasi ochiladi — o‘z Gmail hisobingizni tanlaysiz."
+     data-cap3="3. «Davom etish» ni bosib, IT Creative ga ruxsat berasiz."
+     data-cap4="4. Tayyor! Endi login sahifasida «Google» tugmasi bilan bir bosishda kirasiz."
+     data-busy="Google ochilmoqda…"
+     {% endif %}>
+  <div class="sc-box">
+    <button type="button" class="sc-x" data-sc-close aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+    <span class="sc-hico" aria-hidden="true"><svg><use href="#{{ sym }}"/></svg></span>
+    <h3 id="scTitle-{{ p }}">{{ pname }} hisobni ulash</h3>
+    <p class="sc-lead">4 ta oson qadam — atigi 20 soniya</p>
+
+    <ol class="sc-steps" aria-label="Qadamlar">
+      <li data-i="0"><span><b>1</b><i class="bi bi-check-lg"></i></span>Ulash</li>
+      <li data-i="1"><span><b>2</b><i class="bi bi-check-lg"></i></span>Hisob</li>
+      <li data-i="2"><span><b>3</b><i class="bi bi-check-lg"></i></span>Ruxsat</li>
+      <li data-i="3"><span><b>4</b><i class="bi bi-check-lg"></i></span>Tayyor</li>
+    </ol>
+
+    <!-- Mini brauzer: sayt ↔ xizmat sahifalari, kursor avtomatik bosib chiqadi -->
+    <div class="sc-screen" aria-hidden="true">
+      <div class="sc-bar">
+        <span class="sc-dots"><i></i><i></i><i></i></span>
+        <span class="sc-addr"><i class="bi bi-lock-fill"></i><span class="sc-url">itc-academy.uz/profile</span></span>
+        <span class="sc-load"></span>
+      </div>
+      <div class="sc-stage" data-state="profile">
+        <!-- Sayt: profil sahifasi -->
+        <div class="sc-page sc-site">
+          <div class="sc-snav"><span><b>IT</b> Creative</span><span class="sc-sava">{{ ini }}</span></div>
+          <div class="sc-card">
+            <b class="sc-ctitle">Ulangan hisoblar</b>
+            <small class="sc-csub">Keyingi safar parolsiz kiring</small>
+            <div class="sc-mrow sc-grow">
+              <span class="sc-mlogo"><svg><use href="#{{ sym }}"/></svg></span>
+              <span class="sc-mtxt"><b>{{ pname }}</b><small class="sc-off">Ulanmagan</small><small class="sc-on"><i class="bi bi-check-circle-fill"></i> Ulangan · {% if p == 'facebook' %}{{ nm }}{% else %}{{ em }}{% endif %}</small></span>
+              <span class="sc-mbtn sc-t-connect"><i class="bi bi-link-45deg"></i> Ulash</span>
+              <span class="sc-mbtn ghost sc-t-un">Uzish</span>
+            </div>
+            <div class="sc-mrow dim">
+              <span class="sc-mlogo"><svg><use href="#{{ other_sym }}"/></svg></span>
+              <span class="sc-mtxt"><b>{{ other_name }}</b><small>Ulanmagan</small></span>
+            </div>
+          </div>
+          <div class="sc-toast"><i class="bi bi-check-circle-fill"></i> {{ pname }} hisobi muvaffaqiyatli ulandi</div>
+          <div class="sc-confetti"></div>
+        </div>
+        <!-- Xizmat sahifasi: hisob tanlash va ruxsat -->
+        <div class="sc-page sc-google">
+          <div class="sc-gprog"></div>
+          <div class="sc-ghead"><svg><use href="#{{ sym }}"/></svg> {{ pname }} bilan kirish</div>
+          {% if p == 'facebook' %}
+          <div class="sc-gview sc-gv-choose">
+            <h4>{{ nm }} sifatida davom etasizmi?</h4>
+            <p><b>IT Creative</b> Facebook hisobingiz orqali kirishni so‘ramoqda</p>
+            <div class="sc-gacc sc-t-acc sc-fbcont">
+              <span class="sc-gav">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>
+              <span><b>{{ nm }} sifatida davom etish</b><small>Facebook hisobingiz</small></span>
+            </div>
+            <div class="sc-gacc">
+              <span class="sc-gav alt"><i class="bi bi-arrow-left-right"></i></span>
+              <span><b>Boshqa hisobga o‘tish</b></span>
+            </div>
+          </div>
+          <div class="sc-gview sc-gv-consent">
+            <h4>IT Creative quyidagilarni oladi</h4>
+            <span class="sc-chip"><span class="sc-gav xs">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>{{ nm }}</span>
+            <p>Facebook IT Creative bilan ulashadi:</p>
+            <ul>
+              <li><i class="bi bi-person"></i> Ism va profil rasmi</li>
+              <li><i class="bi bi-envelope"></i> Email manzil (bo‘lsa)</li>
+            </ul>
+            <div class="sc-gbtns"><span class="sc-gtext">Bekor qilish</span><span class="sc-gbtn sc-t-allow">Davom etish</span></div>
+          </div>
+          {% else %}
+          <div class="sc-gview sc-gv-choose">
+            <h4>Hisobni tanlang</h4>
+            <p><b>IT Creative</b> saytiga o‘tish uchun</p>
+            <div class="sc-gacc sc-t-acc">
+              <span class="sc-gav">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>
+              <span><b>{{ nm }}</b><small>{{ em }}</small></span>
+            </div>
+            <div class="sc-gacc">
+              <span class="sc-gav alt"><i class="bi bi-person-circle"></i></span>
+              <span><b>Boshqa hisobdan foydalanish</b></span>
+            </div>
+          </div>
+          <div class="sc-gview sc-gv-consent">
+            <h4>IT Creative saytiga kirish</h4>
+            <span class="sc-chip"><span class="sc-gav xs">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>{{ em }}</span>
+            <p>Google IT Creative bilan quyidagilarni ulashadi:</p>
+            <ul>
+              <li><i class="bi bi-person"></i> Ism va profil rasmi</li>
+              <li><i class="bi bi-envelope"></i> Email manzil</li>
+            </ul>
+            <div class="sc-gbtns"><span class="sc-gtext">Bekor qilish</span><span class="sc-gbtn sc-t-allow">Davom etish</span></div>
+          </div>
+          {% endif %}
+        </div>
+        <span class="sc-cursor"><svg viewBox="0 0 24 24"><path d="M4 2v17l4.5-4.2 3 6.7 2.6-1.1-3-6.6 6.2-.3z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg></span>
+      </div>
+    </div>
+
+    <p class="sc-cap" aria-live="polite"></p>
+
+    <a class="sc-go" href="{% url connect_name %}"><svg aria-hidden="true"><use href="#{{ sym }}"/></svg><span class="sc-spin" aria-hidden="true"></span><span class="sc-go-t">{{ pname }} bilan ulash</span></a>
+    <small class="sc-note"><i class="bi bi-shield-lock"></i> Parolingiz bizga ko‘rinmaydi — {{ pname }} faqat ism{% if p == 'facebook' %}, rasm{% endif %} va emailingizni tasdiqlaydi.</small>
+  </div>
+</div>
+{% endwith %}

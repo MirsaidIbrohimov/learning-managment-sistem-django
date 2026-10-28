@@ -128,6 +128,34 @@ button,input,select{font:inherit;color:inherit}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
 .social{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .social button{display:flex;gap:8px;align-items:center;justify-content:center;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);font-size:13px;font-weight:600;cursor:not-allowed;opacity:.7}
+.social a.on{display:flex;gap:8px;align-items:center;justify-content:center;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--field);font-size:13px;font-weight:600;color:inherit;text-decoration:none;cursor:pointer;transition:border-color .25s,transform .25s}
+.social a.on:hover{border-color:#4285F4;transform:translateY(-1px)}
+.social a.on.fb:hover{border-color:#1877F2}
+/* Google / Facebook orqali kirish taklifi */
+.sp-promo{position:relative;display:flex;gap:12px;align-items:flex-start;margin:0 0 12px;padding:12px 38px 12px 12px;border-radius:14px;
+  background:linear-gradient(120deg,color-mix(in srgb,#4285F4 14%,transparent),color-mix(in srgb,#1877F2 10%,transparent),color-mix(in srgb,var(--acc2) 12%,transparent));
+  border:1px solid color-mix(in srgb,#4285F4 35%,transparent);animation:spIn .6s cubic-bezier(.34,1.56,.64,1) .5s both;overflow:hidden}
+.sp-promo::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:35%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent);transform:skewX(-20deg);animation:spShine 3.5s ease-in-out 1.2s infinite}
+.sp-promo.out{animation:spOut .3s ease forwards}
+.sp-promo[hidden]{display:none}
+.sp-ic{width:34px;height:34px;flex-shrink:0;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:16px;background:linear-gradient(135deg,#4285F4,#1877F2);box-shadow:0 8px 18px -8px #4285F4}
+.sp-ic i{animation:spTwinkle 2s ease-in-out infinite}
+.sp-tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sp-tx b{font-size:13.5px;line-height:1.35}
+.sp-tx small{font-size:12px;color:var(--muted)}
+.sp-tx .sp-hint{font-size:11px;margin-top:3px;opacity:.85}
+.sp-arrow{display:inline-block;animation:spBounce 1.2s ease-in-out infinite}
+.sp-x{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:12px;z-index:1}
+.sp-x:hover{background:var(--field);color:var(--ink)}
+body.sp-on .social a.on{animation:spPulse 2.2s ease-out 1.2s infinite}
+body.sp-on .social a.on.fb{animation-delay:2.3s}
+@keyframes spIn{from{opacity:0;transform:translateY(10px) scale(.96)}}
+@keyframes spOut{to{opacity:0;transform:translateY(-6px) scale(.97)}}
+@keyframes spShine{0%,60%{left:-40%}100%{left:130%}}
+@keyframes spTwinkle{50%{transform:rotate(18deg) scale(1.15)}}
+@keyframes spBounce{50%{transform:translateY(3px)}}
+@keyframes spPulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,#4285F4 45%,transparent)}70%,100%{box-shadow:0 0 0 10px transparent}}
+@media (prefers-reduced-motion:reduce){.sp-promo,.sp-promo::after,.sp-ic i,.sp-arrow,body.sp-on .social a.on{animation:none}}
 .social svg{width:18px;height:18px;flex-shrink:0}
 .social i{font-size:18px;line-height:1;flex-shrink:0}
 .foot{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:20px;font-size:14px;color:var(--muted)}

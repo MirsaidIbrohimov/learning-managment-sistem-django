@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from . import views
+from . import views, social_auth, legal_views
 from . import payment_views
 from . import tezcheck_views
 from . import exam_payments
@@ -21,6 +21,17 @@ urlpatterns = [
     path('search/', views.global_search, name='global_search'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
+    path('auth/google/login/', social_auth.social_login, {'provider': 'google'}, name='google_login'),
+    path('auth/google/connect/', social_auth.social_connect, {'provider': 'google'}, name='google_connect'),
+    path('auth/google/callback/', social_auth.social_callback, {'provider': 'google'}, name='google_callback'),
+    path('auth/google/disconnect/', social_auth.social_disconnect, {'provider': 'google'}, name='google_disconnect'),
+    path('auth/facebook/login/', social_auth.social_login, {'provider': 'facebook'}, name='facebook_login'),
+    path('auth/facebook/connect/', social_auth.social_connect, {'provider': 'facebook'}, name='facebook_connect'),
+    path('auth/facebook/callback/', social_auth.social_callback, {'provider': 'facebook'}, name='facebook_callback'),
+    path('auth/facebook/disconnect/', social_auth.social_disconnect, {'provider': 'facebook'}, name='facebook_disconnect'),
+    path('auth/social/admin-unlink/<int:pk>/', social_auth.admin_unlink_social, name='social_admin_unlink'),
+    path('privacy/', legal_views.privacy_policy, name='privacy_policy'),
+    path('data-deletion/', legal_views.data_deletion, name='data_deletion'),
     path('email/verify/<str:token>/', email_verification.verify_email, name='verify_email'),
     path('email/verify-resend/', email_verification.resend_verification, name='resend_email_verification'),
     path('login/location-consent/', views.login_location_consent, name='login_location_consent'),

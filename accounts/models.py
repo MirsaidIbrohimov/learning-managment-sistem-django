@@ -1842,6 +1842,35 @@ class VerifiedEmailBinding(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
 
 
+class SocialAccount(models.Model):
+    """Foydalanuvchi profiliga ulangan tashqi hisob (Google, Facebook, Apple ID)."""
+    PROVIDER_CHOICES = (
+        ('google', 'Google'),
+        ('facebook', 'Facebook'),
+        ('apple', 'Apple ID'),
+    )
+
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='social_accounts')
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, verbose_name="Xizmat")
+    uid = models.CharField(max_length=255, verbose_name="Tashqi ID")
+    email = models.EmailField(blank=True, verbose_name="Email")
+    name = models.CharField(max_length=200, blank=True, verbose_name="Ism")
+    picture = models.URLField(max_length=500, blank=True, verbose_name="Rasm")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Ulangan vaqt")
+    last_login_at = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kirish")
+
+    class Meta:
+        verbose_name = "Ulangan hisob"
+        verbose_name_plural = "Ulangan hisoblar"
+        constraints = [
+            models.UniqueConstraint(fields=['provider', 'uid'], name='uniq_social_provider_uid'),
+            models.UniqueConstraint(fields=['user', 'provider'], name='uniq_social_user_provider'),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.get_provider_display()} ({self.email})"
+
+
 class EmailLoginChallenge(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     token = models.CharField(max_length=64, unique=True)

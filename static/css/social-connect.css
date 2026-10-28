@@ -1,0 +1,193 @@
+/* Profil — ulangan hisoblar va Google ulash ko'rsatmasi (accounts/_connected_accounts.html) */
+.sc3-row{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;margin-top:10px;background:var(--field);border:1px solid var(--line);transition:border-color .35s,background .35s}
+.sc3-row.is-on{border-color:color-mix(in srgb,#16a34a 45%,transparent);background:color-mix(in srgb,#16a34a 8%,transparent)}
+.sc3-row.is-soon{opacity:.6}
+.sc3-logo{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--solid);border:1px solid var(--line);flex-shrink:0}
+.sc3-logo svg{width:20px;height:20px}
+.sc3-apple i{font-size:20px;color:var(--ink)}
+.sc3-info{display:flex;flex-direction:column;min-width:0;font-size:14px}
+.sc3-st{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc3-st.on{color:#16a34a;font-weight:600}
+.sc3-row form,.sc3-row>.sc3-btn,.sc3-soon{margin-left:auto}
+.sc3-btn{padding:7px 14px;font-size:13px}
+.sc3-soon{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--solid);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.sc3-how{margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:12px;border:1px dashed var(--line);background:transparent;color:var(--acc);font-weight:600;font-size:13px;cursor:pointer;transition:background .25s}
+.sc3-how:hover{background:var(--field)}
+.sc3-live .acc{animation:scNudge 2.6s ease-in-out infinite}
+@keyframes scNudge{0%,70%,100%{transform:none}78%{transform:translateY(-2px) scale(1.04)}86%{transform:none}}
+/* Yangi ulanganda — tabrik effekti */
+.sc3-row.just-on{animation:scGlow 1.6s ease-out 2}
+@keyframes scGlow{0%{box-shadow:0 0 0 0 rgba(22,163,74,.55)}100%{box-shadow:0 0 0 14px rgba(22,163,74,0)}}
+
+/* ═══ Overlay: Google ulash ko'rsatmasi ═══
+   JS oynani <body> ga ko'chiradi, shuning uchun .pf3 o'zgaruvchilari bu yerga yetmaydi — o'zinikini e'lon qiladi. */
+.sc-ov{--bg:#f5f6fb;--solid:#fff;--field:rgba(15,23,42,.04);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--ok:#16a34a;
+  position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(5,8,20,.55);backdrop-filter:blur(10px) saturate(120%);-webkit-backdrop-filter:blur(10px) saturate(120%);opacity:0;transition:opacity .3s ease}
+[data-bs-theme=dark] .sc-ov{--bg:#0a0c14;--solid:#10131c;--field:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--ok:#22c55e}
+.sc-ov[hidden]{display:none}
+.sc-ov.show{opacity:1}
+.sc-ov *{box-sizing:border-box}
+.sc-box{position:relative;width:100%;max-width:440px;max-height:calc(100vh - 2rem);overflow:auto;padding:1.6rem 1.4rem 1.25rem;text-align:center;border-radius:26px;color:var(--ink);
+  background:radial-gradient(120% 55% at 50% 0%,color-mix(in srgb,var(--acc) 13%,transparent),transparent 70%),var(--solid);border:1px solid var(--line);
+  box-shadow:0 50px 100px -30px rgba(0,0,0,.6);transform:translateY(26px) scale(.94);opacity:0;transition:transform .6s cubic-bezier(.2,1.25,.3,1),opacity .35s}
+.sc-ov.show .sc-box{transform:none;opacity:1}
+.sc-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--muted);cursor:pointer;display:grid;place-items:center;transition:color .2s,transform .35s}
+.sc-x:hover{color:var(--ink);transform:rotate(90deg)}
+.sc-hico{position:relative;width:54px;height:54px;margin:0 auto 12px;border-radius:16px;background:#fff;display:grid;place-items:center;box-shadow:0 12px 30px -10px rgba(66,133,244,.65)}
+.sc-hico svg{width:28px;height:28px}
+.sc-hico::after{content:'';position:absolute;inset:-5px;border-radius:21px;border:2px solid rgba(66,133,244,.5);animation:scRing 2.4s ease-out infinite}
+@keyframes scRing{0%{transform:scale(.92);opacity:.9}100%{transform:scale(1.28);opacity:0}}
+.sc-box h3{font-size:19px;font-weight:800;margin:0 0 3px;letter-spacing:-.01em;color:var(--ink)}
+.sc-lead{color:var(--muted);font-size:13px;margin:0 0 18px}
+
+/* Qadamlar: chiziq joriy qadamgacha to'lib boradi */
+.sc-steps{--p:0;list-style:none;display:flex;padding:0;margin:0 0 16px;position:relative}
+.sc-steps::before,.sc-steps::after{content:'';position:absolute;left:12.5%;top:14px;height:2px;border-radius:2px}
+.sc-steps::before{right:12.5%;background:var(--line)}
+.sc-steps::after{width:calc(var(--p) * 25%);background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .7s cubic-bezier(.65,0,.35,1)}
+.sc-steps li{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:color .3s}
+.sc-steps li span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--solid);border:2px solid var(--line);font-size:12px;font-weight:800;transition:all .45s cubic-bezier(.2,.9,.3,1.2)}
+.sc-steps li span i{display:none;font-size:15px}
+.sc-steps li.done span{background:var(--acc);border-color:var(--acc);color:#fff}
+.sc-steps li.done span b{display:none}
+.sc-steps li.done span i{display:block}
+.sc-steps li.on{color:var(--ink)}
+.sc-steps li.on span{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff;transform:scale(1.15);box-shadow:0 0 0 5px color-mix(in srgb,var(--acc) 22%,transparent)}
+
+/* Mini brauzer */
+.sc-screen{border-radius:16px;border:1px solid var(--line);overflow:hidden;background:var(--bg);text-align:left;box-shadow:0 22px 44px -26px rgba(0,0,0,.55)}
+.sc-bar{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--field);border-bottom:1px solid var(--line)}
+.sc-dots{display:flex;gap:5px}
+.sc-dots i{width:9px;height:9px;border-radius:50%;background:#f87171}.sc-dots i:nth-child(2){background:#fbbf24}.sc-dots i:nth-child(3){background:#34d399}
+.sc-addr{flex:1;min-width:0;display:flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:var(--solid);border:1px solid var(--line);font-size:11px;color:var(--muted);font-family:'JetBrains Mono',ui-monospace,monospace}
+.sc-addr i{font-size:10px;color:var(--ok)}
+.sc-url{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .18s,transform .18s}
+.sc-url.chg{opacity:0;transform:translateY(-4px)}
+.sc-load{position:absolute;left:0;bottom:-1px;height:2px;width:0;opacity:0;background:linear-gradient(90deg,#4285f4,var(--acc))}
+.sc-bar.loading .sc-load{animation:scLoad .75s cubic-bezier(.3,.7,.4,1) forwards}
+@keyframes scLoad{0%{width:0;opacity:1}80%{width:92%;opacity:1}100%{width:100%;opacity:0}}
+.sc-stage{position:relative;height:270px;overflow:hidden}
+.sc-page{position:absolute;inset:0;transition:opacity .45s ease,transform .55s cubic-bezier(.2,.8,.2,1)}
+
+/* Sahifa 1: sayt */
+.sc-site{padding:0 12px 12px;color:var(--ink)}
+.sc-snav{display:flex;align-items:center;justify-content:space-between;padding:10px 2px;font-size:12px;font-weight:800}
+.sc-snav b{color:var(--acc)}
+.sc-sava{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:10px}
+.sc-card{padding:12px;border-radius:14px;background:var(--solid);border:1px solid var(--line)}
+.sc-ctitle{display:block;font-size:13px}
+.sc-csub{display:block;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+.sc-mrow{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-top:8px;border-radius:12px;background:var(--field);border:1px solid var(--line);font-size:12.5px;transition:border-color .5s,background .5s}
+.sc-mrow.dim{opacity:.55}
+.sc-mlogo{width:28px;height:28px;flex-shrink:0;border-radius:9px;display:grid;place-items:center;background:var(--solid);border:1px solid var(--line);font-size:15px}
+.sc-mlogo svg{width:15px;height:15px}
+.sc-mtxt{flex:1;min-width:0;display:flex;flex-direction:column}
+.sc-mtxt small{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-mbtn{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:999px;background:linear-gradient(100deg,var(--acc),var(--acc2));color:#fff;font-size:11.5px;font-weight:700;transition:transform .15s,filter .2s,box-shadow .25s}
+.sc-mbtn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.sc-mbtn.hover{filter:brightness(1.12);box-shadow:0 8px 18px -6px var(--acc)}
+.sc-mbtn.press,.sc-gbtn.press{transform:scale(.9)}
+.sc-on,.sc-t-un{display:none}
+.sc-stage[data-state=done] .sc-off,.sc-stage[data-state=done] .sc-t-connect{display:none}
+.sc-stage[data-state=done] .sc-on{display:block;color:var(--ok);font-weight:700}
+.sc-stage[data-state=done] .sc-t-un{display:inline-flex}
+.sc-stage[data-state=done] .sc-grow{border-color:color-mix(in srgb,var(--ok) 55%,transparent);background:color-mix(in srgb,var(--ok) 11%,transparent);animation:scGlow 1.4s ease-out .25s 2}
+.sc-toast{position:absolute;z-index:2;left:50%;top:8px;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;white-space:nowrap;background:var(--solid);border:1px solid color-mix(in srgb,var(--ok) 45%,var(--line));color:var(--ink);font-size:12px;font-weight:700;box-shadow:0 16px 32px -12px rgba(0,0,0,.5);opacity:0;transform:translate(-50%,-170%);transition:transform .6s cubic-bezier(.2,1.3,.3,1),opacity .3s}
+.sc-toast i{color:var(--ok);font-size:15px}
+.sc-stage[data-state=done] .sc-toast{opacity:1;transform:translate(-50%,0);transition-delay:.4s}
+.sc-confetti{position:absolute;inset:0;pointer-events:none}
+.sc-confetti i{position:absolute;width:6px;height:9px;border-radius:2px;opacity:0;animation:scBurst 1.2s cubic-bezier(.15,.7,.3,1) forwards}
+@keyframes scBurst{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--r))}}
+
+/* Sahifa 2: Google (doim oq — haqiqiy Google sahifasidek) */
+.sc-google{background:#fff;color:#1f1f1f;font-family:'Google Sans',Roboto,Arial,sans-serif;opacity:0;transform:scale(.985);pointer-events:none}
+.sc-stage[data-state=choose] .sc-google,.sc-stage[data-state=consent] .sc-google{opacity:1;transform:none}
+.sc-stage[data-state=choose] .sc-site,.sc-stage[data-state=consent] .sc-site{opacity:0;transform:scale(.985)}
+.sc-gprog{position:absolute;left:0;right:0;top:0;height:3px;overflow:hidden;opacity:0;transition:opacity .2s;z-index:1}
+.sc-gprog::before{content:'';position:absolute;top:0;bottom:0;left:-40%;width:40%;background:#1a73e8;animation:scIndet 1s linear infinite}
+@keyframes scIndet{to{left:100%}}
+.sc-google.busy .sc-gprog{opacity:1}
+.sc-ghead{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid #e3e3e3;font-size:12px;color:#444746}
+.sc-ghead svg{width:16px;height:16px}
+.sc-gview{position:absolute;left:0;right:0;top:42px;bottom:0;padding:12px 16px;opacity:0;transform:translateX(18px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1)}
+.sc-stage[data-state=choose] .sc-gv-choose,.sc-stage[data-state=consent] .sc-gv-consent{opacity:1;transform:none}
+.sc-stage[data-state=consent] .sc-gv-choose{transform:translateX(-18px)}
+.sc-google.busy .sc-gview{opacity:.45}
+.sc-gview h4{font-size:17px;font-weight:500;margin:0 0 3px;color:#1f1f1f}
+.sc-gview p{font-size:11.5px;color:#444746;margin:0 0 10px}
+.sc-gview p b{color:#0b57d0;font-weight:600}
+.sc-gacc{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid #e3e3e3;font-size:12px;transition:background .2s}
+.sc-gacc b{display:block;font-weight:500;color:#1f1f1f}
+.sc-gacc small{display:block;font-size:11px;color:#444746}
+.sc-gacc.hover{background:#f1f3f4}
+.sc-gacc.press{background:#e2e5e9}
+.sc-gav{width:28px;height:28px;flex-shrink:0;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#7c3aed;color:#fff;font-weight:600;font-size:12px}
+.sc-gav img{width:100%;height:100%;object-fit:cover}
+.sc-gav.alt{background:transparent;color:#444746;font-size:22px}
+.sc-gav.xs{width:18px;height:18px;font-size:9px}
+.sc-chip{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:3px 10px 3px 3px;margin:2px 0 10px;border:1px solid #c4c7c5;border-radius:999px;font-size:11px;color:#1f1f1f}
+.sc-gv-consent ul{list-style:none;padding:0;margin:0}
+.sc-gv-consent li{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11.5px;color:#1f1f1f}
+.sc-gv-consent li i{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#e8f0fe;color:#0b57d0;font-size:11px}
+.sc-gbtns{position:absolute;right:16px;bottom:12px;display:flex;align-items:center;gap:6px}
+.sc-gtext{padding:7px 12px;color:#0b57d0;font-size:11.5px;font-weight:600}
+.sc-gbtn{padding:7px 16px;border-radius:999px;background:#0b57d0;color:#fff;font-size:11.5px;font-weight:600;transition:transform .15s,box-shadow .2s}
+.sc-gbtn.hover{box-shadow:0 2px 8px rgba(11,87,208,.5)}
+
+/* Kursor: uchi (hotspot) --x/--y nuqtaga keladi */
+.sc-cursor{position:absolute;left:0;top:0;z-index:5;width:20px;height:20px;pointer-events:none;opacity:0;transform:translate(var(--x,300px),var(--y,230px));transition:transform .9s cubic-bezier(.65,0,.25,1),opacity .3s;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+.sc-cursor.on{opacity:1}
+.sc-cursor svg{display:block;width:20px;height:20px;margin:-2px 0 0 -3px;transition:transform .12s}
+.sc-cursor.click svg{transform:scale(.82)}
+.sc-cursor::before{content:'';position:absolute;left:-12px;top:-12px;width:24px;height:24px;border-radius:50%;background:color-mix(in srgb,#4285f4 40%,transparent);opacity:0}
+.sc-cursor.click::before{animation:scClick .55s ease-out}
+@keyframes scClick{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.6)}}
+
+.sc-cap{min-height:42px;margin:14px 0;font-size:14px;font-weight:600;line-height:1.45;color:var(--ink)}
+.sc-cap.in{animation:scCapIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes scCapIn{from{opacity:0;transform:translateY(6px)}}
+
+/* Google uslubidagi asosiy tugma */
+.sc-go{position:relative;overflow:hidden;width:100%;height:46px;display:flex;align-items:center;justify-content:center;gap:10px;border-radius:999px;background:#fff;color:#1f1f1f;border:1px solid #dadce0;font-family:'Google Sans',Roboto,Arial,sans-serif;font-weight:600;font-size:15px;text-decoration:none;transition:transform .2s,box-shadow .25s}
+[data-bs-theme=dark] .sc-go{background:#131314;color:#e3e3e3;border-color:#8e918f}
+.sc-go:hover{transform:translateY(-1px);box-shadow:0 12px 26px -10px rgba(66,133,244,.7);color:#1f1f1f;text-decoration:none}
+[data-bs-theme=dark] .sc-go:hover{color:#fff}
+.sc-go svg{width:20px;height:20px}
+.sc-go::after{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(100deg,transparent,rgba(66,133,244,.18),transparent);transform:skewX(-20deg);animation:scShine 3.4s ease-in-out infinite}
+@keyframes scShine{0%,55%{left:-60%}100%{left:130%}}
+.sc-spin{display:none;width:18px;height:18px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:scSpin .7s linear infinite}
+@keyframes scSpin{to{transform:rotate(360deg)}}
+.sc-go.loading{pointer-events:none;opacity:.85}
+.sc-go.loading svg{display:none}
+.sc-go.loading .sc-spin{display:block}
+.sc-note{display:block;margin-top:10px;color:var(--muted);font-size:11.5px}
+@media (prefers-reduced-motion:reduce){.sc-ov *,.sc-ov *::before,.sc-ov *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.sc3-live .acc,.sc3-row.just-on{animation:none}}
+
+/* Facebook ko'rinishi (.sc-ov.is-facebook) */
+.sc-ov.is-facebook .sc-hico{box-shadow:0 12px 30px -10px rgba(24,119,242,.7)}
+.sc-ov.is-facebook .sc-hico::after{border-color:rgba(24,119,242,.5)}
+.sc-ov.is-facebook .sc-load{background:linear-gradient(90deg,#1877f2,var(--acc))}
+.sc-ov.is-facebook .sc-google{font-family:Helvetica,Arial,sans-serif;background:#f0f2f5}
+.sc-ov.is-facebook .sc-ghead{background:#1877f2;color:#fff;border-bottom:0;font-weight:700}
+.sc-ov.is-facebook .sc-ghead svg{background:#fff;border-radius:50%}
+.sc-ov.is-facebook .sc-gprog::before{background:#fff}
+.sc-ov.is-facebook .sc-gview h4{font-weight:700;color:#050505}
+.sc-ov.is-facebook .sc-gview p b{color:#1877f2}
+.sc-ov.is-facebook .sc-gacc{background:#fff;border:1px solid #dddfe2;border-radius:8px;margin-bottom:6px}
+.sc-ov.is-facebook .sc-fbcont{background:#1877f2;border-color:#1877f2}
+.sc-ov.is-facebook .sc-fbcont b,.sc-ov.is-facebook .sc-fbcont small{color:#fff}
+.sc-ov.is-facebook .sc-fbcont.hover{background:#166fe5}
+.sc-ov.is-facebook .sc-fbcont.press{background:#1464d0}
+.sc-ov.is-facebook .sc-gav{background:#1877f2}
+.sc-ov.is-facebook .sc-fbcont .sc-gav{background:#fff;color:#1877f2}
+.sc-ov.is-facebook .sc-gv-consent li i{background:#e7f3ff;color:#1877f2}
+.sc-ov.is-facebook .sc-gtext{color:#65676b}
+.sc-ov.is-facebook .sc-gbtn{background:#1877f2;border-radius:6px}
+.sc-ov.is-facebook .sc-gbtn.hover{box-shadow:0 2px 8px rgba(24,119,242,.5)}
+.sc-ov.is-facebook .sc-chip{border-color:#dddfe2;background:#fff}
+.sc-ov.is-facebook .sc-cursor::before{background:color-mix(in srgb,#1877f2 40%,transparent)}
+.sc-ov.is-facebook .sc-go{background:#1877f2;color:#fff;border-color:#1877f2;font-family:Helvetica,Arial,sans-serif}
+.sc-ov.is-facebook .sc-go:hover{color:#fff;box-shadow:0 12px 26px -10px rgba(24,119,242,.8)}
+.sc-ov.is-facebook .sc-go svg{background:#fff;border-radius:50%}
+.sc-ov.is-facebook .sc-go::after{background:linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent)}
+[data-bs-theme=dark] .sc-ov.is-facebook .sc-go{background:#1877f2;color:#fff;border-color:#1877f2}

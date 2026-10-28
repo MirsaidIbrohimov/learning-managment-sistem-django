@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="{% static 'css/auth-motion.css' %}?v=2">
+<link rel="stylesheet" href="{% static 'css/auth-motion.css' %}?v=5">
 </head>
 <body>
 <canvas id="gl" aria-hidden="true"></canvas><div class="glow" aria-hidden="true"></div><div class="noise" aria-hidden="true"></div>
@@ -123,10 +123,19 @@
       </div>
 
       <div class="or" data-in>yoki</div>
+      <div class="sp-promo" id="socialPromo" role="note" hidden>
+        <span class="sp-ic" aria-hidden="true"><i class="bi bi-stars"></i></span>
+        <div class="sp-tx">
+          <b>Yangilik! Endilikda Google hamda Facebook orqali kirishingiz mumkin</b>
+          <small>Parolsiz, bir bosishda — hoziroq sinab ko‘ring <span class="sp-arrow" aria-hidden="true">👇</span></small>
+          <small class="sp-hint"><i class="bi bi-info-circle"></i> Birinchi marta: kirgach, Profil → «Ulangan hisoblar» bo‘limidan Google yoki Facebook’ni ulang.</small>
+        </div>
+        <button type="button" class="sp-x" id="socialPromoClose" aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+      </div>
       <div class="social" data-in aria-label="Boshqa kirish imkoniyatlari">
-        <button type="button" aria-label="Google orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.09-1.92 3.27-4.75 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.65l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.11A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.34-2.11V7.05H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.95l3.69-2.84z"/><path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.85 6.05l3.69 2.84C6.71 7.29 9.14 5.36 12 5.36z"/></svg><span>Google</span></button>
+        <a class="on" href="{% url 'google_login' %}" aria-label="Google orqali kirish" title="Google orqali kirish (profilga Google ulangan bo‘lsa)"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.09-1.92 3.27-4.75 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.65l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.11A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.34-2.11V7.05H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.95l3.69-2.84z"/><path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.85 6.05l3.69 2.84C6.71 7.29 9.14 5.36 12 5.36z"/></svg><span>Google</span></a>
         <button type="button" aria-label="Apple orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><i class="bi bi-apple" aria-hidden="true"></i><span>Apple</span></button>
-        <button type="button" aria-label="Facebook orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.86v-8.39H7.08V12h3.04V9.35c0-3 1.79-4.66 4.52-4.66 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.39A12 12 0 0 0 24 12z"/></svg><span>Facebook</span></button>
+        <a class="on fb" href="{% url 'facebook_login' %}" aria-label="Facebook orqali kirish" title="Facebook orqali kirish (profilga Facebook ulangan bo‘lsa)"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.86v-8.39H7.08V12h3.04V9.35c0-3 1.79-4.66 4.52-4.66 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.39A12 12 0 0 0 24 12z"/></svg><span>Facebook</span></a>
       </div>
 
       <div class="foot" data-in>
@@ -154,6 +163,26 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script src="{% static 'js/auth-orb.js' %}?v=1"></script>
 <script src="{% static 'js/auth-motion.js' %}?v=2"></script>
+<script>
+/* Google / Facebook orqali kirish taklifi — yopilsa shu qurilmada qayta chiqmaydi */
+(function () {
+  var KEY = 'social-login-promo-v1', box = document.getElementById('socialPromo');
+  if (!box) return;
+  try { if (localStorage.getItem(KEY)) return; } catch (e) {}
+  box.hidden = false;
+  document.body.classList.add('sp-on');
+  document.getElementById('socialPromoClose').addEventListener('click', function () {
+    try { localStorage.setItem(KEY, '1'); } catch (e) {}
+    box.classList.add('out');
+    document.body.classList.remove('sp-on');
+    setTimeout(function () { box.hidden = true; }, 300);
+  });
+  // Tugmalardan biri bosilsa — taklif o'z vazifasini bajardi
+  document.querySelectorAll('.social a.on').forEach(function (a) {
+    a.addEventListener('click', function () { try { localStorage.setItem(KEY, '1'); } catch (e) {} });
+  });
+})();
+</script>
 <script>
 (function () {
   var A = window.ITCAuth;

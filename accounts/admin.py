@@ -5,7 +5,7 @@ from .models import (
     CustomUser, Profession, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment,
-    StudyGroup, CuriosityQuestion
+    StudyGroup, CuriosityQuestion, SocialAccount
 )
 from teacher.models import TeacherSalary, TeacherAttendance
 
@@ -393,6 +393,15 @@ class FinalTestPaymentAdmin(admin.ModelAdmin):
     search_fields = ['student__username', 'student__first_name', 'test__lesson__title']
     list_editable = ['status']
     date_hierarchy = 'created_at'
+
+
+@admin.register(SocialAccount)
+class SocialAccountAdmin(admin.ModelAdmin):
+    list_display = ['user', 'provider', 'email', 'name', 'created_at', 'last_login_at']
+    list_filter = ['provider', 'created_at']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'email', 'name']
+    raw_id_fields = ['user']
+    readonly_fields = ['uid', 'created_at', 'last_login_at']
 
 
 # Admin site customization

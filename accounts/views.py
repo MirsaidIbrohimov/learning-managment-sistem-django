@@ -971,146 +971,155 @@ def login_view(request):
             messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
             return _login_render(request, form, login_mode)
 
-        # ⛔ Bloklangan user — avval balansdan avtomatik to'lov sinab ko'riladi
-        if hasattr(user, "is_blocked") and user.is_blocked:
-            if not _auto_deduct_and_unblock(user):
-                # Balans yetarli emas → login qilinadi, to'lov sahifasiga yo'naltiriladi
-                _record_successful_login(ip_address, user.username, user_agent, login_token)
-                request.session.pop('login_token', None)
-                request.session.pop('brute_notified', None)
-                login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
-                user.last_activity = timezone.now()
-                user.save(update_fields=["last_activity"])
-                # Sessiyani ro'yxatdan o'tkazamiz — aks holda DeviceLimitMiddleware
-                # faol UserSession topa olmay, o'quvchini /tolov/ ga yetmasdan
-                # chiqarib yuboradi (to'lov sahifasi faqat bir marta ko'rinardi).
-                _register_device_and_session(request, user)
-                _reason = getattr(user, 'blocked_reason', '') or ''
-                messages.warning(
-                    request,
-                    "Akkauntingiz vaqtincha bloklangan"
-                    + (f": {_reason}" if _reason else "")
-                    + ". To'lovni amalga oshiring. 🔒"
-                )
-                return redirect('payment_wall')
-            # Unblock bo'ldi — oddiy login davom etadi
-
-        # ✅ Login successful — urinishlarni tozalash
-        _record_successful_login(ip_address, user.username, user_agent, login_token)
-        # Token va brute_notified ni tozalash
-        request.session.pop('login_token', None)
-        request.session.pop('brute_notified', None)
-        login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
-
-        user.last_activity = timezone.now()
-        user.save(update_fields=["last_activity"])
-
-        # 🔥 Kunlik streak'ni yangilash
-        try:
-            user.update_streak()
-        except Exception:
-            pass
-
-        # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
-        _register_device_and_session(request, user)
-
-        # 💎 Premium kunlik bonus: 5 coin
-        today = timezone.now().date()
-        if user.is_premium and user.last_daily_login != today:
-            user.last_daily_login = today
-            user.save(update_fields=["last_daily_login"])
-            user.add_coins(5, "Premium kunlik bonus")
-            messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
-
-        ip_address = get_client_ip(request) or ''
-        ActivityLog.objects.create(
-            user=user,
-            action_type='login',
-            description="Tizimga kirdi",
-            ip_address=ip_address
-        )
-
-        if user.telegram_id:
-            ua = request.META.get('HTTP_USER_AGENT', '')
-            if 'iPhone' in ua or 'iPad' in ua:
-                device = '📱 iPhone/iPad'
-            elif 'Android' in ua:
-                device = '📱 Android'
-            elif 'Windows' in ua:
-                device = '💻 Windows'
-            elif 'Macintosh' in ua or 'Mac OS' in ua:
-                device = '💻 MacOS'
-            elif 'Linux' in ua:
-                device = '💻 Linux'
-            else:
-                device = '🌐 Noma\'lum qurilma'
-
-            if 'Chrome' in ua and 'Edg' not in ua:
-                browser = 'Chrome'
-            elif 'Firefox' in ua:
-                browser = 'Firefox'
-            elif 'Safari' in ua and 'Chrome' not in ua:
-                browser = 'Safari'
-            elif 'Edg' in ua:
-                browser = 'Edge'
-            elif 'Opera' in ua or 'OPR' in ua:
-                browser = 'Opera'
-            else:
-                browser = ''
-
-            notify_user(
-                user.telegram_id,
-                f"🔐 <b>Hisobingizga kirildi!</b>\n\n"
-                f"👤 {user.full_name}\n"
-                f"🖥 Qurilma: {device}\n"
-                f"{'🌍 Brauzer: ' + browser + chr(10) if browser else ''}"
-                f"🌐 IP: {ip_address}\n"
-                f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
-                f"⚠️ Agar bu siz bo'lmasangiz, darhol parolingizni o'zgartiring!"
-            )
-
-        messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
-
-        # Premium reklama (premium bo'lmagan studentlar uchun)
-        if user.role == 'student' and not user.is_premium:
-            request.session['show_premium_ad'] = True
-
-        # AI yordamchi reklama (har safar login qilganda)
-        request.session['show_ai_ad'] = True
-
-        # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgisini tozalaymiz
-        request.session.pop('profile_verify_skipped', None)
-
-        # Geolokatsiya muvaffaqiyatli login'dan keyin, alohida rozilik bilan olinadi.
-        # Brauzerda saqlangan qurilma roziligi 30 kun amal qiladi.
-        # Boshqa zarur login oqimlari (to'lov, profil, so'rovnoma) ustuvor qoladi.
-        request.session['location_capture_pending'] = True
-
-        # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
-        # (hujjat tasdig'i — pasport yoki metrika — shu formaning ichida)
-        if user.role == 'student' and not user.is_profile_completed:
-            request.session.pop('location_capture_pending', None)
-            return redirect('complete_profile')
-
-        # So'rovnoma tekshirish (login qilganda)
-        pending_survey = SurveyForm.objects.filter(
-            is_active=True,
-            show_on_login=True,
-        ).exclude(
-            responses__user=user
-        ).filter(
-            models.Q(target_role='all') | models.Q(target_role=user.role)
-        ).first()
-        if pending_survey:
-            request.session.pop('location_capture_pending', None)
-            return redirect('fill_survey', pk=pending_survey.pk)
-
-        return redirect('login_location_consent')
+        return _complete_login(request, user, ip_address, user_agent, login_token)
 
     else:
         form = LoginForm()
 
     return _login_render(request, form, 'username')
+
+
+def _complete_login(request, user, ip_address, user_agent, login_token):
+    """Foydalanuvchi tasdiqlangandan keyingi umumiy login jarayoni.
+
+    Parol, telefon, email kodi, Telegram kodi va Google orqali kirish — barchasi
+    shu yerdan o'tadi: bloklash/to'lov, qurilma va sessiya, bonuslar, xabarlar.
+    """
+    # ⛔ Bloklangan user — avval balansdan avtomatik to'lov sinab ko'riladi
+    if hasattr(user, "is_blocked") and user.is_blocked:
+        if not _auto_deduct_and_unblock(user):
+            # Balans yetarli emas → login qilinadi, to'lov sahifasiga yo'naltiriladi
+            _record_successful_login(ip_address, user.username, user_agent, login_token)
+            request.session.pop('login_token', None)
+            request.session.pop('brute_notified', None)
+            login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
+            user.last_activity = timezone.now()
+            user.save(update_fields=["last_activity"])
+            # Sessiyani ro'yxatdan o'tkazamiz — aks holda DeviceLimitMiddleware
+            # faol UserSession topa olmay, o'quvchini /tolov/ ga yetmasdan
+            # chiqarib yuboradi (to'lov sahifasi faqat bir marta ko'rinardi).
+            _register_device_and_session(request, user)
+            _reason = getattr(user, 'blocked_reason', '') or ''
+            messages.warning(
+                request,
+                "Akkauntingiz vaqtincha bloklangan"
+                + (f": {_reason}" if _reason else "")
+                + ". To'lovni amalga oshiring. 🔒"
+            )
+            return redirect('payment_wall')
+        # Unblock bo'ldi — oddiy login davom etadi
+
+    # ✅ Login successful — urinishlarni tozalash
+    _record_successful_login(ip_address, user.username, user_agent, login_token)
+    # Token va brute_notified ni tozalash
+    request.session.pop('login_token', None)
+    request.session.pop('brute_notified', None)
+    login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
+
+    user.last_activity = timezone.now()
+    user.save(update_fields=["last_activity"])
+
+    # 🔥 Kunlik streak'ni yangilash
+    try:
+        user.update_streak()
+    except Exception:
+        pass
+
+    # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
+    _register_device_and_session(request, user)
+
+    # 💎 Premium kunlik bonus: 5 coin
+    today = timezone.now().date()
+    if user.is_premium and user.last_daily_login != today:
+        user.last_daily_login = today
+        user.save(update_fields=["last_daily_login"])
+        user.add_coins(5, "Premium kunlik bonus")
+        messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
+
+    ip_address = get_client_ip(request) or ''
+    ActivityLog.objects.create(
+        user=user,
+        action_type='login',
+        description="Tizimga kirdi",
+        ip_address=ip_address
+    )
+
+    if user.telegram_id:
+        ua = request.META.get('HTTP_USER_AGENT', '')
+        if 'iPhone' in ua or 'iPad' in ua:
+            device = '📱 iPhone/iPad'
+        elif 'Android' in ua:
+            device = '📱 Android'
+        elif 'Windows' in ua:
+            device = '💻 Windows'
+        elif 'Macintosh' in ua or 'Mac OS' in ua:
+            device = '💻 MacOS'
+        elif 'Linux' in ua:
+            device = '💻 Linux'
+        else:
+            device = '🌐 Noma\'lum qurilma'
+
+        if 'Chrome' in ua and 'Edg' not in ua:
+            browser = 'Chrome'
+        elif 'Firefox' in ua:
+            browser = 'Firefox'
+        elif 'Safari' in ua and 'Chrome' not in ua:
+            browser = 'Safari'
+        elif 'Edg' in ua:
+            browser = 'Edge'
+        elif 'Opera' in ua or 'OPR' in ua:
+            browser = 'Opera'
+        else:
+            browser = ''
+
+        notify_user(
+            user.telegram_id,
+            f"🔐 <b>Hisobingizga kirildi!</b>\n\n"
+            f"👤 {user.full_name}\n"
+            f"🖥 Qurilma: {device}\n"
+            f"{'🌍 Brauzer: ' + browser + chr(10) if browser else ''}"
+            f"🌐 IP: {ip_address}\n"
+            f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
+            f"⚠️ Agar bu siz bo'lmasangiz, darhol parolingizni o'zgartiring!"
+        )
+
+    messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
+
+    # Premium reklama (premium bo'lmagan studentlar uchun)
+    if user.role == 'student' and not user.is_premium:
+        request.session['show_premium_ad'] = True
+
+    # AI yordamchi reklama (har safar login qilganda)
+    request.session['show_ai_ad'] = True
+
+    # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgisini tozalaymiz
+    request.session.pop('profile_verify_skipped', None)
+
+    # Geolokatsiya muvaffaqiyatli login'dan keyin, alohida rozilik bilan olinadi.
+    # Brauzerda saqlangan qurilma roziligi 30 kun amal qiladi.
+    # Boshqa zarur login oqimlari (to'lov, profil, so'rovnoma) ustuvor qoladi.
+    request.session['location_capture_pending'] = True
+
+    # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
+    # (hujjat tasdig'i — pasport yoki metrika — shu formaning ichida)
+    if user.role == 'student' and not user.is_profile_completed:
+        request.session.pop('location_capture_pending', None)
+        return redirect('complete_profile')
+
+    # So'rovnoma tekshirish (login qilganda)
+    pending_survey = SurveyForm.objects.filter(
+        is_active=True,
+        show_on_login=True,
+    ).exclude(
+        responses__user=user
+    ).filter(
+        models.Q(target_role='all') | models.Q(target_role=user.role)
+    ).first()
+    if pending_survey:
+        request.session.pop('location_capture_pending', None)
+        return redirect('fill_survey', pk=pending_survey.pk)
+
+    return redirect('login_location_consent')
 
 
 @login_required
@@ -7274,6 +7283,8 @@ def profile_view(request):
         'profile_xp_in_level': profile_xp_in_level,
         'profile_xp_to_next': profile_xp_to_next,
         'profile_xp_pct': profile_xp_pct,
+        'social_accounts': {a.provider: a for a in request.user.social_accounts.all()},
+        'connected_now': request.GET.get('connected', ''),
     })
 
 

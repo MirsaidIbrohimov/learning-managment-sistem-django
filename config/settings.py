@@ -837,6 +837,20 @@ TELEGRAM_USE_STICKERS      = os.getenv('TELEGRAM_USE_STICKERS', 'true').lower() 
 _raw_site_url = os.getenv('SITE_URL', '').strip()
 SITE_URL = '' if _raw_site_url in ('', '*') else _raw_site_url.rstrip('/')
 
+# Google orqali kirish / hisobni ulash (Google Cloud Console → OAuth client).
+# Redirect URI bo'sh bo'lsa so'rov kelgan domendan quriladi:
+#   https://<domen>/auth/google/callback/
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '').strip()
+GOOGLE_REDIRECT_URI = os.getenv('GOOGLE_REDIRECT_URI', '').strip()
+
+# Facebook orqali kirish / hisobni ulash (Meta for Developers → App settings → Basic).
+# Valid OAuth Redirect URI: https://<domen>/auth/facebook/callback/
+FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID', '').strip()
+FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '').strip()
+FACEBOOK_REDIRECT_URI = os.getenv('FACEBOOK_REDIRECT_URI', '').strip()
+FACEBOOK_GRAPH_VERSION = os.getenv('FACEBOOK_GRAPH_VERSION', 'v21.0').strip()
+
 
 # ══════════════════════════════════════════════════════════════════
 # DJANGO REST FRAMEWORK

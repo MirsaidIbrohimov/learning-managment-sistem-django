@@ -1349,8 +1349,23 @@ def admin_telegram_users(request):
             Q(email__icontains=search)
         )
 
+    # Google / Facebook ulangan hisoblar
+    from accounts.models import SocialAccount
+    social_provider = tab if tab in ('google', 'facebook') else 'google'
+    social_accounts = SocialAccount.objects.filter(provider=social_provider).select_related('user').order_by('-created_at')
+    if search and tab == social_provider:
+        social_accounts = social_accounts.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(name__icontains=search)
+        )
+
     # Pagination
-    if tab == 'messages':
+    if tab in ('google', 'facebook'):
+        paginator = Paginator(social_accounts, 30)
+    elif tab == 'messages':
         paginator = Paginator(msg_logs, 30)
     elif tab == 'contact':
         paginator = Paginator(contact_msgs, 30)
@@ -1367,6 +1382,9 @@ def admin_telegram_users(request):
         'search': search,
         'items': items,
         'linked_count': CustomUser.objects.filter(telegram_id__isnull=False).count(),
+        'google_count': SocialAccount.objects.filter(provider='google').count(),
+        'facebook_count': SocialAccount.objects.filter(provider='facebook').count(),
+        'social_label': 'Facebook' if tab == 'facebook' else 'Google',
         'total_messages': TelegramMessageLog.objects.count(),
         'contact_count': ContactMessage.objects.count(),
         'new_contact_count': new_contact_count,

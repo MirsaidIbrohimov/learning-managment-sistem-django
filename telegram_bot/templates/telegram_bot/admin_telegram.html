@@ -1,7 +1,7 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Telegram boshqaruvi - Admin{% endblock %}
-{% block topbar_title %}Telegram boshqaruvi{% endblock %}
+{% block title %}Ulanishlar - Admin{% endblock %}
+{% block topbar_title %}Ulanishlar{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -129,18 +129,20 @@
     .tg-stats { flex-direction: column; }
     .tg-self-card { flex-wrap: wrap; }
 }
+.tg-tab-count { font-size: .7rem; font-weight: 700; padding: 1px 7px; border-radius: 999px; background: rgba(0,0,0,.07); margin-left: 4px; }
+.tg-tab.active .tg-tab-count { background: rgba(255,255,255,.25); }
 </style>
 
 <div class="tg-page">
 
 <div class="tg-header">
-    <i class="bi bi-telegram"></i>
-    <h4>Telegram boshqaruvi</h4>
+    <i class="bi bi-link-45deg"></i>
+    <h4>Ulanishlar</h4>
     <a href="{% url 'telegram_bot:admin_send_broadcast' %}" style="margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:8px 20px; border-radius:10px; font-weight:700; font-size:0.88rem; border:none; background:linear-gradient(135deg,#0088cc,#00aaff); color:#fff; text-decoration:none; transition:all 0.2s;">
         <i class="bi bi-send-fill"></i> Xabar yuborish
     </a>
 </div>
-<p class="tg-sub">Ulangan telegramlar va bot xabarlari</p>
+<p class="tg-sub">Foydalanuvchilarga ulangan Telegram va Google hisoblar, bot xabarlari</p>
 
 <!-- Mening Telegramim (admin shaxsiy ulanishi) -->
 <div class="tg-self-card" id="tgSelfCard">
@@ -179,7 +181,15 @@
 <div class="tg-stats">
     <div class="tg-stat">
         <div class="tg-stat-num" style="color:#0088cc;">{{ linked_count }}</div>
-        <div class="tg-stat-label">Ulangan foydalanuvchilar</div>
+        <div class="tg-stat-label">Telegram ulanganlar</div>
+    </div>
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#ea4335;">{{ google_count }}</div>
+        <div class="tg-stat-label">Google ulanganlar</div>
+    </div>
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#1877f2;">{{ facebook_count }}</div>
+        <div class="tg-stat-label">Facebook ulanganlar</div>
     </div>
     <div class="tg-stat">
         <div class="tg-stat-num" style="color:#16a34a;">{{ total_messages }}</div>
@@ -198,7 +208,13 @@
 <!-- Tabs -->
 <div class="tg-tabs">
     <a href="?tab=users{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'users' %}active{% endif %}">
-        <i class="bi bi-people me-1"></i>Ulangan telegramlar
+        <i class="bi bi-telegram me-1"></i>Telegram ulanganlar <span class="tg-tab-count">{{ linked_count }}</span>
+    </a>
+    <a href="?tab=google{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'google' %}active{% endif %}">
+        <i class="bi bi-google me-1"></i>Google ulanganlar <span class="tg-tab-count">{{ google_count }}</span>
+    </a>
+    <a href="?tab=facebook{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'facebook' %}active{% endif %}">
+        <i class="bi bi-facebook me-1"></i>Facebook ulanganlar <span class="tg-tab-count">{{ facebook_count }}</span>
     </a>
     <a href="?tab=messages{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'messages' %}active{% endif %}">
         <i class="bi bi-chat-dots me-1"></i>Xabarlar
@@ -272,6 +288,72 @@
     <div class="tg-empty">
         <i class="bi bi-envelope-paper"></i>
         Aloqa xabarlari yo'q
+    </div>
+</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% elif tab == 'google' or tab == 'facebook' %}
+<!-- Google / Facebook ulangan hisoblar -->
+<table class="tg-table">
+<thead>
+    <tr>
+        <th>Foydalanuvchi</th>
+        <th>{{ social_label }} hisob</th>
+        <th>Rol</th>
+        <th>Ulangan</th>
+        <th>Oxirgi {{ social_label }} kirish</th>
+        <th>Amal</th>
+    </tr>
+</thead>
+<tbody>
+{% for acc in items %}
+<tr>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            {% if acc.user.photo %}
+                <img src="{{ acc.user.photo.url }}" class="tg-avatar">
+            {% else %}
+                <div class="tg-avatar-fallback">{{ acc.user.get_initials }}</div>
+            {% endif %}
+            <div>
+                <div class="fw-semibold">{{ acc.user.first_name }} {{ acc.user.last_name }}</div>
+                <small class="text-muted">@{{ acc.user.username }}</small>
+            </div>
+        </div>
+    </td>
+    <td>
+        <div class="fw-semibold">{% if tab == 'facebook' %}<i class="bi bi-facebook" style="color:#1877f2;"></i>{% else %}<i class="bi bi-google" style="color:#ea4335;"></i>{% endif %} {{ acc.email|default:"email berilmagan" }}</div>
+        {% if acc.name %}<small class="text-muted">{{ acc.name }}</small>{% endif %}
+    </td>
+    <td>
+        <span class="tg-badge {% if acc.user.role == 'admin' %}tg-badge-admin{% elif acc.user.role == 'teacher' %}tg-badge-teacher{% else %}tg-badge-student{% endif %}">
+            {{ acc.user.get_role_display }}
+        </span>
+    </td>
+    <td class="tg-time" style="white-space:nowrap;">{{ acc.created_at|date:"d.m.Y H:i" }}</td>
+    <td class="tg-time">{% if acc.last_login_at %}{{ acc.last_login_at|timesince }} oldin{% else %}-{% endif %}</td>
+    <td>
+        {% if acc.user_id == user.id %}
+            <span class="text-muted small">Siz</span>
+        {% else %}
+        <form method="POST" action="{% url 'social_admin_unlink' acc.pk %}" class="d-inline"
+              onsubmit="return confirm('{{ acc.user.first_name|escapejs }} {{ acc.user.last_name|escapejs }} ning {{ social_label }} hisobini uzmoqchimisiz?');">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'telegram_bot:admin_telegram' %}?tab={{ tab }}">
+            <button type="submit" class="tg-self-btn danger" style="padding:6px 12px;font-size:0.78rem;">
+                <i class="bi bi-x-lg"></i> Uzish
+            </button>
+        </form>
+        {% endif %}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="6">
+    <div class="tg-empty">
+        <i class="bi bi-{{ tab }}"></i>
+        Hech kim {{ social_label }} hisob ulamagan
     </div>
 </td></tr>
 {% endfor %}

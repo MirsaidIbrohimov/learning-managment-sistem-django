@@ -1,0 +1,57 @@
+{% extends 'accounts/legal/_legal_base.html' %}
+{% block title %}Maxfiylik siyosati{% endblock %}
+{% block body %}
+<h1>Maxfiylik siyosati</h1>
+<div class="upd">Oxirgi yangilanish: {{ updated }}</div>
+
+<p>Ushbu siyosat <b>IT Creative Academy</b> o‘quv platformasi ({{ site_url }}) foydalanuvchilarining
+shaxsiy ma’lumotlari qanday yig‘ilishi, ishlatilishi va himoya qilinishini tushuntiradi.
+Platformadan foydalanish orqali siz ushbu shartlarga rozilik bildirasiz.</p>
+
+<h2><i class="bi bi-person-vcard"></i> Qanday ma’lumotlarni yig‘amiz</h2>
+<ul>
+  <li><b>Ro‘yxatdan o‘tishda:</b> ism, familiya, telefon raqam, login, email (ixtiyoriy), profil rasmi.</li>
+  <li><b>O‘qish jarayonida:</b> kurslar, darslar, test natijalari, uyga vazifalar, davomat, coin va reyting.</li>
+  <li><b>Xavfsizlik uchun:</b> kirish vaqti, IP manzil, qurilma va brauzer turi.</li>
+  <li><b>Google yoki Facebook hisobini ulasangiz:</b> shu xizmatdagi o‘zgarmas hisob ID raqamingiz, ismingiz,
+      email manzilingiz va profil rasmingiz havolasi. Parolingiz bizga <b>hech qachon</b> berilmaydi.</li>
+  <li><b>Telegram botni ulasangiz:</b> Telegram ID va username.</li>
+</ul>
+
+<h2><i class="bi bi-bullseye"></i> Ma’lumotlardan nima uchun foydalanamiz</h2>
+<ul>
+  <li>Hisobingizga kirish (shu jumladan Google yoki Facebook orqali bir bosishda kirish) va uni himoya qilish;</li>
+  <li>o‘quv jarayonini yuritish: darslar, baholar, sertifikatlar;</li>
+  <li>bildirishnomalar yuborish (sayt ichida, Telegram yoki email orqali);</li>
+  <li>ota-onalarga farzandining o‘qish natijalarini ko‘rsatish;</li>
+  <li>platformani yaxshilash va texnik muammolarni aniqlash.</li>
+</ul>
+
+<h2><i class="bi bi-share"></i> Ma’lumotlarni kimga beramiz</h2>
+<p>Shaxsiy ma’lumotlaringizni <b>sotmaymiz</b> va reklama uchun uchinchi shaxslarga bermaymiz.
+Ma’lumotlar faqat quyidagilarga ko‘rinadi: o‘zingizga, ustozlaringizga (o‘z kurslari bo‘yicha),
+ota-onangizga (ulangan bo‘lsa) va platforma administratorlariga. To‘lov amalga oshirilganda to‘lov
+tizimiga faqat to‘lov uchun zarur ma’lumotlar uzatiladi. Qonun talab qilgan hollarda vakolatli
+organlarga berilishi mumkin.</p>
+
+<h2><i class="bi bi-shield-lock"></i> Saqlash va himoya</h2>
+<p>Ma’lumotlar himoyalangan serverda saqlanadi. Ulanish HTTPS orqali shifrlanadi, parollar
+qaytarib bo‘lmaydigan ko‘rinishda (hash) saqlanadi. Ma’lumotlar hisobingiz faol bo‘lgan davrda
+saqlanadi va o‘chirish so‘rovidan keyin o‘chiriladi.</p>
+
+<h2><i class="bi bi-cookie"></i> Cookie fayllar</h2>
+<p>Tizimga kirgan holatingizni saqlash, xavfsizlik (CSRF himoyasi) va sozlamalaringiz (masalan,
+qorong‘i rejim) uchun cookie fayllardan foydalanamiz. Reklama kuzatuv cookie’laridan foydalanmaymiz.</p>
+
+<h2><i class="bi bi-person-check"></i> Sizning huquqlaringiz</h2>
+<ul>
+  <li>Profil sahifasida ma’lumotlaringizni ko‘rish va tahrirlash;</li>
+  <li>Google, Facebook yoki Telegram ulanishini istalgan vaqtda uzish (Profil → «Ulangan hisoblar»);</li>
+  <li>hisobingiz va barcha ma’lumotlaringizni o‘chirishni so‘rash —
+      <a href="{% url 'data_deletion' %}">yo‘riqnoma</a>.</li>
+</ul>
+
+<h2><i class="bi bi-envelope"></i> Bog‘lanish</h2>
+<p>Savollar bo‘yicha saytdagi «Yordam» bo‘limi orqali murojaat qiling{% if contact_email %}
+yoki <a href="mailto:{{ contact_email }}">{{ contact_email }}</a> manziliga yozing{% endif %}.</p>
+{% endblock %}
