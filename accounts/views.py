@@ -2938,7 +2938,12 @@ def global_search(request):
 
 @login_required
 def professions_view(request):
-    professions = Profession.objects.prefetch_related('teachers').all()
+    # Kartada körinadigan tarkib: neçta bölim, test va vazifa bor
+    professions = Profession.objects.prefetch_related('teachers').annotate(
+        section_total=Count('sections', filter=Q(sections__is_active=True), distinct=True),
+        test_total=Count('lessons', filter=Q(lessons__lesson_type='test'), distinct=True),
+        homework_total=Count('lessons', filter=Q(lessons__lesson_type='homework'), distinct=True),
+    )
     enrolled_ids = []
     if request.user.is_authenticated and request.user.is_learner:
         enrolled_ids = list(request.user.enrollments.values_list('profession_id', flat=True))

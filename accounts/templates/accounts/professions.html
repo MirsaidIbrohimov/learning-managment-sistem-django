@@ -283,6 +283,10 @@
 .kp-desc { font-size:.8rem;color:var(--kp-muted);line-height:1.6;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px; }
 
 /* Footer */
+.kp-meta { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px; }
+.kp-meta span { display:inline-flex;align-items:center;gap:5px;padding:.25rem .6rem;border-radius:999px;font-size:.72rem;font-weight:600;color:var(--kp-muted);background:rgba(148,163,184,.1);border:1px solid var(--kp-border); }
+.kp-meta i { color:#818cf8; }
+.kp-grid.view-compact .kp-meta span { font-size:.65rem;padding:.15rem .45rem; }
 .kp-footer { display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--kp-border);margin-top:auto; }
 .kp-status {
   display:inline-flex;align-items:center;gap:5px;
@@ -629,7 +633,7 @@
           <i class="bi bi-gift-fill"></i> Bepul
         </button>
         <button class="kp-tab" data-filter="paid">
-          <i class="bi bi-currency-dollar"></i> Pullik
+          <i class="bi bi-clipboard-check"></i> Sörovnomali
         </button>
       </div>
       <div class="kp-toolbar-right">
@@ -665,7 +669,7 @@
       {% for profession in professions %}
       <a href="{% with ct=course_token_map|get_course_token:profession.pk %}{% if ct %}{% url 'student_course_view' ct %}{% else %}{% url 'profession_detail' profession.pk %}{% endif %}{% endwith %}"
          class="kp-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
-         data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
+         data-type="{% if not profession.is_paid %}free{% elif profession.is_sold_once %}sale{% else %}paid{% endif %}"
          data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}"
          data-sale="{% if profession.is_sold_once %}true{% else %}false{% endif %}"
          data-name="{{ profession.name }}"
@@ -683,7 +687,7 @@
               {% elif not profession.is_paid %}
               <span class="kp-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
               {% else %}
-              <span class="kp-badge paid"><i class="bi bi-cash-stack"></i> Pullik</span>
+              <span class="kp-badge paid"><i class="bi bi-clipboard-check"></i> Sörovnomali</span>
               {% endif %}
             </div>
             <div style="display:flex;gap:4px">
@@ -719,6 +723,11 @@
         <div class="kp-body">
           <h5 class="kp-name">{{ profession.name }}</h5>
           <p class="kp-desc">{{ profession.description|striptags|truncatewords:18 }}</p>
+          <div class="kp-meta" aria-label="Kurs tarkibi">
+            <span title="Bölimlar"><i class="bi bi-collection"></i> {{ profession.section_total }} bölim</span>
+            <span title="Testlar"><i class="bi bi-patch-question"></i> {{ profession.test_total }} test</span>
+            <span title="Vazifalar"><i class="bi bi-journal-check"></i> {{ profession.homework_total }} vazifa</span>
+          </div>
           <div class="kp-footer">
             {% if profession.pk in enrolled_ids %}
             <span class="kp-status enrolled"><i class="bi bi-check-circle-fill"></i> Öqiyapsiz</span>
