@@ -853,6 +853,12 @@ FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET', '').strip()
 FACEBOOK_REDIRECT_URI = os.getenv('FACEBOOK_REDIRECT_URI', '').strip()
 FACEBOOK_GRAPH_VERSION = os.getenv('FACEBOOK_GRAPH_VERSION', 'v21.0').strip()
 
+# GitHub orqali kiriş / hisobni ulaş (GitHub → Settings → Developer settings → OAuth Apps).
+# Authorization callback URL: https://<domen>/accounts/github/login/callback/
+GITHUB_CLIENT_ID = os.getenv('GITHUB_CLIENT_ID', '').strip()
+GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', '').strip()
+GITHUB_REDIRECT_URI = os.getenv('GITHUB_REDIRECT_URI', '').strip()
+
 
 # ══════════════════════════════════════════════════════════════════
 # DJANGO REST FRAMEWORK

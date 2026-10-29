@@ -1,9 +1,10 @@
-"""Taşqi hisoblarni (Google, Facebook) profilga ulaş va ular orqali kiriş (OAuth 2.0).
+"""Taşqi hisoblarni (Google, Facebook, GitHub) profilga ulaş va ular orqali kiriş (OAuth 2.0).
 
 Oqim (har bir xizmat uçun bir xil):
   1. /auth/<xizmat>/connect/ (profil) yoki /auth/<xizmat>/login/ (login sahifasi)
      -> sessiyaga tasodifiy `state` yoziladi va foydalanuvçi xizmat sahifasiga yuboriladi.
   2. Xizmat -> /auth/<xizmat>/callback/?code=...&state=...
+     (GitHub uçun: /accounts/github/login/callback/)
      -> state tekşiriladi, code serverdan-serverga access_token'ga almaştiriladi,
         profildan özgarmas ID, email, ism va rasm olinadi.
   3. connect: SocialAccount yaratiladi. login: şu ID ulangan foydalanuvçi
@@ -58,7 +59,16 @@ PROVIDERS = {
         # Foydalanuvçi oldin email ruxsatini rad etgan bölsa — qayta söraladi
         'extra': {'auth_type': 'rerequest'},
     },
+    'github': {
+        'label': 'GitHub',
+        'settings': ('GITHUB_CLIENT_ID', 'GITHUB_CLIENT_SECRET', 'GITHUB_REDIRECT_URI'),
+        'auth_url': 'https://github.com/login/oauth/authorize',
+        # user:email — yaşirin (private) emailni ham /user/emails orqali oliş uçun
+        'scope': 'read:user user:email',
+        'extra': {'allow_signup': 'true'},
+    },
 }
+GITHUB_API = 'https://api.github.com'
 
 
 def _provider(provider):
@@ -162,7 +172,52 @@ def _fetch_facebook(request, code):
     }
 
 
-FETCHERS = {'google': _fetch_google, 'facebook': _fetch_facebook}
+def _fetch_github(request, code):
+    client_id, secret = _credentials('github')
+    token_resp = requests.post('https://github.com/login/oauth/access_token', data={
+        'client_id': client_id,
+        'client_secret': secret,
+        'code': code,
+        'redirect_uri': redirect_uri(request, 'github'),
+    }, headers={'Accept': 'application/json'}, timeout=10)
+    if token_resp.status_code != 200:
+        logger.warning('GitHub token exchange failed: %s %s', token_resp.status_code, token_resp.text[:300])
+        return None
+    # Xatoda ham GitHub 200 qaytaradi: {"error": "bad_verification_code", ...}
+    access_token = token_resp.json().get('access_token')
+    if not access_token:
+        logger.warning('GitHub token exchange error: %s', token_resp.text[:300])
+        return None
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+    }
+    info_resp = requests.get(f'{GITHUB_API}/user', headers=headers, timeout=10)
+    if info_resp.status_code != 200:
+        logger.warning('GitHub /user failed: %s %s', info_resp.status_code, info_resp.text[:300])
+        return None
+    info = info_resp.json()
+    # /user dagi email ochiq (public) bölsa ham tasdiqlanganligi noma'lum —
+    # şuning uçun faqat /user/emails dagi primary + verified email olinadi.
+    email = ''
+    emails_resp = requests.get(f'{GITHUB_API}/user/emails', headers=headers, timeout=10)
+    if emails_resp.status_code == 200:
+        verified = [e for e in emails_resp.json() if e.get('verified') and e.get('email')
+                    and not e['email'].endswith('@users.noreply.github.com')]
+        primary = next((e for e in verified if e.get('primary')), verified[0] if verified else None)
+        email = primary['email'] if primary else ''
+    return {
+        'uid': info.get('id'),
+        # Email bölmasa ham ulaş GitHub ID orqali böladi (Facebook kabi)
+        'email': email,
+        'email_verified': True,
+        'name': info.get('name') or info.get('login') or '',
+        'picture': info.get('avatar_url') or '',
+    }
+
+
+FETCHERS = {'google': _fetch_google, 'facebook': _fetch_facebook, 'github': _fetch_github}
 
 
 def fetch_profile(request, provider, code):
@@ -329,7 +384,7 @@ def _link_by_verified_email(provider, profile):
     if user is None or user.is_superuser or user.is_staff or user.is_admin:
         return None
     if SocialAccount.objects.filter(user=user, provider=provider).exists():
-        # Bu akkauntga boşqa Google/Facebook hisob ulangan — almaştirilmaydi
+        # Bu akkauntga boşqa Google/Facebook/GitHub hisob ulangan — almaştirilmaydi
         return None
 
     account = SocialAccount.objects.create(
@@ -350,7 +405,7 @@ def _link_by_verified_email(provider, profile):
     return account
 
 
-# ---------------- Yangi akkaunt (Google / Facebook orqali röyxatdan ötiş) ----------------
+# ---------------- Yangi akkaunt (Google / Facebook / GitHub orqali röyxatdan ötiş) ----------------
 
 def _email_taken(email):
     """Faqat tasdiqlangan email band hisoblanadi.
@@ -410,7 +465,7 @@ def _suggest_username(email, name):
 
 
 def social_signup(request):
-    """Google/Facebook tasdiqlangan foydalanuvçi uçun röyxatdan ötişni yakunlaş."""
+    """Google/Facebook/GitHub tasdiqlangan foydalanuvçi uçun röyxatdan ötişni yakunlaş."""
     from .forms import SocialSignupForm
     from .views import _register_device_and_session, check_rate_limit
     from telegram_bot.utils import notify_admins
@@ -419,7 +474,7 @@ def social_signup(request):
         return redirect('home')
     data = _pending_signup(request)
     if data is None:
-        messages.error(request, "Sessiya eskirgan. Google yoki Facebook tugmasini qaytadan bosing.")
+        messages.error(request, "Sessiya eskirgan. Google, Facebook yoki GitHub tugmasini qaytadan bosing.")
         return redirect('register')
     provider = data['provider']
     label = PROVIDERS[provider]['label']
@@ -491,7 +546,7 @@ def social_disconnect(request, provider):
 @login_required
 @require_POST
 def admin_unlink_social(request, pk):
-    """Admin: boşqa foydalanuvçiga ulangan taşqi hisobni (Google/Facebook) uziş."""
+    """Admin: boşqa foydalanuvçiga ulangan taşqi hisobni (Google/Facebook/GitHub) uziş."""
     from .models import Message
 
     if not request.user.is_admin:

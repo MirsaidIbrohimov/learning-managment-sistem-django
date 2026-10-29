@@ -1,5 +1,5 @@
-/* Profil — taşqi hisobni (Google / Facebook) ulaş: animatsiyali körsatma
-   (accounts/_connect_overlay.html). [data-sc-open="google|facebook"] bosilganda mos oyna oçiladi;
+/* Profil — taşqi hisobni (Google / Facebook / GitHub) ulaş: animatsiyali körsatma
+   (accounts/_connect_overlay.html). [data-sc-open="google|facebook|github"] bosilganda mos oyna oçiladi;
    mini brauzerda kursor haqiqiy oqimni bosib çiqadi: sayt → hisob tanlaş → ruxsat → saytga qaytiş.
    Holat .sc-stage[data-state] orqali CSS da. Matnlar va manzillar oynaning data-* atributlarida.
    Haqiqiy ulaş — oynadagi "... bilan ulaş" havolasi (/auth/<xizmat>/connect/). */
@@ -8,7 +8,8 @@
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var CONFETTI = {
         google: ['#4285f4', '#ea4335', '#fbbc05', '#34a853', '#22d3ee', '#a78bfa'],
-        facebook: ['#1877f2', '#42a5f5', '#0866ff', '#22d3ee', '#a78bfa', '#93c5fd']
+        facebook: ['#1877f2', '#42a5f5', '#0866ff', '#22d3ee', '#a78bfa', '#93c5fd'],
+        github: ['#1f883d', '#2da44e', '#8250df', '#0969da', '#22d3ee', '#a78bfa']
     };
 
     function init(ov) {

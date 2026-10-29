@@ -192,6 +192,10 @@
         <div class="tg-stat-label">Facebook ulanganlar</div>
     </div>
     <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#8250df;">{{ github_count }}</div>
+        <div class="tg-stat-label">GitHub ulanganlar</div>
+    </div>
+    <div class="tg-stat">
         <div class="tg-stat-num" style="color:#16a34a;">{{ total_messages }}</div>
         <div class="tg-stat-label">Jami xabarlar</div>
     </div>
@@ -215,6 +219,9 @@
     </a>
     <a href="?tab=facebook{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'facebook' %}active{% endif %}">
         <i class="bi bi-facebook me-1"></i>Facebook ulanganlar <span class="tg-tab-count">{{ facebook_count }}</span>
+    </a>
+    <a href="?tab=github{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'github' %}active{% endif %}">
+        <i class="bi bi-github me-1"></i>GitHub ulanganlar <span class="tg-tab-count">{{ github_count }}</span>
     </a>
     <a href="?tab=messages{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'messages' %}active{% endif %}">
         <i class="bi bi-chat-dots me-1"></i>Xabarlar
@@ -294,8 +301,8 @@
 </tbody>
 </table>
 
-{% elif tab == 'google' or tab == 'facebook' %}
-<!-- Google / Facebook ulangan hisoblar -->
+{% elif tab == 'google' or tab == 'facebook' or tab == 'github' %}
+<!-- Google / Facebook / GitHub ulangan hisoblar -->
 <table class="tg-table">
 <thead>
     <tr>
@@ -324,7 +331,7 @@
         </div>
     </td>
     <td>
-        <div class="fw-semibold">{% if tab == 'facebook' %}<i class="bi bi-facebook" style="color:#1877f2;"></i>{% else %}<i class="bi bi-google" style="color:#ea4335;"></i>{% endif %} {{ acc.email|default:"email berilmagan" }}</div>
+        <div class="fw-semibold">{% if tab == 'facebook' %}<i class="bi bi-facebook" style="color:#1877f2;"></i>{% elif tab == 'github' %}<i class="bi bi-github"></i>{% else %}<i class="bi bi-google" style="color:#ea4335;"></i>{% endif %} {{ acc.email|default:"email berilmagan" }}</div>
         {% if acc.name %}<small class="text-muted">{{ acc.name }}</small>{% endif %}
     </td>
     <td>

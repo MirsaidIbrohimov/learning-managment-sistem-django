@@ -1350,9 +1350,9 @@ def admin_telegram_users(request):
             Q(email__icontains=search)
         )
 
-    # Google / Facebook ulangan hisoblar
+    # Google / Facebook / GitHub ulangan hisoblar
     from accounts.models import SocialAccount
-    social_provider = tab if tab in ('google', 'facebook') else 'google'
+    social_provider = tab if tab in ('google', 'facebook', 'github') else 'google'
     social_accounts = SocialAccount.objects.filter(provider=social_provider).select_related('user').order_by('-created_at')
     if search and tab == social_provider:
         social_accounts = social_accounts.filter(
@@ -1364,7 +1364,7 @@ def admin_telegram_users(request):
         )
 
     # Pagination
-    if tab in ('google', 'facebook'):
+    if tab in ('google', 'facebook', 'github'):
         paginator = Paginator(social_accounts, 30)
     elif tab == 'messages':
         paginator = Paginator(msg_logs, 30)
@@ -1385,7 +1385,8 @@ def admin_telegram_users(request):
         'linked_count': CustomUser.objects.filter(telegram_id__isnull=False).count(),
         'google_count': SocialAccount.objects.filter(provider='google').count(),
         'facebook_count': SocialAccount.objects.filter(provider='facebook').count(),
-        'social_label': 'Facebook' if tab == 'facebook' else 'Google',
+        'github_count': SocialAccount.objects.filter(provider='github').count(),
+        'social_label': {'facebook': 'Facebook', 'github': 'GitHub'}.get(tab, 'Google'),
         'total_messages': TelegramMessageLog.objects.count(),
         'contact_count': ContactMessage.objects.count(),
         'new_contact_count': new_contact_count,

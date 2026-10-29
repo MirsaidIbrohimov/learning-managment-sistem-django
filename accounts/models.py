@@ -1868,11 +1868,11 @@ class VerifiedEmailBinding(models.Model):
 
 
 class SocialAccount(models.Model):
-    """Foydalanuvçi profiliga ulangan taşqi hisob (Google, Facebook, Apple ID)."""
+    """Foydalanuvçi profiliga ulangan taşqi hisob (Google, Facebook, GitHub)."""
     PROVIDER_CHOICES = (
         ('google', 'Google'),
         ('facebook', 'Facebook'),
-        ('apple', 'Apple ID'),
+        ('github', 'GitHub'),
     )
 
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='social_accounts')

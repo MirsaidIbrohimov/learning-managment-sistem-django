@@ -185,7 +185,7 @@ class RegisterForm(UserCreationForm):
 
 
 class SocialSignupForm(forms.ModelForm):
-    """Google/Facebook orqali röyxatdan ötiş: email va parol xizmatdan, qolgani şu yerda."""
+    """Google/Facebook/GitHub orqali röyxatdan ötiş: email va parol xizmatdan, qolgani şu yerda."""
     first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ismingiz'}))
     last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Familiyangiz'}))
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))

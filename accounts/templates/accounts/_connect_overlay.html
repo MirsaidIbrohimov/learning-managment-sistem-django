@@ -1,6 +1,6 @@
 {% comment %}
-  Taşqi hisobni ulaş — animatsiyali körsatma oynasi (Google yoki Facebook).
-  Parametrlar: p ('google'|'facebook'), pname, sym, other_sym, other_name, connect_name.
+  Taşqi hisobni ulaş — animatsiyali körsatma oynasi (Google, Facebook yoki GitHub).
+  Parametrlar: p ('google'|'facebook'|'github'), pname, sym, other_sym, other_name, connect_name.
   JS oynani <body> ga köçiradi (stacking context sababli), şuning uçun ranglari
   social-connect.css dagi .sc-ov özgaruvçilaridan olinadi.
 {% endcomment %}
@@ -13,6 +13,13 @@
      data-cap3="3. Ism, rasm va email ulashiladi — «Davom etish» ni bosib, ruxsat berasiz."
      data-cap4="4. Tayyor! Endi login sahifasida «Facebook» tugmasi bilan bir bosishda kirasiz."
      data-busy="Facebook ochilmoqda…"
+     {% elif p == 'github' %}
+     data-url-choose="github.com/login" data-url-consent="github.com/login/oauth/authorize"
+     data-cap1="1. Profilingizdagi GitHub qatoridagi «Ulash» tugmasini bosasiz."
+     data-cap2="2. GitHub sahifasi ochiladi — o‘z GitHub hisobingiz bilan davom etasiz."
+     data-cap3="3. «Authorize» ni bosib, IT Creative ga ism, rasm va emailni ko‘rishga ruxsat berasiz."
+     data-cap4="4. Tayyor! Endi login sahifasida «GitHub» tugmasi bilan bir bosishda kirasiz."
+     data-busy="GitHub ochilmoqda…"
      {% else %}
      data-url-choose="accounts.google.com/signin" data-url-consent="accounts.google.com/consent"
      data-cap1="1. Profilingizdagi «Ulash» tugmasini bosasiz."
@@ -50,7 +57,7 @@
             <small class="sc-csub">Keyingi safar parolsiz kiring</small>
             <div class="sc-mrow sc-grow">
               <span class="sc-mlogo"><svg><use href="#{{ sym }}"/></svg></span>
-              <span class="sc-mtxt"><b>{{ pname }}</b><small class="sc-off">Ulanmagan</small><small class="sc-on"><i class="bi bi-check-circle-fill"></i> Ulangan · {% if p == 'facebook' %}{{ nm }}{% else %}{{ em }}{% endif %}</small></span>
+              <span class="sc-mtxt"><b>{{ pname }}</b><small class="sc-off">Ulanmagan</small><small class="sc-on"><i class="bi bi-check-circle-fill"></i> Ulangan · {% if p == 'google' %}{{ em }}{% else %}{{ nm }}{% endif %}</small></span>
               <span class="sc-mbtn sc-t-connect"><i class="bi bi-link-45deg"></i> Ulaş</span>
               <span class="sc-mbtn ghost sc-t-un">Uziş</span>
             </div>
@@ -89,6 +96,29 @@
             </ul>
             <div class="sc-gbtns"><span class="sc-gtext">Bekor qiliş</span><span class="sc-gbtn sc-t-allow">Davom etiş</span></div>
           </div>
+          {% elif p == 'github' %}
+          <div class="sc-gview sc-gv-choose">
+            <h4>GitHub orqali davom etiş</h4>
+            <p><b>IT Creative</b> saytiga ötiş uçun</p>
+            <div class="sc-gacc sc-t-acc sc-ghcont">
+              <span class="sc-gav">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>
+              <span><b>{{ nm }} sifatida davom etiş</b><small>GitHub hisobingiz</small></span>
+            </div>
+            <div class="sc-gacc">
+              <span class="sc-gav alt"><i class="bi bi-arrow-left-right"></i></span>
+              <span><b>Boşqa hisobga ötiş</b></span>
+            </div>
+          </div>
+          <div class="sc-gview sc-gv-consent">
+            <h4>IT Creative ga ruxsat berasizmi?</h4>
+            <span class="sc-chip"><span class="sc-gav xs">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ ini }}{% endif %}</span>{{ nm }}</span>
+            <p>IT Creative quyidagilarni faqat öqiy oladi:</p>
+            <ul>
+              <li><i class="bi bi-person"></i> Ism va profil rasmi</li>
+              <li><i class="bi bi-envelope"></i> Email manzil</li>
+            </ul>
+            <div class="sc-gbtns"><span class="sc-gtext">Bekor qiliş</span><span class="sc-gbtn sc-t-allow">Authorize</span></div>
+          </div>
           {% else %}
           <div class="sc-gview sc-gv-choose">
             <h4>Hisobni tanlang</h4>
@@ -121,7 +151,7 @@
     <p class="sc-cap" aria-live="polite"></p>
 
     <a class="sc-go" href="{% url connect_name %}"><svg aria-hidden="true"><use href="#{{ sym }}"/></svg><span class="sc-spin" aria-hidden="true"></span><span class="sc-go-t">{{ pname }} bilan ulaş</span></a>
-    <small class="sc-note"><i class="bi bi-shield-lock"></i> Parolingiz bizga körinmaydi — {{ pname }} faqat ism{% if p == 'facebook' %}, rasm{% endif %} va emailingizni tasdiqlaydi.</small>
+    <small class="sc-note"><i class="bi bi-shield-lock"></i> Parolingiz bizga körinmaydi — {{ pname }} faqat ism{% if p != 'google' %}, rasm{% endif %} va emailingizni tasdiqlaydi.</small>
   </div>
 </div>
 {% endwith %}
