@@ -13,7 +13,10 @@ body.is-premium::before {
 }
 
 /* Sahifa oçilganda kontent ohista kötariladi */
-body.is-premium #main-content { animation: pmEnter .55s cubic-bezier(.2, .8, .2, 1) both; }
+/* `backwards`: tugagaç transform qolmaydi — aks holda #main-content içidagi
+   position:fixed oynalar (test tasdiqi, modallar) ekranga emas, butun sahifaga
+   nisbatan joylaşib, sahifa örtasiga tuşib qoladi. */
+body.is-premium #main-content { animation: pmEnter .55s cubic-bezier(.2, .8, .2, 1) backwards; }
 
 /* Kartalar: kötariliş va oltin nur */
 body.is-premium :is(.card, .glass, .card3, .metric, .mk-card, .hp-card) {

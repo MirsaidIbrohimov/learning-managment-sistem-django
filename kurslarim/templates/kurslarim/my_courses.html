@@ -25,7 +25,7 @@
         {% for item in courses %}
         <article class="kp-card kp-glass">
             <div class="kp-card-media">
-                {% if item.profession.photo %}<img src="{{ item.profession.photo.url }}" alt="" loading="lazy">{% endif %}
+                {% if item.profession.photo %}<img src="{{ item.profession.photo.url }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}
                 {% if not item.active %}
                 <span class="kp-chip">Kursdan çiqilgan</span>
                 {% elif item.percent == 100 %}

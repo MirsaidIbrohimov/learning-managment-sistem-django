@@ -67,7 +67,8 @@
 }
 
 .cd-cover {
-    position: relative; height: 190px; overflow: hidden; cursor: zoom-in;
+    position: relative; aspect-ratio: 16 / 9; overflow: hidden; cursor: zoom-in;
+    background: linear-gradient(135deg, #4f46e5, #9333ea 55%, #ec4899);
 }
 .cd-cover img {
     width: 100%; height: 100%; object-fit: cover;
@@ -863,7 +864,6 @@
 /* ── RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 991px) {
     .cd-sidebar { position: static; }
-    .cd-cover   { height: 220px; }
 }
 @media (max-width: 640px) {
     /* roadmap */
@@ -887,7 +887,6 @@
     .cd-main-body { padding: .75rem .75rem .4rem; }
     .cd-main-head { padding: .85rem; }
     /* info card */
-    .cd-cover { height: 170px; }
     .cd-body  { padding: .85rem .85rem 1rem; }
 }
 
@@ -979,8 +978,8 @@
 <div class="cd-sidebar">
 <div class="cd-info-card">
     <!-- Cover image -->
-    <div class="cd-cover" onclick="openLightbox('{{ profession.photo.url }}')">
-        <img src="{{ profession.photo.url }}" alt="{{ profession.name }}">
+    <div class="cd-cover"{% if profession.photo %} onclick="openLightbox('{{ profession.photo.url }}')"{% endif %}>
+        {% if profession.photo %}<img src="{{ profession.photo.url }}" alt="{{ profession.name }}" onerror="this.remove()">{% endif %}
         <div class="cd-cover-overlay"></div>
         <div class="cd-cover-name">{{ profession.name }}</div>
     </div>

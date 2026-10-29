@@ -5,7 +5,7 @@ from urllib.parse import parse_qs, urlparse
 from django.test import TestCase, modify_settings, override_settings
 from django.urls import reverse
 
-from .models import CustomUser, SocialAccount
+from .models import CustomUser, SocialAccount, VerifiedEmailBinding
 
 SKIP_SESSION_MIDDLEWARE = modify_settings(MIDDLEWARE={'remove': [
     'accounts.middleware.DeviceLimitMiddleware',
@@ -111,13 +111,38 @@ class GoogleAuthTests(TestCase):
         self.assertTrue(SocialAccount.objects.filter(user=user, provider='google', uid=PROFILE['uid']).exists())
         self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
 
-    def test_signup_refused_when_email_belongs_to_existing_user(self, *_):
+    def test_login_auto_links_existing_user_with_same_verified_email(self, *_):
         CustomUser.objects.filter(pk=self.user.pk).update(email='ali@gmail.com')
+        self.callback(self.start('google_login'))
+        self.assertNotIn('social_signup', self.client.session)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+        self.assertTrue(SocialAccount.objects.filter(user=self.user, provider='google', uid=PROFILE['uid']).exists())
+
+    def test_admin_with_same_email_is_not_auto_linked(self, *_):
+        CustomUser.objects.filter(pk=self.user.pk).update(email='ali@gmail.com', is_staff=True)
         resp = self.callback(self.start('google_login'))
         self.assertRedirects(resp, reverse('login'), fetch_redirect_response=False)
-        self.assertNotIn('social_signup', self.client.session)
-        resp = self.client.get(reverse('social_signup'))
-        self.assertRedirects(resp, reverse('register'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertFalse(SocialAccount.objects.exists())
+
+    def test_user_with_other_google_linked_is_not_auto_linked(self, *_):
+        CustomUser.objects.filter(pk=self.user.pk).update(email='ali@gmail.com')
+        SocialAccount.objects.create(user=self.user, provider='google', uid='other-uid')
+        resp = self.callback(self.start('google_login'))
+        self.assertRedirects(resp, reverse('login'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_unverified_pending_email_does_not_block_signup(self, *_):
+        CustomUser.objects.filter(pk=self.user.pk).update(pending_email='ali@gmail.com')
+        resp = self.callback(self.start('google_login'))
+        self.assertRedirects(resp, reverse('social_signup'), fetch_redirect_response=False)
+        self.client.post(reverse('social_signup'), {
+            'first_name': 'Ali', 'last_name': 'Valiyev', 'username': 'alivaliyev',
+            'phone': '90 123 45 67', 'birth_date': '2008-05-01',
+        })
+        user = CustomUser.objects.get(username='alivaliyev')
+        self.assertEqual(user.email, 'ali@gmail.com')
+        self.assertTrue(VerifiedEmailBinding.objects.filter(email='ali@gmail.com', user=user).exists())
 
     def test_disconnect(self, *_):
         SocialAccount.objects.create(user=self.user, provider='google', uid=PROFILE['uid'])

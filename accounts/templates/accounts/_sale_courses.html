@@ -102,7 +102,7 @@
         <a href="{% url 'enroll_course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — {{ c.sale.price|floatformat:'0g' }} sömga sotib oliş">
         {% endif %}
             <div class="ks-media">
-                {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy">{% endif %}
+                {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy" onerror="this.remove()">{% endif %}
                 <span class="ks-ribbon">{% if c.sale.has_discount %}ÇEGIRMA −{{ c.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
                 {% if c.pk in purchased_ids %}<span class="ks-tag owned"><i class="bi bi-check2-circle me-1"></i>Sizniki</span>
                 {% elif c.student_count >= 10 %}<span class="ks-tag"><i class="bi bi-fire me-1"></i>Ommabop</span>{% endif %}

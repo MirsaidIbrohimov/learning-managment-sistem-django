@@ -226,7 +226,7 @@
 .kp-card.hidden { display:none!important; }
 
 /* Image */
-.kp-img { position:relative;height:185px;overflow:hidden;flex-shrink:0; }
+.kp-img { position:relative;aspect-ratio:16/9;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,#4f46e5,#9333ea 55%,#ec4899); }
 .kp-img img { width:100%;height:100%;object-fit:cover;transition:transform .6s ease; }
 .kp-card:hover .kp-img img { transform:scale(1.07); }
 .kp-img-overlay {
@@ -306,14 +306,14 @@
 
 /* ── LIST VIEW ── */
 .kp-grid.view-list .kp-card { flex-direction:row;flex-wrap:wrap; }
-.kp-grid.view-list .kp-img { width:200px;height:auto;min-height:140px; }
+.kp-grid.view-list .kp-img { width:200px;align-self:flex-start; }
 .kp-grid.view-list .kp-body { padding:14px;flex:1;min-width:0; }
 .kp-grid.view-list .kp-prog { width:100%;order:3;padding:.4rem 14px; }
 .kp-grid.view-list .kp-badges { top:8px;left:8px;right:8px; }
 .kp-grid.view-list .kp-students { bottom:8px;right:8px; }
 
 /* ── COMPACT VIEW ── */
-.kp-grid.view-compact .kp-img { height:110px; }
+.kp-grid.view-compact .kp-img { aspect-ratio:16/9; }
 .kp-grid.view-compact .kp-body { padding:10px 12px; }
 .kp-grid.view-compact .kp-name { font-size:.88rem; }
 .kp-grid.view-compact .kp-desc { font-size:.72rem;-webkit-line-clamp:1;margin-bottom:6px; }
@@ -362,13 +362,12 @@
   .kp-search-float { padding:0 14px; }
   .kp-grid.view-compact { grid-template-columns:repeat(2,1fr); }
   .kp-grid.view-list .kp-card { flex-direction:column; }
-  .kp-grid.view-list .kp-img { width:100%;height:155px; }
+  .kp-grid.view-list .kp-img { width:100%; }
 }
 @media(max-width:575px){
   .kp-wrap { padding:0 14px; }
   .kp-grid { grid-template-columns:1fr;gap:14px; }
   .kp-grid.view-compact { grid-template-columns:repeat(2,1fr);gap:10px; }
-  .kp-img { height:155px; }
   .kp-toolbar { flex-direction:column;align-items:flex-start; }
 }
 
@@ -426,7 +425,6 @@
   .kp-hero { padding:26px 0 66px; }
   .kp-hs-val { font-size:1.1rem; } .kp-hs-lab { font-size:.62rem; }
   .kp-hs-icon { width:32px; height:32px; }
-  .kp-img { height:172px; }
   .kp-name { font-size:1.05rem; } .kp-desc { font-size:.85rem; -webkit-line-clamp:3; }
   .pg { min-width:44px; height:44px; }
   .kp-grid.view-compact { grid-template-columns:1fr; }
@@ -675,7 +673,7 @@
          data-students="{{ profession.student_count }}">
 
         <div class="kp-img">
-          <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" loading="lazy">
+          {% if profession.photo %}<img src="{{ profession.photo.url }}" alt="{{ profession.name }}" loading="lazy" onerror="this.remove()">{% endif %}
           <div class="kp-img-overlay"></div>
           <div class="kp-badges">
             <div>

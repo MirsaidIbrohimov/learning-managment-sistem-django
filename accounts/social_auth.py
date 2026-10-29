@@ -9,11 +9,11 @@ Oqim (har bir xizmat uçun bir xil):
   3. connect: SocialAccount yaratiladi. login: şu ID ulangan foydalanuvçi
      odatdagi login jarayonidan (`_complete_login`) ötkaziladi.
 
-Ulangan hisob topilmasa va bu email bilan akkaunt bölmasa — foydalanuvçi
+Ulangan hisob topilmasa, lekin xizmat tasdiqlagan email mavjud akkauntning
+tasdiqlangan emailiga mos kelsa — hisob şu akkauntga avtomatik ulanadi va kiriladi
+(admin/xodim akkauntlari bundan mustasno). Bunday akkaunt ham bölmasa — foydalanuvçi
 /auth/social/signup/ sahifasiga yuboriladi: telefon va tuğilgan kunni kiritib,
-yangi öquvçi akkaunti yaratiladi (parolsiz; parolni keyin tiklaş orqali qöyiş
-mumkin). Mavjud emailga avtomatik ulanmaydi — akkauntni egallab olişning oldini
-oliş uçun avval odatdagidek kirib, profildan ulaş kerak.
+yangi öquvçi akkaunti yaratiladi (parolsiz; parolni keyin tiklaş orqali qöyiş mumkin).
 """
 import hashlib
 import hmac
@@ -25,7 +25,6 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -293,6 +292,8 @@ def _finish_login(request, provider, profile):
         provider=provider, uid=str(profile['uid'])
     ).first()
     if account is None:
+        account = _link_by_verified_email(provider, profile)
+    if account is None:
         return _start_signup(request, provider, profile)
 
     user = account.user
@@ -309,15 +310,60 @@ def _finish_login(request, provider, profile):
     )
 
 
+def _link_by_verified_email(provider, profile):
+    """Xizmat tasdiqlagan email mavjud akkauntning tasdiqlangan emailiga mos kelsa —
+    hisobni şu akkauntga avtomatik ulaydi va SocialAccount qaytaradi, aks holda None.
+
+    Admin/xodim akkauntlari avtomatik ulanmaydi: ular uçun avval odatdagidek kirib,
+    profildan ulaş kerak.
+    """
+    from .models import CustomUser, VerifiedEmailBinding
+
+    email = (profile.get('email') or '').strip().lower()
+    if not email or not profile.get('email_verified'):
+        return None
+    user = CustomUser.objects.filter(email__iexact=email).first()
+    if user is None:
+        binding = VerifiedEmailBinding.objects.select_related('user').filter(email__iexact=email).first()
+        user = binding.user if binding else None
+    if user is None or user.is_superuser or user.is_staff or user.is_admin:
+        return None
+    if SocialAccount.objects.filter(user=user, provider=provider).exists():
+        # Bu akkauntga boşqa Google/Facebook hisob ulangan — almaştirilmaydi
+        return None
+
+    account = SocialAccount.objects.create(
+        user=user, provider=provider, uid=str(profile['uid']),
+        email=email[:254], name=(profile.get('name') or '')[:200],
+        picture=(profile.get('picture') or '')[:500],
+    )
+    if user.telegram_id:
+        from telegram_bot.utils import notify_user
+        label = PROVIDERS[provider]['label']
+        notify_user(
+            user.telegram_id,
+            f"🔗 <b>Hisobingizga {label} ulandi</b>\n\n"
+            f"👤 {email}\n"
+            f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
+            f"⚠️ Agar buni siz qilmagan bölsangiz, darhol profilingizdan uzing va parolni özgartiring!"
+        )
+    return account
+
+
 # ---------------- Yangi akkaunt (Google / Facebook orqali röyxatdan ötiş) ----------------
 
 def _email_taken(email):
-    from .models import CustomUser
+    """Faqat tasdiqlangan email band hisoblanadi.
+
+    `pending_email` (havolasi bosilmagan) hisobga olinmaydi: aks holda kimdir
+    birovning emailini tasdiqlamay yozib qöyib, egasining röyxatdan ötişini
+    bloklab qöyişi mumkin. Xizmat emailni tasdiqlagan — u ustun.
+    """
+    from .models import CustomUser, VerifiedEmailBinding
     if not email:
         return False
-    return CustomUser.objects.filter(
-        Q(email__iexact=email) | Q(pending_email__iexact=email)
-    ).exists()
+    return (CustomUser.objects.filter(email__iexact=email).exists()
+            or VerifiedEmailBinding.objects.filter(email__iexact=email).exists())
 
 
 def _start_signup(request, provider, profile):
@@ -397,6 +443,11 @@ def social_signup(request):
             user.email = data['email']
             user.set_unusable_password()
             user.save()
+            if data['email']:
+                # Email endi şu akkauntga tegişli: boşqa akkauntdagi tasdiqlanmagan
+                # (pending) havola keyin bu emailni egallay olmaydi.
+                from .models import VerifiedEmailBinding
+                VerifiedEmailBinding.objects.get_or_create(email=data['email'], defaults={'user': user})
             SocialAccount.objects.create(
                 user=user, provider=provider, uid=data['uid'],
                 email=data['email'][:254], name=data['name'], picture=data['picture'],

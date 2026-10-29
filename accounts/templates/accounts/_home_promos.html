@@ -21,7 +21,7 @@
   <div class="hp-grid">
     {% for c in sale_promos %}
     <a class="hp-card" href="{% url 'enroll_course' c.pk %}">
-      {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy">{% else %}<span class="hp-ico"><i class="bi bi-mortarboard"></i></span>{% endif %}
+      {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy" onerror="this.remove()">{% else %}<span class="hp-ico"><i class="bi bi-mortarboard"></i></span>{% endif %}
       <span style="min-width:0">
         <b>{{ c.name }}</b>
         <span class="hp-price"><del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del><strong>{{ c.sale.price|floatformat:"0g" }} söm</strong><span class="sale-tag">−{{ c.sale.percent }}%</span></span>
