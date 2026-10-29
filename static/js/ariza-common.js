@@ -149,6 +149,16 @@
     addEventListener('load', function () {
       setTimeout(function () { AZ.scrollTo('#ariza'); AZ.confetti(); }, 500);
     });
+  } else if (formSec) {
+    /* ── Sahifa oçilganda darhol formaga tuşiriş ── */
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    addEventListener('load', function () {
+      if (window.ScrollTrigger) ScrollTrigger.refresh();
+      var top = formSec.getBoundingClientRect().top + scrollY - 24;
+      AZ.lenis ? AZ.lenis.scrollTo(top, { immediate: true, force: true }) : scrollTo(0, top);
+      var first = formSec.querySelector('input[name="first_name"]');
+      if (first && matchMedia('(hover:hover)').matches) first.focus({ preventScroll: true });
+    });
   }
 
   /* ── Tema almaştiriş ── */
