@@ -58,10 +58,9 @@ def quiz_prerequisites_met(student, quiz):
     if not quiz.lesson_id or not quiz.lesson.profession_id:
         return True
 
-    from accounts.models import Test, final_test_prerequisites_met
+    from accounts.models import final_test_prerequisites_met
 
-    is_final = Test.objects.filter(lesson_id=quiz.lesson_id, test_type='final').exists()
-    if not is_final:
+    if not quiz.lesson.is_final_test:
         return True
     return final_test_prerequisites_met(student, quiz.lesson.profession)
 

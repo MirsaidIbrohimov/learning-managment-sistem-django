@@ -5,7 +5,7 @@
     {% load static %}
 
     <meta charset="UTF-8">
-    <script src="{% static 'js/ai-jobs.js' %}?v=20261027"></script>
+    <script src="{% static 'js/ai-jobs.js' %}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% include 'partials/nav/_theme_head.html' %}
     <title>{% block title %}Öqituvçi paneli - LMS{% endblock %}</title>
@@ -197,8 +197,8 @@
     </style>
 
     <link rel="stylesheet" href="{% static 'css/panel_nav.css' %}">
-    <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}?v=2">
-    <link rel="stylesheet" href="{% static 'css/panel-layouts.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/panel-layouts.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="panel-teacher pn{% if nav_prefs.sidebar == 'collapsed' and nav_prefs.layout != 'top' %} sidebar-collapsed{% endif %}">
@@ -240,6 +240,9 @@
             </a>
             <a href="{% url 'my_study_schedule' %}" class="nav-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" data-title="Dars jadvalim">
                 <div class="nav-icon-wrap"><i class="bi bi-calendar2-week-fill"></i></div><span>Dars jadvalim</span>
+            </a>
+            <a href="{% url 'teacher:study_groups' %}" class="nav-link {% if 'study_group' in request.resolver_match.url_name %}active{% endif %}" data-title="Guruhlarim">
+                <div class="nav-icon-wrap"><i class="bi bi-people-fill"></i></div><span>Guruhlarim</span>
             </a>
             <a href="{% url 'attendance_home' %}" class="nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}" data-title="Davomat">
                 <div class="nav-icon-wrap"><i class="bi bi-clipboard-check-fill"></i></div><span>Davomat</span>
@@ -397,7 +400,7 @@
         });
     </script>
     {% include 'partials/nav/_settings_panel.html' with nav_ctx='panel' %}
-    <script src="{% static 'js/panel-nav.js' %}?v=1" defer></script>
+    <script src="{% static 'js/panel-nav.js' %}" defer></script>
     {% include 'partials/nav/_nav_config.html' with nav_ctx='panel' %}
 
     {% block extra_js %}{% endblock %}

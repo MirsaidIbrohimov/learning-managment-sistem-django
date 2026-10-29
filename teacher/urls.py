@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from accounts import views as accounts_views
 
 app_name = 'teacher'
 
@@ -11,6 +12,7 @@ urlpatterns = [
 
     # Öquvçilarim
     path('students/', views.teacher_my_students, name='my_students'),
+    path('students/<int:pk>/', views.teacher_student_detail, name='student_detail'),
     path('students/coins/', views.teacher_student_coins, name='student_coins'),
     path('students/add/', views.teacher_add_student, name='add_student'),
     path('students/remove/', views.teacher_remove_student, name='remove_student'),
@@ -62,6 +64,12 @@ urlpatterns = [
     path('final-test-payments/', views.teacher_final_test_payments, name='final_test_payments'),
     path('final-test-payments/<int:pk>/approve/', views.teacher_approve_final_payment, name='approve_final_payment'),
     path('final-test-payments/<int:pk>/reject/', views.teacher_reject_final_payment, name='reject_final_payment'),
+
+    # Guruhlarim & dars kunlari (admin guruh sahifalari, öqituvçi doirasida)
+    path('groups/', accounts_views.admin_study_groups, name='study_groups'),
+    path('groups/create/', accounts_views.admin_study_group_create, name='study_group_create'),
+    path('groups/<int:pk>/edit/', accounts_views.admin_study_group_edit, name='study_group_edit'),
+    path('groups/<int:pk>/delete/', accounts_views.admin_study_group_delete, name='study_group_delete'),
 
     # AI Tekşiruvçi
     path('ai-checker/', views.teacher_ai_checker, name='ai_checker'),

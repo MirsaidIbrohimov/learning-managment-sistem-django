@@ -4,7 +4,7 @@
    har qanday foydalanuvçi ma'lumoti HEÇ QAÇON keşga yozilmaydi.
    Internet bölmasa sahifa örniga ommaviy offline sahifa körsatiladi. */
 'use strict';
-var VERSION = 'itc-static-v1';
+var VERSION = 'itc-static-v2';
 var OFFLINE_URL = '/static/pwa/offline.html';
 var PRECACHE = [OFFLINE_URL, '/static/pwa/icons/icon-192.png'];
 var MAX_ENTRIES = 250;
@@ -48,7 +48,22 @@ self.addEventListener('fetch', function (event) {
   if (url.origin !== self.location.origin || url.pathname.indexOf('/static/') !== 0) return;
   if (req.headers.has('range')) return; // qisman sörovlar (audio/video) — töğridan-töğri
 
-  // /static/: stale-while-revalidate (fayl nomi ?v= bilan yangilanadi)
+  // CSS/JS/HTML (öyinlar içidagi nisbiy style.css/app.js ham): avval tarmoq —
+  // deploydan keyin yangi dizayn Ctrl+Shift+R siz darhol körinadi. Keş faqat
+  // internet yöq bölganda işlatiladi.
+  if (/\.(css|js|mjs|html|json)$/i.test(url.pathname)) {
+    event.respondWith(caches.open(VERSION).then(function (cache) {
+      return fetch(req).then(function (res) {
+        if (cacheable(res)) { cache.put(req, res.clone()).then(function () { return trim(cache); }); }
+        return res;
+      }).catch(function () {
+        return cache.match(req, { ignoreSearch: true }).then(function (r) { return r || Response.error(); });
+      });
+    }));
+    return;
+  }
+
+  // Rasm, şrift va boşqa og'ir fayllar: stale-while-revalidate
   event.respondWith(caches.open(VERSION).then(function (cache) {
     return cache.match(req).then(function (cached) {
       var network = fetch(req).then(function (res) {

@@ -30,6 +30,7 @@ urlpatterns = [
     path('auth/facebook/callback/', social_auth.social_callback, {'provider': 'facebook'}, name='facebook_callback'),
     path('auth/facebook/disconnect/', social_auth.social_disconnect, {'provider': 'facebook'}, name='facebook_disconnect'),
     path('auth/social/admin-unlink/<int:pk>/', social_auth.admin_unlink_social, name='social_admin_unlink'),
+    path('auth/social/signup/', social_auth.social_signup, name='social_signup'),
     path('privacy/', legal_views.privacy_policy, name='privacy_policy'),
     path('data-deletion/', legal_views.data_deletion, name='data_deletion'),
     path('email/verify/<str:token>/', email_verification.verify_email, name='verify_email'),

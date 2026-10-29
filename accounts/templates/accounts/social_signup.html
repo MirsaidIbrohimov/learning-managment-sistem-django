@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>Röyxatdan ötişni yakunlaş | IT Creative Academy</title>
+<link rel="icon" href="{% static 'img/fav.ico' %}">
+{% include 'partials/pwa/_head.html' %}
+<script>
+(function () {
+  var t;
+  try { t = localStorage.getItem('theme') || localStorage.getItem('itc-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{% static 'css/auth-motion.css' %}">
+<style>
+.ss-who{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--field);margin-bottom:16px}
+.ss-who img,.ss-who .ph{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--line)}
+.ss-who b{display:block;font-size:14px}
+.ss-who small{color:var(--muted);font-size:12px;word-break:break-all}
+.ss-who .ok{margin-left:auto;color:var(--lime);font-size:20px}
+</style>
+</head>
+<body>
+<canvas id="gl" aria-hidden="true"></canvas><div class="glow" aria-hidden="true"></div><div class="noise" aria-hidden="true"></div>
+<div class="cur" aria-hidden="true"></div><div class="cur-r" aria-hidden="true"></div><div id="wipe" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="box glass"><a class="logo" href="{% url 'home' %}">&lt;<b>it</b>creative /&gt;</a></div>
+  <div class="box glass">
+    <nav class="switch" aria-label="Autentifikatsiya"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>Kiriş</a><a class="on" href="{% url 'register' %}" aria-current="page">Röyxat<span class="long">dan ötiş</span></a></nav>
+    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almaştiriş"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
+  </div>
+</header>
+
+<main class="auth">
+  <div class="card-wrap">
+    <section class="card glass">
+      <h2 data-in>Deyarli tayyor ✨</h2>
+      <p class="sub" data-in>{{ provider_label }} hisobingiz tasdiqlandi. Akkauntni yaratiş uçun qolgan ma'lumotlarni kiriting.</p>
+
+      <div class="ss-who" data-in>
+        {% if social_picture %}<img src="{{ social_picture }}" alt="" referrerpolicy="no-referrer">{% else %}<span class="ph"><i class="bi bi-person"></i></span>{% endif %}
+        <div><b>{{ provider_label }}</b><small>{{ social_email|default:"email berilmagan" }}</small></div>
+        <i class="bi bi-patch-check-fill ok" aria-label="Tasdiqlangan"></i>
+      </div>
+
+      <form method="POST" id="ss" novalidate data-loading>
+        {% csrf_token %}
+        <div data-in>
+          <div class="grid2">
+            <div>
+              <div class="fx{% if form.first_name.errors %} bad{% endif %}">{{ form.first_name }}<label for="{{ form.first_name.id_for_label }}">Ism</label><i class="bi bi-person"></i></div>
+              {% if form.first_name.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div>
+              <div class="fx{% if form.last_name.errors %} bad{% endif %}">{{ form.last_name }}<label for="{{ form.last_name.id_for_label }}">Familiya</label><i class="bi bi-person"></i></div>
+              {% if form.last_name.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="fx{% if form.username.errors %} bad{% endif %}">{{ form.username }}<label for="{{ form.username.id_for_label }}">Username</label><i class="bi bi-at"></i></div>
+          {% if form.username.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
+          <div class="fx pre{% if form.phone.errors %} bad{% endif %}"><span class="pre-tag">+998</span>{{ form.phone }}<label for="id_phone">Telefon raqam</label><i class="bi bi-phone"></i></div>
+          {% if form.phone.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
+          <div class="fx{% if form.birth_date.errors %} bad{% endif %}">{{ form.birth_date }}<label for="{{ form.birth_date.id_for_label }}">Tuğilgan kun</label><i class="bi bi-calendar-event"></i></div>
+          {% if form.birth_date.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
+          <p class="hint">Parol kerak emas — keyingi safar «{{ provider_label }}» tugmasi bilan kirasiz. Xohlasangiz, keyin parol ham qöyişingiz mumkin.</p>
+          <button type="submit" class="btn btn-main" data-mag>Akkauntni yaratiş <i class="bi bi-check-lg"></i></button>
+        </div>
+      </form>
+
+      <div class="foot" data-in>
+        <span>Akkauntingiz bormi? <a class="link" href="{% url 'login' %}" data-wipe>Tizimga kiriş →</a></span>
+      </div>
+    </section>
+  </div>
+
+  <section class="stage" data-orb-stage aria-hidden="true">
+    <div class="stage-copy">
+      <div class="eyebrow">{{ provider_label }} orqali</div>
+      <h1><span class="split">Bir qadam</span><br><span class="split grad">qoldi.</span></h1>
+      <p>Video darslar, AI yordamçi va coin tizimi sizni kutmoqda.</p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="{% static 'js/auth-orb.js' %}"></script>
+<script src="{% static 'js/auth-motion.js' %}"></script>
+<script>
+(function () {
+  var A = window.ITCAuth;
+  A && A.formatPhone(document.getElementById('id_phone'), 'paren');
+  {% if messages %}{% for message in messages %}A && A.toast("{{ message|escapejs }}", "{{ message.tags }}");{% endfor %}{% endif %}
+})();
+</script>
+</body>
+</html>

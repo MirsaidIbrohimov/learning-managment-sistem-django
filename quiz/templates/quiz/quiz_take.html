@@ -7,9 +7,9 @@
 
 {% block extra_css %}
 <meta name="csrf-token" content="{{ csrf_token }}">
-<link rel="stylesheet" href="{% static 'quiz/css/quiz_take.css' %}?v=shell1">
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_take.css' %}">
 <link rel="stylesheet" href="{% static 'css/student_test_glass.css' %}">
-<link rel="stylesheet" href="{% static 'quiz/css/quiz_shell.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_shell.css' %}">
 {% include 'quiz/_quiz_shell_theme.html' %}
 {% endblock %}
 
@@ -289,7 +289,7 @@
 {% block extra_js %}
 {{ bootstrap|json_script:"quiz-bootstrap" }}
 {% if portal %}<script>window.QUIZ_API_ROOT = '{{ portal.quiz_api_root }}'; window.QUIZ_RETRY_URL = '{{ portal.retry_url }}';</script>{% endif %}
-<script src="{% static 'quiz/js/quiz_shell.js' %}?v=1"></script>
-<script src="{% static 'quiz/js/api.js' %}?v=portal1"></script>
-<script src="{% static 'quiz/js/quiz_take.js' %}?v=portal1"></script>
+<script src="{% static 'quiz/js/quiz_shell.js' %}"></script>
+<script src="{% static 'quiz/js/api.js' %}"></script>
+<script src="{% static 'quiz/js/quiz_take.js' %}"></script>
 {% endblock %}

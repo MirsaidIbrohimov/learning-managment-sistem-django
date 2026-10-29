@@ -220,26 +220,26 @@ def student_passed_final_test(student, profession):
 
     Kursda yakuniy test bölmasa sertifikat oliş mumkin emas.
     """
-    from accounts.models import Test, TestResult
+    from accounts.models import Lesson, TestResult, final_lesson_q
 
-    final_tests = Test.objects.filter(
-        lesson__profession=profession, test_type='final'
+    final_lesson_ids = list(
+        Lesson.objects.filter(profession=profession)
+        .filter(final_lesson_q()).values_list('pk', flat=True)
     )
 
     # Sertifikatli kursda yakuniy test majburiy.
-    if not final_tests.exists():
+    if not final_lesson_ids:
         return False
 
     # 1) Eski tizim natijasi
     if TestResult.objects.filter(
-        student=student, passed=True, test__in=final_tests
+        student=student, passed=True, test__lesson_id__in=final_lesson_ids
     ).exists():
         return True
 
-    # 2) Yakuniy test darsi yangi Quiz tizimiga köçirilgan bölişi mumkin
+    # 2) Yangi Quiz tizimi natijasi
     try:
         from quiz.models import Attempt
-        final_lesson_ids = list(final_tests.values_list('lesson_id', flat=True))
         return Attempt.objects.filter(
             student=student,
             passed=True,
@@ -376,10 +376,8 @@ def issue_course_certificate(student, profession, issued_by=None):
         return None, "Bu kurs uçun sertifikat joriy qilinmagan."
 
     # 2) Sertifikatli kursda yakuniy test bölişi majburiy
-    from accounts.models import Test
-    if not Test.objects.filter(
-        lesson__profession=profession, test_type='final'
-    ).exists():
+    from accounts.models import Lesson, final_lesson_q
+    if not Lesson.objects.filter(profession=profession).filter(final_lesson_q()).exists():
         return None, "Sertifikat oliş uçun kursda yakuniy test bölişi kerak."
 
     # 3) Seriya sozlanganmi

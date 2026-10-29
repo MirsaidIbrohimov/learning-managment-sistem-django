@@ -143,3 +143,82 @@ class TeacherStudentManagementTests(TestCase):
         resp = self.client.get(reverse('teacher:admin_actions'))
         self.assertContains(resp, 'Coin berdi')
         self.assertContains(resp, self.teacher.full_name)
+
+
+@SKIP_SESSION_MIDDLEWARE
+class TeacherStudentInfoAndGroupsTests(TestCase):
+    """Yangi qöşilgan belgisi, öquvçi ma'lumoti va öqituvçining öz guruhlari."""
+
+    def setUp(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        self.teacher = make_user('gustoz', role='teacher')
+        self.other_teacher = make_user('gboshqa', role='teacher')
+        self.course = Profession.objects.create(name='Python', photo='p.jpg', description='-')
+        self.foreign = Profession.objects.create(name='Dizayn', photo='p.jpg', description='-')
+        self.teacher.teaching_professions.add(self.course)
+        self.other_teacher.teaching_professions.add(self.foreign)
+        self.newbie = make_user('yangi')
+        self.oldie = make_user('eski')
+        self.stranger = make_user('begona')
+        CourseEnrollment.objects.create(user=self.newbie, profession=self.course)
+        old = CourseEnrollment.objects.create(user=self.oldie, profession=self.course)
+        CourseEnrollment.objects.filter(pk=old.pk).update(
+            enrolled_at=timezone.now() - timedelta(days=8))
+        CourseEnrollment.objects.create(user=self.stranger, profession=self.foreign)
+        self.client.force_login(self.teacher)
+
+    def test_new_badge_only_for_students_joined_within_a_week(self):
+        resp = self.client.get(reverse('teacher:my_students'))
+        flags = {d['student'].pk: d['is_new'] for d in resp.context['students_data']}
+        self.assertEqual(flags, {self.newbie.pk: True, self.oldie.pk: False})
+        self.assertEqual(resp.context['new_students_count'], 1)
+        self.assertContains(resp, 'Yangi qöşilgan')
+
+    def test_student_detail_limited_to_own_course_students(self):
+        resp = self.client.get(reverse('teacher:student_detail', args=[self.newbie.pk]))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, self.newbie.username)
+        resp = self.client.get(reverse('teacher:student_detail', args=[self.stranger.pk]))
+        self.assertRedirects(resp, reverse('teacher:my_students'), fetch_redirect_response=False)
+
+    def group_post(self, url, **extra):
+        data = {
+            'name': 'Python-A', 'profession': self.course.pk,
+            'start_time': '14:00', 'end_time': '16:00', 'days': ['1', '3', '5'],
+            'students': [self.newbie.pk, self.stranger.pk],
+            'teacher': self.other_teacher.pk,
+        }
+        data.update(extra)
+        return self.client.post(url, data)
+
+    def test_teacher_creates_own_group_with_only_own_students(self):
+        from accounts.models import StudyGroup
+
+        resp = self.group_post(reverse('teacher:study_group_create'))
+        self.assertRedirects(resp, reverse('teacher:study_groups'), fetch_redirect_response=False)
+        group = StudyGroup.objects.get(name='Python-A')
+        self.assertEqual(group.teacher, self.teacher)
+        self.assertEqual(group.get_days_list(), [1, 3, 5])
+        self.assertEqual(list(group.students.all()), [self.newbie])
+
+    def test_teacher_cannot_use_foreign_course_or_edit_foreign_group(self):
+        from accounts.models import StudyGroup
+
+        self.group_post(reverse('teacher:study_group_create'), profession=self.foreign.pk, name='X')
+        self.assertFalse(StudyGroup.objects.filter(name='X').exists())
+
+        foreign_group = StudyGroup.objects.create(
+            name='Begona', profession=self.foreign, teacher=self.other_teacher,
+            start_time='10:00', end_time='11:00', days_mask=1,
+        )
+        resp = self.client.get(reverse('teacher:study_group_edit', args=[foreign_group.pk]))
+        self.assertEqual(resp.status_code, 404)
+        resp = self.client.post(reverse('teacher:study_group_delete', args=[foreign_group.pk]))
+        self.assertEqual(resp.status_code, 404)
+        self.assertTrue(StudyGroup.objects.filter(pk=foreign_group.pk).exists())
+
+    def test_admin_group_url_redirects_teacher_to_own_panel(self):
+        resp = self.client.get(reverse('admin_study_groups'))
+        self.assertRedirects(resp, reverse('teacher:study_groups'), fetch_redirect_response=False)

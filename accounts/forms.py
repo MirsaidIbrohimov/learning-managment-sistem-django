@@ -184,6 +184,35 @@ class RegisterForm(UserCreationForm):
         return normalize_uz_phone(self.cleaned_data.get('phone'))
 
 
+class SocialSignupForm(forms.ModelForm):
+    """Google/Facebook orqali röyxatdan ötiş: email va parol xizmatdan, qolgani şu yerda."""
+    first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ismingiz'}))
+    last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Familiyangiz'}))
+    username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
+    phone = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(XX) XXX XX XX', 'id': 'id_phone'}))
+    birth_date = forms.DateField(widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}))
+
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'username', 'phone', 'birth_date']
+
+    def clean_first_name(self):
+        return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
+
+    def clean_last_name(self):
+        return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username', '').strip()
+        CustomUser.username_validator(username)
+        if CustomUser.objects.filter(username__iexact=username).exists():
+            raise forms.ValidationError("Bu username band. Boşqasini tanlang.")
+        return username
+
+    def clean_phone(self):
+        return normalize_uz_phone(self.cleaned_data.get('phone'))
+
+
 class LoginForm(forms.Form):
     username = forms.CharField(
         widget=forms.TextInput(attrs={

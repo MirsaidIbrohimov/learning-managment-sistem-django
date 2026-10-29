@@ -37,6 +37,7 @@ from .models import (
     UserSession,
     VideoLesson,
     VideoProgress,
+    final_lesson_q,
     AssistantRole,
 )
 from .views import (
@@ -757,6 +758,51 @@ class CertificateFinalTestRequirementTests(TestCase):
         self.assertIn('yakuniy test', error.lower())
         self.assertFalse(
             Certificate.objects.filter(student=student, profession=profession).exists()
+        )
+
+    def test_quiz_final_test_counts_as_course_final_test(self):
+        """Yangi Quiz tizimida yaratilgan yakuniy test (legacy Test qatorisiz)."""
+        from quiz.models import QuizSettings
+        from .models import final_test_prerequisites_met
+
+        student = CustomUser.objects.create_user(
+            username='quiz-final-student', password='test-password', role='student',
+        )
+        profession = Profession.objects.create(
+            name='Python', photo='professions/test.jpg',
+            description='Test course', has_certificate=True,
+        )
+        lesson = Lesson.objects.create(
+            profession=profession, title='Yakuniy test', lesson_type='test',
+        )
+        quiz = Quiz.objects.create(lesson=lesson, title='Yakuniy test')
+        QuizSettings.objects.create(quiz=quiz, retry_payment_required=True)
+
+        self.assertTrue(lesson.is_final_test)
+        self.assertTrue(final_test_prerequisites_met(student, profession, set()))
+        self.assertFalse(student_passed_final_test(student, profession))
+
+        Attempt.objects.create(
+            quiz=quiz, student=student, status=Attempt.Status.GRADED,
+            passed=True, expires_at=timezone.now() + timedelta(hours=1),
+        )
+        self.assertTrue(student_passed_final_test(student, profession))
+
+    def test_ordinary_quiz_is_not_final_test(self):
+        from quiz.models import QuizSettings
+
+        profession = Profession.objects.create(
+            name='Oddiy', photo='professions/test.jpg', description='Test course',
+        )
+        lesson = Lesson.objects.create(
+            profession=profession, title='Dars testi', lesson_type='test',
+        )
+        quiz = Quiz.objects.create(lesson=lesson, title='Dars testi')
+        QuizSettings.objects.create(quiz=quiz)
+
+        self.assertFalse(lesson.is_final_test)
+        self.assertFalse(
+            Lesson.objects.filter(profession=profession).filter(final_lesson_q()).exists()
         )
 
 

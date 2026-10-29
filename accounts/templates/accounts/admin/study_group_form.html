@@ -367,12 +367,16 @@
             <div class="sgf-grid" style="margin-top:16px;">
                 <div class="sgf-field">
                     <label><i class="bi bi-person-workspace"></i> Öqituvçi</label>
+                    {% if lock_teacher %}
+                    <input type="text" class="form-control" value="{{ request.user.first_name }} {{ request.user.last_name }}" disabled>
+                    {% else %}
                     <select name="teacher" class="form-select">
                         <option value="">— Tanlanmagan —</option>
                         {% for t in teachers %}
                         <option value="{{ t.pk }}" {% if group and group.teacher_id == t.pk %}selected{% endif %}>{{ t.first_name }} {{ t.last_name }}</option>
                         {% endfor %}
                     </select>
+                    {% endif %}
                 </div>
                 <div class="sgf-field">
                     <label><i class="bi bi-geo-alt"></i> Xona / Joy</label>

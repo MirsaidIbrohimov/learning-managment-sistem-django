@@ -90,10 +90,34 @@ class GoogleAuthTests(TestCase):
         self.callback(self.start('google_login'))
         self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
 
-    def test_login_with_unlinked_google_fails(self, *_):
+    def test_login_with_unlinked_google_goes_to_signup(self, *_):
+        resp = self.callback(self.start('google_login'))
+        self.assertRedirects(resp, reverse('social_signup'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_signup_with_google_creates_student(self, *_):
+        self.callback(self.start('google_login'))
+        resp = self.client.get(reverse('social_signup'))
+        self.assertContains(resp, 'ali@gmail.com')
+        self.assertEqual(resp.context['form'].initial['username'], 'ali2')  # 'ali' band
+        resp = self.client.post(reverse('social_signup'), {
+            'first_name': 'Ali', 'last_name': 'Valiyev', 'username': 'alivaliyev',
+            'phone': '90 123 45 67', 'birth_date': '2008-05-01',
+        })
+        self.assertRedirects(resp, reverse('complete_profile'), fetch_redirect_response=False)
+        user = CustomUser.objects.get(username='alivaliyev')
+        self.assertEqual((user.role, user.email, user.phone), ('student', 'ali@gmail.com', '+998901234567'))
+        self.assertFalse(user.has_usable_password())
+        self.assertTrue(SocialAccount.objects.filter(user=user, provider='google', uid=PROFILE['uid']).exists())
+        self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+
+    def test_signup_refused_when_email_belongs_to_existing_user(self, *_):
+        CustomUser.objects.filter(pk=self.user.pk).update(email='ali@gmail.com')
         resp = self.callback(self.start('google_login'))
         self.assertRedirects(resp, reverse('login'), fetch_redirect_response=False)
-        self.assertNotIn('_auth_user_id', self.client.session)
+        self.assertNotIn('social_signup', self.client.session)
+        resp = self.client.get(reverse('social_signup'))
+        self.assertRedirects(resp, reverse('register'), fetch_redirect_response=False)
 
     def test_disconnect(self, *_):
         SocialAccount.objects.create(user=self.user, provider='google', uid=PROFILE['uid'])

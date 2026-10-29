@@ -31,7 +31,7 @@ from .models import (
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
     DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken,
     SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer, StudyGroup, StudentAttendance,
-    final_test_prerequisites_met, daily_limit_active,
+    final_test_prerequisites_met, final_lesson_q, daily_limit_active,
 )
 from django.contrib.auth.hashers import make_password
 from .security import (
@@ -3124,6 +3124,19 @@ def _build_course_roadmap(sections, section_completed=None, section_is_locked=No
     }
 
 
+def _final_test_info(lesson):
+    """Yakuniy test kartoçkasi uçun vaqt va ötiş bali (eski Test yoki Quiz)."""
+    test = getattr(lesson, 'test', None)
+    if test is not None:
+        return {'time_limit': test.time_limit, 'passing_score': test.passing_score}
+    quiz = getattr(lesson, 'quiz', None)
+    settings_ = getattr(quiz, 'settings', None) if quiz is not None else None
+    return {
+        'time_limit': settings_.time_limit_minutes if settings_ else 0,
+        'passing_score': settings_.passing_score if settings_ else 0,
+    }
+
+
 @login_required
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
@@ -3453,20 +3466,20 @@ def profession_detail(request, pk):
         final_test_qs = list(Lesson.objects.filter(
             profession=profession,
             lesson_type='test',
-            test__test_type='final'
-        ).select_related('test'))
+        ).filter(final_lesson_q()).select_related('test', 'quiz__settings'))
         has_final_test = bool(final_test_qs)
         for _fl in final_test_qs:
             _payment_status = None
-            if request.user.is_authenticated and request.user.is_student:
+            _legacy_test = getattr(_fl, 'test', None)
+            if request.user.is_authenticated and request.user.is_student and _legacy_test:
                 _pay = FinalTestPayment.objects.filter(
-                    student=request.user, test=_fl.test
+                    student=request.user, test=_legacy_test
                 ).order_by('-created_at').first()
                 if _pay:
                     _payment_status = _pay.status
             final_test_lessons.append({
                 'lesson': _fl,
-                'test': _fl.test,
+                'test': _final_test_info(_fl),
                 'payment_status': _payment_status,
                 'progress': lesson_progress.get(_fl.pk),
                 'token': token_map.get(_fl.pk),
@@ -3925,9 +3938,7 @@ def request_certificate(request, pk):
         messages.error(request, "Bu kurs uçun sertifikat joriy qilinmagan.")
         return redirect('profession_detail', pk=pk)
 
-    if not Test.objects.filter(
-        lesson__profession=profession, test_type='final'
-    ).exists():
+    if not Lesson.objects.filter(profession=profession).filter(final_lesson_q()).exists():
         messages.error(
             request,
             "Bu kursda yakuniy test mavjud emas. Sertifikat oliş uçun yakuniy test bölişi kerak.",
@@ -6419,19 +6430,19 @@ def student_course_view(request, token):
         final_test_qs = list(Lesson.objects.filter(
             profession=profession,
             lesson_type='test',
-            test__test_type='final'
-        ).select_related('test'))
+        ).filter(final_lesson_q()).select_related('test', 'quiz__settings'))
         has_final_test = bool(final_test_qs)
         for _fl in final_test_qs:
             _payment_status = None
+            _legacy_test = getattr(_fl, 'test', None)
             _pay = FinalTestPayment.objects.filter(
-                student=request.user, test=_fl.test
-            ).order_by('-created_at').first()
+                student=request.user, test=_legacy_test
+            ).order_by('-created_at').first() if _legacy_test else None
             if _pay:
                 _payment_status = _pay.status
             final_test_lessons.append({
                 'lesson': _fl,
-                'test': _fl.test,
+                'test': _final_test_info(_fl),
                 'payment_status': _payment_status,
                 'progress': lesson_progress.get(_fl.pk),
                 'token': token_map.get(_fl.pk),
@@ -6479,8 +6490,7 @@ def student_lesson_view(request, token):
         messages.error(request, "Avval kursga yoziling!")
         return redirect('professions')
 
-    lesson_test = getattr(lesson, 'test', None) if lesson.lesson_type == 'test' else None
-    if (lesson_test and lesson_test.test_type == 'final'
+    if (lesson.is_final_test
             and not final_test_prerequisites_met(request.user, profession)):
         messages.warning(
             request,
@@ -17888,6 +17898,15 @@ def _parse_time(value):
 
 def _study_group_panel_context(user):
     """Guruh sahifalarini foydalanuvçining öz panelida oçiş sozlamalari."""
+    if user.role == 'teacher':
+        return {
+            'study_groups_base': 'teacher/base_study_groups.html',
+            'study_groups_url': 'teacher:study_groups',
+            'study_group_create_url': 'teacher:study_group_create',
+            'study_group_edit_url': 'teacher:study_group_edit',
+            'study_group_delete_url': 'teacher:study_group_delete',
+            'lock_teacher': True,
+        }
     if user.is_assistant_admin:
         return {
             'study_groups_base': 'accounts/yordamchi/base_yordamchi.html',
@@ -17905,12 +17924,54 @@ def _study_group_panel_context(user):
     }
 
 
+def _can_manage_study_groups(user):
+    return user.is_admin_or_assistant or user.role == 'teacher'
+
+
+def _study_group_scope(user):
+    """Foydalanuvçi boşqara oladigan guruhlar, kurslar, öqituvçilar, öquvçilar.
+
+    Öqituvçi faqat özi biriktirilgan guruhlarni, özi dars beradigan kurslarni
+    va şu kurslarga yozilgan öquvçilarni köradi; guruh öqituvçisi — özi.
+    """
+    if user.role == 'teacher':
+        professions = user.teaching_professions.all()
+        return {
+            'groups': StudyGroup.objects.filter(teacher=user),
+            'professions': professions,
+            'teachers': CustomUser.objects.filter(pk=user.pk),
+            'students': CustomUser.objects.filter(
+                role='student', is_blocked=False,
+                enrollments__profession__in=professions,
+            ).distinct().order_by('first_name'),
+        }
+    return {
+        'groups': StudyGroup.objects.all(),
+        'professions': Profession.objects.all(),
+        'teachers': CustomUser.objects.filter(role='teacher').order_by('first_name'),
+        'students': CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name'),
+    }
+
+
+def _teacher_study_group_redirect(request, url_name, **kwargs):
+    """Öqituvçi admin URL orqali kirsa — öz panelidagi sahifaga."""
+    if request.user.role == 'teacher' and request.resolver_match.namespace != 'teacher':
+        target = reverse(f'teacher:{url_name}', kwargs=kwargs or None)
+        if request.GET:
+            target = f'{target}?{request.GET.urlencode()}'
+        return redirect(target)
+    return None
+
+
 @login_required
 def admin_study_groups(request):
     """Guruhlar & Dars jadvali röyxati."""
-    if not request.user.is_admin_or_assistant:
+    if not _can_manage_study_groups(request.user):
         messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
+    teacher_redirect = _teacher_study_group_redirect(request, 'study_groups')
+    if teacher_redirect:
+        return teacher_redirect
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_groups':
         target = reverse('yordamchi_study_groups')
@@ -17924,7 +17985,8 @@ def admin_study_groups(request):
     teacher_id = request.GET.get('teacher', '')
     view_mode = request.GET.get('view', 'list')  # list yoki schedule
 
-    groups = StudyGroup.objects.select_related('profession', 'teacher').prefetch_related('students')
+    scope = _study_group_scope(request.user)
+    groups = scope['groups'].select_related('profession', 'teacher').prefetch_related('students')
 
     if q:
         groups = groups.filter(Q(name__icontains=q) | Q(profession__name__icontains=q))
@@ -17956,8 +18018,8 @@ def admin_study_groups(request):
             'is_today': d_num == timezone.localtime().isoweekday(),
         })
 
-    professions = Profession.objects.all()
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    professions = scope['professions']
+    teachers = scope['teachers']
 
     context = {
         'groups': groups,
@@ -17979,14 +18041,18 @@ def admin_study_groups(request):
 
 @login_required
 def admin_study_group_create(request):
-    if not request.user.is_admin_or_assistant:
+    if not _can_manage_study_groups(request.user):
         messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
+    teacher_redirect = _teacher_study_group_redirect(request, 'study_group_create')
+    if teacher_redirect:
+        return teacher_redirect
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_create':
         return redirect('yordamchi_study_group_create')
 
     panel_context = _study_group_panel_context(request.user)
+    scope = _study_group_scope(request.user)
 
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
@@ -18011,6 +18077,12 @@ def admin_study_group_create(request):
             errors.append("Tugaş vaqti boşlanişdan katta bölişi kerak.")
         if not days_mask:
             errors.append("Kamida bitta kun tanlang.")
+        if profession_id and not scope['professions'].filter(pk=profession_id).exists():
+            errors.append("Bu kurs uçun guruh oça olmaysiz.")
+        if request.user.role == 'teacher':
+            teacher_id = request.user.pk
+        elif teacher_id and not scope['teachers'].filter(pk=teacher_id).exists():
+            errors.append("Öqituvçi topilmadi.")
 
         if errors:
             for e in errors:
@@ -18029,15 +18101,13 @@ def admin_study_group_create(request):
                 created_by=request.user,
             )
             if student_ids:
-                group.students.set(
-                    CustomUser.objects.filter(pk__in=student_ids, role='student')
-                )
+                group.students.set(scope['students'].filter(pk__in=student_ids))
             messages.success(request, f"'{group.name}' guruhi yaratildi.")
             return redirect(panel_context['study_groups_url'])
 
-    professions = Profession.objects.all()
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
-    students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
+    professions = scope['professions']
+    teachers = scope['teachers']
+    students = scope['students']
 
     context = {
         'professions': professions,
@@ -18054,16 +18124,20 @@ def admin_study_group_create(request):
 
 @login_required
 def admin_study_group_edit(request, pk):
-    if not request.user.is_admin_or_assistant:
+    if not _can_manage_study_groups(request.user):
         messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
+    teacher_redirect = _teacher_study_group_redirect(request, 'study_group_edit', pk=pk)
+    if teacher_redirect:
+        return teacher_redirect
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_edit':
         return redirect('yordamchi_study_group_edit', pk=pk)
 
     panel_context = _study_group_panel_context(request.user)
+    scope = _study_group_scope(request.user)
 
-    group = get_object_or_404(StudyGroup, pk=pk)
+    group = get_object_or_404(scope['groups'], pk=pk)
 
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
@@ -18089,6 +18163,12 @@ def admin_study_group_edit(request, pk):
             errors.append("Tugaş vaqti boşlanişdan katta bölişi kerak.")
         if not days_mask:
             errors.append("Kamida bitta kun tanlang.")
+        if profession_id and not scope['professions'].filter(pk=profession_id).exists():
+            errors.append("Bu kurs uçun guruh oça olmaysiz.")
+        if request.user.role == 'teacher':
+            teacher_id = request.user.pk
+        elif teacher_id and not scope['teachers'].filter(pk=teacher_id).exists():
+            errors.append("Öqituvçi topilmadi.")
 
         if errors:
             for e in errors:
@@ -18105,15 +18185,13 @@ def admin_study_group_edit(request, pk):
             group.description = description
             group.is_active = is_active
             group.save()
-            group.students.set(
-                CustomUser.objects.filter(pk__in=student_ids, role='student')
-            )
+            group.students.set(scope['students'].filter(pk__in=student_ids))
             messages.success(request, f"'{group.name}' guruhi yangilandi.")
             return redirect(panel_context['study_groups_url'])
 
-    professions = Profession.objects.all()
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
-    students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
+    professions = scope['professions']
+    teachers = scope['teachers']
+    students = scope['students']
 
     context = {
         'professions': professions,
@@ -18130,14 +18208,17 @@ def admin_study_group_edit(request, pk):
 
 @login_required
 def admin_study_group_delete(request, pk):
-    if not request.user.is_admin_or_assistant:
+    if not _can_manage_study_groups(request.user):
         messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
+    teacher_redirect = _teacher_study_group_redirect(request, 'study_group_delete', pk=pk)
+    if teacher_redirect:
+        return teacher_redirect
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_delete':
         return redirect('yordamchi_study_group_delete', pk=pk)
 
     panel_context = _study_group_panel_context(request.user)
-    group = get_object_or_404(StudyGroup, pk=pk)
+    group = get_object_or_404(_study_group_scope(request.user)['groups'], pk=pk)
     if request.method == 'POST':
         name = group.name
         group.delete()

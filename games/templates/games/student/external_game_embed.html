@@ -15,9 +15,16 @@
     }
     body { overflow: hidden !important; }
 
+    /* Öyin sahifasi: footer, tölov banneri va boşqa eslatmalar öyin
+       maydonini siqmasin — iframe navbardan pastdagi butun joyni egallaydi. */
+    .site-footer,
+    #studentPayBannerWrap,
+    #main-content > .alert,
+    #main-content > .container-xl:not(#game-iframe-wrap) { display: none !important; }
+
     #game-iframe-wrap {
         width: 100%;
-        height: calc(100vh - var(--navbar-h, 56px));
+        height: calc(100dvh - var(--navbar-h, 56px));
         position: relative;
         background: #0a0a0f;
     }
@@ -88,12 +95,29 @@
 </div>
 
 <script>
+    // Iframe balandligi: wrap'ning haqiqiy yuqori çeti (navbar, layout, banner
+    // qanday bölişidan qat'i nazar) dan ekran pastigaça, pastki mobil menyu
+    // bölsa uni hisobga olib.
     (function() {
-        const nav = document.querySelector('nav, .navbar, header');
-        if (nav) {
-            document.getElementById('game-iframe-wrap').style.height =
-                'calc(100vh - ' + nav.offsetHeight + 'px)';
+        const wrap = document.getElementById('game-iframe-wrap');
+        function fit() {
+            const top = Math.max(0, wrap.getBoundingClientRect().top + window.scrollY);
+            let bottom = 0;
+            document.querySelectorAll('.nb-mobile-nav').forEach(function(el) {
+                const r = el.getBoundingClientRect();
+                const cs = getComputedStyle(el);
+                // Faqat ekran pastiga yopişgan, haqiqatan körinib turgan menyu
+                if (r.height && cs.display !== 'none' && cs.visibility !== 'hidden'
+                        && r.top > window.innerHeight / 2 && r.top < window.innerHeight) {
+                    bottom = Math.max(bottom, window.innerHeight - r.top);
+                }
+            });
+            wrap.style.height = Math.max(320, window.innerHeight - top - bottom) + 'px';
         }
+        fit();
+        window.addEventListener('resize', fit);
+        window.addEventListener('load', fit);
+        setTimeout(fit, 300);
     })();
 
     // ===== Light/Dark theme bridge: LMS temasini iframe içidagi öyinga uzatadi =====

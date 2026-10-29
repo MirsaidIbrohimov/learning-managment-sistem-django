@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from datetime import timedelta
+
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Avg, Count, Q, Sum
@@ -326,6 +328,10 @@ def teacher_export(request):
     return response
 
 
+# Kursga yozilganidan şunça kun ötguncha öquvçi "Yangi qöşilgan" deb körsatiladi
+NEW_STUDENT_DAYS = 7
+
+
 @teacher_required
 def teacher_my_students(request):
     """Öqituvçining öquvçilari röyxati va natijalari"""
@@ -366,10 +372,13 @@ def teacher_my_students(request):
         )
 
     students_data = []
+    new_since = timezone.now() - timedelta(days=NEW_STUDENT_DAYS)
     for student in students_qs:
         # Kurslar
-        student_enrollments = enrollments.filter(user=student)
+        student_enrollments = list(enrollments.filter(user=student))
         student_professions = [e.profession for e in student_enrollments]
+        # Öqituvçi kursiga birinçi yozilgan sana — 1 hafta "Yangi qöşilgan"
+        joined_at = min((e.enrolled_at for e in student_enrollments), default=None)
 
         # Vazifalar
         hw_submissions = HomeworkSubmission.objects.filter(
@@ -442,10 +451,17 @@ def teacher_my_students(request):
             'status': status,
             'coins': student.coins,
             'is_premium': student.is_premium,
+            'joined_at': joined_at,
+            'is_new': bool(joined_at and joined_at >= new_since),
         })
 
     # Sortlaş
-    if filter_sort == 'progress':
+    if filter_sort == 'new':
+        students_data.sort(
+            key=lambda x: x['joined_at'].timestamp() if x['joined_at'] else 0,
+            reverse=True,
+        )
+    elif filter_sort == 'progress':
         students_data.sort(key=lambda x: x['progress_pct'], reverse=True)
     elif filter_sort == 'hw_avg':
         students_data.sort(key=lambda x: x['hw_avg'], reverse=True)
@@ -460,6 +476,7 @@ def teacher_my_students(request):
         'students_data': students_data,
         'professions': professions,
         'total_students': len(students_data),
+        'new_students_count': sum(1 for d in students_data if d['is_new']),
         'filter_profession': filter_profession,
         'filter_search': filter_search,
         'filter_sort': filter_sort,
@@ -2434,6 +2451,92 @@ def _back_to_students(request):
     if nxt.startswith('/') and not nxt.startswith('//'):
         return redirect(nxt)
     return redirect('teacher:my_students')
+
+
+@teacher_required
+def teacher_student_detail(request, pk):
+    """Öquvçi haqida umumiy ma'lumot — faqat öqituvçining kurslaridagi öquvçi."""
+    from accounts.models import CourseEnrollment, CustomUser, StudentAttendance
+
+    professions = request.user.teaching_professions.all()
+    enrollments = list(
+        CourseEnrollment.objects.filter(user_id=pk, profession__in=professions)
+        .select_related('profession').order_by('enrolled_at')
+    )
+    if not enrollments:
+        messages.error(request, "Bu öquvçi sizning kurslaringizda öqimaydi.")
+        return redirect('teacher:my_students')
+    student = get_object_or_404(CustomUser, pk=pk, role='student')
+    course_ids = [e.profession_id for e in enrollments]
+
+    joined_at = enrollments[0].enrolled_at
+    is_new = joined_at >= timezone.now() - timedelta(days=NEW_STUDENT_DAYS)
+
+    hw_subs = HomeworkSubmission.objects.filter(
+        student=student, homework__lesson__profession_id__in=course_ids,
+    )
+    test_results = TestResult.objects.filter(
+        student=student, test__lesson__profession_id__in=course_ids,
+    )
+    groups = list(
+        student.study_groups.filter(profession_id__in=course_ids)
+        .select_related('profession', 'teacher')
+    )
+    attendance = StudentAttendance.objects.filter(
+        student=student, group__profession_id__in=course_ids,
+    )
+    att_counts = dict(attendance.values_list('status').annotate(n=Count('id')))
+    att_total = sum(att_counts.values())
+
+    personal = [
+        ("Ism", student.first_name),
+        ("Familiya", student.last_name),
+        ("Username", f"@{student.username}"),
+        ("Öquvçi ID", student.student_id),
+        ("Jinsi", student.get_gender_display() if student.gender else ''),
+        ("Tuğilgan sana", student.birth_date.strftime('%d.%m.%Y') if student.birth_date else ''),
+        ("Millati", student.nationality),
+        ("Manzil", student.address),
+        ("Maktab", ' '.join(str(v) for v in (student.school_name, student.school_number) if v)),
+    ]
+    contacts = [
+        ("Telefon", student.phone),
+        ("Email", student.email),
+        ("Telegram", f"@{student.telegram_username}" if student.telegram_username else ''),
+        ("Ota-ona telefoni", student.parent_phone),
+        ("Otasi", ' · '.join(filter(None, [student.father_name, student.father_phone]))),
+        ("Onasi", ' · '.join(filter(None, [student.mother_name, student.mother_phone]))),
+    ]
+    account = [
+        ("Röyxatdan ötgan", timezone.localtime(student.date_joined).strftime('%d.%m.%Y %H:%M')),
+        ("Kursingizga qöşilgan", timezone.localtime(joined_at).strftime('%d.%m.%Y %H:%M')),
+        ("Oxirgi faollik", timezone.localtime(student.last_activity).strftime('%d.%m.%Y %H:%M') if student.last_activity else ''),
+        ("Coin", student.coins),
+        ("Streak", f"{student.streak_days} kun" if student.streak_days else ''),
+        ("Premium", "Ha" if student.is_premium else "Yöq"),
+        ("Profil töldirilgan", "Ha" if student.is_profile_completed else "Yöq"),
+    ]
+
+    context = {
+        'student': student,
+        'is_new': is_new,
+        'joined_at': joined_at,
+        'enrollments': enrollments,
+        'groups': groups,
+        'personal': personal,
+        'contacts': contacts,
+        'account': account,
+        'hw_done': hw_subs.count(),
+        'hw_avg': round(hw_subs.filter(grade__isnull=False).aggregate(a=Avg('grade'))['a'] or 0, 1),
+        'test_done': test_results.count(),
+        'test_passed': test_results.filter(passed=True).count(),
+        'test_avg': round(test_results.aggregate(a=Avg('score'))['a'] or 0, 1),
+        'att_total': att_total,
+        'att_present': att_counts.get('present', 0) + att_counts.get('late', 0),
+        'att_absent': att_counts.get('absent', 0),
+        'att_pct': round((att_counts.get('present', 0) + att_counts.get('late', 0)) / att_total * 100) if att_total else None,
+    }
+    return render(request, 'teacher/student_detail.html', context)
 
 
 @teacher_required

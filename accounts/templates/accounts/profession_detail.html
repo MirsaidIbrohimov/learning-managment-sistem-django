@@ -1234,7 +1234,7 @@
                 {% endfor %}
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
-                    {% if lesson.lesson_type != 'test' or lesson.test.test_type != 'final' %}
+                    {% if not lesson.is_final_test %}
                     {% with lock_status=lesson_is_locked|get_item:lesson.pk %}
                     {% if lock_status == 'sequential' %}
                     <div class="lesson-item" style="opacity:0.5;cursor:not-allowed;pointer-events:none;">
@@ -1429,7 +1429,7 @@
                 </div>
                 {% else %}
                 {% for lesson in lessons_without_section %}
-                {% if lesson.lesson_type == 'test' and lesson.test.test_type == 'final' %}{% else %}
+                {% if lesson.is_final_test %}{% else %}
                 {% if request.user.is_learner and token_map %}
                 <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
                 {% else %}

@@ -697,6 +697,31 @@ class Lesson(models.Model):
     def __str__(self):
         return f"{self.title} ({self.get_lesson_type_display()})"
 
+    @property
+    def is_final_test(self):
+        """Yakuniy test darsimi (eski Test yoki yangi Quiz tizimida)."""
+        if self.lesson_type != 'test':
+            return False
+        test = getattr(self, 'test', None)
+        if test is not None and test.test_type == 'final':
+            return True
+        quiz = getattr(self, 'quiz', None)
+        settings_ = getattr(quiz, 'settings', None) if quiz is not None else None
+        return bool(settings_ and settings_.retry_payment_required)
+
+
+def final_lesson_q(prefix=''):
+    """Yakuniy test darslari filtri.
+
+    Eski tizimda `Test(test_type='final')`; yangi Quiz tizimida yakuniy test
+    `QuizSettings.retry_payment_required=True` bilan yaratiladi (legacy Test
+    qatori yöq). Ikkalasini ham qamraydi.
+    """
+    return (
+        Q(**{f'{prefix}test__test_type': 'final'})
+        | Q(**{f'{prefix}quiz__settings__retry_payment_required': True})
+    )
+
 
 class VideoLesson(models.Model):
     lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='video')
@@ -1407,7 +1432,7 @@ def final_test_prerequisites_met(user, profession, completed_lesson_ids=None):
     required_ids = set(
         Lesson.objects.filter(profession=profession)
         .exclude(lesson_type='dictionary')
-        .exclude(test__test_type='final')
+        .exclude(final_lesson_q())
         .values_list('pk', flat=True)
     )
     if completed_lesson_ids is None:

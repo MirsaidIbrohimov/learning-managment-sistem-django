@@ -9,8 +9,11 @@ Oqim (har bir xizmat uçun bir xil):
   3. connect: SocialAccount yaratiladi. login: şu ID ulangan foydalanuvçi
      odatdagi login jarayonidan (`_complete_login`) ötkaziladi.
 
-Faqat oldin profilga ulangan hisob bilan kiriş mumkin — yangi akkaunt avtomatik
-yaratilmaydi.
+Ulangan hisob topilmasa va bu email bilan akkaunt bölmasa — foydalanuvçi
+/auth/social/signup/ sahifasiga yuboriladi: telefon va tuğilgan kunni kiritib,
+yangi öquvçi akkaunti yaratiladi (parolsiz; parolni keyin tiklaş orqali qöyiş
+mumkin). Mavjud emailga avtomatik ulanmaydi — akkauntni egallab olişning oldini
+oliş uçun avval odatdagidek kirib, profildan ulaş kerak.
 """
 import hashlib
 import hmac
@@ -22,8 +25,9 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import Http404
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
@@ -35,6 +39,8 @@ from .models import SocialAccount
 logger = logging.getLogger(__name__)
 
 SESSION_KEY = 'social_oauth'
+SIGNUP_SESSION_KEY = 'social_signup'
+SIGNUP_TTL_SECONDS = 15 * 60
 FB_GRAPH = 'https://graph.facebook.com/' + getattr(settings, 'FACEBOOK_GRAPH_VERSION', 'v21.0')
 
 PROVIDERS = {
@@ -287,12 +293,7 @@ def _finish_login(request, provider, profile):
         provider=provider, uid=str(profile['uid'])
     ).first()
     if account is None:
-        messages.error(
-            request,
-            f"Bu {label} hisob heç qaysi profilga ulanmagan. Avval odatdagidek kiring, "
-            f"söng Profil → «Ulangan hisoblar» bölimidan {label}'ni ulang."
-        )
-        return redirect('login')
+        return _start_signup(request, provider, profile)
 
     user = account.user
     if not user.is_active:
@@ -306,6 +307,124 @@ def _finish_login(request, provider, profile):
         request, user, get_client_ip(request) or '',
         request.META.get('HTTP_USER_AGENT', ''), login_token,
     )
+
+
+# ---------------- Yangi akkaunt (Google / Facebook orqali röyxatdan ötiş) ----------------
+
+def _email_taken(email):
+    from .models import CustomUser
+    if not email:
+        return False
+    return CustomUser.objects.filter(
+        Q(email__iexact=email) | Q(pending_email__iexact=email)
+    ).exists()
+
+
+def _start_signup(request, provider, profile):
+    label = PROVIDERS[provider]['label']
+    email = (profile.get('email') or '').strip().lower()
+    if _email_taken(email):
+        messages.error(
+            request,
+            f"{email} emaili bilan akkaunt allaqaçon mavjud. Odatdagidek kiring, söng "
+            f"Profil → «Ulangan hisoblar» bölimidan {label}'ni ulang."
+        )
+        return redirect('login')
+    request.session[SIGNUP_SESSION_KEY] = {
+        'provider': provider,
+        'uid': str(profile['uid']),
+        'email': email,
+        'name': (profile.get('name') or '')[:200],
+        'picture': (profile.get('picture') or '')[:500],
+        'ts': int(timezone.now().timestamp()),
+    }
+    messages.info(request, f"{label} hisobingiz tasdiqlandi. Röyxatdan ötişni yakunlaş uçun bir neçta ma'lumot qoldi.")
+    return redirect('social_signup')
+
+
+def _pending_signup(request):
+    data = request.session.get(SIGNUP_SESSION_KEY) or {}
+    if not data.get('uid') or data.get('provider') not in PROVIDERS:
+        return None
+    if timezone.now().timestamp() - data.get('ts', 0) > SIGNUP_TTL_SECONDS:
+        request.session.pop(SIGNUP_SESSION_KEY, None)
+        return None
+    return data
+
+
+def _suggest_username(email, name):
+    import re
+    from .models import CustomUser
+    base = re.sub(r'[^a-z0-9_]', '', (email.split('@')[0] if email else name).lower())[:20] or 'user'
+    candidate, n = base, 1
+    while CustomUser.objects.filter(username__iexact=candidate).exists():
+        n += 1
+        candidate = f'{base}{n}'
+    return candidate
+
+
+def social_signup(request):
+    """Google/Facebook tasdiqlangan foydalanuvçi uçun röyxatdan ötişni yakunlaş."""
+    from .forms import SocialSignupForm
+    from .views import _register_device_and_session, check_rate_limit
+    from telegram_bot.utils import notify_admins
+
+    if request.user.is_authenticated:
+        return redirect('home')
+    data = _pending_signup(request)
+    if data is None:
+        messages.error(request, "Sessiya eskirgan. Google yoki Facebook tugmasini qaytadan bosing.")
+        return redirect('register')
+    provider = data['provider']
+    label = PROVIDERS[provider]['label']
+
+    if request.method == 'POST':
+        blocked, msg = check_rate_limit(request, 'register', ip_limit=3, id_limit=3, window=3600)
+        if blocked:
+            messages.error(request, msg)
+            return redirect('register')
+        form = SocialSignupForm(request.POST)
+        if form.is_valid():
+            if SocialAccount.objects.filter(provider=provider, uid=data['uid']).exists() or _email_taken(data['email']):
+                request.session.pop(SIGNUP_SESSION_KEY, None)
+                messages.error(request, f"Bu {label} hisob allaqaçon boşqa profilga ulangan. Tizimga kiring.")
+                return redirect('login')
+            user = form.save(commit=False)
+            user.role = 'student'
+            user.is_staff = False
+            user.is_superuser = False
+            # Email xizmat tomonidan tasdiqlangan — qayta tasdiqlaş şart emas
+            user.email = data['email']
+            user.set_unusable_password()
+            user.save()
+            SocialAccount.objects.create(
+                user=user, provider=provider, uid=data['uid'],
+                email=data['email'][:254], name=data['name'], picture=data['picture'],
+                last_login_at=timezone.now(),
+            )
+            request.session.pop(SIGNUP_SESSION_KEY, None)
+            from django.contrib.auth import login
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            _register_device_and_session(request, user)
+            notify_admins(
+                f"👤 <b>Yangi foydalanuvçi röyxatdan ötdi ({label})!</b>\n\n"
+                f"📛 {user.first_name} {user.last_name}\n"
+                f"🆔 @{user.username}\n"
+                f"📱 {user.phone}"
+            )
+            messages.success(request, f"{label} orqali röyxatdan ötdingiz! Endi profilingizni töldiring.")
+            return redirect('complete_profile')
+    else:
+        first, _, last = data['name'].partition(' ')
+        form = SocialSignupForm(initial={
+            'first_name': first, 'last_name': last,
+            'username': _suggest_username(data['email'], data['name']),
+        })
+
+    return render(request, 'accounts/social_signup.html', {
+        'form': form, 'provider': provider, 'provider_label': label,
+        'social_email': data['email'], 'social_picture': data['picture'],
+    })
 
 
 @login_required

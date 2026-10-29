@@ -557,7 +557,9 @@ STORAGES = {
         "BACKEND": "accounts.storage.SafeMediaStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # CompressedStaticFilesStorage + URL'ga avtomatik `?v=` versiya:
+        # CSS/JS özgarsa brauzer Ctrl+Shift+R siz yangisini oladi.
+        "BACKEND": "accounts.static_storage.VersionedStaticFilesStorage",
     },
 }
 

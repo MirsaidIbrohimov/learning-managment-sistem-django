@@ -4,7 +4,7 @@
 <head>
     {% load static %}
     <meta charset="UTF-8">
-    <script src="{% static 'js/ai-jobs.js' %}?v=20261027"></script>
+    <script src="{% static 'js/ai-jobs.js' %}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}IT Creative Academy — Zomin, Jizzax IT kurslari{% endblock %}</title>
     
@@ -54,16 +54,16 @@
 
     <!-- Şaffof oyna navbar + bildirişnoma tizimi (Bootstrap'dan keyin — ustun bölişi kerak) -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notify.css' %}?v=unread4">
-    <link rel="stylesheet" href="{% static 'css/nav-rail.css' %}?v=4">
-    <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/notify.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-rail.css' %}">
+    <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}">
 
 
 
     {% block extra_css %}{% endblock %}
     {% if request.user.is_authenticated and request.user.is_premium %}
-    <link rel="stylesheet" href="{% static 'css/premium-motion.css' %}?v=20261027">
-    <script src="{% static 'js/premium-motion.js' %}?v=20261027" defer></script>
+    <link rel="stylesheet" href="{% static 'css/premium-motion.css' %}">
+    <script src="{% static 'js/premium-motion.js' %}" defer></script>
     {% endif %}
 </head>
 
@@ -1844,9 +1844,9 @@
 <script>
   window.ITC_NOTIFY = { feedUrl: "{% url 'api_notify_feed' %}", chatsUrl: "{% url 'chat_inbox' %}", messagesUrl: "{% url 'messages' %}", markReadUrl: "{% url 'api_notify_mark_all_read' %}", csrf: "{{ csrf_token }}" };
 </script>
-<script src="{% static 'js/notify.js' %}?v=unread4" defer></script>
+<script src="{% static 'js/notify.js' %}" defer></script>
 {% endif %}
-{% if user.is_authenticated %}<script src="{% static 'js/nav-rail.js' %}?v=1" defer></script>{% endif %}
+{% if user.is_authenticated %}<script src="{% static 'js/nav-rail.js' %}" defer></script>{% endif %}
 {% include 'partials/nav/_nav_config.html' %}
 {% block extra_js %}{% endblock %}
 

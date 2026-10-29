@@ -243,8 +243,7 @@ def _finalize_attempt(attempt):
     if passed and attempt.quiz.lesson_id and attempt.student.role == 'student':
         try:
             lesson = attempt.quiz.lesson
-            legacy_test = getattr(lesson, 'test', None)
-            if legacy_test is not None and legacy_test.test_type == 'final':
+            if lesson.is_final_test:
                 from accounts.certificates import issue_course_certificate
                 issue_course_certificate(attempt.student, lesson.profession)
         except Exception:
