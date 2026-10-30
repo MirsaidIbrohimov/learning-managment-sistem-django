@@ -249,3 +249,59 @@ class PromoExamPaymentTests(PremiumFeatureBase):
             billing_month=today.month, billing_year=today.year, external_reference='exam-promo-1')
         apply_exam_payment(order, {'payment_id': 'exam-pay-1'})
         self.assertTrue(PromoCode.objects.filter(owner=student).exists())
+
+
+from django.test import TestCase, override_settings  # noqa: E402
+from accounts.tests_inpay import CONFIGURED, InpayWebhookTests  # noqa: E402
+
+
+@override_settings(**CONFIGURED)
+class PromoInpayWebhookTests(TestCase):
+    """inPAY orqali (imzolangan webhook) tölov qilinsa ham promo kod beriladi — Tezcheck bilan bir xil."""
+    order = InpayWebhookTests.order
+    _post = InpayWebhookTests.post
+
+    def post(self, *args, **kwargs):
+        # Bot xabari tranzaksiya yopilgaç (on_commit) yuboriladi — testda ham şuni bajaramiz.
+        with self.captureOnCommitCallbacks(execute=True):
+            return self._post(*args, **kwargs)
+
+    def setUp(self):
+        from accounts.models import CustomUser
+        self.user = CustomUser.objects.create_user(
+            username='inpay-premium', role='student', coins=0, telegram_id=880011,
+            is_premium=True, premium_expires_at=timezone.now() + timedelta(days=30))
+        self.url = reverse('inpay_webhook')
+        patch('telegram_bot.utils.notify_admins').start()
+        self.notify = patch('telegram_bot.utils.notify_user').start()
+        self.addCleanup(patch.stopall)
+
+    def assert_code_and_bot_message(self):
+        promo = PromoCode.objects.get(owner=self.user)
+        self.assertTrue(any(promo.code in c.args[1] and c.args[0] == 880011 for c in self.notify.call_args_list))
+
+    def test_inpay_monthly_payment(self):
+        self.assertEqual(self.post(self.order()).status_code, 200)
+        self.assert_code_and_bot_message()
+
+    def test_inpay_coin_purchase(self):
+        order = self.order(purpose='coins', amount_minor=1000000, coin_quantity=5000)
+        self.assertEqual(self.post(order).status_code, 200)
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'paid')
+        self.assert_code_and_bot_message()
+
+    def test_inpay_exam_retry_payment(self):
+        from accounts.models import Lesson, Test
+        course = Profession.objects.create(name='inPAY imtihon', photo='p.jpg', description='-')
+        test = Test.objects.create(lesson=Lesson.objects.create(profession=course, title='F', lesson_type='test'),
+                                   test_type='final')
+        order = self.order(purpose='exam', exam_test=test, amount_minor=6500000)
+        self.assertEqual(self.post(order).status_code, 200)
+        self.assert_code_and_bot_message()
+
+    def test_inpay_repeated_event_gives_one_code(self):
+        order = self.order()
+        self.post(order, event_id='evt_same')
+        self.post(order, event_id='evt_same')
+        self.assertEqual(PromoCode.objects.filter(owner=self.user).count(), 1)
