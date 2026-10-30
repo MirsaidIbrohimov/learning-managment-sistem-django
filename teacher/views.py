@@ -2468,6 +2468,8 @@ def teacher_student_detail(request, pk):
         return redirect('teacher:my_students')
     student = get_object_or_404(CustomUser, pk=pk, role='student')
     course_ids = [e.profession_id for e in enrollments]
+    for e in enrollments:
+        e.limit_mode = {True: 'on', False: 'off'}.get(e.daily_limit_override, 'inherit')
 
     joined_at = enrollments[0].enrolled_at
     is_new = joined_at >= timezone.now() - timedelta(days=NEW_STUDENT_DAYS)
@@ -2522,6 +2524,7 @@ def teacher_student_detail(request, pk):
         'is_new': is_new,
         'joined_at': joined_at,
         'enrollments': enrollments,
+        'limit_modes': [('inherit', "Kurs böyiça"), ('on', "Yoqiş"), ('off', "Öçiriş")],
         'groups': groups,
         'personal': personal,
         'contacts': contacts,
@@ -2607,6 +2610,63 @@ def teacher_remove_student(request):
     ok, msg = remove_student(request.user, student, profession, request.POST.get('reason', '').strip()[:300])
     (messages.success if ok else messages.error)(request, msg)
     return _back_to_students(request)
+
+
+@teacher_required
+def teacher_student_daily_limit(request):
+    """Öquvçining öqituvçi kursidagi kunlik çeklovi: inherit / on / off."""
+    from accounts.course_membership import set_student_daily_limit
+
+    if request.method != 'POST':
+        return redirect('teacher:my_students')
+
+    profession, student = _teacher_student_in_course(
+        request, request.POST.get('student'), request.POST.get('profession')
+    )
+    if student is None:
+        messages.error(request, "Bu öquvçi sizning kursingizda emas.")
+        return _back_to_students(request)
+
+    ok, msg = set_student_daily_limit(request.user, student, profession, request.POST.get('mode', 'inherit'))
+    (messages.success if ok else messages.error)(request, msg)
+    return _back_to_students(request)
+
+
+@teacher_required
+def teacher_promo_codes(request):
+    """Öqituvçi öz kurslaridagi öquvçilarning promo kodlari va kimlar işlatganini köradi (faqat köriş)."""
+    from django.db.models import Count, Q as _Q
+    from accounts.models import CourseEnrollment
+    from coin.models import PromoCode, PromoRedemption
+
+    student_ids = CourseEnrollment.objects.filter(
+        profession__in=request.user.teaching_professions.all(), user__role='student',
+    ).values_list('user_id', flat=True)
+    codes = (PromoCode.objects.filter(owner_id__in=student_ids)
+             .select_related('owner').annotate(used=Count('redemptions'))
+             .prefetch_related('redemptions__user'))
+    search = request.GET.get('q', '').strip()
+    if search:
+        codes = codes.filter(_Q(code__icontains=search) | _Q(owner__first_name__icontains=search) |
+                             _Q(owner__last_name__icontains=search) | _Q(owner__username__icontains=search))
+    used_by_students = (PromoRedemption.objects.filter(user_id__in=student_ids)
+                        .select_related('user', 'promo__owner')[:50])
+    return render(request, 'teacher/promo_codes.html', {
+        'codes': codes[:100],
+        'used_by_students': used_by_students,
+        'q': search,
+    })
+
+
+@teacher_required
+def teacher_course_toggle_daily_limit(request, pk):
+    """Öqituvçi öz kursi uçun kunlik bölim çeklovini yoqadi/öçiradi."""
+    from accounts.course_membership import toggle_course_daily_limit
+
+    profession = get_object_or_404(request.user.teaching_professions.all(), pk=pk)
+    if request.method == 'POST':
+        messages.success(request, toggle_course_daily_limit(request.user, profession))
+    return redirect('teacher:courses')
 
 
 # ============ KURS SÖROVLARI (yoziliş / çiqiş) ============

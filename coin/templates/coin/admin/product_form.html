@@ -214,6 +214,23 @@
                                 <i class="bi bi-eye"></i> Faol (marketda körinadi)
                             </label>
                         </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="early_access" id="earlyAccessChk"
+                                   {% if not product or product.is_early_access %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="earlyAccessChk">
+                                <i class="bi bi-hourglass-split text-warning"></i> Premium erta kiriş — 24 soat faqat Premium a'zolarga körinadi
+                            </label>
+                            {% if product.is_early_access %}
+                            <div class="field-hint">Hamma uçun oçiladi: {{ product.public_at|date:"d.m.Y H:i" }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="premium_only" id="premiumOnlyChk"
+                                   {% if product.premium_only %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="premiumOnlyChk">
+                                <i class="bi bi-gem text-warning"></i> Faqat Premium uçun (eksklyuziv mahsulot)
+                            </label>
+                        </div>
                     </div>
 
                     <div class="d-flex gap-3 flex-wrap">

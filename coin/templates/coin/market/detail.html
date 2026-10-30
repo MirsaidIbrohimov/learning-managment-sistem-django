@@ -237,6 +237,8 @@
                     <span class="dt-badge price"><i class="bi bi-coin"></i> ${priceMarkup}</span>
                     <span class="dt-badge ${outOfStock?'out':'stock'}"><i class="bi bi-${outOfStock?'x-circle':'box-seam'}"></i> ${outOfStock?'Tugagan':'Omborda: '+esc(p.stock)+' ta'}</span>
                     <span class="dt-badge balance"><i class="bi bi-wallet2"></i> Balans: ${esc(userCoins)}</span>
+                    ${p.premium_only ? '<span class="dt-badge price"><i class="bi bi-gem"></i> Faqat Premium uçun</span>'
+                      : p.is_early_access ? '<span class="dt-badge price"><i class="bi bi-hourglass-split"></i> Premium erta kiriş</span>' : ''}
                 </div>
                 <div class="dt-stats">
                     <span class="dt-stat" id="dtLikeCount"><i class="bi bi-heart-fill" style="color:${p.is_liked?'#ef4444':''}"></i> ${esc(p.likes_count)} ta like</span>

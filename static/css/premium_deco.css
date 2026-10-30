@@ -1,0 +1,62 @@
+/* 💎 Premium profil bezaklari: avatar ramkasi, ism rangi, banner, oltin mavzu.
+   Klasslar `custom_filters.deco_*` filtrlaridan keladi (faqat faol Premium). */
+
+/* ── Avatar ramkasi ── */
+.pd-frame { transition: box-shadow .2s; } /* shakl (radius) elementning özidan olinadi */
+.ava.pd-frame { border-radius: 50%; } /* profil avatari: halqa ::before da, element özi radiussiz */
+.pd-frame.pd-frame-gold { box-shadow: 0 0 0 3px #f59e0b, 0 0 0 6px rgba(245, 158, 11, .25), 0 0 22px rgba(245, 158, 11, .55); }
+.pd-frame.pd-frame-neon { box-shadow: 0 0 0 3px #22d3ee, 0 0 14px #22d3ee, 0 0 28px rgba(168, 85, 247, .7); animation: pdNeon 2.4s ease-in-out infinite alternate; }
+.pd-frame.pd-frame-rainbow { animation: pdRainbow 4s linear infinite; }
+.pd-frame.pd-frame-fire { box-shadow: 0 0 0 3px #f97316, 0 -4px 18px #ef4444, 0 0 26px rgba(249, 115, 22, .6); animation: pdFire 1.2s ease-in-out infinite alternate; }
+
+@keyframes pdNeon { to { box-shadow: 0 0 0 3px #a855f7, 0 0 18px #a855f7, 0 0 34px rgba(34, 211, 238, .7); } }
+@keyframes pdRainbow {
+    0%   { box-shadow: 0 0 0 3px #ef4444, 0 0 18px rgba(239, 68, 68, .6); }
+    25%  { box-shadow: 0 0 0 3px #f59e0b, 0 0 18px rgba(245, 158, 11, .6); }
+    50%  { box-shadow: 0 0 0 3px #10b981, 0 0 18px rgba(16, 185, 129, .6); }
+    75%  { box-shadow: 0 0 0 3px #3b82f6, 0 0 18px rgba(59, 130, 246, .6); }
+    100% { box-shadow: 0 0 0 3px #ef4444, 0 0 18px rgba(239, 68, 68, .6); }
+}
+@keyframes pdFire { to { box-shadow: 0 0 0 3px #facc15, 0 -6px 24px #f97316, 0 0 30px rgba(239, 68, 68, .7); } }
+
+/* ── Ism rangi ── */
+.pd-name { background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+/* Animatsiya ismni harflarga böladi (`.split` → .w/.ch inline-block). Bunday harflarga
+   ota elementning gradienti yetib bormaydi, shaffof matn esa meros qoladi — ism
+   körinmay qolardi. Şuning uçun gradientni har bir böğinga ham beramiz. */
+.pd-name .w, .pd-name .ch {
+    background-image: inherit; background-size: inherit;
+    background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.pd-name-gold { background-image: linear-gradient(135deg, #f59e0b, #fde68a 50%, #d97706); }
+.pd-name-pink { background-image: linear-gradient(135deg, #ec4899, #f472b6); }
+.pd-name-cyan { background-image: linear-gradient(135deg, #06b6d4, #3b82f6); }
+.pd-name-emerald { background-image: linear-gradient(135deg, #10b981, #059669); }
+.pd-name-rainbow { background-image: linear-gradient(90deg, #ef4444, #f59e0b, #10b981, #3b82f6, #a855f7, #ef4444); background-size: 200% auto; animation: pdShift 4s linear infinite; }
+@keyframes pdShift { to { background-position: 200% center; } }
+
+/* ── Profil banneri ── */
+.pd-bnr { background-size: cover !important; }
+.pd-bnr-aurora { background-image: linear-gradient(135deg, rgba(16, 185, 129, .28), rgba(59, 130, 246, .22) 50%, rgba(168, 85, 247, .28)) !important; }
+.pd-bnr-sunset { background-image: linear-gradient(135deg, rgba(249, 115, 22, .3), rgba(236, 72, 153, .25) 55%, rgba(124, 58, 237, .25)) !important; }
+.pd-bnr-ocean { background-image: linear-gradient(135deg, rgba(14, 165, 233, .3), rgba(6, 182, 212, .2) 50%, rgba(30, 64, 175, .3)) !important; }
+.pd-bnr-galaxy { background-image: radial-gradient(circle at 20% 30%, rgba(168, 85, 247, .35), transparent 45%), radial-gradient(circle at 80% 70%, rgba(236, 72, 153, .3), transparent 45%), linear-gradient(135deg, rgba(30, 27, 75, .35), rgba(15, 23, 42, .35)) !important; }
+
+/* ── Oltin mavzu ── */
+body.pd-gold-theme {
+    --bs-primary: #d97706; --bs-primary-rgb: 217, 119, 6;
+    --bs-link-color: #b45309; --bs-link-color-rgb: 180, 83, 9;
+    --bs-link-hover-color: #92400e; --bs-link-hover-color-rgb: 146, 64, 14;
+}
+[data-bs-theme="dark"] body.pd-gold-theme { --bs-link-color: #fbbf24; --bs-link-color-rgb: 251, 191, 36; --bs-link-hover-color: #fde68a; }
+body.pd-gold-theme .btn-primary {
+    --bs-btn-bg: #d97706; --bs-btn-border-color: #d97706;
+    --bs-btn-hover-bg: #b45309; --bs-btn-hover-border-color: #b45309;
+    --bs-btn-active-bg: #92400e; --bs-btn-active-border-color: #92400e;
+}
+body.pd-gold-theme .navbar, body.pd-gold-theme .sidebar { box-shadow: inset 0 -2px 0 rgba(245, 158, 11, .45); }
+body.pd-gold-theme ::selection { background: rgba(245, 158, 11, .35); }
+
+@media (prefers-reduced-motion: reduce) {
+    .pd-frame, .pd-name-rainbow { animation: none !important; }
+}

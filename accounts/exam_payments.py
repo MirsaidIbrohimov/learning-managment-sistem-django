@@ -194,6 +194,8 @@ def apply_exam_payment(order, data):
     order.last_error = ''
     order.save()
     Message.objects.create(recipient=order.student, message_type='payment', title='Imtihon tölovi tasdiqlandi', content=f'{order.get_gateway_display()} orqali tölov qabul qilindi. Imtihonni bir marta qayta topşirişingiz mumkin.')
+    from coin.promo import reward_payment
+    reward_payment(CustomUser.objects.get(pk=order.student_id), "Imtihonni qayta topşiriş tölovi")
 
 
 def refund_exam_payment(order, data, *, partial=False):

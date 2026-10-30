@@ -207,6 +207,8 @@ def pay_course_from_balance(request, pk):
         content=(f"'{profession.name}' kursi balansingizdan {price:,} sömga sotib olindi. "
                  f"Qolgan balans: {left:,} söm.").replace(',', ' '),
     )
+    from coin.promo import reward_payment
+    reward_payment(request.user, "Kurs xaridi")
     try:
         from telegram_bot.utils import notify_admins
         notify_admins(
@@ -272,6 +274,8 @@ def apply_course_payment(order, data):
         recipient=order.student, message_type='payment', title='Kurs sotib olindi',
         content=f"{order.get_gateway_display()} orqali tölov qabul qilindi. Siz '{order.course.name}' kursiga yozildingiz.",
     )
+    from coin.promo import reward_payment
+    reward_payment(CustomUser.objects.get(pk=order.student_id), "Kurs xaridi")
     try:
         from telegram_bot.utils import notify_admins
         notify_admins(

@@ -16,6 +16,8 @@ urlpatterns = [
     path('students/coins/', views.teacher_student_coins, name='student_coins'),
     path('students/add/', views.teacher_add_student, name='add_student'),
     path('students/remove/', views.teacher_remove_student, name='remove_student'),
+    path('students/daily-limit/', views.teacher_student_daily_limit, name='student_daily_limit'),
+    path('promo-codes/', views.teacher_promo_codes, name='promo_codes'),
 
     # Kurs sörovlari (yoziliş / çiqiş)
     path('requests/', views.teacher_course_requests, name='course_requests'),
@@ -30,6 +32,7 @@ urlpatterns = [
     # Kurslarim
     path('courses/', views.teacher_courses, name='courses'),
     path('courses/<int:pk>/edit/', views.teacher_edit_course, name='edit_course'),
+    path('courses/<int:pk>/toggle-daily-limit/', views.teacher_course_toggle_daily_limit, name='course_toggle_daily_limit'),
 
     # Daromadlarim
     path('earnings/', views.teacher_earnings, name='earnings'),

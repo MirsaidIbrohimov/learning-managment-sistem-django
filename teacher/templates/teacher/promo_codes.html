@@ -1,0 +1,69 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Promo kodlar - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Promo kodlar{% endblock %}
+
+{% block extra_css %}
+<style>
+.tp-page { max-width: 1100px; animation: fadeInUp .4s ease; }
+.tp-note { border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; font-size: .88rem; background: rgba(124, 58, 237, .08); color: var(--bs-body-color); }
+.tp-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; padding: 18px; margin-bottom: 16px; }
+.tp-card h2 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
+.tp-code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 800; color: #db2777; letter-spacing: .05em; }
+.tp-tag { font-size: .7rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--bs-secondary-bg); }
+.tp-tag.on { background: rgba(16, 185, 129, .12); color: #059669; }
+.tp-sub { font-size: .8rem; color: var(--bs-secondary-color); }
+.tp-table td, .tp-table th { vertical-align: middle; font-size: .88rem; }
+</style>
+{% endblock %}
+
+{% block teacher_content %}
+<div class="tp-page">
+    <div class="tp-note"><i class="bi bi-info-circle"></i> Bu yerda kurslaringizdagi Premium öquvçilar olgan promo kodlar va ularni kimlar işlatgani körinadi. Promo kodlar faqat Premium öquvçilar orasida işlaydi.</div>
+
+    <div class="tp-card">
+        <h2><i class="bi bi-ticket-perforated"></i> Öquvçilarim olgan promo kodlar</h2>
+        <form method="get" class="mb-3" style="max-width:360px;"><input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Kod yoki öquvçi ismi"></form>
+        <div class="table-responsive">
+            <table class="table tp-table">
+                <thead><tr><th>Öquvçi</th><th>Kod</th><th>Işlatilgan</th><th>Muddat</th><th>Kimlar işlatdi</th></tr></thead>
+                <tbody>
+                {% for p in codes %}
+                <tr>
+                    <td>{{ p.owner.full_name|default:p.owner.username }}<br><span class="tp-sub">@{{ p.owner.username }}</span></td>
+                    <td><span class="tp-code">{{ p.code }}</span> {% if p.is_usable %}<span class="tp-tag on">Faol</span>{% else %}<span class="tp-tag">Tugagan</span>{% endif %}</td>
+                    <td>{{ p.used }}/{{ p.max_uses }}</td>
+                    <td>{{ p.expires_at|date:"d.m.Y H:i" }}</td>
+                    <td class="tp-sub">{% for r in p.redemptions.all %}{{ r.user.full_name|default:r.user.username }} (+{{ r.coins }}){% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Öquvçilaringiz hali promo kod olmagan.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tp-card">
+        <h2><i class="bi bi-receipt"></i> Öquvçilarim işlatgan promo kodlar</h2>
+        <div class="table-responsive">
+            <table class="table tp-table">
+                <thead><tr><th>Öquvçi</th><th>Kod</th><th>Kimdan</th><th>Coin</th><th>Sana</th></tr></thead>
+                <tbody>
+                {% for r in used_by_students %}
+                <tr>
+                    <td>{{ r.user.full_name|default:r.user.username }}</td>
+                    <td><span class="tp-code">{{ r.promo.code }}</span></td>
+                    <td>{{ r.promo.source_label }}</td>
+                    <td>+{{ r.coins }}</td>
+                    <td>{{ r.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-4">Hali heç kim promo kod işlatmagan.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

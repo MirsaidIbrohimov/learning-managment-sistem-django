@@ -27,6 +27,7 @@ from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameA
 from . import jumanji
 from accounts.alphabet import to_new_alphabet
 from accounts.models import CustomUser
+from accounts.premium_deco import deco_classes
 from accounts.security import get_user_agent, is_mobile_device
 from . import external_api
 
@@ -821,6 +822,7 @@ def competition_leaderboard_api(request, competition_id):
                 'initials': u.get_initials(),
                 'photo': u.photo.url if u.photo else None,
                 'is_premium': getattr(u, 'is_premium', False),
+                'deco': deco_classes(u),
                 'primary': round(r['score'], 1),
                 'stats': {
                     'wins': r['wins'],
@@ -855,6 +857,7 @@ def competition_leaderboard_api(request, competition_id):
                 'initials': u.get_initials(),
                 'photo': u.photo.url if u.photo else None,
                 'is_premium': getattr(u, 'is_premium', False),
+                'deco': deco_classes(u),
                 'primary': round(float(a.total_score or 0), 1),
                 'stats': {
                     'words': a.found_count,
@@ -885,6 +888,7 @@ def competition_leaderboard_api(request, competition_id):
                 'initials': u.get_initials(),
                 'photo': u.photo.url if u.photo else None,
                 'is_premium': getattr(u, 'is_premium', False),
+                'deco': deco_classes(u),
                 'primary': round(float(a.score or 0), 1),
                 'stats': {
                     'wpm': round(float(a.wpm or 0), 1),

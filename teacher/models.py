@@ -137,6 +137,7 @@ class TeacherStudentAction(models.Model):
         ('reject_enroll', "Yoziliş sörovini rad etdi"),
         ('approve_unenroll', "Çiqiş sörovini tasdiqladi"),
         ('reject_unenroll', "Çiqiş sörovini rad etdi"),
+        ('daily_limit', "Kunlik çeklovni özgartirdi"),
     )
 
     actor = models.ForeignKey(

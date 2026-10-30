@@ -48,6 +48,8 @@
                 <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Xaridlarim</a>
                 <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
                 <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> Ötkazma</a>
+                <a href="{% url 'coin:gift_premium' %}" class="mkx-btn"><i class="bi bi-gift"></i> Premium sovğa</a>
+                <a href="{% url 'coin:promo_codes' %}#redeem" class="mkx-btn"><i class="bi bi-ticket-perforated"></i> Promokod işlatiş</a>
             </div>
         </div>
     </section>
@@ -64,6 +66,8 @@
                 <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Mening xaridlarim</a>
                 <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
                 <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> Ötkazma</a>
+                <a href="{% url 'coin:gift_premium' %}" class="mkx-btn"><i class="bi bi-gift"></i> Premium sovğa</a>
+                <a href="{% url 'coin:promo_codes' %}#redeem" class="mkx-btn"><i class="bi bi-ticket-perforated"></i> Promokod işlatiş</a>
             </div>
         </div>
         <aside class="mkx-wallet">
@@ -97,7 +101,7 @@
         <span class="mkx-upsell-ic"><i class="bi bi-gem"></i></span>
         <div class="mkx-upsell-copy">
             <h3 id="mkPremiumTitle">Premium bilan har xaridda tejang</h3>
-            <p id="mkPremiumDesc">Tanga 50% arzon • hisob töldirişga +15% bonus tanga • marketda 5% çegirma • 2x coin</p>
+            <p id="mkPremiumDesc">Tanga 50% arzon • oylik tölovdan +7% bonus tanga • marketda 5% çegirma • 2x coin</p>
         </div>
         <div class="mkx-upsell-price" id="mkPremiumPriceRow" hidden>
             <del id="mkPremiumOldPrice"></del><span id="mkPremiumDiscount"></span>
@@ -183,7 +187,7 @@
 
     if (PREMIUM) {
         // Imtiyozlar oqimi (ikki marta — uzluksiz aylaniş uçun)
-        const perks = ['Tanga 50% arzon','Hisob töldirişga +15% bonus tanga','Marketda 5% çegirma','2x coin','Maxsus aksiyalar'];
+        const perks = ['Tanga 50% arzon','Oylik tölovdan +7% bonus tanga','Marketda 5% çegirma','2x coin','Maxsus aksiyalar'];
         document.getElementById('mkMarquee').innerHTML = perks.concat(perks).map(t => '<span><i class="bi bi-diamond-fill"></i>'+t+'</span>').join('');
 
         // A'zolik kartasi: 3D egiliş
@@ -307,11 +311,13 @@
             : p.stock <= 3 ? '<span class="mkx-tag low">Faqat '+p.stock+' ta qoldi</span>'
             : '<span class="mkx-tag">'+p.stock+' ta mavjud</span>';
         const trend = ((statsData && statsData.top_product_ids) || []).includes(p.id) ? '<span class="mkx-tag trend"><i class="bi bi-fire"></i> Trend</span>' : '';
+        const excl = p.premium_only ? '<span class="mkx-tag excl"><i class="bi bi-gem"></i> Faqat Premium</span>'
+            : p.is_early_access ? '<span class="mkx-tag excl"><i class="bi bi-hourglass-split"></i> Erta kiriş</span>' : '';
         const price = p.has_discount
             ? '<del>'+formatNum(p.coin_price)+'</del><b><i class="bi bi-coin"></i> '+formatNum(p.discounted_price)+'</b><small>'+formatNum(p.coin_price - p.discounted_price)+' coin tejaysiz</small>'
             : '<b><i class="bi bi-coin"></i> '+formatNum(p.coin_price)+'</b>';
         return '<article class="mkx-card'+(PREMIUM?' rv':'')+'" style="'+(PREMIUM ? '--d:'+((i%4)*.08)+'s' : 'animation-delay:'+(i*45)+'ms')+'">'
-            + '<div class="mkx-media">' + (p.image ? '<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy">' : '') + stock + trend
+            + '<div class="mkx-media">' + (p.image ? '<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy">' : '') + stock + trend + excl
             + (p.has_discount ? '<span class="mkx-perk"><i class="bi bi-gem"></i> Premium narx</span>' : '') + '</div>'
             + '<div class="mkx-body"><h3>'+esc(p.name)+'</h3><p>'+esc((p.description||'').substring(0,100))+(p.description && p.description.length>100?'...':'')+'</p>'
             + '<div class="mkx-meta"><span class="mkx-likes'+(p.is_liked?' on':'')+'"><i class="bi bi-heart-fill"></i> '+p.likes_count+'</span><span><i class="bi bi-chat"></i> '+p.comments_count+' izoh</span></div>'

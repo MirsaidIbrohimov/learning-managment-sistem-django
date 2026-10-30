@@ -209,6 +209,25 @@ class CustomUser(AbstractUser):
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
     streak_days = models.IntegerField(default=0, verbose_name="Ketma-ket kunlar (streak)")
     last_streak_date = models.DateField(null=True, blank=True, verbose_name="Oxirgi streak sanasi")
+    # ❄️ Streak muzlatiş (Premium): oyiga STREAK_FREEZES_PER_MONTH kun kirmasa ham seriya uzilmaydi
+    streak_freezes_used = models.PositiveSmallIntegerField(default=0, verbose_name="Şu oy işlatilgan streak muzlatişlar")
+    streak_freeze_month = models.DateField(null=True, blank=True, verbose_name="Muzlatiş hisobi oyi")
+    # 💎 Premium profil bezaklari (premium tugasa körinmaydi, tanlov saqlanib qoladi)
+    PROFILE_FRAME_CHOICES = (
+        ('none', "Ramkasiz"), ('gold', "Oltin"), ('neon', "Neon"), ('rainbow', "Kamalak"), ('fire', "Olov"),
+    )
+    NAME_COLOR_CHOICES = (
+        ('default', "Odatiy"), ('gold', "Oltin"), ('pink', "Pushti"), ('cyan', "Moviy"),
+        ('emerald', "Zumrad"), ('rainbow', "Kamalak"),
+    )
+    PROFILE_BANNER_CHOICES = (
+        ('none', "Bannersiz"), ('aurora', "Aurora"), ('sunset', "Quyoş botişi"),
+        ('ocean', "Okean"), ('galaxy', "Galaktika"),
+    )
+    profile_frame = models.CharField(max_length=20, choices=PROFILE_FRAME_CHOICES, default='none', verbose_name="Avatar ramkasi")
+    name_color = models.CharField(max_length=20, choices=NAME_COLOR_CHOICES, default='default', verbose_name="Ism rangi")
+    profile_banner = models.CharField(max_length=20, choices=PROFILE_BANNER_CHOICES, default='none', verbose_name="Profil banneri")
+    gold_theme = models.BooleanField(default=False, verbose_name="Oltin mavzu")
     weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
 
     # Telegram
@@ -366,20 +385,56 @@ class CustomUser(AbstractUser):
         """Kunlik faollik streak'ini yangilaydi.
         - Bugun allaqaçon hisoblangan bölsa — özgarmaydi.
         - Keça kirgan bölsa — streak +1.
-        - Birinçi marta yoki tanaffus (1 kundan köp) bölsa — streak 1 dan boşlanadi.
+        - Tanaffus bölsa: Premium a'zoning şu oydagi muzlatişlari ötkazib
+          yuborilgan kunlarga yetsa — ular sarflanadi va streak davom etadi.
+        - Aks holda (birinçi marta yoki tanaffus) streak 1 dan boşlanadi.
         """
         from datetime import timedelta
         today = timezone.localdate()
         last = self.last_streak_date
         if last == today:
             return False
+        fields = ["streak_days", "last_streak_date"]
         if last == today - timedelta(days=1):
             self.streak_days = (self.streak_days or 0) + 1
+        elif last and self.streak_days and self._use_streak_freezes((today - last).days - 1, today):
+            self.streak_days += 1
+            fields += ["streak_freezes_used", "streak_freeze_month"]
         else:
             self.streak_days = 1
         self.last_streak_date = today
-        self.save(update_fields=["streak_days", "last_streak_date"])
+        self.save(update_fields=fields)
         return True
+
+    STREAK_FREEZES_PER_MONTH = 3
+
+    def streak_freezes_left(self, today=None):
+        today = today or timezone.localdate()
+        if self.streak_freeze_month != today.replace(day=1):
+            return self.STREAK_FREEZES_PER_MONTH
+        return max(0, self.STREAK_FREEZES_PER_MONTH - self.streak_freezes_used)
+
+    def _use_streak_freezes(self, missed_days, today):
+        """Ötkazib yuborilgan kunlarni muzlatiş bilan yopadi (faqat faol Premium)."""
+        from .premium_bonus import is_active_premium
+
+        if missed_days < 1 or not is_active_premium(self) or missed_days > self.streak_freezes_left(today):
+            return False
+        month = today.replace(day=1)
+        if self.streak_freeze_month != month:
+            self.streak_freeze_month, self.streak_freezes_used = month, 0
+        self.streak_freezes_used += missed_days
+        Message.objects.create(
+            recipient=self, message_type='achievement',
+            title="❄️ Streak muzlatiş işladi",
+            content=(f"{missed_days} kun kirmadingiz, lekin Premium muzlatiş {self.streak_days} kunlik seriyangizni saqlab qoldi! "
+                     f"Bu oy yana {self.streak_freezes_left(today)} ta muzlatiş qoldi."),
+        )
+        return True
+
+    @property
+    def streak_freezes_remaining(self):
+        return self.streak_freezes_left()
 
     @property
     def full_name(self):
@@ -2251,6 +2306,11 @@ class PremiumRequest(models.Model):
     coins_paid = models.PositiveIntegerField(default=0, verbose_name="Tölangan coin")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     is_extension = models.BooleanField(default=False, verbose_name="Muddatni uzaytiriş")
+    gifted_by = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='gifted_premium_requests', verbose_name="Sovğa qilgan",
+        help_text="Böş bölmasa — coin şu foydalanuvçidan yeçilgan; rad etilsa unga qaytariladi.",
+    )
     reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_premium_requests')
     reviewed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

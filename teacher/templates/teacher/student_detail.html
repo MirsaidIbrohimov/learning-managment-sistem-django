@@ -39,6 +39,17 @@
 .sd-empty { color: var(--bs-secondary-color); opacity: .6; font-weight: 400; }
 .sd-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 10px; background: var(--bs-secondary-bg); font-size: .82rem; font-weight: 600; margin: 0 6px 6px 0; }
 .sd-dot { width: 9px; height: 9px; border-radius: 50%; }
+.sd-limit { padding: 10px 0; border-bottom: 1px dashed var(--bs-border-color); }
+.sd-limit:last-child { border-bottom: 0; }
+.sd-limit-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .88rem; font-weight: 600; }
+.sd-limit-state { font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.sd-limit-state.on { background: rgba(239,68,68,.12); color: #dc2626; }
+.sd-limit-state.off { background: rgba(16,185,129,.12); color: #059669; }
+.sd-limit-btns { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.sd-limit-btns form { margin: 0; }
+.sd-limit-btn { font-size: .78rem; font-weight: 600; padding: 5px 12px; border-radius: 9px; border: 1px solid var(--bs-border-color); background: transparent; color: var(--bs-body-color); cursor: pointer; }
+.sd-limit-btn:hover { background: var(--bs-secondary-bg); }
+.sd-limit-btn.active { background: var(--t-primary, #7c3aed); border-color: transparent; color: #fff; }
 </style>
 {% endblock %}
 
@@ -100,6 +111,33 @@
                 <a href="{% url 'teacher:study_groups' %}" style="font-size:.85rem;">Guruhlarim</a>
                 {% endfor %}
             </div>
+        </div>
+        <div class="sd-card">
+            <h2><i class="bi bi-clock-history"></i> Kunlik limit</h2>
+            {% for e in enrollments %}
+            <div class="sd-limit">
+                <div class="sd-limit-head">
+                    <span>{{ e.profession.name }}</span>
+                    <span class="sd-limit-state {% if e.daily_limit_effective %}on{% else %}off{% endif %}">
+                        <i class="bi {% if e.daily_limit_effective %}bi-lock-fill{% else %}bi-unlock-fill{% endif %}"></i>
+                        {% if e.daily_limit_effective %}Yoqilgan{% else %}Öçirilgan{% endif %}
+                    </span>
+                </div>
+                <div class="sd-limit-btns">
+                    {% for mode, label in limit_modes %}
+                    <form method="post" action="{% url 'teacher:student_daily_limit' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="student" value="{{ student.pk }}">
+                        <input type="hidden" name="profession" value="{{ e.profession.pk }}">
+                        <input type="hidden" name="mode" value="{{ mode }}">
+                        <input type="hidden" name="next" value="{{ request.path }}">
+                        <button type="submit" class="sd-limit-btn {% if mode == e.limit_mode %}active{% endif %}">{{ label }}</button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            <div class="sd-empty" style="font-size:.78rem;margin-top:6px;">Yoqilganda öquvçi kuniga faqat bitta bölimni öqiy oladi.</div>
         </div>
     </div>
 </div>

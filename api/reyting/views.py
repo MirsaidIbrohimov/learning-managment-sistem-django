@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Sum
 from django.core.cache import cache
 from accounts.models import CustomUser, Profession, HomeworkSubmission
+from accounts.premium_deco import DECO_FIELDS, deco_classes
 from api.permissions import IsNotBlocked
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ def leaderboard_api(request):
 
         top_ids = [s['id'] for s in cached[:limit]]
         students_map = {s.pk: s for s in CustomUser.objects.filter(pk__in=top_ids).only(
-            'id', 'username', 'first_name', 'last_name', 'photo', 'is_premium', 'coins'
+            'id', 'username', 'first_name', 'last_name', 'photo', 'coins', *DECO_FIELDS
         )}
 
         students_list = []
@@ -103,6 +104,7 @@ def leaderboard_api(request):
                     'initials': student.get_initials(),
                     'photo': student.photo.url if student.photo else None,
                     'is_premium': student.is_premium,
+                    'deco': deco_classes(student),
                     'is_you': student.pk == request.user.pk,
                     'value': s['score'],
                 })
@@ -148,6 +150,7 @@ def leaderboard_api(request):
             'initials': student.get_initials(),
             'photo': student.photo.url if student.photo else None,
             'is_premium': student.is_premium,
+            'deco': deco_classes(student),
             'is_you': student.pk == request.user.pk,
             'value': student.coins,
         })

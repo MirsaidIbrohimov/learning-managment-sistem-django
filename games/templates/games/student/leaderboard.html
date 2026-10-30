@@ -863,8 +863,11 @@
     return '';
   }
 
+  // 💎 Premium profil bezaklari (server faqat faol Premium uçun klass qaytaradi)
+  function deco(p, kind){ return (p.deco && p.deco[kind]) ? esc(p.deco[kind]) : ''; }
+
   function avatarHTML(p, extraClass){
-    const cls = 'arena-avatar' + (p.is_premium ? ' premium' : '') + (extraClass ? (' '+extraClass) : '');
+    const cls = 'arena-avatar' + (p.is_premium ? ' premium' : '') + (deco(p, 'frame') ? ' ' + deco(p, 'frame') : '') + (extraClass ? (' '+extraClass) : '');
     if (p.photo) return `<div class="${cls}"><img src="${esc(p.photo)}" alt=""></div>`;
     return `<div class="${cls}">${esc(p.initials || '?')}</div>`;
   }
@@ -896,7 +899,7 @@
       const crown = c.pos === 1 ? '<div class="arena-crown">👑</div>' : '';
       html += `<div class="arena-pod ${c.cls}">
                  <div class="arena-pod-avatar">${crown}${c.p.photo ? `<img src="${esc(c.p.photo)}" alt="">` : `<span>${esc(c.p.initials || '?')}</span>`}</div>
-                 <div class="arena-pod-name">${esc(c.p.full_name)}${c.p.is_you ? ' <span style="color:#a78bfa;font-size:.65rem;">(siz)</span>' : ''}</div>
+                 <div class="arena-pod-name"><span class="${deco(c.p, 'name')}">${esc(c.p.full_name)}</span>${c.p.is_you ? ' <span style="color:#a78bfa;font-size:.65rem;">(siz)</span>' : ''}</div>
                  <div class="arena-pod-score"><i class="bi bi-star-fill"></i>${c.p.primary}</div>
                  <div class="arena-pod-base">${c.pos}</div>
                </div>`;
@@ -932,7 +935,7 @@
       }
 
       const reward = rewardTag(p.rank, comp);
-      const nameLine = `${esc(p.full_name)}${p.is_premium ? '<i class="bi bi-patch-check-fill prem-check"></i>' : ''}${p.is_you ? '<span class="badge-you">Siz</span>' : ''}`;
+      const nameLine = `<span class="${deco(p, 'name')}">${esc(p.full_name)}</span>${p.is_premium ? '<i class="bi bi-patch-check-fill prem-check"></i>' : ''}${p.is_you ? '<span class="badge-you">Siz</span>' : ''}`;
       const subLine = `<span class="stat">@${esc(p.username)}</span>${subStatsLine(mode, p.stats)}`;
 
       html += `<div class="arena-row ${rowCls.join(' ')}" data-uid="${p.user_id}" style="animation:arenaFadeUp .35s ${Math.min(i*30,600)}ms ease both;">

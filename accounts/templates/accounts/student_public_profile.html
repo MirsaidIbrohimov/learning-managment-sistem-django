@@ -555,7 +555,7 @@
         <!-- ================= LEFT COLUMN (Profile Avatar & Main Status) ================= -->
         <div class="col-lg-4 d-flex flex-column gap-4">
             <!-- Avatar Card -->
-            <div class="vp-card p-4 text-center {% if student.is_premium %}vp-premium-card{% endif %}" style="animation-delay: 0.1s;">
+            <div class="vp-card p-4 text-center {% if student.is_premium %}vp-premium-card{% endif %} {{ student|deco_banner }}" style="animation-delay: 0.1s;">
                 <div class="vp-avatar-wrap">
                     {% if student.is_premium %}
                         <div class="vp-premium-avatar-ring"></div>
@@ -563,9 +563,9 @@
                     {% endif %}
                     
                     {% if student.photo %}
-                        <img src="{{ student.photo.url }}" class="vp-avatar" onclick="openPhotoLightbox('{{ student.photo.url }}')" alt="{{ student.full_name }}">
+                        <img src="{{ student.photo.url }}" class="vp-avatar {{ student|deco_frame }}" onclick="openPhotoLightbox('{{ student.photo.url }}')" alt="{{ student.full_name }}">
                     {% else %}
-                        <div class="vp-avatar-fallback">{{ student.get_initials }}</div>
+                        <div class="vp-avatar-fallback {{ student|deco_frame }}">{{ student.get_initials }}</div>
                     {% endif %}
                 </div>
 

@@ -1,6 +1,6 @@
-"""Premium a'zolar hisobini töldirganda 15% bonus tanga.
+"""Premium a'zolar oylik tölov (hisobni töldiriş) qilganda 7% bonus tanga.
 
-Masalan, 50 000 söm töldirilsa, 7 500 tanga beriladi. Onlayn tölov
+Masalan, 200 000 söm töldirilsa, 14 000 tanga beriladi. Onlayn tölov
 (Tezcheck/inPAY, Payme, Click) va admin orqali töldiriş uçun işlaydi.
 Bitta tölov uçun bonus faqat bir marta beriladi (reference böyiça).
 """
@@ -12,7 +12,7 @@ from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
-PREMIUM_TOPUP_BONUS_PERCENT = 15
+PREMIUM_TOPUP_BONUS_PERCENT = 7
 
 
 def is_active_premium(user):
@@ -62,4 +62,7 @@ def award_topup_bonus(user, amount_som, *, source, reference):
                 except Exception:
                     logger.warning('Premium bonus Telegram xabari yuborilmadi.', exc_info=True)
             transaction.on_commit(notify)
+        # 🎟 Oylik tölov uçun avtomatik promo kod (takroriy webhook bu yerga yetib kelmaydi).
+        from coin.promo import reward_payment
+        reward_payment(user, "Oylik tölov")
     return coins

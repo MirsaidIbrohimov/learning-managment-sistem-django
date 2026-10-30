@@ -78,6 +78,83 @@ def extend_premium_page(request):
     return render(request, 'coin/market/extend_premium.html')
 
 
+@login_required
+def gift_premium_page(request):
+    """Premiumni boşqa öquvçiga coin evaziga sovğa qiliş.
+
+    1) start — qabul qiluvçi va tarif tekşiriladi, sovğa sessiyada tasdiqlaşni kutadi
+       (Telegram tanlansa kod yuboriladi); 2) confirm — parol/kod töğri bölsa darhol bajariladi.
+    """
+    from accounts.course_membership import find_student
+    from api.coin.views import can_user_buy_premium, get_premium_plans_for_user
+    from . import premium_gift
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'start':
+            recipient = find_student(request.POST.get('recipient'))
+            ok, msg = premium_gift.start_gift(request, recipient, request.POST.get('plan', ''),
+                                              request.POST.get('method', ''))
+            (messages.info if ok else messages.error)(request, msg)
+        elif action == 'confirm':
+            ok, msg = premium_gift.confirm_gift(request, request.POST.get('secret'))
+            (messages.success if ok else messages.error)(request, msg)
+        elif action == 'cancel':
+            premium_gift.cancel_gift(request)
+            messages.info(request, "Sovğa bekor qilindi.")
+        return redirect('coin:gift_premium')
+
+    pending = premium_gift.get_pending(request)
+    pending_view = None
+    if pending:
+        recipient = CustomUser.objects.filter(pk=pending['recipient']).first()
+        plans, _ = get_premium_plans_for_user(request.user)
+        if recipient:
+            pending_view = {'recipient': recipient, 'plan': plans[pending['plan']], 'method': pending['method']}
+        else:
+            premium_gift.cancel_gift(request)
+
+    plans, _ = get_premium_plans_for_user(request.user)
+    return render(request, 'coin/market/gift_premium.html', {
+        'plans': plans,
+        'eligible': can_user_buy_premium(request.user),
+        'pending': pending_view,
+        'has_telegram': bool(request.user.telegram_id),
+        'has_password': request.user.has_usable_password(),
+        'sent_gifts': PremiumRequest.objects.filter(gifted_by=request.user).select_related('user')[:10],
+    })
+
+
+@login_required
+def gift_premium_lookup(request):
+    """Sovğa sahifasi uçun: ID / login / telefon böyiça öquvçini körsatiş."""
+    from django.http import JsonResponse
+    from accounts.course_membership import find_student
+    from .premium_gift import recipient_problem
+
+    query = (request.GET.get('q') or '').strip().lstrip('@')
+    if len(query) < 2:
+        return JsonResponse({'found': False})
+    recipient = find_student(query)
+    if recipient is None:
+        return JsonResponse({'found': False, 'error': "Öquvçi topilmadi."})
+    problem = recipient_problem(request.user, recipient)
+    data = {
+        'found': True,
+        'ok': problem is None,
+        'error': problem or '',
+        'full_name': recipient.full_name,
+        'username': recipient.username,
+        'student_id': recipient.student_id,
+        'initials': recipient.get_initials(),
+        'photo': recipient.photo.url if recipient.photo else None,
+        'is_premium': bool(recipient.is_premium),
+        'premium_until': (timezone.localtime(recipient.premium_expires_at).strftime('%d.%m.%Y')
+                          if recipient.is_premium and recipient.premium_expires_at else None),
+    }
+    return JsonResponse(data)
+
+
 # ============== ADMIN: COIN MARKET ==============
 
 @login_required
@@ -87,6 +164,45 @@ def admin_products(request):
     
     products = Product.objects.all()
     return render(request, 'coin/admin/products.html', {'products': products})
+
+
+PREMIUM_EARLY_ACCESS_HOURS = 24
+
+
+def _early_access_until(post):
+    """Erta kiriş belgilansa — hamma uçun oçiladigan vaqt (hozir + 24 soat)."""
+    if 'early_access' in post:
+        return timezone.now() + timedelta(hours=PREMIUM_EARLY_ACCESS_HOURS)
+    return None
+
+
+def _announce_new_product(product):
+    text = (
+        f"🛍 <b>Yangi mahsulot!</b>\n\n"
+        f"📦 <b>{product.name}</b>\n"
+        f"🪙 Narxi: <b>{product.coin_price}</b> coin\n"
+        f"📊 Omborda: {product.stock} ta\n\n"
+        f"📝 {product.description[:200]}{'...' if len(product.description) > 200 else ''}"
+    )
+    recipients = CustomUser.objects.filter(telegram_id__isnull=False)
+    if product.premium_only or product.is_early_access:
+        # Hamma hali köra olmaydigan mahsulot haqida faqat Premium a'zolarga aytamiz.
+        recipients = recipients.filter(is_premium=True).filter(
+            db_models.Q(premium_expires_at__isnull=True) | db_models.Q(premium_expires_at__gt=timezone.now())
+        )
+        tag = "💎 <b>Faqat Premium uçun</b>" if product.premium_only else (
+            f"💎 <b>Premium erta kiriş</b> — boşqalar {PREMIUM_EARLY_ACCESS_HOURS} soatdan keyin köradi")
+        personal = f"{tag}\n\n{text}\n\n🛒 Xarid qiliş uçun saytga kiring!"
+    else:
+        notify_group(text)
+        personal = (
+            f"🛍 <b>Yangi mahsulot qöşildi!</b>\n\n"
+            f"📦 <b>{product.name}</b>\n"
+            f"🪙 Narxi: <b>{product.coin_price}</b> coin\n\n"
+            f"🛒 Xarid qiliş uçun saytga kiring!"
+        )
+    for u in recipients:
+        notify_user(u.telegram_id, personal)
 
 
 @login_required
@@ -107,25 +223,11 @@ def admin_product_add(request):
                 description=description,
                 coin_price=int(coin_price),
                 stock=int(stock),
-                image=image
+                image=image,
+                premium_only='premium_only' in request.POST,
+                public_at=_early_access_until(request.POST),
             )
-
-            notify_group(
-                f"🛍 <b>Yangi mahsulot!</b>\n\n"
-                f"📦 <b>{product.name}</b>\n"
-                f"🪙 Narxi: <b>{product.coin_price}</b> coin\n"
-                f"📊 Omborda: {product.stock} ta\n\n"
-                f"📝 {product.description[:200]}{'...' if len(product.description) > 200 else ''}"
-            )
-
-            for u in CustomUser.objects.filter(telegram_id__isnull=False):
-                notify_user(
-                    u.telegram_id,
-                    f"🛍 <b>Yangi mahsulot qöşildi!</b>\n\n"
-                    f"📦 <b>{product.name}</b>\n"
-                    f"🪙 Narxi: <b>{product.coin_price}</b> coin\n\n"
-                    f"🛒 Xarid qiliş uçun saytga kiring!"
-                )
+            _announce_new_product(product)
 
             messages.success(request, "Mahsulot qöşildi!")
             return redirect('coin:admin_products')
@@ -148,7 +250,10 @@ def admin_product_edit(request, pk):
         product.coin_price = int(request.POST.get('coin_price'))
         product.stock = int(request.POST.get('stock', 0))
         product.is_active = 'is_active' in request.POST
-        
+        product.premium_only = 'premium_only' in request.POST
+        if not product.is_early_access or 'early_access' not in request.POST:
+            product.public_at = _early_access_until(request.POST)
+
         if request.FILES.get('image'):
             product.image = request.FILES.get('image')
         

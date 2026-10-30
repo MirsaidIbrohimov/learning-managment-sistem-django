@@ -46,9 +46,9 @@ class PremiumTopupBonusTests(TestCase):
 
     def test_admin_topup_gives_premium_15_percent_and_notifies(self):
         response = self.admin_topup(self.premium, 50000)
-        self.assertEqual(response.json()['premium_bonus_coins'], 7500)
-        self.assertEqual(self.coins(self.premium), 7500)
-        self.assertTrue(CoinTransaction.objects.filter(user=self.premium, amount=7500, action='add').exists())
+        self.assertEqual(response.json()['premium_bonus_coins'], 3500)
+        self.assertEqual(self.coins(self.premium), 3500)
+        self.assertTrue(CoinTransaction.objects.filter(user=self.premium, amount=3500, action='add').exists())
         self.assertTrue(Message.objects.filter(recipient=self.premium, title__contains='Premium bonus').exists())
 
     def test_regular_student_gets_no_bonus(self):
@@ -64,9 +64,9 @@ class PremiumTopupBonusTests(TestCase):
     def test_payme_click_topup_bonus_is_given_once_per_transaction(self):
         _record_payment(self.premium, 20000, 'Payme', 'tx-1')
         _record_payment(self.premium, 20000, 'Payme', 'tx-1')
-        self.assertEqual(self.coins(self.premium), 3000)
+        self.assertEqual(self.coins(self.premium), 1400)  # 7% × 20 000
         _record_payment(self.premium, 10000, 'Click', 'tx-2')
-        self.assertEqual(self.coins(self.premium), 4500)
+        self.assertEqual(self.coins(self.premium), 2100)  # + 7% × 10 000
 
     def test_online_monthly_payment_gives_bonus_once(self):
         today = timezone.localdate()
@@ -76,7 +76,7 @@ class PremiumTopupBonusTests(TestCase):
         data = {'amount_minor': 5000000, 'currency': 'UZS', 'environment': 'live', 'payment_id': 'pay-1'}
         _apply_successful_payment(order, data)
         _apply_successful_payment(order, data)
-        self.assertEqual(self.coins(self.premium), 7500)
+        self.assertEqual(self.coins(self.premium), 3500)
 
     def test_test_mode_payment_gives_no_bonus(self):
         today = timezone.localdate()

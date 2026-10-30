@@ -1,0 +1,209 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Premium sovğa qiliş | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+.gp-page { max-width: 760px; margin: 0 auto; padding: 8px 0 40px; animation: fadeInUp .4s ease; }
+.gp-hero {
+    border-radius: 22px; padding: 26px 24px; color: #fff; margin-bottom: 18px;
+    background: linear-gradient(135deg, #f59e0b, #ec4899 55%, #a855f7);
+    box-shadow: 0 14px 40px rgba(236, 72, 153, .25);
+}
+.gp-hero h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+.gp-hero p { margin: 0; opacity: .92; font-size: .92rem; }
+.gp-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; padding: 20px; margin-bottom: 16px; }
+.gp-card h2 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0 0 12px; }
+.gp-plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.gp-plan input { position: absolute; opacity: 0; pointer-events: none; }
+.gp-plan label {
+    display: block; cursor: pointer; border: 2px solid var(--bs-border-color); border-radius: 14px; padding: 14px;
+    transition: border-color .15s, box-shadow .15s;
+}
+.gp-plan input:checked + label { border-color: #ec4899; box-shadow: 0 0 0 4px rgba(236, 72, 153, .12); }
+.gp-plan input:disabled + label { opacity: .45; cursor: not-allowed; }
+.gp-plan .n { font-weight: 800; }
+.gp-plan .p { font-size: 1.15rem; font-weight: 800; color: #db2777; margin-top: 4px; }
+.gp-plan .d { font-size: .75rem; color: var(--bs-secondary-color); }
+.gp-btn {
+    border: 0; border-radius: 12px; padding: 11px 20px; font-weight: 700; color: #fff; width: 100%;
+    background: linear-gradient(135deg, #ec4899, #a855f7);
+}
+.gp-btn:disabled { opacity: .5; }
+.gp-btn2 { border: 1px solid var(--bs-border-color); border-radius: 12px; padding: 10px 18px; font-weight: 600; background: transparent; color: var(--bs-body-color); width: 100%; margin-top: 8px; }
+.gp-note { font-size: .8rem; color: var(--bs-secondary-color); margin-top: 10px; }
+.gp-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px dashed var(--bs-border-color); font-size: .88rem; }
+.gp-row:last-child { border-bottom: 0; }
+.gp-st { font-size: .72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; background: var(--bs-secondary-bg); }
+.gp-st.approved { background: rgba(16, 185, 129, .12); color: #059669; }
+.gp-st.rejected { background: rgba(239, 68, 68, .12); color: #dc2626; }
+/* Topilgan öquvçi kartoçkasi */
+.gp-who { display: none; align-items: center; gap: 12px; margin-top: 10px; padding: 12px 14px; border-radius: 14px; border: 2px solid var(--bs-border-color); background: var(--bs-tertiary-bg); }
+.gp-who.show { display: flex; }
+.gp-who.good { border-color: rgba(16, 185, 129, .55); }
+.gp-who.bad { border-color: rgba(239, 68, 68, .45); }
+.gp-who-av { width: 48px; height: 48px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #ec4899, #a855f7); }
+.gp-who-av img { width: 100%; height: 100%; object-fit: cover; }
+.gp-who-name { font-weight: 800; }
+.gp-who-sub { font-size: .8rem; color: var(--bs-secondary-color); }
+.gp-who-msg { font-size: .8rem; font-weight: 600; margin-top: 2px; }
+.gp-method { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.gp-method input { position: absolute; opacity: 0; pointer-events: none; }
+.gp-method label { cursor: pointer; padding: 9px 14px; border-radius: 12px; border: 2px solid var(--bs-border-color); font-weight: 600; font-size: .88rem; }
+.gp-method input:checked + label { border-color: #ec4899; box-shadow: 0 0 0 4px rgba(236, 72, 153, .12); }
+.gp-sum { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 14px; background: var(--bs-tertiary-bg); margin-bottom: 14px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gp-page">
+    <div class="gp-hero">
+        <h1><i class="bi bi-gift-fill"></i> Premium sovğa qiling</h1>
+        <p>Dösingiz yoki kursdoşingizga coinlaringiz evaziga Premium sovğa qiling. Parolingiz yoki Telegram kodi bilan tasdiqlaysiz — Premium darhol faollaşadi.</p>
+    </div>
+
+    {% if pending %}
+    <div class="gp-card">
+        <h2><i class="bi bi-shield-lock"></i> Sovğani tasdiqlaş</h2>
+        <div class="gp-sum">
+            <div class="gp-who-av">{% if pending.recipient.photo %}<img src="{{ pending.recipient.photo.url }}" alt="">{% else %}{{ pending.recipient.get_initials }}{% endif %}</div>
+            <div>
+                <div class="gp-who-name">{{ pending.recipient.full_name }}</div>
+                <div class="gp-who-sub">@{{ pending.recipient.username }}{% if pending.recipient.student_id %} · ID {{ pending.recipient.student_id }}{% endif %}</div>
+                <div class="gp-who-msg"><i class="bi bi-gem" style="color:#db2777"></i> {{ pending.plan.name }} Premium ({{ pending.plan.days }} kun) · <i class="bi bi-coin"></i> {{ pending.plan.price }} coin</div>
+            </div>
+        </div>
+        <form method="post" autocomplete="off">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            {% if pending.method == 'telegram' %}
+            <label class="form-label fw-semibold" for="gpSecret"><i class="bi bi-telegram" style="color:#229ED9"></i> Telegram'ga yuborilgan 6 xonali kod</label>
+            <input type="text" class="form-control mb-3" id="gpSecret" name="secret" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" required autofocus placeholder="______">
+            {% else %}
+            <label class="form-label fw-semibold" for="gpSecret"><i class="bi bi-key"></i> Hisobingiz paroli</label>
+            <input type="password" class="form-control mb-3" id="gpSecret" name="secret" required autofocus autocomplete="current-password">
+            {% endif %}
+            <button type="submit" class="gp-btn"><i class="bi bi-check2-circle"></i> Tasdiqlaş va sovğa qiliş</button>
+        </form>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel">
+            <button type="submit" class="gp-btn2">Bekor qiliş</button>
+        </form>
+        <div class="gp-note">Tasdiqlaşdan keyin {{ pending.plan.price }} coin yeçiladi va Premium darhol faollaşadi. Tasdiqlaş 5 daqiqa amal qiladi.</div>
+    </div>
+    {% else %}
+    <div class="gp-card">
+        <h2>Sovğa yuboriş</h2>
+        {% if not eligible %}
+        <p class="text-danger mb-0">Premium sovğa qiliş uçun kamida 1 oy oldin röyxatdan ötgan bölişingiz kerak.</p>
+        {% elif not has_telegram and not has_password %}
+        <p class="text-danger mb-0">Sovğani tasdiqlaş uçun hisobingizga parol örnating yoki Telegram'ni ulang.</p>
+        {% else %}
+        <form method="post" id="gpForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="start">
+            <div class="mb-3">
+                <label class="form-label fw-semibold" for="gpRecipient">Kimga? (öquvçi ID, login yoki telefon)</label>
+                <input type="text" class="form-control" id="gpRecipient" name="recipient" required autocomplete="off" placeholder="Masalan: 1024 yoki ali_valiyev">
+                <div class="gp-who" id="gpWho" aria-live="polite">
+                    <div class="gp-who-av" id="gpWhoAv"></div>
+                    <div>
+                        <div class="gp-who-name" id="gpWhoName"></div>
+                        <div class="gp-who-sub" id="gpWhoSub"></div>
+                        <div class="gp-who-msg" id="gpWhoMsg"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="gp-plans">
+                {% for key, plan in plans.items %}
+                <div class="gp-plan">
+                    <input type="radio" name="plan" value="{{ key }}" id="gpPlan{{ key }}" {% if plan.too_cheap or plan.price > request.user.coins %}disabled{% endif %} required>
+                    <label for="gpPlan{{ key }}">
+                        <div class="n">{{ plan.name }}</div>
+                        <div class="p"><i class="bi bi-coin"></i> {{ plan.price }}</div>
+                        <div class="d">{{ plan.days }} kun{% if plan.too_cheap %} · kamida {{ plan.min_price }} coin kerak{% endif %}</div>
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="form-label fw-semibold">Qanday tasdiqlaysiz?</div>
+            <div class="gp-method">
+                {% if has_telegram %}
+                <div><input type="radio" name="method" value="telegram" id="gpMtg" checked><label for="gpMtg"><i class="bi bi-telegram" style="color:#229ED9"></i> Telegram kodi</label></div>
+                {% endif %}
+                {% if has_password %}
+                <div><input type="radio" name="method" value="password" id="gpMpw" {% if not has_telegram %}checked{% endif %}><label for="gpMpw"><i class="bi bi-key"></i> Parol</label></div>
+                {% endif %}
+            </div>
+            <button type="submit" class="gp-btn" id="gpNext" disabled><i class="bi bi-arrow-right-circle"></i> Davom etiş</button>
+            <div class="gp-note">Narx sizning Premium narxingiz bilan bir xil. Balansingiz: <strong>{{ request.user.coins }}</strong> coin.</div>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="gp-card">
+        <h2>Yuborilgan sovğalar</h2>
+        {% for g in sent_gifts %}
+        <div class="gp-row">
+            <span>{{ g.user.full_name }} · {{ g.get_plan_display }} · {{ g.coins_paid }} coin · {{ g.created_at|date:"d.m.Y" }}</span>
+            <span class="gp-st {{ g.status }}">{% if g.status == 'approved' %}Yuborildi{% else %}{{ g.get_status_display }}{% endif %}</span>
+        </div>
+        {% empty %}
+        <div class="text-muted" style="font-size:.88rem;">Hali sovğa yubormagansiz.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+(function () {
+    // ID / login / telefon yozilganda öquvçini körsatamiz; faqat töğri topilsa "Davom etiş" yoqiladi.
+    const input = document.getElementById('gpRecipient');
+    if (!input) return;
+    const box = document.getElementById('gpWho'), next = document.getElementById('gpNext');
+    const av = document.getElementById('gpWhoAv'), nm = document.getElementById('gpWhoName');
+    const sub = document.getElementById('gpWhoSub'), msg = document.getElementById('gpWhoMsg');
+    const url = "{% url 'coin:gift_premium_lookup' %}";
+    let timer = null, seq = 0;
+
+    function show(state, d) {
+        box.className = 'gp-who show ' + state;
+        av.textContent = '';
+        if (d && d.photo) { const img = document.createElement('img'); img.src = d.photo; img.alt = ''; av.appendChild(img); }
+        else av.textContent = (d && d.initials) || '?';
+        const found = d && d.found;
+        nm.textContent = found ? d.full_name : 'Topilmadi';
+        sub.textContent = found ? '@' + d.username + (d.student_id ? ' · ID ' + d.student_id : '') : '';
+        if (state === 'good') {
+            msg.style.color = '#059669';
+            msg.textContent = d.is_premium
+                ? '✓ Şu öquvçi. Premiumi ' + d.premium_until + ' gaça — sovğa muddatni uzaytiradi.'
+                : '✓ Şu öquvçi — sovğa qiliş mumkin.';
+        } else {
+            msg.style.color = '#dc2626';
+            msg.textContent = (d && d.error) || 'Öquvçi topilmadi. ID, login yoki telefonni tekşiring.';
+        }
+        next.disabled = state !== 'good';
+    }
+
+    input.addEventListener('input', function () {
+        clearTimeout(timer);
+        next.disabled = true;
+        const q = input.value.trim();
+        if (q.length < 2) { box.className = 'gp-who'; return; }
+        timer = setTimeout(async function () {
+            const my = ++seq;
+            try {
+                const r = await fetch(url + '?q=' + encodeURIComponent(q), {credentials: 'same-origin'});
+                const d = await r.json();
+                if (my !== seq) return;  // eskirgan javob
+                show(d.found && d.ok ? 'good' : 'bad', d);
+            } catch (e) {
+                if (my === seq) show('bad', {error: "Tekşirib bölmadi, qayta urinib köring."});
+            }
+        }, 350);
+    });
+})();
+</script>
+{% endblock %}

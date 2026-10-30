@@ -198,15 +198,48 @@ def premium_name(user):
         return ""
     
     name = user.full_name if hasattr(user, 'full_name') else str(user)
-    
+
     if hasattr(user, 'is_premium') and user.is_premium:
         # `format_html` ismni escape qiladi — ism foydalanuvçi kiritadigan maydon,
         # `mark_safe(f'{name} ...')` bölsa XSS oçilib qolar edi.
         return format_html(
-            '{} <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>',
-            name,
+            '<span class="{}">{}</span> <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>',
+            deco_name(user), name,
         )
     return name
+
+
+# 💎 Premium profil bezaklari (mantiq: accounts/premium_deco.py)
+@register.filter
+def deco_frame(user):
+    from accounts.premium_deco import deco_class
+    return deco_class(user, 'frame')
+
+
+@register.filter
+def deco_name(user):
+    from accounts.premium_deco import deco_class
+    return deco_class(user, 'name')
+
+
+@register.filter
+def deco_banner(user):
+    from accounts.premium_deco import deco_class
+    return deco_class(user, 'banner')
+
+
+@register.simple_tag
+def current_promo(user):
+    """🎟 Premium öquvçining hozir amal qilayotgan promo kodi (yöq bölsa None)."""
+    from coin.promo import current_code, is_promo_member
+    return current_code(user) if is_promo_member(user) else None
+
+
+@register.filter
+def deco_theme(user):
+    from accounts.premium_bonus import is_active_premium
+
+    return 'pd-gold-theme' if getattr(user, 'gold_theme', False) and is_active_premium(user) else ''
 
 @register.filter
 def chr(value):

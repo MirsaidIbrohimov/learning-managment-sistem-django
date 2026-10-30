@@ -65,7 +65,7 @@ class ProductListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
-        qs = Product.objects.filter(is_active=True).order_by('-created_at')
+        qs = Product.visible_to(self.request.user).order_by('-created_at')
         search = self.request.query_params.get('search', '')
         if search:
             qs = qs.filter(Q(name__icontains=search) | Q(description__icontains=search))
@@ -75,7 +75,9 @@ class ProductListView(generics.ListAPIView):
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated, IsNotBlocked]
-    queryset = Product.objects.filter(is_active=True)
+
+    def get_queryset(self):
+        return Product.visible_to(self.request.user)
 
 
 class ProductCommentsView(generics.ListAPIView):
@@ -197,7 +199,7 @@ def market_stats(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def toggle_like(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product.visible_to(request.user), pk=pk)
     like = ProductLike.objects.filter(product=product, user=request.user).first()
 
     if like:
@@ -227,7 +229,7 @@ def purchase_product(request, pk):
             {'error': "Hisobingiz muzlatilgan. Kursni tugatgan öquvçilar magazindan xarid qila olmaydi."},
             status=status.HTTP_403_FORBIDDEN
         )
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product.visible_to(request.user), pk=pk)
     final_price = get_product_price(product, request.user)
     has_discount = request.user.is_premium and final_price < product.coin_price
 
@@ -378,7 +380,7 @@ def cancel_purchase(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def add_comment(request, pk):
-    product = get_object_or_404(Product, pk=pk)
+    product = get_object_or_404(Product.visible_to(request.user), pk=pk)
     serializer = ProductCommentCreateSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
 

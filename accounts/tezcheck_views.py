@@ -330,7 +330,7 @@ def _apply_successful_payment(order, data):
         'status', 'payment_id', 'fee_minor', 'net_minor', 'provider_code',
         'environment', 'paid_at', 'last_error', 'updated_at',
     ])
-    # Premium öquvçiga onlayn tölangan summaning 15% i bonus tanga.
+    # Premium öquvçiga onlayn tölangan summaning 7% i bonus tanga (PREMIUM_TOPUP_BONUS_PERCENT).
     from .premium_bonus import award_topup_bonus
     award_topup_bonus(order.student, order.amount_som, source=order.get_gateway_display(),
                       reference=order.external_reference)

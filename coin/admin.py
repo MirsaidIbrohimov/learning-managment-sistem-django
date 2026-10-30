@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Sum
-from .models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer
+from .models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer, PromoCode, PromoRedemption
 
 
 @admin.register(Product)
@@ -207,3 +207,26 @@ class CoinTransferAdmin(admin.ModelAdmin):
             completed.aggregate(s=Sum('fee'))['s'] or 0,
         )
         return super().changelist_view(request, extra_context=extra_context)
+
+
+class PromoRedemptionInline(admin.TabularInline):
+    model = PromoRedemption
+    extra = 0
+    readonly_fields = ['user', 'coins', 'balance_after', 'created_at']
+    can_delete = False
+
+
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = ['code', 'owner', 'max_uses', 'min_coins', 'max_coins', 'expires_at', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['code', 'owner__username', 'owner__first_name', 'owner__last_name']
+    raw_id_fields = ['owner', 'created_by']
+    inlines = [PromoRedemptionInline]
+
+
+@admin.register(PromoRedemption)
+class PromoRedemptionAdmin(admin.ModelAdmin):
+    list_display = ['promo', 'user', 'coins', 'balance_after', 'created_at']
+    search_fields = ['promo__code', 'user__username']
+    raw_id_fields = ['promo', 'user']

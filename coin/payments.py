@@ -122,6 +122,8 @@ def apply_coin_payment(order, data):
     locked.last_error = ''
     locked.save(update_fields=['coin_transaction', 'status', 'payment_id', 'environment',
                                'paid_at', 'last_error', 'updated_at'])
+    from .promo import reward_payment
+    reward_payment(CustomUser.objects.get(pk=locked.student_id), "Tanga xaridi")
     order.refresh_from_db()
 
 
@@ -183,6 +185,8 @@ def buy_coins_with_balance(request):
     CoinTransaction.objects.create(user_id=request.user.pk, amount=amount, action='add',
                                    reason=f'Balansdan tanga xaridi ({payable} söm)')
     coins = CustomUser.objects.values_list('coins', flat=True).get(pk=request.user.pk)
+    from .promo import reward_payment
+    reward_payment(request.user, "Tanga xaridi")
     return JsonResponse({'ok': True, 'coins': amount, 'balance': coins, 'money_balance': left, 'paid': payable})
 
 

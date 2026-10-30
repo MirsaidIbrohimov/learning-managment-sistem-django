@@ -10,6 +10,7 @@ from . import email_verification
 from . import exam_admin
 from . import app_releases
 from . import certificate_designs
+from . import premium_views
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -114,6 +115,7 @@ urlpatterns = [
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
+    path('profile/customize/', premium_views.premium_customize, name='premium_customize'),
     path('profile/complete/', views.complete_profile, name='complete_profile'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
     path('profile/statistics/', views.student_statistics, name='my_statistics'),

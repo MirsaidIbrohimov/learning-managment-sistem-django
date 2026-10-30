@@ -13,6 +13,11 @@ class Product(models.Model):
     coin_price = models.PositiveIntegerField(verbose_name="Narxi (Coin)")
     stock = models.PositiveIntegerField(default=0, verbose_name="Omborda")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
+    premium_only = models.BooleanField(default=False, verbose_name="Faqat Premium uçun")
+    public_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Hamma uçun oçiladi",
+        help_text="Şu vaqtgaça mahsulotni faqat Premium a'zolar köradi (erta kiriş). Böş = darhol.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -22,6 +27,25 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def visible_to(cls, user):
+        """Faol mahsulotlar; premium bölmaganlarga eksklyuziv va erta kiriş mahsulotlari körinmaydi."""
+        from django.db.models import Q
+        from django.utils import timezone
+        from accounts.premium_bonus import is_active_premium
+
+        qs = cls.objects.filter(is_active=True)
+        if getattr(user, 'is_admin', False) or is_active_premium(user):
+            return qs
+        return qs.filter(premium_only=False).filter(
+            Q(public_at__isnull=True) | Q(public_at__lte=timezone.now())
+        )
+
+    @property
+    def is_early_access(self):
+        from django.utils import timezone
+        return bool(self.public_at and self.public_at > timezone.now())
 
     @property
     def likes_count(self):
@@ -240,3 +264,84 @@ class CoinTransfer(models.Model):
     
     def __str__(self):
         return f"{self.sender} → {self.receiver} | {self.amount} coin"
+
+
+# =========================
+# PROMO KODLAR (Premium)
+# =========================
+
+class PromoCode(models.Model):
+    """Premium a'zolar orasida işlaydigan promo kod.
+
+    Egasi (owner) — kodni olgan Premium öquvçi; böş bölsa admin yaratgan kod.
+    Har bir işlatiş [min_coins, max_coins] oraliğidan tasodifiy coin beradi.
+    """
+    code = models.CharField(max_length=24, unique=True, verbose_name="Kod")
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,
+        related_name='promo_codes', verbose_name="Egasi (Premium öquvçi)",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='created_promo_codes', verbose_name="Yaratgan admin",
+    )
+    max_uses = models.PositiveSmallIntegerField(default=3, verbose_name="Necha kişi işlata oladi")
+    min_coins = models.PositiveIntegerField(default=100, verbose_name="Eng kam coin")
+    max_coins = models.PositiveIntegerField(default=300, verbose_name="Eng köp coin")
+    expires_at = models.DateTimeField(verbose_name="Amal qiliş muddati")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Promo kod"
+        verbose_name_plural = "Promo kodlar"
+        indexes = [models.Index(fields=['owner', '-created_at'])]
+
+    def __str__(self):
+        return self.code
+
+    @property
+    def uses_count(self):
+        return self.redemptions.count()
+
+    @property
+    def uses_left(self):
+        return max(0, self.max_uses - self.uses_count)
+
+    @property
+    def is_expired(self):
+        from django.utils import timezone
+        return self.expires_at <= timezone.now()
+
+    @property
+    def is_usable(self):
+        return self.is_active and not self.is_expired and self.uses_left > 0
+
+    @property
+    def source_label(self):
+        if not self.owner_id:
+            return "IT Creative (admin)"
+        return self.owner.full_name or self.owner.username
+
+
+class PromoRedemption(models.Model):
+    """Promo kod işlatilgani — chek uçun ham ma'lumot şu yerda."""
+    promo = models.ForeignKey(PromoCode, on_delete=models.CASCADE, related_name='redemptions', verbose_name="Promo kod")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='promo_redemptions', verbose_name="Işlatgan",
+    )
+    coins = models.PositiveIntegerField(verbose_name="Berilgan coin")
+    balance_after = models.IntegerField(default=0, verbose_name="Keyingi balans")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Promo kod işlatiliş"
+        verbose_name_plural = "Promo kod işlatilişlari"
+        constraints = [models.UniqueConstraint(fields=['promo', 'user'], name='uniq_promo_redemption_per_user')]
+        indexes = [models.Index(fields=['user', '-created_at'])]
+
+    def __str__(self):
+        return f"{self.user} · {self.promo.code} · +{self.coins}"

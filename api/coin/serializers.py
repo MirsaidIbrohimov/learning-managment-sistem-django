@@ -10,10 +10,11 @@ class ProductSerializer(serializers.ModelSerializer):
     discounted_price = serializers.SerializerMethodField()
     has_discount = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
+    is_early_access = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'image', 'coin_price', 'discounted_price', 'has_discount', 'discount_percent', 'stock', 'is_active', 'likes_count', 'comments_count', 'is_liked', 'created_at']
+        fields = ['id', 'name', 'description', 'image', 'coin_price', 'discounted_price', 'has_discount', 'discount_percent', 'stock', 'is_active', 'premium_only', 'is_early_access', 'public_at', 'likes_count', 'comments_count', 'is_liked', 'created_at']
 
     def _user(self):
         request = self.context.get('request')

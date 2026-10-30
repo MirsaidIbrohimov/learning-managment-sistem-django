@@ -1,0 +1,32 @@
+{% load custom_filters %}
+{% comment %}🎟 Profil: Premium promo kod kartasi — `u` = foydalanuvçi.{% endcomment %}
+{% current_promo u as promo %}
+<style>
+.pc-promo { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 16px; padding: 14px 18px; margin: 14px 0; border-radius: 18px; border: 1px solid var(--bs-border-color); background: var(--bs-body-bg); position: relative; overflow: hidden; }
+.pc-promo::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: linear-gradient(180deg, #7c3aed, #db2777, #f59e0b); }
+.pc-promo-ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 1.3rem; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); flex-shrink: 0; }
+.pc-promo-t { font-weight: 800; }
+.pc-promo-s { font-size: .82rem; color: var(--bs-secondary-color); }
+.pc-promo-code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 800; letter-spacing: .08em; color: #db2777; padding: 6px 12px; border: 2px dashed #db2777; border-radius: 12px; background: rgba(219, 39, 119, .06); }
+.pc-promo-act { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.pc-promo-act .b { border: 0; border-radius: 11px; padding: 8px 14px; font-weight: 700; font-size: .85rem; text-decoration: none; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.pc-promo-act .o { border: 1px solid var(--bs-border-color); border-radius: 11px; padding: 8px 14px; font-weight: 600; font-size: .85rem; text-decoration: none; color: var(--bs-body-color); background: transparent; }
+</style>
+<div class="pc-promo">
+    <div class="pc-promo-ico"><i class="bi bi-ticket-perforated-fill"></i></div>
+    <div>
+        <div class="pc-promo-t">Promo kodlar {% if not u.is_premium %}<i class="bi bi-lock-fill" style="color:#f59e0b"></i>{% endif %}</div>
+        {% if promo %}
+        <div class="pc-promo-s">Döstlaringizga ulaşing — {{ promo.uses_left }}/{{ promo.max_uses }} joy · {{ promo.expires_at|date:"d.m H:i" }} gaça</div>
+        {% elif u.is_premium %}
+        <div class="pc-promo-s">Tanga sotib olsangiz, oylik tölov yoki testni qayta topşiriş uçun tölasangiz — promo kod şu yerda avtomatik paydo böladi.</div>
+        {% else %}
+        <div class="pc-promo-s">Faqat Premium a'zolar uçun: promo kod oliş va işlatiş (100–300 coin).</div>
+        {% endif %}
+    </div>
+    {% if promo %}<span class="pc-promo-code">{{ promo.code }}</span>{% endif %}
+    <div class="pc-promo-act">
+        {% if promo %}<button type="button" class="b" data-copy="{{ promo.code }}" onclick="navigator.clipboard.writeText(this.dataset.copy);this.innerHTML='<i class=&quot;bi bi-check2&quot;></i> Nusxalandi'"><i class="bi bi-clipboard"></i> Nusxa</button>{% endif %}
+        <a class="{% if u.is_premium %}o{% else %}b{% endif %}" href="{% url 'coin:promo_codes' %}">{% if u.is_premium %}Batafsil{% else %}<i class="bi bi-gem"></i> Batafsil{% endif %}</a>
+    </div>
+</div>

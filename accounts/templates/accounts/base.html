@@ -2,7 +2,7 @@
 <html lang="uz" data-bs-theme="light"{% if user.is_authenticated %} data-layout="{{ nav_prefs.layout }}" data-sb="{{ nav_prefs.sidebar }}" data-motion="{{ nav_prefs.motion|yesno:'on,off' }}"{% endif %}>
 
 <head>
-    {% load static %}
+    {% load static custom_filters %}
     <meta charset="UTF-8">
     <script src="{% static 'js/ai-jobs.js' %}"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,13 +61,14 @@
 
 
     {% block extra_css %}{% endblock %}
+    {% if request.user.is_authenticated %}<link rel="stylesheet" href="{% static 'css/premium_deco.css' %}">{% endif %}
     {% if request.user.is_authenticated and request.user.is_premium %}
     <link rel="stylesheet" href="{% static 'css/premium-motion.css' %}">
     <script src="{% static 'js/premium-motion.js' %}" defer></script>
     {% endif %}
 </head>
 
-<body{% if request.user.is_authenticated and request.user.is_premium %} class="is-premium"{% endif %}>
+<body{% if request.user.is_authenticated and request.user.is_premium %} class="is-premium{% with theme=request.user|deco_theme %}{% if theme %} {{ theme }}{% endif %}{% endwith %}"{% endif %}>
 <a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
 <!-- 📡 Offline Overlay -->
 <div class="offline-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineSubtitle">
@@ -576,7 +577,7 @@
 
         <!-- Profil mega-menyusi (desktop) -->
         <div class="dropdown d-none d-lg-block">
-          <a class="nr-av" href="#" data-tour="profile" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
+          <a class="nr-av {{ user|deco_frame }}" href="#" data-tour="profile" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
             {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
           </a>
           <div class="dropdown-menu dropdown-menu-end nr-pop nr-mega">
@@ -624,7 +625,7 @@
         </div>
 
         <!-- Mobil: avatar (offcanvas profil menyusi) -->
-        <a class="nr-av d-lg-none" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu" aria-label="Profil menyusi">
+        <a class="nr-av {{ user|deco_frame }} d-lg-none" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu" aria-label="Profil menyusi">
           {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
         </a>
 

@@ -12,21 +12,22 @@
   {% for message in messages %}<div class="alert3 {{ message.tags }}" role="status"><i class="bi bi-info-circle"></i> {{ message }}</div>{% endfor %}
 
   <!-- ═══ HERO ═══ -->
-  <section class="hero3 glass" id="overview">
+  <section class="hero3 glass {{ user|deco_banner }}" id="overview">
     <div class="hero3-l">
       <div class="hero3-id">
-        <div class="ava">
+        <div class="ava {{ user|deco_frame }}">
           <div class="in">{% if user.photo %}<a href="{{ user.photo.url }}" data-pf-photo aria-label="Profil rasmini oçiş"><img src="{{ user.photo.url }}" alt="{{ user.full_name }} profil rasmi"></a>{% else %}{{ user.get_initials }}{% endif %}</div>
           {% if user.role == 'student' and not user.is_admin and not user.is_teacher %}<span class="lvl">LVL {{ profile_level }}</span>{% endif %}
         </div>
         <div>
           <div class="badges"><span class="bdg">{% if user.is_admin %}Administrator{% elif user.is_teacher %}Öqituvçi{% else %}{{ user.get_role_display }}{% endif %}</span>{% if user.is_premium %}<span class="bdg prem"><i class="bi bi-gem"></i> Premium</span>{% endif %}</div>
-          <h1><span class="split">{{ user.full_name|default:user.username }}</span></h1>
+          <h1><span class="split {{ user|deco_name }}">{{ user.full_name|default:user.username }}</span></h1>
           <p class="handle"><b>@{{ user.username }}</b> · {{ user.date_joined|date:"M Y" }} dan beri</p>
         </div>
       </div>
       <div class="hero3-act">
         <a class="btn3 acc" href="{% url 'profile_edit' %}" data-mag><i class="bi bi-pencil-square"></i> Profilni tahrirlaş</a>
+        {% if user.is_premium %}<a class="btn3" href="{% url 'premium_customize' %}" data-mag><i class="bi bi-gem" style="color:#f59e0b"></i> Profilni bezaş</a>{% endif %}
         {% if user.is_admin %}
           <a class="btn3" href="{% url 'admin_dashboard' %}" data-mag><i class="bi bi-grid-1x2"></i> Boşqaruv paneli</a>
         {% elif user.is_teacher %}
@@ -50,6 +51,7 @@
       {% endif %}
     </div>
   </section>
+  {% if user.role == 'student' %}{% include 'accounts/_streak_freeze.html' with u=user %}{% include 'accounts/_promo_card.html' with u=user %}{% endif %}
 
   <!-- ═══ Umumiy köriniş ═══ -->
   <div class="ov" aria-label="Hisob haqida qisqaça">

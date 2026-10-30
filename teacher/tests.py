@@ -222,3 +222,57 @@ class TeacherStudentInfoAndGroupsTests(TestCase):
     def test_admin_group_url_redirects_teacher_to_own_panel(self):
         resp = self.client.get(reverse('admin_study_groups'))
         self.assertRedirects(resp, reverse('teacher:study_groups'), fetch_redirect_response=False)
+
+
+@SKIP_SESSION_MIDDLEWARE
+@mock.patch('telegram_bot.utils.notify_admins')
+@mock.patch('telegram_bot.utils.notify_user')
+class TeacherDailyLimitTests(TestCase):
+    """Öqituvçi öz kursida kunlik çeklovni yoqadi/öçiradi."""
+
+    def setUp(self):
+        self.teacher = make_user('lustoz', role='teacher')
+        self.student = make_user('lali')
+        self.course = Profession.objects.create(name='Matematika', photo='p.jpg', description='-')
+        self.foreign = Profession.objects.create(name='Fizika', photo='p.jpg', description='-')
+        self.teacher.teaching_professions.add(self.course)
+        self.enrollment = CourseEnrollment.objects.create(user=self.student, profession=self.course)
+        self.foreign_enrollment = CourseEnrollment.objects.create(user=self.student, profession=self.foreign)
+        self.client.force_login(self.teacher)
+
+    def limit_post(self, mode, profession=None):
+        return self.client.post(reverse('teacher:student_daily_limit'), {
+            'student': self.student.pk, 'profession': (profession or self.course).pk, 'mode': mode,
+        })
+
+    def test_teacher_sets_student_override(self, *_):
+        self.limit_post('off')
+        self.enrollment.refresh_from_db()
+        self.assertIs(self.enrollment.daily_limit_override, False)
+        self.assertTrue(TeacherStudentAction.objects.filter(action='daily_limit', student=self.student).exists())
+
+        self.limit_post('inherit')
+        self.enrollment.refresh_from_db()
+        self.assertIsNone(self.enrollment.daily_limit_override)
+
+    def test_teacher_cannot_change_foreign_course(self, *_):
+        resp = self.limit_post('off', profession=self.foreign)
+        self.assertEqual(resp.status_code, 404)
+        self.foreign_enrollment.refresh_from_db()
+        self.assertIsNone(self.foreign_enrollment.daily_limit_override)
+
+        resp = self.client.post(reverse('teacher:course_toggle_daily_limit', args=[self.foreign.pk]))
+        self.assertEqual(resp.status_code, 404)
+        self.foreign.refresh_from_db()
+        self.assertTrue(self.foreign.daily_section_limit)
+
+    def test_teacher_toggles_own_course(self, *_):
+        self.client.post(reverse('teacher:course_toggle_daily_limit', args=[self.course.pk]))
+        self.course.refresh_from_db()
+        self.assertFalse(self.course.daily_section_limit)
+
+    def test_student_page_shows_limit_controls(self, *_):
+        resp = self.client.get(reverse('teacher:student_detail', args=[self.student.pk]))
+        self.assertContains(resp, reverse('teacher:student_daily_limit'))
+        self.assertContains(resp, 'Matematika')
+        self.assertNotContains(resp, 'Fizika')

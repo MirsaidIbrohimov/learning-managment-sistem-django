@@ -1,0 +1,87 @@
+{% comment %}
+❄️ Streak muzlatiş paneli + "?" tugmasi (Bu nima?) — `u` = foydalanuvçi.
+{% endcomment %}
+{% with left=u.streak_freezes_remaining total=u.STREAK_FREEZES_PER_MONTH %}
+<style>
+.sf-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; padding: 12px 16px; margin: 14px 0; border-radius: 16px; border: 1px solid var(--bs-border-color); background: var(--bs-body-bg); font-size: .9rem; }
+.sf-bar .sf-fire { font-weight: 800; display: inline-flex; align-items: center; gap: 6px; }
+.sf-bar .sf-fire i { color: #f97316; }
+.sf-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: .82rem; background: rgba(14, 165, 233, .12); color: #0284c7; }
+.sf-chip.off { background: var(--bs-secondary-bg); color: var(--bs-secondary-color); }
+.sf-flakes { letter-spacing: 1px; }
+.sf-flakes .used { opacity: .25; }
+.sf-help { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--bs-border-color); background: transparent; color: var(--bs-body-color); font-weight: 800; line-height: 1; display: inline-grid; place-items: center; }
+.sf-help:hover { background: var(--bs-secondary-bg); }
+.sf-modal h6 { font-weight: 800; margin-top: 14px; }
+.sf-modal ul { padding-left: 1.1rem; margin-bottom: 0; }
+.sf-modal li { margin-bottom: 4px; }
+.sf-example { border-radius: 12px; padding: 10px 12px; background: var(--bs-secondary-bg); font-size: .88rem; }
+</style>
+<div class="sf-bar">
+    <span class="sf-fire"><i class="bi bi-fire"></i> {{ u.streak_days|default:0 }} kun ketma-ket</span>
+    {% if u.is_premium %}
+    <span class="sf-chip" title="Bu oy qolgan muzlatişlar">
+        <i class="bi bi-snow"></i> Streak muzlatiş: {{ left }}/{{ total }} qoldi
+        <span class="sf-flakes" aria-hidden="true">{% for i in "123"|make_list %}<span class="{% if forloop.counter > left %}used{% endif %}">❄️</span>{% endfor %}</span>
+    </span>
+    {% else %}
+    <span class="sf-chip off"><i class="bi bi-lock-fill"></i> Streak muzlatiş — Premium</span>
+    {% endif %}
+    <button type="button" class="sf-help" data-bs-toggle="modal" data-bs-target="#streakFreezeHelp" aria-label="Streak muzlatiş nima?" title="Bu nima?">?</button>
+</div>
+
+<div class="modal fade" id="streakFreezeHelp" tabindex="-1" aria-labelledby="streakFreezeHelpTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content sf-modal">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="streakFreezeHelpTitle">❄️ Streak muzlatiş nima?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopiş"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><b>Streak</b> (🔥 seriya) — platformaga necha kun <b>uzluksiz</b> kirganingiz. Har kuni kirsangiz, u bittaga oşadi. Odatda bir kun kirmay qolsangiz, seriya uziladi va yana 1 dan boşlanadi.</p>
+                <p class="mb-0"><b>Streak muzlatiş</b> — Premium a'zolar uçun himoya: bir kun kirmay qolsangiz ham seriyangiz <b>uzilmaydi</b>. Ötkazib yuborilgan kun "muzlatiladi", seriya esa saqlanib qoladi.</p>
+
+                <h6>Qanday işlaydi?</h6>
+                <ul>
+                    <li>Hech narsa bosiş shart emas — himoya <b>avtomatik</b> işlaydi.</li>
+                    <li>Kirmagan kunlaringizdan keyin saytga qaytganingizda tizim ötkazib yuborilgan kunlarni sanaydi va ularni muzlatişlar bilan yopadi.</li>
+                    <li>Har bir ötkazib yuborilgan kun uçun <b>1 ta</b> muzlatiş sarflanadi.</li>
+                    <li>Muzlatiş işlaganida sizga xabar keladi.</li>
+                </ul>
+
+                <h6>Nechta bor?</h6>
+                <ul>
+                    <li>Har oy <b>{{ total }} ta</b> muzlatiş beriladi.</li>
+                    <li>Yangi oy boşlanişi bilan hisob yana {{ total }} taga tiklanadi. Işlatilmaganlari keyingi oyga ötmaydi.</li>
+                    {% if u.is_premium %}<li>Bu oy sizda <b>{{ left }} ta</b> muzlatiş qoldi.</li>{% endif %}
+                </ul>
+
+                <h6>Misol</h6>
+                <div class="sf-example">
+                    Seriyangiz 20 kun. Şanba va yakşanba kirmadingiz, duşanba qaytdingiz → 2 ta muzlatiş sarflanadi, seriya <b>21 kun</b> böladi (uzilmaydi).
+                </div>
+
+                <h6>Qaçon yordam bermaydi?</h6>
+                <ul>
+                    <li>Ketma-ket kirmagan kunlaringiz qolgan muzlatişlardan köp bölsa (masalan, 1 ta qolgan, siz esa 2 kun kirmagansiz) — seriya uziladi va 1 dan boşlanadi.</li>
+                    <li>Premium muddati tugagan bölsa — muzlatiş işlamaydi.</li>
+                    <li>Muzlatilgan kunlar seriyani <b>saqlaydi</b>, lekin özi seriyaga qöşilmaydi: seriya faqat siz kirgan kunlar hisobiga oşadi.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                {% if not u.is_premium %}<a href="{% url 'coin:buy_premium_page' %}" class="btn btn-warning fw-bold"><i class="bi bi-gem"></i> Premium oliş</a>{% endif %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tuşundim</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Modal sahifa konteyneri içida qolsa, uning CSS'i (masalan `.pf3>*{position:relative;z-index:1}`)
+// Bootstrap'ning `position:fixed`ini bekor qiladi va oyna fon ostida qolib, sahifa "buziladi".
+// Şuning uçun modalni to'g'ridan-to'g'ri <body> ga köçiramiz.
+(function () {
+    var m = document.getElementById('streakFreezeHelp');
+    if (m && m.parentNode !== document.body) document.body.appendChild(m);
+})();
+</script>
+{% endwith %}

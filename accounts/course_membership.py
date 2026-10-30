@@ -437,3 +437,47 @@ def _coin_notify_student(student, actor, amount, reason, given):
         f"👨‍🏫 {escape(actor.full_name)}" + (f"\n📝 {escape(reason[:300])}" if reason else ""),
         sender=actor,
     )
+
+
+# ---------------- Kunlik bölim çeklovi ----------------
+
+DAILY_LIMIT_MODES = {
+    'inherit': (None, "kurs sozlamasiga qaytarildi"),
+    'on': (True, "yoqildi 🔒"),
+    'off': (False, "öçirildi 🔓"),
+}
+
+
+def set_student_daily_limit(actor, student, profession, mode):
+    """Öquvçining şu kursdagi şaxsiy kunlik çeklovi: inherit / on / off."""
+    if mode not in DAILY_LIMIT_MODES:
+        return False, "Noma'lum rejim."
+    enrollment = CourseEnrollment.objects.filter(user=student, profession=profession).first()
+    if enrollment is None:
+        return False, f"{student.full_name} '{profession.name}' kursida emas."
+
+    value, label = DAILY_LIMIT_MODES[mode]
+    if enrollment.daily_limit_override is value:
+        return True, f"{student.full_name} uçun kunlik çeklov özgarmadi."
+    enrollment.daily_limit_override = value
+    enrollment.save(update_fields=['daily_limit_override'])
+
+    log_action(actor, student, profession, 'daily_limit', note=f"Kunlik çeklov {label}")
+    _notify_admins_about(actor, f"⏱ <b>Kunlik çeklov {label}</b>", student, profession)
+    return True, f"{student.full_name} uçun '{profession.name}' kursida kunlik çeklov {label}."
+
+
+def toggle_course_daily_limit(actor, profession):
+    """Butun kurs uçun kunlik bölim çeklovini almaştiradi."""
+    profession.daily_section_limit = not profession.daily_section_limit
+    profession.save(update_fields=['daily_section_limit'])
+    label = "yoqildi 🔒" if profession.daily_section_limit else "öçirildi 🔓"
+    if actor.role != 'admin':
+        from telegram_bot.utils import notify_admins
+
+        notify_admins(
+            f"⏱ <b>Kurs kunlik çeklovi {label}</b>\n\n"
+            f"👨‍🏫 {escape(actor.full_name)}\n"
+            f"📖 {escape(profession.name)}"
+        )
+    return f"'{profession.name}' uçun kunlik bölim çeklovi {label}"

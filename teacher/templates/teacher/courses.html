@@ -435,6 +435,12 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
                     data-photo="{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}">
                 <i class="bi bi-pencil-square"></i> Tahrirlaş
             </button>
+            <form method="post" action="{% url 'teacher:course_toggle_daily_limit' cd.profession.pk %}" style="display:contents;">
+                {% csrf_token %}
+                <button type="submit" class="tc-btn tc-btn-outline" title="Yoqilganda öquvçilar kuniga faqat bitta bölimni öqiydi">
+                    {% if cd.profession.daily_section_limit %}<i class="bi bi-lock-fill" style="color:#dc2626;"></i> Kunlik limit: yoqilgan{% else %}<i class="bi bi-unlock-fill" style="color:#059669;"></i> Kunlik limit: öçirilgan{% endif %}
+                </button>
+            </form>
         </div>
     </div>
     {% endfor %}

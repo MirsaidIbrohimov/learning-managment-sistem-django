@@ -1,0 +1,75 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Promo kod cheki #{{ r.pk }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rc-page { max-width: 440px; margin: 10px auto 40px; animation: fadeInUp .45s ease; }
+.rc {
+    position: relative; background: var(--bs-body-bg); border-radius: 22px; overflow: hidden;
+    box-shadow: 0 24px 60px -24px rgba(124, 58, 237, .45); border: 1px solid var(--bs-border-color);
+}
+.rc-top {
+    text-align: center; color: #fff; padding: 26px 20px 34px;
+    background: radial-gradient(circle at 20% 10%, rgba(255,255,255,.22), transparent 45%), linear-gradient(135deg, #7c3aed, #db2777 60%, #f59e0b);
+}
+.rc-top .rc-ico { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 10px; display: grid; place-items: center; font-size: 1.8rem; background: rgba(255,255,255,.2); animation: rcPop .6s cubic-bezier(.34,1.56,.64,1) both; }
+.rc-top small { opacity: .85; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: .72rem; }
+.rc-amount { font-size: 2.6rem; font-weight: 900; line-height: 1.1; margin-top: 4px; }
+.rc-amount i { font-size: 1.8rem; }
+/* Chek tişlari */
+.rc-tear { position: relative; height: 22px; margin-top: -11px; background:
+    radial-gradient(circle at 11px 0, transparent 10px, var(--bs-body-bg) 11px) repeat-x; background-size: 22px 22px; }
+.rc-body { padding: 4px 22px 18px; }
+.rc-row { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px dashed var(--bs-border-color); font-size: .9rem; }
+.rc-row:last-child { border-bottom: 0; }
+.rc-row span { color: var(--bs-secondary-color); }
+.rc-row b { text-align: right; }
+.rc-code { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .06em; color: #db2777; }
+.rc-from { display: flex; align-items: center; gap: 12px; margin: 14px 0 6px; padding: 12px; border-radius: 14px; background: var(--bs-tertiary-bg); }
+.rc-from-av { width: 42px; height: 42px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: grid; place-items: center; color: #fff; font-weight: 800; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.rc-from-av img { width: 100%; height: 100%; object-fit: cover; }
+.rc-foot { text-align: center; font-size: .78rem; color: var(--bs-secondary-color); padding: 0 20px 18px; }
+.rc-actions { display: flex; gap: 10px; margin-top: 16px; }
+.rc-actions a { flex: 1; text-align: center; border-radius: 12px; padding: 10px; font-weight: 700; text-decoration: none; }
+.rc-actions .p { color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.rc-actions .s { border: 1px solid var(--bs-border-color); color: var(--bs-body-color); }
+@keyframes rcPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media print { .rc-actions, nav, header, aside { display: none !important; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rc-page">
+    <div class="rc">
+        <div class="rc-top">
+            <div class="rc-ico">🎉</div>
+            <small>Promo kod muvaffaqiyatli işlatildi</small>
+            <div class="rc-amount">+{{ r.coins }} <i class="bi bi-coin"></i></div>
+        </div>
+        <div class="rc-tear" aria-hidden="true"></div>
+        <div class="rc-body">
+            <div class="rc-from">
+                {% with o=r.promo.owner %}
+                <div class="rc-from-av">{% if o and o.photo %}<img src="{{ o.photo.url }}" alt="">{% elif o %}{{ o.get_initials|default:"🎟" }}{% else %}<i class="bi bi-gem"></i>{% endif %}</div>
+                <div>
+                    <div style="font-size:.75rem;color:var(--bs-secondary-color);">Promo kod kimdan</div>
+                    <b>{{ r.promo.source_label }}</b>{% if o %} <span style="font-size:.8rem;color:var(--bs-secondary-color);">@{{ o.username }}</span>{% endif %}
+                </div>
+                {% endwith %}
+            </div>
+            <div class="rc-row"><span>Chek raqami</span><b>#PR-{{ r.pk|stringformat:"06d" }}</b></div>
+            <div class="rc-row"><span>Promo kod</span><b class="rc-code">{{ r.promo.code }}</b></div>
+            <div class="rc-row"><span>Qabul qiluvçi</span><b>{{ r.user.full_name|default:r.user.username }}</b></div>
+            <div class="rc-row"><span>Sana</span><b>{{ r.created_at|date:"d.m.Y H:i" }}</b></div>
+            <div class="rc-row"><span>Berilgan coin</span><b style="color:#059669;">+{{ r.coins }} coin</b></div>
+            <div class="rc-row"><span>Balans (keyin)</span><b>{{ r.balance_after }} coin</b></div>
+        </div>
+        <div class="rc-foot">💎 Premium promo klub · IT Creative</div>
+    </div>
+    <div class="rc-actions">
+        <a class="s" href="{% url 'coin:market_list' %}"><i class="bi bi-bag"></i> Marketga</a>
+        <a class="p" href="{% url 'coin:promo_codes' %}"><i class="bi bi-ticket-perforated"></i> Promo kodlar</a>
+    </div>
+</div>
+{% endblock %}

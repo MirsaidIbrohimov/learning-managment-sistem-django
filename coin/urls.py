@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import payments
+from . import promo_views
 
 app_name = 'coin'
 
@@ -17,6 +18,12 @@ urlpatterns = [
     path('market/premium/', views.premium_page, name='buy_premium'),
     path('market/buy-premium/', views.buy_premium_page, name='buy_premium_page'),
     path('market/extend-premium/', views.extend_premium_page, name='extend_premium_page'),
+    path('market/gift-premium/', views.gift_premium_page, name='gift_premium'),
+    path('market/gift-premium/lookup/', views.gift_premium_lookup, name='gift_premium_lookup'),
+    path('market/promo/', promo_views.promo_codes_page, name='promo_codes'),
+    path('market/promo/redeem/', promo_views.promo_redeem, name='promo_redeem'),
+    path('market/promo/receipt/<int:pk>/', promo_views.promo_receipt, name='promo_receipt'),
+    path('dashboard/promo-codes/', promo_views.admin_promo_codes, name='admin_promo_codes'),
     path('market/<int:pk>/', views.market_detail, name='market_detail'),
     path('market/my-purchases/', views.my_purchases, name='my_purchases'),
     

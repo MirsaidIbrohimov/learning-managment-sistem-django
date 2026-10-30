@@ -2876,8 +2876,8 @@ def global_search(request):
             total += len(lesson_items)
 
         # --- Market ---
-        prod_qs = Product.objects.filter(
-            _Q(name__icontains=q) | _Q(description__icontains=q), is_active=True
+        prod_qs = Product.visible_to(request.user).filter(
+            _Q(name__icontains=q) | _Q(description__icontains=q)
         )[:10]
         prod_items = []
         for pr in prod_qs:
@@ -14762,8 +14762,8 @@ def admin_premium_management(request):
     filter_type = request.GET.get('filter', 'all')
     status_filter = request.GET.get('status', 'pending')
 
-    pending_requests = PremiumRequest.objects.filter(status='pending').select_related('user')
-    all_requests = PremiumRequest.objects.all().select_related('user', 'reviewed_by')
+    pending_requests = PremiumRequest.objects.filter(status='pending').select_related('user', 'gifted_by')
+    all_requests = PremiumRequest.objects.all().select_related('user', 'reviewed_by', 'gifted_by')
 
     if status_filter and status_filter != 'all':
         all_requests = all_requests.filter(status=status_filter)
@@ -14904,13 +14904,31 @@ def approve_premium_request(request, pk):
 
         user.save(update_fields=['is_premium', 'premium_purchased_at', 'premium_expires_at'])
 
-        Message.objects.create(
-            sender=request.user,
-            recipient=user,
-            title="Premium tasdiqlandi ✅",
-            content=f"Sizning {prem_req.get_plan_display()} Premium sörovingiz tasdiqlandi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gaça amal qiladi.",
-            message_type='system'
-        )
+        until = user.premium_expires_at.strftime('%d.%m.%Y %H:%M')
+        gifter = prem_req.gifted_by
+        if gifter:
+            Message.objects.create(
+                sender=gifter,
+                recipient=user,
+                title="🎁 Sizga Premium sovğa qilindi!",
+                content=f"{gifter.full_name} sizga {prem_req.get_plan_display()} Premium sovğa qildi!\nMuddati: {until} gaça amal qiladi.",
+                message_type='achievement'
+            )
+            Message.objects.create(
+                sender=request.user,
+                recipient=gifter,
+                title="Premium sovğangiz tasdiqlandi ✅",
+                content=f"{user.full_name}ga yuborgan {prem_req.get_plan_display()} Premium sovğangiz faollaşdi.",
+                message_type='system'
+            )
+        else:
+            Message.objects.create(
+                sender=request.user,
+                recipient=user,
+                title="Premium tasdiqlandi ✅",
+                content=f"Sizning {prem_req.get_plan_display()} Premium sörovingiz tasdiqlandi!\nMuddati: {until} gaça amal qiladi.",
+                message_type='system'
+            )
 
     messages.success(request, f"{prem_req.user.full_name}ning Premium sörovi tasdiqlandi!")
     return redirect('admin_premium_management')
@@ -14938,23 +14956,27 @@ def reject_premium_request(request, pk):
             return redirect('admin_premium_management')
         prem_req.refresh_from_db()
 
-        user = CustomUser.objects.select_for_update().get(pk=prem_req.user_id)
+        # Sovğa bölsa coin sovğa qiluvçidan yeçilgan — unga qaytaramiz.
+        payer_id = prem_req.gifted_by_id or prem_req.user_id
+        user = CustomUser.objects.select_for_update().get(pk=payer_id)
         CustomUser.objects.filter(pk=user.pk).update(coins=F('coins') + prem_req.price)
         user.refresh_from_db(fields=['coins'])
 
+        what = (f"{prem_req.user.full_name}ga yuborgan {prem_req.get_plan_display()} Premium sovğangiz"
+                if prem_req.gifted_by_id else f"Sizning {prem_req.get_plan_display()} Premium sörovingiz")
         from coin.models import CoinTransaction
         CoinTransaction.objects.create(
             user=user,
             amount=prem_req.price,
             action='add',
-            reason=f"Premium sörov rad etildi - {prem_req.price} coin qaytarildi"
+            reason=f"Premium {'sovğa' if prem_req.gifted_by_id else 'sörov'} rad etildi - {prem_req.price} coin qaytarildi"
         )
 
         Message.objects.create(
             sender=request.user,
             recipient=user,
             title="Premium sörov rad etildi",
-            content=f"Sizning {prem_req.get_plan_display()} Premium sörovingiz rad etildi.\n{prem_req.price} coin hisobingizga qaytarildi.",
+            content=f"{what} rad etildi.\n{prem_req.price} coin hisobingizga qaytarildi.",
             message_type='system'
         )
 
@@ -17134,7 +17156,7 @@ def admin_balance_topup(request, student_id):
                 note=note,
                 ip_address=ip[:45] if ip else None,
             )
-            # Premium öquvçiga töldirilgan summaning 15% i bonus tanga.
+            # Premium öquvçiga töldirilgan summaning 7% i bonus tanga (PREMIUM_TOPUP_BONUS_PERCENT).
             from .premium_bonus import award_topup_bonus
             bonus = award_topup_bonus(student, amount, source='admin', reference=f'topup:{topup.pk}')
 

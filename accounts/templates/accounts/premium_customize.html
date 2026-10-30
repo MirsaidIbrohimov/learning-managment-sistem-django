@@ -1,0 +1,117 @@
+{% extends 'accounts/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Profilni bezaş | Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.pc-page { max-width: 860px; margin: 0 auto; padding: 8px 0 40px; animation: fadeInUp .4s ease; }
+.pc-preview {
+    display: flex; align-items: center; gap: 18px; padding: 26px 22px; margin-bottom: 18px;
+    border-radius: 22px; border: 1px solid var(--bs-border-color); background-color: var(--bs-body-bg);
+}
+.pc-av {
+    width: 84px; height: 84px; border-radius: 50%; flex-shrink: 0; overflow: hidden;
+    display: grid; place-items: center; font-size: 1.8rem; font-weight: 800; color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+}
+.pc-av img { width: 100%; height: 100%; object-fit: cover; }
+.pc-pname { font-size: 1.45rem; font-weight: 800; margin: 0; }
+.pc-sub { color: var(--bs-secondary-color); font-size: .88rem; }
+.pc-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; padding: 18px 20px; margin-bottom: 14px; }
+.pc-card h2 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0 0 12px; }
+.pc-opts { display: flex; flex-wrap: wrap; gap: 10px; }
+.pc-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.pc-opt label {
+    display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 9px 14px;
+    border: 2px solid var(--bs-border-color); border-radius: 14px; font-weight: 600; font-size: .88rem;
+}
+.pc-opt input:checked + label { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, .14); }
+.pc-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--bs-secondary-bg); }
+.pc-swatch { width: 44px; height: 26px; border-radius: 8px; background-color: var(--bs-secondary-bg); }
+.pc-lock { border-radius: 18px; padding: 16px 18px; margin-bottom: 14px; background: rgba(245, 158, 11, .1); color: #b45309; font-weight: 600; }
+.pc-save { border: 0; border-radius: 12px; padding: 12px 22px; font-weight: 700; color: #1a1206; width: 100%; background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.pc-save:disabled { opacity: .5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pc-page">
+    {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">{{ message }}</div>{% endfor %}
+
+    <div class="pc-preview {{ user|deco_banner }}" id="pcPreview">
+        <div class="pc-av {{ user|deco_frame }}" id="pcAv">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ user.get_initials }}{% endif %}</div>
+        <div>
+            <h1 class="pc-pname"><span class="{{ user|deco_name }}" id="pcName">{{ user.full_name|default:user.username }}</span></h1>
+            <div class="pc-sub"><i class="bi bi-gem" style="color:#f59e0b"></i> Premium profil bezaklari — boşqalar sizni şunday köradi</div>
+        </div>
+    </div>
+
+    {% if not is_active_premium %}
+    <div class="pc-lock"><i class="bi bi-lock-fill"></i> Bezaklar faqat Premium a'zolar uçun. Tanlab körişingiz mumkin, saqlaş uçun <a href="{% url 'coin:buy_premium_page' %}">Premium oling</a>.</div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="pc-card">
+            <h2><i class="bi bi-circle"></i> Avatar ramkasi</h2>
+            <div class="pc-opts">
+                {% for value, label in frames %}
+                <div class="pc-opt">
+                    <input type="radio" name="profile_frame" value="{{ value }}" id="fr-{{ value }}" data-target="frame" {% if user.profile_frame == value %}checked{% endif %}>
+                    <label for="fr-{{ value }}"><span class="pc-dot {% if value != 'none' %}pd-frame pd-frame-{{ value }}{% endif %}"></span>{{ label }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="pc-card">
+            <h2><i class="bi bi-fonts"></i> Ism rangi</h2>
+            <div class="pc-opts">
+                {% for value, label in name_colors %}
+                <div class="pc-opt">
+                    <input type="radio" name="name_color" value="{{ value }}" id="nc-{{ value }}" data-target="name" {% if user.name_color == value %}checked{% endif %}>
+                    <label for="nc-{{ value }}"><span class="{% if value != 'default' %}pd-name pd-name-{{ value }}{% endif %}" style="font-weight:800;">Aa</span>{{ label }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="pc-card">
+            <h2><i class="bi bi-image"></i> Profil banneri</h2>
+            <div class="pc-opts">
+                {% for value, label in banners %}
+                <div class="pc-opt">
+                    <input type="radio" name="profile_banner" value="{{ value }}" id="bn-{{ value }}" data-target="banner" {% if user.profile_banner == value %}checked{% endif %}>
+                    <label for="bn-{{ value }}"><span class="pc-swatch {% if value != 'none' %}pd-bnr pd-bnr-{{ value }}{% endif %}"></span>{{ label }}</label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="pc-card">
+            <h2><i class="bi bi-palette"></i> Mavzu</h2>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" name="gold_theme" id="pcGold" {% if user.gold_theme %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="pcGold">Oltin mavzu — tugmalar, havolalar va menyu oltin rangda</label>
+            </div>
+        </div>
+        <button type="submit" class="pc-save" {% if not is_active_premium %}disabled{% endif %}><i class="bi bi-check-lg"></i> Saqlaş</button>
+    </form>
+</div>
+
+<script>
+(function () {
+    // Tanlov darhol yuqoridagi namunada körinsin (saqlamasdan oldin).
+    const prefix = {frame: ['pcAv', 'pd-frame pd-frame-', 'none'], name: ['pcName', 'pd-name pd-name-', 'default'], banner: ['pcPreview', 'pd-bnr pd-bnr-', 'none']};
+    document.querySelectorAll('.pc-opt input').forEach(function (input) {
+        input.addEventListener('change', function () {
+            const [id, cls, empty] = prefix[input.dataset.target];
+            const el = document.getElementById(id);
+            el.className = el.className.split(' ').filter(c => !c.startsWith(cls.split(' ')[0])).join(' ');
+            if (input.value !== empty) el.className += ' ' + cls + input.value;
+        });
+    });
+    document.getElementById('pcGold').addEventListener('change', function () {
+        document.body.classList.toggle('pd-gold-theme', this.checked);
+    });
+})();
+</script>
+{% endblock %}

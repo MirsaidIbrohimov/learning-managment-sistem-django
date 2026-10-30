@@ -1,0 +1,170 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Promo kodlar | Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.pk-page { max-width: 900px; margin: 0 auto; padding: 8px 0 40px; animation: fadeInUp .4s ease; }
+.pk-hero {
+    position: relative; overflow: hidden; border-radius: 24px; padding: 28px 26px; color: #fff; margin-bottom: 18px;
+    background: radial-gradient(circle at 85% 20%, rgba(255,255,255,.18), transparent 40%), linear-gradient(135deg, #7c3aed, #db2777 60%, #f59e0b);
+    box-shadow: 0 16px 44px rgba(124, 58, 237, .28);
+}
+.pk-hero h1 { font-size: 1.6rem; font-weight: 800; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
+.pk-hero p { margin: 0; opacity: .92; max-width: 620px; }
+.pk-hero .pk-ticket { position: absolute; right: -10px; bottom: -24px; font-size: 7rem; opacity: .14; transform: rotate(-14deg); }
+.pk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.pk-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 20px; padding: 20px; }
+.pk-card h2 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--bs-secondary-color); margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+.pk-code {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    border: 2px dashed #db2777; border-radius: 16px; padding: 14px 16px; background: rgba(219, 39, 119, .06);
+}
+.pk-code b { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 1.5rem; letter-spacing: .08em; color: #db2777; }
+.pk-copy { border: 0; border-radius: 10px; padding: 8px 14px; font-weight: 700; background: #db2777; color: #fff; white-space: nowrap; }
+.pk-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.pk-chip { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--bs-secondary-bg); }
+.pk-chip.ok { background: rgba(16, 185, 129, .12); color: #059669; }
+.pk-chip.warn { background: rgba(245, 158, 11, .14); color: #b45309; }
+.pk-slots { display: flex; gap: 8px; margin-top: 14px; }
+.pk-slot { flex: 1; border-radius: 12px; padding: 8px 10px; font-size: .78rem; background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color); min-width: 0; }
+.pk-slot.used { background: rgba(16, 185, 129, .1); border-color: rgba(16, 185, 129, .35); }
+.pk-slot b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pk-btn { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 700; color: #fff; width: 100%; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.pk-btn:disabled { opacity: .5; }
+.pk-input { font-family: 'JetBrains Mono', ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; font-size: 1.1rem; text-align: center; }
+.pk-lock { border-radius: 16px; padding: 16px; background: rgba(245, 158, 11, .1); color: #92400e; }
+.pk-earn { display: flex; flex-wrap: wrap; gap: 8px; }
+.pk-earn a, .pk-earn span { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 12px; font-size: .82rem; font-weight: 600; text-decoration: none; color: var(--bs-body-color); background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color); }
+.pk-earn i { color: #db2777; }
+[data-bs-theme="dark"] .pk-lock { color: #fcd34d; }
+.pk-steps { counter-reset: s; display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pk-step { position: relative; border-radius: 16px; padding: 16px 14px 14px 52px; background: var(--bs-tertiary-bg); font-size: .86rem; }
+.pk-step::before { counter-increment: s; content: counter(s); position: absolute; left: 14px; top: 14px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); }
+.pk-step b { display: block; margin-bottom: 2px; }
+.pk-rules { margin: 14px 0 0; padding-left: 1.1rem; font-size: .86rem; color: var(--bs-secondary-color); }
+.pk-rules li { margin-bottom: 4px; }
+.pk-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px dashed var(--bs-border-color); font-size: .88rem; }
+.pk-row:last-child { border-bottom: 0; }
+.pk-row a { font-weight: 700; text-decoration: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pk-page">
+    <div class="pk-hero">
+        <span class="pk-ticket" aria-hidden="true">🎟</span>
+        <h1><i class="bi bi-ticket-perforated-fill"></i> Promo kodlar</h1>
+        <p>Premium a'zolar uçun yopiq klub: promo kod olib Premium döstlaringizga ulaşing — ular {{ rules.min }}–{{ rules.max }} coin oladi. Döstingiz kodi bilan siz ham coin yutib oling!</p>
+    </div>
+
+    {% if not member %}
+    <div class="pk-card mb-3">
+        <div class="pk-lock">
+            <b><i class="bi bi-lock-fill"></i> Promo kodlar faqat Premium a'zolar uçun.</b>
+            <div class="mt-1" style="font-size:.88rem;">Premium bilan har tölovingizdan keyin promo kod olasiz va döstlaringiz kodlaridan {{ rules.min }}–{{ rules.max }} coin yutasiz.</div>
+            {% if request.user.role == 'student' %}<a href="{% url 'coin:buy_premium_page' %}" class="btn btn-warning fw-bold mt-2"><i class="bi bi-gem"></i> Premium oliş</a>{% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="pk-grid">
+        <div class="pk-card">
+            <h2><i class="bi bi-ticket-perforated"></i> Mening promo kodim</h2>
+            {% if my_code %}
+            <div class="pk-code">
+                <b id="pkMyCode">{{ my_code.code }}</b>
+                <button type="button" class="pk-copy" data-copy="{{ my_code.code }}"><i class="bi bi-clipboard"></i> Nusxa</button>
+            </div>
+            <div class="pk-meta">
+                <span class="pk-chip ok"><i class="bi bi-people-fill"></i> {{ my_code.uses_left }}/{{ my_code.max_uses }} joy qoldi</span>
+                <span class="pk-chip warn"><i class="bi bi-hourglass-split"></i> {{ my_code.expires_at|date:"d.m.Y H:i" }} gaça</span>
+            </div>
+            <div class="pk-slots">
+                {% for r in my_code_users %}
+                <div class="pk-slot used"><b>{{ r.user.full_name|default:r.user.username }}</b>+{{ r.coins }} coin</div>
+                {% endfor %}
+                {% for i in "123"|make_list|slice:my_code.uses_left %}
+                <div class="pk-slot"><b>Böş joy</b>kutilmoqda</div>
+                {% endfor %}
+            </div>
+            <div class="mt-2" style="font-size:.8rem;color:var(--bs-secondary-color);">Kodni faqat Premium döstlaringiz işlata oladi. Kimdir işlatsa, sizga xabar keladi.</div>
+            {% else %}
+            <p style="font-size:.9rem;color:var(--bs-secondary-color);">Hozir faol kodingiz yöq. Promo kod <b>tölov qilganingizda avtomatik</b> beriladi va Telegram botdan xabar keladi:</p>
+            <div class="pk-earn">
+                <a href="{% url 'coin:market_list' %}"><i class="bi bi-coin"></i> Tanga sotib oliş</a>
+                <span><i class="bi bi-calendar-check"></i> Oylik tölov</span>
+                <span><i class="bi bi-arrow-repeat"></i> Testni qayta topşiriş (onlayn tölov)</span>
+                <span><i class="bi bi-mortarboard"></i> Kurs sotib oliş</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="pk-card" id="redeem">
+            <h2><i class="bi bi-gift"></i> Promokod işlatiş</h2>
+            {% if next_redeem_at %}
+            <div class="pk-lock mb-3" style="font-size:.88rem;"><i class="bi bi-clock-history"></i> Siz yaqinda promo kod işlatdingiz. Keyingisi: <b>{{ next_redeem_at|date:"d.m.Y H:i" }}</b> dan.</div>
+            {% endif %}
+            <form method="post" action="{% url 'coin:promo_redeem' %}" autocomplete="off">
+                {% csrf_token %}
+                <input type="text" name="code" class="form-control pk-input mb-3" placeholder="PRM-XXXXXX" maxlength="24" required {% if next_redeem_at %}disabled{% endif %}>
+                <button type="submit" class="pk-btn" {% if next_redeem_at %}disabled{% endif %}><i class="bi bi-stars"></i> Işlatiş</button>
+            </form>
+            <div class="mt-2" style="font-size:.8rem;color:var(--bs-secondary-color);">Har işlatiş {{ rules.min }}–{{ rules.max }} coin (tasodifiy). {{ rules.cooldown }} kunda 1 marta.</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="pk-card mb-3">
+        <h2><i class="bi bi-question-circle"></i> Qanday işlaydi?</h2>
+        <div class="pk-steps">
+            <div class="pk-step"><b>Tölov qiling</b>Premium a'zo sifatida tanga sotib olsangiz, oylik tölov qilsangiz yoki testni qayta topşiriş uçun onlayn tölasangiz — promo kod profilingizga avtomatik tuşadi va bot xabar beradi.</div>
+            <div class="pk-step"><b>Döstlarga ulaşing</b>Kodni {{ rules.uses }} ta Premium döstingizga yuboring. Kod {{ rules.days }} kun amal qiladi.</div>
+            <div class="pk-step"><b>Ular coin oladi</b>Döstingiz marketdagi "Promokod işlatiş" orqali kodni kiritadi va {{ rules.min }}–{{ rules.max }} coin yutadi.</div>
+            <div class="pk-step"><b>Chek va yangi kod</b>Har işlatişga chiroyli chek beriladi. Kodingiz tugagaç, keyingi tölovingizda yangisi beriladi.</div>
+        </div>
+        <ul class="pk-rules">
+            <li>Promo kodlar <b>faqat Premium öquvçilar</b> orasida işlaydi — oddiy foydalanuvçilar, ustozlar va adminlar uçun emas.</li>
+            <li>Bitta öquvçi <b>{{ rules.cooldown }} kunda faqat 1 ta</b> promo kod işlata oladi.</li>
+            <li>Özingizning kodingizni işlata olmaysiz, bitta kodni ikki marta ham işlatib bölmaydi.</li>
+            <li>Coin miqdori {{ rules.min }} dan {{ rules.max }} gaça tasodifiy tanlanadi — omadingizni sinang! 🍀</li>
+        </ul>
+    </div>
+
+    {% if my_redemptions %}
+    <div class="pk-card mb-3">
+        <h2><i class="bi bi-receipt"></i> Mening çeklarim</h2>
+        {% for r in my_redemptions %}
+        <div class="pk-row">
+            <span><b>{{ r.promo.code }}</b> · {{ r.promo.source_label }} · {{ r.created_at|date:"d.m.Y H:i" }}</span>
+            <a href="{% url 'coin:promo_receipt' r.pk %}">+{{ r.coins }} coin <i class="bi bi-chevron-right"></i></a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if past_codes %}
+    <div class="pk-card">
+        <h2><i class="bi bi-clock-history"></i> Kodlarim tarixi</h2>
+        {% for p in past_codes %}
+        <div class="pk-row">
+            <span><b>{{ p.code }}</b> · {{ p.created_at|date:"d.m.Y" }}</span>
+            <span style="font-size:.82rem;color:var(--bs-secondary-color);">
+                {% for r in p.redemptions.all %}{{ r.user.full_name|default:r.user.username }}{% if not forloop.last %}, {% endif %}{% empty %}heç kim işlatmagan{% endfor %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        navigator.clipboard.writeText(btn.dataset.copy).then(function () {
+            btn.innerHTML = '<i class="bi bi-check2"></i> Nusxalandi';
+            setTimeout(function () { btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxa'; }, 1800);
+        });
+    });
+});
+</script>
+{% endblock %}
