@@ -2998,10 +2998,15 @@ def professions_view(request):
     # Bir martalik tölov bilan sotiladigan kurslar — alohida marketing bloki.
     sale_courses = [p for p in professions if p.is_sold_once and not p.is_blocked and not p.is_mandatory]
 
+    # Birlashgan kurslar (masalan "Front End"): öquvçiga — har bir kurs progressi bilan.
+    from .course_bundles import bundle_cards
+    course_bundles = bundle_cards(request.user, set(enrolled_ids))
+
     return render(request, 'accounts/professions.html', {
         'professions': professions,
         'all_count': len(professions),
         'sale_courses': sale_courses,
+        'course_bundles': course_bundles,
         'purchased_ids': purchased_ids,
         'enrolled_ids': enrolled_ids,
         'course_token_map': course_token_map,
@@ -3454,7 +3459,7 @@ def profession_detail(request, pk):
             course_completed = all_done
         
         # Sertifikat mavjudmi
-        certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
+        certificate = Certificate.objects.filter(student=request.user, profession=profession, bundle__isnull=True).first()
 
     # Yakuniy testlar — alohida UI uçun
     final_test_lessons = []
@@ -3956,7 +3961,7 @@ def request_certificate(request, pk):
         return redirect('profession_detail', pk=pk)
     
     # Allaqaçon sertifikat berilganmi
-    if Certificate.objects.filter(student=request.user, profession=profession).exists():
+    if Certificate.objects.filter(student=request.user, profession=profession, bundle__isnull=True).exists():
         messages.info(request, "Sizga bu kurs uçun allaqaçon sertifikat berilgan!")
         return redirect('profession_detail', pk=pk)
 
@@ -4129,7 +4134,7 @@ def admin_certificate_edit(request, pk):
                 sender=request.user,
                 title="📋 Sertifikat ma'lumotlari yangilandi",
                 content=(
-                    f"Sizning \"{cert.profession.name}\" kursi böyiça sertifikatingiz "
+                    f"Sizning \"{cert.course_name}\" kursi böyiça sertifikatingiz "
                     f"ma'lumotlari yangilandi.\n\n"
                     f"🏅 Seriya: {cert.certificate_id}\n"
                     f"📌 Holat: {cert.get_status_display()}\n"
@@ -6423,7 +6428,7 @@ def student_course_view(request, token):
             not s.lessons.exists() for s in sections
         )
 
-        certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
+        certificate = Certificate.objects.filter(student=request.user, profession=profession, bundle__isnull=True).first()
 
     # Yakuniy testlar — alohida UI uçun
     final_test_lessons = []
@@ -6482,7 +6487,18 @@ def student_course_view(request, token):
         'course_token': token_obj,
         'final_test_lessons': final_test_lessons,
         'has_final_test': has_final_test,
+        'course_bundle_cards': _course_bundle_cards(request.user, profession),
     })
+
+
+def _course_bundle_cards(user, profession):
+    from .course_bundles import bundles_for_course
+    try:
+        return bundles_for_course(user, profession)
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception('Birlashgan kurs progressi hisoblanmadi (profession=%s)', profession.pk)
+        return []
 
 
 @login_required
@@ -7239,13 +7255,14 @@ def profile_view(request):
     enrollments = request.user.enrollments.all().select_related('profession')
     
     # Tugallangan kurslar (sertifikat berilgan)
-    completed_profession_ids = certificates.values_list('profession_id', flat=True)
+    # Birlashgan kurs sertifikati birinçi kursni "tugatilgan" qilib körsatmasin.
+    completed_profession_ids = certificates.filter(bundle__isnull=True).values_list('profession_id', flat=True)
     completed_courses = []
     active_courses = []
     
     for enrollment in enrollments:
         if enrollment.profession_id in completed_profession_ids:
-            cert = certificates.filter(profession_id=enrollment.profession_id).first()
+            cert = certificates.filter(profession_id=enrollment.profession_id, bundle__isnull=True).first()
             completed_courses.append({
                 'enrollment': enrollment,
                 'certificate': cert,
@@ -16071,7 +16088,7 @@ def admin_certificate_status(request, pk):
                     recipient=cert.student,
                     sender=request.user,
                     title="📋 Sertifikat holati özgardi",
-                    content=f"Sizning \"{cert.profession.name}\" kursi böyiça sertifikatingiz holati özgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
+                    content=f"Sizning \"{cert.course_name}\" kursi böyiça sertifikatingiz holati özgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
                     message_type='system'
                 )
             

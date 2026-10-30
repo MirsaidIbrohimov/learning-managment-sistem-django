@@ -1,0 +1,59 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Birlashgan kurslar - Admin Panel{% endblock %}
+
+{% block admin_content %}
+{% include 'accounts/admin/_course_bundle_styles.html' %}
+<div class="cb-page">
+    <div class="cb-head">
+        <a href="{% url 'admin_professions' %}" class="cb-back"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h4 style="font-weight:800;margin:0;"><i class="bi bi-collection-fill" style="color:#8b5cf6;"></i> Kurslarni birlashtirish</h4>
+            <small class="cb-muted">Masalan: HTML + CSS + Bootstrap + JavaScript → "Front End". Öquvçi bitta kursni tugatsa qolganlariga avtomatik yoziladi, hammasini 100% tugatsa — birlashgan kurs sertifikati beriladi.</small>
+        </div>
+    </div>
+
+    <div class="cb-grid">
+        {% for b in bundles %}
+        <div class="cb-card {% if not b.is_active %}off{% endif %}">
+            {% if b.photo %}<div class="cb-thumb" style="background-image:url('{{ b.photo.url }}')"></div>{% endif %}
+            <div class="cb-body">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="cb-name">{{ b.name }}</div>
+                    <span class="cb-badge {% if b.is_active %}on{% endif %}">{% if b.is_active %}Faol{% else %}Nofaol{% endif %}</span>
+                </div>
+                {% if b.description %}<div class="cb-muted">{{ b.description|truncatechars:120 }}</div>{% endif %}
+                <div class="cb-chain">
+                    {% for item in b.items.all %}<span>{{ forloop.counter }}. {{ item.profession.name }}</span>{% endfor %}
+                </div>
+                <div class="cb-muted">
+                    <i class="bi bi-award"></i>
+                    {% if b.series_code %}Seriya: <b>{{ b.series_code }}</b> · {{ b.validity_years }} yil{% else %}<span class="text-danger">Seriya kodi yöq — sertifikat berilmaydi</span>{% endif %}
+                    · Berilgan: <b>{{ b.cert_count }}</b>
+                </div>
+                <div class="cb-actions">
+                    <a href="{% url 'admin_course_bundle_progress' b.pk %}" class="btn btn-outline-primary"><i class="bi bi-graph-up"></i> Progress</a>
+                    <a href="{% url 'admin_course_bundle_edit' b.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Tahrirlaş</a>
+                    <form method="post" action="{% url 'admin_course_bundle_sync' b.pk %}" style="display:contents;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-success" title="Tugatgan öquvçilarni qayta tekşiriş"><i class="bi bi-arrow-repeat"></i> Tekşiriş</button>
+                    </form>
+                    <form method="post" action="{% url 'admin_course_bundle_delete' b.pk %}" style="display:contents;"
+                          onsubmit="return confirm('Birlashgan kursni öçirmoqçimisiz? Öquvçilarning kurslari va progressi saqlanib qoladi.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger" style="flex:0 0 42px;"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="cb-muted">Hali birlashgan kurs yöq. Pastdagi forma orqali yarating.</div>
+        {% endfor %}
+    </div>
+
+    <div class="cb-new">
+        <div style="font-weight:800;margin-bottom:1rem;font-size:1.05rem;"><i class="bi bi-plus-circle" style="color:#8b5cf6;"></i> Yangi birlashgan kurs</div>
+        {% include 'accounts/admin/_course_bundle_form.html' with bundle=None %}
+    </div>
+</div>
+{% endblock %}

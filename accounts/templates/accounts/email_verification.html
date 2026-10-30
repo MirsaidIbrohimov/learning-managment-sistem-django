@@ -4,10 +4,24 @@
 <div class="card p-4 my-4">
   {% if verified %}
   <h1 class="h4">Email tasdiqlandi va hisobingizga boğlandi</h1>
+  {% if reason == 'already' %}
+  <p>Bu email avvalroq tasdiqlangan — qayta heç narsa qiliş shart emas.</p>
+  {% else %}
   <p>Endi email orqali kirişingiz va hisobingiz haqidagi xabarlarni olişingiz mumkin.</p>
+  {% endif %}
   {% else %}
   <h1 class="h4">Email tasdiqlanmadi</h1>
-  <p>Havola eskirgan, işlatilgan yoki email boşqa hisobga boğlangan. Hisobingizga kiring va profilingizdan yangi havola sörang. Boşqa hisobga kirgan bölsangiz, avval undan çiqing.</p>
+  {% if reason == 'expired' %}
+  <p>Havolaning 24 soatlik muddati tugagan. Hisobingizga kiring va profilingizdan yangi havola sörang.</p>
+  {% elif reason == 'stale' %}
+  <p>Bu havola eski: undan keyin yangi havola yuborilgan yoki email özgartirilgan. Pochtangizdagi eng oxirgi xatdagi havolani oçing.</p>
+  {% elif reason == 'wrong_account' %}
+  <p>Siz boşqa hisobga kirgansiz. Avval undan çiqing, keyin havolani qayta oçing.</p>
+  {% elif reason == 'already_bound' %}
+  <p>Bu email boşqa hisobga boğlangan. Boşqa email kiriting yoki administratorga murojaat qiling.</p>
+  {% else %}
+  <p>Havola notöğri yoki toliq nusxalanmagan. Hisobingizga kiring va profilingizdan yangi havola sörang.</p>
+  {% endif %}
   {% endif %}
   <a href="{% url 'login' %}" class="btn btn-primary">Hisobga kiriş</a>
 </div>

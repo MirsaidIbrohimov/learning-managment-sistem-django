@@ -1,0 +1,74 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{{ bundle.name }} — progress{% endblock %}
+
+{% block admin_content %}
+{% include 'accounts/admin/_course_bundle_styles.html' %}
+<style>
+    .cbp-table { width:100%; border-collapse:separate; border-spacing:0; background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:16px; overflow:hidden; }
+    .cbp-table th, .cbp-table td { padding:.6rem .75rem; border-bottom:1px solid var(--border-color,#eef0f3); font-size:.85rem; vertical-align:middle; }
+    .cbp-table th { font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--bs-secondary-color,#6c757d); white-space:nowrap; }
+    .cbp-table tr:last-child td { border-bottom:none; }
+    .cbp-pct { display:inline-block; min-width:52px; text-align:center; padding:.2rem .5rem; border-radius:999px; font-weight:800; font-size:.75rem; background:rgba(107,114,128,.12); }
+    .cbp-pct.done { background:rgba(16,185,129,.15); color:#10b981; }
+    .cbp-pct.none { opacity:.45; }
+    .cbp-bar { height:8px; min-width:120px; border-radius:999px; background:rgba(107,114,128,.18); overflow:hidden; }
+    .cbp-bar span { display:block; height:100%; background:linear-gradient(90deg,#8b5cf6,#06b6d4); }
+    .cbp-stats { display:flex; gap:.75rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .cbp-stat { padding:.6rem 1rem; border-radius:14px; background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); font-size:.85rem; }
+    .cbp-stat b { font-size:1.15rem; display:block; }
+</style>
+<div class="cb-page">
+    <div class="cb-head">
+        <a href="{% url 'admin_course_bundles' %}" class="cb-back"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h4 style="font-weight:800;margin:0;"><i class="bi bi-graph-up" style="color:#8b5cf6;"></i> "{{ bundle.name }}" — öquvçilar progressi</h4>
+            <small class="cb-muted">{% for c in courses %}{{ forloop.counter }}. {{ c.name }}{% if not forloop.last %} → {% endif %}{% endfor %}</small>
+        </div>
+    </div>
+
+    <div class="cbp-stats">
+        <div class="cbp-stat"><b>{{ rows|length }}</b>öquvçi</div>
+        <div class="cbp-stat"><b>{{ finished }}</b>sertifikat olgan</div>
+        <form method="get" class="ms-auto d-flex gap-2 align-items-center">
+            <input type="search" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Öquvçi qidiriş…">
+            <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    <div style="overflow-x:auto;">
+    <table class="cbp-table">
+        <thead>
+            <tr>
+                <th>Öquvçi</th>
+                {% for c in courses %}<th>{{ c.name }}</th>{% endfor %}
+                <th>Umumiy</th>
+                <th>Sertifikat</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td><b>{{ r.student.full_name|default:r.student.username }}</b><div class="cb-muted">@{{ r.student.username }}</div></td>
+                {% for item in r.items %}
+                <td><span class="cbp-pct {% if item.completed %}done{% elif not item.enrolled %}none{% endif %}">
+                    {% if item.completed %}<i class="bi bi-check-lg"></i> 100%{% elif item.enrolled %}{{ item.percent }}%{% else %}—{% endif %}
+                </span></td>
+                {% endfor %}
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="cbp-bar"><span style="width: {{ r.percent }}%"></span></div>
+                        <b>{{ r.percent }}%</b>
+                    </div>
+                    <div class="cb-muted">{{ r.completed_count }}/{{ r.total }} kurs</div>
+                </td>
+                <td>{% if r.certificate %}<a href="{% url 'download_certificate' r.certificate.pk %}" class="cbp-pct done" style="text-decoration:none;">{{ r.certificate.certificate_id }}</a>{% else %}<span class="cb-muted">—</span>{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="{{ courses|length|add:3 }}" class="cb-muted text-center py-4">Bu kurslarga yozilgan öquvçi yöq.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

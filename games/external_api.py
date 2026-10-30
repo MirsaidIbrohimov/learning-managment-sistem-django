@@ -13,6 +13,7 @@ Token formati:
     base64url(payload).base64url(hmac_sha256(payload, secret))
 """
 import json
+import logging
 import time
 import hmac
 import hashlib
@@ -26,6 +27,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import Game, GameAttempt, BoardMatch
+
+logger = logging.getLogger(__name__)
 
 
 # Launch token amal qiliş vaqti (sekund).
@@ -315,7 +318,36 @@ def submit_result(request):
         return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin juda tez tugadi (anti-cheat)"}, status=403), request)
 
     # Metadata (move history va boşqalar) — typed_text maydoniga JSON sifatida
-    meta = data.get('meta') or {}
+    meta = data.get('meta') if isinstance(data.get('meta'), dict) else {}
+
+    # 🛡 ANTI-CHEAT (şaxmat/şaşka): "yutdim" degan xabarga işonilmaydi. Mijoz butun partiyani
+    # (yurişlar tarixini) yuboradi; server uni boşidan qayta öynaydi — har bir yuriş qonuniy
+    # bölişi va partiya haqiqatan AI (qora) mati / donalari tugaşi bilan tugagan bölişi şart.
+    board_kind = {'chess': 'chess', 'checkers': 'checkers'}.get(str(cfg.get('engine', '')).lower())
+    if board_kind:
+        server_elapsed = time.time() - int(payload.get('iat') or 0)
+        if server_elapsed < min_time:
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Öyin juda tez tugadi (anti-cheat)"}, status=403), request)
+        time_spent = min(time_spent, server_elapsed)   # mijoz vaqtini öziniki bilan çeklaymiz
+        history = meta.pop('history', None)
+        # ⏱ 1 daqiqadan tez ğalaba — bot/skript belgisi: qabul qilinmaydi
+        if result == 'win' and time_spent < min_win_seconds(game):
+            logger.warning('submit_result: %.0fs da ğalaba rad etildi (user=%s game=%s)',
+                           time_spent, payload.get('uid'), game.slug)
+            return _cors_headers(JsonResponse({'ok': False, 'illegal': True, 'error': illegal_fast_win_message(game)},
+                                              status=403), request)
+        if result in ('win', 'draw'):
+            from .board_rules import replay_checkers, replay_chess
+            replay = (replay_chess(history, _initial_chess_board()) if board_kind == 'chess'
+                      else replay_checkers(history, _initial_shashka_board()))
+            expected = 'white' if result == 'win' else 'draw'   # AI rejimida öyinçi doim oq
+            if not replay or replay[0] != expected:
+                logger.warning('submit_result: tasdiqlanmagan %s natija rad etildi (user=%s game=%s)',
+                               result, payload.get('uid'), game.slug)
+                return _cors_headers(JsonResponse({
+                    'ok': False, 'error': "Natija tasdiqlanmadi: partiya serverda qayta tekşirildi va mos kelmadi.",
+                }, status=403), request)
+            meta['plies'] = replay[1]
 
     # Musobaqa (ixtiyoriy)
     competition = None
@@ -559,6 +591,22 @@ def _mp_resolve_user_and_game(request, data):
     return user, game, None
 
 
+DEFAULT_MIN_WIN_SECONDS = 60
+
+
+def min_win_seconds(game):
+    """Şaxmat/şaşkada eng qisqa ruxsat etilgan ğalaba vaqti (Game.config.min_win_seconds, standart 60s)."""
+    try:
+        return max(0, int((game.config or {}).get('min_win_seconds', DEFAULT_MIN_WIN_SECONDS)))
+    except (TypeError, ValueError):
+        return DEFAULT_MIN_WIN_SECONDS
+
+
+def illegal_fast_win_message(game):
+    return (f"Siz noqonuniy öynadingiz: {min_win_seconds(game)} soniyadan "
+            f"({min_win_seconds(game) // 60 or 1} daqiqadan) kam vaqtda ğalaba qayd etib bölmaydi. Natija hisoblanmadi.")
+
+
 def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
     """Match ma'lumotini JSON şakliga aylantiradi."""
     board_size = _xo_match_size(match) if _is_xo_game(match.game) else None
@@ -588,6 +636,8 @@ def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
         'win_length': _xo_win_length(board_size) if board_size else None,
         'started_at': match.started_at.isoformat() if match.started_at else None,
         'ended_at': match.ended_at.isoformat() if match.ended_at else None,
+        # ⏱ Juda tez ğalaba bekor qilingan bölsa — sabab (ikkala öyinçiga körsatiladi)
+        'annulled': (match.last_move or {}).get('_annulled') if isinstance(match.last_move, dict) else None,
     }
 
 
@@ -1010,32 +1060,43 @@ def mp_move(request):
     if not isinstance(new_board, list) or len(new_board) != 8 or any(len(row) != 8 for row in new_board):
         return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz board formati (8x8 bölişi kerak)"}, status=400), request)
 
-    match.board_state = new_board
-    match.last_move = data.get('last_move') or {}
+    # 🛡 ANTI-CHEAT: mijoz yuborgan taxtaga ham, "game_over/winner" ga ham işonilmaydi.
+    # Server eski holatdan barça qonuniy yurişlarni özi hosil qiladi; yangi taxta ulardan
+    # biriga aynan mos kelmasa — yuriş rad etiladi. Öyin natijasini ham server aniqlaydi.
+    from django.utils import timezone
+    from .board_rules import validate_transition
+
+    kind = 'chess' if _is_chess_game(game) else 'checkers'
+    old_board = match.board_state or _initial_board_for(game)
+    prev_last = match.last_move if isinstance(match.last_move, dict) else {}
+    checked = validate_transition(kind, old_board, new_board, role, int(prev_last.get('_quiet') or 0))
+    if checked is None:
+        logger.warning('mp_move: noqonuniy yuriş rad etildi (match=%s user=%s role=%s)', match.pk, user.pk, role)
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Noqonuniy yuriş — qabul qilinmadi."}, status=400), request)
+
+    last_move = data.get('last_move') if isinstance(data.get('last_move'), dict) else {}
+    if len(json.dumps(last_move, default=str)) > 2000:   # faqat körsatiş uçun; katta/axlat ma'lumot saqlanmaydi
+        last_move = {}
+    last_move = {k: v for k, v in last_move.items() if not str(k).startswith('_')}
+    last_move['_quiet'] = checked['quiet']
+
+    match.board_state = checked['board']
+    match.last_move = last_move
     match.move_count += 1
     match.current_turn = 'black' if role == 'white' else 'white'
-
-    # Öyin tugaganini avtomatik aniqlaş
-    from django.utils import timezone
-    engine = ((game.config or {}).get('engine') or game.slug).lower()
-    is_chess = 'chess' in engine or 'shaxmat' in engine
-
-    if data.get('game_over'):
+    if checked['status']:
+        now = timezone.now()
         match.status = 'ended'
-        match.winner = data.get('winner') or 'draw'
-        match.ended_at = timezone.now()
-    elif not is_chess:
-        # Şaşka uçun: 0 dona = mağlubiyat
-        w_count, b_count = _count_pieces(new_board)
-        if w_count == 0:
-            match.status = 'ended'
-            match.winner = 'black'
-            match.ended_at = timezone.now()
-        elif b_count == 0:
-            match.status = 'ended'
-            match.winner = 'white'
-            match.ended_at = timezone.now()
-    # Chess uçun: client checkmate/stalemate'ni aniqlaydi va game_over yuboradi
+        match.winner = checked['status']
+        match.ended_at = now
+        # ⏱ 1 daqiqadan tez ğalaba — bot/skript belgisi: ğalaba hisoblanmaydi, match bekor
+        # (durang sifatida yopiladi — coin matchida tikilişlar ikkalasiga qaytariladi).
+        started = match.started_at or match.created_at
+        if checked['status'] in ('white', 'black') and (now - started).total_seconds() < min_win_seconds(game):
+            logger.warning('mp_move: %ss dan tez ğalaba bekor qilindi (match=%s winner=%s)',
+                           min_win_seconds(game), match.pk, checked['status'])
+            match.winner = 'draw'
+            last_move['_annulled'] = illegal_fast_win_message(game)
 
     _save_match_retry(match)
 

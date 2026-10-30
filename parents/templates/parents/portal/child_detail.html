@@ -137,7 +137,7 @@
     <div class="pp-grid c2 keep1">
         <div>
             {% for cert in certificates %}
-            <div class="pp-li"><span class="ic tone-info"><i class="bi bi-patch-check-fill"></i></span><span class="t"><b>{{ cert.profession.name }}</b><small class="pp-mono">{{ cert.certificate_id }} · {{ cert.valid_from|date:"d.m.Y" }}</small></span>
+            <div class="pp-li"><span class="ic tone-info"><i class="bi bi-patch-check-fill"></i></span><span class="t"><b>{{ cert.course_name }}</b><small class="pp-mono">{{ cert.certificate_id }} · {{ cert.valid_from|date:"d.m.Y" }}</small></span>
                 <a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener">Tekşiriş</a></div>
             {% empty %}<p class="pp-muted" style="font-size:.86rem;">Hali sertifikat yöq.</p>{% endfor %}
         </div>

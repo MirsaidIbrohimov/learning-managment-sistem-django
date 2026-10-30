@@ -1,0 +1,48 @@
+{# Kurs sahifasi: şu kurs kiradigan birlashgan kurs(lar) progressi #}
+<style>
+.bp { margin: 0 0 1.25rem; padding: 1rem 1.15rem; border-radius: 18px;
+      background: linear-gradient(135deg, color-mix(in srgb, #8b5cf6 14%, transparent), color-mix(in srgb, #06b6d4 10%, transparent));
+      border: 1px solid color-mix(in srgb, #8b5cf6 35%, transparent); }
+.bp + .bp { margin-top: -.5rem; }
+.bp-head { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; margin-bottom: .7rem; }
+.bp-title { font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: .45rem; }
+.bp-title i { color: #8b5cf6; }
+.bp-sum { font-size: .82rem; font-weight: 700; opacity: .8; }
+.bp-bar { height: 10px; border-radius: 999px; background: color-mix(in srgb, #64748b 22%, transparent); overflow: hidden; margin-bottom: .8rem; }
+.bp-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #06b6d4); transition: width .6s ease; }
+.bp-steps { display: flex; gap: .45rem; flex-wrap: wrap; }
+.bp-step { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 700;
+           text-decoration: none; color: inherit; background: color-mix(in srgb, #64748b 14%, transparent); }
+.bp-step:hover { color: inherit; filter: brightness(1.1); }
+.bp-step.done { background: rgba(16,185,129,.18); color: #10b981; }
+.bp-step.current { outline: 2px solid #8b5cf6; }
+.bp-cert { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .8rem; border-radius: 10px; font-size: .8rem; font-weight: 800;
+           color: #fff; text-decoration: none; background: linear-gradient(135deg, #10b981, #059669); }
+.bp-cert:hover { color: #fff; }
+</style>
+{% for card in cards %}
+<div class="bp">
+    <div class="bp-head">
+        <div class="bp-title"><i class="bi bi-collection-fill"></i> "{{ card.bundle.name }}" yönalişi</div>
+        {% if card.certificate %}
+        <a class="bp-cert" href="{% url 'download_certificate' card.certificate.pk %}"><i class="bi bi-patch-check-fill"></i> Sertifikatni yuklab oliş</a>
+        {% else %}
+        <div class="bp-sum">{{ card.percent }}% · {{ card.completed_count }}/{{ card.total }} kurs tugatildi</div>
+        {% endif %}
+    </div>
+    <div class="bp-bar" role="progressbar" aria-valuenow="{{ card.percent }}" aria-valuemin="0" aria-valuemax="100"><span style="width: {{ card.percent }}%"></span></div>
+    <div class="bp-steps">
+        {% for item in card.items %}
+        <a href="{% url 'profession_detail' item.profession.pk %}" class="bp-step {% if item.completed %}done{% endif %} {% if item.profession.pk == current.pk %}current{% endif %}">
+            {% if item.completed %}<i class="bi bi-check-circle-fill"></i>{% elif item.enrolled %}<i class="bi bi-play-circle"></i>{% else %}<i class="bi bi-lock"></i>{% endif %}
+            {{ item.profession.name }}{% if item.enrolled and not item.completed %} · {{ item.percent }}%{% endif %}
+        </a>
+        {% endfor %}
+    </div>
+    {% if not card.certificate %}
+    <div class="bp-sum" style="margin-top:.6rem;font-weight:600;">
+        Istalgan kursni 100% tugatsangiz, qolganlariga sörovsiz yozilasiz. Hammasini tugatsangiz — "{{ card.bundle.name }}" sertifikati.
+    </div>
+    {% endif %}
+</div>
+{% endfor %}

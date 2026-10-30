@@ -20,7 +20,11 @@ SALT = 'accounts.email-binding'
 
 
 def stage_email(user, address):
-    user.pending_email = address.strip().lower()
+    address = address.strip().lower()
+    # Xuddi şu manzil qayta saqlansa (masalan profil formasi) — yuborilgan havola bekor bölmasin.
+    if address == user.pending_email and user.email_verification_nonce:
+        return
+    user.pending_email = address
     user.email_verification_nonce = secrets.token_hex(32)
 
 
@@ -45,24 +49,33 @@ def send_verification(user, request=None):
         return False
 
 
+class _Rejected(Exception):
+    pass
+
+
 @never_cache
 @require_GET
 def verify_email(request, token):
-    success = False
+    # reason: '' — hozir tasdiqlandi; 'already' — avval (masalan pochta skaneri oldindan oçgan) tasdiqlangan.
+    reason = ''
     try:
         data = signing.loads(token, salt=SALT, max_age=86400)
         with transaction.atomic():
             user = CustomUser.objects.select_for_update().get(pk=data['uid'], is_active=True)
+            if not user.pending_email and user.email and user.email.lower() == data['email']:
+                # Pochta xizmatlari (Mail.ru, Yandex, Outlook, Telegram preview) havolani
+                # foydalanuvçidan oldin oçadi: holat özgarmaydi, faqat töğri xabar körsatiladi.
+                raise _Rejected('already')
             if (not user.pending_email or user.pending_email != data['email'] or
                     not secrets.compare_digest(user.email_verification_nonce, data['nonce'])):
-                raise ValueError('stale')
+                raise _Rejected('stale')
             if request.user.is_authenticated and request.user.pk != user.pk:
-                raise ValueError('wrong account')
+                raise _Rejected('wrong_account')
             if CustomUser.objects.filter(email__iexact=user.pending_email).exclude(pk=user.pk).exists():
-                raise ValueError('already bound')
+                raise _Rejected('already_bound')
             binding, _ = VerifiedEmailBinding.objects.get_or_create(email=user.pending_email, defaults={'user': user})
             if binding.user_id != user.pk:
-                raise ValueError('already bound')
+                raise _Rejected('already_bound')
             user.email = user.pending_email
             user.pending_email = ''
             user.email_verification_nonce = ''
@@ -70,10 +83,15 @@ def verify_email(request, token):
             VerifiedEmailBinding.objects.filter(user=user).exclude(pk=binding.pk).delete()
             from .email_notifications import queue_email
             queue_email(user, 'welcome', f'welcome:{user.pk}')
-            success = True
-    except (signing.BadSignature, CustomUser.DoesNotExist, ValueError, KeyError, TypeError, IntegrityError):
-        pass
-    response = render(request, 'accounts/email_verification.html', {'verified': success})
+    except _Rejected as exc:
+        reason = str(exc)
+    except signing.SignatureExpired:
+        reason = 'expired'
+    except (signing.BadSignature, CustomUser.DoesNotExist, KeyError, TypeError, IntegrityError):
+        reason = 'invalid'
+    response = render(request, 'accounts/email_verification.html', {
+        'verified': reason in ('', 'already'), 'reason': reason,
+    })
     response['Referrer-Policy'] = 'no-referrer'
     return response
 

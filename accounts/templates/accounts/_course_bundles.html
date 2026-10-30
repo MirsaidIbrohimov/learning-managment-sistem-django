@@ -1,0 +1,82 @@
+{# Kasblar & Kurslar sahifasi: birlashgan kurslar (masalan HTML + CSS + JS → "Front End") #}
+<style>
+.kb { margin: 0 0 30px; padding: clamp(18px, 3vw, 28px); border-radius: 26px;
+      background:
+        radial-gradient(90% 120% at 0% 0%, rgba(139,92,246,.18), transparent 55%),
+        radial-gradient(90% 120% at 100% 100%, rgba(6,182,212,.16), transparent 55%),
+        var(--dash-glass, rgba(255,255,255,.04));
+      border: 1px solid var(--dash-glass-border, rgba(255,255,255,.08)); }
+.kb-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .72rem; font-weight: 800;
+           letter-spacing: .06em; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #8b5cf6, #06b6d4); }
+.kb-title { margin: 10px 0 4px; font-size: clamp(1.3rem, 2.6vw, 1.75rem); font-weight: 800; letter-spacing: -.02em; color: var(--dash-text, var(--kp-text)); }
+.kb-sub { margin: 0 0 20px; color: var(--dash-muted, var(--kp-muted)); font-size: .92rem; max-width: 640px; }
+.kb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+.kb-card { display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; color: var(--dash-text, var(--kp-text));
+           background: var(--dash-surface, var(--kp-panel)); border: 1px solid color-mix(in srgb, #8b5cf6 30%, transparent); }
+.kb-card.done { border-color: rgba(16,185,129,.6); }
+.kb-media { aspect-ratio: 16 / 6; background: linear-gradient(135deg, #8b5cf6, #06b6d4) center/cover no-repeat; position: relative; }
+.kb-tag { position: absolute; top: 12px; right: 12px; padding: 5px 10px; border-radius: 999px; font-size: .7rem; font-weight: 800; color: #fff; background: rgba(2,6,23,.55); }
+.kb-tag.done { background: rgba(16,185,129,.9); }
+.kb-body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.kb-name { margin: 0; font-size: 1.15rem; font-weight: 800; }
+.kb-desc { margin: 0; font-size: .84rem; color: var(--dash-muted, var(--kp-muted)); }
+.kb-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.kb-step { display: flex; align-items: center; gap: 10px; font-size: .86rem; }
+.kb-step a { color: inherit; text-decoration: none; font-weight: 700; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-step a:hover { text-decoration: underline; }
+.kb-dot { flex: 0 0 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .75rem; font-weight: 800;
+          background: color-mix(in srgb, var(--dash-muted, #64748b) 18%, transparent); }
+.kb-step.done .kb-dot { background: #10b981; color: #fff; }
+.kb-step.active .kb-dot { background: #8b5cf6; color: #fff; }
+.kb-pct { font-size: .75rem; font-weight: 800; color: var(--dash-muted, var(--kp-muted)); }
+.kb-bar { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--dash-muted, #64748b) 20%, transparent); overflow: hidden; }
+.kb-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b5cf6, #06b6d4); }
+.kb-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: .8rem; }
+.kb-cert { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 12px; font-weight: 800; color: #fff; text-decoration: none;
+           background: linear-gradient(135deg, #10b981, #059669); }
+.kb-cert:hover { color: #fff; filter: brightness(1.08); }
+</style>
+
+<section class="kb">
+  <span class="kb-pill"><i class="bi bi-collection-fill"></i> Birlashgan kurslar</span>
+  <h2 class="kb-title">Bir neça kurs — bitta yönaliş sertifikati</h2>
+  <p class="kb-sub">Birlashmadagi istalgan kursni 100% tugatsangiz, qolgan kurslarga sörovsiz yozilasiz. Hammasini tugatsangiz — yönaliş sertifikati beriladi.</p>
+  <div class="kb-grid">
+    {% for card in course_bundles %}
+    {% with b=card.bundle %}
+    <article class="kb-card {% if card.certificate %}done{% endif %}">
+      <div class="kb-media" {% if b.photo %}style="background-image:url('{{ b.photo.url }}')"{% endif %}>
+        {% if card.certificate %}<span class="kb-tag done"><i class="bi bi-patch-check-fill"></i> Sertifikat olingan</span>
+        {% else %}<span class="kb-tag">{{ card.total }} ta kurs</span>{% endif %}
+      </div>
+      <div class="kb-body">
+        <h3 class="kb-name">{{ b.name }}</h3>
+        {% if b.description %}<p class="kb-desc">{{ b.description|truncatechars:160 }}</p>{% endif %}
+        <ol class="kb-steps">
+          {% for item in card.items %}
+          <li class="kb-step {% if item.completed %}done{% elif item.enrolled %}active{% endif %}">
+            <span class="kb-dot">{% if item.completed %}<i class="bi bi-check-lg"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
+            <a href="{% url 'profession_detail' item.profession.pk %}">{{ item.profession.name }}</a>
+            {% if card.percent is not None %}<span class="kb-pct">{% if item.enrolled or item.completed %}{{ item.percent }}%{% else %}<i class="bi bi-lock"></i>{% endif %}</span>{% endif %}
+          </li>
+          {% endfor %}
+        </ol>
+        {% if card.percent is not None %}
+        <div class="kb-bar" title="{{ card.percent }}%"><span style="width: {{ card.percent }}%"></span></div>
+        {% endif %}
+        <div class="kb-foot">
+          {% if card.certificate %}
+          <a class="kb-cert" href="{% url 'download_certificate' card.certificate.pk %}"><i class="bi bi-download"></i> {{ b.name }} sertifikati</a>
+          <span class="kb-pct">{{ card.certificate.certificate_id }}</span>
+          {% elif card.percent is not None %}
+          <span class="kb-pct">{{ card.completed_count }} / {{ card.total }} kurs tugatildi · {{ card.percent }}%</span>
+          {% else %}
+          <span class="kb-pct"><i class="bi bi-award"></i> Hammasini tugatganga "{{ b.name }}" sertifikati</span>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endwith %}
+    {% endfor %}
+  </div>
+</section>

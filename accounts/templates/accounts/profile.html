@@ -242,7 +242,7 @@
             <div class="cert" style="--c:{{ cert.status_color }}">
               <div class="h">
                 <i class="bi {% if cert.status == 'active' %}bi-patch-check-fill{% elif cert.status == 'expired' %}bi-clock-history{% elif cert.status == 'frozen' %}bi-snow2{% else %}bi-x-octagon-fill{% endif %}"></i>
-                <div><b>{{ cert.profession.name }}</b><span class="st">{{ cert.get_status_display }}</span><div class="id"><i class="bi bi-upc-scan"></i> {{ cert.certificate_id }}</div></div>
+                <div><b>{{ cert.course_name }}</b><span class="st">{{ cert.get_status_display }}</span><div class="id"><i class="bi bi-upc-scan"></i> {{ cert.certificate_id }}</div></div>
               </div>
               <div class="dt"><span><i class="bi bi-calendar-check"></i> {{ cert.valid_from|date:"d.m.Y" }}</span>{% if cert.valid_until %}<span><i class="bi bi-calendar-x"></i> {{ cert.valid_until|date:"d.m.Y" }}</span>{% endif %}</div>
               <div class="ft">

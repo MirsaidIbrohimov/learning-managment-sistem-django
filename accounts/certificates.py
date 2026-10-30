@@ -129,12 +129,13 @@ def generate_certificate_pdf(certificate):
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import landscape, A4
 
-    design = get_certificate_design(certificate.profession)
+    design = (certificate.bundle.design if certificate.bundle_id
+              else get_certificate_design(certificate.profession))
     if design is not None and design.background:
         return render_design_pdf(
             design,
             name=certificate.recipient_display,
-            course=certificate.profession.name,
+            course=certificate.course_name,
             series=certificate.certificate_id,
             date_str=certificate.valid_from.strftime('%d.%m.%Y') if certificate.valid_from else '',
             title=f"Sertifikat {certificate.certificate_id}",
@@ -152,7 +153,7 @@ def generate_certificate_pdf(certificate):
         return page_h - y * scale
 
     student_name = certificate.recipient_display
-    course_line = f"<< {certificate.profession.name.upper()} >> COURSE"
+    course_line = f"<< {certificate.course_name.upper()} >> COURSE"
     # Sertifikatda BERILGAN SANA körsatiladi
     issue_date = (
         certificate.valid_from.strftime('%d.%m.%Y')
@@ -255,7 +256,7 @@ def _notify_certificate_telegram(certificate):
 
     student = certificate.student
     student_name = html.escape(certificate.recipient_display)
-    profession_name = html.escape(certificate.profession.name)
+    profession_name = html.escape(certificate.course_name)
     certificate_id = html.escape(certificate.certificate_id)
     site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
     verify_url = f"{site_url}/verify-certificate/?id={certificate.certificate_id}"
@@ -312,7 +313,7 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
 
     if student is not None:
         existing = Certificate.objects.filter(
-            student=student, profession=profession
+            student=student, profession=profession, bundle__isnull=True
         ).first()
         if existing:
             return None, (
@@ -393,7 +394,7 @@ def issue_course_certificate(student, profession, issued_by=None):
 
     # 4) Allaqaçon berilganmi
     existing = Certificate.objects.filter(
-        student=student, profession=profession
+        student=student, profession=profession, bundle__isnull=True
     ).first()
     if existing:
         return existing, None

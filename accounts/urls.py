@@ -10,6 +10,7 @@ from . import email_verification
 from . import exam_admin
 from . import app_releases
 from . import certificate_designs
+from . import course_bundle_views
 from . import premium_views
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
@@ -202,6 +203,11 @@ urlpatterns = [
     path('dashboard/export-report/', views.admin_export_report, name='admin_export_report'),
     path('dashboard/toggle-maintenance/', views.toggle_maintenance, name='toggle_maintenance'),
     path('dashboard/professions/', views.admin_professions, name='admin_professions'),
+    path('dashboard/course-bundles/', course_bundle_views.admin_course_bundles, name='admin_course_bundles'),
+    path('dashboard/course-bundles/<int:pk>/edit/', course_bundle_views.admin_course_bundle_edit, name='admin_course_bundle_edit'),
+    path('dashboard/course-bundles/<int:pk>/delete/', course_bundle_views.admin_course_bundle_delete, name='admin_course_bundle_delete'),
+    path('dashboard/course-bundles/<int:pk>/progress/', course_bundle_views.admin_course_bundle_progress, name='admin_course_bundle_progress'),
+    path('dashboard/course-bundles/<int:pk>/sync/', course_bundle_views.admin_course_bundle_sync, name='admin_course_bundle_sync'),
     path('dashboard/professions/add/', views.admin_profession_add, name='admin_profession_add'),
     path('dashboard/professions/<int:pk>/edit/', views.admin_profession_edit, name='admin_profession_edit'),
     path('dashboard/professions/<int:pk>/delete/', views.admin_profession_delete, name='admin_profession_delete'),

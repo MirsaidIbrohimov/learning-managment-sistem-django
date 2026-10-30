@@ -1,0 +1,92 @@
+{# Birlashgan kurs formasi — yaratiş va tahrirlaş sahifalarida umumiy #}
+<form method="post" enctype="multipart/form-data" class="cb-form">
+    {% csrf_token %}
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Nomi</label>
+            <input type="text" name="name" class="form-control" maxlength="200" required
+                   value="{{ bundle.name|default:'' }}" placeholder="Masalan: Front End">
+        </div>
+        <div class="col-md-6">
+            <label class="form-label fw-bold">Rasm (ixtiyoriy)</label>
+            <input type="file" name="photo" accept=".png,.jpg,.jpeg,.webp" class="form-control">
+            {% if bundle.photo %}
+            <label class="cb-muted mt-1"><input type="checkbox" name="remove_photo" value="1"> Joriy rasmni olib taşlaş</label>
+            {% endif %}
+        </div>
+        <div class="col-12">
+            <label class="form-label fw-bold">Tavsif</label>
+            <textarea name="description" class="form-control" rows="2" placeholder="Masalan: HTML, CSS, Bootstrap va JavaScript — töliq Front End yönalişi">{{ bundle.description|default:'' }}</textarea>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-bold">Kurslar <span class="cb-muted">(kamida 2 ta; raqam — öqiş tartibi)</span></label>
+            <input type="search" class="form-control form-control-sm mb-2 cb-filter" placeholder="Kurs qidiriş…">
+            <div class="cb-courses">
+                {% for p in professions %}
+                <label class="cb-course" data-name="{{ p.name|lower }}">
+                    <input type="checkbox" name="courses" value="{{ p.pk }}" {% if p.pk in selected %}checked{% endif %}>
+                    <span class="cb-course-name">{{ p.name }}{% if p.is_blocked %} <em class="cb-muted">(bloklangan)</em>{% endif %}</span>
+                    <input type="number" name="order_{{ p.pk }}" min="1" class="form-control form-control-sm cb-order"
+                           value="{% for k, v in selected.items %}{% if k == p.pk %}{{ v }}{% endif %}{% endfor %}" title="Tartib raqami">
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Sertifikat seriya kodi</label>
+            <input type="text" name="series_code" class="form-control" maxlength="20"
+                   value="{{ bundle.series_code|default:'' }}" placeholder="Masalan: FE">
+            <small class="cb-muted">Böş bölsa sertifikat berilmaydi.</small>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Amal qiliş muddati (yil)</label>
+            <input type="number" name="validity_years" class="form-control" min="1" max="50"
+                   value="{{ bundle.validity_years|default:2 }}">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Sertifikat dizayni</label>
+            <select name="design" class="form-select">
+                <option value="">Standart dizayn</option>
+                {% for d in designs %}
+                <option value="{{ d.pk }}" {% if bundle.design_id == d.pk %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-12">
+            <label class="form-check">
+                <input type="checkbox" name="is_active" class="form-check-input" {% if not bundle or bundle.is_active %}checked{% endif %}>
+                <span class="form-check-label fw-bold">Faol</span>
+                <small class="cb-muted d-block">Bitta kursni 100% tugatgan öquvçi qolgan kurslarga sörovsiz yoziladi, hammasini tugatsa sertifikat oladi.</small>
+            </label>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3" style="border-radius:12px;font-weight:800;">
+        <i class="bi bi-check2-circle"></i> {% if bundle %}Saqlaş{% else %}Birlaştiriş{% endif %}
+    </button>
+</form>
+<script>
+document.querySelectorAll('.cb-form').forEach(function (form) {
+    var filter = form.querySelector('.cb-filter');
+    filter && filter.addEventListener('input', function () {
+        var q = filter.value.trim().toLowerCase();
+        form.querySelectorAll('.cb-course').forEach(function (row) {
+            row.style.display = !q || row.dataset.name.indexOf(q) !== -1 ? '' : 'none';
+        });
+    });
+    // Belgilanganda keyingi tartib raqamini avtomatik qöyiş.
+    form.querySelectorAll('.cb-course input[type=checkbox]').forEach(function (box) {
+        box.addEventListener('change', function () {
+            var order = box.closest('.cb-course').querySelector('.cb-order');
+            if (box.checked && !order.value) {
+                var max = 0;
+                form.querySelectorAll('.cb-order').forEach(function (o) { max = Math.max(max, parseInt(o.value || 0, 10)); });
+                order.value = max + 1;
+            } else if (!box.checked) {
+                order.value = '';
+            }
+        });
+    });
+});
+</script>

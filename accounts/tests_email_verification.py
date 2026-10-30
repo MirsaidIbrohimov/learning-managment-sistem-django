@@ -34,7 +34,14 @@ class EmailVerificationTests(TestCase):
         self.assertEqual(self.user.email, 'pending@example.com')
         self.assertEqual(self.user.pending_email, '')
         self.assertIsNotNone(queue_email(self.user, 'login', 'after-verified'))
-        self.assertContains(self.client.get(link), 'Email tasdiqlanmadi')
+        # Pochta skaneri oldindan oçgan bölsa ham foydalanuvçi "eskirgan" körmasligi kerak.
+        self.assertContains(self.client.get(link), 'avvalroq tasdiqlangan')
+
+    def test_resaving_same_pending_email_keeps_link_valid(self):
+        link = self.link()
+        stage_email(self.user, 'PENDING@example.com ')
+        self.user.save()
+        self.assertContains(self.client.get(link), 'Email tasdiqlandi')
 
     def test_unconfirmed_email_does_not_reserve_address(self):
         other = CustomUser.objects.create_user(username='other', phone='+998901111198')
@@ -50,11 +57,11 @@ class EmailVerificationTests(TestCase):
     def test_expired_and_replaced_links_are_rejected(self):
         with patch('django.core.signing.time.time', return_value=1000):
             link = self.link()
-        self.assertContains(self.client.get(link), 'Email tasdiqlanmadi')
+        self.assertContains(self.client.get(link), 'muddati tugagan')
         link = self.link()
         stage_email(self.user, 'new@example.com')
         self.user.save()
-        self.assertContains(self.client.get(link), 'Email tasdiqlanmadi')
+        self.assertContains(self.client.get(link), 'Bu havola eski')
 
     def test_existing_address_and_wrong_authenticated_user_rejected(self):
         other = CustomUser.objects.create_user(username='existing', email=self.user.pending_email, phone='+998901111197')

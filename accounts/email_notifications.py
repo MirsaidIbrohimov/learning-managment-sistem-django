@@ -78,7 +78,7 @@ def _message_context(notification):
         subject = 'Sertifikatingiz tayyor! / Ваш сертификат готов!'
         headings = ('Tabriklaymiz, sertifikatingiz tayyor!', 'Поздравляем, ваш сертификат готов!')
         paragraphs = ('Bilim oliş yölidagi mehnatingiz öz samarasini berdi. Yangi yutuğingiz bilan tabriklaymiz va keyingi bosqiçlarda omad tilaymiz!', 'Ваш труд и стремление к знаниям принесли результат. Поздравляем с достижением и желаем успехов на следующем этапе!')
-        details = [('Kurs / Курс', certificate.profession.name), ('Sertifikat raqami / Номер сертификата', certificate.certificate_id)]
+        details = [('Kurs / Курс', certificate.course_name), ('Sertifikat raqami / Номер сертификата', certificate.certificate_id)]
         labels = ('Sertifikatni yuklab oliş', 'Скачать сертификат')
         url_name, args = 'download_certificate', [certificate.pk]
     elif notification.kind == 'coin_promo':

@@ -33,6 +33,7 @@ class AccountsConfig(AppConfig):
         connection_created.connect(_tune_sqlite, dispatch_uid='accounts-sqlite-wal')
         from . import email_signals  # noqa: F401 — register transactional email hooks
         from . import attendance_auto  # noqa: F401 — login bölganda avtomatik davomat
+        from . import course_bundles  # noqa: F401 — birlashgan kurslar: avtomatik yoziliş va sertifikat
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return
         if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true' and '--noreload' not in sys.argv:

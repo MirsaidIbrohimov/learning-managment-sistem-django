@@ -191,5 +191,7 @@ def _regenerate_for_design(design):
     """Şu dizayn biriktirilgan kurslardagi barça sertifikatlarni qayta yaratadi."""
     from .models import Certificate
 
+    from django.db.models import Q
     prof_ids = list(design.course_settings.values_list('profession_id', flat=True))
-    return regenerate_certificates(Certificate.objects.filter(profession_id__in=prof_ids))
+    return regenerate_certificates(Certificate.objects.filter(
+        Q(profession_id__in=prof_ids, bundle__isnull=True) | Q(bundle__design=design)))

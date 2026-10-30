@@ -1512,6 +1512,10 @@ class Certificate(models.Model):
         verbose_name="Qabul qiluvçi (qölda kiritilgan ism)"
     )
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='certificates')
+    # Birlashgan kurs sertifikati (masalan "Front End"): profession — birlashmaning birinçi kursi,
+    # nom va dizayn esa birlashmadan olinadi. Berilgan sertifikati bor birlashma öçirilmaydi.
+    bundle = models.ForeignKey('CourseBundle', on_delete=models.PROTECT, null=True, blank=True,
+                               related_name='certificates', verbose_name="Birlashgan kurs")
     certificate_id = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Sertifikat ID")
     file = models.FileField(upload_to='certificates/', verbose_name="Sertifikat fayli (PDF)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Holat")
@@ -1546,6 +1550,11 @@ class Certificate(models.Model):
         return self.status == 'active'
 
     @property
+    def course_name(self):
+        """Sertifikatdagi kurs nomi: birlashgan kurs bölsa — uning nomi."""
+        return self.bundle.name if self.bundle_id else self.profession.name
+
+    @property
     def recipient_display(self):
         """Sertifikat egasining ismi: qölda kiritilgan yoki platformadagi."""
         if self.recipient_name:
@@ -1565,7 +1574,7 @@ class Certificate(models.Model):
         return colors.get(self.status, '#86868b')
 
     def __str__(self):
-        return f"{self.certificate_id} - {self.recipient_display} - {self.profession.name}"
+        return f"{self.certificate_id} - {self.recipient_display} - {self.course_name}"
 
 
 class CertificateRequest(models.Model):
@@ -3719,6 +3728,66 @@ class CertificateSettings(models.Model):
         self.next_number += 1
         self.save(update_fields=['next_number', 'updated_at'])
         return cert_id
+
+
+# ==================== BIRLAŞGAN KURSLAR ====================
+
+class CourseBundle(models.Model):
+    """Bir neça kursni bitta yönalişga birlaştiriş (masalan HTML + CSS + JS → "Front End").
+
+    Öquvçi birlaşmadagi bitta kursni 100% tugatsa — qolgan kurslarga sörovsiz yoziladi;
+    hammasini 100% tugatsa — birlaşma nomi bilan sertifikat beriladi (accounts.course_bundles).
+    """
+    name = models.CharField(max_length=200, verbose_name="Nomi")
+    description = models.TextField(blank=True, verbose_name="Tavsif")
+    photo = models.ImageField(upload_to='course_bundles/', blank=True, verbose_name="Rasm")
+    courses = models.ManyToManyField(Profession, through='CourseBundleItem', related_name='bundles',
+                                     verbose_name="Kurslar")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    series_code = models.CharField(max_length=20, blank=True, default='', verbose_name="Sertifikat seriya kodi",
+                                   help_text="Masalan: FE. Böş bölsa sertifikat berilmaydi.")
+    validity_years = models.PositiveSmallIntegerField(default=2, verbose_name="Amal qiliş muddati (yil)")
+    next_number = models.PositiveIntegerField(default=1, verbose_name="Keyingi tartib raqami")
+    design = models.ForeignKey(CertificateDesign, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='bundles', verbose_name="Sertifikat dizayni")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Birlashgan kurs"
+        verbose_name_plural = "Birlashgan kurslar"
+
+    def __str__(self):
+        return self.name
+
+    def ordered_courses(self):
+        return [item.profession for item in self.items.select_related('profession').order_by('order', 'pk')]
+
+    def generate_certificate_id(self):
+        from django.utils import timezone as _tz
+        yy = _tz.localdate().strftime('%y')
+        with transaction.atomic():
+            locked = CourseBundle.objects.select_for_update().get(pk=self.pk)
+            number = locked.next_number
+            cert_id = f"{locked.series_code}-{yy}{number:03d}"
+            while Certificate.objects.filter(certificate_id=cert_id).exists():
+                number += 1
+                cert_id = f"{locked.series_code}-{yy}{number:03d}"
+            CourseBundle.objects.filter(pk=self.pk).update(next_number=number + 1)
+        return cert_id
+
+
+class CourseBundleItem(models.Model):
+    bundle = models.ForeignKey(CourseBundle, on_delete=models.CASCADE, related_name='items')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='bundle_items')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'pk']
+        constraints = [models.UniqueConstraint(fields=['bundle', 'profession'], name='uniq_bundle_course')]
+
+    def __str__(self):
+        return f"{self.bundle.name} · {self.profession.name}"
 
 
 # ==================== GURUHLAR & DARS JADVALI ====================
