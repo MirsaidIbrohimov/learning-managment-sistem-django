@@ -1,0 +1,31 @@
+{% comment %}
+🎟 "Kimlar işlatdi" — ixcham dropdown. `items` = PromoRedemption ro'yxati.
+Jadval `.table-responsive` (overflow) içida bölgani uçun menyu `strategy: fixed` bilan çiqadi — kesilmaydi.
+{% endcomment %}
+{% if items %}
+<div class="dropdown pud">
+    <button type="button" class="pud-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside"
+            data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+        <span class="pud-stack" aria-hidden="true">
+            {% for r in items|slice:":3" %}<span class="pud-av" title="{{ r.user.full_name|default:r.user.username }}">{% if r.user.photo %}<img src="{{ r.user.photo.url }}" alt="">{% else %}{{ r.user.get_initials|default:r.user.username|slice:":1"|upper }}{% endif %}</span>{% endfor %}
+        </span>
+        <span class="pud-count">{{ items|length }} kişi</span>
+        <i class="bi bi-chevron-down pud-caret"></i>
+    </button>
+    <div class="dropdown-menu dropdown-menu-end pud-menu">
+        <div class="pud-head">Kimlar işlatdi · {{ items|length }}</div>
+        {% for r in items %}
+        <div class="pud-row">
+            <span class="pud-av lg">{% if r.user.photo %}<img src="{{ r.user.photo.url }}" alt="">{% else %}{{ r.user.get_initials|default:r.user.username|slice:":1"|upper }}{% endif %}</span>
+            <span class="pud-who">
+                <b>{{ r.user.full_name|default:r.user.username }}</b>
+                <small>@{{ r.user.username }} · {{ r.created_at|date:"d.m.Y H:i" }}</small>
+            </span>
+            <span class="pud-coins">+{{ r.coins }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<span class="pud-none">—</span>
+{% endif %}

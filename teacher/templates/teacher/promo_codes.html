@@ -4,6 +4,7 @@
 {% block topbar_title %}Promo kodlar{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/_promo_users_dropdown_css.html' %}
 <style>
 .tp-page { max-width: 1100px; animation: fadeInUp .4s ease; }
 .tp-note { border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; font-size: .88rem; background: rgba(124, 58, 237, .08); color: var(--bs-body-color); }
@@ -34,7 +35,7 @@
                     <td><span class="tp-code">{{ p.code }}</span> {% if p.is_usable %}<span class="tp-tag on">Faol</span>{% else %}<span class="tp-tag">Tugagan</span>{% endif %}</td>
                     <td>{{ p.used }}/{{ p.max_uses }}</td>
                     <td>{{ p.expires_at|date:"d.m.Y H:i" }}</td>
-                    <td class="tp-sub">{% for r in p.redemptions.all %}{{ r.user.full_name|default:r.user.username }} (+{{ r.coins }}){% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                    <td>{% include 'coin/_promo_users_dropdown.html' with items=p.redemptions.all %}</td>
                 </tr>
                 {% empty %}
                 <tr><td colspan="5" class="text-center text-muted py-4">Öquvçilaringiz hali promo kod olmagan.</td></tr>

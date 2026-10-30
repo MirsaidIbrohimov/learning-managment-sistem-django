@@ -4,6 +4,7 @@
 {% block topbar_title %}Promo kodlar{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/_promo_users_dropdown_css.html' %}
 <style>
 .apc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
 .apc-stat { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 16px; padding: 16px; }
@@ -76,7 +77,7 @@
                 <td>{{ p.used }}/{{ p.max_uses }}</td>
                 <td>{{ p.min_coins }}–{{ p.max_coins }}<br><span class="apc-users">berildi: {{ p.given|default:0 }}</span></td>
                 <td>{{ p.expires_at|date:"d.m.Y H:i" }}</td>
-                <td class="apc-users">{% for r in p.users %}{{ r.user.full_name|default:r.user.username }} (+{{ r.coins }}){% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                <td>{% include 'coin/_promo_users_dropdown.html' with items=p.users %}</td>
                 <td>
                     <form method="post">{% csrf_token %}
                         <input type="hidden" name="action" value="toggle"><input type="hidden" name="promo_id" value="{{ p.pk }}">
