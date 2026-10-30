@@ -336,8 +336,9 @@ class MaintenanceMiddleware:
         except Exception:
             pass
         
-        # Static/media fayllar va Telegram webhook
-        if request.path.startswith(('/static/', '/media/', '/telegrambotlms/webhook/')):
+        # Static/media fayllar, Telegram va tölov tizimlari webhooklari (aks holda tölov tasdiqlanmaydi)
+        if request.path.startswith(('/static/', '/media/', '/telegrambotlms/webhook/', '/inpay/webhook',
+                                    '/tezcheck/webhook', '/payme/', '/click/')):
             return self.get_response(request)
         
         try:

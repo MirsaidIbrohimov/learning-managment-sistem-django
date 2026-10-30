@@ -107,7 +107,10 @@ def _webhook_url(return_url):
     parsed = urlparse(return_url)
     if parsed.scheme not in ('http', 'https') or not parsed.netloc:
         return None
-    return f'{parsed.scheme}://{parsed.netloc}{reverse("inpay_webhook")}'
+    # Proxy ortida return_url http:// bölib qolişi mumkin; http -> https 301 redirectni
+    # inPAY POST uçun kuzatmaydi va webhook "xato" bölib qoladi. Lokal hostlardan boşqasi https.
+    scheme = 'http' if parsed.hostname in ('localhost', '127.0.0.1') else 'https'
+    return f'{scheme}://{parsed.netloc}{reverse("inpay_webhook")}'
 
 
 def _checked_checkout_url(value):
@@ -220,12 +223,22 @@ def fetch_webhook_secret():
 
 def verify_webhook_signature(*, raw_body, signature_header, now=None):
     """HMAC-SHA256("{t}.{raw body}") with the cash desk whsec_ secret."""
+    return webhook_signature_error(raw_body=raw_body, signature_header=signature_header, now=now) == ''
+
+
+def webhook_signature_error(*, raw_body, signature_header, now=None):
+    """Böş satr — imzo töğri; aks holda logga yoziladigan sabab (sirni oşkor qilmaydi)."""
     secret = getattr(settings, 'INPAY_WEBHOOK_SECRET', '')
+    if not secret:
+        return 'INPAY_WEBHOOK_SECRET sozlanmagan'
     match = _SIGNATURE_RE.match((signature_header or '').strip())
-    if not secret or not match:
-        return False
+    if not match:
+        return f'X-Inpay-Signature formati notöğri: {(signature_header or "")[:40]!r}'
     timestamp, signature = match.groups()
-    if abs((int(time.time()) if now is None else int(now)) - int(timestamp)) > 300:
-        return False
+    drift = (int(time.time()) if now is None else int(now)) - int(timestamp)
+    if abs(drift) > 300:
+        return f'imzo vaqti 5 daqiqadan farq qiladi ({drift} s) — server soatini tekşiring'
     expected = hmac.new(secret.encode('utf-8'), timestamp.encode() + b'.' + raw_body, hashlib.sha256).hexdigest()
-    return hmac.compare_digest(expected, signature)
+    if not hmac.compare_digest(expected, signature):
+        return 'HMAC mos emas — INPAY_WEBHOOK_SECRET kassadagi sir bilan bir xil emas'
+    return ''

@@ -36,6 +36,9 @@ def pricing_data(user=None):
     }
     if getattr(user, 'is_premium', False):
         data['discounts'].append(premium_discount())
+    # 💸 Foydalanuvçi faollaştirgan promo kod paketlari (coin.coin_promo).
+    from coin.coin_promo import pricing_entries
+    data['discounts'].extend(pricing_entries(user))
     return data
 
 
@@ -44,6 +47,8 @@ def pricing_token(data):
 
 
 def discount_label(discount):
+    if discount['discount_type'] == 'promo':
+        return f"{discount['min_coins']:,} tanga = {discount['value']:,} söm · {discount.get('code', 'promo')}".replace(',', ' ')
     if discount['discount_type'] == 'package':
         return f"{discount['min_coins']:,} tanga = {discount['value']:,} söm".replace(',', ' ')
     if discount['discount_type'] == 'percentage':
@@ -60,7 +65,7 @@ def package_amounts(data):
     """Standart paketlar + maxsus narxli aksiya paketi (masalan 10 000 tanga = 5 000 söm)."""
     amounts = {10000, 25000, 50000, 100000}
     amounts.update(d['min_coins'] for d in data['discounts']
-                   if d['discount_type'] == 'package' and 1000 <= d['min_coins'] <= 2147483647)
+                   if d['discount_type'] in ('package', 'promo') and 1000 <= d['min_coins'] <= 2147483647)
     return sorted(amounts)
 
 
@@ -70,7 +75,12 @@ def quote(coins, data):
     for discount in data['discounts']:
         if coins < discount['min_coins']:
             continue
-        if discount['discount_type'] == 'percentage':
+        if discount['discount_type'] == 'promo':
+            # Promo kod — faqat aniq paket miqdori uçun (köpaytirib bölmaydi).
+            if coins != discount['min_coins']:
+                continue
+            price = discount['value']
+        elif discount['discount_type'] == 'percentage':
             price = (gross * (100 - discount['value']) + 99) // 100
         elif discount['discount_type'] == 'package':
             # min_coins tanga = value söm; köproq olinsa şu nisbatda (yuqoriga yaxlitlanadi).

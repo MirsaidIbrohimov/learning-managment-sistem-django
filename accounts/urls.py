@@ -408,7 +408,11 @@ urlpatterns = [
     path('tezcheck/course-status/<int:pk>/', course_payments.course_checkout_status, name='course_checkout_status'),
     path('tezcheck/return/', tezcheck_views.tezcheck_return, name='tezcheck_return'),
     path('tezcheck/webhook/', tezcheck_views.tezcheck_webhook, name='tezcheck_webhook'),
+    # Kabinetda "/" siz yozilgan URL uçun: APPEND_SLASH POST'ni 301 qiladi, Tezcheck uni kuzatmaydi.
+    path('tezcheck/webhook', tezcheck_views.tezcheck_webhook),
     path('inpay/webhook/', tezcheck_views.inpay_webhook, name='inpay_webhook'),
+    # Kabinetda "/" siz yozilgan URL uçun: APPEND_SLASH POST'ni 301 qiladi, inPAY uni kuzatmaydi.
+    path('inpay/webhook', tezcheck_views.inpay_webhook),
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
     path('click/prepare/', payment_views.click_prepare, name='click_prepare'),
     path('click/complete/', payment_views.click_complete, name='click_complete'),

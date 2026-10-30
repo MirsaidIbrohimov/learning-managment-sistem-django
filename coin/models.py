@@ -345,3 +345,66 @@ class PromoRedemption(models.Model):
 
     def __str__(self):
         return f"{self.user} · {self.promo.code} · +{self.coins}"
+
+
+# =========================
+# COIN NARX PROMO KODLARI (hamma uçun, admin belgilaydi)
+# =========================
+
+class CoinPricePromo(models.Model):
+    """Promo kod bilan tanga paketini maxsus narxda sotib oliş.
+
+    Masalan: 10 000 tanga — oddiy foydalanuvçiga 17 000 söm, Premium'ga 7 000 söm.
+    Kodni faollaştirgan öquvçining market narxiga (topup_pricing.pricing_data) qöşiladi;
+    har bir öquvçi paketni bir marta şu narxda oladi.
+    """
+    code = models.CharField(max_length=24, unique=True, verbose_name="Promo kod")
+    title = models.CharField(max_length=120, verbose_name="Nomi")
+    coins = models.PositiveIntegerField(verbose_name="Tanga miqdori (paket)")
+    price_regular = models.PositiveIntegerField(verbose_name="Oddiy foydalanuvçi narxi (söm)")
+    price_premium = models.PositiveIntegerField(verbose_name="Premium narxi (söm)")
+    max_uses = models.PositiveIntegerField(default=0, verbose_name="Jami xaridlar çegarasi (0 = çeklanmagan)")
+    valid_until = models.DateTimeField(verbose_name="Amal qiliş muddati")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                                   related_name='created_coin_price_promos')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Coin narx promo kodi"
+        verbose_name_plural = "Coin narx promo kodlari"
+
+    def __str__(self):
+        return self.code
+
+    @property
+    def is_expired(self):
+        from django.utils import timezone
+        return self.valid_until <= timezone.now()
+
+    @property
+    def used_count(self):
+        return self.activations.filter(used_at__isnull=False).count()
+
+    @property
+    def is_usable(self):
+        return self.is_active and not self.is_expired and (not self.max_uses or self.used_count < self.max_uses)
+
+    def price_for(self, user):
+        return self.price_premium if getattr(user, 'is_premium', False) else self.price_regular
+
+
+class CoinPricePromoActivation(models.Model):
+    promo = models.ForeignKey(CoinPricePromo, on_delete=models.CASCADE, related_name='activations')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='coin_price_promos')
+    activated_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True, verbose_name="Xarid qilingan vaqt")
+    paid_som = models.PositiveIntegerField(default=0, verbose_name="Tölangan summa")
+
+    class Meta:
+        ordering = ['-activated_at']
+        constraints = [models.UniqueConstraint(fields=['promo', 'user'], name='uniq_coin_price_promo_user')]
+
+    def __str__(self):
+        return f"{self.user} · {self.promo.code}"

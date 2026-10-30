@@ -22,6 +22,7 @@ urlpatterns = [
     path('market/gift-premium/lookup/', views.gift_premium_lookup, name='gift_premium_lookup'),
     path('market/promo/', promo_views.promo_codes_page, name='promo_codes'),
     path('market/promo/redeem/', promo_views.promo_redeem, name='promo_redeem'),
+    path('market/coin-promo/activate/', promo_views.coin_promo_activate, name='coin_promo_activate'),
     path('market/promo/receipt/<int:pk>/', promo_views.promo_receipt, name='promo_receipt'),
     path('dashboard/promo-codes/', promo_views.admin_promo_codes, name='admin_promo_codes'),
     path('market/<int:pk>/', views.market_detail, name='market_detail'),

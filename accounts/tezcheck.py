@@ -123,15 +123,24 @@ def fetch_bill(bill_id):
 
 def verify_webhook_signature(*, raw_body, timestamp, delivery_id, signature_header, now=None):
     """Verify v1 signatures over the exact request bytes; supports rotation."""
+    return webhook_signature_error(raw_body=raw_body, timestamp=timestamp, delivery_id=delivery_id,
+                                   signature_header=signature_header, now=now) == ''
+
+
+def webhook_signature_error(*, raw_body, timestamp, delivery_id, signature_header, now=None):
+    """Böş satr — imzo töğri; aks holda logga yoziladigan sabab (sirni oşkor qilmaydi)."""
     secret = getattr(settings, 'TEZCHECK_WEBHOOK_SECRET', '')
-    if not secret or not timestamp or not delivery_id or not signature_header:
-        return False
+    if not secret:
+        return 'TEZCHECK_WEBHOOK_SECRET sozlanmagan'
+    if not timestamp or not delivery_id or not signature_header:
+        return 'X-Checkout-Timestamp / X-Checkout-Delivery / X-Checkout-Signature headeri yöq'
     try:
         timestamp_int = int(timestamp)
     except (TypeError, ValueError):
-        return False
-    if abs((int(time.time()) if now is None else int(now)) - timestamp_int) > 300:
-        return False
+        return f'X-Checkout-Timestamp notöğri: {str(timestamp)[:40]!r}'
+    drift = (int(time.time()) if now is None else int(now)) - timestamp_int
+    if abs(drift) > 300:
+        return f'imzo vaqti 5 daqiqadan farq qiladi ({drift} s) — server soatini tekşiring'
     signed = str(timestamp_int).encode() + b'.' + delivery_id.encode() + b'.' + raw_body
     expected = 'v1=' + hmac.new(secret.encode('utf-8'), signed, hashlib.sha256).hexdigest()
     valid = False
@@ -139,4 +148,4 @@ def verify_webhook_signature(*, raw_body, timestamp, delivery_id, signature_head
         candidate = candidate.strip()
         if candidate.startswith('v1=') and hmac.compare_digest(expected, candidate):
             valid = True
-    return valid
+    return '' if valid else 'HMAC mos emas — TEZCHECK_WEBHOOK_SECRET kassadagi sir bilan bir xil emas'

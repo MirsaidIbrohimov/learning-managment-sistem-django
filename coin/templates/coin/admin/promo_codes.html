@@ -19,6 +19,10 @@
 .apc-tag.adm { background: rgba(124, 58, 237, .12); color: #7c3aed; }
 .apc-users { font-size: .8rem; color: var(--bs-secondary-color); }
 .apc-table td, .apc-table th { vertical-align: middle; font-size: .88rem; }
+.apc-price { border-color: rgba(219, 39, 119, .35); background: linear-gradient(180deg, rgba(219, 39, 119, .05), transparent 140px), var(--bs-body-bg); }
+.apc-hint { font-size: .75rem; margin-top: 4px; color: var(--bs-secondary-color); }
+.apc-hint.ok { color: #059669; font-weight: 600; }
+.apc-hint.bad { color: #dc2626; font-weight: 600; }
 </style>
 {% endblock %}
 
@@ -29,6 +33,92 @@
     <div class="apc-stat"><div class="v">{{ stats.redemptions }}</div><div class="l">Işlatilgan marta</div></div>
     <div class="apc-stat"><div class="v">{{ stats.coins }}</div><div class="l">Berilgan coin</div></div>
 </div>
+
+<div class="apc-card apc-price">
+    <h2><i class="bi bi-cash-coin"></i> Coin narx promo kodi — tanga paketini maxsus narxda sotiş</h2>
+    <p class="small text-muted mb-3">Hamma uçun (Premium va oddiy). Yaratilişi bilan guruhga, barça foydalanuvçilarga <b>Telegram, email va sayt xabari</b> ketadi va marketda banner çiqadi. Kodni faollaştirgan öquvçi paketni <b>bir marta</b> şu narxda sotib oladi (onlayn yoki balansdan).</p>
+    <form method="post" class="row g-2 align-items-end" id="apcPriceForm">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="price_create">
+        <div class="col-md-3"><label class="form-label small fw-semibold">Promo kod</label><input type="text" name="code" class="form-control" maxlength="24" required placeholder="COIN10K"></div>
+        <div class="col-md-5"><label class="form-label small fw-semibold">Nomi</label><input type="text" name="title" class="form-control" maxlength="120" required placeholder="Hafta oxiri aksiyasi"></div>
+        <div class="col-md-2"><label class="form-label small fw-semibold">Necha kun</label><input type="number" name="days" class="form-control" min="1" max="365" value="3" required></div>
+        <div class="col-md-2"><label class="form-label small fw-semibold">Xaridlar çegarasi</label><input type="number" name="max_uses" class="form-control" min="0" value="0" title="0 = çeklanmagan"></div>
+        <div class="col-md-4"><label class="form-label small fw-semibold">Tanga miqdori (paket)</label><input type="number" name="coins" class="form-control" min="1000" step="1" value="10000" required data-apc="coins"></div>
+        <div class="col-md-4"><label class="form-label small fw-semibold"><i class="bi bi-gem text-warning"></i> Premium narxi (söm)</label><input type="number" name="price_premium" class="form-control" min="1" required placeholder="7000" data-apc="premium"><div class="apc-hint" data-apc-out="premium"></div></div>
+        <div class="col-md-4"><label class="form-label small fw-semibold"><i class="bi bi-person"></i> Oddiy narx (söm)</label><input type="number" name="price_regular" class="form-control" min="1" required placeholder="17000" data-apc="regular"><div class="apc-hint" data-apc-out="regular"></div></div>
+        <div class="col-12"><button type="submit" class="btn btn-primary"><i class="bi bi-megaphone"></i> Yaratiş va hammaga e'lon qiliş</button></div>
+    </form>
+
+    {% if price_promos %}
+    <div class="table-responsive mt-3">
+        <table class="table apc-table">
+            <thead><tr><th>Kod</th><th>Paket</th><th>Premium / Oddiy</th><th>Muddat</th><th>Faollaştirgan</th><th>Xarid qilgan</th><th></th></tr></thead>
+            <tbody>
+            {% for p in price_promos %}
+            <tr>
+                <td><span class="apc-code">{{ p.code }}</span><br><span class="apc-users">{{ p.title }}</span><br>
+                    {% if p.is_usable %}<span class="apc-tag on">Faol</span>{% elif not p.is_active %}<span class="apc-tag off">Öçirilgan</span>{% else %}<span class="apc-tag">Tugagan</span>{% endif %}</td>
+                <td>{{ p.coins }} tanga</td>
+                <td><b>{{ p.price_premium }}</b> <del class="apc-users">{{ p.premium_gross }}</del><br><b>{{ p.price_regular }}</b> <del class="apc-users">{{ p.gross }}</del></td>
+                <td>{{ p.valid_until|date:"d.m.Y H:i" }}</td>
+                <td>{{ p.activated }}</td>
+                <td>
+                    {% if p.buyers %}
+                    <div class="dropdown pud">
+                        <button type="button" class="pud-btn" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false">
+                            <span class="pud-count">{{ p.bought }}{% if p.max_uses %}/{{ p.max_uses }}{% endif %} xarid · {{ p.revenue|default:0 }} söm</span><i class="bi bi-chevron-down pud-caret"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end pud-menu">
+                            <div class="pud-head">Xarid qilganlar · {{ p.bought }}</div>
+                            {% for a in p.buyers %}
+                            <div class="pud-row">
+                                <span class="pud-av lg">{% if a.user.photo %}<img src="{{ a.user.photo.url }}" alt="">{% else %}{{ a.user.get_initials|default:a.user.username|slice:":1"|upper }}{% endif %}</span>
+                                <span class="pud-who"><b>{{ a.user.full_name|default:a.user.username }}</b><small>@{{ a.user.username }} · {{ a.used_at|date:"d.m.Y H:i" }}</small></span>
+                                <span class="pud-coins">{{ a.paid_som }} söm</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}<span class="pud-none">—</span>{% endif %}
+                </td>
+                <td>
+                    <form method="post">{% csrf_token %}
+                        <input type="hidden" name="action" value="price_toggle"><input type="hidden" name="promo_id" value="{{ p.pk }}">
+                        <button class="btn btn-sm {% if p.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">{% if p.is_active %}Öçiriş{% else %}Yoqiş{% endif %}</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{{ coin_rate|json_script:'apc-rate' }}
+<script>
+(function () {
+    // Asl narx va tejamni yoziş paytida körsatamiz (server ham xuddi şunday tekşiradi).
+    const rate = JSON.parse(document.getElementById('apc-rate').textContent);
+    const form = document.getElementById('apcPriceForm');
+    const fmt = n => Math.round(n).toLocaleString('ru-RU').replace(/,/g, ' ');
+    function paint() {
+        const coins = Number(form.querySelector('[data-apc=coins]').value) || 0;
+        const gross = coins * rate, premGross = Math.ceil(gross / 2);
+        [['premium', premGross], ['regular', gross]].forEach(([kind, base]) => {
+            const price = Number(form.querySelector('[data-apc=' + kind + ']').value) || 0;
+            const out = form.querySelector('[data-apc-out=' + kind + ']');
+            if (!price) { out.textContent = 'Asl narx: ' + fmt(base) + ' söm'; out.className = 'apc-hint'; return; }
+            const ok = price < base;
+            out.textContent = ok ? 'Asl narx ' + fmt(base) + ' → tejam ' + fmt(base - price) + ' söm (' + Math.round((base - price) * 100 / base) + '%)'
+                                 : 'Asl narxdan (' + fmt(base) + ' söm) arzon bölişi kerak';
+            out.className = 'apc-hint ' + (ok ? 'ok' : 'bad');
+        });
+    }
+    form.addEventListener('input', paint);
+    paint();
+})();
+</script>
 
 <div class="apc-card">
     <h2><i class="bi bi-plus-circle"></i> Yangi promo kod yaratiş</h2>

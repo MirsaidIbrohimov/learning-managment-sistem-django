@@ -16,8 +16,10 @@
     let payable = gross, selected = null;
     for (const discount of pricing.discounts) {
       if (coins < discount.min_coins) continue;
+      // Promo kod paketi — faqat aniq miqdor uçun (server: coin/topup_pricing.py quote).
+      if (discount.discount_type === 'promo' && coins !== discount.min_coins) continue;
       // Server bilan bir xil butun sonli hisob (coin/topup_pricing.py: quote).
-      const price = Math.max(1, discount.discount_type === 'percentage'
+      const price = Math.max(1, discount.discount_type === 'promo' ? discount.value : discount.discount_type === 'percentage'
         ? Math.ceil(gross * (100 - discount.value) / 100)
         : discount.discount_type === 'package'
           ? Math.ceil(coins * discount.value / discount.min_coins) : gross - discount.value);
@@ -88,7 +90,7 @@
   radios.forEach(r => r.addEventListener('change', () => { custom.value = ''; update(); }));
   custom.addEventListener('input', () => { radios.forEach(r => r.checked = false); update(); });
   custom.addEventListener('blur', () => { if (Number.isSafeInteger(amount) && amount > 0) custom.value = fmt(amount); });
-  const icons = {celebration:'🎁', navruz:'🌷', newyear:'🎄', eid:'☪', simple:'✦', premium:'💎'};
+  const icons = {celebration:'🎁', navruz:'🌷', newyear:'🎄', eid:'☪', simple:'✦', premium:'💎', promo:'🎟'};
   // Muddatli aksiya: qolgan vaqt; tugaganda narx serverdan qayta olinadi.
   const pad = n => String(n).padStart(2, '0');
   let expiredRefresh = false;
@@ -112,13 +114,13 @@
       const art = document.createElement('div'); art.className = 'cp-art'; art.setAttribute('aria-hidden','true');
       const icon = document.createElement('span'); icon.textContent = icons[discount.theme] || icons.celebration; art.append(icon);
       const copy = document.createElement('div'); copy.className = 'cp-copy';
-      const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'premium' ? 'PREMIUM TAKLIF' : discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
+      const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'premium' ? 'PREMIUM TAKLIF' : discount.theme === 'promo' ? 'PROMO KOD · ' + discount.code : discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
       const name = document.createElement('h3'); name.textContent = discount.name;
-      const threshold = document.createElement('p'); threshold.textContent = discount.theme === 'premium' ? 'Siz uçun barça tanga xaridlari yarim narxda' : discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' söm' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
+      const threshold = document.createElement('p'); threshold.textContent = discount.theme === 'premium' ? 'Siz uçun barça tanga xaridlari yarim narxda' : (discount.discount_type === 'package' || discount.discount_type === 'promo') ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' söm' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
       copy.append(label, name, threshold);
       if (discount.ends_at) { const left = document.createElement('small'); left.className = 'cp-ends'; left.dataset.endsAt = discount.ends_at; copy.append(left); }
       const value = document.createElement('div'); value.className = 'cp-value';
-      const badge = document.createElement('strong'); badge.textContent = discount.discount_type === 'package' ? fmt(discount.value) + ' söm' : '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' söm'); value.append(badge);
+      const badge = document.createElement('strong'); badge.textContent = (discount.discount_type === 'package' || discount.discount_type === 'promo') ? fmt(discount.value) + ' söm' : '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' söm'); value.append(badge);
       card.append(art, copy, value); offers.append(card);
     }
     document.getElementById('ct-offers-section').hidden = !pricing.discounts.length;

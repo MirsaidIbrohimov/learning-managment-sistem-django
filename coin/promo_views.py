@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
@@ -41,12 +42,25 @@ def promo_codes_page(request):
 def promo_redeem(request):
     if request.method != 'POST':
         return redirect('coin:promo_codes')
+    from .models import CoinPricePromo
+    if CoinPricePromo.objects.filter(code=promo_rules.normalize(request.POST.get('code'))).exists():
+        return coin_promo_activate(request)  # coin narx kodi kiritilgan — marketdagi paketga yönaltiramiz
     redemption, msg = promo_rules.redeem(request.user, request.POST.get('code'))
     if redemption is None:
         messages.error(request, msg)
         return _back(request)
     messages.success(request, msg)
     return redirect('coin:promo_receipt', pk=redemption.pk)
+
+
+@login_required
+def coin_promo_activate(request):
+    """💸 Coin narx promo kodini faollaştiriş — paket marketda maxsus narxda paydo böladi."""
+    from .coin_promo import activate
+    if request.method == 'POST':
+        activation, msg = activate(request.user, request.POST.get('code'))
+        (messages.success if activation else messages.error)(request, msg)
+    return redirect(reverse('coin:market_list') + '#coin-topup')
 
 
 @login_required
@@ -81,6 +95,26 @@ def admin_promo_codes(request):
             (messages.success if promo else messages.error)(request, msg)
         elif action == 'toggle':
             promo = get_object_or_404(PromoCode, pk=request.POST.get('promo_id') or 0)
+            promo.is_active = not promo.is_active
+            promo.save(update_fields=['is_active'])
+            messages.success(request, f"{promo.code} {'yoqildi' if promo.is_active else 'öçirildi'}.")
+        elif action == 'price_create':
+            from .coin_promo import create_promo
+
+            def num(name):
+                try:
+                    return int((request.POST.get(name) or '').replace(' ', ''))
+                except ValueError:
+                    return -1
+            promo, msg = create_promo(
+                request.user, code=request.POST.get('code', ''), title=request.POST.get('title', ''),
+                coins=num('coins'), price_regular=num('price_regular'), price_premium=num('price_premium'),
+                days=num('days'), max_uses=max(0, num('max_uses')),
+            )
+            (messages.success if promo else messages.error)(request, msg)
+        elif action == 'price_toggle':
+            from .models import CoinPricePromo
+            promo = get_object_or_404(CoinPricePromo, pk=request.POST.get('promo_id') or 0)
             promo.is_active = not promo.is_active
             promo.save(update_fields=['is_active'])
             messages.success(request, f"{promo.code} {'yoqildi' if promo.is_active else 'öçirildi'}.")
@@ -123,4 +157,24 @@ def admin_promo_codes(request):
         'query_string': params.urlencode(),
         'defaults': {'uses': promo_rules.CODE_USES, 'days': promo_rules.CODE_DAYS,
                      'min': promo_rules.COINS_RANGE[0], 'max': promo_rules.COINS_RANGE[1]},
+        'price_promos': _price_promo_rows(),
+        'coin_rate': _coin_rate(),
     })
+
+
+def _coin_rate():
+    from accounts.models import CoinPricingSettings
+    return CoinPricingSettings.current().som_per_coin
+
+
+def _price_promo_rows():
+    from .models import CoinPricePromo
+    rows = list(CoinPricePromo.objects.select_related('created_by').annotate(
+        activated=Count('activations'), bought=Count('activations', filter=Q(activations__used_at__isnull=False)),
+        revenue=Sum('activations__paid_som'))[:50])
+    rate = _coin_rate()
+    for p in rows:
+        p.gross = p.coins * rate
+        p.premium_gross = (p.gross + 1) // 2
+        p.buyers = list(p.activations.filter(used_at__isnull=False).select_related('user').order_by('-used_at'))
+    return rows

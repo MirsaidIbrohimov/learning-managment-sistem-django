@@ -81,6 +81,24 @@ def _message_context(notification):
         details = [('Kurs / Курс', certificate.profession.name), ('Sertifikat raqami / Номер сертификата', certificate.certificate_id)]
         labels = ('Sertifikatni yuklab oliş', 'Скачать сертификат')
         url_name, args = 'download_certificate', [certificate.pk]
+    elif notification.kind == 'coin_promo':
+        from coin.models import CoinPricePromo
+        promo = CoinPricePromo.objects.filter(pk=data.get('promo_id')).first()
+        if not promo or not promo.is_usable:
+            return None  # muddati tugagan / öçirilgan aksiya haqida xat yubormaymiz
+        fmt = lambda n: f'{int(n):,}'.replace(',', ' ')  # noqa: E731
+        until = timezone.localtime(promo.valid_until).strftime('%d.%m.%Y %H:%M')
+        subject = f'Promo kod {promo.code} / Промокод {promo.code}'
+        headings = (f'{promo.title}: {fmt(promo.coins)} tanga maxsus narxda!',
+                    f'{promo.title}: {fmt(promo.coins)} монет по специальной цене!')
+        paragraphs = (f'Marketdagi «Promo kod» bölimiga {promo.code} kodini kiriting va tanga paketini arzon narxda oling. Taklif {until} gaça amal qiladi.',
+                      f'Введите код {promo.code} в разделе «Промокод» на маркете и купите пакет монет дешевле. Предложение действует до {until}.')
+        details = [('Promo kod / Промокод', promo.code),
+                   ('Tanga / Монеты', fmt(promo.coins)),
+                   ('Premium narxi / Цена Premium', fmt(promo.price_premium) + ' söm / сум'),
+                   ('Oddiy narx / Обычная цена', fmt(promo.price_regular) + ' söm / сум')]
+        labels = ('Marketga ötiş', 'Перейти в маркет')
+        url_name = 'coin:market_list'
     else:
         return None
     sections = [{'language': language, 'heading': headings[index], 'greeting': greeting + name + '!', 'paragraph': paragraphs[index], 'button': labels[index]}

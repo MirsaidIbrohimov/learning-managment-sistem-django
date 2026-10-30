@@ -1,0 +1,72 @@
+{% comment %}
+💸 Coin narx promo kodlari: faol aksiyalar banneri + kod kiritiş.
+`coin_price_promos` — coin.payments.price_promo_cards(user).
+{% endcomment %}
+<style>
+.cpp { margin: 14px 0 18px; }
+.cpp-card {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 18px 20px; margin-bottom: 12px; color: #fff;
+    background: radial-gradient(circle at 90% 10%, rgba(255,255,255,.2), transparent 40%), linear-gradient(120deg, #7c3aed, #db2777 60%, #f59e0b);
+    box-shadow: 0 12px 30px -12px rgba(124, 58, 237, .55);
+}
+.cpp-card::after { content: "🎟"; position: absolute; right: 14px; bottom: -18px; font-size: 5rem; opacity: .16; transform: rotate(-12deg); pointer-events: none; }
+.cpp-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.cpp-label { font-size: .65rem; font-weight: 800; letter-spacing: .12em; opacity: .85; }
+.cpp-title { font-size: 1.15rem; font-weight: 800; margin: 2px 0 0; }
+.cpp-code { font-family: ui-monospace, 'JetBrains Mono', monospace; font-weight: 800; letter-spacing: .08em; padding: 6px 12px; border-radius: 12px; border: 2px dashed rgba(255,255,255,.75); background: rgba(255,255,255,.12); }
+.cpp-prices { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+.cpp-price { border-radius: 14px; padding: 10px 12px; background: rgba(255,255,255,.14); }
+.cpp-price.mine { background: #fff; color: #1e1b4b; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.cpp-price small { display: block; font-size: .72rem; font-weight: 700; opacity: .85; }
+.cpp-price b { font-size: 1.25rem; font-weight: 900; }
+.cpp-price del { font-size: .78rem; opacity: .7; margin-left: 4px; }
+.cpp-price .you { font-size: .62rem; font-weight: 800; padding: 2px 7px; border-radius: 999px; background: #db2777; color: #fff; margin-left: 4px; vertical-align: middle; }
+.cpp-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 12px; font-size: .8rem; }
+.cpp-state { font-weight: 800; padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.2); }
+.cpp-btn { border: 0; border-radius: 12px; padding: 8px 16px; font-weight: 800; background: #fff; color: #7c3aed; }
+.cpp-form { display: flex; gap: 8px; align-items: center; padding: 12px; border-radius: 16px; border: 1px dashed var(--bs-border-color); background: var(--bs-body-bg); }
+.cpp-form label { font-weight: 800; font-size: .85rem; white-space: nowrap; }
+.cpp-form input { flex: 1; min-width: 0; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: .08em; }
+.cpp-form button { border: 0; border-radius: 10px; padding: 8px 16px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #7c3aed, #db2777); white-space: nowrap; }
+@media (max-width: 540px) { .cpp-form { flex-wrap: wrap; } .cpp-form label { width: 100%; } }
+</style>
+<div class="cpp" id="coin-promo">
+    {% for c in coin_price_promos %}
+    <article class="cpp-card">
+        <div class="cpp-top">
+            <div>
+                <div class="cpp-label">PROMO KOD AKSIYASI</div>
+                <h3 class="cpp-title">{{ c.promo.title }} · <span data-ct-number="{{ c.promo.coins }}">{{ c.promo.coins }}</span> tanga</h3>
+            </div>
+            <span class="cpp-code">{{ c.promo.code }}</span>
+        </div>
+        <div class="cpp-prices">
+            <div class="cpp-price {% if request.user.is_premium %}mine{% endif %}">
+                <small><i class="bi bi-gem"></i> Premium a'zolar{% if request.user.is_premium %} <span class="you">SIZ</span>{% endif %}</small>
+                <b><span data-ct-number="{{ c.promo.price_premium }}">{{ c.promo.price_premium }}</span> söm</b><del><span data-ct-number="{{ c.premium_gross }}">{{ c.premium_gross }}</span></del>
+            </div>
+            <div class="cpp-price {% if not request.user.is_premium %}mine{% endif %}">
+                <small><i class="bi bi-person"></i> Oddiy foydalanuvçilar{% if not request.user.is_premium %} <span class="you">SIZ</span>{% endif %}</small>
+                <b><span data-ct-number="{{ c.promo.price_regular }}">{{ c.promo.price_regular }}</span> söm</b><del><span data-ct-number="{{ c.gross }}">{{ c.gross }}</span></del>
+            </div>
+        </div>
+        <div class="cpp-foot">
+            <span><i class="bi bi-hourglass-split"></i> {{ c.promo.valid_until|date:"d.m.Y H:i" }} gaça</span>
+            {% if c.used %}<span class="cpp-state">✓ Siz bu promo bilan xarid qilgansiz</span>
+            {% elif c.activated %}<span class="cpp-state">✓ Faol — pastdagi <span data-ct-number="{{ c.promo.coins }}">{{ c.promo.coins }}</span> tanga paketini tanlang</span>
+            {% else %}
+            <form method="post" action="{% url 'coin:coin_promo_activate' %}" style="margin:0">
+                {% csrf_token %}<input type="hidden" name="code" value="{{ c.promo.code }}">
+                <button type="submit" class="cpp-btn"><i class="bi bi-lightning-charge-fill"></i> Faollaştiriş</button>
+            </form>
+            {% endif %}
+        </div>
+    </article>
+    {% endfor %}
+    <form method="post" action="{% url 'coin:coin_promo_activate' %}" class="cpp-form" autocomplete="off">
+        {% csrf_token %}
+        <label for="cppCode"><i class="bi bi-ticket-perforated"></i> Promo kod</label>
+        <input type="text" id="cppCode" name="code" class="form-control" maxlength="24" placeholder="Kodni kiriting" required>
+        <button type="submit">Faollaştiriş</button>
+    </form>
+</div>

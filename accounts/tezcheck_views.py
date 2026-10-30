@@ -14,13 +14,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 from .models import (
     AssistantActionLog, CustomUser, Message, PaymentRecord, PaymentStatus, StudentBalance,
     TezCheckPaymentOrder, TezCheckWebhookEvent,
 )
-from .tezcheck import TezCheckError, TezCheckBillUnavailable, verify_webhook_signature
+from .tezcheck import TezCheckError, TezCheckBillUnavailable, webhook_signature_error
 from .payment_gateways import create_bill, fetch_bill, gateway_ready, selected_method
 from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 
@@ -582,19 +582,22 @@ def admin_sync_tezcheck_payment(request, pk):
 
 
 @csrf_exempt
-@require_POST
+@require_http_methods(['GET', 'HEAD', 'POST'])
 def tezcheck_webhook(request):
     """Verify signed Tezcheck event, deduplicate on event body id, then apply."""
+    if request.method != 'POST':
+        # Kabinet/brauzer URL'ni GET bilan tekşirsa 405 "webhook xato" deb körinmasin.
+        return HttpResponse('Tezcheck webhook OK', content_type='text/plain')
     raw_body = request.body
     delivery_id = request.headers.get('X-Checkout-Delivery', '')
-    valid = verify_webhook_signature(
+    signature_error = webhook_signature_error(
         raw_body=raw_body,
         timestamp=request.headers.get('X-Checkout-Timestamp', ''),
         delivery_id=delivery_id,
         signature_header=request.headers.get('X-Checkout-Signature', ''),
     )
-    if not valid:
-        logger.warning('Tezcheck webhook imzosi notöğri yoki muddati ötgan.')
+    if signature_error:
+        logger.warning('Tezcheck webhook imzosi rad etildi: %s', signature_error)
         return HttpResponse(status=401)
     try:
         payload = json.loads(raw_body)
@@ -693,14 +696,18 @@ INPAY_PAYMENT_EVENTS = ('payment.created', 'payment.succeeded', 'payment.failed'
 
 
 @csrf_exempt
-@require_POST
+@require_http_methods(['GET', 'HEAD', 'POST'])
 def inpay_webhook(request):
     """Verify a signed inPAY event, deduplicate on its id, then apply it once."""
-    from .inpay import normalize_payment, verify_webhook_signature as verify_inpay_signature
+    if request.method != 'POST':
+        # Kabinet/brauzer URL'ni GET bilan tekşirsa 405 "webhook xato" deb körinmasin.
+        return HttpResponse('inPAY webhook OK', content_type='text/plain')
+    from .inpay import normalize_payment, webhook_signature_error
     raw_body = request.body
-    if not verify_inpay_signature(raw_body=raw_body,
-                                  signature_header=request.headers.get('X-Inpay-Signature', '')):
-        logger.warning('inPAY webhook imzosi notöğri yoki muddati ötgan.')
+    signature_error = webhook_signature_error(raw_body=raw_body,
+                                              signature_header=request.headers.get('X-Inpay-Signature', ''))
+    if signature_error:
+        logger.warning('inPAY webhook imzosi rad etildi: %s', signature_error)
         return HttpResponse(status=401)
     try:
         payload = json.loads(raw_body)

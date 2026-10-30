@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 
-from accounts.models import CustomUser, TezCheckPaymentOrder as Order
+from accounts.models import CoinPricingSettings, CustomUser, TezCheckPaymentOrder as Order
 from accounts.tezcheck import TezCheckError, TezCheckBillUnavailable
 from accounts.payment_gateways import any_gateway_ready, create_bill, fetch_bill, selected_method
 from accounts.checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
@@ -52,7 +52,26 @@ def market_context(user):
         'coin_checkout_ready': checkout_ready(),
         'coin_checkout_token': str(uuid.uuid4()),
         'coin_orders': Order.objects.filter(student=user, purpose='coins')[:10],
+        'coin_price_promos': price_promo_cards(user),
     }
+
+
+def price_promo_cards(user):
+    """Marketdagi promo kod bannerlari: hamma narx + foydalanuvçining öz narxi va holati."""
+    from .coin_promo import live_promos
+    from .models import CoinPricePromoActivation
+    promos = live_promos()
+    state = {a.promo_id: a for a in CoinPricePromoActivation.objects.filter(user=user, promo__in=promos)}
+    rate = CoinPricingSettings.current().som_per_coin
+    cards = []
+    for p in promos:
+        activation = state.get(p.pk)
+        gross = p.coins * rate
+        cards.append({
+            'promo': p, 'my_price': p.price_for(user), 'gross': gross, 'premium_gross': (gross + 1) // 2,
+            'activated': bool(activation and not activation.used_at), 'used': bool(activation and activation.used_at),
+        })
+    return cards
 
 
 @login_required
@@ -102,6 +121,15 @@ def apply_coin_payment(order, data):
         locked.save(update_fields=['status', 'last_error', 'updated_at'])
         order.refresh_from_db()
         return
+    # 💸 Promo narxdagi paket: ikki tabda ikkita checkout ochilib ikkalasi tölansa,
+    # ikkinçisi avtomatik berilmaydi — admin tekşiruviga tuşadi (boşqa anomaliyalar kabi).
+    from .coin_promo import still_available
+    if not still_available(locked.student_id, (locked.coin_pricing_snapshot or {}).get('discount')):
+        locked.status = 'review'
+        locked.last_error = 'Promo kod narxidagi paket bu öquvçiga allaqaçon sotilgan (takroriy promo xarid).'
+        locked.save(update_fields=['status', 'last_error', 'updated_at'])
+        order.refresh_from_db()
+        return
     # Unique key also prevents one provider transaction funding two coin orders.
     locked.coin_payment_key = payment_id
     locked.save(update_fields=['coin_payment_key'])
@@ -122,6 +150,9 @@ def apply_coin_payment(order, data):
     locked.last_error = ''
     locked.save(update_fields=['coin_transaction', 'status', 'payment_id', 'environment',
                                'paid_at', 'last_error', 'updated_at'])
+    # 💸 Promo kod narxida olingan bölsa — faollaştiriş işlatildi (har kim bir marta).
+    from .coin_promo import consume
+    consume(locked.student_id, (locked.coin_pricing_snapshot or {}).get('discount'), locked.amount_som)
     from .promo import reward_payment
     reward_payment(CustomUser.objects.get(pk=locked.student_id), "Tanga xaridi")
     order.refresh_from_db()
@@ -174,9 +205,14 @@ def buy_coins_with_balance(request):
             raise signing.BadSignature
     except signing.BadSignature:
         return JsonResponse({'error': 'Coin narxi yoki çegirma özgardi. Sahifani yangilang.'}, status=409)
-    payable = quote(amount, pricing)['payable']
+    purchase = quote(amount, pricing)
+    payable = purchase['payable']
     # Bir öquvçining parallel xaridlarini ketma-ket bajariş.
     CustomUser.objects.select_for_update().get(pk=request.user.pk)
+    # Narx blokdan oldin hisoblandi: parallel sörov promo paketni allaqaçon olgan bölsa — qayta narxlaymiz.
+    from .coin_promo import still_available
+    if not still_available(request.user.pk, purchase['discount']):
+        return JsonResponse({'error': 'Promo kod bilan xarid allaqaçon qilingan. Sahifani yangilang.'}, status=409)
     try:
         left = spend_balance(request.user, payable, f'Tanga xaridi: {amount} tanga')
     except BalanceError as exc:
@@ -185,6 +221,8 @@ def buy_coins_with_balance(request):
     CoinTransaction.objects.create(user_id=request.user.pk, amount=amount, action='add',
                                    reason=f'Balansdan tanga xaridi ({payable} söm)')
     coins = CustomUser.objects.values_list('coins', flat=True).get(pk=request.user.pk)
+    from .coin_promo import consume
+    consume(request.user.pk, purchase['discount'], payable)
     from .promo import reward_payment
     reward_payment(request.user, "Tanga xaridi")
     return JsonResponse({'ok': True, 'coins': amount, 'balance': coins, 'money_balance': left, 'paid': payable})
