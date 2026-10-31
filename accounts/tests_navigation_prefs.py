@@ -103,18 +103,19 @@ class NavigationPreferencesTests(TestCase):
     # ── Premium ──
     def test_free_user_cannot_change_premium_settings(self):
         user = self.login()
-        for data in ({'layout': 'hybrid'}, {'sidebar': 'collapsed'}, {'language': 'ru'}):
+        for data in ({'layout': 'hybrid'}, {'sidebar': 'collapsed'}, {'language': 'ru'},
+                     {'motion': False}, {'autosave': False}):
             with self.subTest(data=data):
                 self.assertEqual(self.post(data).status_code, 403)
         self.assertFalse(NavigationPreference.objects.filter(user=user).exists())
 
     def test_free_user_keeps_free_settings(self):
         user = self.login()
-        response = self.post({'theme': 'dark', 'motion': False})
+        # Header'dagi mavzu tugmasi Premiumsiz ham saqlanadi
+        response = self.post({'theme': 'dark'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['prefs']['layout'], 'top')
-        pref = NavigationPreference.objects.get(user=user)
-        self.assertEqual((pref.theme, pref.motion), ('dark', False))
+        self.assertEqual(NavigationPreference.objects.get(user=user).theme, 'dark')
 
     def test_free_user_save_all_with_defaults_is_accepted(self):
         # Avtomatik saqlaş öçiq bölsa "Saqlaş" tugmasi barça qiymatni yuboradi

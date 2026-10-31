@@ -417,6 +417,10 @@
                         <td>{{ attempt.found_count }} söz</td>
                         <td>—</td>
                         <td class="score-cell">{{ attempt.total_score }}</td>
+                        {% elif attempt.result_type == 'cipher' %}
+                        <td>{% if attempt.solved %}🔓 Oçildi{% else %}🔒 Oçilmadi{% endif %}</td>
+                        <td>{{ attempt.hints_used }} ishora</td>
+                        <td class="score-cell">{{ attempt.score|floatformat:0 }}{% if attempt.coins_earned %} <small style="color:#16a34a">+{{ attempt.coins_earned }}₵</small>{% endif %}</td>
                         {% else %}
                         <td>{{ attempt.wpm }} WPM</td>
                         <td>{{ attempt.accuracy }}%</td>
@@ -456,6 +460,19 @@
                 </div>
                 <div class="stat-item">
                     <div class="val" style="color: var(--g-primary);">{{ attempt.total_score }}</div>
+                    <div class="lbl">Ball</div>
+                </div>
+                {% elif attempt.result_type == 'cipher' %}
+                <div class="stat-item">
+                    <div class="val">{% if attempt.solved %}🔓{% else %}🔒{% endif %}</div>
+                    <div class="lbl">{% if attempt.solved %}Oçildi{% else %}Oçilmadi{% endif %}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val">{{ attempt.hints_used }}</div>
+                    <div class="lbl">Ishora</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" style="color: var(--g-primary);">{{ attempt.score|floatformat:0 }}</div>
                     <div class="lbl">Ball</div>
                 </div>
                 {% else %}

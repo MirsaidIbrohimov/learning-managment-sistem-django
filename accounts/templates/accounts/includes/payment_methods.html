@@ -5,7 +5,7 @@
   <div class="pmp-list">
     {% for m in payment_methods %}
     <label class="pmp-item" title="{{ m.label }}">
-      <input type="radio" name="payment_method" value="{{ m.code }}" required>
+      <input type="radio" name="payment_method" value="{{ m.code }}"{% if forloop.first %} checked{% endif %} required>
       <span class="pmp-face">
         {% if m.logo %}<img src="{% static 'img/payments/'|add:m.logo %}" alt="" class="pmp-logo">{% else %}<i class="bi {{ m.icon }}" aria-hidden="true"></i>{% endif %}
         <span class="pmp-label">{{ m.label }}</span>

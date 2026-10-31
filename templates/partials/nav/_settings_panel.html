@@ -51,8 +51,8 @@
       <p class="ns-hint"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Tanlov darhol akkauntga saqlanadi. Avtomatik — hozirgi faslga qarab.</span></p>
     </fieldset>
 
-    <fieldset class="ns-group">
-      <legend>Mavzu</legend>
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
+      <legend>Mavzu {% include 'partials/nav/_premium_lock.html' %}</legend>
       <div class="ns-seg ns-seg-3">
         <label><input type="radio" name="nsTheme" value="light"><span><i class="bi bi-sun" aria-hidden="true"></i>Yorug‘</span></label>
         <label><input type="radio" name="nsTheme" value="dark"><span><i class="bi bi-moon-stars" aria-hidden="true"></i>Qoronği</span></label>
@@ -71,7 +71,8 @@
       <p class="ns-hint"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Sayt matnlari va qöllanmalar özgaradi. Dars, video va foydalanuvçi yozgan matnlar özgarmaydi.</span></p>
     </fieldset>
 
-    <div class="ns-group">
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
+      {% if not nav_prefs.can_customize %}<legend>{% include 'partials/nav/_premium_lock.html' %}</legend>{% endif %}
       <label class="ns-sw">
         <span class="ns-sw-tx"><b>Silliq animatsiyalar</b><small>Navigatsiya ötişlari va hover effektlari</small></span>
         <input type="checkbox" id="nsMotion" role="switch"><span class="ns-sw-ui" aria-hidden="true"></span>
@@ -80,13 +81,13 @@
         <span class="ns-sw-tx"><b>Avtomatik saqlaş</b><small>Har bir özgariş darhol akkauntga saqlanadi</small></span>
         <input type="checkbox" id="nsAutosave" role="switch"><span class="ns-sw-ui" aria-hidden="true"></span>
       </label>
-    </div>
+    </fieldset>
   </div>
 
   <div class="ns-foot">
     <span class="ns-state" id="nsState" role="status" aria-live="polite"></span>
     <div class="ns-btns">
-      <button type="button" class="ns-btn" id="nsReset"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Standart</button>
+      <button type="button" class="ns-btn" id="nsReset"{% if not nav_prefs.can_customize %} disabled{% endif %}><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Standart</button>
       <button type="button" class="ns-btn ns-pri" id="nsSave" hidden><i class="bi bi-check2" aria-hidden="true"></i> Saqlaş</button>
     </div>
   </div>

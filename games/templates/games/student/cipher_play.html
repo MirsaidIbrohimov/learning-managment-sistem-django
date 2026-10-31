@@ -1,0 +1,91 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ game.title }} | LMS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cipher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cx" id="cx">
+    {% csrf_token %}
+    <div class="cx-top">
+        <div>
+            <h1>🔐 {{ game.title }}</h1>
+            <div class="d-flex flex-wrap gap-2 mt-1">
+                {% if competition %}<span class="cx-tag cx-tag-gold"><i class="bi bi-trophy"></i> {{ competition.title }}</span>
+                {% else %}<span class="cx-tag"><i class="bi bi-joystick"></i> Maşq</span>{% endif %}
+                <span class="cx-tag">{{ puzzle.get_difficulty_display }}</span>
+                {% if is_premium %}<span class="cx-tag cx-tag-gold">💎 Premium</span>{% endif %}
+            </div>
+        </div>
+        <div class="cx-meters">
+            <div class="cx-meter" id="cxTimeBox"><b id="cxTime">--:--</b><span>Vaqt</span></div>
+            <div class="cx-meter"><b id="cxScore">0</b><span>Ball</span></div>
+            <div class="cx-meter"><b id="cxFilled">0/0</b><span>Belgi</span></div>
+        </div>
+    </div>
+    <div class="cx-bar" aria-hidden="true"><i id="cxBar"></i></div>
+
+    <div class="cx-card cx-info" id="cxInfo">
+        <i class="bi bi-incognito" aria-hidden="true"></i>
+        <div id="cxInfoText"></div>
+    </div>
+
+    <div class="cx-layout">
+        <div>
+            <section class="cx-card" style="padding:0" aria-label="Shifrlangan xabar">
+                <div class="cx-board" id="cxBoard"></div>
+            </section>
+            <section class="cx-card mt-3" style="padding:0" aria-label="Harflar">
+                <div class="cx-keys" id="cxKeys"></div>
+            </section>
+            <div class="cx-actions">
+                <button type="button" class="cx-btn cx-btn-pri" id="cxCheck"><i class="bi bi-unlock"></i> Tekşiriş</button>
+                <button type="button" class="cx-btn" id="cxClear"><i class="bi bi-eraser"></i> Tozalaş</button>
+                <button type="button" class="cx-btn cx-btn-ghost" id="cxGiveUp"><i class="bi bi-flag"></i> Taslim böliş</button>
+            </div>
+        </div>
+
+        <aside class="cx-side">
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-lightbulb"></i> Ishoralar</h2>
+                <div class="cx-hints">
+                    <button type="button" class="cx-btn cx-hint" data-hint="type" id="cxHintType"><span><i class="bi bi-question-diamond"></i> Shifr turi</span><small></small></button>
+                    <button type="button" class="cx-btn cx-hint" data-hint="frequent"><span><i class="bi bi-bar-chart-line"></i> Eng köp belgi</span><small></small></button>
+                    <button type="button" class="cx-btn cx-hint" data-hint="letter"><span><i class="bi bi-magic"></i> Bitta harf</span><small></small></button>
+                </div>
+                <ul class="cx-log" id="cxLog"></ul>
+            </section>
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-graph-up"></i> Belgilar çastotasi</h2>
+                <div class="cx-freq" id="cxFreq"></div>
+                <p class="cx-muted small mt-2 mb-0">Özbek tilida eng köp: <b>A, I, E, O, N, R</b>.</p>
+            </section>
+        </aside>
+    </div>
+
+    <div class="cx-msg" id="cxMsg" role="status" aria-live="polite"></div>
+
+    <div class="cx-over" id="cxOver" hidden>
+        <div class="cx-card cx-result" role="dialog" aria-modal="true" aria-labelledby="cxResTitle">
+            <div class="em" id="cxResEmoji"></div>
+            <h2 id="cxResTitle"></h2>
+            <p class="cx-muted mb-0" id="cxResSub"></p>
+            <div class="cx-answer" id="cxAnswer" hidden></div>
+            <div class="cx-res-stats">
+                <div><b id="cxResScore">0</b><span>Ball</span></div>
+                <div><b id="cxResTime">0s</b><span>Vaqt</span></div>
+                <div><b id="cxResHints">0</b><span>Ishora</span></div>
+            </div>
+            <div class="cx-res-actions" id="cxResActions"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ config|json_script:"cxConfig" }}
+<script src="{% static 'js/cipher.js' %}"></script>
+{% endblock %}

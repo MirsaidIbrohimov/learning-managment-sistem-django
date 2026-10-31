@@ -1,0 +1,108 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ game.title }} — bosh qotirma | LMS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cipher.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="cx">
+    <a href="{% url 'games:games_list' %}" class="cx-back"><i class="bi bi-arrow-left"></i> Öyinlar</a>
+
+    <section class="cx-hero">
+        <div class="cx-hero-code" aria-hidden="true">01001011 01001111
+.-.. --- -.-
+NRG BRC
+ŞZOLM WFMBL</div>
+        <span class="cx-tag" style="background:rgba(255,255,255,.14);color:#fff"><i class="bi bi-shield-lock"></i> Bosh qotirma</span>
+        <h1 class="mt-2">🔐 {{ game.title }}</h1>
+        <p>{{ game.description|default:"Shifrlangan xabarni oçing: har bir belgiga harf qöying va yaşirin matnni toping." }}</p>
+        <div class="cx-hero-actions">
+            <a href="{% url 'games:cipher_play' game.slug %}" class="cx-btn cx-btn-pri"><i class="bi bi-play-fill"></i> Maşqni boşlaş</a>
+            <a href="{% url 'games:my_results' %}?game={{ game.pk }}" class="cx-btn cx-btn-ghost"><i class="bi bi-bar-chart"></i> Natijalarim</a>
+        </div>
+    </section>
+
+    <div class="cx-stats">
+        <div class="cx-card cx-stat"><b>{{ solved_count }}/{{ total_puzzles }}</b><span>Oçilgan jumboqlar</span></div>
+        <div class="cx-card cx-stat"><b>{% if best_practice %}{{ best_practice.score|floatformat:0 }}{% else %}—{% endif %}</b><span>Eng yaxşi ball</span></div>
+        <div class="cx-card cx-stat"><b>{{ user_attempts|length }}</b><span>Oxirgi urinişlar</span></div>
+    </div>
+
+    <div class="cx-grid">
+        <div class="d-flex flex-column gap-3">
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-lightbulb"></i> Qanday öynaladi</h2>
+                <ol class="cx-rules">
+                    <li>Ekranda <b>shifrlangan xabar</b> çiqadi. Har bir belgi tagidagi katakka harf yozing — <b>bir xil belgilar birdan töladi</b>.</li>
+                    <li>Qiyin harflar (Ö, Ğ, Ş, Ç) uçun pastdagi <b>harf tugmalaridan</b> foydalaning.</li>
+                    <li>Hammasi töğri bölsa — <b>«Tekşiriş»</b>. Har bir notöğri tekşiruv −5 ball.</li>
+                    <li><b>Ishoralar</b>: shifr turi, eng köp uçraydigan belgi yoki bitta harf. Har biri ballni 20% kamaytiradi.</li>
+                    <li>Tez yeçsangiz — <b>vaqt bonusi</b>. Har bir jumboq birinçi marta yeçilganda <b>coin</b> beriladi.</li>
+                </ol>
+                {% if is_premium %}
+                <p class="mt-3 mb-0"><span class="cx-tag cx-tag-gold">💎 Premium</span> Har bir jumboqda {{ free_hints }} ta ishora bepul, coin mukofoti ×2.</p>
+                {% else %}
+                <p class="mt-3 mb-0 cx-muted small"><span class="cx-tag cx-tag-gold">💎 Premium</span> a'zolarga har jumboqda {{ free_hints }} ta bepul ishora va ×2 coin.</p>
+                {% endif %}
+                <div class="cx-ciphers">
+                    <span class="cx-tag">Sezar</span><span class="cx-tag">Atbaş</span><span class="cx-tag">Morze</span><span class="cx-tag">Ikkilik kod</span><span class="cx-tag">Almaştiriş</span>
+                </div>
+            </section>
+
+            {% if competitions %}
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-trophy"></i> Musobaqalar</h2>
+                {% for comp in competitions %}
+                <div class="cx-comp">
+                    <div>
+                        <h6>{{ comp.title }}</h6>
+                        <small class="cx-muted"><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}
+                            · Uriniş {{ comp.used_attempts }}/{{ comp.max_attempts }}</small>
+                        {% if comp.coin_1st %}<div class="mt-1"><span class="cx-tag cx-tag-gold">🥇 {{ comp.coin_1st }}</span>{% if comp.coin_2nd %} <span class="cx-tag">🥈 {{ comp.coin_2nd }}</span>{% endif %}{% if comp.coin_3rd %} <span class="cx-tag">🥉 {{ comp.coin_3rd }}</span>{% endif %}</div>{% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if comp.status == 'active' and comp.can_play %}
+                        <a href="{{ comp.play_url }}" class="cx-btn cx-btn-pri js-competition-start"><i class="bi bi-play-fill"></i> Boşlaş</a>
+                        {% elif comp.status == 'upcoming' %}
+                        <span class="cx-tag">Tez orada</span>
+                        {% elif comp.status == 'ended' %}
+                        <span class="cx-tag">Tugagan</span>
+                        {% endif %}
+                        <a href="{% url 'games:competition_leaderboard' comp.pk %}" class="cx-btn" aria-label="Reyting"><i class="bi bi-list-ol"></i></a>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+            {% endif %}
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-clock-history"></i> Mening urinişlarim</h2>
+                {% for a in user_attempts %}
+                <div class="cx-row">
+                    <span>{% if a.solved %}🔓{% else %}🔒{% endif %} {{ a.puzzle.get_cipher_type_display }} <small class="cx-muted">· {{ a.puzzle.get_difficulty_display }}{% if a.competition %} · 🏆{% endif %}</small></span>
+                    <b>{{ a.score|floatformat:0 }}</b>
+                </div>
+                {% empty %}
+                <p class="cx-empty mb-0">Hali urinişlar yöq — birinçi jumboqni oçing!</p>
+                {% endfor %}
+            </section>
+            <section class="cx-card">
+                <h2 class="cx-h"><i class="bi bi-people"></i> Sönggi öyinçilar</h2>
+                {% for a in all_attempts %}
+                <div class="cx-row{% if a.user == request.user %} me{% endif %}">
+                    <span>{{ a.user.full_name|default:a.user.username }}</span>
+                    <span>{% if a.solved %}🔓{% else %}🔒{% endif %} <b>{{ a.score|floatformat:0 }}</b></span>
+                </div>
+                {% empty %}
+                <p class="cx-empty mb-0">Hali heç kim öynamagan</p>
+                {% endfor %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{{ title_page }} | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+.cz-form{border:1px solid var(--bs-border-color);border-radius:18px}
+.cz-preview{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.95rem;letter-spacing:.05em;word-break:break-all;padding:14px 16px;border-radius:14px;background:var(--bs-tertiary-bg)}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="fw-bold mb-0">🔐 {{ title_page }}</h2>
+        <a href="{% url 'games:admin_cipher_puzzles' game.pk %}" class="btn btn-outline-secondary" style="border-radius:12px"><i class="bi bi-arrow-left"></i> Orqaga</a>
+    </div>
+
+    <div class="card cz-form">
+        <div class="card-body p-4">
+            {% if preview %}
+            <label class="form-label fw-bold">Öyinçi köradigan shifr</label>
+            <div class="cz-preview mb-4">{{ preview }}</div>
+            {% endif %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold" for="czPlain">Asl matn (javob) *</label>
+                        <input type="text" name="plaintext" id="czPlain" class="form-control" maxlength="200" required
+                               value="{{ puzzle.plaintext|default:'' }}" placeholder="Masalan: KOD YOZ">
+                        <div class="form-text">Harflar shifrlanadi, böşliq va tinish belgilari özgarmaydi. Sh/Ch/O'/G' avtomatik Ş/Ç/Ö/Ğ ga aylanadi.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" for="czType">Shifr turi</label>
+                        <select name="cipher_type" id="czType" class="form-select">
+                            {% for value, label in cipher_types %}
+                            <option value="{{ value }}" {% if puzzle.cipher_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6" id="czShiftWrap">
+                        <label class="form-label fw-bold" for="czShift">Sezar qadami (1–{{ max_shift }})</label>
+                        <input type="number" name="shift" id="czShift" class="form-control" min="1" max="{{ max_shift }}"
+                               value="{% if puzzle.cipher_type == 'caesar' %}{{ puzzle.key.shift|default:'' }}{% endif %}" placeholder="Böş — tasodifiy">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold" for="czDiff">Qiyinlik</label>
+                        <select name="difficulty" id="czDiff" class="form-select">
+                            {% for value, label in difficulties %}
+                            <option value="{{ value }}" {% if puzzle.difficulty == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Oson darajada shifr turi öyinçiga oldindan aytiladi.</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold" for="czUsage">Qayerda işlatiladi</label>
+                        <select name="usage" id="czUsage" class="form-select">
+                            {% for value, label in usages %}
+                            <option value="{{ value }}" {% if puzzle.usage == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold" for="czTime">Vaqt (s)</label>
+                        <input type="number" name="time_limit" id="czTime" class="form-control" min="30" max="1800" value="{{ puzzle.time_limit|default:180 }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold" for="czOrder">Tartib</label>
+                        <input type="number" name="order" id="czOrder" class="form-control" value="{{ puzzle.order|default:0 }}">
+                    </div>
+                    <div class="col-12 d-flex flex-wrap gap-4">
+                        <div class="form-check">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="czActive" {% if puzzle.is_active or not puzzle.pk %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="czActive">Faol</label>
+                        </div>
+                        {% if puzzle.pk %}
+                        <div class="form-check">
+                            <input type="checkbox" name="new_key" class="form-check-input" id="czNewKey">
+                            <label class="form-check-label" for="czNewKey">Yangi tasodifiy kalit yaratiş</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-4 px-4" style="border-radius:12px;font-weight:600"><i class="bi bi-check-lg"></i> Saqlaş</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+(function () {
+  var type = document.getElementById('czType'), wrap = document.getElementById('czShiftWrap');
+  function sync() { wrap.hidden = type.value !== 'caesar'; }
+  type.addEventListener('change', sync);
+  sync();
+})();
+</script>
+{% endblock %}

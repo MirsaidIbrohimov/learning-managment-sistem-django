@@ -139,8 +139,8 @@ class GatewayRoutingTests(TestCase):
         request._messages = FallbackStorage(request)
         return request
 
-    def test_inpay_buttons_open_inpay_and_click_payme_open_tezcheck(self):
-        for method, expected in (('alif', 'inpay'), ('card', 'inpay'), ('plum', 'inpay'),
+    def test_inpay_buttons_open_inpay_and_card_click_payme_open_tezcheck(self):
+        for method, expected in (('alif', 'inpay'), ('plum', 'inpay'), ('card', 'tezcheck'),
                                  ('click', 'tezcheck'), ('payme', 'tezcheck')):
             Order.objects.all().delete()
             module = 'accounts.inpay.create_bill' if expected == 'inpay' else 'accounts.tezcheck.create_bill'

@@ -21,7 +21,7 @@
   var HINTS = Object.assign({
     classic: 'Yiğilgan holatda faqat ikonkalar qoladi, nomlar tooltip’da çiqadi. Tezkor tugma: Ctrl + B.',
     compact: 'Kengaytirilgan — siçqonça olib borilganda panel silliq kengayadi. Yiğilgan — doim ikonka + tooltip.',
-    top: 'Top Navigation rejimida yon panel yöq — barça menyular yuqorida.',
+    top: 'Top Navigation rejimida yon panel yöq. Holatni tanlasangiz, Classic Sidebar yoqiladi.',
     hybrid: 'Header ostidagi yon panel kengligi. Tezkor tugma: Ctrl + B.'
   }, cfg.hints);
 
@@ -86,13 +86,14 @@
 
   function syncControls() {
     $$('input[name=nsLayout]', panel).forEach(function (i) { i.checked = i.value === S.layout; });
-    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = i.value === S.sidebar; i.disabled = S.layout === 'top' || !cfg.canCustomize; });
+    // Top rejimda hech biri belgilanmaydi: istalganini bosiş Classic Sidebar'ni yoqadi
+    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = S.layout !== 'top' && i.value === S.sidebar; i.disabled = !cfg.canCustomize; });
     $$('input[name=nsTheme]', panel).forEach(function (i) { i.checked = i.value === S.theme; });
     syncWeather(window.ITCWeather ? window.ITCWeather.get() : null);
     $$('input[name=nsLang]', panel).forEach(function (i) { i.checked = i.value === initial.language; });
     $('#nsMotion').checked = S.motion;
     $('#nsAutosave').checked = S.autosave;
-    $('#nsSbGroup').toggleAttribute('disabled', S.layout === 'top' || !cfg.canCustomize);
+    $('#nsSbGroup').toggleAttribute('disabled', !cfg.canCustomize);
     $('#nsSave').hidden = S.autosave;
     $('#nsSbHint').innerHTML = '<i class="bi bi-info-circle" aria-hidden="true"></i><span>' + HINTS[S.layout] + '</span>';
     setPreview(S.layout);
@@ -260,6 +261,7 @@
     commit({ sidebar: S.sidebar === 'expanded' ? 'collapsed' : 'expanded' });
   }
   function resetPrefs() {
+    if (!cfg.canCustomize) return;
     var before = Object.assign({}, S);
     commit(DEFAULTS, { forceSave: true });
     toast('Standart sozlamalar tiklandi', 'Qaytariş', function () { commit(before, { forceSave: true }); });
@@ -284,8 +286,9 @@
 
   panel.addEventListener('change', function (e) {
     var i = e.target;
+    if (!cfg.canCustomize) { syncControls(); return; } // Barça sozlamalar — faqat Premium
     if (i.name === 'nsLayout') commit({ layout: i.value });
-    else if (i.name === 'nsSidebar') commit({ sidebar: i.value });
+    else if (i.name === 'nsSidebar') commit(S.layout === 'top' ? { layout: 'classic', sidebar: i.value } : { sidebar: i.value });
     else if (i.name === 'nsTheme') commit({ theme: i.value });
     else if (i.name === 'nsWeather') saveWeather(i.value);
     else if (i.name === 'nsLang') setLanguage(i.value).catch(function () {});

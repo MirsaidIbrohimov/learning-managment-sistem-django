@@ -846,6 +846,11 @@
              `<span class="stat"><i class="bi bi-x-circle"></i>${stats.losses||0}L</span>` +
              `<span class="stat"><i class="bi bi-percent"></i>${stats.win_rate||0}%</span>`;
     }
+    if (mode === 'cipher'){
+      return `<span class="stat"><i class="bi bi-${stats.solved ? 'unlock' : 'lock'}"></i>${stats.solved ? 'Oçildi' : 'Oçilmadi'}</span>` +
+             `<span class="stat"><i class="bi bi-lightbulb"></i>${stats.hints||0} ishora</span>` +
+             `<span class="stat"><i class="bi bi-stopwatch"></i>${stats.time_spent||0}s</span>`;
+    }
     if (mode === 'word'){
       return `<span class="stat"><i class="bi bi-fonts"></i>${stats.words||0} söz</span>` +
              `<span class="stat"><i class="bi bi-stopwatch"></i>${stats.time_spent||0}s</span>`;

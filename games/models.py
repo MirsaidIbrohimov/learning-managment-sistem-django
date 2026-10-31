@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+from .cipher import CIPHER_TYPES
+
 
 class Game(models.Model):
     GAME_TYPE_CHOICES = (
@@ -10,6 +12,7 @@ class Game(models.Model):
         ('word_builder', 'Word Builder'),
         ('external', 'Taşqi öyin (External)'),
         ('jumanji', 'Jumanji (jonli musobaqa)'),
+        ('cipher', "Shifrni Och (bosh qotirma)"),
     )
 
     title = models.CharField(max_length=200, verbose_name="Öyin nomi")
@@ -250,7 +253,8 @@ class Competition(models.Model):
     def user_attempts_count(self, user):
         typing_count = self.attempts.filter(user=user).count()
         word_count = self.word_attempts.filter(user=user).count()
-        return typing_count + word_count
+        cipher_count = self.cipher_attempts.filter(user=user).count()
+        return typing_count + word_count + cipher_count
 
     def jumanji_live_session(self):
         """Şu musobaqaning hozir oçiq (lobby yoki running) sessiyasi."""
@@ -291,6 +295,8 @@ class Competition(models.Model):
         """Har bir foydalanuvçining eng yaxşi urinişi, örin tartibida."""
         if self.game.game_type == 'word_builder':
             qs = WordGameAttempt.objects.filter(competition=self).order_by('-total_score', 'time_spent')
+        elif self.game.game_type == 'cipher':
+            qs = CipherAttempt.objects.filter(competition=self).order_by('-score', 'time_spent')
         else:
             qs = GameAttempt.objects.filter(competition=self).order_by('-score', '-accuracy', 'time_spent')
         seen, ranked = set(), []
@@ -1105,3 +1111,65 @@ class TypingRoomPlayer(models.Model):
 
     def __str__(self):
         return f"{self.user} @ {self.room.code}"
+
+
+class CipherPuzzle(models.Model):
+    """🔐 "Shifrni Och" jumboği: asl matn faqat serverda, öyinçiga tokenlar beriladi."""
+    DIFFICULTY_CHOICES = Prompt.DIFFICULTY_CHOICES
+    USAGE_CHOICES = Prompt.USAGE_CHOICES
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='cipher_puzzles', verbose_name="Öyin")
+    plaintext = models.CharField(max_length=200, verbose_name="Asl matn (javob)")
+    cipher_type = models.CharField(max_length=20, choices=CIPHER_TYPES, default='caesar', verbose_name="Shifr turi")
+    key = models.JSONField(default=dict, blank=True, verbose_name="Kalit",
+                           help_text="Böş qolsa — saqlaşda tasodifiy kalit yaratiladi.")
+    tokens = models.JSONField(default=list, blank=True, editable=False, verbose_name="Shifrlangan tokenlar")
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium', verbose_name="Qiyinlik")
+    usage = models.CharField(max_length=15, choices=USAGE_CHOICES, default='both', verbose_name="Qayerda işlatiladi")
+    time_limit = models.PositiveIntegerField(default=180, verbose_name="Vaqt çegarasi (soniya)")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Shifr jumboği"
+        verbose_name_plural = "Shifr jumboqlari"
+
+    def __str__(self):
+        return f"{self.game.title} - {self.get_cipher_type_display()} ({self.get_difficulty_display()})"
+
+    def save(self, *args, **kwargs):
+        from . import cipher
+        if self.cipher_type in ('caesar', 'substitution') and not self.key:
+            self.key = cipher.random_key(self.cipher_type)
+        self.tokens = cipher.encrypt(self.plaintext, self.cipher_type, self.key)
+        super().save(*args, **kwargs)
+
+    def ensure_tokens(self):
+        """Data-migratsiyada yaratilgan jumboqlarda kalit/tokenlar birinçi öyinda hisoblanadi."""
+        if not self.tokens:
+            self.save()
+
+
+class CipherAttempt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cipher_attempts', verbose_name="Foydalanuvçi")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='cipher_attempts', verbose_name="Öyin")
+    puzzle = models.ForeignKey(CipherPuzzle, on_delete=models.CASCADE, related_name='attempts', verbose_name="Jumboq")
+    competition = models.ForeignKey(Competition, on_delete=models.SET_NULL, null=True, blank=True, related_name='cipher_attempts', verbose_name="Musobaqa")
+    solved = models.BooleanField(default=False, verbose_name="Yeçildi")
+    hints_used = models.PositiveSmallIntegerField(default=0, verbose_name="Ishoralar")
+    wrong_checks = models.PositiveSmallIntegerField(default=0, verbose_name="Notöğri tekşiruvlar")
+    score = models.FloatField(default=0, verbose_name="Ball")
+    coins_earned = models.PositiveIntegerField(default=0, verbose_name="Olingan coin")
+    time_spent = models.FloatField(default=0, verbose_name="Sarflangan vaqt (soniya)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Shifrni Och natijasi"
+        verbose_name_plural = "Shifrni Och natijalari"
+
+    def __str__(self):
+        mode = "Competition" if self.competition else "Practice"
+        return f"{self.user} - {self.game.title} ({mode}) - {self.score} ball"

@@ -3,6 +3,7 @@ from . import views
 from . import jumanji_views
 from . import teacher_views
 from . import room_views
+from . import cipher_views
 
 app_name = 'games'
 
@@ -60,6 +61,12 @@ urlpatterns = [
     path('<slug:slug>/word-check/', views.word_game_check, name='word_game_check'),
     path('<slug:slug>/word-submit/', views.word_game_submit, name='word_game_submit'),
     path('<slug:slug>/word-suggest/', views.word_game_suggest, name='word_game_suggest'),
+    # Shifrni Och (bosh qotirma)
+    path('<slug:slug>/cipher/', cipher_views.play, name='cipher_play'),
+    path('<slug:slug>/cipher/<int:competition_id>/', cipher_views.play, name='cipher_play_competition'),
+    path('<slug:slug>/cipher/check/', cipher_views.check, name='cipher_check'),
+    path('<slug:slug>/cipher/hint/', cipher_views.hint, name='cipher_hint'),
+    path('<slug:slug>/cipher/give-up/', cipher_views.give_up, name='cipher_give_up'),
 
     # Admin
     path('dashboard/games/', views.admin_games, name='admin_games'),
@@ -78,6 +85,10 @@ urlpatterns = [
     path('dashboard/games/<int:game_pk>/word-rounds/add/', views.admin_word_round_add, name='admin_word_round_add'),
     path('dashboard/word-rounds/<int:pk>/edit/', views.admin_word_round_edit, name='admin_word_round_edit'),
     path('dashboard/word-rounds/<int:pk>/delete/', views.admin_word_round_delete, name='admin_word_round_delete'),
+    path('dashboard/games/<int:game_pk>/cipher-puzzles/', cipher_views.admin_puzzles, name='admin_cipher_puzzles'),
+    path('dashboard/games/<int:game_pk>/cipher-puzzles/add/', cipher_views.admin_puzzle_add, name='admin_cipher_puzzle_add'),
+    path('dashboard/cipher-puzzles/<int:pk>/edit/', cipher_views.admin_puzzle_edit, name='admin_cipher_puzzle_edit'),
+    path('dashboard/cipher-puzzles/<int:pk>/delete/', cipher_views.admin_puzzle_delete, name='admin_cipher_puzzle_delete'),
     path('dashboard/competitions/', views.admin_competitions, name='admin_competitions'),
     path('dashboard/competitions/add/', views.admin_competition_add, name='admin_competition_add'),
     path('dashboard/competitions/<int:pk>/edit/', views.admin_competition_edit, name='admin_competition_edit'),

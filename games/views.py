@@ -23,7 +23,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
+from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion, CipherAttempt
 from . import jumanji
 from accounts.alphabet import to_new_alphabet
 from accounts.models import CustomUser
@@ -81,6 +81,9 @@ def games_list(request):
         if comp.game.game_type == 'word_builder':
             comp.play_url = reverse('games:word_game_play_competition', args=[comp.game.slug, comp.pk])
             comp.leaderboard_url = reverse('games:word_game_leaderboard', args=[comp.pk])
+        elif comp.game.game_type == 'cipher':
+            comp.play_url = reverse('games:cipher_play_competition', args=[comp.game.slug, comp.pk])
+            comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
         elif comp.game.game_type == 'external':
             comp.play_url = reverse('games:game_launch', args=[comp.game.slug])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
@@ -137,6 +140,10 @@ def game_detail(request, slug):
             'competitions': competitions,
             'can_control': jumanji.can_control(request.user),
         })
+
+    if game.game_type == 'cipher':
+        from . import cipher_views
+        return cipher_views.detail(request, game, competitions)
 
     if game.game_type == 'word_builder':
         user_attempts = WordGameAttempt.objects.filter(user=request.user, game=game).select_related('word_round').order_by('-created_at')[:10]
@@ -333,6 +340,10 @@ def game_play(request, slug, competition_id=None, ui='classic'):
         if competition_id:
             return redirect('games:word_game_play_competition', slug=slug, competition_id=competition_id)
         return redirect('games:word_game_play', slug=slug)
+    if game.game_type == 'cipher':
+        if competition_id:
+            return redirect('games:cipher_play_competition', slug=slug, competition_id=competition_id)
+        return redirect('games:cipher_play', slug=slug)
 
     competition = None
 
@@ -626,28 +637,34 @@ def _collect_my_results(user, game_filter, mode_filter):
 
     typing_qs = GameAttempt.objects.filter(user=user).select_related('user', 'game', 'competition', 'prompt')
     word_qs = WordGameAttempt.objects.filter(user=user).select_related('user', 'game', 'competition', 'word_round')
+    cipher_qs = CipherAttempt.objects.filter(user=user).select_related('user', 'game', 'competition', 'puzzle')
     room_qs = (TypingRoomPlayer.objects.filter(user=user, room__status='finished')
                .select_related('user', 'room', 'room__game'))
 
     if game_filter:
         typing_qs = typing_qs.filter(game_id=game_filter)
         word_qs = word_qs.filter(game_id=game_filter)
+        cipher_qs = cipher_qs.filter(game_id=game_filter)
         room_qs = room_qs.filter(room__game_id=game_filter)
     if mode_filter == 'practice':
         typing_qs = typing_qs.filter(competition__isnull=True)
         word_qs = word_qs.filter(competition__isnull=True)
+        cipher_qs = cipher_qs.filter(competition__isnull=True)
         room_qs = room_qs.none()
     elif mode_filter == 'competition':
         typing_qs = typing_qs.filter(competition__isnull=False)
         word_qs = word_qs.filter(competition__isnull=False)
+        cipher_qs = cipher_qs.filter(competition__isnull=False)
         room_qs = room_qs.none()
     elif mode_filter == 'v2':
         typing_qs = typing_qs.filter(ui_version='v2')
         word_qs = word_qs.none()
+        cipher_qs = cipher_qs.none()
         room_qs = room_qs.none()
     elif mode_filter == 'room':
         typing_qs = typing_qs.none()
         word_qs = word_qs.none()
+        cipher_qs = cipher_qs.none()
 
     all_results = []
     for a in typing_qs:
@@ -655,6 +672,9 @@ def _collect_my_results(user, game_filter, mode_filter):
         all_results.append(a)
     for a in word_qs:
         a.result_type = 'word_builder'
+        all_results.append(a)
+    for a in cipher_qs:
+        a.result_type = 'cipher'
         all_results.append(a)
     all_results.extend(_RoomResult(e) for e in room_qs)
     all_results.sort(key=lambda x: x.created_at, reverse=True)
@@ -779,6 +799,7 @@ def competition_leaderboard_api(request, competition_id):
     engine = (competition.game.config or {}).get('engine', '')
     is_board = competition.game.game_type == 'external' and engine in ('chess', 'checkers')
     is_word = competition.game.game_type == 'word_builder'
+    is_cipher = competition.game.game_type == 'cipher'
 
     participants = []
 
@@ -866,6 +887,28 @@ def competition_leaderboard_api(request, competition_id):
                 'last_at': a.created_at.isoformat() if a.created_at else None,
             })
 
+    elif is_cipher:
+        for rank, a in enumerate(competition.ranked_attempts(), start=1):
+            u = a.user
+            participants.append({
+                'rank': rank,
+                'user_id': u.pk,
+                'is_you': u.pk == request.user.pk,
+                'full_name': u.full_name,
+                'username': u.username,
+                'initials': u.get_initials(),
+                'photo': u.photo.url if u.photo else None,
+                'is_premium': getattr(u, 'is_premium', False),
+                'deco': deco_classes(u),
+                'primary': round(float(a.score or 0), 1),
+                'stats': {
+                    'solved': a.solved,
+                    'hints': a.hints_used,
+                    'time_spent': round(float(a.time_spent or 0), 1),
+                },
+                'last_at': a.created_at.isoformat() if a.created_at else None,
+            })
+
     else:
         all_attempts = GameAttempt.objects.filter(
             competition=competition
@@ -903,6 +946,9 @@ def competition_leaderboard_api(request, competition_id):
         primary_label = 'Ball'
     elif is_word:
         mode = 'word'
+        primary_label = 'Ball'
+    elif is_cipher:
+        mode = 'cipher'
         primary_label = 'Ball'
     else:
         mode = 'typing'
@@ -1664,16 +1710,20 @@ def admin_results(request):
 
     typing_qs = GameAttempt.objects.all().select_related('user', 'game', 'competition')
     word_qs = WordGameAttempt.objects.all().select_related('user', 'game', 'word_round', 'competition')
+    cipher_qs = CipherAttempt.objects.all().select_related('user', 'game', 'puzzle', 'competition')
 
     if game_filter:
         typing_qs = typing_qs.filter(game_id=game_filter)
         word_qs = word_qs.filter(game_id=game_filter)
+        cipher_qs = cipher_qs.filter(game_id=game_filter)
     if competition_filter:
         typing_qs = typing_qs.filter(competition_id=competition_filter)
         word_qs = word_qs.filter(competition_id=competition_filter)
+        cipher_qs = cipher_qs.filter(competition_id=competition_filter)
     if user_filter:
         typing_qs = typing_qs.filter(user_id=user_filter)
         word_qs = word_qs.filter(user_id=user_filter)
+        cipher_qs = cipher_qs.filter(user_id=user_filter)
 
     combined = []
     for a in typing_qs:
@@ -1684,6 +1734,9 @@ def admin_results(request):
         a.score = a.total_score
         a.wpm = None
         a.accuracy = None
+        combined.append(a)
+    for a in cipher_qs:
+        a.result_type = 'cipher'
         combined.append(a)
 
     combined.sort(key=lambda x: x.created_at, reverse=True)
@@ -1737,6 +1790,10 @@ def _build_results_pdf(attempts, title):
             col_wpm = f"{found} söz"
             col_acc = '—'
             col_score = str(getattr(a, 'total_score', 0))
+        elif rtype == 'cipher':
+            col_wpm = "Yeçildi" if a.solved else "Yeçilmadi"
+            col_acc = f"{a.hints_used} ishora"
+            col_score = str(a.score)
         else:
             col_wpm = str(getattr(a, 'wpm', 0))
             col_acc = f'{getattr(a, "accuracy", 0)}%'
@@ -1791,16 +1848,20 @@ def admin_results_pdf(request):
 
     typing_qs = GameAttempt.objects.all().select_related('user', 'game', 'competition')
     word_qs = WordGameAttempt.objects.all().select_related('user', 'game', 'competition', 'word_round')
+    cipher_qs = CipherAttempt.objects.all().select_related('user', 'game', 'puzzle', 'competition')
 
     if game_filter:
         typing_qs = typing_qs.filter(game_id=game_filter)
         word_qs = word_qs.filter(game_id=game_filter)
+        cipher_qs = cipher_qs.filter(game_id=game_filter)
     if competition_filter:
         typing_qs = typing_qs.filter(competition_id=competition_filter)
         word_qs = word_qs.filter(competition_id=competition_filter)
+        cipher_qs = cipher_qs.filter(competition_id=competition_filter)
     if user_filter:
         typing_qs = typing_qs.filter(user_id=user_filter)
         word_qs = word_qs.filter(user_id=user_filter)
+        cipher_qs = cipher_qs.filter(user_id=user_filter)
 
     all_results = []
     for a in typing_qs:
@@ -1808,6 +1869,9 @@ def admin_results_pdf(request):
         all_results.append(a)
     for a in word_qs:
         a.result_type = 'word_builder'
+        all_results.append(a)
+    for a in cipher_qs:
+        a.result_type = 'cipher'
         all_results.append(a)
 
     all_results.sort(key=lambda x: x.created_at, reverse=True)
@@ -2108,6 +2172,8 @@ def _admin_result_or_404(pk, result_type):
         return get_object_or_404(GameAttempt, pk=pk), 'score'
     if result_type in ('word', 'word_builder'):
         return get_object_or_404(WordGameAttempt, pk=pk), 'total_score'
+    if result_type == 'cipher':
+        return get_object_or_404(CipherAttempt, pk=pk), 'score'
     return None, None
 
 

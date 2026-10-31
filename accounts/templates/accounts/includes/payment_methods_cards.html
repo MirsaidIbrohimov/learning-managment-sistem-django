@@ -9,7 +9,7 @@
   <div class="pmc-grid">
     {% for m in payment_methods %}
     <label class="pmc-item" style="--c: {{ m.color }}">
-      <input type="radio" name="payment_method" value="{{ m.code }}" data-label="{{ m.label }}" required>
+      <input type="radio" name="payment_method" value="{{ m.code }}"{% if forloop.first %} checked{% endif %} data-label="{{ m.label }}" required>
       <span class="pmc-card">
         <span class="pmc-logo">
           {% if m.logo %}<img src="{% static 'img/payments/'|add:m.logo %}" alt="" loading="lazy">{% else %}<i class="bi {{ m.icon }}" aria-hidden="true"></i>{% endif %}
@@ -68,15 +68,19 @@
     if (box.dataset.bound) return;
     box.dataset.bound = '1';
     var status = box.querySelector('.pmc-status');
-    box.addEventListener('change', function (e) {
-      if (!e.target.matches('input[name=payment_method]')) return;
+    function show(input) {
       status.classList.add('on');
-      status.style.setProperty('--pmc-on', e.target.closest('.pmc-item').style.getPropertyValue('--c'));
+      status.style.setProperty('--pmc-on', input.closest('.pmc-item').style.getPropertyValue('--c'));
       status.innerHTML = '<i class="bi bi-check-circle-fill" aria-hidden="true"></i> ';
       var text = document.createElement('span');
-      text.textContent = e.target.dataset.label + ' orqali tölaysiz';
+      text.textContent = input.dataset.label + ' orqali tölaysiz';
       status.append(text);
+    }
+    box.addEventListener('change', function (e) {
+      if (e.target.matches('input[name=payment_method]')) show(e.target);
     });
+    var picked = box.querySelector('input[name=payment_method]:checked');
+    if (picked) show(picked);
   });
 })();
 </script>

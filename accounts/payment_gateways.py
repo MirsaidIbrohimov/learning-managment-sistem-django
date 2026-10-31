@@ -1,6 +1,7 @@
 """Payment buttons and the provider each one opens.
 
-Click and Payme open Tezcheck; every other button opens inPAY. Checkout code
+Tezcheck is the main provider: Karta, Click and Payme open Tezcheck and are
+listed first; the remaining buttons open inPAY. Checkout code
 calls ``create_bill``/``fetch_bill`` here, which dispatch on ``order.gateway``.
 """
 from django.conf import settings
@@ -13,7 +14,7 @@ INPAY = 'inpay'
 
 # (code, label, gateway, logo under static/img/payments/ or '', bootstrap icon)
 PAYMENT_METHODS = [
-    ('card', 'Karta', INPAY, '', 'bi-credit-card-2-front'),
+    ('card', 'Karta', TEZCHECK, '', 'bi-credit-card-2-front'),
     ('click', 'Click', TEZCHECK, 'click.svg', ''),
     ('payme', 'Payme', TEZCHECK, 'payme.png', ''),
     ('paynet', 'Paynet', INPAY, 'paynet.svg', ''),

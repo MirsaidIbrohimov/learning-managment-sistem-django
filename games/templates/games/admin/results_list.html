@@ -320,6 +320,8 @@
                             <td>
                                 {% if attempt.result_type == 'word_builder' %}
                                 <span class="badge bg-info" style="border-radius: 8px;">Söz yiğiş</span>
+                                {% elif attempt.result_type == 'cipher' %}
+                                <span class="badge bg-dark" style="border-radius: 8px;">🔐 Shifr</span>
                                 {% else %}
                                 <span class="badge bg-primary" style="border-radius: 8px;">Typing</span>
                                 {% endif %}
@@ -334,6 +336,8 @@
                             <td>
                                 {% if attempt.result_type == 'word_builder' %}
                                 {{ attempt.found_count }} söz
+                                {% elif attempt.result_type == 'cipher' %}
+                                {% if attempt.solved %}🔓 Oçildi{% else %}🔒 Oçilmadi{% endif %}
                                 {% else %}
                                 {{ attempt.wpm }}
                                 {% endif %}
@@ -341,6 +345,8 @@
                             <td>
                                 {% if attempt.result_type == 'word_builder' %}
                                 —
+                                {% elif attempt.result_type == 'cipher' %}
+                                {{ attempt.hints_used }} ishora
                                 {% else %}
                                 {{ attempt.accuracy }}%
                                 {% endif %}
@@ -399,6 +405,8 @@
                 <i class="bi bi-controller"></i> {{ attempt.game.title }}
                 {% if attempt.result_type == 'word_builder' %}
                 <span class="badge bg-info" style="border-radius: 6px; font-size: 0.65rem;">Söz yiğiş</span>
+                {% elif attempt.result_type == 'cipher' %}
+                <span class="badge bg-dark" style="border-radius: 6px; font-size: 0.65rem;">🔐 Shifr</span>
                 {% else %}
                 <span class="badge bg-primary" style="border-radius: 6px; font-size: 0.65rem;">Typing</span>
                 {% endif %}
@@ -408,6 +416,9 @@
                     {% if attempt.result_type == 'word_builder' %}
                     <div class="val">{{ attempt.found_count }}</div>
                     <div class="lbl">Sözlar</div>
+                    {% elif attempt.result_type == 'cipher' %}
+                    <div class="val">{% if attempt.solved %}🔓{% else %}🔒{% endif %}</div>
+                    <div class="lbl">Natija</div>
                     {% else %}
                     <div class="val">{{ attempt.wpm }}</div>
                     <div class="lbl">WPM</div>
@@ -417,6 +428,9 @@
                     {% if attempt.result_type == 'word_builder' %}
                     <div class="val">—</div>
                     <div class="lbl">Aniqlik</div>
+                    {% elif attempt.result_type == 'cipher' %}
+                    <div class="val">{{ attempt.hints_used }}</div>
+                    <div class="lbl">Ishora</div>
                     {% else %}
                     <div class="val">{{ attempt.accuracy }}%</div>
                     <div class="lbl">Aniqlik</div>

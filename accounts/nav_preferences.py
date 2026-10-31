@@ -16,7 +16,8 @@ _BOOLS = ('motion', 'autosave')
 _CACHE_ATTR = '_nav_prefs_cache'
 
 # Faqat premiumda özgaradi; premiumsiz foydalanuvçida şu qiymatlar qöllanadi (saqlangani öçirilmaydi)
-PREMIUM_ONLY = {'layout': 'top', 'sidebar': 'expanded', 'language': 'oz'}
+# Mavzu bu yerda yöq: header'dagi mavzu tugmasi hammaga işlaydi.
+PREMIUM_ONLY = {'layout': 'top', 'sidebar': 'expanded', 'language': 'oz', 'motion': True, 'autosave': True}
 
 
 def defaults() -> dict:

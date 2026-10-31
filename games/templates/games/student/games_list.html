@@ -168,6 +168,7 @@
 .cover-typing2{background:linear-gradient(140deg,#0b1020,#4c1d95 45%,#0891b2)}
 .cover-quiz{background:linear-gradient(140deg,#7f1d1d,#dc2626 55%,#f87171)}
 .cover-jumanji{background:linear-gradient(140deg,#052e16,#15803d 52%,#84cc16)}
+.cover-cipher{background:linear-gradient(140deg,#020617,#1e3a8a 50%,#0ea5e9)}
 .cover-default{background:linear-gradient(140deg,#3b0764,#7c3aed 55%,#a855f7)}
 
 .gz-empty{text-align:center;padding:56px 20px;border-radius:24px;border:1px dashed var(--line);color:var(--muted);grid-column:1/-1}
@@ -376,6 +377,8 @@
             {% include 'games/student/_game_card_inner.html' with theme="cover-quiz" type_label="Test" type_icon="bi-patch-question" %}
         {% elif game.game_type == 'jumanji' %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-jumanji" type_label="Jumanji" type_icon="bi-dice-5" %}
+        {% elif game.game_type == 'cipher' %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-cipher" type_label="Bosh qotirma" type_icon="bi-shield-lock" %}
         {% else %}
             {% include 'games/student/_game_card_inner.html' with theme="cover-default" type_label=game.get_game_type_display type_icon="bi-controller" %}
         {% endif %}

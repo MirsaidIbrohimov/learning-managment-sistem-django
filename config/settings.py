@@ -765,8 +765,8 @@ TEZCHECK_LATE_GRACE_DAYS = max(0, int(os.getenv('TEZCHECK_LATE_GRACE_DAYS', '5')
 TEZCHECK_COIN_MIN_SOM = os.getenv('TEZCHECK_COIN_MIN_SOM', '')
 TEZCHECK_COIN_MAX_SOM = os.getenv('TEZCHECK_COIN_MAX_SOM', '')
 
-# inPAY API v2: Karta, Paynet, Alif, AnorBank, Visa/MC va Plum tugmalari şu
-# kassaga yönaltiriladi (Click/Payme — Tezcheck). Kalit faqat serverda turadi.
+# inPAY API v2: Paynet, Alif, AnorBank, Visa/MC va Plum tugmalari şu
+# kassaga yönaltiriladi (asosiy kassa — Tezcheck: Karta, Click, Payme). Kalit faqat serverda turadi.
 INPAY_API_BASE_URL = os.getenv('INPAY_API_BASE_URL', 'https://inpay.uz/api/v2').strip().rstrip('/')
 INPAY_SECRET_KEY = os.getenv('INPAY_SECRET_KEY', '').strip()
 # whsec_… — `python manage.py inpay_webhook_secret` bilan olinadi.
