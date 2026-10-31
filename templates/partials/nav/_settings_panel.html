@@ -1,7 +1,7 @@
 {% comment %}
   Navigatsiya sozlamalari paneli. Oçuvçi: [data-nav-settings]. Mantiq: static/js/nav-prefs.js
   nav_ctx='panel' — öqituvchi/admin panellari (Compact = panelning hozirgi körinişi).
-{% endcomment %}
+{% endcomment %}{% load static %}
 <div class="ns-scrim" id="nsScrim" aria-hidden="true"></div>
 <aside class="ns-panel" id="nsPanel" role="dialog" aria-modal="true" aria-labelledby="nsTitle" tabindex="-1"{% if nav_ctx %} data-ctx="{{ nav_ctx }}"{% endif %}>
   <div class="ns-head">
@@ -61,12 +61,12 @@
     </fieldset>
 
     <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
-      <legend>Sayt tili {% include 'partials/nav/_premium_lock.html' %}</legend>
-      <div class="ns-seg ns-seg-2x2">
-        <label><input type="radio" name="nsLang" value="oz"><span translate="no">Özbek</span></label>
-        <label><input type="radio" name="nsLang" value="uz"><span translate="no">O'zbek</span></label>
-        <label><input type="radio" name="nsLang" value="ru"><span translate="no">Русский</span></label>
-        <label><input type="radio" name="nsLang" value="en"><span translate="no">English</span></label>
+      <legend>Sayt tili {% include 'partials/nav/_premium_lock.html' %}<span class="ns-lang-now" id="nsLangNow" translate="no"></span></legend>
+      <div class="ns-seg ns-seg-2x2 ns-lang">
+        <label><input type="radio" name="nsLang" value="oz"><span translate="no"><img src="{% static 'img/flags/uz.svg' %}" alt="" class="ns-flag">Özbek</span><em class="ns-new">Yangi</em></label>
+        <label><input type="radio" name="nsLang" value="uz"><span translate="no"><img src="{% static 'img/flags/uz.svg' %}" alt="" class="ns-flag">O'zbek</span></label>
+        <label><input type="radio" name="nsLang" value="ru"><span translate="no"><img src="{% static 'img/flags/ru.svg' %}" alt="" class="ns-flag">Русский</span></label>
+        <label><input type="radio" name="nsLang" value="en"><span translate="no"><img src="{% static 'img/flags/gb.svg' %}" alt="" class="ns-flag">English</span></label>
       </div>
       <p class="ns-hint"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Sayt matnlari va qöllanmalar özgaradi. Dars, video va foydalanuvçi yozgan matnlar özgarmaydi.</span></p>
     </fieldset>

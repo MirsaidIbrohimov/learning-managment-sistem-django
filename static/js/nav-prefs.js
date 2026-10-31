@@ -94,6 +94,9 @@
     $$('input[name=nsTheme]', panel).forEach(function (i) { i.checked = i.value === S.theme; });
     syncWeather(window.ITCWeather ? window.ITCWeather.get() : null);
     $$('input[name=nsLang]', panel).forEach(function (i) { i.checked = i.value === initial.language; });
+    // Legend yonida hozirgi til: bayroq + nom (tanlangan tugmadan nusxa)
+    var langOn = $('input[name=nsLang]:checked', panel), now = $('#nsLangNow');
+    if (now) now.innerHTML = langOn ? langOn.nextElementSibling.innerHTML : '';
     $('#nsMotion').checked = S.motion;
     $('#nsAutosave').checked = S.autosave;
     $('#nsSbGroup').toggleAttribute('disabled', !canCustomize);
