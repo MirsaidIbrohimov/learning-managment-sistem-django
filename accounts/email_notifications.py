@@ -1,10 +1,19 @@
 """Bilingual transactional emails with a persistent, retryable outbox."""
+import hashlib
 import logging
+import os
+import smtplib
+import tempfile
+import time
+from contextlib import contextmanager
 from datetime import timedelta
+from pathlib import Path
 
 from django.conf import settings
-from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
+from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives, get_connection
+from django.db import connection, transaction
+from django.db.models import F
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
@@ -12,6 +21,17 @@ from django.utils import timezone
 from .models import Certificate, StudentBalance, UserEmailNotification
 
 logger = logging.getLogger(__name__)
+
+# Bir vaqtda minglab odamga ketadigan xatlar: sekin, limit bilan yuboriladi
+BULK_KINDS = ('coin_promo',)
+PERSONAL_BATCH = 50
+MAX_ATTEMPTS = 8
+CLAIM_LEASE = timedelta(minutes=10)  # Jarayon xat yuborayotib qulasa, keyinroq boşqasi oladi
+WORKER_LOCK_STALE_SECONDS = 600
+SENT, SKIPPED, FAILED, TRANSPORT = 'sent', 'skipped', 'failed', 'transport'
+# Bu xatolarda muammo xatda emas, pochta serverida: qolganlarini ham urinib ötirilmaydi
+TRANSPORT_ERRORS = (smtplib.SMTPSenderRefused, smtplib.SMTPAuthenticationError, smtplib.SMTPServerDisconnected,
+                    smtplib.SMTPConnectError, smtplib.SMTPDataError, OSError)
 
 
 def queue_email(user, kind, dedup_key, payload=None, immediate=True):
@@ -107,37 +127,133 @@ def _message_context(notification):
             'action_url': getattr(settings, 'SITE_URL', '').rstrip('/') + reverse(url_name, args=args)}
 
 
+def _claim(pk):
+    """Bitta qisqa UPDATE: xatni faqat bitta jarayon oladi, SMTP vaqtida baza qulfi ushlanmaydi."""
+    now = timezone.now()
+    return UserEmailNotification.objects.filter(pk=pk, sent_at__isnull=True, cancelled=False, next_attempt_at__lte=now).update(
+        attempts=F('attempts') + 1, next_attempt_at=now + CLAIM_LEASE) == 1
+
+
+def _already_sent_to_address(notification):
+    """Bitta manzilda bir nechta hisob bölsa, ommaviy xat unga bir marta boradi."""
+    prefix = notification.dedup_key.rsplit(':', 1)[0] + ':'
+    return UserEmailNotification.objects.filter(
+        kind=notification.kind, dedup_key__startswith=prefix, sent_at__isnull=False,
+        user__email__iexact=notification.user.email,
+    ).exists()
+
+
+def _deliver(pk, connection=None):
+    """Qaytaradi: SENT, SKIPPED (olinmadi yoki bekor), FAILED (shu xat) yoki TRANSPORT (SMTP işlamayapti)."""
+    if not _claim(pk):
+        return SKIPPED
+    notification = UserEmailNotification.objects.select_related('user').get(pk=pk)
+    rows = UserEmailNotification.objects.filter(pk=pk)
+    if not notification.user.email or not notification.user.is_active:
+        rows.update(cancelled=True)
+        return SKIPPED
+    if notification.kind in BULK_KINDS and _already_sent_to_address(notification):
+        rows.update(cancelled=True)
+        return SKIPPED
+    context = _message_context(notification)
+    if context is None:
+        rows.update(cancelled=True)
+        return SKIPPED
+    try:
+        email = EmailMultiAlternatives('IT Creative Academy — ' + context['subject'],
+            render_to_string('accounts/emails/notification.txt', context), settings.DEFAULT_FROM_EMAIL,
+            [notification.user.email], connection=connection)
+        email.attach_alternative(render_to_string('accounts/emails/notification.html', context), 'text/html')
+        if email.send(fail_silently=False) != 1:
+            raise RuntimeError('Email delivery failed')
+    except Exception as exc:
+        give_up = notification.attempts >= MAX_ATTEMPTS
+        rows.update(last_error=type(exc).__name__, cancelled=give_up,
+                    next_attempt_at=timezone.now() + timedelta(minutes=min(60, 2 ** min(notification.attempts, 6))))
+        logger.warning('Notification email delivery failed: id=%s type=%s', pk, type(exc).__name__)
+        return TRANSPORT if isinstance(exc, TRANSPORT_ERRORS) else FAILED
+    rows.update(sent_at=timezone.now(), last_error='')
+    return SENT
+
+
 def send_notification(pk):
-    """Keep one row locked during delivery; failures remain available for retry."""
-    with transaction.atomic():
-        notification = UserEmailNotification.objects.select_for_update().select_related('user').get(pk=pk)
-        if notification.sent_at or notification.cancelled or notification.next_attempt_at > timezone.now():
-            return False
-        if not notification.user.email or not notification.user.is_active:
-            notification.cancelled = True
-            notification.save(update_fields=['cancelled'])
-            return False
-        context = _message_context(notification)
-        if context is None:
-            notification.cancelled = True
-            notification.save(update_fields=['cancelled'])
-            return False
-        notification.attempts += 1
+    return _deliver(pk) == SENT
+
+
+def _bulk_quota():
+    """Bu daqiqada nechta ommaviy xat yuborish mumkin: pochta xizmatining kunlik limiti ham hisobga olinadi."""
+    midnight = timezone.localtime().replace(hour=0, minute=0, second=0, microsecond=0)
+    sent_today = UserEmailNotification.objects.filter(kind__in=BULK_KINDS, sent_at__gte=midnight).count()
+    return max(0, min(settings.EMAIL_BULK_PER_MINUTE, settings.EMAIL_BULK_PER_DAY - sent_today))
+
+
+def _worker_lock_path():
+    key = hashlib.sha256(str(connection.settings_dict['NAME']).encode()).hexdigest()[:16]
+    return Path(tempfile.gettempdir()) / f'lms-email-worker-{key}.lock'
+
+
+@contextmanager
+def _single_worker():
+    """Har bir sayt jarayonida fon sikli bor: bir vaqtda faqat bittasi xat yuboradi."""
+    path = _worker_lock_path()
+    try:
+        if time.time() - path.stat().st_mtime > WORKER_LOCK_STALE_SECONDS:
+            path.unlink(missing_ok=True)  # Jarayon qulaganda qulf abadiy qolmasin
+    except OSError:
+        pass
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except OSError:
+        yield False
+        return
+    os.close(descriptor)
+    try:
+        yield True
+    finally:
         try:
-            email = EmailMultiAlternatives('IT Creative Academy — ' + context['subject'],
-                render_to_string('accounts/emails/notification.txt', context), settings.DEFAULT_FROM_EMAIL, [notification.user.email])
-            email.attach_alternative(render_to_string('accounts/emails/notification.html', context), 'text/html')
-            if email.send(fail_silently=False) != 1:
-                raise RuntimeError('Email delivery failed')
-        except Exception as exc:
-            notification.last_error = type(exc).__name__
-            notification.next_attempt_at = timezone.now() + timedelta(minutes=min(60, 2 ** min(notification.attempts, 6)))
-            logger.warning('Notification email delivery failed: id=%s type=%s', pk, type(exc).__name__)
-        else:
-            notification.sent_at = timezone.now()
-            notification.last_error = ''
-        notification.save(update_fields=['attempts', 'next_attempt_at', 'sent_at', 'last_error'])
-        return notification.sent_at is not None
+            path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def deliver_due():
+    """Vaqti kelgan xatlarni yuboradi. Qaytaradi: (yuborildi, ko'rildi).
+
+    Saytga halaqit bermaslik uçun: bitta jarayon, bitta SMTP ulaniş, avval şaxsiy xatlar,
+    ommaviy xatlar esa daqiqalik va kunlik limit bilan oraliq qoldirib yuboriladi.
+    """
+    with _single_worker() as acquired:
+        if not acquired:
+            return 0, 0
+        if cache.add(f'payment_reminders:{timezone.localtime():%Y%m%d%H}', 1, 3600):
+            enqueue_payment_reminders()
+        due = UserEmailNotification.objects.filter(sent_at__isnull=True, cancelled=False,
+            next_attempt_at__lte=timezone.now()).order_by('created_at').values_list('pk', flat=True)
+        personal = list(due.exclude(kind__in=BULK_KINDS)[:PERSONAL_BATCH])
+        bulk = list(due.filter(kind__in=BULK_KINDS)[:_bulk_quota()])
+        if not personal and not bulk:
+            return 0, 0
+        smtp = get_connection()
+        try:
+            smtp.open()
+        except Exception as exc:  # Urinişlar sarflanmaydi: keyingi daqiqada qayta uriniladi
+            logger.warning('Email worker could not reach the mail server: %s', type(exc).__name__)
+            return 0, 0
+        sent = 0
+        try:
+            for pk in personal + bulk:
+                if pk in bulk and sent:
+                    time.sleep(settings.EMAIL_BULK_PAUSE_SECONDS)
+                result = _deliver(pk, connection=smtp)
+                sent += result == SENT
+                if result == TRANSPORT:
+                    break
+        finally:
+            try:
+                smtp.close()
+            except Exception:
+                pass
+        return sent, len(personal) + len(bulk)
 
 
 def enqueue_payment_reminders(today=None):

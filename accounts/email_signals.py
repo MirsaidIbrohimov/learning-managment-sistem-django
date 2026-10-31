@@ -16,7 +16,7 @@ def notify_account_login(sender, request, user, **kwargs):
         return
     from .login_notifications import login_details
     try:
-        queue_email(user, 'login', f'login:{user.pk}:{uuid.uuid4().hex}', login_details(request))
+        queue_email(user, 'login', f'login:{user.pk}:{uuid.uuid4().hex}', login_details(request), immediate=False)
     except Exception:
         logging.getLogger(__name__).exception('Could not queue login notification for user %s', user.pk)
 

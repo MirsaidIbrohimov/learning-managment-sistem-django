@@ -167,10 +167,19 @@
     display: block;
 }
 
+.wx-motion-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+}
+
 /* ===== THEME TOGGLE ===== */
 .theme-options {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 0.75rem;
 }
 
@@ -247,6 +256,12 @@
     border: 2px solid #334155;
 }
 
+.theme-preview.system-p {
+    background: linear-gradient(135deg, #f8fafc 50%, #1e293b 50%);
+    color: #8b5cf6;
+    border: 2px solid #94a3b8;
+}
+
 .theme-name {
     font-size: 1rem;
     font-weight: 700;
@@ -260,9 +275,11 @@
 }
 
 /* ===== LANGUAGE GRID ===== */
+.s-locked .weather-grid, .s-locked .lang-grid { opacity: 0.55; }
+.s-locked .wx-option, .s-locked .lang-option { cursor: not-allowed; pointer-events: none; }
 .lang-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 0.75rem;
 }
 
@@ -424,12 +441,16 @@
         font-size: 1.75rem;
     }
 
-    .theme-options {
-        grid-template-columns: 1fr 1fr;
+    .lang-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .theme-option {
-        padding: 1.25rem 0.75rem;
+        padding: 1.25rem 0.5rem;
+    }
+
+    .theme-desc {
+        font-size: 0.72rem;
     }
 
     .theme-preview {
@@ -450,14 +471,14 @@
     </div>
 
     <!-- WEATHER EFFECTS -->
-    <div class="s-card">
+    <div class="s-card{% if not nav_prefs.can_customize %} s-locked{% endif %}">
         <div class="s-card-head">
             <div class="s-card-icon weather">
                 <i class="bi bi-cloud-sun-fill"></i>
             </div>
             <div class="s-card-info">
-                <h5>Ob-havo effektlari</h5>
-                <p>Sayt fonida körinadigan fasliy effektni tanlang</p>
+                <h5>Ob-havo effektlari {% include 'partials/nav/_premium_lock.html' %}</h5>
+                <p>Tanlovingiz akkauntga saqlanadi va boşqa qurilmalarda ham işlaydi. Avtomatik — hozirgi faslga qarab.</p>
             </div>
         </div>
 
@@ -493,6 +514,10 @@
                 <span class="weather-label">Kuz</span>
             </div>
         </div>
+        <p class="wx-motion-note" id="wxMotionNote" hidden>
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            <span>Qurilmangizda "harakatni kamaytiriş" yoqilgan, şuning uçun effekt harakatsiz körinadi.</span>
+        </p>
     </div>
 
     <!-- THEME -->
@@ -524,6 +549,14 @@
                 <div class="theme-name">Qoronğu</div>
                 <p class="theme-desc">Tungi rejim</p>
             </div>
+            <div class="theme-option" data-theme="system">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <div class="theme-preview system-p">
+                    <i class="bi bi-circle-half"></i>
+                </div>
+                <div class="theme-name">Tizim</div>
+                <p class="theme-desc">Qurilmaga qarab</p>
+            </div>
         </div>
     </div>
 
@@ -544,45 +577,46 @@
     </div>
 
     <!-- LANGUAGE -->
-    <div class="s-card">
+    <div class="s-card{% if not nav_prefs.can_customize %} s-locked{% endif %}">
         <div class="s-card-head">
             <div class="s-card-icon lang">
                 <i class="bi bi-translate"></i>
             </div>
             <div class="s-card-info">
-                <h5 data-i18n="settings.lang_title">Sayt tili</h5>
-                <p data-i18n="settings.lang_desc">Sayt interfeys tilini tanlang</p>
+                <h5>Sayt tili {% include 'partials/nav/_premium_lock.html' %}</h5>
+                <p>Sayt interfeys tilini tanlang</p>
             </div>
         </div>
 
         <div class="lang-grid">
+            <div class="lang-option" data-lang="oz">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="lang-label" translate="no">Özbek</span>
+            </div>
             <div class="lang-option" data-lang="uz">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
-                <span class="lang-flag">🇺🇿</span>
-                <span class="lang-label">Özbekça</span>
+                <span class="lang-label" translate="no">O'zbek</span>
             </div>
             <div class="lang-option" data-lang="ru">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
-                <span class="lang-flag">🇷🇺</span>
-                <span class="lang-label">Русский</span>
+                <span class="lang-label" translate="no">Русский</span>
             </div>
             <div class="lang-option" data-lang="en">
                 <span class="check-mark"><i class="bi bi-check"></i></span>
-                <span class="lang-flag">🇬🇧</span>
-                <span class="lang-label">English</span>
+                <span class="lang-label" translate="no">English</span>
             </div>
         </div>
 
         <div class="lang-note">
             <i class="bi bi-info-circle-fill"></i>
-            <span data-i18n="settings.lang_note">Faqat sayt tugmalari va menyu özgaradi. Videolar, topşiriqlar va kurs materiallari özgarmaydi.</span>
+            <span>Sayt matnlari va qöllanmalar özgaradi. Dars, video va foydalanuvçi yozgan matnlar özgarmaydi.</span>
         </div>
     </div>
 
     <!-- BACK -->
     <div class="text-center">
         <a href="{% url 'profile' %}" class="settings-back">
-            <i class="bi bi-arrow-left"></i> <span data-i18n="settings.back">Profilga qaytiş</span>
+            <i class="bi bi-arrow-left"></i> <span>Profilga qaytiş</span>
         </a>
     </div>
 </div>
@@ -602,88 +636,58 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => toast.classList.remove('show'), 2000);
     }
 
+    const canCustomize = {{ nav_prefs.can_customize|yesno:'true,false' }};
+
     // WEATHER
-    const currentEffect = localStorage.getItem('weatherEffect') || 'auto';
+    function markEffect(effect) {
+        document.querySelectorAll('.wx-option').forEach(i => i.classList.toggle('active', i.dataset.effect === effect));
+    }
+    markEffect(window.ITCWeather.get());
+    // Navigatsiya panelidan yoki saqlaş xatosidan keyin ham belgi töğri tursin
+    document.addEventListener('itc:weatherchange', e => markEffect(e.detail));
+
+    const motionNote = document.getElementById('wxMotionNote');
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    motionNote.hidden = !reduceMotion.matches;
+    reduceMotion.addEventListener('change', () => { motionNote.hidden = !reduceMotion.matches; });
 
     document.querySelectorAll('.wx-option').forEach(item => {
-        if (item.dataset.effect === currentEffect) {
-            item.classList.add('active');
-        }
-
         item.addEventListener('click', function() {
-            document.querySelectorAll('.wx-option').forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
-            localStorage.setItem('weatherEffect', this.dataset.effect);
-            showToast('Effekt özgartirildi');
-            setTimeout(() => location.reload(), 800);
+            if (!canCustomize) return;
+            const effect = this.dataset.effect;
+            window.ITCWeather.save(effect).then(latest => {
+                if (latest) showToast(effect === 'off' ? 'Effekt öçirildi' : 'Effekt saqlandi');
+            }).catch(() => showToast('Saqlab bölmadi — internetni tekşiring'));
         });
     });
 
     // THEME
-    const currentTheme = localStorage.getItem('theme') || 'light';
+    function markTheme() {
+        const mode = localStorage.getItem('themeMode') || localStorage.getItem('theme') || 'light';
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === mode));
+    }
+    markTheme();
+    // Headerdagi tugma yoki navigatsiya panelidan almaştirilsa ham belgi töğri tursin
+    document.addEventListener('itc:themechange', markTheme);
+    document.addEventListener('itc:navchange', markTheme);
 
+    const themeToasts = { light: "Yorug' rejim yoqildi", dark: 'Qoronğu rejim yoqildi', system: 'Tizim mavzusi yoqildi' };
     document.querySelectorAll('.theme-option').forEach(opt => {
-        if (opt.dataset.theme === currentTheme) {
-            opt.classList.add('active');
-        }
-
         opt.addEventListener('click', function() {
-            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
-            this.classList.add('active');
-            const theme = this.dataset.theme;
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('theme', theme);
-            document.dispatchEvent(new CustomEvent('itc:themechange', { detail: theme }));
-            showToast(theme === 'dark' ? 'Qoronğu rejim yoqildi' : 'Yorug\' rejim yoqildi');
+            const mode = this.dataset.theme;
+            window.ITC_NAV.api.setTheme(mode);
+            markTheme();
+            showToast(themeToasts[mode]);
         });
     });
 
     // LANGUAGE
-    var langToasts = {
-        uz: "Özbekça tiliga ötkazildi",
-        ru: 'Язык изменён на Русский',
-        en: 'Language changed to English'
-    };
-    var settingsTranslations = {
-        uz: {
-            'settings.lang_title': 'Sayt tili',
-            'settings.lang_desc': 'Sayt interfeys tilini tanlang',
-            'settings.lang_note': "Faqat sayt tugmalari va menyu özgaradi. Videolar, topşiriqlar va kurs materiallari özgarmaydi.",
-            'settings.back': 'Profilga qaytiş',
-        },
-        ru: {
-            'settings.lang_title': 'Язык сайта',
-            'settings.lang_desc': 'Выберите язык интерфейса',
-            'settings.lang_note': 'Изменятся только кнопки и меню сайта. Видео, задания и материалы курсов не изменятся.',
-            'settings.back': 'Вернуться в профиль',
-        },
-        en: {
-            'settings.lang_title': 'Site Language',
-            'settings.lang_desc': 'Choose interface language',
-            'settings.lang_note': 'Only site buttons and menus will change. Videos, homework and course materials will not be affected.',
-            'settings.back': 'Back to profile',
-        }
-    };
-    var currentLang = localStorage.getItem('siteLang') || 'uz';
-
+    const currentLang = "{{ nav_prefs.language|escapejs }}";
     document.querySelectorAll('.lang-option').forEach(function(opt) {
-        if (opt.dataset.lang === currentLang) {
-            opt.classList.add('active');
-        }
-
+        opt.classList.toggle('active', opt.dataset.lang === currentLang);
         opt.addEventListener('click', function() {
-            document.querySelectorAll('.lang-option').forEach(function(o) { o.classList.remove('active'); });
-            this.classList.add('active');
-            var lang = this.dataset.lang;
-            localStorage.setItem('siteLang', lang);
-            if (window.applySiteLang) window.applySiteLang(lang);
-            // Apply settings page translations
-            var st = settingsTranslations[lang] || {};
-            document.querySelectorAll('[data-i18n]').forEach(function(el) {
-                var key = el.getAttribute('data-i18n');
-                if (st[key]) el.textContent = st[key];
-            });
-            showToast(langToasts[lang] || 'Til özgartirildi');
+            if (!canCustomize || this.dataset.lang === currentLang) return;
+            window.ITC_NAV.api.setLanguage(this.dataset.lang).catch(() => showToast('Saqlab bölmadi — internetni tekşiring'));
         });
     });
 });

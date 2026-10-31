@@ -35,11 +35,6 @@ def unread_messages(request):
     return {"unread_messages_count": count}
 
 
-def user_weather_effect(request):
-    user = getattr(request, "user", None)
-    if user and user.is_authenticated:
-        return {"user_weather_effect": getattr(user, "weather_effect", "auto")}
-    return {"user_weather_effect": "auto"}
 
 
 def admin_badges(request):

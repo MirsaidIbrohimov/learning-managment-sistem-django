@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from django.db.utils import OperationalError, ProgrammingError
+from django.utils import timezone
 
 from .models import NavigationPreference
 
@@ -9,13 +10,33 @@ _CHOICES = {
     'layout': {value for value, _ in NavigationPreference.LAYOUT_CHOICES},
     'sidebar': {value for value, _ in NavigationPreference.SIDEBAR_CHOICES},
     'theme': {value for value, _ in NavigationPreference.THEME_CHOICES},
+    'language': {value for value, _ in NavigationPreference.LANGUAGE_CHOICES},
 }
 _BOOLS = ('motion', 'autosave')
 _CACHE_ATTR = '_nav_prefs_cache'
 
+# Faqat premiumda özgaradi; premiumsiz foydalanuvçida şu qiymatlar qöllanadi (saqlangani öçirilmaydi)
+PREMIUM_ONLY = {'layout': 'top', 'sidebar': 'expanded', 'language': 'oz'}
+
 
 def defaults() -> dict:
     return dict(NavigationPreference.DEFAULTS)
+
+
+def can_customize(user) -> bool:
+    """Premium faolmi. Muddat ham tekşiriladi: PremiumExpiryMiddleware bayroqni 10 daqiqada bir tozalaydi."""
+    if user is None or not user.is_authenticated or not user.is_premium:
+        return False
+    return user.premium_expires_at is None or user.premium_expires_at > timezone.now()
+
+
+def effective(user, prefs: dict) -> dict:
+    """Saqlangan sozlamadan foydalanuvçiga amalda qöllanadigan sozlamani çiqaradi."""
+    allowed = can_customize(user)
+    result = {**prefs, 'can_customize': allowed}
+    if not allowed:
+        result.update(PREMIUM_ONLY)
+    return result
 
 
 def get_prefs(request) -> dict:
@@ -33,6 +54,7 @@ def get_prefs(request) -> dict:
             row = None
         if row is not None:
             prefs = row.as_dict()
+    prefs = effective(user, prefs)
     setattr(request, _CACHE_ATTR, prefs)
     return prefs
 

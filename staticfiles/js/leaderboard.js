@@ -44,10 +44,17 @@
         return n.toString();
     }
 
+    // Atribut ichida ham xavfsiz: ' va " ham ekranlanadi (O'ktam, Mo'minov...)
     function esc(s) {
-        var d = document.createElement('div');
-        d.textContent = s || '';
-        return d.innerHTML;
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c];
+        });
+    }
+
+    // 💎 Premium profil bezaklari (server faqat faol Premium uçun klass qaytaradi)
+    function deco(s, kind) {
+        var c = s.deco && s.deco[kind];
+        return c ? ' ' + esc(c) : '';
     }
 
     function studentHref(s) {
@@ -200,13 +207,13 @@
             var blurred = (!canSee(s) && !s.is_you) ? ' lb-blurred-top' : '';
             var href = studentHref(s);
             var avatar = s.photo
-                ? '<img src="' + esc(s.photo) + '" alt="' + esc(s.first_name) + '" onclick="openLbPhoto(\'' + esc(s.photo) + '\', \'' + esc(s.full_name) + '\', event)" style="cursor:pointer;">'
+                ? '<img src="' + esc(s.photo) + '" alt="' + esc(s.first_name) + '" data-lb-photo="' + esc(s.photo) + '" data-lb-name="' + esc(s.full_name) + '" style="cursor:zoom-in;">'
                 : '<span>' + esc(s.initials) + '</span>';
-            html += '<a href="' + href + '" class="top-3-item top-3-position-' + pos + blurred + '">' +
+            html += '<a href="' + href + '" class="top-3-item top-3-position-' + pos + blurred + deco(s, 'banner') + '">' +
                 '<div class="crown-badge">' + pos + '</div>' +
-                '<div class="avatar-circle">' + avatar + '</div>' +
+                '<div class="avatar-circle' + deco(s, 'frame') + '">' + avatar + '</div>' +
                 '<div class="player-info">' +
-                    '<div class="player-name-top3">' + esc(s.first_name) + '</div>' +
+                    '<div class="player-name-top3"><span class="' + deco(s, 'name').trim() + '">' + esc(s.first_name) + '</span></div>' +
                     '<div class="coins-value"><i class="bi ' + valueIcon() + '"></i> <span>' + valueLabel(s.value) + '</span></div>' +
                 '</div></a>';
         });
@@ -239,14 +246,14 @@
                 var premCoinCls = s.is_premium ? ' premium-coin-row' : '';
 
                 var avatar = s.photo
-                    ? '<img src="' + esc(s.photo) + '" alt="" class="lb-user-avatar' + premAvBorder + '" onclick="openLbPhoto(\'' + esc(s.photo) + '\', \'' + esc(s.full_name) + '\', event)" style="cursor:pointer;">'
-                    : '<div class="lb-user-placeholder' + premAvBorder + '">' + esc(s.initials) + '</div>';
+                    ? '<img src="' + esc(s.photo) + '" alt="" class="lb-user-avatar' + premAvBorder + deco(s, 'frame') + '" data-lb-photo="' + esc(s.photo) + '" data-lb-name="' + esc(s.full_name) + '" style="cursor:zoom-in;">'
+                    : '<div class="lb-user-placeholder' + premAvBorder + deco(s, 'frame') + '">' + esc(s.initials) + '</div>';
 
-                var name = esc(s.full_name);
+                var name = '<span class="' + deco(s, 'name').trim() + '">' + esc(s.full_name) + '</span>';
                 if (s.is_premium) name += ' <i class="bi bi-patch-check-fill premium-star"></i>';
                 if (s.is_you) name += '<span class="lb-badge">Siz</span>';
 
-                html += '<a href="' + studentHref(s) + '" class="lb-row' + isYou + isPrem + '" style="animation-delay:' + delay + 'ms">' +
+                html += '<a href="' + studentHref(s) + '" class="lb-row' + isYou + isPrem + deco(s, 'banner') + '" style="animation-delay:' + delay + 'ms">' +
                     '<div><span class="lb-rank">' + rank + '</span></div>' +
                     '<div class="lb-user">' + avatar + '<div class="lb-user-info"><div class="lb-user-name' + premNameCls + '">' + name + '</div>' +
                     '<div class="lb-username">@' + esc(s.username) + '</div></div></div>' +
@@ -254,7 +261,7 @@
                     '<i class="bi bi-chevron-right lb-chevron"></i></a>';
             } else {
                 var avatar2 = s.photo
-                    ? '<img src="' + esc(s.photo) + '" alt="" class="lb-user-avatar" onclick="openLbPhoto(\'' + esc(s.photo) + '\', \'' + esc(s.full_name) + '\', event)" style="cursor:pointer;">'
+                    ? '<img src="' + esc(s.photo) + '" alt="" class="lb-user-avatar" data-lb-photo="' + esc(s.photo) + '" data-lb-name="' + esc(s.full_name) + '" style="cursor:zoom-in;">'
                     : '<div class="lb-user-placeholder">' + esc(s.initials) + '</div>';
 
                 html += '<div class="lb-row lb-blurred" style="animation-delay:' + delay + 'ms">' +
@@ -342,16 +349,24 @@
 
     // ====== LIGHTBOX ======
     window.openLbPhoto = function(url, name, e) {
-        e.preventDefault();
-        e.stopPropagation();
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         var img = document.getElementById('lbPhotoImg');
         var nameEl = document.getElementById('lbPhotoName');
         var lb = document.getElementById('lbPhotoLightbox');
-        if (img) img.src = url;
-        if (nameEl) nameEl.innerHTML = '<i class="bi bi-person-circle"></i> ' + name;
+        if (img) { img.src = url; img.alt = name || ''; }
+        if (nameEl) {
+            nameEl.innerHTML = '<i class="bi bi-person-circle"></i> ';
+            nameEl.appendChild(document.createTextNode(name || ''));
+        }
         if (lb) lb.classList.add('active');
         document.body.style.overflow = 'hidden';
     };
+
+    // Avatar bosilsa — rasm şu sahifada (lightbox) oçiladi, ota <a> havolasiga ötilmaydi
+    document.addEventListener('click', function(e) {
+        var av = e.target.closest && e.target.closest('img[data-lb-photo]');
+        if (av) openLbPhoto(av.getAttribute('data-lb-photo'), av.getAttribute('data-lb-name'), e);
+    }, true);
 
     window.closeLbPhoto = function(e) {
         if (e.target.closest('.lb-photo-lightbox-img')) return;

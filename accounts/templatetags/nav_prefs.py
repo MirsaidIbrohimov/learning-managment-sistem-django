@@ -1,6 +1,6 @@
 from django import template
 
-from accounts.nav_preferences import get_prefs
+from accounts.nav_preferences import can_customize, get_prefs
 
 register = template.Library()
 
@@ -13,3 +13,10 @@ def get_nav_prefs(context):
         from accounts.nav_preferences import defaults
         return defaults()
     return get_prefs(request)
+
+
+@register.simple_tag(takes_context=True)
+def get_weather_effect(context):
+    """{% get_weather_effect as weather_effect %} — premium tugagan bölsa effekt öçiq, tanlov saqlanib qoladi."""
+    user = context.get('user')
+    return user.weather_effect if can_customize(user) else 'off'

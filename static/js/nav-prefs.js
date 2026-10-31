@@ -15,7 +15,7 @@
   var mqDesk = matchMedia(cfg.desktopQuery || '(min-width: 992px)');
   var railSel = cfg.railSel || '#nrRail';
 
-  var DEFAULTS = { layout: 'compact', sidebar: 'expanded', theme: 'light', motion: true, autosave: true };
+  var DEFAULTS = { layout: 'top', sidebar: 'expanded', theme: 'light', motion: true, autosave: true };
   var ALLOWED = { layout: ['classic', 'compact', 'top', 'hybrid'], sidebar: ['expanded', 'collapsed'], theme: ['light', 'dark', 'system'] };
   var NAMES = { classic: 'Classic Sidebar', compact: 'Compact Sidebar', top: 'Top Navigation', hybrid: 'Modern Hybrid' };
   var HINTS = Object.assign({
@@ -55,11 +55,25 @@
     applyingTheme = false;
   }
 
+  /* Yuqori menyu sig'maguncha ixçamlaşadi: avval ikonkalar, keyin ikkinçi darajali bandlar "Köproq"qa ötadi */
+  function fitTopNav() {
+    var nav = $('.nr-tn');
+    if (!nav) return;
+    root.removeAttribute('data-tn-fit');
+    if (S.layout !== 'top' || !mqDesk.matches) return;
+    ['icons', 'compact'].some(function (level) {
+      if (nav.scrollWidth <= nav.clientWidth + 1) return true;
+      root.setAttribute('data-tn-fit', level);
+      return false;
+    });
+  }
+
   function apply() {
     root.setAttribute('data-layout', S.layout);
     root.setAttribute('data-sb', S.sidebar);
     root.setAttribute('data-motion', S.motion ? 'on' : 'off');
     applyTheme();
+    fitTopNav();
     document.dispatchEvent(new CustomEvent('itc:navchange', { detail: Object.assign({}, S) }));
     var col = $('#nrCollapse'), exp = S.sidebar === 'expanded';
     if (col) {
@@ -72,14 +86,45 @@
 
   function syncControls() {
     $$('input[name=nsLayout]', panel).forEach(function (i) { i.checked = i.value === S.layout; });
-    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = i.value === S.sidebar; i.disabled = S.layout === 'top'; });
+    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = i.value === S.sidebar; i.disabled = S.layout === 'top' || !cfg.canCustomize; });
     $$('input[name=nsTheme]', panel).forEach(function (i) { i.checked = i.value === S.theme; });
+    syncWeather(window.ITCWeather ? window.ITCWeather.get() : null);
+    $$('input[name=nsLang]', panel).forEach(function (i) { i.checked = i.value === initial.language; });
     $('#nsMotion').checked = S.motion;
     $('#nsAutosave').checked = S.autosave;
-    $('#nsSbGroup').toggleAttribute('disabled', S.layout === 'top');
+    $('#nsSbGroup').toggleAttribute('disabled', S.layout === 'top' || !cfg.canCustomize);
     $('#nsSave').hidden = S.autosave;
     $('#nsSbHint').innerHTML = '<i class="bi bi-info-circle" aria-hidden="true"></i><span>' + HINTS[S.layout] + '</span>';
     setPreview(S.layout);
+  }
+
+  function syncWeather(effect) {
+    $$('input[name=nsWeather]', panel).forEach(function (i) { i.checked = i.value === effect; });
+  }
+  /* Til akkauntga yoziladi va sahifa qayta yuklanadi: standart tilda tarjima skripti umuman yuklanmaydi */
+  function setLanguage(lang) {
+    setState('', '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Saqlanmoqda…');
+    return fetch(cfg.saveUrl, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': cfg.csrf, 'X-Requested-With': 'XMLHttpRequest' },
+      body: JSON.stringify({ language: lang })
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      location.reload();
+    }).catch(function (err) {
+      syncControls();
+      setState('err', '<i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Saqlab bölmadi — internetni tekşiring');
+      throw err;
+    });
+  }
+  function saveWeather(effect) {
+    setState('', '<i class="bi bi-arrow-repeat" aria-hidden="true"></i> Saqlanmoqda…');
+    window.ITCWeather.save(effect).then(function (latest) {
+      if (latest) setState('ok', '<i class="bi bi-cloud-check" aria-hidden="true"></i> Effekt akkauntga saqlandi');
+    }).catch(function () {
+      setState('err', '<i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Saqlab bölmadi — internetni tekşiring');
+    });
   }
 
   function setPreview(layout) {
@@ -211,7 +256,7 @@
 
   /* ───────── Hodisalar ───────── */
   function toggleSidebar() {
-    if (S.layout === 'top' || !mqDesk.matches) return;
+    if (!cfg.canCustomize || S.layout === 'top' || !mqDesk.matches) return;
     commit({ sidebar: S.sidebar === 'expanded' ? 'collapsed' : 'expanded' });
   }
   function resetPrefs() {
@@ -229,13 +274,21 @@
   $('#nsSave').addEventListener('click', function () { var all = Object.assign({}, S); queue(all, true); });
   var col = $('#nrCollapse');
   if (col) col.addEventListener('click', toggleSidebar);
-  cfg.api = { toggleSidebar: toggleSidebar }; // panellardagi öz yiğiş tugmasi uçun
+  cfg.api = {
+    toggleSidebar: toggleSidebar, // panellardagi öz yiğiş tugmasi uçun
+    // Sozlamalar sahifasidan: tanlov har doim akkauntga yoziladi (hatto qiymat özgarmagan bölsa ham —
+    // akkauntda mavzu hali tanlanmagan bölişi mumkin)
+    setTheme: function (mode) { commit({ theme: mode }); queue({ theme: mode }, true); },
+    setLanguage: setLanguage
+  };
 
   panel.addEventListener('change', function (e) {
     var i = e.target;
     if (i.name === 'nsLayout') commit({ layout: i.value });
     else if (i.name === 'nsSidebar') commit({ sidebar: i.value });
     else if (i.name === 'nsTheme') commit({ theme: i.value });
+    else if (i.name === 'nsWeather') saveWeather(i.value);
+    else if (i.name === 'nsLang') setLanguage(i.value).catch(function () {});
     else if (i.id === 'nsMotion') commit({ motion: i.checked });
     else if (i.id === 'nsAutosave') commit({ autosave: i.checked }, { forceSave: true });
   });
@@ -280,8 +333,18 @@
     syncControls();
     if (S.autosave) queue({ theme: t }); else { pending.theme = t; dirty = true; }
   });
+  // Sozlamalar sahifasidan yoki boşqa tabdan özgartirilsa — panel ham töğri tursin
+  document.addEventListener('itc:weatherchange', function (e) { syncWeather(e.detail); });
   mqDark.addEventListener('change', function () { if (S.theme === 'system') applyTheme(); });
   mqDesk.addEventListener('change', hideTip);
+  var fitFrame = 0;
+  function scheduleFit() {
+    cancelAnimationFrame(fitFrame);
+    fitFrame = requestAnimationFrame(fitTopNav);
+  }
+  addEventListener('resize', scheduleFit);
+  document.addEventListener('itc:i18n-done', scheduleFit); // Tarjimadan keyin matn uzunligi özgaradi
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(scheduleFit);
   addEventListener('pagehide', function () {
     // Sahifadan çiqişda kutilayotgan saqlaşni yöqotmaslik
     if (!Object.keys(pending).length || !S.autosave) return;

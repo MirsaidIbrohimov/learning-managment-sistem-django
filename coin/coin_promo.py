@@ -139,7 +139,7 @@ def create_promo(admin, *, code, title, coins, price_regular, price_premium, day
             valid_until=timezone.now() + timedelta(days=days),
         )
         announce(promo, admin)
-    return promo, f"{code} yaratildi va hammaga e'lon qilindi."
+    return promo, f"{code} yaratildi. Sayt va Telegramda e'lon qilindi, emaillar fon rejimida sekin yuboriladi."
 
 
 def announcement_text(promo):
@@ -163,28 +163,30 @@ def announcement_text(promo):
 
 
 def _broadcast_telegram(telegram_ids, text):
-    """Bitta fon oqimida ketma-ket yuboradi (Telegram limiti: ~25 xabar/soniya)."""
+    """Bitta fon oqimida ketma-ket yuboradi: soniyasiga 10 ta, sayt jarayoni band bölib qolmasin."""
     token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
     if not token or not telegram_ids:
         return
 
     def run():
+        import requests
         from telegram_bot import premium as tg
-        for i, chat_id in enumerate(telegram_ids):
-            try:
-                tg.send_message(token, chat_id, text)
-            except Exception:
-                logger.warning('Promo e\'loni yuborilmadi (telegram_id=%s).', chat_id, exc_info=True)
-            if i % 25 == 24:
-                time.sleep(1)
+        with requests.Session() as session:  # Har xabarga yangi TLS ulaniş ochilmasin
+            for i, chat_id in enumerate(telegram_ids):
+                try:
+                    tg.send_message(token, chat_id, text, session=session)
+                except Exception:
+                    logger.warning('Promo e\'loni yuborilmadi (telegram_id=%s).', chat_id, exc_info=True)
+                if i % 10 == 9:
+                    time.sleep(1)
     threading.Thread(target=run, daemon=True).start()
 
 
 def announce(promo, sender):
     """Guruh, barça foydalanuvçilar: sayt xabari, Telegram va email.
 
-    Emaillar navbatga qöyiladi — ularni har daqiqalik `send_email_notifications` cron yuboradi
-    (minglab xat admin sörovini qotirmasin).
+    Emaillar navbatga qöyiladi — ularni `deliver_due` limit bilan sekin yuboradi
+    (minglab xat saytni qotirmasin).
     """
     from accounts.models import UserEmailNotification
 
@@ -192,7 +194,11 @@ def announce(promo, sender):
     Message.objects.create(title=text['title'], content=text['plain'], message_type='all', sender=sender)
     users = CustomUser.objects.filter(is_active=True, is_blocked=False)
     telegram_ids = list(users.exclude(telegram_id__isnull=True).values_list('telegram_id', flat=True))
-    email_user_ids = users.exclude(email='').exclude(email__isnull=True).values_list('pk', flat=True)
+    # Bitta email bir nechta hisobda bölsa, xat unga bir marta boradi
+    by_address = {}
+    for uid, address in users.exclude(email='').exclude(email__isnull=True).order_by('pk').values_list('pk', 'email'):
+        by_address.setdefault(address.strip().lower(), uid)
+    email_user_ids = list(by_address.values())
     UserEmailNotification.objects.bulk_create([
         UserEmailNotification(user_id=uid, kind='coin_promo', dedup_key=f'coin_promo:{promo.pk}:{uid}',
                               payload={'promo_id': promo.pk})

@@ -13,7 +13,7 @@
       <div>
         <div class="clock"><i class="bi bi-calendar3"></i> <span id="date"></span> · <b id="time">--:--</b></div>
         <div class="badges"><span class="bdg">Administrator</span></div>
-        <h1 id="heroTitle"><span class="split"><span data-greet>Xuş kelibsiz</span>, {{ user.first_name|default:user.username }} 👋</span></h1>
+        <h1 id="heroTitle"><span class="split">{% include 'accounts/dashboard/_greeting.html' %}, {{ user.first_name|default:user.username }} 👋</span></h1>
         <p class="msg">Tizimning umumiy holati va kutilayotgan işlar bir qaraşda.{% if new_users_week %} Oxirgi 7 kunda <b>{{ new_users_week }}</b> ta yangi foydalanuvçi qöşildi.{% endif %}</p>
         <div class="todaybar" style="margin-top:14px">
           <span><span class="live"></span> Hozir onlayn: <b>{{ online_now }}</b></span>
@@ -102,6 +102,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>(function(){var g=document.querySelector('#heroTitle [data-greet]');if(!g)return;var h=new Date().getHours();g.textContent=h<5?'Xayrli tun':h<12?'Xayrli tong':h<18?'Xayrli kun':'Xayrli keç';})();</script>
 {% include 'accounts/dashboard/_motion_js.html' %}
 {% endblock %}

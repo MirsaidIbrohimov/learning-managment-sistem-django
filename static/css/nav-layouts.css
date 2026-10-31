@@ -27,6 +27,11 @@
 .nr-tn-link.active::after{transform:scaleX(1)}
 .nr-tn-menu{min-width:250px;padding:8px}
 .nr-tn-menu .nr-tn-narrow{display:none}
+/* Menyu sig'masa nav-prefs.js bosqichma-bosqich ixçamlaydi: til va rolga qarab uzunligi har xil */
+html[data-tn-fit] .nr-tn-link{padding:0 9px}
+html[data-tn-fit] .nr-tn-link i:not(.nr-chev){display:none}
+html[data-tn-fit=compact] .nr-tn .nr-tn-sec{display:none}
+html[data-tn-fit=compact] .nr-tn-menu .nr-tn-narrow{display:flex}
 
 /* ═══ Ilovalar menyusi (partials/nav/_apps_menu.html) ═══ */
 .nr-apps-pop{width:340px;max-width:calc(100vw - 24px)}
@@ -152,6 +157,13 @@ html.ns-open .ns-scrim{opacity:1;visibility:visible;transition:opacity .3s}
 .ns-group{margin:0 0 22px;padding:0;border:0;min-width:0}
 .ns-group legend{float:none;width:auto;margin:0 0 10px;padding:0;font-size:13px;font-weight:700;line-height:1.4;color:var(--nr-ink)}
 .ns-group[disabled] .ns-seg{opacity:.45}
+.ns-locked .ns-lay-grid{opacity:.5}
+.ns-locked .ns-lay{cursor:not-allowed}
+.ns-locked .ns-seg label{cursor:not-allowed}
+.ns-lock{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;text-decoration:none;vertical-align:middle}
+.ns-lock:hover{color:#78350f;background:#fde68a}
+.ns-seg-2x2{grid-template-columns:repeat(4,1fr)}
+@media(max-width:400px){.ns-seg-2x2{grid-template-columns:repeat(2,1fr)}}
 .ns-hint{display:flex;gap:6px;align-items:flex-start;margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--nr-muted)}
 .ns-center{justify-content:center}
 .ns-tag{display:inline-block;font:700 9.5px/1 'JetBrains Mono',monospace;font-style:normal;letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:999px;background:color-mix(in srgb,var(--nr-acc) 14%,transparent);color:var(--nr-acc);vertical-align:middle}

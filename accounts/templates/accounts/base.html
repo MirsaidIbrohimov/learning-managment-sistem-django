@@ -2,6 +2,7 @@
 <html lang="uz" data-bs-theme="light"{% if user.is_authenticated %} data-layout="{{ nav_prefs.layout }}" data-sb="{{ nav_prefs.sidebar }}" data-motion="{{ nav_prefs.motion|yesno:'on,off' }}"{% endif %}>
 
 <head>
+    {% include 'partials/i18n/_head.html' %}
     {% load static custom_filters %}
     <meta charset="UTF-8">
     <script src="{% static 'js/ai-jobs.js' %}"></script>
@@ -426,6 +427,7 @@
 </style>
 
 <!-- 🌦 Weather Effect -->
+{% include 'partials/weather/_effect.html' %}
 
 <!-- ⏳ Page Loading -->
 <div id="pageLoader">
@@ -1789,58 +1791,6 @@
     </script>
     {% endif %}
 
-    <!-- Language Translation System -->
-<script>
-(function(){
-    var T = {
-        uz: {
-            'nav.home': 'Boş sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
-            'nav.posts': 'Postlar', 'nav.market': 'Market',
-            'nav.help': 'Yordam', 'nav.tasks': 'Vazifalar', 'nav.balance': 'Balans',
-            'menu.profile': 'Profil', 'menu.messages': 'Xabarlar', 'menu.ai_chat': 'AI suhbat',
-            'menu.games': "Öyinlar", 'menu.my_homework': 'Vazifalarim',
-            'menu.my_books': 'Ijaradagi kitoblarim', 'menu.devices': 'Qurilmalar',
-            'menu.settings': 'Sozlamalar', 'menu.teacher_panel': "Öqituvçi paneli",
-            'menu.admin_panel': 'Panel', 'menu.logout': 'Çiqiş',
-        },
-        ru: {
-            'nav.home': 'Главная', 'nav.courses': 'Курсы', 'nav.rating': 'Рейтинг',
-            'nav.posts': 'Посты', 'nav.market': 'Магазин',
-            'nav.help': 'Помощь', 'nav.tasks': 'Задания', 'nav.balance': 'Баланс',
-            'menu.profile': 'Профиль', 'menu.messages': 'Сообщения', 'menu.ai_chat': 'AI чат',
-            'menu.games': 'Игры', 'menu.my_homework': 'Мои задания',
-            'menu.my_books': 'Арендованные книги', 'menu.devices': 'Устройства',
-            'menu.settings': 'Настройки', 'menu.teacher_panel': 'Панель учителя',
-            'menu.admin_panel': 'Панель', 'menu.logout': 'Выход',
-        },
-        en: {
-            'nav.home': 'Home', 'nav.courses': 'Courses', 'nav.rating': 'Rating',
-            'nav.posts': 'Posts', 'nav.market': 'Market',
-            'nav.help': 'Help', 'nav.tasks': 'Tasks', 'nav.balance': 'Balance',
-            'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Çat',
-            'menu.games': 'Games', 'menu.my_homework': 'My Homework',
-            'menu.my_books': 'Rented Books', 'menu.devices': 'Devices',
-            'menu.settings': 'Settings', 'menu.teacher_panel': 'Teacher Panel',
-            'menu.admin_panel': 'Panel', 'menu.logout': 'Log out',
-        }
-    };
-    function applyLang(lang) {
-        if (!T[lang]) lang = 'uz';
-        document.querySelectorAll('[data-i18n]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n');
-            if (T[lang][key]) el.textContent = T[lang][key];
-        });
-        document.documentElement.setAttribute('lang', lang);
-    }
-    var lang = localStorage.getItem('siteLang') || 'uz';
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function(){ applyLang(lang); });
-    } else {
-        applyLang(lang);
-    }
-    window.applySiteLang = applyLang;
-})();
-</script>
 {% if user.is_authenticated %}
 <script>
   window.ITC_NOTIFY = { feedUrl: "{% url 'api_notify_feed' %}", chatsUrl: "{% url 'chat_inbox' %}", messagesUrl: "{% url 'messages' %}", markReadUrl: "{% url 'api_notify_mark_all_read' %}", csrf: "{{ csrf_token }}" };

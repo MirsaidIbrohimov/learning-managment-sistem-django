@@ -256,6 +256,7 @@ let DIFFICULTY = 'medium';
 let PLAYER_COLOR = 'white';
 let MP_MODE = 'casual';
 let MP_WAGER = 0;
+let MP_ANNULLED = null;   // server juda tez g'alabani bekor qilgan bo'lsa — sabab
 let SERVICE_FEE_PCT = 15;   // coin tikilganda ğoliblikdan uşlanadigan xizmat haqi (%)
 let OPPONENT = { name: 'AI', meta: 'Kompyuter' };
 let MATCH_ID = null;
@@ -1698,7 +1699,20 @@ function showResult(result, score, elapsed) {
             }
         }
     }
+    if (MODE === 'mp' && MP_ANNULLED) showIllegalResult(MP_ANNULLED);
     showScreen('result');
+}
+
+// ⏱ Server g'alabani 1 daqiqadan tez deb rad etsa / bekor qilsa — natija ekrani "noqonuniy" ko'rinishga o'tadi.
+function showIllegalResult(msg) {
+    $('result-bg').className = 'result-bg lose';
+    $('result-emoji').innerHTML = '<i class="bi bi-shield-exclamation"></i>';
+    $('result-title').textContent = "Noqonuniy öyin";
+    $('result-subtitle').textContent = msg || "Siz noqonuniy öynadingiz.";
+    const starsEl = $('result-stars');
+    if (starsEl) starsEl.innerHTML = '';
+    const st = $('submit-status');
+    if (st) { st.className = 'submit-status error'; st.innerHTML = '<i class="bi bi-shield-exclamation"></i> ' + (msg || "Siz noqonuniy öynadingiz."); }
 }
 
 async function submitAiResult(result, score, time) {
@@ -1708,10 +1722,13 @@ async function submitAiResult(result, score, time) {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 token: TOKEN, game: GAME, result, score, time_spent: time,
-                meta: { mode:'ai', difficulty: DIFFICULTY, moves: moveHistory.length, competition_id: COMPETITION_ID },
+                meta: { mode:'ai', difficulty: DIFFICULTY, moves: moveHistory.length, competition_id: COMPETITION_ID,
+                        // Server partiyani qayta öynab tekşiradi (anti-cheat): [fromR, fromC, toR, toC, promo]
+                        history: moveHistory.map(m => [m.from.r, m.from.c, m.to.r, m.to.c, m.promoTo || '']) },
             })
         });
         const data = await res.json();
+        if (data.illegal) { showIllegalResult(data.error); return; }
         if (res.ok && data.ok) {
             $('submit-status').className = 'submit-status success';
             const coinMsg = data.coins_awarded ? `  +${data.coins_awarded} coin` : '';
@@ -1792,6 +1809,8 @@ async function findMultiplayerMatch(mpMode = 'casual', wager = 0) {
             const data = await res.json();
             if (!res.ok || !data.ok) { $('mm-status').innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + (data.error || 'Xato'); return; }
             const m = data.match;
+            if (m && m.annulled) MP_ANNULLED = m.annulled;
+        if (m && m.annulled) MP_ANNULLED = m.annulled;
             MATCH_ID = m.id;
             PLAYER_COLOR = m.your_role;
             if (m.status === 'active') {
@@ -1956,6 +1975,7 @@ async function pollMatchState() {
         mpPollFailCount = 0;
         hideReconnectOverlay();
         const m = data.match;
+        if (m && m.annulled) MP_ANNULLED = m.annulled;
         const isEnded = m.status === 'ended';
         // Yangi yurish(lar) — raqib yurdi.
         const hasNewMove = m.move_count > lastSeenMoveCount;
@@ -2034,6 +2054,7 @@ async function sendMpMove(winner = null) {
             const data = await res.json();
             if (data.ok) {
                 lastSeenMoveCount = data.match.move_count;
+                if (data.match.annulled) MP_ANNULLED = data.match.annulled;
                 if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
                 return data.match;
             }

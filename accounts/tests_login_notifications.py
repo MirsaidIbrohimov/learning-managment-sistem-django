@@ -6,6 +6,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.test import RequestFactory, TestCase, override_settings
 
+from .email_notifications import deliver_due
 from .login_notifications import login_details
 from .models import CustomUser, UserEmailNotification
 
@@ -28,6 +29,8 @@ class LoginNotificationTests(TestCase):
         for _ in range(2):
             with self.captureOnCommitCallbacks(execute=True):
                 login(self.request(ua), self.user, backend='django.contrib.auth.backends.ModelBackend')
+        self.assertEqual(len(mail.outbox), 0)  # Kiriş sörovi SMTP'ni kutmaydi
+        deliver_due()
         self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(UserEmailNotification.objects.filter(kind='login', sent_at__isnull=False).count(), 2)
         for value in ('SM-S918B', 'Android 13', 'Chrome 120.0.0.0', '203.0.113.5', ua):
@@ -46,6 +49,7 @@ class LoginNotificationTests(TestCase):
         with patch('accounts.email_notifications.EmailMultiAlternatives.send', side_effect=SMTPException('failed')):
             with self.captureOnCommitCallbacks(execute=True):
                 login(request, self.user, backend='django.contrib.auth.backends.ModelBackend')
+            deliver_due()
         self.assertEqual(int(request.session['_auth_user_id']), self.user.pk)
         notification = UserEmailNotification.objects.get(kind='login')
         self.assertIsNone(notification.sent_at)

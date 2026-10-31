@@ -1,0 +1,6 @@
+{% load static nav_prefs %}{% get_nav_prefs as i18n_prefs %}{% if i18n_prefs.language == 'uz' %}<style>html[data-i18n-pending] body{visibility:hidden}</style>
+<script src="{% static 'i18n/i18n-runtime.js' %}" data-lang="uz"></script>{% elif i18n_prefs.language == 'ru' %}<style>html[data-i18n-pending] body{visibility:hidden}</style>
+<link rel="preload" href="{% static 'i18n/ru.json' %}" as="fetch" crossorigin>
+<script src="{% static 'i18n/i18n-runtime.js' %}" data-lang="ru" data-catalog="{% static 'i18n/ru.json' %}"></script>{% elif i18n_prefs.language == 'en' %}<style>html[data-i18n-pending] body{visibility:hidden}</style>
+<link rel="preload" href="{% static 'i18n/en.json' %}" as="fetch" crossorigin>
+<script src="{% static 'i18n/i18n-runtime.js' %}" data-lang="en" data-catalog="{% static 'i18n/en.json' %}"></script>{% endif %}

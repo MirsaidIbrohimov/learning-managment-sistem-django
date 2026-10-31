@@ -228,7 +228,7 @@ class CustomUser(AbstractUser):
     name_color = models.CharField(max_length=20, choices=NAME_COLOR_CHOICES, default='default', verbose_name="Ism rangi")
     profile_banner = models.CharField(max_length=20, choices=PROFILE_BANNER_CHOICES, default='none', verbose_name="Profil banneri")
     gold_theme = models.BooleanField(default=False, verbose_name="Oltin mavzu")
-    weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
+    weather_effect = models.CharField(max_length=20, default='off', verbose_name="Ob-havo effekti")
 
     # Telegram
     telegram_id = models.BigIntegerField(null=True, blank=True, unique=True, verbose_name="Telegram ID")
@@ -1757,16 +1757,19 @@ class NavigationPreference(models.Model):
     SIDEBAR_CHOICES = [('expanded', 'Kengaytirilgan'), ('collapsed', "Yiğilgan")]
     # '' — foydalanuvçi hali tanlamagan: brauzerdagi (localStorage) mavzu işlatiladi
     THEME_CHOICES = [('', 'Tanlanmagan'), ('light', "Yorug'"), ('dark', "Qoronği"), ('system', 'Tizim')]
+    # oz — yangi alifbo (saytning asl matni), uz — eski lotin alifbosi
+    LANGUAGE_CHOICES = [('oz', 'Özbek'), ('uz', "O'zbek"), ('ru', 'Русский'), ('en', 'English')]
 
     user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='nav_preference')
-    layout = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='compact', verbose_name="Navigatsiya körinişi")
+    layout = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='top', verbose_name="Navigatsiya körinişi")
     sidebar = models.CharField(max_length=10, choices=SIDEBAR_CHOICES, default='expanded', verbose_name="Yon panel holati")
     theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='', blank=True, verbose_name="Mavzu")
     motion = models.BooleanField(default=True, verbose_name="Animatsiyalar")
     autosave = models.BooleanField(default=True, verbose_name="Avtomatik saqlaş")
+    language = models.CharField(max_length=2, choices=LANGUAGE_CHOICES, default='oz', verbose_name="Sayt tili")
     updated_at = models.DateTimeField(auto_now=True)
 
-    DEFAULTS = {'layout': 'compact', 'sidebar': 'expanded', 'theme': '', 'motion': True, 'autosave': True}
+    DEFAULTS = {'layout': 'top', 'sidebar': 'expanded', 'theme': '', 'motion': True, 'autosave': True, 'language': 'oz'}
 
     class Meta:
         verbose_name = "Navigatsiya sozlamasi"

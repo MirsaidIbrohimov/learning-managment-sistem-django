@@ -53,6 +53,10 @@ if EMAIL_HOST.lower() == 'smtp.gmail.com':
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() in ('true', '1', 'yes')
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
+# Ommaviy xatlar (promo): sayt va pochta xizmati limitlarini bosmaslik uçun sekin yuboriladi
+EMAIL_BULK_PER_MINUTE = int(os.getenv('EMAIL_BULK_PER_MINUTE', '20'))
+EMAIL_BULK_PER_DAY = int(os.getenv('EMAIL_BULK_PER_DAY', '400'))
+EMAIL_BULK_PAUSE_SECONDS = float(os.getenv('EMAIL_BULK_PAUSE_SECONDS', '1'))
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '').strip() or EMAIL_HOST_USER or 'webmaster@localhost'
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Video davomiyligini SERVER tomonda aniqlaş uçun (anti-cheat asosi). Böş

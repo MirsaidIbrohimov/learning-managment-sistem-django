@@ -7328,31 +7328,31 @@ def site_settings(request):
 
 
 @login_required
+@require_POST
 def save_weather_effect(request):
-    if request.method == 'POST':
-        import json
-        try:
-            data = json.loads(request.body)
-            effect = data.get('effect', 'auto')
-        except (json.JSONDecodeError, AttributeError):
-            effect = request.POST.get('effect', 'auto')
+    """Ob-havo effekti tanlovini akkauntga saqlaş (JSON, CSRF bilan). Faqat premium."""
+    from .nav_preferences import can_customize
+    if not can_customize(request.user):
+        return JsonResponse({'status': 'error', 'error': 'premium_required'}, status=403)
+    try:
+        data = json.loads(request.body or b'{}')
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({'status': 'error'}, status=400)
 
-        allowed = ('off', 'auto', 'winter', 'spring', 'summer', 'autumn')
-        if effect not in allowed:
-            effect = 'auto'
+    effect = data.get('effect') if isinstance(data, dict) else None
+    if effect not in ('off', 'auto', 'winter', 'spring', 'summer', 'autumn'):
+        return JsonResponse({'status': 'error'}, status=400)
 
-        request.user.weather_effect = effect
-        request.user.save(update_fields=['weather_effect'])
-        return JsonResponse({'status': 'ok'})
-
-    return JsonResponse({'status': 'error'}, status=400)
+    request.user.weather_effect = effect
+    request.user.save(update_fields=['weather_effect'])
+    return JsonResponse({'status': 'ok'})
 
 
 @login_required
 @require_POST
 def save_navigation_preferences(request):
     """Navigatsiya körinişi sozlamalarini akkauntga saqlaş (JSON, CSRF bilan)."""
-    from .nav_preferences import clean, save_prefs
+    from .nav_preferences import PREMIUM_ONLY, can_customize, clean, effective, get_prefs, save_prefs
     try:
         data = json.loads(request.body or b'{}')
     except (json.JSONDecodeError, UnicodeDecodeError):
@@ -7360,7 +7360,14 @@ def save_navigation_preferences(request):
     changes = clean(data)
     if not changes:
         return JsonResponse({'status': 'error', 'error': "Sozlama topilmadi"}, status=400)
-    prefs = save_prefs(request.user, changes)
+    if not can_customize(request.user):
+        # "Saqlaş" tugmasi barça sozlamani yuboradi: standart qiymat özgariş emas, shuning uçun rad etilmaydi
+        if any(key in changes and changes[key] != value for key, value in PREMIUM_ONLY.items()):
+            return JsonResponse({'status': 'error', 'error': 'premium_required'}, status=403)
+        changes = {key: value for key, value in changes.items() if key not in PREMIUM_ONLY}
+        if not changes:
+            return JsonResponse({'status': 'ok', 'prefs': get_prefs(request)})
+    prefs = effective(request.user, save_prefs(request.user, changes))
     return JsonResponse({'status': 'ok', 'prefs': prefs})
 
 

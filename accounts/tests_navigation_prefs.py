@@ -47,7 +47,7 @@ class NavigationPreferencesTests(TestCase):
         self.assertEqual(self.client.get(reverse('save_navigation_preferences')).status_code, 405)
 
     def test_save_and_partial_update(self):
-        user = self.login()
+        user = self.login(is_premium=True)
         response = self.post({'layout': 'hybrid', 'sidebar': 'collapsed', 'theme': 'system', 'motion': False})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['prefs']['layout'], 'hybrid')
@@ -69,10 +69,10 @@ class NavigationPreferencesTests(TestCase):
         self.assertEqual(self.post({'layout': 'top'}, client=client).status_code, 403)
 
     # ── base.html ──
-    def test_defaults_render_current_compact_nav(self):
+    def test_defaults_render_top_nav(self):
         self.login()
         html = self.home()
-        self.assertIn('data-layout="compact"', html)
+        self.assertIn('data-layout="top"', html)
         self.assertIn('data-sb="expanded"', html)
         self.assertIn('id="nsPanel"', html)
         self.assertIn('js/nav-prefs.js', html)
@@ -83,7 +83,7 @@ class NavigationPreferencesTests(TestCase):
             self.assertIn(marker, html)
 
     def test_saved_prefs_restored_on_render(self):
-        user = self.login()
+        user = self.login(is_premium=True)
         NavigationPreference.objects.create(user=user, layout='top', sidebar='collapsed', theme='dark', motion=False)
         html = self.home()
         self.assertIn('data-layout="top"', html)
@@ -92,12 +92,56 @@ class NavigationPreferencesTests(TestCase):
         self.assertIn("srv='dark'", html)
 
     def test_prefs_are_per_user(self):
-        student = self.login('student')
+        student = self.login('student', is_premium=True)
         NavigationPreference.objects.create(user=student, layout='classic')
+        self.assertIn('data-layout="classic"', self.home())
         other = Client()
         self.login('teacher', client=other)
         html = other.get(reverse('home')).content.decode()
-        self.assertIn('data-layout="compact"', html)
+        self.assertIn('data-layout="top"', html)
+
+    # ── Premium ──
+    def test_free_user_cannot_change_premium_settings(self):
+        user = self.login()
+        for data in ({'layout': 'hybrid'}, {'sidebar': 'collapsed'}, {'language': 'ru'}):
+            with self.subTest(data=data):
+                self.assertEqual(self.post(data).status_code, 403)
+        self.assertFalse(NavigationPreference.objects.filter(user=user).exists())
+
+    def test_free_user_keeps_free_settings(self):
+        user = self.login()
+        response = self.post({'theme': 'dark', 'motion': False})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['prefs']['layout'], 'top')
+        pref = NavigationPreference.objects.get(user=user)
+        self.assertEqual((pref.theme, pref.motion), ('dark', False))
+
+    def test_free_user_save_all_with_defaults_is_accepted(self):
+        # Avtomatik saqlaş öçiq bölsa "Saqlaş" tugmasi barça qiymatni yuboradi
+        user = self.login()
+        data = {'layout': 'top', 'sidebar': 'expanded', 'language': 'oz', 'theme': 'dark'}
+        self.assertEqual(self.post(data).status_code, 200)
+        self.assertEqual(NavigationPreference.objects.get(user=user).theme, 'dark')
+
+    def test_saved_layout_ignored_without_premium_and_restored_with_it(self):
+        user = self.login(is_premium=True)
+        self.assertEqual(self.post({'layout': 'classic', 'sidebar': 'collapsed', 'language': 'ru'}).status_code, 200)
+        CustomUser.objects.filter(pk=user.pk).update(is_premium=False)
+        html = self.home()
+        self.assertIn('data-layout="top"', html)
+        self.assertIn('data-sb="expanded"', html)
+        pref = NavigationPreference.objects.get(user=user)
+        self.assertEqual((pref.layout, pref.sidebar, pref.language), ('classic', 'collapsed', 'ru'))
+        CustomUser.objects.filter(pk=user.pk).update(is_premium=True)
+        self.assertIn('data-layout="classic"', self.home())
+
+    def test_expired_premium_flag_is_not_enough(self):
+        user = self.login(is_premium=True)
+        NavigationPreference.objects.create(user=user, layout='classic')
+        CustomUser.objects.filter(pk=user.pk).update(premium_expires_at=timezone.now() - timedelta(minutes=1))
+        cache.set('global_premium_expiry_check', True, 600)
+        self.assertIn('data-layout="top"', self.home())
+        self.assertEqual(self.post({'layout': 'hybrid'}).status_code, 403)
 
     # ── Rollar (yuqori menyu ham yon panel qoidalariga böysunadi) ──
     def test_top_links_respect_roles(self):
@@ -120,11 +164,11 @@ class NavigationPreferencesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         return response.content.decode()
 
-    def test_panels_default_keep_current_sidebar(self):
+    def test_panels_default_to_top(self):
         for role, url_name in (('teacher', 'teacher:dashboard'), ('admin', 'admin_dashboard')):
             with self.subTest(role=role):
                 html = self.panel(role, url_name)
-                self.assertIn('data-layout="compact"', html)
+                self.assertIn('data-layout="top"', html)
                 self.assertIn('id="nsPanel"', html)
                 self.assertIn('data-ctx="panel"', html)
                 self.assertIn('js/panel-nav.js', html)
@@ -135,7 +179,7 @@ class NavigationPreferencesTests(TestCase):
                     self.assertIn(marker, html)
 
     def test_panel_renders_saved_prefs(self):
-        user = self.login('teacher')
+        user = self.login('teacher', is_premium=True)
         NavigationPreference.objects.create(user=user, layout='hybrid', sidebar='collapsed', theme='dark')
         html = self.client.get(reverse('teacher:dashboard')).content.decode()
         self.assertIn('data-layout="hybrid"', html)
@@ -143,7 +187,7 @@ class NavigationPreferencesTests(TestCase):
         self.assertIn("srv='dark'", html)
 
     def test_panel_top_layout_not_collapsed(self):
-        user = self.login('admin', is_staff=True)
+        user = self.login('admin', is_staff=True, is_premium=True)
         NavigationPreference.objects.create(user=user, layout='top', sidebar='collapsed')
         html = self.client.get(reverse('admin_dashboard')).content.decode()
         self.assertIn('data-layout="top"', html)

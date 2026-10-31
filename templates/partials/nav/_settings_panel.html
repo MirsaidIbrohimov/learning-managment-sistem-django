@@ -18,8 +18,8 @@
       <p class="ns-hint ns-center"><i class="bi bi-eye" aria-hidden="true"></i> <span id="nsLiveCaption">Jonli köriniş</span></p>
     </section>
 
-    <fieldset class="ns-group">
-      <legend>Navigatsiya körinişi</legend>
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
+      <legend>Navigatsiya körinişi {% include 'partials/nav/_premium_lock.html' %}</legend>
       <div class="ns-lay-grid">
         <label class="ns-lay"><input type="radio" name="nsLayout" value="classic"><span class="ns-mini" data-l="classic" aria-hidden="true"></span><span class="ns-lay-tx"><b>Classic Sidebar</b><small>Töliq yon panel, nomlar bilan</small></span><i class="bi bi-check-circle-fill ns-ok" aria-hidden="true"></i></label>
         <label class="ns-lay"><input type="radio" name="nsLayout" value="compact"><span class="ns-mini" data-l="compact" aria-hidden="true"></span><span class="ns-lay-tx"><b>Compact Sidebar</b><small>{% if nav_ctx == 'panel' %}Hozirgi köriniş{% else %}Ikonkalar + tooltip{% endif %} <em class="ns-tag">Standart</em></small></span><i class="bi bi-check-circle-fill ns-ok" aria-hidden="true"></i></label>
@@ -29,13 +29,26 @@
       <p class="ns-hint ns-mobile-note"><i class="bi bi-phone" aria-hidden="true"></i><span>Telefonda doim qulay pastki menyu işlatiladi. Tanlangan köriniş kompyuter va planşetda qöllanadi.</span></p>
     </fieldset>
 
-    <fieldset class="ns-group" id="nsSbGroup">
-      <legend>Yon panel holati</legend>
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}" id="nsSbGroup">
+      <legend>Yon panel holati {% include 'partials/nav/_premium_lock.html' %}</legend>
       <div class="ns-seg">
         <label><input type="radio" name="nsSidebar" value="expanded"><span><i class="bi bi-layout-sidebar" aria-hidden="true"></i>Kengaytirilgan</span></label>
         <label><input type="radio" name="nsSidebar" value="collapsed"><span><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i>Yiğilgan</span></label>
       </div>
       <p class="ns-hint" id="nsSbHint"></p>
+    </fieldset>
+
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
+      <legend>Ob-havo effektlari {% include 'partials/nav/_premium_lock.html' %}</legend>
+      <div class="ns-seg ns-seg-3">
+        <label><input type="radio" name="nsWeather" value="off"><span><i class="bi bi-x-circle" aria-hidden="true"></i>Öçirilgan</span></label>
+        <label><input type="radio" name="nsWeather" value="auto"><span><i class="bi bi-magic" aria-hidden="true"></i>Avtomatik</span></label>
+        <label><input type="radio" name="nsWeather" value="winter"><span><i class="bi bi-snow" aria-hidden="true"></i>Qor</span></label>
+        <label><input type="radio" name="nsWeather" value="spring"><span><i class="bi bi-cloud-rain" aria-hidden="true"></i>Yomğir</span></label>
+        <label><input type="radio" name="nsWeather" value="summer"><span><i class="bi bi-brightness-high" aria-hidden="true"></i>Quyoş</span></label>
+        <label><input type="radio" name="nsWeather" value="autumn"><span><i class="bi bi-tree" aria-hidden="true"></i>Kuz</span></label>
+      </div>
+      <p class="ns-hint"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Tanlov darhol akkauntga saqlanadi. Avtomatik — hozirgi faslga qarab.</span></p>
     </fieldset>
 
     <fieldset class="ns-group">
@@ -45,6 +58,17 @@
         <label><input type="radio" name="nsTheme" value="dark"><span><i class="bi bi-moon-stars" aria-hidden="true"></i>Qoronği</span></label>
         <label><input type="radio" name="nsTheme" value="system"><span><i class="bi bi-display" aria-hidden="true"></i>Tizim</span></label>
       </div>
+    </fieldset>
+
+    <fieldset class="ns-group{% if not nav_prefs.can_customize %} ns-locked{% endif %}"{% if not nav_prefs.can_customize %} disabled{% endif %}>
+      <legend>Sayt tili {% include 'partials/nav/_premium_lock.html' %}</legend>
+      <div class="ns-seg ns-seg-2x2">
+        <label><input type="radio" name="nsLang" value="oz"><span translate="no">Özbek</span></label>
+        <label><input type="radio" name="nsLang" value="uz"><span translate="no">O'zbek</span></label>
+        <label><input type="radio" name="nsLang" value="ru"><span translate="no">Русский</span></label>
+        <label><input type="radio" name="nsLang" value="en"><span translate="no">English</span></label>
+      </div>
+      <p class="ns-hint"><i class="bi bi-info-circle" aria-hidden="true"></i><span>Sayt matnlari va qöllanmalar özgaradi. Dars, video va foydalanuvçi yozgan matnlar özgarmaydi.</span></p>
     </fieldset>
 
     <div class="ns-group">

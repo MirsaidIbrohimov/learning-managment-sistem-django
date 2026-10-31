@@ -1,7 +1,7 @@
 {% load static %}{% comment %}
   Navigatsiya sozlamalari konfiguratsiyasi + nav-prefs.js. nav_ctx='panel' — öqituvchi/admin panellari.
 {% endcomment %}{% if user.is_authenticated %}<script>
-  window.ITC_NAV = { saveUrl: "{% url 'save_navigation_preferences' %}", csrf: "{{ csrf_token }}", prefs: { layout: "{{ nav_prefs.layout }}", sidebar: "{{ nav_prefs.sidebar }}", theme: "{{ nav_prefs.theme }}", motion: {{ nav_prefs.motion|yesno:'true,false' }}, autosave: {{ nav_prefs.autosave|yesno:'true,false' }} }{% if nav_ctx == 'panel' %},
+  window.ITC_NAV = { saveUrl: "{% url 'save_navigation_preferences' %}", csrf: "{{ csrf_token }}", prefs: { layout: "{{ nav_prefs.layout }}", sidebar: "{{ nav_prefs.sidebar }}", theme: "{{ nav_prefs.theme }}", motion: {{ nav_prefs.motion|yesno:'true,false' }}, autosave: {{ nav_prefs.autosave|yesno:'true,false' }}, language: "{{ nav_prefs.language }}" }, canCustomize: {{ nav_prefs.can_customize|yesno:'true,false' }}{% if nav_ctx == 'panel' %},
     desktopQuery: "(min-width: 993px)", railSel: "#adminSidebar",
     hints: { compact: "Panelning hozirgi körinişi. Yiğilgan — faqat ikonkalar, nomlar tooltip’da. Tezkor tugma: Ctrl + B." }{% endif %} };
 </script>

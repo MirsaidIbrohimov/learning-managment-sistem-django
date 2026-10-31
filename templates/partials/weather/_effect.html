@@ -1,0 +1,1 @@
+{% load static nav_prefs %}{% if user.is_authenticated %}{% get_weather_effect as weather_effect %}<script src="{% static 'effects/weather_effect.js' %}" data-effect="{{ weather_effect }}" data-save-url="{% url 'save_weather_effect' %}" data-csrf="{{ csrf_token }}" defer></script>{% endif %}
