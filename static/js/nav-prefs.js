@@ -14,6 +14,9 @@
   var mqDark = matchMedia('(prefers-color-scheme: dark)');
   var mqDesk = matchMedia(cfg.desktopQuery || '(min-width: 992px)');
   var railSel = cfg.railSel || '#nrRail';
+  // Faqat aniq `false` qulflaydi: eski shablonda (server restart qilinmaguncha) qiymat yöq bölişi mumkin.
+  // Premium baribir serverda tekşiriladi, qulflangan bölimlar shablonda `disabled`.
+  var canCustomize = cfg.canCustomize !== false;
 
   var DEFAULTS = { layout: 'top', sidebar: 'expanded', theme: 'light', motion: true, autosave: true };
   var ALLOWED = { layout: ['classic', 'compact', 'top', 'hybrid'], sidebar: ['expanded', 'collapsed'], theme: ['light', 'dark', 'system'] };
@@ -87,13 +90,13 @@
   function syncControls() {
     $$('input[name=nsLayout]', panel).forEach(function (i) { i.checked = i.value === S.layout; });
     // Top rejimda hech biri belgilanmaydi: istalganini bosiş Classic Sidebar'ni yoqadi
-    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = S.layout !== 'top' && i.value === S.sidebar; i.disabled = !cfg.canCustomize; });
+    $$('input[name=nsSidebar]', panel).forEach(function (i) { i.checked = S.layout !== 'top' && i.value === S.sidebar; i.disabled = !canCustomize; });
     $$('input[name=nsTheme]', panel).forEach(function (i) { i.checked = i.value === S.theme; });
     syncWeather(window.ITCWeather ? window.ITCWeather.get() : null);
     $$('input[name=nsLang]', panel).forEach(function (i) { i.checked = i.value === initial.language; });
     $('#nsMotion').checked = S.motion;
     $('#nsAutosave').checked = S.autosave;
-    $('#nsSbGroup').toggleAttribute('disabled', !cfg.canCustomize);
+    $('#nsSbGroup').toggleAttribute('disabled', !canCustomize);
     $('#nsSave').hidden = S.autosave;
     $('#nsSbHint').innerHTML = '<i class="bi bi-info-circle" aria-hidden="true"></i><span>' + HINTS[S.layout] + '</span>';
     setPreview(S.layout);
@@ -257,11 +260,11 @@
 
   /* ───────── Hodisalar ───────── */
   function toggleSidebar() {
-    if (!cfg.canCustomize || S.layout === 'top' || !mqDesk.matches) return;
+    if (!canCustomize || S.layout === 'top' || !mqDesk.matches) return;
     commit({ sidebar: S.sidebar === 'expanded' ? 'collapsed' : 'expanded' });
   }
   function resetPrefs() {
-    if (!cfg.canCustomize) return;
+    if (!canCustomize) return;
     var before = Object.assign({}, S);
     commit(DEFAULTS, { forceSave: true });
     toast('Standart sozlamalar tiklandi', 'Qaytariş', function () { commit(before, { forceSave: true }); });
@@ -286,7 +289,7 @@
 
   panel.addEventListener('change', function (e) {
     var i = e.target;
-    if (!cfg.canCustomize) { syncControls(); return; } // Barça sozlamalar — faqat Premium
+    if (!canCustomize) { syncControls(); return; } // Barça sozlamalar — faqat Premium
     if (i.name === 'nsLayout') commit({ layout: i.value });
     else if (i.name === 'nsSidebar') commit(S.layout === 'top' ? { layout: 'classic', sidebar: i.value } : { sidebar: i.value });
     else if (i.name === 'nsTheme') commit({ theme: i.value });
