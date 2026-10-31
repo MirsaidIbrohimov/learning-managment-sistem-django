@@ -132,7 +132,7 @@ html[data-tn-fit=compact] .nr-tn-menu .nr-tn-narrow{display:flex}
 html[data-motion=off] :is(.nr-rail,.nr-rail *,.nr-top,.nr-top *,.nr-dock,.nr-dock *,.nr-pop,.nr-pop *,.nb-mobile-panel,.nb-mobile-panel *,.ns-panel,.ns-panel *,.ns-scrim,.ns-toast,.ns-tip){transition-duration:.001ms!important;transition-delay:0s!important;animation-duration:.001ms!important}
 
 /* ═══ Sozlamalar paneli ═══ */
-html.ns-lock,html.ns-lock body{overflow:hidden}
+html.ns-noscroll,html.ns-noscroll body{overflow:hidden}
 .ns-scrim{position:fixed;inset:0;z-index:1074;background:rgba(5,6,10,.4);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s}
 .ns-panel{position:fixed;z-index:1075;top:0;right:0;bottom:0;width:min(440px,100vw);display:flex;flex-direction:column;color:var(--nr-ink);background:var(--nr-solid);border-left:1px solid var(--nr-line);box-shadow:-30px 0 80px -30px rgba(0,0,0,.4);transform:translateX(102%);visibility:hidden;outline:none;transition:transform .4s var(--nl-ease),visibility 0s .4s}
 html.ns-open .ns-panel{transform:none;visibility:visible;transition:transform .4s var(--nl-ease),visibility 0s}
@@ -199,6 +199,43 @@ html.ns-open .ns-scrim{opacity:1;visibility:visible;transition:opacity .3s}
 .ns-toast.show{transform:translate(-50%,0);opacity:1;visibility:visible;pointer-events:auto}
 .ns-toast button{border:0;border-radius:9px;padding:6px 10px;background:color-mix(in srgb,var(--nr-solid) 18%,transparent);color:inherit;font-weight:700;cursor:pointer}
 @media (min-width:992px){.ns-toast{bottom:28px}}
+
+/* iOS uslubidagi shaffof shisha (sozlamalar paneli) */
+.ns-panel{--ns-glass:color-mix(in srgb,var(--nr-solid) 58%,transparent);--ns-tile:color-mix(in srgb,var(--nr-solid) 52%,transparent);--ns-fill:color-mix(in srgb,var(--nr-ink) 6%,transparent);--ns-hair:color-mix(in srgb,var(--nr-ink) 9%,transparent);--ns-rim:rgba(255,255,255,.7);--ns-hi:rgba(255,255,255,.55);
+  background:radial-gradient(120% 60% at 100% 0%,color-mix(in srgb,var(--nr-acc) 12%,transparent),transparent 60%),radial-gradient(100% 50% at 0% 100%,color-mix(in srgb,var(--nr-acc2) 10%,transparent),transparent 60%),var(--ns-glass);
+  -webkit-backdrop-filter:blur(40px) saturate(190%);backdrop-filter:blur(40px) saturate(190%);
+  border-left:1px solid var(--ns-rim);box-shadow:inset 0 1px 0 var(--ns-hi),0 30px 80px -24px rgba(15,23,42,.38)}
+[data-bs-theme=dark] .ns-panel{--ns-glass:color-mix(in srgb,var(--nr-solid) 64%,transparent);--ns-tile:rgba(255,255,255,.05);--ns-fill:rgba(255,255,255,.07);--ns-rim:rgba(255,255,255,.12);--ns-hi:rgba(255,255,255,.08);box-shadow:inset 0 1px 0 var(--ns-hi),0 30px 80px -24px rgba(0,0,0,.75)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.ns-panel{--ns-glass:var(--nr-solid)}}
+@media (min-width:576px){
+  .ns-panel{top:12px;right:12px;bottom:12px;width:min(420px,calc(100vw - 24px));border:1px solid var(--ns-rim);border-radius:28px;overflow:hidden;transform:translateX(calc(100% + 24px)) scale(.97)}
+}
+.ns-scrim{background:rgba(10,14,24,.24);-webkit-backdrop-filter:blur(6px) saturate(120%);backdrop-filter:blur(6px) saturate(120%)}
+@media (min-width:992px){.ns-scrim{background:rgba(10,14,24,.12)}}
+.ns-head,.ns-foot{border-color:var(--ns-hair)}
+.ns-head{padding:22px 20px 14px}
+.ns-head h2{font-size:21px;letter-spacing:-.02em}
+.ns-foot{background:color-mix(in srgb,var(--nr-solid) 30%,transparent)}
+.ns-panel .ns-head .nr-ib{width:34px;height:34px;border-radius:50%;border:0;background:var(--ns-fill);color:var(--nr-muted);font-size:.85rem}
+.ns-panel .ns-head .nr-ib:hover{color:var(--nr-ink);background:color-mix(in srgb,var(--nr-ink) 11%,transparent)}
+.ns-group legend{margin-bottom:8px;padding-left:4px;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--nr-muted)}
+.ns-preview,.ns-lay,.ns-group:has(.ns-sw){background:var(--ns-tile);border:1px solid var(--ns-rim);box-shadow:inset 0 1px 0 var(--ns-hi),0 8px 24px -18px rgba(15,23,42,.35)}
+.ns-preview{border-radius:22px}
+.ns-lay{border-radius:20px;border-width:1px}
+.ns-lay:hover{border-color:var(--ns-rim);transform:translateY(-2px);box-shadow:inset 0 1px 0 var(--ns-hi),0 14px 30px -18px rgba(15,23,42,.45)}
+.ns-lay:has(input:checked){border-color:var(--nr-acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--nr-acc) 18%,transparent),0 14px 30px -18px color-mix(in srgb,var(--nr-acc) 60%,transparent)}
+.ns-seg{border:0;border-radius:12px;padding:3px;gap:3px;background:var(--ns-fill)}
+.ns-seg span{height:36px;border-radius:9px}
+.ns-seg input:checked+span{background:color-mix(in srgb,var(--nr-solid) 92%,transparent);box-shadow:0 3px 8px rgba(0,0,0,.12),0 3px 1px rgba(0,0,0,.04),0 0 0 .5px rgba(0,0,0,.04)}
+[data-bs-theme=dark] .ns-seg input:checked+span{background:rgba(255,255,255,.14);box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.ns-group:has(.ns-sw){padding:2px 16px;border-radius:20px}
+.ns-sw,.ns-sw:first-child{padding:13px 0;border-color:var(--ns-hair)}
+.ns-sw-ui{width:51px;height:31px;background:color-mix(in srgb,var(--nr-ink) 14%,transparent)}
+.ns-sw-ui::after{top:2px;left:2px;width:27px;height:27px;box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06)}
+.ns-sw input:checked+.ns-sw-ui::after{transform:translateX(20px)}
+.ns-btn{border-radius:14px;border:1px solid var(--ns-rim);background:var(--ns-tile);box-shadow:inset 0 1px 0 var(--ns-hi)}
+.ns-btn.ns-pri{border-color:transparent;box-shadow:0 8px 20px -10px color-mix(in srgb,var(--nr-acc) 70%,transparent)}
+.ns-toast{background:color-mix(in srgb,var(--nr-ink) 80%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border-radius:16px}
 
 /* Mini sxema (rejim kartalari va jonli köriniş) */
 .ns-mini{position:relative;display:block;aspect-ratio:16/10;border-radius:10px;overflow:hidden;background:var(--bs-body-bg,#f3f5fa);border:1px solid var(--nr-line);

@@ -195,14 +195,14 @@
   function openPanel() {
     hideTip();
     lastFocus = document.activeElement;
-    root.classList.add('ns-open', 'ns-lock');
+    root.classList.add('ns-open', 'ns-noscroll');
     // Mobil profil menyusidan (offcanvas) oçilsa — u yopilib fokusni qaytargandan keyin
     var delay = $('.offcanvas.show, .offcanvas.showing') ? 420 : 60;
     setTimeout(function () { ($('input:checked', panel) || $('#nsClose')).focus(); }, delay);
   }
   function closePanel() {
     if (!root.classList.contains('ns-open')) return;
-    root.classList.remove('ns-open', 'ns-lock');
+    root.classList.remove('ns-open', 'ns-noscroll');
     setPreview(S.layout);
     if (dirty && !S.autosave) toast('Özgarişlar saqlanmadi', 'Saqlaş', function () { flush(); });
     if (lastFocus && lastFocus.focus) lastFocus.focus();
