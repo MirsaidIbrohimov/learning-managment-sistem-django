@@ -5,8 +5,9 @@ Qoidalar:
     (va tölovsiz — birlaşmani admin özi tuzgan) yoziladi.
   * Barça kurslarni 100% tugatsa — birlaşma nomi bilan sertifikat beriladi.
 
-Kurs "tugatilgan" hisoblanadi, agar: şu kurs sertifikati bor, yakuniy testdan
-ötgan yoki portal progressi (video, test, vazifa) 100% bölsa.
+Kurs "tugatilgan" hisoblanadi, agar şu kurs sertifikati bor bölsa, yoki:
+  * kursda yakuniy test bor — öquvçi undan ötgan bölsa;
+  * yakuniy test yöq — portal progressi (video, test, vazifa) 100% bölsa.
 """
 import logging
 
@@ -34,12 +35,17 @@ def course_percent(user, profession):
     return int(100 * state['done_count'] / state['total_count'])
 
 
+def has_final_test(profession):
+    from .models import Lesson, final_lesson_q
+    return Lesson.objects.filter(profession=profession).filter(final_lesson_q()).exists()
+
+
 def course_completed(user, profession, percent=None):
     if Certificate.objects.filter(student=user, profession=profession, bundle__isnull=True).exists():
         return True
-    from .certificates import student_passed_final_test
-    if student_passed_final_test(user, profession):
-        return True
+    if has_final_test(profession):
+        from .certificates import student_passed_final_test
+        return student_passed_final_test(user, profession)
     return (course_percent(user, profession) if percent is None else percent) >= 100
 
 
@@ -53,8 +59,10 @@ def bundle_progress(user, bundle, enrolled_ids=None):
         percent = course_percent(user, profession) if enrolled else 0
         done = course_completed(user, profession, percent) if enrolled else bool(
             Certificate.objects.filter(student=user, profession=profession, bundle__isnull=True).exists())
-        items.append({'profession': profession, 'enrolled': enrolled, 'percent': 100 if done else percent,
-                      'completed': done})
+        # Darslar 100%, lekin yakuniy testdan hali ötilmagan
+        needs_final = enrolled and not done and percent >= 100
+        items.append({'profession': profession, 'enrolled': enrolled,
+                      'percent': 100 if done else min(percent, 99), 'completed': done, 'needs_final': needs_final})
     total = len(items)
     return {
         'bundle': bundle,
@@ -129,7 +137,7 @@ def enroll_remaining(user, bundle):
         names = ', '.join(f'"{p.name}"' for p in added)
         _notify(user, f"📚 {bundle.name}: yangi kurslar oçildi",
                 f"Siz \"{bundle.name}\" yönalişidagi kursni tugatdingiz va {names} kurslariga "
-                f"avtomatik yozildingiz. Hammasini 100% tugatsangiz — \"{bundle.name}\" sertifikati beriladi.")
+                f"avtomatik yozildingiz. Hammasini tugatsangiz — \"{bundle.name}\" sertifikati beriladi.")
     return added
 
 
@@ -158,7 +166,7 @@ def issue_bundle_certificate(user, bundle):
             certificate_id=bundle.generate_certificate_id(), status='active',
             valid_from=today, valid_until=valid_until,
             description=f"\"{bundle.name}\" yönalişidagi barça kurslarni ({len(courses)} ta) "
-                        f"100% tugatgani uçun avtomatik berildi.",
+                        f"tugatgani uçun avtomatik berildi.",
         )
     from .certificates import _notify_certificate_telegram, regenerate_certificate_file
     regenerate_certificate_file(cert)

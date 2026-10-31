@@ -5,8 +5,8 @@ from django.urls import reverse
 
 from .course_bundles import bundle_progress, sync_user
 from .models import (
-    Certificate, CourseBundle, CourseBundleItem, CourseEnrollment, CustomUser, Lesson, Profession, Section,
-    VideoLesson, VideoProgress,
+    Certificate, CourseBundle, CourseBundleItem, CourseEnrollment, CustomUser, Lesson, Profession, Section, Test,
+    TestResult, VideoLesson, VideoProgress,
 )
 
 
@@ -61,6 +61,22 @@ class CourseBundleTests(TestCase):
         sync_user(self.student)
         self.assertEqual(certs.count(), 1)
         self.assertEqual(bundle_progress(self.student, self.bundle)['percent'], 100)
+
+    def test_course_with_final_test_needs_final_not_just_100_percent(self, *_):
+        final = Test.objects.create(test_type='final', lesson=Lesson.objects.create(
+            profession=self.css, section=self.css.sections.first(), title='CSS yakuniy', lesson_type='test'))
+        for video in (self.html_video, self.css_video, self.js_video):
+            self.watch(video)
+        certs = Certificate.objects.filter(student=self.student, bundle=self.bundle)
+        self.assertFalse(certs.exists())
+        css_item = bundle_progress(self.student, self.bundle)['items'][1]
+        self.assertEqual((css_item['completed'], css_item['needs_final']), (False, True))
+
+        from django.utils import timezone
+        with self.captureOnCommitCallbacks(execute=True):
+            TestResult.objects.create(test=final, student=self.student, score=90, total_questions=10,
+                                      correct_answers=9, started_at=timezone.now(), passed=True)
+        self.assertEqual(certs.count(), 1)
 
     def test_bundle_certificate_does_not_count_as_course_certificate(self, *_):
         for video in (self.html_video, self.css_video, self.js_video):

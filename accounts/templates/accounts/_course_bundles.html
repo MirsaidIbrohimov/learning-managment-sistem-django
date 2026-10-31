@@ -40,7 +40,7 @@
 <section class="kb">
   <span class="kb-pill"><i class="bi bi-collection-fill"></i> Birlashgan kurslar</span>
   <h2 class="kb-title">Bir neça kurs — bitta yönaliş sertifikati</h2>
-  <p class="kb-sub">Birlashmadagi istalgan kursni 100% tugatsangiz, qolgan kurslarga sörovsiz yozilasiz. Hammasini tugatsangiz — yönaliş sertifikati beriladi.</p>
+  <p class="kb-sub">Birlaşmadagi istalgan kursni tugatsangiz, qolgan kurslarga sörovsiz yozilasiz. Yakuniy testi bor kursda yakuniy testdan ötiş kerak, yöq kursda — 100% progress. Hammasini tugatsangiz — yönaliş sertifikati beriladi.</p>
   <div class="kb-grid">
     {% for card in course_bundles %}
     {% with b=card.bundle %}
@@ -57,7 +57,7 @@
           <li class="kb-step {% if item.completed %}done{% elif item.enrolled %}active{% endif %}">
             <span class="kb-dot">{% if item.completed %}<i class="bi bi-check-lg"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
             <a href="{% url 'profession_detail' item.profession.pk %}">{{ item.profession.name }}</a>
-            {% if card.percent is not None %}<span class="kb-pct">{% if item.enrolled or item.completed %}{{ item.percent }}%{% else %}<i class="bi bi-lock"></i>{% endif %}</span>{% endif %}
+            {% if card.percent is not None %}<span class="kb-pct">{% if item.needs_final %}<i class="bi bi-flag"></i> Yakuniy test{% elif item.enrolled or item.completed %}{{ item.percent }}%{% else %}<i class="bi bi-lock"></i>{% endif %}</span>{% endif %}
           </li>
           {% endfor %}
         </ol>

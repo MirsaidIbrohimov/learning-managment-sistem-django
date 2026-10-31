@@ -52,7 +52,7 @@
                 <td><b>{{ r.student.full_name|default:r.student.username }}</b><div class="cb-muted">@{{ r.student.username }}</div></td>
                 {% for item in r.items %}
                 <td><span class="cbp-pct {% if item.completed %}done{% elif not item.enrolled %}none{% endif %}">
-                    {% if item.completed %}<i class="bi bi-check-lg"></i> 100%{% elif item.enrolled %}{{ item.percent }}%{% else %}—{% endif %}
+                    {% if item.completed %}<i class="bi bi-check-lg"></i> 100%{% elif item.needs_final %}<i class="bi bi-flag"></i> Yakuniy test{% elif item.enrolled %}{{ item.percent }}%{% else %}—{% endif %}
                 </span></td>
                 {% endfor %}
                 <td>

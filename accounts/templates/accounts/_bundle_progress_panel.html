@@ -35,13 +35,13 @@
         {% for item in card.items %}
         <a href="{% url 'profession_detail' item.profession.pk %}" class="bp-step {% if item.completed %}done{% endif %} {% if item.profession.pk == current.pk %}current{% endif %}">
             {% if item.completed %}<i class="bi bi-check-circle-fill"></i>{% elif item.enrolled %}<i class="bi bi-play-circle"></i>{% else %}<i class="bi bi-lock"></i>{% endif %}
-            {{ item.profession.name }}{% if item.enrolled and not item.completed %} · {{ item.percent }}%{% endif %}
+            {{ item.profession.name }}{% if item.needs_final %} · <i class="bi bi-flag"></i> Yakuniy test{% elif item.enrolled and not item.completed %} · {{ item.percent }}%{% endif %}
         </a>
         {% endfor %}
     </div>
     {% if not card.certificate %}
     <div class="bp-sum" style="margin-top:.6rem;font-weight:600;">
-        Istalgan kursni 100% tugatsangiz, qolganlariga sörovsiz yozilasiz. Hammasini tugatsangiz — "{{ card.bundle.name }}" sertifikati.
+        Istalgan kursni tugatsangiz, qolganlariga sörovsiz yozilasiz. Yakuniy testi bor kursda yakuniy testdan ötiş kerak, yöq kursda — 100% progress. Hammasini tugatsangiz — "{{ card.bundle.name }}" sertifikati.
     </div>
     {% endif %}
 </div>
