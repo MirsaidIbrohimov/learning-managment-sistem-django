@@ -198,3 +198,24 @@ if (harvestMode !== null) {
   if (harvestMode === 'sso') setTimeout(() => document.querySelector('#sso')?.click(), 1200);
   setTimeout(run, 4500);
 }
+
+// Preview: ?scrolltest — sahifani pastga aylantirib, scrollTop qanday özgarishini <pre id="harvest"> ga yozadi
+if (new URLSearchParams(location.search).has('scrolltest')) {
+  setTimeout(() => {
+    const sc = document.querySelector('#scroller');
+    const log = [];
+    sc.scrollTop = 500;
+    log.push(['set', sc.scrollTop, sc.scrollHeight, sc.clientHeight]);
+    let n = 0;
+    const iv = setInterval(() => {
+      log.push([++n, sc.scrollTop, sc.scrollHeight]);
+      if (n >= 12) {
+        clearInterval(iv);
+        const pre = document.createElement('pre');
+        pre.id = 'harvest';
+        pre.textContent = JSON.stringify(log);
+        document.body.appendChild(pre);
+      }
+    }, 500);
+  }, 3000);
+}
