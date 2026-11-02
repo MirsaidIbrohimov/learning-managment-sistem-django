@@ -44,8 +44,10 @@ def send_verification(user, request=None):
             'Havola 24 soat amal qiladi. Faqat özingiz yaratgan hisob uçun tasdiqlang. '
             'Bu hisob sizniki bölmasa, havolani oçmang — email boğlanmaydi.',
             settings.DEFAULT_FROM_EMAIL, [user.pending_email], fail_silently=False) == 1
-    except Exception:
-        logging.getLogger(__name__).warning('Email verification delivery failed for user %s', user.pk)
+    except Exception as exc:
+        # 'security' logger logs/security.log ga yozadi — serverda SMTP xatosi sababini körish mumkin bölsin.
+        logging.getLogger('security').warning('Email verification delivery failed for user %s: %s: %s',
+                                              user.pk, type(exc).__name__, exc)
         return False
 
 
