@@ -17,3 +17,12 @@
 9. **WiFiAutoLogoutMiddleware** PWA yöllarini istisno qilmaydi (sessiya xavfsizligi). IP özgarsa SW yangilanişi bir marta login’ga yönaltirilişi mumkin — zararsiz, keyingi tekşiruvda tiklanadi.
 10. **Keystore zaxirasi.** `%USERPROFILE%\.itc-academy-signing\` yöqolsa, ilovani şu paket nomi bilan yangilab bölmaydi. Xavfsiz joyga zaxira qiling.
 11. **Oldindan mavjud 4 ta test xatosi** (`tests_security` ×3 — `.env` yöq; `games` ×1 — eskirgan regex) bu işga aloqasiz.
+12. **Windows 2.0.0: real hisob bilan sinalmagan.** Interfeys brauzerda soxta ma'lumotlar bilan va haqiqiy `.exe` da
+    (kiriş ekrani, oyna boşqaruvi, IPC) tekşirilgan; production API bilan real login, xarid, ariza oqimlari qölda sinab köriliši kerak.
+13. **Dars oynasi alohida login.** Ilova API tokeni bilan işlaydi, sayt esa sessiya cookie bilan — dars oynasida saytga
+    bir marta kiriş kerak (keyin WebView2 profilida saqlanadi). Token→sessiya almaştiriş uçun serverda endpoint kerak böladi.
+14. **Token şifrlanmagan.** `session.json` faqat joriy foydalanuvçi papkasida (`%LOCALAPPDATA%`); DPAPI/Credential Manager'ga ötkaziş mumkin.
+15. **Deploy tartibi (2.2.0).** Ilova `/api/v1/app/*` ga tayanadi: avval sayt deploy (migratsiya 0153), keyin ilovani tarqatiş.
+16. **Joylaşuv real qurilmada sinalmagan.** WebView2 joylaşuv ruxsati va Windows joylaşuv xizmati öçiq bölsa koordinata olinmaydi
+    (ilova xabar beradi, kiriş davom etadi). Öquvçi hisobi bilan sinab köriş kerak.
+

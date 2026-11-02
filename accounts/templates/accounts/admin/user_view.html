@@ -1076,7 +1076,7 @@
                             <div class="uv-location-pin"><i class="bi bi-geo-alt-fill"></i></div>
                             <div class="uv-location-main">
                                 <div class="uv-location-address">{{ item.address|default:"Manzil aniqlanmadi" }}</div>
-                                <div class="uv-location-meta"><span><i class="bi bi-clock"></i> {{ item.logged_in_at|date:"d.m.Y H:i" }}</span><span><i class="bi bi-bullseye"></i> ±{{ item.accuracy_meters|default:"—" }} m</span><span class="uv-location-coords">{{ item.latitude }}, {{ item.longitude }}</span></div>
+                                <div class="uv-location-meta">{% if item.source == 'desktop' %}<span style="color:#8b5cf6;font-weight:700"><i class="bi bi-pc-display"></i> Windows ilova</span>{% else %}<span><i class="bi bi-globe2"></i> Sayt</span>{% endif %}<span><i class="bi bi-clock"></i> {{ item.logged_in_at|date:"d.m.Y H:i" }}</span><span><i class="bi bi-bullseye"></i> ±{{ item.accuracy_meters|default:"—" }} m</span><span class="uv-location-coords">{{ item.latitude }}, {{ item.longitude }}</span></div>
                             </div>
                             <a class="uv-location-map" href="{{ item.map_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-map"></i> Xaritada köriş</a>
                         </article>

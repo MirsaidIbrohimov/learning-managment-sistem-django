@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>preview theme</title>
+<script>
+  // Preview: ?t=light&to=#/home → mavzuni o'rnatib, ilovaga qaytadi
+  const q = new URLSearchParams(location.search);
+  localStorage.setItem('itc.settings', JSON.stringify({ theme: q.get('t') || 'dark', accent: q.get('a') || 'violet', ...(q.has('still') ? { motion: false } : {}), ...(q.get('l') ? { lang: q.get('l') } : {}) }));
+  location.replace('/ui/index.html?' + (q.has('nodemo') ? 'p' : 'demo') + (q.get('extra') ? '&' + q.get('extra') : '') + (q.get('to') || ''));
+</script>

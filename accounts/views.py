@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from .desktop_auth import POST_LOGIN_SESSION_KEY, post_login_target, peek_post_login_target
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET, require_POST
@@ -1134,15 +1135,18 @@ def login_location_consent(request):
         consent_expires_at = 0
     if consent_expires_at > int(time.time()):
         request.session.pop('location_capture_pending', None)
-        return redirect('home')
-    return render(request, 'accounts/login_location_consent.html')
+        return redirect(post_login_target(request))
+    return render(request, 'accounts/login_location_consent.html', {
+        # Masalan, Windows ilovasiga kirişni tasdiqlaş sahifasiga qaytiş
+        'post_login_url': peek_post_login_target(request, reverse('home')),
+    })
 
 
 @login_required
 def login_location_skip(request):
     """Joylaşuvni ulaşmasdan login jarayonini davom ettiradi."""
     request.session.pop('location_capture_pending', None)
-    return redirect('home')
+    return redirect(post_login_target(request))
 
 
 @login_required
@@ -1180,6 +1184,8 @@ def login_location_record(request):
         accuracy_meters=min(int(round(accuracy)), 100000) if accuracy is not None else None,
     )
     request.session.pop('location_capture_pending', None)
+    # Qaytiş manzili sahifaga allaqaçon yozilgan (post_login_url) — sessiyada qolib ketmasin
+    request.session.pop(POST_LOGIN_SESSION_KEY, None)
     address = ''
     try:
         import requests

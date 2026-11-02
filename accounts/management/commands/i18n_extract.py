@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand, CommandError
 from accounts.alphabet import to_new_alphabet
 
 SKIP_DIRS = {
-    'venv', 'staticfiles', 'backup', 'docs', 'design_preview', 'navigation-preview', 'ilovalar', 'media', '__pycache__',
+    'venv', '.venv', 'staticfiles', 'backup', 'docs', 'design_preview', 'navigation-preview', 'ilovalar', 'media', '__pycache__',
     '.git', 'node_modules', 'logs', 'tests', 'scripts', 'migrations', 'settings', 'i18n', 'emails', 'parents', 'landing',
     'games-static', 'home',
 }
@@ -39,8 +39,11 @@ ATTRS = {'title', 'placeholder', 'aria-label', 'alt', 'data-nav-tip', 'value'}
 JS_STRING = re.compile(r'''"(?:[^"\\\n]|\\.){2,400}"|'(?:[^'\\\n]|\\.){2,400}'|`(?:[^`\\]|\\.){2,800}`''')
 # Kodga öxşash: selektor, yöl, identifikator, CSS qiymati
 CODE_LIKE = re.compile(r'^[\w.#:\-/\\\[\]=*>+~,()%$@&?!|^]+$|^https?:|^\s*[.#\[]|=>|\bfunction\b|\.(?:js|css|png|svg|jpg)\b|^rgba?\(|^\d')
-PY_CALLS = {'success', 'error', 'warning', 'info', 'send_notification', 'ValidationError', 'HttpResponseForbidden', 'add_error', 'gettext'}
-PY_KEYWORDS = {'verbose_name', 'verbose_name_plural', 'help_text', 'label', 'placeholder', 'title', 'content', 'subject', 'error', 'message'}
+PY_CALLS = {'success', 'error', 'warning', 'info', 'send_notification', 'ValidationError', 'HttpResponseForbidden', 'add_error', 'gettext',
+            # Coin tranzaksiyasi sababi bazaga yoziladi va "Coin tarixi" / "Market" sahifalarida körinadi
+            'add_coins', 'remove_coins', 'try_spend_coins', 'award_coins'}
+PY_KEYWORDS = {'verbose_name', 'verbose_name_plural', 'help_text', 'label', 'placeholder', 'title', 'content', 'subject', 'error', 'message',
+               'reason', 'description'}
 PY_DICT_KEYS = {'error', 'message', 'title', 'detail', 'label', 'text', 'name'}
 
 

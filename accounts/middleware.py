@@ -622,6 +622,8 @@ class ProfileCompletionMiddleware:
         'payment_wall', 'tezcheck_create_payment', 'tezcheck_return', 'exam_checkout', 'exam_checkout_status',
         # Poçtadagi tasdiqlaş havolasi profil töldirilmagan bölsa ham işlaşi kerak.
         'verify_email',
+        # Windows ilovasiga kirişni tasdiqlaş — profil eslatmasini ilovaning özi körsatadi.
+        'desktop_login_approve',
     ]
 
     def __init__(self, get_response):

@@ -33,7 +33,7 @@
       const status=document.getElementById('status');
       const allow=document.getElementById('allowLocation');
       function csrfToken(){const input=document.querySelector('#csrfTokenForm [name=csrfmiddlewaretoken]');return input?input.value:'';}
-      function finish(){window.location.replace('{% url "home" %}');}
+      function finish(){window.location.replace('{{ post_login_url|default:"/"|escapejs }}');}
       allow.addEventListener('click',function(){
         if(!navigator.geolocation){status.className='status error';status.textContent='Brauzer joylaşuvni aniqlaşni qöllamaydi yoki sahifa HTTPS orqali oçilmagan. Joylaşuv uçun HTTPS va zamonaviy brauzer kerak.';return;}
         allow.disabled=true;status.className='status';status.textContent='Brauzer ruxsatini kutyapmiz…';

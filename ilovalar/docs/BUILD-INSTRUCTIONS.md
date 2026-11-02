@@ -18,7 +18,10 @@ Barça buyruqlar loyiha ildizidan (`D:\GitHub Repo\learning-managment-sistem-dja
 ```
 venv\Scripts\python ilovalar\assets\generate_icons.py
 ```
-`static/img/logo.png` → `static/pwa/icons/*` (PWA) va `ilovalar/assets/*` (Android/Windows).
+`static/img/logo.png` → `static/pwa/icons/*` (PWA), sayt favicon'lari va `ilovalar/assets/*` (Android/Windows).
+Ikonka burçaklari yumaloq (`RADIUS = 0.22`); maskable va apple-touch kvadrat qoladi — ularni tizim özi yumaloqlaydi.
+Windows ikonkalarini yangilaş: `cd ilovalar\source\windows; npx tauri icon ..\..\assets\icon-1024.png -o src-tauri\icons`
+(yaratilgan `android/` va `ios/` papkalari kerak emas).
 
 ## 2. Android (TWA)
 ### 2.1 Imzo kaliti (bir marta)
@@ -74,20 +77,36 @@ Tekşiriş: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.
 ```
 winget install --id Microsoft.VisualStudio.2022.BuildTools -e --override "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows11SDK.22621"
 ```
-### 3.2 Build
+### 3.2 Interfeys (v2)
+Interfeys — bundlersiz statik fayllar: `ilovalar/source/windows/ui` (HTML/CSS/ES modullar, taşqi kutubxona yöq).
+Brauzerda dizaynni körish (soxta ma'lumotlar bilan, parol `demo`):
+```
+cd ilovalar\source\windows
+python -m http.server 8765 --bind 127.0.0.1
+# http://127.0.0.1:8765/ui/index.html   (preview/mock.js faqat brauzerda yuklanadi, paketga kirmaydi)
+```
+
+### 3.2.1 Til lug'atlari
+Ilova matnlari tarjimasi: `ilovalar/source/windows/i18n/app.json` (kalit → [en, ru]). Sayt lug'ati yangilansa ham qayta yiğiladi:
+```
+python manage.py i18n_validate --write                 # static/i18n/<til>.json (sayt)
+python ilovalar\source\windows\scripts\build_i18n.py   # ui/i18n/<til>.json (sayt + ilova)
+```
+
+### 3.3 Build
 ```
 $env:Path="$env:USERPROFILE\.cargo\bin;$env:Path"
 cd ilovalar\source\windows
 npm ci
 npx tauri icon ..\..\assets\icon-1024.png -o src-tauri\icons   # ikonkalar tayyor, qayta kerak emas
-cd src-tauri; cargo test; cd ..                                 # navigatsiya siyosati testlari
+cd src-tauri; cargo test; cd ..                                 # navigatsiya/API/media yöl siyosati testlari
 npx tauri build                                                 # NSIS (.exe) + WiX (.msi)
 ```
-Natija: `src-tauri\target\release\bundle\nsis\ITC Academy_1.0.0_x64-setup.exe` va
-`bundle\msi\ITC Academy_1.0.0_x64_en-US.msi` → `ilovalar\windows\ITC-Academy-Setup.exe` / `ITC-Academy.msi` ga nusxalanadi.
+Natija: `src-tauri\target\release\bundle\nsis\ITC Academy_2.2.0_x64-setup.exe` va
+`bundle\msi\ITC Academy_2.2.0_x64_en-US.msi` → `ilovalar\windows\ITC-Academy-Setup.exe` / `ITC-Academy.msi` ga nusxalanadi.
 Tauri NSIS va WiX vositalarini birinçi build’da özi yuklab oladi.
 
-### 3.3 Code signing (ixtiyoriy, sertifikat bölsa)
+### 3.4 Code signing (ixtiyoriy, sertifikat bölsa)
 `signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /a "ITC-Academy-Setup.exe"`
 
 ## 4. Checksum

@@ -49,8 +49,22 @@
       var key = '*';
       if (head.indexOf(' ') > 0) key = '^' + firstWord(head);
       else if (tail.lastIndexOf(' ') !== -1 && tail.lastIndexOf(' ') < tail.length - 1) key = '$' + lastWord(tail);
-      (buckets[key] = buckets[key] || []).push({ parts: parts, longest: longest, re: null, target: pair[1] });
+      var fixed = 0;
+      for (var j = 0; j < parts.length; j += 2) fixed += parts[j].length;
+      (buckets[key] = buckets[key] || []).push({ parts: parts, longest: longest, fixed: fixed, re: null, target: pair[1] });
     });
+    // Aniqroq naqş (doimiy matni uzunroq) birinçi solişiriladi: "Premium sörov rad etildi - {0}" "Premium {0} rad etildi"dan oldin
+    Object.keys(buckets).forEach(function (k) { buckets[k].sort(function (a, b) { return b.fixed - a.fixed; }); });
+  }
+  /* Naqş içidagi qiymat lug'atda aniq bölsa ("Oson", "Şaxmat") — u ham tarjima qilinadi */
+  function slotValue(value) {
+    var hit = exact[value];
+    if (hit) return hit;
+    if (OLD_FORM.test(value)) {
+      hit = exact[toNewLatin(value)];
+      if (hit) return hit;
+    }
+    return value;
   }
   function matchEntry(entry, text) {
     if (entry.longest && text.indexOf(entry.longest) === -1) return null;
@@ -64,21 +78,23 @@
     var m = entry.re.exec(text);
     if (!m) return null;
     var out = entry.target;
-    for (var s = 0; s < entry.slots.length; s++) out = out.split(entry.slots[s]).join(m[s + 1]);
+    for (var s = 0; s < entry.slots.length; s++) out = out.split(entry.slots[s]).join(slotValue(m[s + 1]));
     return out;
   }
   function fromPattern(text) {
     if (text.length > 600) return null;
     var lists = [buckets['^' + firstWord(text)], buckets['$' + lastWord(text)], buckets['*']];
+    // Har guruhdan birinçi mos naqş olinadi (guruh içi aniqligi böyiça saralangan), ulardan eng aniqi tanlanadi
+    var best = null, bestFixed = -1;
     for (var l = 0; l < 3; l++) {
       var list = lists[l];
       if (!list) continue;
-      for (var i = 0; i < list.length; i++) {
+      for (var i = 0; i < list.length && list[i].fixed > bestFixed; i++) {
         var out = matchEntry(list[i], text);
-        if (out !== null) return out;
+        if (out !== null) { best = out; bestFixed = list[i].fixed; break; }
       }
     }
-    return null;
+    return best;
   }
   /* Sana: server va JS özbekça hafta kuni/oy nomini matn içida yozadi ("Şanba, 31-oktyabr", "01 Yan, 2000").
      Almaştiriladi faqat matndagi barça söz sana sözi bölsa: oddiy gaplarga tegmaydi. */
@@ -109,11 +125,41 @@
       return (day ? day.replace(/\s*-?\s*$/, ' ') : '') + value;
     });
   }
+  /* Bazada eski lotinda saqlangan matnlar (masalan, eski coin tranzaksiyalari: "like olib tashlandi") lug'at
+     kalitlari bilan mos kelişi uçun yangi alifboga keltiriladi. Faqat lug'atda topilmagan matn uçun zaxira yöl:
+     notöğri ögirilsa ham heç narsa buzilmaydi — matn shunçaki tarjimasiz qoladi. */
+  var OLD_FORM = /[Ss][Hh]|[Cc][Hh]|[OoGg]['‘’ʻʼ`][A-Za-z]/;
+  // Inglizça sözlarda sh/ch özgarmaydi ("Match", "Chat") — accounts/alphabet.py dagi röyxatning qisqa varianti
+  var ENGLISH_STEM = /^(match|chat|check|chang|chann|chess|champ|challeng|search|push|show|shop|share|school|tech|cache|fetch|watch|touch|switch|batch|english|flash|refresh|finish|publish|dash|hash|bash|cash|github|chrome|archiv)/i;
+  function toNewLatin(text) {
+    return text
+      .replace(/([OoGg])['‘’ʻʼ`](?=[A-Za-z])/g, function (m, c) { return { O: 'Ö', o: 'ö', G: 'Ğ', g: 'ğ' }[c]; })
+      .replace(/[A-Za-zÖöĞğŞşÇç]+/g, function (word) {
+        if (ENGLISH_STEM.test(word)) return word;
+        return word
+          .replace(/S[Hh]|sh/g, function (m) { return m.charAt(0) === 'S' ? 'Ş' : 'ş'; })
+          .replace(/C[Hh]|ch/g, function (m) { return m.charAt(0) === 'C' ? 'Ç' : 'ç'; });
+      });
+  }
+  function find(clean) {
+    var found = exact[clean];
+    if (found !== undefined) return found;
+    return fromPattern(clean);
+  }
   function lookup(clean) {
     if (LANG === 'uz') return toOldLatin(clean);
     var found = exact[clean];
     if (found !== undefined) return found;
-    return fromPattern(clean) || fromDate(clean);
+    // Eski lotindagi matn: avval yangi alifbo varianti (aks holda umumiy naqş eski sözni {0} ga olib qöyadi)
+    if (OLD_FORM.test(clean)) {
+      var modern = toNewLatin(clean);
+      if (modern !== clean) {
+        found = find(modern);
+        if (found != null) return found;
+      }
+    }
+    found = fromPattern(clean);
+    return found != null ? found : fromDate(clean);
   }
   function translate(value) {
     if (!value || !HAS_LETTER.test(value)) return value;

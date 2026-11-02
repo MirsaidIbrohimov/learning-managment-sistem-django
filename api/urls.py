@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
 from . import views
+from . import app_auth
 from games import external_api as games_external_api
 
 app_name = 'api'
@@ -9,6 +10,12 @@ urlpatterns = [
     # Auth
     path('token/', obtain_auth_token, name='api_token'),
     path('status/', views.api_status, name='api_status'),
+
+    # Windows ilovasi (faqat öquvçilar): login/parol, brauzer orqali kiriş (PKCE), kirişdan keyingi joylaşuv
+    path('app/login/', app_auth.app_login, name='app_login'),
+    path('app/auth/start/', app_auth.auth_start, name='app_auth_start'),
+    path('app/auth/poll/', app_auth.auth_poll, name='app_auth_poll'),
+    path('app/location/', app_auth.app_location, name='app_location'),
 
     # Profile
     path('profile/', views.ProfileView.as_view(), name='profile'),

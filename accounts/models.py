@@ -2524,6 +2524,13 @@ class LoginLocation(models.Model):
     address = models.CharField(max_length=255, blank=True, verbose_name='Manzil')
     map_url = models.URLField(max_length=500, blank=True, verbose_name='Xarita havolasi')
     accuracy_meters = models.PositiveIntegerField(null=True, blank=True, verbose_name='Aniqlik (metr)')
+    SOURCE_CHOICES = (
+        ('web', 'Sayt'),
+        ('desktop', 'Windows ilova'),
+    )
+    source = models.CharField(
+        max_length=16, choices=SOURCE_CHOICES, default='web', db_index=True, verbose_name='Qayerdan kirdi',
+    )
 
     class Meta:
         ordering = ['-logged_in_at', '-pk']
@@ -2532,6 +2539,42 @@ class LoginLocation(models.Model):
 
     def __str__(self):
         return f'{self.user} — {self.address or "Manzil aniqlanmagan"} ({self.logged_in_at:%Y-%m-%d %H:%M})'
+
+
+class DesktopAuthRequest(models.Model):
+    """Windows ilovasiga tizim brauzeri orqali kiriş (RFC 8252 + PKCE).
+
+    Ilova `code_challenge` bilan sörov oçadi va brauzerda saytni oçadi. Foydalanuvçi saytga istalgan usulda
+    (parol, Google, GitHub, Telegram, email) kirib, ilovadagi `user_code` bilan bir xil kodni körib tasdiqlaydi.
+    Token faqat `code_verifier` ni bilgan ilovaga — bir marta beriladi.
+    """
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlandi'),
+        ('denied', 'Rad etildi'),
+        ('consumed', 'Işlatildi'),
+    )
+    request_id = models.CharField(max_length=64, unique=True)
+    user_code = models.CharField(max_length=9)
+    code_challenge = models.CharField(max_length=128)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='pending')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='desktop_auth_requests')
+    device = models.CharField(max_length=255, blank=True)
+    ip_address = models.CharField(max_length=64, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Ilovaga kiriş sörovi'
+        verbose_name_plural = 'Ilovaga kiriş sörovlari'
+
+    def __str__(self):
+        return f'{self.user_code} — {self.get_status_display()}'
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expires_at
 
 
 class DailyLessonAccess(models.Model):

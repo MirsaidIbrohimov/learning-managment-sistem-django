@@ -2,10 +2,10 @@
 
 | Fayl | Hajm | Turi |
 |---|---|---|
-| `ilovalar/windows/ITC-Academy-Setup.exe` | 2.81 MB | NSIS, joriy foydalanuvçiga (admin şart emas) — **tavsiya etiladi** |
-| `ilovalar/windows/ITC-Academy.msi` | 3.38 MB | WiX MSI, butun kompyuterga (admin kerak) |
+| `ilovalar/windows/ITC-Academy-Setup.exe` | 3.64 MB | NSIS, joriy foydalanuvçiga (admin şart emas) — **tavsiya etiladi** |
+| `ilovalar/windows/ITC-Academy.msi` | 4.34 MB | WiX MSI, butun kompyuterga (admin kerak) |
 
-Versiya 1.0.0, ilova identifikatori `uz.itcacademy.lms`, naşriyotçi “IT Creative Academy”. SHA-256: `ilovalar/SHA256SUMS.txt`.
+Versiya 2.2.0, ilova identifikatori `uz.itcacademy.lms`, naşriyotçi “IT Creative Academy”. SHA-256: `ilovalar/SHA256SUMS.txt`.
 
 ## Talablar
 - Windows 10 (1803+) yoki Windows 11, 64-bit.
@@ -31,11 +31,15 @@ Korporativ tarqatiş (GPO/Intune) uçun. MSI butun kompyuterga örnatiladi va **
 Bitta kompyuterda NSIS va MSI versiyasini birga örnatmang.
 
 ## Ilova xatti-harakati
-- `https://itc-academy.uz` ni öz oynasida oçadi; login, sessiya cookie’lari WebView2 profilida saqlanadi
-  (`%LOCALAPPDATA%\uz.itcacademy.lms`).
-- LMS va tölov domenlari (tezcheck.uz, checkout.uz) ilova içida; boşqa havolalar tizim brauzerida oçiladi.
-- Ctrl + / Ctrl − / Ctrl 0 — masştab. Ikkinçi marta işga tuşirilsa, mavjud oyna oldinga çiqadi.
-- Fayl yuklab oliş — WebView2 standart yuklaş oynasi orqali “Yuklanmalar” papkasiga.
+- **Faqat öquvçilar uçun.** Admin, öqituvçi, ota-ona va boşqa rollar saytdan foydalanadi.
+- Kiriş: **"Sayt orqali kiriş"** (Google, GitHub, Telegram, email kodi — brauzerda oçiladi, ilovadagi kodni
+  solişirib «Tasdiqlaş» bosiladi) yoki ilovaning özida login (yoki telefon) va parol.
+- Har kirişda Telegram (ulangan bölsa) va email orqali kiriş xabari boradi.
+- Kirişdan keyin joylaşuvni ulaşiş söraladi (ixtiyoriy). Işlaşi uçun Windows'da
+  **Sozlamalar → Maxfiylik va xavfsizlik → Joylaşuv** yoqilgan bölişi kerak.
+- Til: Sozlamalar → Til (o'zbekça / ruşça / inglizça).
+- Sessiya tokeni `%LOCALAPPDATA%\uz.itcacademy.lms\session.json` da; dars sayt oynasida oçiladi.
+- Ctrl+K — tezkor ötiş, Ctrl+1…8 — bölimlar, Ctrl+B — yon panel, Alt+←/→ — orqaga/oldinga.
 
 ## Öçiriş
 Sozlamalar → Ilovalar → ITC Academy → Öçiriş (yoki Start menyudagi Uninstall).

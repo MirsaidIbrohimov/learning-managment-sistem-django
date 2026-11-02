@@ -1,6 +1,6 @@
 [package]
 name = "itc-academy"
-version = "1.0.0"
+version = "2.2.0"
 description = "ITC Academy desktop"
 authors = ["IT Creative Academy"]
 edition = "2021"
@@ -17,7 +17,16 @@ tauri-build = { version = "=2.7.1", features = [] }
 tauri = { version = "=2.12.2", features = [] }
 tauri-plugin-opener = "=2.7.0"
 tauri-plugin-single-instance = "=2.5.2"
+tauri-plugin-window-state = "=2.5.0"
 url = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Brauzer orqali kiriş (PKCE, RFC 7636): verifier va challenge
+sha2 = "0.10"
+base64 = "0.22"
+getrandom = "0.3"
+# Windows'da TLS — tizim (SChannel) orqali: sertifikatlar Windows omboridan olinadi
+reqwest = { version = "0.13", default-features = false, features = ["native-tls", "json", "form", "charset", "http2", "system-proxy"] }
 
 [profile.release]
 codegen-units = 1

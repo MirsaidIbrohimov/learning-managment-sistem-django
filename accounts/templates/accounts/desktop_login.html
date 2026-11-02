@@ -1,0 +1,77 @@
+{% load static %}
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101423">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Windows ilovasiga kiriş | IT Creative Academy</title>
+  <link rel="icon" href="{% static 'img/fav.ico' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  {% include 'partials/i18n/_head.html' %}
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;color:#eef0f8;font-family:"Segoe UI",system-ui,sans-serif;
+      background:radial-gradient(ellipse at 15% 10%,#34266d 0,transparent 42%),radial-gradient(ellipse at 90% 90%,#5b1d4f 0,transparent 40%),#0d0f1c}
+    .card{width:min(460px,100%);padding:34px 30px;border-radius:26px;background:#151829e6;border:1px solid #ffffff14;box-shadow:0 30px 80px #0008;text-align:center}
+    .icon{width:76px;height:76px;margin:0 auto 18px;display:grid;place-items:center;border-radius:24px;font-size:32px;color:#fff;
+      background:linear-gradient(135deg,#8b5cf6,#d946ef);box-shadow:0 12px 34px #a855f755}
+    .icon.ok{background:linear-gradient(135deg,#10b981,#22c55e);box-shadow:0 12px 34px #10b98155}
+    .icon.bad{background:linear-gradient(135deg,#ef4444,#f97316);box-shadow:0 12px 34px #ef444455}
+    .eyebrow{color:#c4b5fd;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+    h1{font-size:clamp(22px,5vw,28px);line-height:1.25;margin:10px 0 10px}
+    p{color:#c4c9db;line-height:1.6;margin:0 auto 18px}
+    .code{display:inline-block;font:800 34px/1 "Cascadia Code",Consolas,monospace;letter-spacing:.18em;padding:16px 22px;border-radius:16px;
+      background:#ffffff0d;border:1px dashed #a78bfa88;margin:4px 0 18px;color:#fff}
+    .meta{display:grid;gap:8px;text-align:left;padding:14px 16px;border-radius:16px;background:#ffffff08;border:1px solid #ffffff12;font-size:13px;color:#c4c9db;margin-bottom:20px}
+    .meta i{color:#a78bfa;margin-right:8px}
+    .warn{display:flex;gap:10px;text-align:left;font-size:12.5px;color:#fcd34d;background:#f59e0b14;border:1px solid #f59e0b33;padding:12px 14px;border-radius:14px;margin-bottom:20px;line-height:1.5}
+    .actions{display:grid;gap:10px}
+    .btn{width:100%;min-height:48px;border:0;border-radius:14px;font:700 15px inherit;cursor:pointer;transition:transform .18s,filter .18s}
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+    .approve{color:#fff;background:linear-gradient(110deg,#8b5cf6,#d946ef);box-shadow:0 10px 24px #a855f73d}
+    .deny{color:#d1d5e4;background:#ffffff0d;border:1px solid #ffffff1a}
+    a{color:#c4b5fd}
+  </style>
+</head>
+<body>
+  <main class="card">
+    {% if state == 'ask' %}
+      <div class="icon"><i class="bi bi-pc-display"></i></div>
+      <div class="eyebrow">ITC Academy · Windows ilova</div>
+      <h1>Ilovaga kirişni tasdiqlang</h1>
+      <p>Ilova oynasida körsatilgan kod quyidagi kod bilan bir xil ekanini tekşiring.</p>
+      <div class="code" translate="no">{{ auth_request.user_code }}</div>
+      <div class="meta">
+        <div><i class="bi bi-person-circle"></i>{{ request.user.full_name|default:request.user.username }} (@{{ request.user.username }})</div>
+        <div><i class="bi bi-globe2"></i>IP: {{ auth_request.ip_address|default:"—" }}</div>
+        <div><i class="bi bi-clock"></i>{{ auth_request.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      <div class="warn"><i class="bi bi-shield-exclamation"></i><span>Agar kirişni siz boşlamagan bölsangiz yoki kodlar mos kelmasa — «Rad etiş» ni bosing. Bu havolani heç kimga yubormang.</span></div>
+      <form method="post" class="actions">
+        {% csrf_token %}
+        <button class="btn approve" name="action" value="approve" type="submit"><i class="bi bi-check2-circle"></i> Tasdiqlaş va ilovaga kiriş</button>
+        <button class="btn deny" name="action" value="deny" type="submit">Rad etiş</button>
+      </form>
+    {% elif state == 'done' %}
+      <div class="icon ok"><i class="bi bi-check-lg"></i></div>
+      <h1>Kiriş tasdiqlandi</h1>
+      <p>ITC Academy ilovasiga qaytişingiz mumkin — u bir neça soniyada avtomatik oçiladi. Bu oynani yopsangiz böladi.</p>
+    {% elif state == 'denied' %}
+      <div class="icon bad"><i class="bi bi-x-lg"></i></div>
+      <h1>Kiriş rad etildi</h1>
+      <p>Ilovaga kiriş bekor qilindi. Kerak bölsa, ilovadan qaytadan urinib köring.</p>
+    {% elif state == 'expired' %}
+      <div class="icon bad"><i class="bi bi-hourglass-bottom"></i></div>
+      <h1>Havola muddati tugagan</h1>
+      <p>Xavfsizlik uçun kiriş havolasi 10 daqiqa amal qiladi. Ilovada «Sayt orqali kiriş» ni qaytadan bosing.</p>
+    {% elif state == 'role' %}
+      <div class="icon bad"><i class="bi bi-person-lock"></i></div>
+      <h1>Ilova faqat öquvçilar uçun</h1>
+      <p>{{ role_message }}</p>
+      <p><a href="{% url 'home' %}">Saytga ötiş →</a></p>
+    {% endif %}
+  </main>
+</body>
+</html>
