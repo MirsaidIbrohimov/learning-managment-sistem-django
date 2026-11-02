@@ -255,7 +255,9 @@
        MAIN
        ============================================================ */
     .yo-main{margin-left:264px;padding-top:64px;min-height:100vh}
-    .yo-content{padding:1.5rem;max-width:1320px;animation:yoFade .45s ease both}
+    /* fill-mode "backwards": animatsiya tugagaç transform qolmaydi — aks holda
+       .yo-content position:fixed modallar uçun containing block böladi */
+    .yo-content{padding:1.5rem;max-width:1320px;animation:yoFade .45s ease backwards}
     @keyframes yoFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
     /* ============================================================
@@ -357,7 +359,11 @@
         border-color:var(--accent)!important;background:var(--glass-strong)!important;
         box-shadow:0 0 0 .22rem var(--accent-soft)!important;
     }
-    .form-select{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2310b981' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e")!important}
+    /* yuqoridagi "background" shorthand repeat/position/size'ni ham tiklaydi — strelka takrorlanmasin */
+    .form-select,.form-select:focus{
+        background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2310b981' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e")!important;
+        background-repeat:no-repeat!important;background-position:right .75rem center!important;background-size:16px 12px!important;
+    }
     .form-text{color:var(--text-muted)}
     .form-check-input{background-color:var(--glass-2);border-color:var(--border)}
     .form-check-input:checked{background-color:var(--accent);border-color:var(--accent)}
@@ -611,6 +617,12 @@ function yoToggleTheme(){
     yoApplyThemeIcon(next);
 }
 yoApplyThemeIcon(document.documentElement.getAttribute('data-bs-theme'));
+
+// Modallarni <body> ga köçiramiz: kartalardagi backdrop-filter / transform
+// position:fixed elementni "qamab" qöyadi va modal sahifa örtasida qolib ketadi.
+document.querySelectorAll('.yo-content .modal, .yo-content [class*="modal-backdrop"]').forEach(function(el){
+    document.body.appendChild(el);
+});
 
 // Mobil menyuda link bosilganda yopilsin
 document.querySelectorAll('.yo-nav-link').forEach(function(l){
