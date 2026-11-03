@@ -1,3 +1,4 @@
+export { more } from './more.js';
 export { home } from './home.js';
 export { courses, course } from './courses.js';
 export { rating } from './rating.js';

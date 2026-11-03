@@ -668,6 +668,10 @@ class GlobalRateLimitMiddleware:
     """
     # (prefix, limit, window_secs)
     _RULES = [
+        # Ilova: bir xonadagi öquvçilar bitta IP'dan kiradi, video hisobi va çat doimiy so'rov yuboradi.
+        # Bu yöllar token talab qiladi va foydalanuvçi böyiça alohida çeklangan.
+        ('/api/v1/app/lessons/', 900, 60),
+        ('/api/v1/app/chat/',    900, 60),
         ('/api/',     120, 60),
         ('/login',     20, 900),
         ('/register',  15, 900),

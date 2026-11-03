@@ -12,7 +12,7 @@ from .email_notifications import queue_email
 
 @receiver(user_logged_in, dispatch_uid='accounts.login_device_email')
 def notify_account_login(sender, request, user, **kwargs):
-    if request is None or not user.email:
+    if request is None or not user.email or getattr(request, 'suppress_login_email', False):
         return
     from .login_notifications import login_details
     try:

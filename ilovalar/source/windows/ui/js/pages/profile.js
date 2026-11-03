@@ -3,10 +3,11 @@ import { icon } from '../icons.js';
 import { esc, num, date, img, initials, coin, ROLE, toast, busy, confirmDialog, $$ } from '../ui.js';
 import { state, refreshUser, logout, applySettings } from '../app.js';
 import { settings as store, lessonHistory } from '../store.js';
-import { languagePicker } from '../i18n.js';
+import { languageCards } from '../i18n.js';
+import { withThemeReveal } from '../motion.js';
 
 const GENDER = { male: 'Erkak', female: 'Ayol', M: 'Erkak', F: 'Ayol' };
-const VERSION = '2.2.0';
+const VERSION = '2.3.0';
 
 export async function profile(el, ctx) {
   // Profil orqada yangilanadi — sahifa serverni kutmasdan darhol çiziladi
@@ -103,9 +104,9 @@ export async function settings(el) {
     <div class="page-head"><div class="titles"><h1 class="page-title">Sozlamalar</h1><div class="page-sub">Ilova körinişi va hisob</div></div></div>
     <section class="card">
       <h3 class="card-title">${icon('sun')} Köriniş</h3>
-      <div class="setting">
+      <div class="setting setting-col">
         <div class="s-main"><div class="s-title">Til</div><div class="s-sub">Interfeys tili: o'zbekça, ruşça yoki inglizça</div></div>
-        ${languagePicker('lang-picker-lg')}
+        ${languageCards()}
       </div>
       <div class="setting">
         <div class="s-main"><div class="s-title">Mavzu</div><div class="s-sub">Tungi, kunduzgi yoki Windows sozlamasiga mos</div></div>
@@ -160,8 +161,9 @@ export async function settings(el) {
     const t = e.target.closest('[data-theme-opt],[data-accent-opt],[data-toggle],#logout,#clear-history');
     if (!t) return;
     if (t.dataset.themeOpt) {
-      store.set({ theme: t.dataset.themeOpt });
       $$('[data-theme-opt]', el).forEach((x) => x.classList.toggle('active', x === t));
+      withThemeReveal(e, () => { store.set({ theme: t.dataset.themeOpt }); applySettings(); });
+      return;
     } else if (t.dataset.accentOpt) {
       store.set({ accent: t.dataset.accentOpt });
       $$('[data-accent-opt]', el).forEach((x) => x.classList.toggle('active', x === t));

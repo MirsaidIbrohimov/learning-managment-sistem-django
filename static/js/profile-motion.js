@@ -58,7 +58,8 @@
       if (!pill || !a) return;
       if (G) G.to(pill, { top: a.offsetTop, height: a.offsetHeight, duration: .5, ease: 'expo.out' });
       else { pill.style.top = a.offsetTop + 'px'; pill.style.height = a.offsetHeight + 'px'; }
-      if (getComputedStyle(nav).flexDirection === 'row') a.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      // Faqat menyuning özini suramiz: scrollIntoView butun sahifani menyu tomon qaytarib yuboradi
+      if (getComputedStyle(nav).flexDirection === 'row') nav.scrollTo({ left: a.offsetLeft - (nav.clientWidth - a.offsetWidth) / 2, behavior: 'smooth' });
     };
     movePill(links[0]);
     const io = new IntersectionObserver(es => es.forEach(e => {

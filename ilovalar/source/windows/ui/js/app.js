@@ -7,6 +7,8 @@ import { openPalette, resetPaletteCache } from './palette.js';
 import { renderLogin } from './pages/login.js';
 import { initI18n } from './i18n.js';
 import { afterLogin } from './location.js';
+import { initMotion, withThemeReveal } from './motion.js';
+import { HUB } from './pages/more.js';
 import * as P from './pages/index.js';
 
 // ───────── Holat ─────────
@@ -18,9 +20,15 @@ const NAV = [
   { id: 'courses', label: 'Kurslarim', ico: 'courses', key: '2' },
   { id: 'rating', label: 'Reyting', ico: 'trophy', key: '3' },
   { id: 'results', label: 'Natijalar', ico: 'award', key: '4' },
+  { group: 'Öqiş' },
+  { web: '/my-homeworks/', label: 'Vazifalarim', ico: 'homework' },
+  { web: '/my-schedule/', label: 'Dars jadvalim', ico: 'calendar' },
+  { web: '/ai/', label: 'AI suhbat', ico: 'bot' },
   { group: 'Imkoniyatlar' },
   { id: 'shop', label: 'Coin dökon', ico: 'shop', key: '5' },
   { id: 'library', label: 'Kutubxona', ico: 'library', key: '6' },
+  { web: '/chat/', label: 'Suhbatlar', ico: 'chat' },
+  { id: 'more', label: 'Barça bölimlar', ico: 'grid', key: '9' },
   { group: 'Hisob' },
   { id: 'profile', label: 'Profil', ico: 'user', key: '7' },
   { id: 'settings', label: 'Sozlamalar', ico: 'settings', key: '8' },
@@ -36,6 +44,7 @@ const ROUTES = {
   library: P.library,
   profile: P.profile,
   settings: P.settings,
+  more: P.more,
 };
 
 /** Joriy foydalanuvçi roliga mos menyu elementlari. */
@@ -141,9 +150,10 @@ function showShell() {
       <nav class="nav"><span class="nav-ind" id="nav-ind"></span>
         ${navFor(state.user?.role).map((n) => n.group
           ? `<div class="nav-group">${esc(n.group)}</div>`
-          : `<a class="nav-item" href="#/${n.id}" data-nav="${n.id}" data-tip="${esc(n.label)} · Ctrl+${n.key}" data-tip-compact>${icon(n.ico)}<span>${esc(n.label)}</span></a>`).join('')}
+          : n.web
+            ? `<button class="nav-item" type="button" data-open-web="${esc(n.web)}" data-tip="${esc(n.label)}" data-tip-compact>${icon(n.ico)}<span>${esc(n.label)}</span></button>`
+            : `<a class="nav-item" href="#/${n.id}" data-nav="${n.id}" data-tip="${esc(n.label)} · Ctrl+${n.key}" data-tip-compact>${icon(n.ico)}<span>${esc(n.label)}</span></a>`).join('')}
       </nav>
-      <div class="side-spacer"></div>
       <a class="side-coin" id="side-coin" href="#/shop"></a>
       <a class="user-chip" href="#/profile" id="user-chip"></a>
     </aside>
@@ -185,7 +195,7 @@ function moveIndicator() {
   if (!ind) return;
   if (!a) { ind.style.opacity = '0'; return; }
   ind.style.opacity = '1';
-  ind.style.transform = `translateY(${a.offsetTop + a.offsetHeight / 2 - 10}px)`;
+  ind.style.transform = `translateY(${a.offsetTop}px)`;
 }
 document.addEventListener('itc:settings', () => setTimeout(moveIndicator, 320));
 window.addEventListener('resize', moveIndicator);
@@ -221,6 +231,7 @@ document.addEventListener('pointerover', (e) => {
 
 // ───────── Router ─────────
 let renderSeq = 0;
+let lastRouteAt = -1;
 async function route() {
   if (!state.user) return;
   const [, name = 'home', ...args] = (location.hash || '#/home').split('/');
@@ -234,6 +245,11 @@ async function route() {
   if (!host) return;
   const el = document.createElement('div');
   el.className = 'page page-enter';
+  // Yon paneldagi tartib böyiça yönalish: pastdagi bölim öngdan, yuqoridagisi çapdan kiradi
+  const order = NAV.filter((n) => n.id).map((n) => n.id);
+  const at = order.indexOf(active);
+  el.style.setProperty('--dx', `${at === lastRouteAt || lastRouteAt < 0 ? 0 : at > lastRouteAt ? 26 : -26}px`);
+  lastRouteAt = at;
   host.replaceChildren(el);
   $('#scroller').scrollTop = 0;
   try {
@@ -253,9 +269,16 @@ window.addEventListener('hashchange', () => {
 });
 
 // Saytdagi sahifani oçiş tugmalari (har qanday sahifada)
-on(document, 'click', '[data-open-web]', (e, t) => {
+on(document, 'click', '[data-open-web]', async (e, t) => {
   e.preventDefault();
-  openWeb(t.dataset.openWeb);
+  if (t.classList.contains('opening')) return;
+  t.classList.add('opening');
+  try {
+    await openWeb(t.dataset.openWeb);
+  } catch {
+    toast("Sahifani oçib bölmadi. Qayta urinib köring", 'err');
+  }
+  t.classList.remove('opening');
 });
 
 // ───────── Palitra ─────────
@@ -263,6 +286,8 @@ function showPalette() {
   if (!state.user) return;
   openPalette([
     ...navFor(state.user?.role).filter((n) => n.id).map((n) => ({ group: "Bölimlar", label: n.label, ico: n.ico, k: `Ctrl ${n.key}`, run: () => { location.hash = `#/${n.id}`; } })),
+    ...HUB.flatMap((g) => g.items).filter((i) => i.web && !NAV.some((n) => n.web === i.web)).map((i) => ({ group: 'Saytdagi bölimlar', label: i.label, ico: i.ico, run: () => openWeb(i.web) })),
+    ...NAV.filter((n) => n.web).map((n) => ({ group: 'Saytdagi bölimlar', label: n.label, ico: n.ico, run: () => openWeb(n.web) })),
     { group: 'Amallar', label: "Coin ötkaziş", ico: 'send', run: () => { location.hash = '#/shop/transfer'; } },
     { group: 'Amallar', label: "Tungi / kunduzgi mavzu", ico: 'moon', k: 'Ctrl Shift L', run: toggleTheme },
     { group: 'Amallar', label: "Yon panelni yiğiş / oçiş", ico: 'sidebar', k: 'Ctrl B', run: toggleCompact },
@@ -286,8 +311,10 @@ export function applySettings() {
 }
 function toggleTheme() {
   const cur = document.documentElement.dataset.theme;
-  settings.set({ theme: cur === 'dark' ? 'light' : 'dark' });
-  applySettings();
+  withThemeReveal(null, () => {
+    settings.set({ theme: cur === 'dark' ? 'light' : 'dark' });
+    applySettings();
+  });
 }
 function toggleCompact() {
   settings.set({ compact: !settings.get().compact });
@@ -351,7 +378,11 @@ async function start() {
   splash.className = 'splash';
   splash.innerHTML = `<div><img class="s-logo" src="assets/logo.png" alt=""><div class="s-bar"><i></i></div></div>`;
   document.body.appendChild(splash);
-  const hide = () => { splash.classList.add('hide'); setTimeout(() => splash.remove(), 600); };
+  const hide = () => {
+    splash.classList.add('hide');
+    setTimeout(() => splash.remove(), 600);
+    document.dispatchEvent(new Event('itc:ready')); // brand-intro.js shuni kutadi
+  };
 
   try {
     if (await auth.hasSession()) {
@@ -408,6 +439,7 @@ function showOffline() {
 if (!IS_APP) document.body.classList.add('preview');
 setupTitlebar();
 setupTooltips();
+initMotion();
 onUnauthorized(() => {
   if (state.user) {
     toast("Sessiya tugadi. Iltimos, qaytadan kiring", 'info');

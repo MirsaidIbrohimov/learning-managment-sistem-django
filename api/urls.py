@@ -16,6 +16,10 @@ urlpatterns = [
     path('app/auth/start/', app_auth.auth_start, name='app_auth_start'),
     path('app/auth/poll/', app_auth.auth_poll, name='app_auth_poll'),
     path('app/location/', app_auth.app_location, name='app_location'),
+    path('app/web-login/', app_auth.app_web_login, name='app_web_login'),
+
+    # Native ilova: darslar, vazifa, test, çat (token bilan, sayt qoidalari bilan)
+    path('app/', include('api.app_urls')),
 
     # Profile
     path('profile/', views.ProfileView.as_view(), name='profile'),

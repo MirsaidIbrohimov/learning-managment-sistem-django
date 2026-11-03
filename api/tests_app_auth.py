@@ -7,11 +7,13 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.models import DesktopAuthRequest, LoginLocation
+from rest_framework.authtoken.models import Token
+
+from accounts.models import AppWebLoginCode, DesktopAuthRequest, LoginLocation, UserSession
 from coin.models import ActivityLog
 
 User = get_user_model()
@@ -179,3 +181,90 @@ class PostLoginRedirectTests(TestCase):
         session.save()
         response = self.client.get(reverse('login_location_skip'))
         self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+
+
+@override_settings(MIDDLEWARE=MIDDLEWARE)
+@patch('telegram_bot.utils.notify_user')
+@patch('accounts.email_signals.queue_email')
+class AndroidLoginLabelTests(TestCase):
+    def test_android_login_is_recorded_as_android(self, _email, notify):
+        cache.clear()
+        User.objects.create_user(
+            username='droid', password='StrongPass123!', role='student', phone='+998901119988',
+            is_profile_completed=True, telegram_id=777, email='d@example.com',
+        )
+        response = self.client.post(
+            reverse('api:app_login'), {'login': 'droid', 'password': 'StrongPass123!'},
+            content_type='application/json', HTTP_USER_AGENT='ITC-Academy-Android/2.0.0 (Android; Mobile)',
+        )
+        self.assertEqual(response.status_code, 200)
+        log = ActivityLog.objects.get(user__username='droid', action_type='login')
+        self.assertTrue(log.description.startswith('Android ilova'))
+        self.assertIn('Android ilova', notify.call_args[0][1])
+
+
+@override_settings(MIDDLEWARE=MIDDLEWARE)
+@patch('accounts.email_signals.queue_email')
+class AppWebLoginTests(TestCase):
+    def setUp(self):
+        cache.clear()
+        self.student = User.objects.create_user(
+            username='web_student', password='StrongPass123!', role='student',
+            phone='+998901112233', is_profile_completed=True, email='w@example.com',
+        )
+        self.teacher = User.objects.create_user(
+            username='web_teacher', password='StrongPass123!', role='teacher', phone='+998901112244',
+        )
+
+    def issue(self, user, path='/my-homeworks/'):
+        token, _ = Token.objects.get_or_create(user=user)
+        return self.client.post(
+            reverse('api:app_web_login'), {'path': path}, content_type='application/json',
+            HTTP_AUTHORIZATION=f'Token {token.key}',
+        )
+
+    def test_code_logs_in_and_redirects_once(self, email):
+        url = self.issue(self.student).json()['url']
+        response = self.client.get(url)
+        self.assertRedirects(response, '/my-homeworks/', fetch_redirect_response=False)
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.student.pk)
+        self.assertTrue(UserSession.objects.filter(user=self.student, is_active=True).exists())
+        email.assert_not_called()
+        other = Client()
+        self.assertRedirects(other.get(url), reverse('login'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', other.session)
+
+    def test_only_hash_is_stored(self, _email):
+        url = self.issue(self.student).json()['url']
+        code = url.rstrip('/').rsplit('/', 1)[-1]
+        item = AppWebLoginCode.objects.get()
+        self.assertEqual(item.code_hash, hashlib.sha256(code.encode()).hexdigest())
+        self.assertNotEqual(item.code_hash, code)
+
+    def test_expired_code_is_refused(self, _email):
+        url = self.issue(self.student).json()['url']
+        AppWebLoginCode.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+        self.assertRedirects(self.client.get(url), reverse('login'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_outside_paths_are_refused(self, _email):
+        for path in ('https://evil.example/', '//evil.example/', 'lessons/1/', '/\\evil.example/'):
+            self.assertEqual(self.issue(self.student, path).status_code, 400, path)
+        self.assertFalse(AppWebLoginCode.objects.exists())
+
+    def test_requires_token_and_student_role(self, _email):
+        anonymous = self.client.post(reverse('api:app_web_login'), {'path': '/'}, content_type='application/json')
+        self.assertEqual(anonymous.status_code, 401)
+        self.assertEqual(self.issue(self.teacher).status_code, 403)
+
+    def test_role_change_after_issue_is_refused(self, _email):
+        url = self.issue(self.student).json()['url']
+        User.objects.filter(pk=self.student.pk).update(role='teacher')
+        self.assertRedirects(self.client.get(url), reverse('login'), fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_other_user_session_is_replaced(self, _email):
+        other = User.objects.create_user(username='web_other', password='x', role='student', phone='+998901112255')
+        self.client.force_login(other)
+        self.client.get(self.issue(self.student).json()['url'])
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.student.pk)

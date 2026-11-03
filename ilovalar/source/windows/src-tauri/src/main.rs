@@ -300,8 +300,15 @@ async fn login(
 }
 
 #[tauri::command]
-fn logout(session: State<'_, Session>) {
+async fn logout(app: AppHandle, session: State<'_, Session>) -> Result<(), ()> {
     session.set_token(None);
+    // Keyingi foydalanuvchi oldingisining ochiq dars oynasini ko'rmasin
+    for (label, window) in app.webview_windows() {
+        if label != "main" {
+            let _ = window.close();
+        }
+    }
+    Ok(())
 }
 
 /// Umumiy API so'rovi. `method`: GET | POST | PATCH. `body` — JSON.
@@ -340,10 +347,38 @@ async fn api(
     }
 }
 
+/// Token bilan bir martalik kiriş havolasini oladi: sayt oynasida qayta login so'ralmaydi.
+/// Olib bo'lmasa (tarmoq, eski server) oddiy sahifa ochiladi va sayt o'zi kirishni so'raydi.
+async fn signed_web_url(session: &Session, path: &str, fallback: Url) -> Url {
+    let Some(token) = session.token() else { return fallback };
+    let Some(endpoint) = api_url("/api/v1/app/web-login/") else { return fallback };
+    let resp = session
+        .client
+        .post(endpoint)
+        .header(header::AUTHORIZATION, format!("Token {token}"))
+        .header(header::ACCEPT, "application/json")
+        .json(&serde_json::json!({ "path": path }))
+        .send()
+        .await;
+    let Ok(resp) = resp else { return fallback };
+    if !resp.status().is_success() {
+        return fallback;
+    }
+    read_json(resp)
+        .await
+        .get("url")
+        .and_then(Value::as_str)
+        .filter(|u| u.starts_with("/app/web-login/"))
+        .and_then(web_url)
+        .unwrap_or(fallback)
+}
+
 /// Saytdagi sahifani (masalan, dars) ilova ichidagi alohida oynada ochadi.
+/// Buyruq asinxron: sinxron buyruqda oyna yaratish Windows'da osilib qoladi.
 #[tauri::command]
-fn open_web(app: AppHandle, path: String) -> Result<(), String> {
+async fn open_web(app: AppHandle, session: State<'_, Session>, path: String) -> Result<(), String> {
     let url = web_url(&path).ok_or("path")?;
+    let url = signed_web_url(&session, &path, url).await;
     if let Some(w) = app.get_webview_window("web") {
         let _ = w.navigate(url);
         let _ = w.unminimize();
@@ -468,6 +503,8 @@ fn web_window<R: Runtime>(
     let handle = app.clone();
     let mut builder = WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
         .title("ITC Academy — Dars")
+        // Saytning kiriş introsi dars ustida çiqmasin (static/js/brand_intro.js)
+        .initialization_script("window.__ITC_APP_WEB__ = true;")
         .inner_size(1200.0, 800.0)
         .min_inner_size(400.0, 600.0)
         .zoom_hotkeys_enabled(true)

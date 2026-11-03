@@ -2577,6 +2577,26 @@ class DesktopAuthRequest(models.Model):
         return timezone.now() >= self.expires_at
 
 
+class AppWebLoginCode(models.Model):
+    """Windows ilovasidan saytdagi sahifani (dars, vazifa, ...) qayta login qilmasdan oçiş uçun bir martalik kod.
+
+    Bazada faqat kodning SHA-256 xeşi turadi. Kod 60 soniya amal qiladi va faqat bir marta işlatiladi.
+    """
+    code_hash = models.CharField(max_length=64, unique=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='app_web_login_codes')
+    next_path = models.CharField(max_length=500, default='/')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(db_index=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Ilovadan saytga kiriş kodi'
+        verbose_name_plural = 'Ilovadan saytga kiriş kodlari'
+
+    def __str__(self):
+        return f'{self.user_id} → {self.next_path}'
+
+
 class DailyLessonAccess(models.Model):
     """Öquvçi bir kunda faqat bitta yangi darsga kirişi mumkin.
     Oldin bajarilgan darslarga erkin kiriş bor."""

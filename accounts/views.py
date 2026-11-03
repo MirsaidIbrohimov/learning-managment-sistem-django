@@ -6517,90 +6517,15 @@ def student_lesson_view(request, token):
         messages.error(request, "Avval kursga yoziling!")
         return redirect('professions')
 
-    if (lesson.is_final_test
-            and not final_test_prerequisites_met(request.user, profession)):
-        messages.warning(
-            request,
-            "Yakuniy test oçilişi uçun avval kursdagi barça video, vazifa va testlarni bajaring!",
-        )
-        course_token = StudentCourseToken.get_or_create(request.user, profession)
-        return redirect('student_course_view', token=course_token.token)
-
-    # Luğat darslariga çeklovsiz kiriş
-    if lesson.lesson_type != 'dictionary':
-        from datetime import date
-        today = date.today()
-        limit_on = daily_limit_active(request.user, profession)
-
-        watched_videos = set(VideoProgress.objects.filter(
-            user=request.user, watched=True,
-            video__lesson__profession=profession
-        ).values_list('video__lesson_id', flat=True))
-        passed_legacy = set(TestResult.objects.filter(
-            student=request.user, test__lesson__profession=profession, passed=True
-        ).values_list('test__lesson_id', flat=True))
-        passed_quiz = set(Attempt.objects.filter(
-            student=request.user,
-            quiz__lesson__profession=profession,
-            passed=True,
-            status__in=[Attempt.Status.SUBMITTED, Attempt.Status.GRADED],
-        ).values_list('quiz__lesson_id', flat=True))
-        passed_tests = passed_legacy | passed_quiz
-        accepted_homeworks = set(HomeworkSubmission.objects.filter(
-            student=request.user, homework__lesson__profession=profession,
-            status__in=['accepted', 'graded']
-        ).values_list('homework__lesson_id', flat=True))
-        graded_speakings = set(SpeakingSubmission.objects.filter(
-            student=request.user, speaking_task__lesson__profession=profession,
-            status='graded'
-        ).values_list('speaking_task__lesson_id', flat=True))
-        completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks | graded_speakings
-
-        if lesson.pk not in completed_lesson_ids:
-            current_section = lesson.section
-            if current_section:
-                section_lessons_ids = set(
-                    current_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
-                )
-                section_started = bool(section_lessons_ids & completed_lesson_ids)
-                section_completed = section_lessons_ids.issubset(completed_lesson_ids)
-
-                if not section_completed and not section_started:
-                    all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
-                    section_idx = None
-                    for idx, s in enumerate(all_sections):
-                        if s.id == current_section.id:
-                            section_idx = idx
-                            break
-
-                    if section_idx is not None and section_idx > 0:
-                        prev_section = all_sections[section_idx - 1]
-                        prev_section_lessons = set(
-                            prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
-                        )
-                        if not prev_section_lessons.issubset(completed_lesson_ids):
-                            messages.warning(request, "Avval oldingi bölimdagi barça darslarni bajaring! 🔒")
-                            ct = StudentCourseToken.get_or_create(request.user, profession)
-                            return redirect('student_course_view', token=ct.token)
-
-                    if limit_on:
-                        today_section_access = DailySectionAccess.objects.filter(
-                            user=request.user, profession=profession, accessed_date=today
-                        ).select_related('section').first()
-                        if today_section_access and today_section_access.section_id != current_section.id:
-                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bölimini öqiyolasiz. Yangi bölimga ertaga kirişingiz mumkin! 📚")
-                            ct = StudentCourseToken.get_or_create(request.user, profession)
-                            return redirect('student_course_view', token=ct.token)
-
-                if not section_completed and limit_on:
-                    today_access = DailySectionAccess.objects.filter(
-                        user=request.user, profession=profession, accessed_date=today
-                    ).first()
-                    if not today_access:
-                        DailySectionAccess.objects.create(
-                            user=request.user, profession=profession,
-                            section=current_section, accessed_date=today
-                        )
+    # Qoida ilova API'si bilan bitta joyda (accounts/lesson_access.py)
+    from .lesson_access import LessonGate
+    gate = LessonGate(request.user, profession)
+    blocked = gate.block(lesson)
+    if blocked:
+        messages.warning(request, blocked[1])
+        ct = StudentCourseToken.get_or_create(request.user, profession)
+        return redirect('student_course_view', token=ct.token)
+    gate.record_visit(lesson)
 
     # Kurs tokenini oliş (orqaga qaytiş uçun)
     course_token = StudentCourseToken.get_or_create(request.user, profession)
@@ -6998,6 +6923,86 @@ def student_start_test(request, token):
     })
 
 
+def grade_legacy_test(user, test, questions, answer_for, started_at):
+    """Eski test javoblarini baholaydi, coin va sertifikatni beradi. Sayt va ilova bitta yöldan ötadi.
+
+    `answer_for(question)` tanlangan javob ID'sini qaytaradi. Javob aynan şu savolga
+    tegişli bölişi şart: boşqa savolning töğri javobi bilan ball olib bölmaydi.
+    Qaytaradi: (natija, coin berildimi, sertifikat berildimi).
+    """
+    questions = list(questions)
+    total = len(questions)
+    correct = 0
+    result = TestResult.objects.create(
+        test=test, student=user,
+        score=0, total_questions=total, correct_answers=0,
+        started_at=started_at, passed=False
+    )
+    for question in questions:
+        selected_answer = None
+        answer_id = answer_for(question)
+        if str(answer_id or '').isdigit():
+            selected_answer = TestAnswer.objects.filter(pk=int(answer_id), question=question).first()
+        is_correct = bool(selected_answer and selected_answer.is_correct)
+        if is_correct:
+            correct += 1
+        TestUserAnswer.objects.create(
+            result=result, question=question,
+            selected_answer=selected_answer, is_correct=is_correct
+        )
+
+    result.score = int((correct / total) * 100) if total > 0 else 0
+    result.correct_answers = correct
+    result.passed = result.score >= test.passing_score
+    result.save()
+
+    is_first_attempt = not TestResult.objects.filter(test=test, student=user).exclude(pk=result.pk).exists()
+    first_coins = False
+    certificate_issued = False
+    title = test.lesson.title
+    if result.passed:
+        first_coins = is_first_attempt and correct > 0
+        if first_coins:
+            # Faqat birinçi urinişda coin beriladi
+            user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {title}")
+            result.coin_awarded = True
+            result.save()
+        ActivityLog.objects.create(
+            user=user, action_type='submit_test',
+            description=f"Test topşirdi: {title} - {correct}/{total} töğri" + (f", +{correct} coin" if first_coins else "")
+        )
+        # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
+        if test.test_type == 'final' and user.is_learner:
+            try:
+                from .certificates import issue_course_certificate
+                cert, _cert_err = issue_course_certificate(user, test.lesson.profession)
+                certificate_issued = bool(cert and cert.file)
+            except Exception:
+                pass
+    else:
+        ActivityLog.objects.create(
+            user=user, action_type='submit_test',
+            description=f"Test topşirdi (muvaffaqiyatsiz): {title} - {correct}/{total} töğri"
+        )
+    return result, first_coins, certificate_issued
+
+
+def notify_legacy_test(user, result):
+    """Test natijasi xabarlari. Baho yozilib bölgandan keyin, tranzaksiyadan taşqarida çaqiriladi."""
+    from .notifications import on_test_completed
+    on_test_completed(user, result)
+    lesson = result.test.lesson
+    passed_text = "✅ Muvaffaqiyatli" if result.passed else "❌ Muvaffaqiyatsiz"
+    notify_user(
+        user.telegram_id,
+        f"📊 <b>Test natijasi!</b>\n\n"
+        f"📚 Kurs: {lesson.profession.name}\n"
+        f"📖 Dars: {lesson.title}\n"
+        f"✏️ Natija: {result.correct_answers}/{result.total_questions} töğri ({result.score}%)\n"
+        f"{passed_text}"
+    )
+
+
 @login_required
 def student_submit_test(request, token):
     token_obj = _get_token_or_404(request.user, token)
@@ -7042,97 +7047,28 @@ def student_submit_test(request, token):
     else:
         questions = test.questions.all()
 
-    correct = 0
-    total = questions.count()
-
-    result = TestResult.objects.create(
-        test=test, student=request.user,
-        score=0, total_questions=total, correct_answers=0,
-        started_at=started_at, passed=False
+    result, first_coins, certificate_issued = grade_legacy_test(
+        request.user, test, questions,
+        lambda question: request.POST.get(f'question_{question.pk}'),
+        started_at,
     )
-
-    for question in questions:
-        answer_id = request.POST.get(f'question_{question.pk}')
-        selected_answer = None
-        is_correct = False
-
-        if answer_id:
-            try:
-                selected_answer = TestAnswer.objects.get(pk=answer_id)
-                is_correct = selected_answer.is_correct
-                if is_correct:
-                    correct += 1
-            except TestAnswer.DoesNotExist:
-                pass
-
-        TestUserAnswer.objects.create(
-            result=result, question=question,
-            selected_answer=selected_answer, is_correct=is_correct
-        )
-
-    score = int((correct / total) * 100) if total > 0 else 0
-    result.score = score
-    result.correct_answers = correct
-    result.passed = score >= test.passing_score
-    result.save()
-
-    # Birinçi urinişmi yoki qayta topşirişmi tekşiriş
-    existing_results_count = TestResult.objects.filter(
-        test=test, student=request.user
-    ).exclude(pk=result.pk).count()
-    is_first_attempt = existing_results_count == 0
+    correct, total, score = result.correct_answers, result.total_questions, result.score
 
     if result.passed:
-        if is_first_attempt and correct > 0:
-            # Faqat birinçi urinişda coin beriladi
-            request.user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {test.lesson.title}")
-            result.coin_awarded = True
-            result.save()
-
-        ActivityLog.objects.create(
-            user=request.user, action_type='submit_test',
-            description=f"Test topşirdi: {test.lesson.title} - {correct}/{total} töğri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
-        )
-
-        if is_first_attempt and correct > 0:
+        if first_coins:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (töğri javoblar)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
-
-        # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
-        if test.test_type == 'final' and request.user.is_learner:
-            try:
-                from .certificates import issue_course_certificate
-                _cert, _cert_err = issue_course_certificate(
-                    request.user, test.lesson.profession
-                )
-                if _cert and _cert.file:
-                    messages.success(
-                        request,
-                        "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
-                        "kurs sahifasidan yuklab olişingiz mumkin!"
-                    )
-            except Exception:
-                pass
+        if certificate_issued:
+            messages.success(
+                request,
+                "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
+                "kurs sahifasidan yuklab olişingiz mumkin!"
+            )
     else:
-        ActivityLog.objects.create(
-            user=request.user, action_type='submit_test',
-            description=f"Test topşirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} töğri"
-        )
         messages.warning(request, f"Testdan öta olmadingiz. {correct}/{total} töğri javob.")
 
-    from .notifications import on_test_completed
-    on_test_completed(request.user, result)
-
-    passed_text = "✅ Muvaffaqiyatli" if result.passed else "❌ Muvaffaqiyatsiz"
-    notify_user(
-        request.user.telegram_id,
-        f"📊 <b>Test natijasi!</b>\n\n"
-        f"📚 Kurs: {test.lesson.profession.name}\n"
-        f"📖 Dars: {test.lesson.title}\n"
-        f"✏️ Natija: {correct}/{total} töğri ({score}%)\n"
-        f"{passed_text}"
-    )
+    notify_legacy_test(request.user, result)
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         from django.urls import reverse

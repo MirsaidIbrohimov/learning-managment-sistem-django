@@ -12,24 +12,76 @@ export function getLanguage() {
   return LANGS[lang] ? lang : 'uz';
 }
 
-/** Tilni almaştiradi: sozlama saqlanadi va oyna qayta yuklanadi (barça matn yangi tilda çiziladi). */
+/** Tilni almaştiradi: sozlama saqlanadi, ekran silliq yöqoladi va oyna qayta yuklanadi. */
 export function setLanguage(lang) {
   if (!LANGS[lang] || lang === getLanguage()) return;
   settings.set({ lang });
-  location.reload();
+  try { sessionStorage.setItem('itc.intro.skip', '1'); } catch { /* maxfiy oyna */ }
+  document.body.classList.add('lang-leaving');
+  setTimeout(() => location.reload(), document.documentElement.dataset.motion === 'off' ? 0 : 240);
 }
 
-/** Til tanlaş röyxati (kiriş ekrani va sozlamalar uçun). */
-export function languagePicker(cls = '') {
+// Windows emoji bayroqlarni çizmaydi, şuning uçun SVG. Ingliz tili uçun Buyuk Britaniya bayrog'i.
+const FLAGS = {
+  uz: `<rect width="30" height="20" fill="#fff"/><rect width="30" height="6.400" fill="#0099b5"/><rect y="13.600" width="30" height="6.400" fill="#1eb53a"/><rect y="6.400" width="30" height=".5" fill="#ce1126"/><rect y="13.100" width="30" height=".5" fill="#ce1126"/><circle cx="5" cy="3.200" r="2.300" fill="#fff"/><circle cx="5.900" cy="3.200" r="2.050" fill="#0099b5"/>${[[12.600, 4.800], [14.300, 4.800], [16, 4.800], [10.900, 3.200], [12.600, 3.200], [14.300, 3.200], [16, 3.200], [9.200, 1.600], [10.900, 1.600], [12.600, 1.600], [14.300, 1.600], [16, 1.600]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".42" fill="#fff"/>`).join('')}`,
+  ru: '<rect width="30" height="20" fill="#fff"/><rect y="6.670" width="30" height="6.670" fill="#0039a6"/><rect y="13.330" width="30" height="6.670" fill="#d52b1e"/>',
+  en: '<rect width="30" height="20" fill="#012169"/><path d="M0 0 30 20M30 0 0 20" stroke="#fff" stroke-width="4"/><path d="M0 0 30 20M30 0 0 20" stroke="#c8102e" stroke-width="1.600"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6.500"/><path d="M15 0v20M0 10h30" stroke="#c8102e" stroke-width="3.800"/>',
+};
+const COUNTRY = { uz: "Özbekiston", ru: 'Россия', en: 'United Kingdom' };
+
+export const flag = (lang, cls = '') => `<svg class="flag ${cls}" viewBox="0 0 30 20" aria-hidden="true">${FLAGS[lang] || ''}</svg>`;
+
+/** Ixçam til menyusi (kiriş ekrani): bayroq, nom va oçiladigan röyxat. */
+export function languagePicker() {
   const cur = getLanguage();
-  return `<label class="lang-picker ${cls}" translate="no">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-    <select data-lang-picker aria-label="Til / Язык / Language">${Object.entries(LANGS)
-      .map(([k, v]) => `<option value="${k}"${k === cur ? ' selected' : ''}>${v}</option>`).join('')}</select>
-  </label>`;
+  return `<div class="lang-menu" data-lang-menu translate="no">
+    <button class="lang-btn" type="button" aria-haspopup="listbox" aria-expanded="false" aria-label="Til / Язык / Language">
+      ${flag(cur)}<span>${LANGS[cur]}</span><svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="lang-pop" role="listbox">${Object.entries(LANGS).map(([k, v]) => `
+      <button class="lang-row ${k === cur ? 'on' : ''}" type="button" role="option" aria-selected="${k === cur}" data-lang-set="${k}">
+        ${flag(k)}<span class="lang-names"><b>${v}</b><small>${COUNTRY[k]}</small></span>
+        <svg class="lang-tick" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      </button>`).join('')}
+    </div>
+  </div>`;
 }
-document.addEventListener('change', (e) => {
-  if (e.target.matches?.('[data-lang-picker]')) setLanguage(e.target.value);
+
+/** Sozlamalar uçun: uçta katta bayroqli karta. */
+export function languageCards() {
+  const cur = getLanguage();
+  return `<div class="lang-cards" role="radiogroup" aria-label="Til / Язык / Language" translate="no">${Object.entries(LANGS).map(([k, v]) => `
+    <button class="lang-card ${k === cur ? 'on' : ''}" type="button" role="radio" aria-checked="${k === cur}" data-lang-set="${k}">
+      ${flag(k, 'flag-lg')}<b>${v}</b><small>${COUNTRY[k]}</small>
+      <span class="lang-card-tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+    </button>`).join('')}</div>`;
+}
+
+function closeLangMenus(except) {
+  document.querySelectorAll('[data-lang-menu].open').forEach((m) => {
+    if (m === except) return;
+    m.classList.remove('open');
+    m.querySelector('.lang-btn').setAttribute('aria-expanded', 'false');
+  });
+}
+document.addEventListener('click', (e) => {
+  const set = e.target.closest?.('[data-lang-set]');
+  if (set) { closeLangMenus(); setLanguage(set.dataset.langSet); return; }
+  const btn = e.target.closest?.('.lang-btn');
+  if (!btn) { closeLangMenus(); return; }
+  const menu = btn.closest('[data-lang-menu]');
+  closeLangMenus(menu);
+  btn.setAttribute('aria-expanded', String(menu.classList.toggle('open')));
+});
+document.addEventListener('keydown', (e) => {
+  const menu = document.querySelector('[data-lang-menu].open');
+  if (!menu) return;
+  if (e.key === 'Escape') { e.stopPropagation(); closeLangMenus(); menu.querySelector('.lang-btn').focus(); return; }
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault();
+  const rows = [...menu.querySelectorAll('.lang-row')];
+  const i = rows.indexOf(document.activeElement);
+  rows[(i + (e.key === 'ArrowDown' ? 1 : -1) + rows.length) % rows.length].focus();
 });
 
 // ───────── Lug'at va qidiruv (saytdagi runtime'ning ES modul varianti) ─────────

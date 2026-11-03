@@ -4,6 +4,7 @@
   POST /api/v1/app/auth/start/  — brauzer orqali kiriş sörovi (PKCE code_challenge) → user_code, approve_url
   POST /api/v1/app/auth/poll/   — code_verifier bilan tasdiqni tekşiriş → token (bir marta)
   POST /api/v1/app/location/    — kirişdan keyin rozilik bilan joylaşuv (token bilan)
+  POST /api/v1/app/web-login/   — saytdagi sahifani ilova oynasida oçiş uçun bir martalik havola (token bilan)
 """
 import base64
 import hashlib
@@ -16,6 +17,7 @@ from django.contrib.auth import authenticate
 from django.db import transaction
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -25,11 +27,12 @@ from rest_framework.response import Response
 from accounts.desktop_auth import (
     LOCATION_WINDOW_MINUTES, ROLE_MESSAGE, app_allowed, create_login_location, record_app_login,
 )
-from accounts.models import CustomUser, DesktopAuthRequest, LoginLocation
+from accounts.models import AppWebLoginCode, CustomUser, DesktopAuthRequest, LoginLocation
 from accounts.security import check_rate_limit, get_client_ip
 
 AUTH_TTL = timedelta(minutes=10)
 POLL_INTERVAL = 2
+WEB_LOGIN_TTL = timedelta(seconds=60)
 CHALLENGE_RE = re.compile(r'^[A-Za-z0-9_-]{43}$')       # base64url(SHA-256), "=" siz
 VERIFIER_RE = re.compile(r'^[A-Za-z0-9._~-]{43,128}$')  # RFC 7636
 USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'  # adaşmaydigan belgilar (0/O, 1/I yöq)
@@ -189,3 +192,35 @@ def app_location(request):
     except (TypeError, ValueError):
         return _error("Koordinatalar notöğri.", 'bad_coords', status.HTTP_400_BAD_REQUEST)
     return Response({'ok': True, 'address': address}, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def app_web_login(request):
+    """Ilova oynasi saytga qayta login qilmasdan kirişi uçun bir martalik havola beradi."""
+    user = request.user
+    if not app_allowed(user):
+        return _error(ROLE_MESSAGE, 'role', status.HTTP_403_FORBIDDEN)
+    blocked, block_msg = check_rate_limit(
+        request, 'app_web_login', identifier=str(user.pk), ip_limit=120, id_limit=60, window=900,
+    )
+    if blocked:
+        return _error(block_msg, 'rate_limited', status.HTTP_429_TOO_MANY_REQUESTS)
+    next_path = str(request.data.get('path') or '/')
+    if (
+        len(next_path) > 500
+        or not next_path.startswith('/')
+        or not url_has_allowed_host_and_scheme(next_path, allowed_hosts={request.get_host()})
+    ):
+        return _error("Notöğri sahifa.", 'bad_path', status.HTTP_400_BAD_REQUEST)
+
+    code = secrets.token_urlsafe(32)
+    now = timezone.now()
+    AppWebLoginCode.objects.filter(expires_at__lt=now - timedelta(days=1)).delete()
+    AppWebLoginCode.objects.create(
+        code_hash=hashlib.sha256(code.encode()).hexdigest(),
+        user=user,
+        next_path=next_path,
+        expires_at=now + WEB_LOGIN_TTL,
+    )
+    return Response({'url': reverse('app_web_login', args=[code])}, status=status.HTTP_201_CREATED)

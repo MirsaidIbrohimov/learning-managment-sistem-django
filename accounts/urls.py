@@ -44,6 +44,7 @@ urlpatterns = [
     path('email/verify-resend/', email_verification.resend_verification, name='resend_email_verification'),
     path('login/location-consent/', views.login_location_consent, name='login_location_consent'),
     path('app/desktop-login/<str:request_id>/', desktop_auth.desktop_login_approve, name='desktop_login_approve'),
+    path('app/web-login/<str:code>/', desktop_auth.app_web_login, name='app_web_login'),
     path('login/location-record/', views.login_location_record, name='login_location_record'),
     path('login/location-skip/', views.login_location_skip, name='login_location_skip'),
     path('logout/', views.logout_view, name='logout'),
