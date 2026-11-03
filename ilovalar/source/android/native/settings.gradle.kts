@@ -4,4 +4,4 @@ dependencyResolutionManagement {
     repositories { google(); mavenCentral() }
 }
 rootProject.name = "itc-academy-android"
-include(":app")
+include(":app", ":parent")

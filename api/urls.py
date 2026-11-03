@@ -21,6 +21,9 @@ urlpatterns = [
     # Native ilova: darslar, vazifa, test, çat (token bilan, sayt qoidalari bilan)
     path('app/', include('api.app_urls')),
 
+    # "ITC Ota Ona" ilovasi (ota-onalar, alohida token)
+    path('parent-app/', include('parents.app_urls')),
+
     # Profile
     path('profile/', views.ProfileView.as_view(), name='profile'),
     path('profile/complete/', views.ProfileCompleteView.as_view(), name='profile_complete'),

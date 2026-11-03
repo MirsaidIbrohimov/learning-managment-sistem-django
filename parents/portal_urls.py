@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import app_api
 from . import portal_views as v
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     path('profile/password/', v.parent_change_password, name='parent_change_password'),
     path('settings/', v.parent_settings, name='parent_settings'),
     path('password-reset/', v.parent_password_reset_request, name='parent_password_reset_request'),
+    path('app-login/<str:code>/', app_api.web_login, name='parent_app_web_login'),
 ]

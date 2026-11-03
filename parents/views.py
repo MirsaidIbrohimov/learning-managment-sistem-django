@@ -159,6 +159,9 @@ def _parent_form(request, parent=None):
                 parent.password = make_password(password)
             parent.save()
             parent.children.set(CustomUser.objects.filter(id__in=selected, role='student'))
+            if password and not is_new:
+                from .models import ParentAppToken
+                ParentAppToken.revoke_all(parent)
             if password:
                 # Parol cookie/flash orqali emas, şu javobning özida bir marta körsatiladi
                 return render(request, 'parents/parent_credentials.html', {
@@ -316,6 +319,8 @@ def approve_parent_password_reset(request, pk):
         # `new_password` sörov paytida haşlangan — qayta haşlamaymiz.
         reset_request.parent.password = reset_request.new_password
         reset_request.parent.save(update_fields=['password'])
+        from .models import ParentAppToken
+        ParentAppToken.revoke_all(reset_request.parent)
 
         reset_request.status = 'approved'
         reset_request.reviewed_by = request.user

@@ -203,94 +203,126 @@ def parent_child_detail(request, child_id):
 
 # ───────────────────────── Öquv jarayoni ─────────────────────────
 
+def lesson_courses(child):
+    """Kurslar → bölimlar → darslar va har birining bajarilgan holati (web panel va ilova uçun)."""
+    courses = []
+    enrollments = CourseEnrollment.objects.filter(user=child).select_related('profession')
+    prof_ids = [e.profession_id for e in enrollments]
+    # Bitta sörov bilan bajarilganlar töplami (har dars uçun alohida sörov yöq)
+    watched = set(VideoProgress.objects.filter(
+        user=child, watched=True, video__lesson__profession_id__in=prof_ids
+    ).values_list('video__lesson_id', flat=True))
+    hw_status = {}
+    for lesson_id, status, grade in HomeworkSubmission.objects.filter(
+        student=child, homework__lesson__profession_id__in=prof_ids
+    ).order_by('submitted_at').values_list('homework__lesson_id', 'status', 'grade'):
+        hw_status[lesson_id] = (status, grade)
+    best_test = dict(TestResult.objects.filter(
+        student=child, test__lesson__profession_id__in=prof_ids
+    ).values('test__lesson_id').annotate(best=Max('score')).values_list('test__lesson_id', 'best'))
+    passed_tests = set(TestResult.objects.filter(
+        student=child, passed=True, test__lesson__profession_id__in=prof_ids
+    ).values_list('test__lesson_id', flat=True))
+    # Yangi quiz tizimi: eng yaxşi ball va ötilgan darslar
+    try:
+        from quiz.models import Attempt
+        for lesson_id, score, ok in Attempt.objects.filter(
+            student=child, status__in=['submitted', 'graded'], quiz__lesson__profession_id__in=prof_ids,
+        ).values_list('quiz__lesson_id', 'score', 'passed'):
+            best_test[lesson_id] = max(best_test.get(lesson_id, 0), score)
+            if ok:
+                passed_tests.add(lesson_id)
+    except Exception:
+        pass
+    speaking = {}
+    for lesson_id, status, grade in SpeakingSubmission.objects.filter(
+        student=child, speaking_task__lesson__profession_id__in=prof_ids
+    ).order_by('submitted_at').values_list('speaking_task__lesson_id', 'status', 'grade'):
+        speaking[lesson_id] = (status, grade)
+    sp_labels = dict(SpeakingSubmission.STATUS_CHOICES)
+    hw_labels = dict(HomeworkSubmission.STATUS_CHOICES)
+
+    lessons_by_section = {}
+    for lesson in Lesson.objects.filter(profession_id__in=prof_ids).order_by('order', 'id'):
+        lessons_by_section.setdefault(lesson.section_id, []).append(lesson)
+
+    for enr in enrollments:
+        sections = []
+        for section in Section.objects.filter(profession=enr.profession, is_active=True).order_by('order'):
+            items = []
+            for lesson in lessons_by_section.get(section.id, []):
+                done, detail = False, ''
+                if lesson.lesson_type == 'video':
+                    done = lesson.id in watched
+                    detail = "Körilgan" if done else "Körilmagan"
+                elif lesson.lesson_type == 'homework':
+                    st = hw_status.get(lesson.id)
+                    if st:
+                        done = st[0] in ('accepted', 'graded')
+                        detail = hw_labels.get(st[0], st[0]) + (f" · {st[1]}/10" if st[1] is not None else '')
+                    else:
+                        detail = 'Topşirilmagan'
+                elif lesson.lesson_type == 'test':
+                    if lesson.id in best_test:
+                        done = lesson.id in passed_tests
+                        detail = f"{best_test[lesson.id]}% · {'o‘tdi' if done else 'o‘tmadi'}"
+                    else:
+                        detail = 'Işlanmagan'
+                elif lesson.lesson_type == 'speaking':
+                    st = speaking.get(lesson.id)
+                    if st:
+                        done = st[0] == 'graded'
+                        detail = sp_labels.get(st[0], st[0]) + (f" · {st[1]} ball" if st[1] is not None else '')
+                    else:
+                        detail = 'Topşirilmagan'
+                else:
+                    continue  # luğat kabi kuzatilmaydigan darslar
+                items.append({'lesson': lesson, 'done': done, 'detail': detail})
+            total = len(items)
+            done_n = sum(1 for i in items if i['done'])
+            sections.append({'section': section, 'items': items, 'done': done_n, 'total': total,
+                             'percent': round(done_n / total * 100) if total else 0})
+        total = sum(s['total'] for s in sections)
+        done_n = sum(s['done'] for s in sections)
+        courses.append({'profession': enr.profession, 'sections': sections, 'done': done_n, 'total': total,
+                        'percent': round(done_n / total * 100) if total else 0})
+    return courses
+
+
 @parent_required
 def parent_lessons(request):
     ctx = _base(request)
     child = ctx['selected_child']
-    courses = []
-    if child:
-        enrollments = CourseEnrollment.objects.filter(user=child).select_related('profession')
-        prof_ids = [e.profession_id for e in enrollments]
-        # Bitta sörov bilan bajarilganlar töplami (har dars uçun alohida sörov yöq)
-        watched = set(VideoProgress.objects.filter(
-            user=child, watched=True, video__lesson__profession_id__in=prof_ids
-        ).values_list('video__lesson_id', flat=True))
-        hw_status = {}
-        for lesson_id, status, grade in HomeworkSubmission.objects.filter(
-            student=child, homework__lesson__profession_id__in=prof_ids
-        ).order_by('submitted_at').values_list('homework__lesson_id', 'status', 'grade'):
-            hw_status[lesson_id] = (status, grade)
-        best_test = dict(TestResult.objects.filter(
-            student=child, test__lesson__profession_id__in=prof_ids
-        ).values('test__lesson_id').annotate(best=Max('score')).values_list('test__lesson_id', 'best'))
-        passed_tests = set(TestResult.objects.filter(
-            student=child, passed=True, test__lesson__profession_id__in=prof_ids
-        ).values_list('test__lesson_id', flat=True))
-        # Yangi quiz tizimi: eng yaxşi ball va ötilgan darslar
-        try:
-            from quiz.models import Attempt
-            for lesson_id, score, ok in Attempt.objects.filter(
-                student=child, status__in=['submitted', 'graded'], quiz__lesson__profession_id__in=prof_ids,
-            ).values_list('quiz__lesson_id', 'score', 'passed'):
-                best_test[lesson_id] = max(best_test.get(lesson_id, 0), score)
-                if ok:
-                    passed_tests.add(lesson_id)
-        except Exception:
-            pass
-        speaking = {}
-        for lesson_id, status, grade in SpeakingSubmission.objects.filter(
-            student=child, speaking_task__lesson__profession_id__in=prof_ids
-        ).order_by('submitted_at').values_list('speaking_task__lesson_id', 'status', 'grade'):
-            speaking[lesson_id] = (status, grade)
-        sp_labels = dict(SpeakingSubmission.STATUS_CHOICES)
-        hw_labels = dict(HomeworkSubmission.STATUS_CHOICES)
-
-        lessons_by_section = {}
-        for lesson in Lesson.objects.filter(profession_id__in=prof_ids).order_by('order', 'id'):
-            lessons_by_section.setdefault(lesson.section_id, []).append(lesson)
-
-        for enr in enrollments:
-            sections = []
-            for section in Section.objects.filter(profession=enr.profession, is_active=True).order_by('order'):
-                items = []
-                for lesson in lessons_by_section.get(section.id, []):
-                    done, detail = False, ''
-                    if lesson.lesson_type == 'video':
-                        done = lesson.id in watched
-                        detail = "Körilgan" if done else "Körilmagan"
-                    elif lesson.lesson_type == 'homework':
-                        st = hw_status.get(lesson.id)
-                        if st:
-                            done = st[0] in ('accepted', 'graded')
-                            detail = hw_labels.get(st[0], st[0]) + (f" · {st[1]}/10" if st[1] is not None else '')
-                        else:
-                            detail = 'Topşirilmagan'
-                    elif lesson.lesson_type == 'test':
-                        if lesson.id in best_test:
-                            done = lesson.id in passed_tests
-                            detail = f"{best_test[lesson.id]}% · {'o‘tdi' if done else 'o‘tmadi'}"
-                        else:
-                            detail = 'Işlanmagan'
-                    elif lesson.lesson_type == 'speaking':
-                        st = speaking.get(lesson.id)
-                        if st:
-                            done = st[0] == 'graded'
-                            detail = sp_labels.get(st[0], st[0]) + (f" · {st[1]} ball" if st[1] is not None else '')
-                        else:
-                            detail = 'Topşirilmagan'
-                    else:
-                        continue  # luğat kabi kuzatilmaydigan darslar
-                    items.append({'lesson': lesson, 'done': done, 'detail': detail})
-                total = len(items)
-                done_n = sum(1 for i in items if i['done'])
-                sections.append({'section': section, 'items': items, 'done': done_n, 'total': total,
-                                 'percent': round(done_n / total * 100) if total else 0})
-            total = sum(s['total'] for s in sections)
-            done_n = sum(s['done'] for s in sections)
-            courses.append({'profession': enr.profession, 'sections': sections, 'done': done_n, 'total': total,
-                            'percent': round(done_n / total * 100) if total else 0})
-    ctx['courses'] = courses
+    ctx['courses'] = lesson_courses(child) if child else []
     return render(request, 'parents/portal/lessons.html', ctx)
+
+
+def homework_rows(child):
+    """Har bir vazifa va farzandning oxirgi topşirişi: done / submitted / late / missed / todo."""
+    rows = []
+    prof_ids = insights.course_ids(child)
+    latest = {}
+    for sub in HomeworkSubmission.objects.filter(
+        student=child, homework__lesson__profession_id__in=prof_ids
+    ).order_by('submitted_at'):
+        latest[sub.homework_id] = sub
+    for hw in Homework.objects.filter(lesson__profession_id__in=prof_ids)             .select_related('lesson', 'lesson__profession').order_by('-due_date', '-id'):
+        sub = latest.get(hw.id)
+        if sub:
+            state = 'late' if sub.is_late else ('done' if sub.status in ('accepted', 'graded') else 'submitted')
+        else:
+            state = 'missed' if hw.is_deadline_passed else 'todo'
+        rows.append({'homework': hw, 'submission': sub, 'state': state})
+    return rows
+
+
+def homework_counts(rows):
+    return {
+        'all': len(rows),
+        'submitted': sum(1 for r in rows if r['submission']),
+        'todo': sum(1 for r in rows if r['state'] == 'todo'),
+        'missed': sum(1 for r in rows if r['state'] in ('missed', 'late')),
+    }
 
 
 @parent_required
@@ -299,28 +331,10 @@ def parent_homework(request):
     child = ctx['selected_child']
     rows = []
     if child:
-        prof_ids = insights.course_ids(child)
-        latest = {}
-        for sub in HomeworkSubmission.objects.filter(
-            student=child, homework__lesson__profession_id__in=prof_ids
-        ).order_by('submitted_at'):
-            latest[sub.homework_id] = sub
-        for hw in Homework.objects.filter(lesson__profession_id__in=prof_ids) \
-                .select_related('lesson', 'lesson__profession').order_by('-due_date', '-id'):
-            sub = latest.get(hw.id)
-            if sub:
-                state = 'late' if sub.is_late else ('done' if sub.status in ('accepted', 'graded') else 'submitted')
-            else:
-                state = 'missed' if hw.is_deadline_passed else 'todo'
-            rows.append({'homework': hw, 'submission': sub, 'state': state})
-        ctx['summary'] = insights.homework_summary(child, prof_ids)
+        rows = homework_rows(child)
+        ctx['summary'] = insights.homework_summary(child)
     ctx['rows'] = rows
-    ctx['counts'] = {
-        'all': len(rows),
-        'submitted': sum(1 for r in rows if r['submission']),
-        'todo': sum(1 for r in rows if r['state'] == 'todo'),
-        'missed': sum(1 for r in rows if r['state'] in ('missed', 'late')),
-    }
+    ctx['counts'] = homework_counts(rows)
     return render(request, 'parents/portal/homework.html', ctx)
 
 
@@ -429,13 +443,8 @@ def parent_payment_return(request):
 
 # ───────────────────────── Yutuqlar / kitoblar ─────────────────────────
 
-@parent_required
-def parent_achievements(request):
-    ctx = _base(request)
-    child = ctx['selected_child']
-    if not child:
-        return render(request, 'parents/portal/achievements.html', ctx)
-
+def achievements_data(child):
+    """Sertifikatlar, nişonlar, reyting va streak (web panel va ilova uçun)."""
     certificates = Certificate.objects.filter(student=child).select_related('profession', 'issued_by') \
         .order_by('-issued_at')
     results = TestResult.objects.filter(student=child)
@@ -466,7 +475,7 @@ def parent_achievements(request):
     students = CustomUser.objects.filter(role='student', coins__gt=0)
     position = students.filter(coins__gt=child.coins).count() + 1
     avg = students.aggregate(a=Avg('coins'))['a'] or 0
-    ctx.update({
+    return {
         'certificates': certificates,
         'badges': badges,
         'earned_count': sum(1 for b in badges if b['earned']),
@@ -475,7 +484,15 @@ def parent_achievements(request):
         'streak': child.streak_days or 0,
         'coins_earned': coins_earned,
         'course_ranks': insights.course_rankings(child),
-    })
+    }
+
+
+@parent_required
+def parent_achievements(request):
+    ctx = _base(request)
+    child = ctx['selected_child']
+    if child:
+        ctx.update(achievements_data(child))
     return render(request, 'parents/portal/achievements.html', ctx)
 
 
@@ -667,6 +684,9 @@ def parent_change_password(request):
             return render(request, 'parents/portal/change_password.html', _base(request, error=error))
         parent.password = make_password(new)
         parent.save(update_fields=['password', 'updated_at'])
+        # Ilovadagi kirişlar ham bekor: parol özgargan bölsa telefon ögirlangan bölişi mumkin.
+        from .models import ParentAppToken
+        ParentAppToken.revoke_all(parent)
         # Parol özgardi — eski sessiya ID si bilan davom etilmasin.
         # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almaştiradi.
         request.session.cycle_key()
