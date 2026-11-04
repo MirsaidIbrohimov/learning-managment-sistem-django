@@ -10636,13 +10636,37 @@ def admin_dashboard(request):
         _prev_agg = PaymentRecord.objects.filter(
             is_paid=True, month=_prev_m, year=_prev_y
         ).aggregate(s=Sum('paid_amount'))
-        _unpaid_agg = PaymentRecord.objects.filter(
-            is_paid=False, month=_cur_m, year=_cur_y
+        # Qarzdorlik oy boşidan hisoblanadi: joriy oy uçun tölangan yozuvi
+        # yöq har bir faol öquvçi qarzdor (tölanmagan yozuv yaratilişini
+        # kutmaymiz). Şartnoma, kursni tugatganlar va oy oxirigaça oldindan
+        # tölaganlar (next_payment_date oy oxiridan keyin) hisobga olinmaydi.
+        from calendar import monthrange
+        _month_end = date(_cur_y, _cur_m, monthrange(_cur_y, _cur_m)[1])
+        _debtors = CustomUser.objects.filter(
+            role='student', is_active=True, is_finished=False
         ).exclude(
-            user__student_balance__is_contract=True
+            student_balance__is_contract=True
         ).exclude(
-            user__is_finished=True
-        ).aggregate(s=Sum('amount'), c=Count('id'))
+            student_balance__next_payment_date__gt=_month_end
+        ).exclude(
+            pk__in=PaymentRecord.objects.filter(
+                is_paid=True, month=_cur_m, year=_cur_y
+            ).values('user_id')
+        ).values_list('id', 'payment_status__monthly_fee')
+        _open_debts = {
+            uid: max(0, int(amt or 0) - int(paid or 0))
+            for uid, amt, paid in PaymentRecord.objects.filter(
+                is_paid=False, month=_cur_m, year=_cur_y
+            ).values_list('user_id', 'amount', 'paid_amount')
+        }
+        _unpaid_sum = 0
+        _unpaid_cnt = 0
+        for _uid, _fee in _debtors:
+            _debt = _open_debts.get(_uid, 200000 if _fee is None else int(_fee))
+            if _debt > 0:
+                _unpaid_sum += _debt
+                _unpaid_cnt += 1
+        _unpaid_agg = {'s': _unpaid_sum, 'c': _unpaid_cnt}
         _cur_sum = int(_paid_agg['s'] or 0)
         _prev_sum = int(_prev_agg['s'] or 0)
         if _prev_sum:
