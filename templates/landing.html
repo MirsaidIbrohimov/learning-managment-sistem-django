@@ -61,7 +61,7 @@
   #loader .in{text-align:center;font-family:'JetBrains Mono',monospace}
   #loader .orb-wrap{position:relative;width:200px;height:200px;margin:0 auto 6px}
   #loader .orb-wrap::before{content:"";position:absolute;inset:-14%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--acc2) 34%,transparent),color-mix(in srgb,var(--acc) 12%,transparent) 45%,transparent 70%);filter:blur(10px)}
-  #loader .orb-ldr{position:relative;width:100%;height:100%;display:block}
+  #loader .morph-ldr{position:relative;width:100%;height:100%;display:block}
   #loader .num{font-size:44px;font-weight:600;letter-spacing:-.04em}
   #loader .bar{width:220px;height:2px;background:var(--line);margin-top:14px;overflow:hidden}
   #loader .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
@@ -317,8 +317,8 @@
 </head>
 <body>
 {% include 'partials/_brand_intro.html' %}
-<div id="loader"><div class="in"><div class="orb-wrap" aria-hidden="true"><canvas class="orb-ldr"></canvas></div><div class="num"><span id="ldn">0</span>%</div><div class="bar"><i id="ldb"></i></div><div style="margin-top:14px;color:var(--muted);font-size:12px">&lt;itcreative /&gt; yuklanmoqda</div></div></div>
-{% include 'partials/_orb_loader.html' %}
+<div id="loader"><div class="in"><div class="orb-wrap" aria-hidden="true"><canvas class="morph-ldr"></canvas></div><div class="num"><span id="ldn">0</span>%</div><div class="bar"><i id="ldb"></i></div><div style="margin-top:14px;color:var(--muted);font-size:12px">&lt;itcreative /&gt; yuklanmoqda</div></div></div>
+{% include 'partials/_morph_loader.html' %}
 <canvas id="gl"></canvas>
 <div class="noise"></div>
 <div class="cur"></div><div class="cur-r"></div>
@@ -566,11 +566,14 @@ const body = new THREE.Group(); coreG.add(body);
 // Har bir şakl: build(guruh) → har kadrda çaqiriladigan anim(dt, t)
 const SHAPES = {
   orb: { label: 'Orb', rings: false, cubes: false, fit: 1, build(g) {
-    // Köplab kiçik şarlardan iborat katta şar — kursor yaqinidagilar kattalaşib rangi özgaradi
+    // Köplab kiçik şarlardan iborat katta şar, vaqti-vaqti bilan kubga aylanib qaytadi — kursor yaqinidagilar kattalaşib rangi özgaradi
     const N = isMob() ? 500 : 900, R = 1.55, ga = Math.PI * (3 - Math.sqrt(5));
     const im = new THREE.InstancedMesh(new THREE.SphereGeometry(.075, 16, 12), new THREE.MeshPhysicalMaterial({ metalness: .2, roughness: .25, clearcoat: 1 }), N);
-    const P = [], amt = new Float32Array(N);
-    for (let i = 0; i < N; i++) { const y = 1 - i / (N - 1) * 2, r = Math.sqrt(1 - y * y), th = ga * i; P.push(new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r).multiplyScalar(R)); }
+    const P = [], C = [], amt = new Float32Array(N), bp = new THREE.Vector3();
+    for (let i = 0; i < N; i++) {
+      const y = 1 - i / (N - 1) * 2, r = Math.sqrt(1 - y * y), th = ga * i, v = new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r);
+      P.push(v.clone().multiplyScalar(R)); C.push(v.multiplyScalar(R * .8 / Math.max(Math.abs(v.x), Math.abs(v.y), Math.abs(v.z))));   // mos kub nuqtasi
+    }
     const hit = new THREE.Mesh(new THREE.SphereGeometry(R * 1.05, 24, 16), new THREE.MeshBasicMaterial({ visible: false }));
     g.add(im, hit);
     const ray = new THREE.Raycaster(), loc = new THREE.Vector3(), d = new THREE.Object3D();
@@ -581,9 +584,9 @@ const SHAPES = {
       const h = ray.intersectObject(hit)[0]; if (h) g.worldToLocal(loc.copy(h.point));
       const light = root.dataset.theme === 'light';
       cA.set(light ? 0x7c3aed : 0x4c1d95); cB.set(light ? 0x0891b2 : 0x22d3ee);
-      const k = Math.min(1, dt * 6);
+      const k = Math.min(1, dt * 6), s = Math.sin(t * 1.1) * .5 + .5, m = s * s * (3 - 2 * s);   // şar → kub → şar
       for (let i = 0; i < N; i++) {
-        const p = P[i], target = h ? Math.max(0, 1 - p.distanceTo(loc) / .9) : 0;
+        const p = bp.lerpVectors(P[i], C[i], m), target = h ? Math.max(0, 1 - p.distanceTo(loc) / .9) : 0;
         amt[i] += (target - amt[i]) * k; const a = amt[i];
         const wave = Math.sin(t * 1.5 + p.y * 3 + p.x * 2) * .5 + .5;
         d.position.copy(p).multiplyScalar(1 + a * .18); d.scale.setScalar(.75 + wave * .35 + a * 1.9); d.updateMatrix();

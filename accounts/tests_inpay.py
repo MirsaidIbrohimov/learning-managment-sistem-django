@@ -141,7 +141,7 @@ class GatewayRoutingTests(TestCase):
 
     def test_inpay_buttons_open_inpay_and_card_click_payme_open_tezcheck(self):
         for method, expected in (('alif', 'inpay'), ('plum', 'inpay'), ('card', 'tezcheck'),
-                                 ('click', 'tezcheck'), ('payme', 'tezcheck')):
+                                 ('click', 'tezcheck'), ('payme', 'tezcheck'), ('uzum', 'tezcheck')):
             Order.objects.all().delete()
             module = 'accounts.inpay.create_bill' if expected == 'inpay' else 'accounts.tezcheck.create_bill'
             with patch(module, return_value=self.fresh) as create:
@@ -150,6 +150,18 @@ class GatewayRoutingTests(TestCase):
             self.assertEqual(response.url, self.fresh['payment_url'])
             order = Order.objects.get()
             self.assertEqual((order.gateway, order.payment_method), (expected, method))
+
+    @override_settings(INPAY_SECRET_KEY='', INPAY_WEBHOOK_SECRET='')
+    def test_uzum_listed_with_tezcheck_only(self):
+        # Uzum Bank Tezcheck orqali: inPAY öçiq bölsa ham tugma körinadi
+        methods = available_methods()
+        self.assertEqual([m['code'] for m in methods], ['card', 'click', 'payme', 'uzum'])
+        uzum = methods[-1]
+        self.assertEqual((uzum['label'], uzum['gateway'], uzum['logo']), ('Uzum Bank', 'tezcheck', 'uzum.svg'))
+
+    @override_settings(TEZCHECK_API_TOKEN='')
+    def test_uzum_hidden_when_tezcheck_off(self):
+        self.assertNotIn('uzum', [m['code'] for m in available_methods()])
 
     def test_unknown_method_creates_nothing(self):
         with patch('accounts.inpay.create_bill') as inpay_create, patch('accounts.tezcheck.create_bill') as tz_create:
@@ -211,7 +223,7 @@ class GatewayRoutingTests(TestCase):
 
     def test_picker_renders_every_button(self):
         html = render_to_string('accounts/includes/payment_methods.html', {'payment_methods': available_methods()})
-        for code in ('card', 'click', 'payme', 'paynet', 'alif', 'anorbank', 'visa_mc', 'plum'):
+        for code in ('card', 'click', 'payme', 'uzum', 'paynet', 'alif', 'anorbank', 'visa_mc', 'plum'):
             self.assertIn(f'value="{code}"', html)
 
 

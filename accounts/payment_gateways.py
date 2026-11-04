@@ -1,6 +1,6 @@
 """Payment buttons and the provider each one opens.
 
-Tezcheck is the main provider: Karta, Click and Payme open Tezcheck and are
+Tezcheck is the main provider: Karta, Click, Payme and Uzum Bank open Tezcheck and are
 listed first; the remaining buttons open inPAY. Checkout code
 calls ``create_bill``/``fetch_bill`` here, which dispatch on ``order.gateway``.
 """
@@ -17,6 +17,7 @@ PAYMENT_METHODS = [
     ('card', 'Karta', TEZCHECK, '', 'bi-credit-card-2-front'),
     ('click', 'Click', TEZCHECK, 'click.svg', ''),
     ('payme', 'Payme', TEZCHECK, 'payme.png', ''),
+    ('uzum', 'Uzum Bank', TEZCHECK, 'uzum.svg', ''),
     ('paynet', 'Paynet', INPAY, 'paynet.svg', ''),
     ('alif', 'Alif', INPAY, 'alif.png', ''),
     ('anorbank', 'AnorBank', INPAY, 'anorbank.png', ''),
@@ -30,6 +31,7 @@ METHOD_STYLE = {
     'card': ('#6366f1', 'Uzcard \u00b7 Humo'),
     'click': ('#0095ff', 'Click ilovasi'),
     'payme': ('#00b7c2', 'Payme ilovasi'),
+    'uzum': ('#7000ff', 'Uzum Bank ilovasi'),
     'paynet': ('#16a34a', 'Paynet ilovasi'),
     'alif': ('#10b981', 'Alif mobi'),
     'anorbank': ('#d61f45', 'Anor ilovasi'),

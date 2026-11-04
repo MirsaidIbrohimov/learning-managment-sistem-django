@@ -24,7 +24,7 @@ FAQ = (
     ("Tölov bir martalikmi?",
      "Ha. Kurs uçun bir marta tölaysiz va unga umrbod kiriş huquqini olasiz. Oylik tölov talab qilinmaydi."),
     ("Qanday tölaş mumkin?",
-     "Click, Payme, Uzum Pay, Paynet hamda HUMO va Uzcard kartalari orqali onlayn. Hisobingizdagi "
+     "Click, Payme, Uzum Bank, Paynet hamda HUMO va Uzcard kartalari orqali onlayn. Hisobingizdagi "
      "balansdan ham tölaşingiz mumkin."),
     ("Kurs tugagaç sertifikat beriladimi?",
      "Sertifikat joriy qilingan kurslarda barça darslarni tugatgan öquvçiga sertifikat beriladi."),

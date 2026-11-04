@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="uz" data-bs-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Web loader — 3 variant</title>
+<style>
+  :root { --bg:#070b16; --fg:#f1f5ff; --dim:rgba(255,255,255,.45); --line:rgba(255,255,255,.20); --a:#6366f1; --b:#22d3ee; }
+  [data-bs-theme="light"] { --bg:#eef2fb; --fg:#131a2e; --dim:rgba(19,26,46,.52); --line:rgba(19,26,46,.13); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; }
+  header h1 { font-size:1.1rem; margin:0; }
+  header button { background:transparent; color:var(--fg); border:1px solid var(--line); border-radius:10px; padding:8px 14px; cursor:pointer; font:inherit; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:18px; padding:0 28px 28px; }
+  .card {
+    position:relative; border:1px solid var(--line); border-radius:18px; min-height:430px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.95rem;
+    background:
+      radial-gradient(58% 48% at 18% 12%, rgba(99,102,241,.22), transparent 62%),
+      radial-gradient(54% 44% at 82% 88%, rgba(34,211,238,.16), transparent 62%),
+      var(--bg);
+  }
+  .tag { position:absolute; top:12px; left:14px; font-size:.75rem; font-weight:700; letter-spacing:.4px; color:var(--dim); }
+  .tag b { color:var(--fg); }
+  .core { position:relative; width:190px; height:190px; }
+  .core::before {
+    content:''; position:absolute; inset:-18%; border-radius:50%;
+    background:radial-gradient(circle, rgba(124,58,237,.38) 0%, rgba(34,211,238,.14) 45%, transparent 70%);
+    filter:blur(10px); animation:halo 3.2s ease-in-out infinite;
+  }
+  @keyframes halo { 0%,100% { opacity:.75; transform:scale(1); } 50% { opacity:1; transform:scale(1.07); } }
+  canvas { position:relative; width:100%; height:100%; display:block; }
+  .word {
+    font-weight:800; font-size:1.02rem;
+    background:linear-gradient(100deg, var(--fg) 32%, var(--b) 50%, var(--fg) 68%); background-size:280% 100%;
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    animation:shine 2.6s linear infinite;
+  }
+  @keyframes shine { from { background-position:140% 0; } to { background-position:-40% 0; } }
+  .status { font-size:.78rem; font-weight:600; color:var(--dim); }
+  .bar { width:196px; height:4px; border-radius:99px; overflow:hidden; background:var(--line); }
+  .bar > i { display:block; height:100%; width:42%; border-radius:99px; background:linear-gradient(90deg,transparent,var(--a),var(--b),transparent); animation:slide 1.05s cubic-bezier(.65,.05,.36,1) infinite; }
+  @keyframes slide { 0% { transform:translateX(-110%); } 100% { transform:translateX(275%); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Web loader — hozirgisi va 3 ta yangi variant</h1>
+  <button onclick="var h=document.documentElement;h.dataset.bsTheme=h.dataset.bsTheme==='dark'?'light':'dark'">Yorug' / Qorong'i</button>
+</header>
+<div class="grid">
+  <div class="card"><div class="tag"><b>Hozirgi</b> · Shar (Orb)</div>
+    <div class="core"><canvas data-shape="sphere"></canvas></div>
+    <div class="word">IT Creative Academy</div><div class="status">Bilim tarmog'iga ulanmoqda...</div><div class="bar"><i></i></div></div>
+  <div class="card"><div class="tag"><b>A</b> · Halqa (Torus)</div>
+    <div class="core"><canvas data-shape="torus"></canvas></div>
+    <div class="word">IT Creative Academy</div><div class="status">Bilim tarmog'iga ulanmoqda...</div><div class="bar"><i></i></div></div>
+  <div class="card"><div class="tag"><b>B</b> · Galaktika (Spiral)</div>
+    <div class="core"><canvas data-shape="galaxy"></canvas></div>
+    <div class="word">IT Creative Academy</div><div class="status">Bilim tarmog'iga ulanmoqda...</div><div class="bar"><i></i></div></div>
+  <div class="card"><div class="tag"><b>C</b> · Shar ↔ Kub (Morf)</div>
+    <div class="core"><canvas data-shape="morph"></canvas></div>
+    <div class="word">IT Creative Academy</div><div class="status">Bilim tarmog'iga ulanmoqda...</div><div class="bar"><i></i></div></div>
+</div>
+
+<script>
+(function () {
+  var VIO = [124, 58, 237], CYA = [34, 211, 238], PNK = [244, 114, 182];
+  function mix(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+  function fib(N) {
+    var P = [], ga = Math.PI * (3 - Math.sqrt(5));
+    for (var i = 0; i < N; i++) { var y = 1 - i / (N - 1) * 2, r = Math.sqrt(1 - y * y), th = ga * i; P.push([Math.cos(th) * r, y, Math.sin(th) * r]); }
+    return P;
+  }
+  var seed = 7; function rnd() { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+
+  // Har bir shakl: init(N) -> nuqtalar, pos(p,t) -> [x,y,z], rot(t) -> [ay, ax]
+  var SHAPES = {
+    sphere: {
+      init: fib,
+      pos: function (p) { return p; },
+      rot: function (t) { return [t * 0.55, Math.sin(t * 0.45) * 0.35]; }
+    },
+    torus: {
+      init: function (N) {
+        var P = [], U = 35, V = 12;
+        for (var i = 0; i < U * V; i++) P.push([2 * Math.PI * (i % U) / U, 2 * Math.PI * Math.floor(i / U) / V]);
+        return P;
+      },
+      pos: function (p, t) {
+        var u = p[0] + t * 0.35, v = p[1], r = 0.27 + Math.sin(u * 3 - t * 2.4) * 0.05, R = 0.7;
+        return [(R + r * Math.cos(v)) * Math.cos(u), r * Math.sin(v), (R + r * Math.cos(v)) * Math.sin(u)];
+      },
+      rot: function (t) { return [t * 0.5, 1.05 + Math.sin(t * 0.5) * 0.25]; }
+    },
+    galaxy: {
+      init: function (N) {
+        var P = [];
+        for (var i = 0; i < N; i++) {
+          var rr = 0.06 + 0.94 * Math.sqrt(rnd()), arm = i % 3;
+          P.push([rr, arm * 2.094 + rr * 3.4 + (rnd() - 0.5) * 0.45, (rnd() - 0.5) * 0.22 * (1.1 - rr)]);
+        }
+        return P;
+      },
+      pos: function (p, t) {
+        var a = p[1] - t * (1.25 - p[0] * 0.7);   // ichki qism tezroq aylanadi
+        return [Math.cos(a) * p[0], p[2], Math.sin(a) * p[0]];
+      },
+      rot: function (t) { return [0, 0.95 + Math.sin(t * 0.4) * 0.2]; }
+    },
+    morph: {
+      init: fib,
+      pos: function (p, t) {
+        var s = Math.sin(t * 1.1) * 0.5 + 0.5, k = s * s * (3 - 2 * s);
+        var m = Math.max(Math.abs(p[0]), Math.abs(p[1]), Math.abs(p[2])), c = 0.8 / m;
+        return [p[0] + (p[0] * c - p[0]) * k, p[1] + (p[1] * c - p[1]) * k, p[2] + (p[2] * c - p[2]) * k];
+      },
+      rot: function (t) { return [t * 0.7, 0.5 + Math.sin(t * 0.45) * 0.3]; }
+    }
+  };
+
+  function run(c, shape) {
+    var ctx = c.getContext('2d'); if (!ctx) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), S = c.clientWidth || 180;
+    c.width = c.height = Math.round(S * dpr); ctx.scale(dpr, dpr);
+    var P = shape.init(420), N = P.length, R = S * 0.36, k = S / 180, buf = new Array(N), t0 = performance.now();
+
+    function frame(now) {
+      var t = (now - t0) / 1000, rt = shape.rot(t);
+      var cy = Math.cos(rt[0]), sy = Math.sin(rt[0]), cx = Math.cos(rt[1]), sx = Math.sin(rt[1]);
+      var hx = Math.cos(t * 1.3), hy = Math.sin(t * 0.9) * 0.6, hz = Math.sin(t * 1.3);
+      var grow = 1 - Math.pow(1 - Math.min(1, t / 0.6), 3);
+      for (var i = 0; i < N; i++) {
+        var p = shape.pos(P[i], t), x = p[0] * cy + p[2] * sy, z = -p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx, zz = p[1] * sx + z * cx;
+        var wave = Math.sin(t * 2.2 + p[1] * 4 + p[0] * 3) * 0.5 + 0.5;
+        var d = p[0] * hx + p[1] * hy + p[2] * hz, a = Math.max(0, (d - 0.66) / 0.34);
+        var sc = (1 + a * 0.16) * grow, depth = Math.max(0, Math.min(1, (zz + 1) / 2));
+        buf[i] = { x: S / 2 + x * R * sc, y: S / 2 + y * R * sc, z: zz, r: (1.5 + wave * 1.1 + a * 3) * (0.5 + depth * 0.7) * k, c: mix(mix(VIO, CYA, wave * 0.4 + depth * 0.3), PNK, a), al: 0.2 + depth * 0.8, d: depth };
+      }
+      buf.sort(function (m, n) { return m.z - n.z; });
+      ctx.clearRect(0, 0, S, S);
+      for (var j = 0; j < N; j++) {
+        var q = buf[j], col = 'rgba(' + (q.c[0] | 0) + ',' + (q.c[1] | 0) + ',' + (q.c[2] | 0) + ',';
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, 6.2832); ctx.fillStyle = col + q.al + ')'; ctx.fill();
+        if (q.d > 0.55 && q.r > 1.6) {
+          ctx.beginPath(); ctx.arc(q.x - q.r * 0.35, q.y - q.r * 0.35, q.r * 0.38, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,255,255,' + (q.d - 0.5) * 0.9 + ')'; ctx.fill();
+        }
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  document.querySelectorAll('canvas[data-shape]').forEach(function (c) { run(c, SHAPES[c.dataset.shape]); });
+})();
+</script>
+</body>
+</html>

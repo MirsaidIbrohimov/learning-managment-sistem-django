@@ -1,6 +1,6 @@
 {% load static %}
 {% if payment_methods %}
-<fieldset class="pmp">
+<fieldset class="pmp" style="--cols: {{ cols|default:4 }}">
   <legend class="pmp-title">Tölov usulini tanlang</legend>
   <div class="pmp-list">
     {% for m in payment_methods %}
@@ -17,7 +17,7 @@
 <style>
 .pmp { border: 0; margin: 0 0 .85rem; padding: 0; min-width: 0; }
 .pmp-title { float: none; width: auto; margin: 0 0 .55rem; padding: 0; font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
-.pmp-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.pmp-list { display: grid; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); gap: .5rem; }
 .pmp-item { position: relative; margin: 0; cursor: pointer; }
 .pmp-item input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
 .pmp-face { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; height: 64px; padding: .4rem; border-radius: 12px; background: #fff; color: #14142b; border: 2px solid rgba(15, 23, 42, .1); box-shadow: 0 2px 8px -4px rgba(15, 23, 42, .25); transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
@@ -27,7 +27,7 @@
 .pmp-item:hover .pmp-face { transform: translateY(-1px); }
 .pmp-item input:checked + .pmp-face { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .3); }
 .pmp-item input:focus-visible + .pmp-face { outline: 2px solid #6366f1; outline-offset: 2px; }
-@media (max-width: 420px) { .pmp-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .pmp-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .pmp-item:last-child:nth-child(odd) { grid-column: 1 / -1; } }
 </style>
 {% else %}
 <p class="pmp-off" role="status">Onlayn tölov hozirça sozlanmoqda. Administratorga murojaat qiling.</p>

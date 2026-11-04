@@ -16,6 +16,15 @@
     gsap.ticker.add(function (t) { AZ.lenis.raf(t * 1000); });
     gsap.ticker.lagSmoothing(0);
   }
+  /* ── Sahifa doim boşidan oçilsin: brauzer eski scroll joyini tiklamasin (pin bölimlariga tuşib qolmasin) ── */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  if (!location.hash) {
+    var toTop = function () { window.scrollTo(0, 0); if (AZ.lenis) AZ.lenis.scrollTo(0, { immediate: true, force: true }); };
+    toTop();
+    addEventListener('load', function () { toTop(); if (window.ScrollTrigger) ScrollTrigger.refresh(); });
+    addEventListener('pageshow', function (e) { if (e.persisted) toTop(); });
+  }
+
   AZ.scrollTo = function (target) {
     var el = typeof target === 'string' ? document.querySelector(target) : target;
     if (!el) return;
