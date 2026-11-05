@@ -764,6 +764,14 @@ def award_coins(session):
 
         place = place_names[player.rank]
         user = player.user
+        if user.is_finished:
+            continue
+        if competition.is_teacher_funded:
+            # Ustoz musobaqasida coin yangidan yaratilmaydi — ustozning bron qilingan fondidan
+            from .prize_escrow import take_from_reserve
+            amount = take_from_reserve(competition, amount)
+            if amount <= 0:
+                continue
         user.add_coins(amount, f"Jumanji ğolibi: {competition.title} ({place})")
 
         Message.objects.create(

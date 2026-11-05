@@ -1,4 +1,4 @@
-"""Ustoz musobaqalari: ustoz öz guruhlari uçun yoziş musobaqasini yoqadi.
+"""Ustoz musobaqalari: ustoz öz guruhlari uçun istalgan yoqilgan öyindan musobaqa yoqadi.
 
 Sovrin fondi ustozning öz coin hisobidan bron qilinadi (qarang: prize_escrow).
 Ustoz faqat özi yaratgan musobaqalarni köradi va boşqaradi, auditoriya esa
@@ -20,7 +20,8 @@ from accounts.models import CustomUser, StudyGroup
 from . import prize_escrow
 from .models import Competition, Game
 
-TEACHER_GAME_TYPES = ('typing',)
+# Musobaqa rejimi bor öyin turlari (quiz — alohida musobaqa sahifasi yöq)
+TEACHER_GAME_TYPES = ('typing', 'word_builder', 'cipher', 'external', 'jumanji')
 MAX_ATTEMPTS_LIMIT = 20
 
 
@@ -38,7 +39,7 @@ def teacher_only(view_func):
 # ---------- Ustoz doirasi (scope) ----------
 
 def _scope_groups(user):
-    qs = StudyGroup.objects.filter(is_active=True)
+    qs = StudyGroup.objects.running()
     if user.role != 'admin':
         qs = qs.filter(teacher=user)
     return qs.select_related('profession').annotate(student_count=Count('students', distinct=True)).order_by('name')
@@ -57,8 +58,22 @@ def _own_competition(user, pk):
     )
 
 
-def _typing_games():
+def _teacher_games():
     return Game.objects.filter(is_active=True, game_type__in=TEACHER_GAME_TYPES).order_by('title')
+
+
+def _game_not_ready(game):
+    """Musobaqa uçun öyinda kontent yetarlimi; yetmasa — xato matni."""
+    checks = {
+        'typing': lambda: game.competition_prompts().exists(),
+        'word_builder': lambda: game.word_rounds.filter(is_active=True).exists(),
+        'cipher': lambda: game.cipher_puzzles.filter(is_active=True).exists(),
+        'jumanji': lambda: game.jumanji_questions.filter(is_active=True).exists(),
+    }
+    check = checks.get(game.game_type)
+    if check and not check():
+        return f"\"{game.title}\" öyinida musobaqa uçun topşiriqlar yöq. Administratorga murojaat qiling."
+    return None
 
 
 # ---------- Forma ----------
@@ -95,11 +110,11 @@ def _clean_form(request, user, competition=None):
     }
 
     from .views import parse_game_choice
-    game, data['play_ui'] = parse_game_choice(post.get('game'), _typing_games())
+    game, data['play_ui'] = parse_game_choice(post.get('game'), _teacher_games())
     if not game:
-        errors.append("Yoziş öyinini tanlang.")
-    elif not game.competition_prompts().exists():
-        errors.append(f"\"{game.title}\" öyinida musobaqa uçun matnlar yöq. Administratorga murojaat qiling.")
+        errors.append("Öyinni tanlang.")
+    elif _game_not_ready(game):
+        errors.append(_game_not_ready(game))
     data['game'] = game
 
     if not data['title']:
@@ -150,7 +165,7 @@ def _form_context(user, competition=None, data=None):
     if data is None:
         now = timezone.localtime().replace(second=0, microsecond=0)
         data = {
-            'game': _typing_games().first(), 'play_ui': 'v2', 'title': '', 'start_time': now,
+            'game': _teacher_games().first(), 'play_ui': 'v2', 'title': '', 'start_time': now,
             'end_time': now + timezone.timedelta(hours=1), 'max_attempts': 1,
             'allow_retry': False, 'is_active': True, 'audience_type': 'groups',
             'coin_1st': 0, 'coin_2nd': 0, 'coin_3rd': 0, 'group_ids': [], 'student_ids': [],
@@ -163,7 +178,7 @@ def _form_context(user, competition=None, data=None):
     return {
         'competition': competition,
         'form': data,
-        'games': _typing_games(),
+        'games': _teacher_games(),
         'study_groups': groups,
         'students_data': students,
         'prizes_locked': prizes_locked,
@@ -189,6 +204,18 @@ def _notify_started(competition):
     notify_competition_started(competition)
 
 
+def _participants_count(comp):
+    kind = comp.game.game_type
+    if kind == 'word_builder':
+        return comp.word_attempts.values('user').distinct().count()
+    if kind == 'cipher':
+        return comp.cipher_attempts.values('user').distinct().count()
+    if kind == 'jumanji':
+        from .models import JumanjiPlayer
+        return JumanjiPlayer.objects.filter(session__competition=comp).values('user').distinct().count()
+    return comp.attempts.values('user').distinct().count()
+
+
 # ---------- Views ----------
 
 @teacher_only
@@ -203,8 +230,15 @@ def competitions(request):
 
     own = (base.select_related('game')
            .prefetch_related('groups')
-           .annotate(participants_count=Count('attempts__user', distinct=True))
            .order_by('-start_time'))
+    from django.urls import reverse
+    for comp in own:
+        comp.participants_count = _participants_count(comp)
+        kind = comp.game.game_type
+        comp.leaderboard_url = (reverse('games:word_game_leaderboard', args=[comp.pk]) if kind == 'word_builder'
+                                else '' if kind == 'jumanji' else reverse('games:competition_leaderboard', args=[comp.pk]))
+        if kind == 'jumanji':
+            comp.live_session = comp.jumanji_live_session()
 
     reserved = own.filter(coins_awarded=False).aggregate(s=Sum('prize_reserved'))['s'] or 0
     return render(request, 'games/teacher/competitions.html', {

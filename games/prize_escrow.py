@@ -95,6 +95,23 @@ def refund(competition, reason=None):
     return amount
 
 
+@transaction.atomic
+def take_from_reserve(competition, amount):
+    """Ustoz fondidan bitta tölov uçun coin oliş (Jumanji har sessiyada tölaydi).
+
+    Fonddagidan ortiq bera olmaydi: qaytaradi — haqiqatan ajratilgan miqdor (0 bölişi mumkin).
+    """
+    if amount <= 0:
+        return 0
+    budget = (Competition.objects.select_for_update()
+              .filter(pk=competition.pk).values_list('prize_reserved', flat=True).first() or 0)
+    take = min(amount, budget)
+    if take > 0:
+        Competition.objects.filter(pk=competition.pk).update(prize_reserved=budget - take)
+        competition.prize_reserved = budget - take
+    return take
+
+
 def pay_winners(competition, top_attempts):
     """Ğoliblarga tölaş. Çaqiruvçi tranzaksiya içida bölişi şart.
 

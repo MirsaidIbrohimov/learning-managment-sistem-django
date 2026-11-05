@@ -73,6 +73,7 @@ urlpatterns = [
     path('groups/create/', accounts_views.admin_study_group_create, name='study_group_create'),
     path('groups/<int:pk>/edit/', accounts_views.admin_study_group_edit, name='study_group_edit'),
     path('groups/<int:pk>/delete/', accounts_views.admin_study_group_delete, name='study_group_delete'),
+    path('groups/<int:pk>/add-students/', accounts_views.teacher_study_group_add_students, name='study_group_add_students'),
 
     # AI Tekşiruvçi
     path('ai-checker/', views.teacher_ai_checker, name='ai_checker'),

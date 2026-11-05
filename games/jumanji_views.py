@@ -396,9 +396,11 @@ def admin_open_lobby(request, pk):
         return redirect('home')
 
     competition = get_object_or_404(Competition.objects.select_related('game'), pk=pk)
+    # Öqituvçi admin sahifalariga kira olmaydi — xatoda öz musobaqalariga qaytadi
+    back = 'games:teacher_competitions' if request.user.role == 'teacher' else 'games:admin_competitions'
     if competition.game.game_type != 'jumanji':
         messages.error(request, "Bu musobaqa Jumanji öyiniga tegişli emas!")
-        return redirect('games:admin_competitions')
+        return redirect(back)
 
     live = competition.jumanji_live_session()
     if live:
@@ -415,6 +417,8 @@ def admin_open_lobby(request, pk):
     )
     if not question_ids:
         messages.error(request, "Bu yönaliş uçun faol savol topilmadi. Avval savol qöşing.")
+        if request.user.role == 'teacher':
+            return redirect(back)
         return redirect('games:jumanji_admin_questions', game_pk=competition.game.pk)
 
     session = JumanjiSession.objects.create(

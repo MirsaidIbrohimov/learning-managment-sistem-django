@@ -150,26 +150,34 @@ def _claim(model, req, status, reviewer, **extra):
     return bool(updated)
 
 
-def approve_enrollment(enroll_request, reviewer):
-    """Qaytaradi: True — tasdiqlandi, False — sörov allaqaçon körib çiqilgan."""
+def approve_enrollment(enroll_request, reviewer, group):
+    """Sörovni tasdiqlab, öquvçini tanlangan guruhga qöşadi (guruhsiz öquvçi kursga qöşilmaydi).
+
+    Qaytaradi: True — tasdiqlandi, False — sörov allaqaçon körib çiqilgan.
+    """
+    if group is None or group.profession_id != enroll_request.profession_id:
+        raise ValueError("Öquvçini qöşiş uçun şu kursning guruhini tanlang.")
     with transaction.atomic():
         if not _claim(CourseEnrollmentRequest, enroll_request, 'approved', reviewer):
             return False
         _do_enroll(enroll_request.user, enroll_request.profession)
+        group.students.add(enroll_request.user)
 
     student, p = enroll_request.user, enroll_request.profession
     _notify_student(
         student,
         "Kursga qabul qilindingiz!",
-        f"Sizning '{p.name}' kursiga yoziliş sörovingiz qabul qilindi. Endi öqişni boşlaşingiz mumkin!",
+        f"Sizning '{p.name}' kursiga yoziliş sörovingiz qabul qilindi. Guruhingiz: {group.name} "
+        f"({group.days_display}, {group.time_range}). Endi öqişni boşlaşingiz mumkin!",
         f"✅ <b>Kursga qabul qilindingiz!</b>\n\n"
-        f"📖 <b>{escape(p.name)}</b>\n\n"
+        f"📖 <b>{escape(p.name)}</b>\n"
+        f"👥 Guruh: <b>{escape(group.name)}</b> ({escape(group.days_display)}, {group.time_range})\n\n"
         f"🎉 Sörovingiz tasdiqlandi. Endi öqişni boşlaşingiz mumkin!",
         sender=reviewer,
     )
-    log_action(reviewer, student, p, 'approve_enroll', note=enroll_request.reason)
+    log_action(reviewer, student, p, 'approve_enroll', note=f"Guruh: {group.name}. {enroll_request.reason}")
     notify_student_joined(
-        student, p, how=f"Sörovni tasdiqladi: {reviewer.full_name} ({_role_label(reviewer)})",
+        student, p, how=f"Guruh: {group.name}. Sörovni tasdiqladi: {reviewer.full_name} ({_role_label(reviewer)})",
     )
     return True
 

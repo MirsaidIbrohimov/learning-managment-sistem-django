@@ -477,10 +477,25 @@
     </div>
 </div>
 
+<!-- Holat böyiça: faol (davomatda körinadi), kelgusi, arxiv -->
+<div class="sg-tabs" role="tablist">
+    {% with qs_view=view_mode %}
+    <a href="?status=current&view={{ qs_view }}" class="{% if status_filter == 'current' %}active{% endif %}"><i class="bi bi-lightning-charge-fill"></i> Joriy <b>{{ status_counts.current }}</b></a>
+    <a href="?status=active&view={{ qs_view }}" class="{% if status_filter == 'active' %}active{% endif %}"><i class="bi bi-play-circle-fill"></i> Faol <b>{{ status_counts.active }}</b></a>
+    <a href="?status=upcoming&view={{ qs_view }}" class="{% if status_filter == 'upcoming' %}active{% endif %}"><i class="bi bi-hourglass-top"></i> Kelgusi <b>{{ status_counts.upcoming }}</b></a>
+    <a href="?status=archived&view={{ qs_view }}" class="{% if status_filter == 'archived' %}active{% endif %}"><i class="bi bi-archive-fill"></i> Arxiv <b>{{ status_counts.archived }}</b></a>
+    <a href="?status=all&view={{ qs_view }}" class="{% if status_filter == 'all' %}active{% endif %}"><i class="bi bi-collection"></i> Barçasi <b>{{ status_counts.all }}</b></a>
+    {% endwith %}
+</div>
+{% if lock_teacher %}
+<div class="sg-note"><i class="bi bi-info-circle-fill"></i> Siz guruh oça olasiz va unga <b>guruhsiz</b> öquvçilarni qöşa olasiz. Guruhni tahrirlaş, öçiriş va öquvçining guruhini almaştiriş — faqat admin orqali.</div>
+{% endif %}
+
 <!-- Filter -->
 <div class="sg-filter">
     <form method="GET">
         <input type="hidden" name="view" value="{{ view_mode }}">
+        <input type="hidden" name="status" value="{{ status_filter }}">
         <div>
             <label><i class="bi bi-search"></i> Qidiriş</label>
             <input type="text" name="q" class="form-control" placeholder="Guruh yoki kurs nomi..." value="{{ q }}">
@@ -540,7 +555,7 @@
                 </div>
                 {% if day.lessons %}
                     {% for g in day.lessons %}
-                    <a href="{% url study_group_edit_url g.pk %}" class="sg-lesson-block"
+                    <a {% if can_edit_groups %}href="{% url study_group_edit_url g.pk %}"{% endif %} class="sg-lesson-block"
                        style="border-left-color: {{ g.color }};">
                         <div class="sg-lesson-time">
                             <i class="bi bi-clock"></i>{{ g.time_range }}
@@ -574,8 +589,8 @@
             {% for g in groups %}
             <div class="sg-card" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
                 <div class="sg-card-top" style="background: linear-gradient(135deg, {{ g.color }}, {{ g.color }}dd);">
-                    <div class="sg-card-status {% if not g.is_active %}inactive{% endif %}">
-                        {% if g.is_active %}<i class="bi bi-check-circle-fill me-1"></i>Faol{% else %}<i class="bi bi-pause-circle-fill me-1"></i>Nofaol{% endif %}
+                    <div class="sg-card-status st-{{ g.status }}">
+                        {% if g.status == 'active' %}<i class="bi bi-check-circle-fill me-1"></i>{% elif g.status == 'upcoming' %}<i class="bi bi-hourglass-top me-1"></i>{% elif g.status == 'archived' %}<i class="bi bi-archive-fill me-1"></i>{% else %}<i class="bi bi-pause-circle-fill me-1"></i>{% endif %}{{ g.status_label }}
                     </div>
                     <div class="sg-card-name">
                         <i class="bi bi-collection-fill"></i>{{ g.name }}
@@ -585,6 +600,15 @@
                     </div>
                 </div>
                 <div class="sg-card-body">
+                    {% if g.period_display %}
+                    <div class="sg-card-row">
+                        <i class="bi bi-calendar-range-fill"></i>
+                        <div>
+                            <div style="font-weight:700;">{{ g.period_display }}</div>
+                            <small style="color:#6c757d;">Guruh davri</small>
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="sg-card-row">
                         <i class="bi bi-clock-fill"></i>
                         <div>
@@ -646,6 +670,7 @@
                         </div>
                         <span>{{ g.students.count }} öquvçi</span>
                     </div>
+                    {% if can_edit_groups %}
                     <div class="sg-card-actions">
                         <a href="{% url study_group_edit_url g.pk %}" class="sg-action-btn edit" title="Tahrirlaş">
                             <i class="bi bi-pencil"></i>
@@ -654,7 +679,23 @@
                             <i class="bi bi-trash"></i>
                         </a>
                     </div>
+                    {% endif %}
                 </div>
+                {% if g.created_by and can_edit_groups %}<div class="sg-card-by"><i class="bi bi-person-plus"></i> Yaratgan: {{ g.created_by.first_name }} {{ g.created_by.last_name }} ({{ g.created_by.get_role_display }})</div>{% endif %}
+                {% if lock_teacher and g.ungrouped %}
+                <details class="sg-add">
+                    <summary><i class="bi bi-person-plus-fill"></i> Guruhsiz öquvçilarni qöşiş <span>{{ g.ungrouped|length }}</span></summary>
+                    <form method="POST" action="{% url 'teacher:study_group_add_students' g.pk %}">
+                        {% csrf_token %}
+                        <div class="sg-add-list">
+                            {% for st in g.ungrouped %}
+                            <label><input type="checkbox" name="students" value="{{ st.pk }}"> {{ st.first_name }} {{ st.last_name }}</label>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="sg-btn sg-btn-primary"><i class="bi bi-check-lg"></i> Guruhga qöşiş</button>
+                    </form>
+                </details>
+                {% endif %}
             </div>
             {% endfor %}
         </div>
@@ -662,11 +703,31 @@
 {% else %}
     <div class="sg-empty">
         <div class="sg-empty-icon"><i class="bi bi-calendar-x"></i></div>
-        <h5>Hozirça guruh yöq</h5>
+        <h5>{% if status_filter == 'archived' %}Arxivda guruh yöq{% else %}Hozirça guruh yöq{% endif %}</h5>
         <p>Birinçi guruhingizni yaratiş uçun quyidagi tugmani bosing.</p>
         <a href="{% url study_group_create_url %}" class="sg-btn sg-btn-primary">
             <i class="bi bi-plus-circle-fill"></i> Guruh yaratiş
         </a>
     </div>
 {% endif %}
+<style>
+.sg-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.sg-tabs a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--border-color, rgba(0,0,0,.1)); font-weight: 700; font-size: .84rem; text-decoration: none; color: inherit; background: var(--bs-body-bg); }
+.sg-tabs a b { min-width: 22px; padding: 0 6px; border-radius: 99px; background: rgba(99,102,241,.12); color: #4f46e5; font-size: .74rem; text-align: center; }
+.sg-tabs a.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-color: transparent; }
+.sg-tabs a.active b { background: rgba(255,255,255,.25); color: #fff; }
+.sg-note { padding: 10px 14px; margin-bottom: 14px; border-radius: 12px; background: rgba(59,130,246,.08); font-size: .86rem; }
+.sg-note i { color: #3b82f6; }
+.sg-card-status.st-upcoming { background: rgba(245,158,11,.9); }
+.sg-card-status.st-archived { background: rgba(100,116,139,.9); }
+.sg-card-status.st-inactive { background: rgba(239,68,68,.85); }
+.sg-card-by { padding: 6px 16px 10px; font-size: .74rem; color: #6c757d; }
+.sg-add { margin: 0 16px 14px; border-radius: 12px; background: rgba(16,185,129,.07); }
+.sg-add summary { cursor: pointer; padding: 9px 12px; font-weight: 700; font-size: .84rem; color: #047857; list-style: none; display: flex; align-items: center; gap: 6px; }
+.sg-add summary span { margin-left: auto; padding: 0 8px; border-radius: 99px; background: #10b981; color: #fff; font-size: .74rem; }
+.sg-add form { padding: 0 12px 12px; }
+.sg-add-list { max-height: 180px; overflow-y: auto; display: grid; gap: 4px; margin-bottom: 10px; font-size: .86rem; }
+.sg-add-list label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+a.sg-lesson-block:not([href]) { cursor: default; }
+</style>
 {% endblock %}

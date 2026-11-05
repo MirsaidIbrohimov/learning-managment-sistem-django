@@ -33,7 +33,7 @@ def auto_mark_present(user, today=None):
     today = today or timezone.localdate()
     weekday = today.isoweekday()  # 1 = Duşanba … 6 = Şanba (7 — yakşanba, dars yöq)
     created = 0
-    for group in StudyGroup.objects.filter(students=user, is_active=True):
+    for group in StudyGroup.objects.running(today).filter(students=user):
         if not group.has_day(weekday):
             continue
         _, made = StudentAttendance.objects.get_or_create(

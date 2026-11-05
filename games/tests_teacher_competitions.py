@@ -317,3 +317,100 @@ class TypingV2AccuracyTests(TestCase):
 
     def test_classic_ignores_key_accuracy(self):
         self.assertEqual(self.submit('bir ikki uç tort', 10, ui='classic')['accuracy'], 100.0)
+
+
+@SKIP_SESSION_MIDDLEWARE
+@mock.patch('telegram_bot.utils.notify_group')
+@mock.patch('telegram_bot.utils.notify_user')
+@mock.patch('telegram_bot.utils.notify_competition_started')
+class TeacherAnyGameCompetitionTests(TestCase):
+    """Ustoz istalgan yoqilgan öyindan musobaqa oçadi; sovrin faqat ustoz hisobidan."""
+
+    def setUp(self):
+        from .models import CipherPuzzle, JumanjiQuestion, WordRound
+
+        self.teacher = make_user('ustoz2', role='teacher', coins=1000)
+        self.s1, self.s2 = make_user('ali2'), make_user('vali2')
+        prof = Profession.objects.create(name='Frontend', photo='p.jpg', description='-')
+        self.group = StudyGroup.objects.create(name='F-2', profession=prof, teacher=self.teacher,
+                                               start_time='09:00', end_time='11:00')
+        self.group.students.add(self.s1, self.s2)
+        self.word = Game.objects.create(title='Söz', slug='word', game_type='word_builder')
+        WordRound.objects.create(game=self.word, letters='REACT', valid_words=['react'])
+        self.cipher = Game.objects.create(title='Shifr', slug='cipher', game_type='cipher')
+        CipherPuzzle.objects.create(game=self.cipher, plaintext='SALOM')
+        self.chess = Game.objects.create(title='Şaxmat', slug='chess', game_type='external', config={'engine': 'chess'})
+        self.jumanji = Game.objects.create(title='Jumanji', slug='jumanji', game_type='jumanji')
+        JumanjiQuestion.objects.create(game=self.jumanji, text='2+2?', correct_text='4')
+        self.empty = Game.objects.create(title='Böş söz', slug='empty-word', game_type='word_builder')
+        self.off = Game.objects.create(title='Öçiq', slug='off', game_type='cipher', is_active=False)
+        self.client.force_login(self.teacher)
+
+    def post(self, game, **extra):
+        now = timezone.localtime()
+        data = {'title': f'{game.title} kubogi', 'game': game.pk,
+                'start_time': (now + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M'),
+                'end_time': (now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+                'audience_type': 'groups', 'group_ids': [self.group.pk], 'max_attempts': 1,
+                'is_active': 'on', 'coin_1st': 100, 'coin_2nd': 50, 'coin_3rd': 0, **extra}
+        return self.client.post(reverse('games:teacher_competition_add'), data)
+
+    def test_form_lists_all_enabled_games(self, *_):
+        games = list(self.client.get(reverse('games:teacher_competition_add')).context['games'])
+        slugs = {g.slug for g in games}
+        self.assertTrue({'word', 'cipher', 'chess', 'jumanji', 'empty-word'} <= slugs)
+        self.assertNotIn('off', slugs)
+
+    def test_competition_from_each_game_takes_teacher_coins(self, *_):
+        for game in (self.word, self.cipher, self.chess, self.jumanji):
+            self.post(game)
+        self.assertEqual(Competition.objects.filter(prize_source='teacher').count(), 4)
+        self.assertEqual(coins(self.teacher), 1000 - 4 * 150)
+
+    def test_game_without_content_or_disabled_is_rejected(self, *_):
+        self.post(self.empty)
+        self.post(self.off)
+        self.assertFalse(Competition.objects.exists())
+        self.assertEqual(coins(self.teacher), 1000)
+
+    def test_not_enough_coins(self, *_):
+        self.post(self.word, coin_1st=5000)
+        self.assertFalse(Competition.objects.exists())
+        self.assertEqual(coins(self.teacher), 1000)
+
+    def test_jumanji_pays_winners_from_teacher_fund_and_refunds_rest(self, *_):
+        from . import jumanji
+        from .models import JumanjiPlayer, JumanjiSession
+
+        self.post(self.jumanji)
+        comp = Competition.objects.get()
+        session = JumanjiSession.objects.create(competition=comp, game=self.jumanji, status='finished',
+                                                question_pool=[], created_by=self.teacher)
+        JumanjiPlayer.objects.create(session=session, user=self.s1, rank=1)
+        JumanjiPlayer.objects.create(session=session, user=self.s2, rank=2)
+        jumanji.award_coins(session)
+        # Ikkinçi sessiya fonddan ortiq bera olmaydi
+        session2 = JumanjiSession.objects.create(competition=comp, game=self.jumanji, status='finished',
+                                                 question_pool=[], created_by=self.teacher)
+        JumanjiPlayer.objects.create(session=session2, user=self.s2, rank=1)
+        jumanji.award_coins(session2)
+        self.assertEqual((coins(self.s1), coins(self.s2)), (100, 50))
+        comp.refresh_from_db()
+        self.assertEqual(comp.prize_reserved, 0)
+        self.assertEqual(coins(self.teacher), 850)
+
+    def test_unused_jumanji_fund_returns_after_end(self, *_):
+        self.post(self.jumanji)
+        comp = Competition.objects.get()
+        Competition.objects.filter(pk=comp.pk).update(start_time=timezone.now() - timedelta(hours=3),
+                                                      end_time=timezone.now() - timedelta(hours=1))
+        comp.refresh_from_db()
+        comp.award_competition_coins()
+        self.assertEqual(coins(self.teacher), 1000)
+
+    def test_list_page_renders_for_every_game(self, *_):
+        for game in (self.word, self.cipher, self.chess, self.jumanji):
+            self.post(game)
+        resp = self.client.get(reverse('games:teacher_competitions'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Şaxmat kubogi')

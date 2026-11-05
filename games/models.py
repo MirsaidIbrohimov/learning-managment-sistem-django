@@ -325,8 +325,13 @@ class Competition(models.Model):
         nothing_to_pay = self.prize_total == 0 and self.prize_reserved == 0
         if self.game.game_type == 'jumanji' or nothing_to_pay:
             if self.game.game_type == 'jumanji':
-                Competition.objects.filter(pk=self.pk).update(coins_awarded=True)
-                self.coins_awarded = True
+                if self.jumanji_live_session():
+                    return  # öyin hali davom etmoqda — tugagaç hisob-kitob qilinadi
+                if Competition.objects.filter(pk=self.pk, coins_awarded=False).update(coins_awarded=True):
+                    self.coins_awarded = True
+                    if self.is_teacher_funded:
+                        # Sessiyalarda tölanmay qolgan fond ustozga qaytadi
+                        prize_escrow.refund(self, f"Musobaqa sovrin fondining işlatilmagan qismi: {self.title}")
             return
 
         with transaction.atomic():

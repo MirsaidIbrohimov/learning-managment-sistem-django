@@ -3903,6 +3903,34 @@ class CourseBundleItem(models.Model):
 
 # ==================== GURUHLAR & DARS JADVALI ====================
 
+class StudyGroupQuerySet(models.QuerySet):
+    """Guruh davri (start_date … end_date) böyiça filtrlar. Sana yöq bölsa — çeklanmagan."""
+
+    def running(self, day=None):
+        """Hozir dars ötilayotgan (faol) guruhlar — davomat şularda körinadi."""
+        from django.db.models import Q
+        from django.utils import timezone
+
+        day = day or timezone.localdate()
+        return self.filter(is_active=True).filter(
+            Q(start_date__isnull=True) | Q(start_date__lte=day),
+            Q(end_date__isnull=True) | Q(end_date__gte=day),
+        )
+
+    def not_archived(self, day=None):
+        """Faol + hali boşlanmagan guruhlar (tugaş sanasi ötmagan)."""
+        from django.db.models import Q
+        from django.utils import timezone
+
+        day = day or timezone.localdate()
+        return self.filter(is_active=True).filter(Q(end_date__isnull=True) | Q(end_date__gte=day))
+
+    def archived(self, day=None):
+        from django.utils import timezone
+
+        return self.filter(end_date__lt=day or timezone.localdate())
+
+
 class StudyGroup(models.Model):
     """Guruh — dars jadvali bilan boğliq öquv guruhi.
 
@@ -3965,12 +3993,18 @@ class StudyGroup(models.Model):
     )
     description = models.TextField(blank=True, verbose_name="Izoh")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
+    # Guruh davri: boşlaniş sanasidan tugaş sanasigaça faol (davomatda körinadi),
+    # tugaş sanasidan keyin — arxiv. Eski guruhlarda böş bölişi mumkin (çeklanmagan).
+    start_date = models.DateField(null=True, blank=True, verbose_name="Boşlaniş sanasi")
+    end_date = models.DateField(null=True, blank=True, verbose_name="Tugaş sanasi")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='created_study_groups',
         verbose_name="Kim yaratgan",
     )
+
+    objects = StudyGroupQuerySet.as_manager()
 
     class Meta:
         ordering = ['start_time', 'name']
@@ -4035,6 +4069,40 @@ class StudyGroup(models.Model):
     @property
     def students_count(self):
         return self.students.count()
+
+    # --- Guruh davri ---
+    STATUS_LABELS = {'active': "Faol", 'upcoming': "Kelgusi", 'archived': "Arxiv", 'inactive': "Nofaol"}
+
+    @property
+    def status(self):
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        if self.end_date and self.end_date < today:
+            return 'archived'
+        if not self.is_active:
+            return 'inactive'
+        if self.start_date and self.start_date > today:
+            return 'upcoming'
+        return 'active'
+
+    @property
+    def status_label(self):
+        return self.STATUS_LABELS[self.status]
+
+    @property
+    def is_running(self):
+        return self.status == 'active'
+
+    @property
+    def period_display(self):
+        if not (self.start_date or self.end_date):
+            return ''
+        fmt = lambda d: d.strftime('%d.%m.%Y') if d else '…'
+        return f"{fmt(self.start_date)} — {fmt(self.end_date)}"
+
+    def date_in_period(self, day):
+        return (not self.start_date or day >= self.start_date) and (not self.end_date or day <= self.end_date)
 
 
 class StudentAttendance(models.Model):
