@@ -847,12 +847,32 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
 
         self.assertEqual(counts[self.profession.pk], 1)
 
-    def test_homework_coin_reward_never_exceeds_fifty(self):
+    def test_homework_coin_reward_is_twenty_per_point(self):
         self.student.is_premium = True
         submission = HomeworkSubmission(student=self.student, grade=10, is_late=False)
 
-        self.assertLessEqual(submission.calculate_coin_reward(), 50)
-        self.assertEqual(HomeworkSubmission.MAX_COIN_REWARD, 50)
+        self.assertEqual(submission.calculate_coin_reward(), 200)
+        self.assertEqual(submission.calculate_coin_reward(7), 140)
+        self.assertEqual(submission.calculate_coin_reward(15), 200)
+        self.assertEqual(HomeworkSubmission.MAX_COIN_REWARD, 200)
+
+    def test_test_coins_five_per_correct_plus_pass_bonus(self):
+        from accounts.coin_rules import test_coins
+        self.assertEqual(test_coins(10, True), 150)   # 15 talik testda 10 ta töğri, ötdi
+        self.assertEqual(test_coins(4, False), 20)
+        self.assertEqual(test_coins(0, False), 0)
+
+    def test_premium_daily_bonus_is_300_once_per_day(self):
+        from accounts.coin_rules import award_premium_daily_bonus
+        self.student.is_premium = True
+        self.student.coins = 0
+        self.student.last_daily_login = None
+        self.student.save(update_fields=['is_premium', 'coins', 'last_daily_login'])
+
+        self.assertEqual(award_premium_daily_bonus(self.student), 300)
+        self.assertEqual(award_premium_daily_bonus(self.student), 0)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.coins, 300)
 
     def test_homework_resubmission_deducts_thirty_coins(self):
         self.student.coins = 100

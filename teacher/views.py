@@ -214,6 +214,57 @@ def teacher_dashboard(request):
     except Exception:
         vq_income = {'today': 0, 'week': 0, 'month': 0, 'total': 0}
 
+    # ============ AURORA: bugungi darslar, guruhlarim, tekşiruv navbati ============
+    # Faqat öqiş sörovlari. Öqituvçi faqat özi biriktirilgan guruhlarni köradi
+    # (attendance_mark ham _can_mark_attendance bilan şuni tekşiradi).
+    from accounts.models import StudyGroup, StudentAttendance
+    my_groups = list(
+        StudyGroup.objects.filter(teacher=user, is_active=True)
+        .select_related('profession')
+        .annotate(n_students=Count('students', distinct=True))
+        .order_by('start_time', 'name')
+    )
+    weekday = today.isoweekday()  # 1=Duşanba ... 7=Yakşanba
+    now_t = timezone.localtime(now).time()
+    marked_today = set(
+        StudentAttendance.objects.filter(
+            group_id__in=[g.pk for g in my_groups], date=today
+        ).values_list('group_id', flat=True).distinct()
+    ) if my_groups else set()
+    today_lessons = []
+    for g in my_groups:
+        g.day_flags = [(short, g.has_day(num)) for num, short in StudyGroup.DAY_SHORT.items()]
+        if weekday <= 6 and g.has_day(weekday):
+            if now_t >= g.end_time:
+                state = 'done'
+            elif now_t >= g.start_time:
+                state = 'now'
+            else:
+                state = 'next'
+            today_lessons.append({'group': g, 'state': state, 'marked': g.pk in marked_today})
+    current_lesson = (
+        next((l for l in today_lessons if l['state'] == 'now'), None)
+        or next((l for l in today_lessons if l['state'] == 'next'), None)
+    )
+    pending_queue = list(
+        hw_qs.filter(status='pending')
+        .select_related('student', 'homework__lesson')
+        .order_by('submitted_at')[:5]
+    )
+    pending_speak_queue = list(
+        SpeakingSubmission.objects.filter(
+            speaking_task__lesson__profession_id__in=prof_ids, status='pending'
+        ).select_related('student', 'speaking_task__lesson').order_by('submitted_at')[:3]
+    )
+    activity_chart = {
+        'labels': [d['date'].strftime('%d.%m') for d in activity_days],
+        'series': [
+            {'name': 'Vazifalar', 'values': [d['hw'] for d in activity_days]},
+            {'name': 'Testlar', 'values': [d['tests'] for d in activity_days]},
+        ],
+        'aria': 'Sönggi 14 kun faolligi',
+    }
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -235,6 +286,13 @@ def teacher_dashboard(request):
         'avg_check_hours': avg_check_hours,
         'activity_days': activity_days,
         'course_rows': course_rows,
+        # Aurora dashboard
+        'my_groups': my_groups,
+        'today_lessons': today_lessons,
+        'current_lesson': current_lesson,
+        'pending_queue': pending_queue,
+        'pending_speak_queue': pending_speak_queue,
+        'activity_chart': activity_chart,
     }
     return render(request, 'teacher/dashboard.html', context)
 
@@ -1755,13 +1813,8 @@ def teacher_grade_speaking(request, pk):
         
         # Coin beriş
         if status == 'graded' and not submission.coin_awarded:
-            coin_amount = 10
-            if grade_val and grade_val >= 9:
-                coin_amount += 5
-            elif grade_val and grade_val >= 8:
-                coin_amount += 3
-            if submission.student.is_premium:
-                coin_amount *= 2
+            from accounts.coin_rules import homework_coins
+            coin_amount = homework_coins(grade_val)
             submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
             submission.coin_awarded = True
             submission.save(update_fields=['coin_awarded'])
@@ -1956,13 +2009,8 @@ def apply_ai_speaking_grade(submission_pk, grader_pk=None):
         submission.save()
 
         if ai_result['status'] == 'graded' and not submission.coin_awarded:
-            coin_amount = 10
-            if ai_result['grade'] >= 9:
-                coin_amount += 5
-            elif ai_result['grade'] >= 8:
-                coin_amount += 3
-            if submission.student.is_premium:
-                coin_amount *= 2
+            from accounts.coin_rules import homework_coins
+            coin_amount = homework_coins(ai_result['grade'])
             submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
             submission.coin_awarded = True
             submission.save(update_fields=['coin_awarded'])

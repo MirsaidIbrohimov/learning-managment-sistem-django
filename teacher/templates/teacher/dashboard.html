@@ -1,349 +1,282 @@
 {% extends 'teacher/base_teacher.html' %}
+{% load static %}
 
 {% block title %}Boş sahifa - Öqituvçi paneli{% endblock %}
 {% block topbar_title %}Boş sahifa{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/aurora/aurora-ui.css' %}?v=20261105">
+{% endblock %}
+
 {% block teacher_content %}
-<style>
-.t-welcome {
-    background: linear-gradient(135deg, #1a1a2e, #0a58ca);
-    border-radius: 20px;
-    padding: 2rem 2.5rem;
-    color: #fff;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.5s ease;
-}
-.t-welcome::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 300px;
-    height: 300px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-}
-.t-welcome h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; }
-.t-welcome p { opacity: .8; font-size: .95rem; margin: 0; }
-.t-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.t-recent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-@media (max-width: 768px) { .t-recent-grid { grid-template-columns: 1fr; } }
-.t-activity-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--bs-border-color);
-}
-.t-activity-item:last-child { border-bottom: none; }
-.t-activity-avatar {
-    width: 40px; height: 40px; border-radius: 12px;
-    background: var(--t-primary-light);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--t-primary); font-weight: 700; font-size: .85rem; flex-shrink: 0;
-}
-.t-activity-info { flex: 1; min-width: 0; }
-.t-activity-name { font-weight: 600; font-size: .88rem; }
-.t-activity-desc { font-size: .8rem; color: var(--bs-secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.t-activity-time { font-size: .75rem; color: var(--bs-secondary-color); white-space: nowrap; }
-</style>
+{{ activity_chart|json_script:"au-activity" }}
 
-<div class="t-welcome">
-    <h1>Xuş kelibsiz, {{ user.first_name }}! <i class="bi bi-emoji-smile" style="opacity:.85;"></i></h1>
-    <p>Öqituvçi paneliga xuş kelibsiz. Bugungi holatni köring.</p>
-</div>
+<div class="au-page">
 
-<div class="t-stats-grid">
-    <div class="t-stat-card animate-fadeInUp delay-1">
-        <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-            <i class="bi bi-book-fill"></i>
-        </div>
-        <div class="t-stat-value">{{ professions|length }}</div>
-        <div class="t-stat-label">Kurslarim</div>
-    </div>
+  <!-- ===== Hero: salomlaşuv + hozirgi / keyingi dars ===== -->
+  <div class="au-grid au-g3">
+    <section class="au-card au-hero au-span2 au-rv" aria-labelledby="au-greet">
+      <p style="font-size:13px;color:var(--au-text-2)"><i class="bi bi-calendar3"></i> <span id="auToday"></span></p>
+      <h1 id="au-greet"><span data-au-greet>Xuş kelibsiz</span>, {{ user.first_name }}</h1>
+      <p style="color:var(--au-text-2);margin-top:6px">
+        Bugun <b style="color:#fff">{{ today_lessons|length }} ta dars</b>,
+        <b style="color:#fff">{{ pending_homeworks|add:pending_speakings }} ta iş</b> tekşiruvni kutmoqda
+      </p>
 
-    <div class="t-stat-card animate-fadeInUp delay-2">
-        <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-            <i class="bi bi-people-fill"></i>
+      {% if current_lesson %}
+      {% with g=current_lesson.group %}
+      <div class="au-spot">
+        <div class="au-row au-between au-wrap" style="gap:12px">
+          <div style="min-width:0">
+            <span class="au-badge" style="background:rgba(255,255,255,.18);color:#fff">{% if current_lesson.state == 'now' %}<i class="bi bi-broadcast"></i> Hozir davom etmoqda{% else %}<i class="bi bi-clock"></i> Keyingi dars{% endif %}</span>
+            <h3>{{ g.name }} · {{ g.profession.name }}</h3>
+            <p style="color:var(--au-text-2);margin-top:4px">{{ g.time_range }}{% if g.room %} · {{ g.room }}{% endif %} · {{ g.n_students }} öquvçi</p>
+          </div>
+          <a class="au-btn" href="{% url 'attendance_mark' g.pk %}" style="height:46px;padding:0 20px;font-size:14px;background:#fff;color:#3730a3 !important;border-color:transparent">
+            <i class="bi bi-check2-square"></i>{% if current_lesson.marked %}Davomatni köriş{% else %}Davomatni belgilaş{% endif %}
+          </a>
         </div>
-        <div class="t-stat-value">{{ total_students }}</div>
-        <div class="t-stat-label">Öquvçilar</div>
-    </div>
+        {% if today_lessons|length > 1 %}
+        <div class="au-row au-wrap" style="gap:10px;margin-top:16px;font-size:12.5px;color:var(--au-text-2)">
+          {% for l in today_lessons %}
+          <span class="au-row" style="gap:6px"><i style="width:8px;height:8px;border-radius:50%;display:inline-block;background:{% if l.state == 'done' %}#86efac{% elif l.state == 'now' %}#fff{% else %}rgba(255,255,255,.35){% endif %}"></i>{{ l.group.start_time|time:"H:i" }} {{ l.group.name }}</span>{% if not forloop.last %}<span style="opacity:.4">—</span>{% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+      {% else %}
+      <div class="au-spot">
+        <div class="au-row au-between au-wrap" style="gap:12px">
+          <div>
+            <span class="au-badge" style="background:rgba(255,255,255,.18);color:#fff"><i class="bi bi-cup-hot"></i> {% if today_lessons %}Bugungi darslar tugadi{% else %}Bugun dars yöq{% endif %}</span>
+            <h3>{% if my_groups %}{{ my_groups|length }} ta faol guruhingiz bor{% else %}Sizga hali guruh biriktirilmagan{% endif %}</h3>
+          </div>
+          <a class="au-btn" href="{% url 'my_study_schedule' %}" style="background:#fff;color:#3730a3 !important;border-color:transparent"><i class="bi bi-calendar-week"></i>Dars jadvali</a>
+        </div>
+      </div>
+      {% endif %}
+    </section>
 
-    <div class="t-stat-card animate-fadeInUp delay-3">
-        <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-            <i class="bi bi-journal-check"></i>
+    <!-- Tekşiruv navbati -->
+    <section class="au-card au-rv" aria-labelledby="au-q">
+      <div class="au-card-h"><div><h3 id="au-q">Tekşiruv navbati</h3><p>{{ pending_homeworks }} vazifa · {{ pending_speakings }} speaking{% if avg_check_hours is not None %} · örtaça {{ avg_check_hours }} soatda{% endif %}</p></div>
+        <a class="au-link" href="{% url 'teacher:homeworks' %}">Barçasi <i class="bi bi-arrow-right"></i></a></div>
+      {% if pending_queue or pending_speak_queue %}
+      <div class="au-list">
+        {% for s in pending_queue %}
+        <div class="au-li">
+          <span class="au-av" data-c="{{ forloop.counter|divisibleby:2|yesno:'2,1' }}">{{ s.student.first_name|slice:":1" }}{{ s.student.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t">{{ s.homework.lesson.title }}</div><div class="s">{{ s.student.full_name }} · {{ s.submitted_at|timesince }} oldin</div></div>
+          <a class="au-btn sm" href="{% url 'teacher:grade_homework' s.pk %}" aria-label="{{ s.student.full_name }} vazifasini tekşiriş">Tekşiriş</a>
         </div>
-        <div class="t-stat-value">{{ pending_homeworks }}</div>
-        <div class="t-stat-label">Kutilayotgan vazifalar</div>
-    </div>
+        {% endfor %}
+        {% for s in pending_speak_queue %}
+        <div class="au-li">
+          <span class="au-av" data-c="3">{{ s.student.first_name|slice:":1" }}{{ s.student.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t"><i class="bi bi-mic" style="color:var(--au-accent-text)"></i> {{ s.speaking_task.lesson.title }}</div><div class="s">{{ s.student.full_name }} · {{ s.submitted_at|timesince }} oldin</div></div>
+          <a class="au-btn sm" href="{% url 'teacher:grade_speaking' s.pk %}" aria-label="{{ s.student.full_name }} speaking işini tekşiriş">Tekşiriş</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="au-empty"><i class="bi bi-check2-circle" style="color:var(--au-ok-text)"></i>Hammasi tekşirildi. Yangi topşiriqlar şu yerda körinadi.</div>
+      {% endif %}
+    </section>
+  </div>
 
-    <div class="t-stat-card animate-fadeInUp delay-4">
-        <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-            <i class="bi bi-mic-fill"></i>
-        </div>
-        <div class="t-stat-value">{{ pending_speakings }}</div>
-        <div class="t-stat-label">Kutilayotgan Speaking</div>
-    </div>
-
-    <div class="t-stat-card animate-fadeInUp delay-5">
-        <div class="t-stat-icon" style="background: rgba(13, 110, 253,0.12); color: #0d6efd;">
-            <i class="bi bi-clipboard-data-fill"></i>
-        </div>
-        <div class="t-stat-value">{{ total_test_results }}</div>
-        <div class="t-stat-label">Test natijalari</div>
-    </div>
-
-    <div class="t-stat-card animate-fadeInUp delay-6">
-        <div class="t-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
-            <i class="bi bi-award-fill"></i>
-        </div>
-        <div class="t-stat-value">{{ certificates_count }}</div>
-        <div class="t-stat-label">Sertifikatlarim</div>
-    </div>
-</div>
-
-<!-- ============ ANALITIKA (KPI) ============ -->
-<div class="t-stats-grid">
-    <div class="t-stat-card">
-        <div class="t-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
-            <i class="bi bi-star-fill"></i>
-        </div>
-        <div class="t-stat-value">{{ avg_grade }}</div>
-        <div class="t-stat-label">Örtaça baho (vazifa)</div>
-    </div>
-    <div class="t-stat-card">
-        <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-            <i class="bi bi-bullseye"></i>
-        </div>
-        <div class="t-stat-value">{{ pass_rate }}%</div>
-        <div class="t-stat-label">Testdan ötiş darajasi</div>
-    </div>
-    <div class="t-stat-card">
-        <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-            <i class="bi bi-graph-up-arrow"></i>
-        </div>
-        <div class="t-stat-value">
-            {{ this_week }}
-            <small style="font-size:.72rem;font-weight:700;color:{% if week_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
-                {% if week_change >= 0 %}+{% endif %}{{ week_change }}%
-            </small>
-        </div>
-        <div class="t-stat-label">Haftalik topşiriqlar (ötgan haftaga nisbatan)</div>
-    </div>
-    <div class="t-stat-card">
-        <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-            <i class="bi bi-stopwatch"></i>
-        </div>
-        <div class="t-stat-value">{% if avg_check_hours is not None %}{{ avg_check_hours }} soat{% else %}—{% endif %}</div>
-        <div class="t-stat-label">Örtaça tekşiriş tezligi</div>
-    </div>
-</div>
-
-<!-- ============ VIDEO MID-QUIZ DAROMADI (#6) ============ -->
-{# Ustozning video içiga qöşgan testlaridan tuşgan daromad — vq_income #}
-{# konteksti teacher/views.py'dagi teacher_income_summary() dan keladi.       #}
-<div style="display:flex;align-items:center;gap:.55rem;margin:.25rem 0 1rem;">
-    <i class="bi bi-play-circle-fill" style="color:#6366f1;font-size:1.15rem;"></i>
-    <h3 style="font-size:1.02rem;font-weight:800;margin:0;">Videodagi testlar daromadi</h3>
-    <a href="{% url 'video_quiz:teacher_videos' %}" class="btn btn-sm btn-outline-primary rounded-pill ms-auto">
-        <i class="bi bi-sliders"></i> Testlarni boşqariş
+  <!-- ===== KPI ===== -->
+  <div class="au-grid au-g4 au-mt">
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'my_study_schedule' %}">
+      <div class="au-kpi-top"><span class="au-ico"><i class="bi bi-calendar-event"></i></span></div>
+      <div class="au-kpi-val" data-count="{{ today_lessons|length }}">{{ today_lessons|length }}</div>
+      <div class="au-kpi-label">Bugungi darslar</div>
+      <div class="au-kpi-sub">{{ my_groups|length }} ta faol guruh</div>
     </a>
-</div>
-<div class="t-stats-grid">
-    <div class="t-stat-card animate-fadeInUp delay-1">
-        <div class="t-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
-            <i class="bi bi-cash-coin"></i>
-        </div>
-        <div class="t-stat-value">{{ vq_income.today|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
-        <div class="t-stat-label">Bugungi daromad</div>
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'teacher:my_students' %}">
+      <div class="au-kpi-top"><span class="au-ico" data-t="acc"><i class="bi bi-people"></i></span></div>
+      <div class="au-kpi-val" data-count="{{ total_students }}">{{ total_students }}</div>
+      <div class="au-kpi-label">Öquvçilarim</div>
+      <div class="au-kpi-sub">{{ professions|length }} ta kursda</div>
+    </a>
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'teacher:homeworks' %}">
+      <div class="au-kpi-top"><span class="au-ico" data-t="warn"><i class="bi bi-journal-check"></i></span></div>
+      <div class="au-kpi-val" data-count="{{ pending_homeworks|add:pending_speakings }}">{{ pending_homeworks|add:pending_speakings }}</div>
+      <div class="au-kpi-label">Tekşiriş kerak</div>
+      <div class="au-kpi-sub">{{ pending_homeworks }} vazifa · {{ pending_speakings }} speaking</div>
+    </a>
+    <div class="au-card au-hov au-kpi au-rv">
+      <div class="au-kpi-top"><span class="au-ico" data-t="ok"><i class="bi bi-graph-up-arrow"></i></span>
+        <span class="au-delta {% if week_change >= 0 %}up{% else %}down{% endif %}"><i class="bi bi-arrow-{% if week_change >= 0 %}up{% else %}down{% endif %}-short"></i>{% if week_change >= 0 %}+{% endif %}{{ week_change }}%</span></div>
+      <div class="au-kpi-val" data-count="{{ this_week }}">{{ this_week }}</div>
+      <div class="au-kpi-label">Haftalik topşiriqlar</div>
+      <div class="au-kpi-sub">ötgan hafta: {{ prev_week }}</div>
     </div>
-    <div class="t-stat-card animate-fadeInUp delay-2">
-        <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-            <i class="bi bi-calendar-week"></i>
-        </div>
-        <div class="t-stat-value">{{ vq_income.week|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
-        <div class="t-stat-label">Haftalik daromad</div>
-    </div>
-    <div class="t-stat-card animate-fadeInUp delay-3">
-        <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-            <i class="bi bi-calendar-month"></i>
-        </div>
-        <div class="t-stat-value">{{ vq_income.month|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
-        <div class="t-stat-label">Oylik daromad</div>
-    </div>
-    <div class="t-stat-card animate-fadeInUp delay-4">
-        <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-            <i class="bi bi-wallet2"></i>
-        </div>
-        <div class="t-stat-value">{{ vq_income.total|default:0 }} <span style="font-size:.7rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);">söm</span></div>
-        <div class="t-stat-label">Jami daromad</div>
-    </div>
-</div>
+  </div>
 
-<!-- ============ EXPORT ============ -->
-<div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
-    <div class="t-card-header">
-        <i class="bi bi-download" style="color:#4f46e5;"></i> Excel'ga yuklab oliş
-    </div>
-    <div class="t-card-body" style="display:flex;gap:.75rem;flex-wrap:wrap;">
-        <a href="{% url 'teacher:export' %}?type=students" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-people"></i> Öquvçilarim (.xlsx)
-        </a>
-        <a href="{% url 'teacher:export' %}?type=test_results" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-clipboard-data"></i> Test natijalari (.xlsx)
-        </a>
-        <a href="{% url 'teacher:export' %}?type=homeworks" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-journal-check"></i> Vazifalar (.xlsx)
-        </a>
-    </div>
-</div>
+  <!-- ===== Guruhlarim ===== -->
+  <h2 class="au-h2 au-rv"><i class="bi bi-people" style="color:var(--au-primary-text)"></i>Guruhlarim <a class="au-link" href="{% url 'teacher:study_groups' %}">Barçasi <i class="bi bi-arrow-right"></i></a></h2>
+  {% if my_groups %}
+  <div class="au-grid au-g4 au-groups">
+    {% for g in my_groups %}
+    <a class="au-card au-hov au-rv" href="{% url 'attendance_mark' g.pk %}" aria-label="{{ g.name }} davomati">
+      <div class="au-row au-between" style="align-items:flex-start">
+        <div class="au-row" style="min-width:0">
+          <span class="au-ico" {% if forloop.counter|divisibleby:2 %}data-t="acc"{% endif %}><i class="bi bi-people"></i></span>
+          <div style="min-width:0"><b style="font-family:var(--au-font-d);font-size:15px;display:block">{{ g.name }}</b><div class="au-faint" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ g.profession.name }}</div></div>
+        </div>
+        <span class="au-badge" data-t="ok">Faol</span>
+      </div>
+      <div class="au-days" style="margin-top:16px" aria-label="Dars kunlari: {{ g.days_full_display }}">
+        {% for short, on in g.day_flags %}<span class="{% if on %}on{% endif %}">{{ short }}</span>{% endfor %}
+      </div>
+      <div class="au-row au-between au-wrap" style="margin-top:14px;font-size:12.5px;gap:6px">
+        <span class="au-muted"><i class="bi bi-clock"></i> {{ g.time_range }}</span>
+        {% if g.room %}<span class="au-muted"><i class="bi bi-geo-alt"></i> {{ g.room }}</span>{% endif %}
+      </div>
+      <div class="au-row au-between" style="margin-top:10px;font-size:12.5px">
+        <span class="au-muted"><i class="bi bi-person"></i> {{ g.n_students }} öquvçi</span>
+        <span class="au-link">Davomat <i class="bi bi-arrow-right"></i></span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="au-card au-rv"><div class="au-empty"><i class="bi bi-people"></i>Sizga hali guruh biriktirilmagan. Guruhlar admin tomonidan yaratiladi.</div></div>
+  {% endif %}
 
-<!-- ============ 14 KUNLIK FAOLLIK ============ -->
-<div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
-    <div class="t-card-header">
-        <i class="bi bi-bar-chart-fill" style="color:#3b82f6;"></i> Sönggi 14 kun faolligi
-        <span style="font-weight:500;font-size:.78rem;color:var(--bs-secondary-color);margin-left:6px;">(vazifa + test)</span>
-    </div>
-    <div class="t-card-body">
-        <div style="display:grid;grid-template-columns:repeat(14,1fr);gap:6px;align-items:end;height:140px;">
-            {% for d in activity_days %}
-            <div title="{{ d.date|date:'d.m' }}: {{ d.hw }} vazifa, {{ d.tests }} test" style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
-                <span style="font-size:.66rem;font-weight:800;">{{ d.total }}</span>
-                <span style="display:block;width:100%;max-width:26px;height:{{ d.pct }}%;min-height:4px;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,#3b82f6,#8b5cf6);"></span>
-                <span style="font-size:.62rem;color:var(--bs-secondary-color);">{{ d.date|date:"d.m" }}</span>
-            </div>
-            {% endfor %}
+  <!-- ===== Faollik + bugungi darslar ===== -->
+  <div class="au-grid au-gmain au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-act">
+      <div class="au-card-h"><div><h3 id="au-act">Öquvçilar faolligi</h3><p>Sönggi 14 kun: topşirilgan vazifa va testlar</p></div></div>
+      <div class="au-chart" data-au-chart="au-activity" style="height:220px"></div>
+      <div class="au-legend"><span><i style="background:var(--au-bar)"></i>Vazifalar</span><span><i style="background:var(--au-c2)"></i>Testlar</span></div>
+    </section>
+    <section class="au-card au-rv" aria-labelledby="au-tl">
+      <div class="au-card-h"><div><h3 id="au-tl">Bugungi darslar</h3><p id="auToday2"></p></div><a class="au-link" href="{% url 'my_study_schedule' %}">Jadval <i class="bi bi-arrow-right"></i></a></div>
+      {% for l in today_lessons %}
+      <div class="au-lesson" data-s="{{ l.state }}">
+        <div class="tm"><b>{{ l.group.start_time|time:"H:i" }}</b><small>{{ l.group.end_time|time:"H:i" }}</small></div>
+        <div class="rl"><i></i></div>
+        <div class="bd">
+          <div class="au-row au-between"><span class="au-faint" style="font-size:12px;font-weight:600">{{ l.group.profession.name }}</span>
+            {% if l.state == 'done' %}<span class="au-badge" data-t="ok">Tugadi</span>{% elif l.state == 'now' %}<span class="au-badge" data-t="info">Hozir</span>{% else %}<span class="au-badge">Keyingi</span>{% endif %}</div>
+          <h4>{{ l.group.name }}</h4>
+          <div class="au-meta">{% if l.group.room %}<span><i class="bi bi-geo-alt"></i> {{ l.group.room }}</span>{% endif %}<span><i class="bi bi-people"></i> {{ l.group.n_students }} öquvçi</span>
+            {% if l.marked %}<span style="color:var(--au-ok-text)"><i class="bi bi-check2-all"></i> davomat belgilangan</span>{% endif %}</div>
+          {% if not l.marked and l.state != 'next' %}<a class="au-btn sm primary" style="margin-top:10px" href="{% url 'attendance_mark' l.group.pk %}"><i class="bi bi-check2-square"></i>Davomatni belgilaş</a>{% endif %}
         </div>
-    </div>
-</div>
+      </div>
+      {% empty %}
+      <div class="au-empty"><i class="bi bi-calendar-x"></i>Bugun dars yöq</div>
+      {% endfor %}
+    </section>
+  </div>
 
-<!-- ============ KURSLAR BÖYIÇA JADVAL ============ -->
-{% if course_rows %}
-<div class="t-card animate-fadeInUp" style="margin-bottom:2rem;">
-    <div class="t-card-header">
-        <i class="bi bi-table" style="color:#8b5cf6;"></i> Kurslarim böyiça körsatkiçlar
-    </div>
-    <div class="t-card-body" style="overflow-x:auto;" tabindex="0" role="region" aria-label="Jadval">
-        <table class="table table-sm align-middle" style="min-width:640px;font-size:.85rem;">
-            <thead>
-                <tr style="font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;">
-                    <th>Kurs</th>
-                    <th class="text-center">Öquvçilar</th>
-                    <th class="text-center">Darslar</th>
-                    <th class="text-center">Kutilayotgan vazifa</th>
-                    <th class="text-center">Tekşirilganlik</th>
-                    <th class="text-center">Örtaça test bali</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in course_rows %}
-                <tr>
-                    <td style="font-weight:600;">{{ row.profession.name }}</td>
-                    <td class="text-center">{{ row.students }}</td>
-                    <td class="text-center">{{ row.lessons }}</td>
-                    <td class="text-center">
-                        {% if row.pending %}<span class="t-badge t-badge-warning">{{ row.pending }}</span>
-                        {% else %}<span class="t-badge t-badge-success">0</span>{% endif %}
-                    </td>
-                    <td class="text-center" style="min-width:130px;">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="flex:1;height:6px;border-radius:3px;background:var(--bs-border-color);overflow:hidden;">
-                                <div style="width:{{ row.checked_pct }}%;height:100%;border-radius:3px;background:linear-gradient(90deg,#10b981,#3b82f6);"></div>
-                            </div>
-                            <span style="font-size:.75rem;font-weight:700;">{{ row.checked_pct }}%</span>
-                        </div>
-                    </td>
-                    <td class="text-center" style="font-weight:700;">{{ row.avg_score }}%</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
+  <!-- ===== Körsatkiçlar ===== -->
+  <h2 class="au-h2 au-rv"><i class="bi bi-speedometer2" style="color:var(--au-primary-text)"></i>Körsatkiçlar</h2>
+  <div class="au-chips au-rv">
+    <a class="au-chip" href="{% url 'teacher:courses' %}"><span class="au-ico sm"><i class="bi bi-book"></i></span><span><b data-count="{{ professions|length }}">{{ professions|length }}</b><small>Kurslarim</small></span></a>
+    <div class="au-chip"><span class="au-ico sm" data-t="ok"><i class="bi bi-star"></i></span><span><b>{{ avg_grade }}</b><small>Örtaça baho (vazifa)</small></span></div>
+    <a class="au-chip" href="{% url 'teacher:test_results' %}"><span class="au-ico sm" data-t="acc"><i class="bi bi-bullseye"></i></span><span><b>{{ pass_rate }}%</b><small>Testdan ötiş darajasi</small></span></a>
+    <a class="au-chip" href="{% url 'teacher:test_results' %}"><span class="au-ico sm"><i class="bi bi-clipboard-data"></i></span><span><b>{{ avg_test_score }}%</b><small>Örtaça test bali ({{ total_test_results }})</small></span></a>
+    <div class="au-chip"><span class="au-ico sm" data-t="warn"><i class="bi bi-stopwatch"></i></span><span><b>{% if avg_check_hours is not None %}{{ avg_check_hours }} soat{% else %}—{% endif %}</b><small>Örtaça tekşiriş tezligi</small></span></div>
+    <a class="au-chip" href="{% url 'teacher:certificates' %}"><span class="au-ico sm" data-t="bad"><i class="bi bi-award"></i></span><span><b data-count="{{ certificates_count }}">{{ certificates_count }}</b><small>Sertifikatlarim</small></span></a>
+  </div>
 
-<div class="t-recent-grid">
-    <div class="t-card animate-fadeInUp delay-3">
-        <div class="t-card-header">
-            <i class="bi bi-journal-check" style="color: #f59e0b;"></i> Sönggi vazifa topşiriqlar
-        </div>
-        <div class="t-card-body">
-            {% if recent_submissions %}
-            {% for s in recent_submissions %}
-            <div class="t-activity-item">
-                <div class="t-activity-avatar">{{ s.student.first_name.0 }}{{ s.student.last_name.0 }}</div>
-                <div class="t-activity-info">
-                    <div class="t-activity-name">{{ s.student.full_name }}</div>
-                    <div class="t-activity-desc">{{ s.homework.lesson.title }}</div>
-                </div>
-                <span class="t-badge {% if s.status == 'pending' %}t-badge-warning{% elif s.status == 'graded' %}t-badge-success{% else %}t-badge-info{% endif %}">
-                    {{ s.get_status_display }}
-                </span>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali vazifa topşiriqlar yöq</p>
-            </div>
-            {% endif %}
-        </div>
+  <!-- ===== Kurslar böyiça ===== -->
+  {% if course_rows %}
+  <section class="au-card au-rv au-mt" aria-labelledby="au-cr">
+    <div class="au-card-h"><div><h3 id="au-cr">Kurslarim böyiça körsatkiçlar</h3><p>Öquvçi, dars, tekşiruv holati va test bali</p></div></div>
+    <div class="au-tbl-wrap" tabindex="0" role="region" aria-label="Kurslar jadvali">
+      <table class="au-tbl" style="min-width:640px">
+        <thead><tr><th>Kurs</th><th class="c">Öquvçilar</th><th class="c">Darslar</th><th class="c">Kutilayotgan</th><th style="min-width:150px">Tekşirilganlik</th><th class="c">Örtaça test</th></tr></thead>
+        <tbody>
+          {% for row in course_rows %}
+          <tr>
+            <td style="font-weight:600">{{ row.profession.name }}</td>
+            <td class="c au-num">{{ row.students }}</td>
+            <td class="c au-num">{{ row.lessons }}</td>
+            <td class="c">{% if row.pending %}<span class="au-badge" data-t="warn">{{ row.pending }}</span>{% else %}<span class="au-badge" data-t="ok">0</span>{% endif %}</td>
+            <td><div class="au-row"><div class="au-prog" style="flex:1;min-width:60px"><span data-pct="{{ row.checked_pct|stringformat:'s' }}"></span></div><b class="au-num" style="font-size:12.5px;width:40px;text-align:right">{{ row.checked_pct }}%</b></div></td>
+            <td class="c au-num" style="font-weight:650">{{ row.avg_score }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </section>
+  {% endif %}
 
-    <div class="t-card animate-fadeInUp delay-4">
-        <div class="t-card-header">
-            <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> Sönggi Speaking topşiriqlar
-        </div>
-        <div class="t-card-body">
-            {% if recent_speakings %}
-            {% for s in recent_speakings %}
-            <div class="t-activity-item">
-                <div class="t-activity-avatar" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">{{ s.student.first_name.0 }}{{ s.student.last_name.0 }}</div>
-                <div class="t-activity-info">
-                    <div class="t-activity-name">{{ s.student.full_name }}</div>
-                    <div class="t-activity-desc">{{ s.speaking_task.lesson.title }}</div>
-                </div>
-                <span class="t-badge {% if s.status == 'pending' %}t-badge-warning{% elif s.status == 'graded' %}t-badge-success{% else %}t-badge-info{% endif %}">
-                    {{ s.get_status_display }}
-                </span>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali speaking topşiriqlar yöq</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
+  <!-- ===== Video testlar daromadi + eksport ===== -->
+  <div class="au-grid au-gmain au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-vq">
+      <div class="au-card-h"><div><h3 id="au-vq">Videodagi testlar daromadi</h3><p>Video içiga qöşilgan testlardan</p></div>
+        <a class="au-link" href="{% url 'video_quiz:teacher_videos' %}"><i class="bi bi-sliders"></i> Testlarni boşqariş</a></div>
+      <div class="au-grid au-g4" style="--au-gap:10px">
+        <div class="au-chip" style="display:block"><small>Bugun</small><b>{{ vq_income.today|default:0 }} <small style="display:inline">söm</small></b></div>
+        <div class="au-chip" style="display:block"><small>Hafta</small><b>{{ vq_income.week|default:0 }} <small style="display:inline">söm</small></b></div>
+        <div class="au-chip" style="display:block"><small>Oy</small><b>{{ vq_income.month|default:0 }} <small style="display:inline">söm</small></b></div>
+        <div class="au-chip" style="display:block"><small>Jami</small><b>{{ vq_income.total|default:0 }} <small style="display:inline">söm</small></b></div>
+      </div>
+    </section>
+    <section class="au-card au-rv" aria-labelledby="au-ex">
+      <div class="au-card-h"><div><h3 id="au-ex">Excel'ga yuklab oliş</h3><p>.xlsx formatda</p></div></div>
+      <div class="au-row au-wrap" style="gap:8px">
+        <a href="{% url 'teacher:export' %}?type=students" class="au-btn sm"><i class="bi bi-people"></i> Öquvçilarim</a>
+        <a href="{% url 'teacher:export' %}?type=test_results" class="au-btn sm"><i class="bi bi-clipboard-data"></i> Test natijalari</a>
+        <a href="{% url 'teacher:export' %}?type=homeworks" class="au-btn sm"><i class="bi bi-journal-check"></i> Vazifalar</a>
+      </div>
+    </section>
+  </div>
 
-<div class="t-recent-grid" style="margin-top: 1.5rem;">
-    <div class="t-card animate-fadeInUp delay-5">
-        <div class="t-card-header">
-            <i class="bi bi-clipboard-data-fill" style="color: #0d6efd;"></i> Sönggi test natijalari
-        </div>
-        <div class="t-card-body">
-            {% if recent_tests %}
-            {% for r in recent_tests %}
-            <div class="t-activity-item">
-                <div class="t-activity-avatar">{{ r.student.first_name.0 }}{{ r.student.last_name.0 }}</div>
-                <div class="t-activity-info">
-                    <div class="t-activity-name">{{ r.student.full_name }}</div>
-                    <div class="t-activity-desc">{{ r.test.lesson.title }}</div>
-                </div>
-                <span class="t-badge {% if r.passed %}t-badge-success{% else %}t-badge-danger{% endif %}">
-                    {{ r.score }}%
-                </span>
-            </div>
-            {% endfor %}
-            {% else %}
-            <div class="t-empty" style="padding: 1.5rem;">
-                <p style="margin:0;">Hali test natijalari yöq</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
+  <!-- ===== Sönggi topşiriqlar ===== -->
+  <div class="au-grid au-g3 au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-rs">
+      <div class="au-card-h"><div><h3 id="au-rs">Sönggi vazifalar</h3></div></div>
+      {% if recent_submissions %}<div class="au-list">
+        {% for s in recent_submissions %}
+        <div class="au-li"><span class="au-av">{{ s.student.first_name|slice:":1" }}{{ s.student.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t">{{ s.student.full_name }}</div><div class="s">{{ s.homework.lesson.title }}</div></div>
+          <span class="au-badge" data-t="{% if s.status == 'pending' %}warn{% elif s.status == 'graded' %}ok{% else %}info{% endif %}">{{ s.get_status_display }}</span></div>
+        {% endfor %}</div>
+      {% else %}<div class="au-empty"><i class="bi bi-journal"></i>Hali vazifa topşiriqlar yöq</div>{% endif %}
+    </section>
+    <section class="au-card au-rv" aria-labelledby="au-rsp">
+      <div class="au-card-h"><div><h3 id="au-rsp">Sönggi speaking</h3></div></div>
+      {% if recent_speakings %}<div class="au-list">
+        {% for s in recent_speakings %}
+        <div class="au-li"><span class="au-av" data-c="3">{{ s.student.first_name|slice:":1" }}{{ s.student.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t">{{ s.student.full_name }}</div><div class="s">{{ s.speaking_task.lesson.title }}</div></div>
+          <span class="au-badge" data-t="{% if s.status == 'pending' %}warn{% elif s.status == 'graded' %}ok{% else %}info{% endif %}">{{ s.get_status_display }}</span></div>
+        {% endfor %}</div>
+      {% else %}<div class="au-empty"><i class="bi bi-mic"></i>Hali speaking topşiriqlar yöq</div>{% endif %}
+    </section>
+    <section class="au-card au-rv" aria-labelledby="au-rt">
+      <div class="au-card-h"><div><h3 id="au-rt">Sönggi test natijalari</h3></div></div>
+      {% if recent_tests %}<div class="au-list">
+        {% for r in recent_tests %}
+        <div class="au-li"><span class="au-av" data-c="2">{{ r.student.first_name|slice:":1" }}{{ r.student.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t">{{ r.student.full_name }}</div><div class="s">{{ r.test.lesson.title }}</div></div>
+          <span class="au-badge" data-t="{% if r.passed %}ok{% else %}bad{% endif %}">{{ r.score }}%</span></div>
+        {% endfor %}</div>
+      {% else %}<div class="au-empty"><i class="bi bi-clipboard"></i>Hali test natijalari yöq</div>{% endif %}
+    </section>
+  </div>
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/aurora-ui.js' %}?v=20261105" defer></script>
+<script>
+(function () {
+  var days = ['Yakşanba', 'Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba'];
+  var months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+  var now = new Date(), txt = days[now.getDay()] + ', ' + now.getDate() + '-' + months[now.getMonth()];
+  ['auToday', 'auToday2'].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = txt; });
+  var h = now.getHours(), g = document.querySelector('[data-au-greet]');
+  if (g) g.textContent = h < 5 ? 'Xayrli tun' : h < 11 ? 'Xayrli tong' : h < 17 ? 'Xayrli kun' : 'Xayrli keç';
+})();
+</script>
 {% endblock %}

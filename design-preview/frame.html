@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uz" data-variant="a" data-role="admin" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="../static/img/fav.ico">
+<title>Preview</title>
+<script>
+/* Birinçi çizişdan OLDIN: variant, rol, mavzu (noto'g'ri mavzu miltillamasligi uçun) */
+(function () {
+  var d = document.documentElement, p = new URLSearchParams(location.search);
+  var v = (p.get('v') || 'a').toLowerCase(); if (!/^[abc]$/.test(v)) v = 'a';
+  d.dataset.variant = v;
+  d.dataset.role = p.get('role') === 'teacher' ? 'teacher' : 'admin';
+  var m = p.get('theme'), ls = null;
+  try { ls = window.localStorage; } catch (e) {}
+  if (m && /^(light|dark|system)$/.test(m)) { try { ls.setItem('dp-theme', m); } catch (e) {} }
+  else { try { m = ls.getItem('dp-theme'); } catch (e) {} }
+  if (!m) m = 'system';
+  d.dataset.theme = m === 'system' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : m;
+  if (p.get('motion') === 'off') d.classList.add('no-motion');
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/variant-a.css">
+<link rel="stylesheet" href="assets/variant-b.css">
+<link rel="stylesheet" href="assets/variant-c.css">
+</head>
+<body>
+<div id="root"></div>
+<noscript><p style="padding:24px">Prototip JavaScript talab qiladi.</p></noscript>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

@@ -131,11 +131,8 @@ def record_app_login(request, user, method):
         pass
 
     # Saytdagidek: Premium kunlik bonus kuniga bir marta
-    today = timezone.now().date()
-    if user.is_premium and user.last_daily_login != today:
-        user.last_daily_login = today
-        user.save(update_fields=['last_daily_login'])
-        user.add_coins(5, "Premium kunlik bonus")
+    from .coin_rules import award_premium_daily_bonus
+    award_premium_daily_bonus(user)
 
     # Email xabari (accounts.email_signals), avtomatik davomat va last_login — umumiy login signali orqali
     user_logged_in.send(sender=user.__class__, request=request, user=user)

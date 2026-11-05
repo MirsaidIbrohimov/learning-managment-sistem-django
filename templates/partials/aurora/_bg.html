@@ -1,0 +1,18 @@
+<div class="au-bg" aria-hidden="true"><span class="au-bg-l au-bg-light"></span><span class="au-bg-l au-bg-dark"></span></div>
+<script>
+/* Tema almaşganda ranglar silliq ötadi (miltillamaydi). Klass atribut özgarişidan
+   OLDIN qöyilişi kerak — şuning uçun tugma bosilişi capture fazasida uşlanadi. */
+(function () {
+  var d = document.documentElement, t;
+  function arm() {
+    if (d.getAttribute('data-motion') === 'off') return;
+    d.classList.add('au-theme-anim');
+    clearTimeout(t);
+    t = setTimeout(function () { d.classList.remove('au-theme-anim'); }, 450);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('#themeToggle, [data-theme-set], [name="ns-theme"], .ns-panel [data-theme]')) arm();
+  }, true);
+  document.addEventListener('itc:themechange', arm);
+})();
+</script>

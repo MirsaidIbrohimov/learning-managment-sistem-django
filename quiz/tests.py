@@ -705,7 +705,7 @@ class AttemptAPITests(TestCase):
         self.assertTrue(resp.data['coin_awarded'])
 
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, 1)
+        self.assertEqual(self.student.coins, 105)  # 1 töğri × 5 + 100 ötganlik bonusi
         self.assertTrue(ActivityLog.objects.filter(user=self.student, action_type='submit_test').exists())
 
     def test_submit_is_idempotent(self):
@@ -784,7 +784,7 @@ class AttemptAPITests(TestCase):
         self._answer_correctly(first_id)
         self.client.post(f'/api/v1/quiz/attempts/{first_id}/submit/')
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, 1)  # one correct answer, first pass
+        self.assertEqual(self.student.coins, 105)  # one correct answer (5) + pass bonus (100)
 
         second_id = self._start().data['id']  # retry costs 50 coins
         self.student.refresh_from_db()

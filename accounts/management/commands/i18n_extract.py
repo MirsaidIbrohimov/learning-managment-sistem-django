@@ -16,7 +16,7 @@ from django.core.management.base import BaseCommand, CommandError
 from accounts.alphabet import to_new_alphabet
 
 SKIP_DIRS = {
-    'venv', '.venv', 'staticfiles', 'backup', 'docs', 'design_preview', 'navigation-preview', 'ilovalar', 'media', '__pycache__',
+    'venv', '.venv', 'staticfiles', 'backup', 'docs', 'design_preview', 'design-preview', 'navigation-preview', 'ilovalar', 'media', '__pycache__',
     '.git', 'node_modules', 'logs', 'tests', 'scripts', 'migrations', 'settings', 'i18n', 'emails', 'parents', 'landing',
     'games-static', 'home',
 }
@@ -25,7 +25,7 @@ SKIP_TEMPLATES = {
     'login.html', 'register.html', 'password_reset_request.html', 'social_signup.html', 'landing.html', 'maintenance.html',
     '403.html', '403_csrf.html', '404.html', '500.html', 'login_location_consent.html',
 }
-SKIP_STATIC = ('static/games/', 'static/home/', 'static/i18n/', 'static/vendor/', 'static/admin/')
+SKIP_STATIC = ('static/games/', 'static/home/', 'static/i18n/', 'static/vendor/', 'static/admin/', 'static/js/aurora-ui.js')
 SKIP_PY_DIRS = ('telegram_bot/', 'config/')
 
 TAG = re.compile(r'\{%\s*comment.*?%\}.*?\{%\s*endcomment\s*%\}|\{#.*?#\}', re.S)

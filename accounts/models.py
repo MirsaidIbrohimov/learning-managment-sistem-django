@@ -1100,7 +1100,7 @@ class Homework(models.Model):
 
 
 class HomeworkSubmission(models.Model):
-    MAX_COIN_REWARD = 50
+    MAX_COIN_REWARD = 200  # coin_rules.HOMEWORK_MAX_COINS: 10 ball × 20 coin
     RESUBMIT_COIN_PENALTY = 30
 
     STATUS_CHOICES = (
@@ -1153,16 +1153,10 @@ class HomeworkSubmission(models.Model):
         return f"{self.student.full_name} - {self.homework.lesson.title}"
 
     def calculate_coin_reward(self, grade=None):
-        """Vazifa mukofotini hisoblaydi; har qanday holatda maksimum 50 coin."""
+        """Vazifa mukofoti: har bir ball uçun 20 coin (10 ball -> 200 coin)."""
+        from .coin_rules import homework_coins
         grade = self.grade if grade is None else grade
-        amount = 5 if self.is_late else 10
-        if grade is not None and grade >= 9:
-            amount += 5
-        elif grade is not None and grade >= 8:
-            amount += 3
-        if self.student.is_premium:
-            amount *= 2
-        return min(amount, self.MAX_COIN_REWARD)
+        return min(homework_coins(grade), self.MAX_COIN_REWARD)
     
     @property
     def unread_messages_count(self):

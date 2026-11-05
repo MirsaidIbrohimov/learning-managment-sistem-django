@@ -214,10 +214,11 @@ def _finalize_attempt(attempt):
     # has_manual quizzes hold off on the coin award until a teacher finishes
     # grading the essay portion -- awarding against a partial auto-score
     # could pay out for what turns out to be a failing attempt.
-    if not has_manual and passed and is_first_attempt and not already_awarded_legacy and correct_count > 0:
-        coins_per_correct = 2 if attempt.student.is_premium else 1
-        coins_to_award = correct_count * coins_per_correct
-        attempt.student.add_coins(coins_to_award, reason=f"Test topşirdi: {attempt.quiz.title}")
+    # Birinçi urinişda: har bir töğri javob 5 coin + ötilsa 100 coin bonus.
+    from accounts.coin_rules import test_coins, test_coin_reason
+    coins_to_award = test_coins(correct_count, passed)
+    if not has_manual and is_first_attempt and not already_awarded_legacy and coins_to_award > 0:
+        attempt.student.add_coins(coins_to_award, reason=test_coin_reason(attempt.quiz.title, correct_count, passed))
         attempt.coin_awarded = True
         attempt.coins_earned = coins_to_award
 

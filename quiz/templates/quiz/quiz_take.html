@@ -188,8 +188,8 @@
                                 <i class="bi bi-coin"></i>
                                 <span>Har bir töğri javob uçun
                                     <strong>{{ bootstrap.coin_per_correct }} coin</strong>
-                                    {% if bootstrap.is_premium %}<span class="qt-premium-badge"><i class="bi bi-stars"></i> Premium</span>{% endif %}
-                                    (faqat <strong>birinçi</strong> muvaffaqiyatli urinişda beriladi)
+                                    va testdan ötsangiz <strong>+{{ bootstrap.coin_pass_bonus }} coin</strong> bonus
+                                    (faqat <strong>birinçi</strong> urinişda beriladi)
                                 </span>
                             </div>
                             {% if bootstrap.prior_attempt_count > 0 and not bootstrap.retry_payment_required %}
@@ -291,5 +291,5 @@
 {% if portal %}<script>window.QUIZ_API_ROOT = '{{ portal.quiz_api_root }}'; window.QUIZ_RETRY_URL = '{{ portal.retry_url }}';</script>{% endif %}
 <script src="{% static 'quiz/js/quiz_shell.js' %}"></script>
 <script src="{% static 'quiz/js/api.js' %}"></script>
-<script src="{% static 'quiz/js/quiz_take.js' %}"></script>
+<script src="{% static 'quiz/js/quiz_take.js' %}?v=20261105"></script>
 {% endblock %}

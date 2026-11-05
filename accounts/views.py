@@ -1030,13 +1030,11 @@ def _complete_login(request, user, ip_address, user_agent, login_token):
     # 📱 Qurilma va sessiya röyxatdan ötkaziş
     _register_device_and_session(request, user)
 
-    # 💎 Premium kunlik bonus: 5 coin
-    today = timezone.now().date()
-    if user.is_premium and user.last_daily_login != today:
-        user.last_daily_login = today
-        user.save(update_fields=["last_daily_login"])
-        user.add_coins(5, "Premium kunlik bonus")
-        messages.success(request, "💎 Premium bonus: +5 coin qöşildi!")
+    # 💎 Premium kunlik bonus: 300 coin
+    from .coin_rules import award_premium_daily_bonus
+    bonus = award_premium_daily_bonus(user)
+    if bonus:
+        messages.success(request, "💎 Premium bonus: +{0} coin qöşildi!".format(bonus))
 
     ip_address = get_client_ip(request) or ''
     ActivityLog.objects.create(
@@ -6097,23 +6095,25 @@ def submit_test(request, pk):
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
     is_first_attempt = existing_results_count == 0
-    
-    if result.passed:
-        if is_first_attempt and correct > 0:
-            # Faqat birinçi urinişda coin beriladi
-            request.user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {test.lesson.title}")
-            result.coin_awarded = True
-            result.save()
 
+    # Faqat birinçi urinişda: har bir töğri javob 5 coin + ötilsa 100 coin
+    from .coin_rules import test_coins, test_coin_reason
+    first_coins = test_coins(correct, result.passed) if is_first_attempt else 0
+    if first_coins:
+        request.user.add_coins(first_coins, test_coin_reason(test.lesson.title, correct, result.passed))
+        result.coin_awarded = True
+        result.save()
+
+    if result.passed:
         # Activity log
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topşirdi: {test.lesson.title} - {correct}/{total} töğri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
+            description=f"Test topşirdi: {test.lesson.title} - {correct}/{total} töğri" + (f", +{first_coins} coin" if first_coins else "")
         )
 
-        if is_first_attempt and correct > 0:
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (töğri javoblar)!")
+        if first_coins:
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{first_coins} coin oldingiz ({correct} ta töğri javob + ötganlik bonusi)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
 
@@ -6133,13 +6133,15 @@ def submit_test(request, pk):
             except Exception:
                 pass
     else:
-        # Testdan ötmadi - coin berilmaydi
+        # Testdan ötmadi - faqat töğri javoblar uçun coin (birinçi urinişda)
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topşirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} töğri"
+            description=f"Test topşirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} töğri" + (f", +{first_coins} coin" if first_coins else "")
         )
         messages.warning(request, f"Testdan öta olmadingiz. {correct}/{total} töğri javob.")
+        if first_coins:
+            messages.info(request, f"+{first_coins} coin oldingiz ({correct} ta töğri javob).")
     
     # Avtomatik xabar yuboriş
     from .notifications import on_test_completed
@@ -6957,19 +6959,21 @@ def grade_legacy_test(user, test, questions, answer_for, started_at):
     result.save()
 
     is_first_attempt = not TestResult.objects.filter(test=test, student=user).exclude(pk=result.pk).exists()
-    first_coins = False
+    from .coin_rules import test_coins, test_coin_reason
+    first_coins = 0
     certificate_issued = False
     title = test.lesson.title
-    if result.passed:
-        first_coins = is_first_attempt and correct > 0
+    if is_first_attempt:
+        # Faqat birinçi urinişda: har bir töğri javob 5 coin + ötilsa 100 coin
+        first_coins = test_coins(correct, result.passed)
         if first_coins:
-            # Faqat birinçi urinişda coin beriladi
-            user.add_coins(correct, f"Test töğri javoblar ({correct} ta): {title}")
+            user.add_coins(first_coins, test_coin_reason(title, correct, result.passed))
             result.coin_awarded = True
             result.save()
+    if result.passed:
         ActivityLog.objects.create(
             user=user, action_type='submit_test',
-            description=f"Test topşirdi: {title} - {correct}/{total} töğri" + (f", +{correct} coin" if first_coins else "")
+            description=f"Test topşirdi: {title} - {correct}/{total} töğri" + (f", +{first_coins} coin" if first_coins else "")
         )
         # 🎓 Yakuniy testdan ötdi — sertifikatni avtomatik beriş
         if test.test_type == 'final' and user.is_learner:
@@ -6982,7 +6986,7 @@ def grade_legacy_test(user, test, questions, answer_for, started_at):
     else:
         ActivityLog.objects.create(
             user=user, action_type='submit_test',
-            description=f"Test topşirdi (muvaffaqiyatsiz): {title} - {correct}/{total} töğri"
+            description=f"Test topşirdi (muvaffaqiyatsiz): {title} - {correct}/{total} töğri" + (f", +{first_coins} coin" if first_coins else "")
         )
     return result, first_coins, certificate_issued
 
@@ -7056,7 +7060,7 @@ def student_submit_test(request, token):
 
     if result.passed:
         if first_coins:
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (töğri javoblar)!")
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{first_coins} coin oldingiz ({correct} ta töğri javob + ötganlik bonusi)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
         if certificate_issued:
@@ -7067,6 +7071,8 @@ def student_submit_test(request, token):
             )
     else:
         messages.warning(request, f"Testdan öta olmadingiz. {correct}/{total} töğri javob.")
+        if first_coins:
+            messages.info(request, f"+{first_coins} coin oldingiz ({correct} ta töğri javob).")
 
     notify_legacy_test(request.user, result)
 
@@ -10735,7 +10741,37 @@ def admin_dashboard(request):
             })
         get_performance_cache().set('admin_course_perf', course_perf, 300)
 
+    # Aurora dashboard grafiklari — yangi sörov yöq, yuqoridagi ma'lumotlardan
+    _wd = ['Du', 'Se', 'Ço', 'Pa', 'Ju', 'Şa', 'Ya']
+    trend_chart = {
+        'labels': [_wd[d['date'].weekday()] + ' ' + d['date'].strftime('%d') for d in daily_stats],
+        'series': [
+            {'name': 'Yangi foydalanuvçilar', 'values': [d['users'] for d in daily_stats]},
+            {'name': 'Kursga yozilişlar', 'values': [d['enrollments'] for d in daily_stats]},
+        ],
+        'aria': 'Oxirgi 7 kun: yangi foydalanuvçilar va kursga yozilişlar',
+    }
+    _donut_colors = ['var(--au-c1)', 'var(--au-c2)', 'var(--au-c3)', 'var(--au-c4)']
+    _top = course_perf[:4]
+    _rest = sum(c['students'] for c in course_perf[4:])
+    course_donut = {
+        'segs': [{'v': c['students'], 'c': _donut_colors[i], 'label': c['name']} for i, c in enumerate(_top)]
+        + ([{'v': _rest, 'c': 'var(--au-text-3)', 'label': 'Qolgan TOP-10 kurslar'}] if _rest else []),
+        'value': sum(c['students'] for c in course_perf),
+        'label': 'yoziliş · TOP-10',
+    }
+    test_donut = {
+        'segs': [{'v': passed_tests, 'c': 'var(--au-ok)', 'label': 'Ötgan'},
+                 {'v': max(0, total_test_results - passed_tests), 'c': 'var(--au-bad)', 'label': 'Ötmagan'}],
+        'value': round(passed_tests / total_test_results * 100) if total_test_results else 0,
+        'suffix': '%', 'label': 'ötiş darajasi', 'size': 140, 'stroke': 14,
+    }
+
     context = {
+        'trend_chart': trend_chart,
+        'course_donut': course_donut,
+        'test_donut': test_donut,
+        'users_spark': [d['users'] for d in daily_stats],
         'maintenance': maintenance,
         'finance': finance,
         'growth': growth,

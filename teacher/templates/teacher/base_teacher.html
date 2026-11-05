@@ -1,5 +1,5 @@
 {% load nav_prefs %}{% get_nav_prefs as nav_prefs %}<!DOCTYPE html>
-<html lang="uz" data-bs-theme="light"{% if user.is_authenticated %} data-layout="{{ nav_prefs.layout }}" data-sb="{{ nav_prefs.sidebar }}" data-motion="{{ nav_prefs.motion|yesno:'on,off' }}"{% endif %}>
+<html lang="uz" data-bs-theme="light" data-ui="aurora"{% if user.is_authenticated %} data-layout="{{ nav_prefs.layout }}" data-sb="{{ nav_prefs.sidebar }}" data-motion="{{ nav_prefs.motion|yesno:'on,off' }}"{% endif %}>
 
 <head>
     {% include 'partials/i18n/_head.html' %}
@@ -200,10 +200,12 @@
     <link rel="stylesheet" href="{% static 'css/panel_nav.css' %}">
     <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}">
     <link rel="stylesheet" href="{% static 'css/panel-layouts.css' %}">
+    {% include 'partials/aurora/_head.html' %}
     {% block extra_css %}{% endblock %}
 </head>
 <body class="panel-teacher pn{% if nav_prefs.sidebar == 'collapsed' and nav_prefs.layout != 'top' %} sidebar-collapsed{% endif %}">
 <a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
+{% include 'partials/aurora/_bg.html' %}
     <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
     <div class="sidebar" id="adminSidebar" role="navigation" aria-label="Panel menyusi">
         <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopiş"><i class="bi bi-x-lg"></i></button>

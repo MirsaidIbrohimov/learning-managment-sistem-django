@@ -1,1799 +1,318 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
 
 {% block title %}Dashboard - Admin Panel{% endblock %}
+{% block topbar_title %}Boşqaruv paneli{% endblock %}
 
 {% block extra_css %}
-<style>
-/* ===== Dashboard Animations ===== */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInScale {
-    from { opacity: 0; transform: scale(0.92); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes countUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pulseOnline {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-}
-
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-
-@keyframes glowPulse {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
-
-/* ===== Maintenance Toggle Button ===== */
-.db-maint-trigger {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.55rem 1.1rem;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    border: 2px solid var(--border-color);
-    background: var(--card-bg);
-    text-decoration: none;
-    position: relative;
-    overflow: hidden;
-}
-.db-maint-trigger::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-.db-maint-trigger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-.db-maint-trigger.is-off {
-    border-color: rgba(16,185,129,0.4);
-}
-.db-maint-trigger.is-off:hover {
-    border-color: #10b981;
-}
-.db-maint-trigger.is-on {
-    border-color: rgba(239,68,68,0.5);
-    background: rgba(239,68,68,0.04);
-}
-.db-maint-trigger.is-on:hover {
-    border-color: #ef4444;
-    background: rgba(239,68,68,0.08);
-}
-[data-bs-theme="dark"] .db-maint-trigger.is-on {
-    background: rgba(239,68,68,0.1);
-}
-.db-maint-trigger-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-    transition: all 0.3s;
-}
-.db-maint-trigger.is-off .db-maint-trigger-icon {
-    background: rgba(16,185,129,0.12);
-    color: var(--ds-success);
-}
-.db-maint-trigger.is-on .db-maint-trigger-icon {
-    background: rgba(239,68,68,0.12);
-    color: #ef4444;
-    animation: maintPulse 2s ease infinite;
-}
-@keyframes maintPulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
-    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
-}
-.db-maint-trigger-text {
-    font-size: 0.78rem;
-    font-weight: 700;
-    line-height: 1.2;
-    white-space: nowrap;
-}
-.db-maint-trigger-label {
-    color: var(--text-color);
-    display: block;
-}
-.db-maint-trigger-badge {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 0.1rem 0.4rem;
-    border-radius: 5px;
-    margin-top: 1px;
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-}
-.db-maint-trigger.is-off .db-maint-trigger-badge {
-    background: rgba(16,185,129,0.12);
-    color: var(--ds-success);
-}
-.db-maint-trigger.is-on .db-maint-trigger-badge {
-    background: rgba(239,68,68,0.12);
-    color: #ef4444;
-}
-
-/* ===== Maintenance Modal ===== */
-.mm-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 10000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-}
-.mm-overlay.show {
-    display: flex;
-}
-.mm-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(15,23,42,0.6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    animation: mmFadeIn 0.25s ease;
-}
-@keyframes mmFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes mmSlideUp {
-    from { opacity: 0; transform: translateY(40px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes mmIconBounce {
-    0% { transform: scale(0); }
-    60% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-}
-.mm-dialog {
-    position: relative;
-    z-index: 1;
-    background: var(--card-bg, #fff);
-    border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 24px;
-    max-width: 460px;
-    width: 100%;
-    overflow: hidden;
-    animation: mmSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-}
-[data-bs-theme="dark"] .mm-dialog {
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-}
-
-/* Modal top strip */
-.mm-strip {
-    height: 5px;
-}
-.mm-strip.warn {
-    background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
-    background-size: 200% 100%;
-    animation: mmStripMove 2s linear infinite;
-}
-.mm-strip.safe {
-    background: linear-gradient(90deg, #10b981, #34d399, #10b981);
-    background-size: 200% 100%;
-    animation: mmStripMove 2s linear infinite;
-}
-@keyframes mmStripMove {
-    0% { background-position: 0% 0; }
-    100% { background-position: 200% 0; }
-}
-
-.mm-body {
-    padding: 2rem 2rem 1.75rem;
-    text-align: center;
-}
-
-.mm-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.25rem;
-    font-size: 2rem;
-    animation: mmIconBounce 0.5s ease 0.15s both;
-}
-.mm-icon.warn {
-    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(249,115,22,0.1));
-    color: #ef4444;
-    box-shadow: 0 8px 24px rgba(239,68,68,0.15);
-}
-.mm-icon.safe {
-    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(52,211,153,0.1));
-    color: var(--ds-success);
-    box-shadow: 0 8px 24px rgba(16,185,129,0.15);
-}
-
-.mm-title {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--text-color, #1f2937);
-    margin-bottom: 0.5rem;
-}
-.mm-desc {
-    font-size: 0.9rem;
-    color: var(--ds-text-muted);
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-    max-width: 340px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Warning chips */
-.mm-warn-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
-}
-.mm-warn-item {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.6rem 0.875rem;
-    border-radius: 12px;
-    font-size: 0.82rem;
-    font-weight: 600;
-}
-.mm-warn-item.red {
-    background: rgba(239,68,68,0.08);
-    color: #dc2626;
-    border: 1px solid rgba(239,68,68,0.12);
-}
-.mm-warn-item.green {
-    background: rgba(16,185,129,0.08);
-    color: #059669;
-    border: 1px solid rgba(16,185,129,0.12);
-}
-[data-bs-theme="dark"] .mm-warn-item.red {
-    background: rgba(239,68,68,0.12);
-    color: #fca5a5;
-}
-[data-bs-theme="dark"] .mm-warn-item.green {
-    background: rgba(16,185,129,0.12);
-    color: #6ee7b7;
-}
-.mm-warn-item i {
-    font-size: 1rem;
-    flex-shrink: 0;
-}
-
-/* Textarea */
-.mm-textarea {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border-radius: 14px;
-    border: 2px solid var(--border-color, #e5e7eb);
-    background: var(--bg-color, #f8fafc);
-    color: var(--text-color, #1f2937);
-    font-size: 0.88rem;
-    font-family: inherit;
-    resize: vertical;
-    min-height: 80px;
-    margin-bottom: 1.25rem;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-.mm-textarea:focus {
-    outline: none;
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
-}
-
-/* Footer */
-.mm-footer {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0 2rem 2rem;
-}
-.mm-btn {
-    flex: 1;
-    padding: 0.75rem 1.25rem;
-    border-radius: 14px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border: none;
-}
-.mm-btn:hover {
-    transform: translateY(-2px);
-}
-.mm-btn-cancel {
-    background: var(--bg-color, #f1f5f9);
-    color: var(--text-color, #1f2937);
-    border: 2px solid var(--border-color, #e5e7eb);
-}
-.mm-btn-cancel:hover {
-    background: var(--border-color, #e5e7eb);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.mm-btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(239,68,68,0.3);
-}
-.mm-btn-danger:hover {
-    box-shadow: 0 8px 24px rgba(239,68,68,0.4);
-}
-.mm-btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
-}
-.mm-btn-success:hover {
-    box-shadow: 0 8px 24px rgba(16,185,129,0.4);
-}
-
-@media (max-width: 480px) {
-    .mm-body { padding: 1.5rem 1.25rem 1.25rem; }
-    .mm-footer { padding: 0 1.25rem 1.5rem; flex-direction: column; }
-    .mm-icon { width: 64px; height: 64px; font-size: 1.5rem; }
-    .mm-title { font-size: 1.15rem; }
-    .db-maint-trigger-text { display: none; }
-}
-
-/* ===== Dashboard Layout ===== */
-.db-page {
-    animation: fadeInUp 0.4s ease both;
-}
-
-/* ===== Welcome Hero ===== */
-.db-hero {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 1.5rem 1.75rem;
-    margin-bottom: 1.75rem;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.5s ease both;
-}
-.db-hero::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
-    background-size: 300% 100%;
-    animation: shimmer 4s linear infinite;
-}
-.db-hero-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-.db-hero-greeting {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--text-color);
-}
-.db-hero-greeting span {
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.db-hero-subtitle {
-    font-size: 0.88rem;
-    color: var(--ds-text-muted);
-    font-weight: 600;
-    margin-top: 0.15rem;
-}
-.db-hero-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.db-hero-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1rem;
-    border-radius: 12px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    background: var(--primary-blue);
-    color: #fff;
-    border: 2px solid transparent;
-}
-.db-hero-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59,130,246,0.25);
-    color: #fff;
-}
-.db-hero-btn.outline {
-    background: transparent;
-    color: var(--text-color);
-    border: 2px solid var(--border-color);
-}
-.db-hero-btn.outline:hover {
-    border-color: var(--primary-blue);
-    color: var(--primary-blue);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-.db-hero-date {
-    margin-top: 0.75rem;
-    font-size: 0.8rem;
-    color: var(--ds-text-muted);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-/* ===== Quick Links Grid ===== */
-.db-quick-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.75rem;
-}
-.db-quick-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 1.1rem 0.5rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    text-decoration: none;
-    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.5s ease both;
-}
-.db-quick-card:nth-child(1) { animation-delay:0.05s; }
-.db-quick-card:nth-child(2) { animation-delay:0.08s; }
-.db-quick-card:nth-child(3) { animation-delay:0.11s; }
-.db-quick-card:nth-child(4) { animation-delay:0.14s; }
-.db-quick-card:nth-child(5) { animation-delay:0.17s; }
-.db-quick-card:nth-child(6) { animation-delay:0.20s; }
-.db-quick-card:nth-child(7) { animation-delay:0.23s; }
-.db-quick-card:nth-child(8) { animation-delay:0.26s; }
-.db-quick-card:nth-child(9) { animation-delay:0.29s; }
-.db-quick-card:nth-child(10) { animation-delay:0.32s; }
-.db-quick-card:nth-child(11) { animation-delay:0.35s; }
-.db-quick-card:nth-child(12) { animation-delay:0.38s; }
-
-.db-quick-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    padding: 2px;
-    background: linear-gradient(135deg, var(--qc, #3b82f6), transparent 60%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-.db-quick-card:hover::before {
-    opacity: 1;
-}
-.db-quick-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
-}
-.db-quick-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--qc) 15%, transparent), color-mix(in srgb, var(--qc) 8%, transparent));
-    color: var(--qc);
-    transition: all 0.3s;
-}
-.db-quick-card:hover .db-quick-icon {
-    transform: scale(1.12) rotate(-3deg);
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--qc) 30%, transparent);
-}
-.db-quick-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-color);
-    text-align: center;
-    line-height: 1.2;
-}
-
-/* ===== Alert Bar ===== */
-.db-alert-bar {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1.25rem;
-    border-radius: 14px;
-    margin-bottom: 1.75rem;
-    font-size: 0.88rem;
-    font-weight: 600;
-    animation: fadeInUp 0.5s ease 0.2s both;
-}
-.db-alert-bar.warn {
-    background: rgba(245,158,11,0.08);
-    border: 1px solid rgba(245,158,11,0.2);
-    color: #d97706;
-}
-.db-alert-bar.warn i { font-size: 1.1rem; }
-.db-alert-bar a {
-    margin-left: auto;
-    font-weight: 700;
-    color: #d97706;
-    text-decoration: none;
-    padding: 0.3rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid rgba(245,158,11,0.3);
-    font-size: 0.8rem;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-.db-alert-bar a:hover {
-    background: rgba(245,158,11,0.12);
-}
-[data-bs-theme="dark"] .db-alert-bar.warn {
-    background: rgba(245,158,11,0.1);
-    color: #fbbf24;
-}
-[data-bs-theme="dark"] .db-alert-bar.warn a { color: #fbbf24; }
-
-/* ===== Stat Cards Grid ===== */
-.db-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-}
-
-.db-stat {
-    position: relative;
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 1.25rem;
-    border: 1px solid var(--border-color);
-    text-align: center;
-    overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fadeInUp 0.5s ease both;
-}
-
-.db-stat:nth-child(1) { animation-delay: 0.05s; }
-.db-stat:nth-child(2) { animation-delay: 0.1s; }
-.db-stat:nth-child(3) { animation-delay: 0.15s; }
-.db-stat:nth-child(4) { animation-delay: 0.2s; }
-.db-stat:nth-child(5) { animation-delay: 0.25s; }
-.db-stat:nth-child(6) { animation-delay: 0.3s; }
-.db-stat:nth-child(7) { animation-delay: 0.35s; }
-
-.db-stat::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-radius: 16px 16px 0 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-}
-
-.db-stat:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-}
-
-.db-stat:hover::before {
-    opacity: 1;
-}
-
-/* Color variants */
-.db-stat.blue::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
-.db-stat.green::before { background: linear-gradient(90deg, #10b981, #059669); }
-.db-stat.orange::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
-.db-stat.cyan::before { background: linear-gradient(90deg, #06b6d4, #0891b2); }
-.db-stat.pink::before { background: linear-gradient(90deg, #ec4899, #db2777); }
-.db-stat.red::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
-.db-stat.purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
-
-.db-stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    margin: 0 auto 0.75rem;
-    transition: transform 0.3s;
-}
-
-.db-stat:hover .db-stat-icon {
-    transform: scale(1.1);
-}
-
-.db-stat.blue .db-stat-icon { background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.06)); color: #3b82f6; }
-.db-stat.green .db-stat-icon { background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.06)); color: var(--ds-success); }
-.db-stat.orange .db-stat-icon { background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.06)); color: #f59e0b; }
-.db-stat.cyan .db-stat-icon { background: linear-gradient(135deg, rgba(6,182,212,0.18), rgba(6,182,212,0.06)); color: #06b6d4; }
-.db-stat.pink .db-stat-icon { background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.06)); color: #ec4899; }
-.db-stat.red .db-stat-icon { background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06)); color: #ef4444; }
-.db-stat.purple .db-stat-icon { background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(139,92,246,0.06)); color: #8b5cf6; }
-
-.db-stat-num {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--text-color);
-    line-height: 1;
-    margin-bottom: 0.25rem;
-    animation: countUp 0.6s ease both;
-}
-
-.db-stat-label {
-    font-size: 0.8rem;
-    color: var(--ds-text-muted);
-    font-weight: 600;
-}
-
-/* Online card special glow */
-.db-stat.online-card .db-stat-icon {
-    animation: pulseOnline 2s infinite;
-}
-
-.db-stat.online-card .db-online-dot {
-    width: 8px;
-    height: 8px;
-    background: #10b981;
-    border-radius: 50%;
-    display: inline-block;
-    margin-left: 4px;
-    animation: glowPulse 1.5s infinite;
-}
-
-/* ===== Info Cards Row ===== */
-.db-info-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-}
-
-.db-info-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 1.25rem;
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fadeInUp 0.5s ease both;
-}
-
-.db-info-card:nth-child(1) { animation-delay: 0.1s; }
-.db-info-card:nth-child(2) { animation-delay: 0.15s; }
-.db-info-card:nth-child(3) { animation-delay: 0.2s; }
-.db-info-card:nth-child(4) { animation-delay: 0.25s; }
-
-.db-info-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
-}
-
-.db-info-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.db-info-icon.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.db-info-icon.green { background: rgba(16, 185, 129, 0.12); color: var(--ds-success); }
-.db-info-icon.orange { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.db-info-icon.purple { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
-.db-info-icon.cyan { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
-.db-info-icon.red { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-
-.db-info-text .db-info-num {
-    font-size: 1.35rem;
-    font-weight: 800;
-    color: var(--text-color);
-    line-height: 1.2;
-}
-
-.db-info-text .db-info-label {
-    font-size: 0.8rem;
-    color: var(--ds-text-muted);
-    font-weight: 600;
-}
-
-/* ===== Section Header ===== */
-.db-section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    animation: slideInLeft 0.4s ease both;
-}
-
-.db-section-header h2 {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--ds-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
-
-.db-section-header i {
-    color: var(--primary-blue);
-    font-size: 1rem;
-}
-
-/* ===== Summary Cards (Test & Homework) ===== */
-.db-summary-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-}
-
-.db-summary-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    animation: fadeInScale 0.5s ease both;
-}
-
-.db-summary-card:nth-child(1) { animation-delay: 0.15s; }
-.db-summary-card:nth-child(2) { animation-delay: 0.2s; }
-
-.db-summary-head {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.db-summary-head i {
-    color: var(--primary-blue);
-}
-
-.db-summary-body {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    text-align: center;
-    padding: 1.25rem;
-    gap: 0.5rem;
-}
-
-.db-summary-item h3 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 0 0 0.2rem;
-    color: var(--text-color);
-}
-
-.db-summary-item h3.text-success { color: var(--ds-success) !important; }
-.db-summary-item h3.text-warning { color: #f59e0b !important; }
-.db-summary-item h3.text-primary { color: #3b82f6 !important; }
-
-.db-summary-item small {
-    color: var(--ds-text-muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* ===== Table Cards ===== */
-.db-table-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-}
-
-.db-table-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    animation: fadeInScale 0.5s ease both;
-}
-
-.db-table-card:nth-child(1) { animation-delay: 0.2s; }
-.db-table-card:nth-child(2) { animation-delay: 0.25s; }
-
-.db-table-head {
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.db-table-head span {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.db-table-head span i {
-    color: var(--primary-blue);
-}
-
-.db-table-head a {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--primary-blue);
-    text-decoration: none;
-    padding: 0.35rem 0.75rem;
-    border-radius: 8px;
-    border: 1px solid rgba(13, 110, 253, 0.2);
-    transition: all 0.2s;
-}
-
-.db-table-head a:hover {
-    background: rgba(13, 110, 253, 0.08);
-}
-
-.db-table-body {
-    padding: 0;
-}
-
-.db-table-body .table {
-    margin: 0;
-}
-
-.db-table-body .table th {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--ds-text-muted);
-    font-weight: 700;
-    padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.db-table-body .table td {
-    padding: 0.75rem 1.25rem;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.db-table-body .table tr:last-child td {
-    border-bottom: none;
-}
-
-.db-table-body .table tbody tr {
-    transition: background 0.2s;
-}
-
-.db-table-body .table tbody tr:hover {
-    background: rgba(13, 110, 253, 0.03);
-}
-
-.db-user-name {
-    font-weight: 700;
-    color: var(--text-color);
-    font-size: 0.9rem;
-}
-
-.db-user-sub {
-    font-size: 0.75rem;
-    color: var(--ds-text-muted);
-}
-
-/* Online/Offline badges */
-.db-badge-online {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.25rem 0.6rem;
-    border-radius: 20px;
-    background: rgba(16, 185, 129, 0.12);
-    color: var(--ds-success);
-}
-
-.db-badge-online::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #10b981;
-    animation: glowPulse 1.5s infinite;
-}
-
-.db-badge-offline {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.25rem 0.6rem;
-    border-radius: 20px;
-    background: rgba(108, 117, 125, 0.12);
-    color: var(--ds-text-muted);
-}
-
-.db-badge-offline::before {
-    content: '';
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #6c757d;
-}
-
-.db-empty {
-    text-align: center;
-    padding: 2rem;
-    color: var(--ds-text-muted);
-    font-size: 0.9rem;
-}
-
-/* ===== Activity Card (Full Width) ===== */
-.db-full-card {
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    overflow: hidden;
-    margin-bottom: 1.75rem;
-    animation: fadeInScale 0.5s ease 0.3s both;
-}
-
-/* Activity badges */
-.db-act-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    padding: 0.3rem 0.6rem;
-    border-radius: 8px;
-}
-
-.db-act-badge.login { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
-.db-act-badge.logout { background: rgba(108, 117, 125, 0.12); color: var(--ds-text-muted); }
-.db-act-badge.deploy { background: rgba(16, 185, 129, 0.12); color: var(--ds-success); }
-.db-act-badge.edit { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.db-act-badge.delete { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-.db-act-badge.homework { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.db-act-badge.test { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.db-act-badge.video { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
-.db-act-badge.enroll { background: rgba(16, 185, 129, 0.12); color: var(--ds-success); }
-.db-act-badge.coin { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.db-act-badge.other { background: rgba(108, 117, 125, 0.08); color: var(--ds-text-muted); }
-
-/* ===== Weekly Stats ===== */
-.db-weekly-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-    padding: 1.25rem;
-}
-
-.db-week-day {
-    text-align: center;
-    padding: 0.75rem 0.5rem;
-    border-radius: 12px;
-    background: rgba(13, 110, 253, 0.03);
-    border: 1px solid var(--border-color);
-    transition: all 0.3s;
-    animation: fadeInUp 0.4s ease both;
-}
-
-.db-week-day:nth-child(1) { animation-delay: 0.3s; }
-.db-week-day:nth-child(2) { animation-delay: 0.35s; }
-.db-week-day:nth-child(3) { animation-delay: 0.4s; }
-.db-week-day:nth-child(4) { animation-delay: 0.45s; }
-.db-week-day:nth-child(5) { animation-delay: 0.5s; }
-.db-week-day:nth-child(6) { animation-delay: 0.55s; }
-.db-week-day:nth-child(7) { animation-delay: 0.6s; }
-
-.db-week-day:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.db-week-date {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 0.5rem;
-}
-
-.db-week-val {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-}
-
-.db-week-badge {
-    display: inline-block;
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.db-week-badge.users { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.db-week-badge.enrolls { background: rgba(16, 185, 129, 0.12); color: var(--ds-success); }
-
-/* ===== Responsive ===== */
-@media (max-width: 1200px) {
-    .db-stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .db-info-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .db-quick-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-@media (max-width: 992px) {
-    .db-table-grid {
-        grid-template-columns: 1fr;
-    }
-    .db-weekly-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    .db-quick-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .db-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .db-info-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-    .db-summary-grid {
-        grid-template-columns: 1fr;
-    }
-    .db-hero-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    .db-hero-actions {
-        justify-content: center;
-    }
-    .db-hero-date {
-        justify-content: center;
-    }
-    .db-weekly-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .db-quick-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-
-@media (max-width: 576px) {
-    .db-stats-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-    }
-    .db-info-grid {
-        grid-template-columns: 1fr;
-    }
-    .db-stat {
-        padding: 1rem;
-    }
-    .db-stat-num {
-        font-size: 1.4rem;
-    }
-    .db-stat-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 1.1rem;
-    }
-    .db-weekly-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .db-summary-body {
-        grid-template-columns: repeat(3, 1fr);
-        padding: 1rem;
-    }
-    .db-summary-item h3 {
-        font-size: 1.2rem;
-    }
-    .db-quick-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .db-hero-greeting {
-        font-size: 1.25rem;
-    }
-    .db-alert-bar {
-        flex-wrap: wrap;
-        font-size: 0.82rem;
-    }
-}
-
-@media (max-width: 400px) {
-    .db-stats-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/aurora/aurora-ui.css' %}?v=20261105">
 {% endblock %}
 
 {% block admin_content %}
-<div class="db-page">
+{# Grafik ma'lumotlari (xavfsiz JSON) #}
+{{ trend_chart|json_script:"au-trend" }}
+{{ course_donut|json_script:"au-course-donut" }}
+{{ test_donut|json_script:"au-test-donut" }}
+{{ users_spark|json_script:"au-users-spark" }}
 
-    <!-- Welcome Hero -->
-    <div class="db-hero">
-        <div class="db-hero-content">
-            <div class="db-hero-text">
-                <div class="db-hero-greeting">Salom, <span>{{ request.user.first_name|default:"Admin" }}</span> 👋</div>
-                <div class="db-hero-subtitle">Boşqaruv paneliga xuş kelibsiz</div>
-            </div>
-            <div class="db-hero-actions">
-                <div class="db-maint-trigger {% if maintenance.is_active %}is-on{% else %}is-off{% endif %}" onclick="showMaintModal()">
-                    <div class="db-maint-trigger-icon">
-                        <i class="bi bi-{% if maintenance.is_active %}tools{% else %}power{% endif %}"></i>
-                    </div>
-                    <div class="db-maint-trigger-text">
-                        <span class="db-maint-trigger-label">Texnik xizmat</span>
-                        <span class="db-maint-trigger-badge">
-                            {% if maintenance.is_active %}Öçirilgan{% else %}Yoniq{% endif %}
-                        </span>
-                    </div>
-                </div>
-                <a href="{% url 'export_system_pdf' %}" class="db-hero-btn">
-                    <i class="bi bi-file-pdf"></i> PDF
-                </a>
-                <a href="{% url 'admin_export_report' %}" class="db-hero-btn">
-                    <i class="bi bi-file-earmark-excel"></i> Excel
-                </a>
-                <a href="/admin/" class="db-hero-btn outline" target="_blank" rel="noopener" aria-label="Django admin sozlamalari (yangi oynada)" title="Sozlamalar">
-                    <i class="bi bi-gear"></i>
-                </a>
-            </div>
+<div class="au-page">
+
+  <!-- ===== Hero + diqqat talab qiladi ===== -->
+  <div class="au-grid au-g3">
+    <section class="au-card au-hero au-span2 au-rv" aria-labelledby="au-greet">
+      <div class="au-row au-between au-wrap" style="align-items:flex-start;gap:14px">
+        <div>
+          <p style="font-size:13px;color:var(--au-text-2)"><i class="bi bi-calendar3"></i> <span id="liveDateTime"></span></p>
+          <h1 id="au-greet"><span data-au-greet>Salom</span>, {{ request.user.first_name|default:"Admin" }}</h1>
+          <p style="color:var(--au-text-2);margin-top:6px">
+            Bu oy <b style="color:#fff">{{ growth.new_this_month }} ta</b> yangi foydalanuvçi
+            <span class="au-delta {% if growth.user_change >= 0 %}up{% else %}down{% endif %}"><i class="bi bi-arrow-{% if growth.user_change >= 0 %}up{% else %}down{% endif %}-short"></i>{% if growth.user_change >= 0 %}+{% endif %}{{ growth.user_change }}%</span>
+            <span style="font-size:12.5px;opacity:.8">ötgan oyda: {{ growth.new_prev_month }}</span>
+          </p>
         </div>
-        <div class="db-hero-date">
-            <i class="bi bi-calendar3"></i> <span id="liveDateTime"></span>
+        <div class="au-row au-wrap" style="gap:8px">
+          <button type="button" class="au-glass-btn {% if maintenance.is_active %}is-on{% endif %}" onclick="showMaintModal()" aria-haspopup="dialog">
+            <i class="bi bi-{% if maintenance.is_active %}tools{% else %}power{% endif %}"></i>
+            Texnik xizmat: {% if maintenance.is_active %}tizim öçirilgan{% else %}tizim yoniq{% endif %}
+          </button>
+          <a href="{% url 'export_system_pdf' %}" class="au-glass-btn"><i class="bi bi-file-pdf"></i> PDF</a>
+          <a href="{% url 'admin_export_report' %}" class="au-glass-btn"><i class="bi bi-file-earmark-excel"></i> Excel</a>
+          <a href="/admin/" class="au-glass-btn" target="_blank" rel="noopener" aria-label="Django admin sozlamalari (yangi oynada)" title="Sozlamalar"><i class="bi bi-gear"></i></a>
         </div>
-    </div>
+      </div>
+      <div class="au-chart" id="au-trend-chart" data-au-chart="au-trend" data-type="line" data-no-axis style="height:190px;margin-top:14px"></div>
+      <div class="au-legend" style="color:var(--au-text-2)"><span><i style="background:#fff"></i>Yangi foydalanuvçilar</span><span><i style="background:#67e8f9"></i>Kursga yozilişlar</span><span style="opacity:.75">Oxirgi 7 kun</span></div>
+      <div class="au-grid au-g3" style="margin-top:14px;--au-gap:12px">
+        <a class="au-hero-tile" href="{% url 'admin_users' %}"><small><i class="bi bi-mortarboard"></i> Öquvçilar</small><span class="au-num" data-count="{{ total_students }}">{{ total_students }}</span></a>
+        <div class="au-hero-tile"><small><i class="bi bi-broadcast"></i> Hozir onlayn</small><span class="au-num" data-count="{{ online_users }}">{{ online_users }}</span></div>
+        <div class="au-hero-tile"><small><i class="bi bi-person-plus"></i> Yangi (oy)</small><span class="au-num" data-count="{{ growth.new_this_month }}">{{ growth.new_this_month }}</span></div>
+      </div>
+    </section>
 
-    <!-- Moliya va ösiş -->
-    <div class="db-section-header" style="animation-delay:0.05s;">
-        <i class="bi bi-cash-stack"></i>
-        <h2>Moliya va ösiş (joriy oy)</h2>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:1.75rem;">
-        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yiğilgan tölovlar</div>
-            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ finance.month_revenue|floatformat:0 }} söm</div>
-            <div style="font-size:.76rem;font-weight:700;color:{% if finance.revenue_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
-                {% if finance.revenue_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ finance.revenue_change }}%
-                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">ötgan oyga nisbatan ({{ finance.month_paid_count }} ta tölov)</span>
-            </div>
-        </div>
-        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Tölanmagan (qarzdorlik)</div>
-            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;color:{% if finance.month_unpaid %}var(--ds-danger){% else %}var(--ds-success){% endif %};">{{ finance.month_unpaid|floatformat:0 }} söm</div>
-            <div style="font-size:.76rem;color:var(--bs-secondary-color,#6c757d);">{{ finance.month_unpaid_count }} ta qarzdor</div>
-        </div>
-        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
-            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yangi foydalanuvçilar</div>
-            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ growth.new_this_month }}</div>
-            <div style="font-size:.76rem;font-weight:700;color:{% if growth.user_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
-                {% if growth.user_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ growth.user_change }}%
-                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">ötgan oyda: {{ growth.new_prev_month }}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kurslar samaradorligi -->
-    {% if course_perf %}
-    <div class="db-section-header" style="animation-delay:0.08s;">
-        <i class="bi bi-table"></i>
-        <h2>Kurslar samaradorligi (TOP-10)</h2>
-    </div>
-    <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:8px 16px;margin-bottom:1.75rem;overflow-x:auto;" tabindex="0" role="region" aria-label="Kurslar samaradorligi jadvali">
-        <table class="table table-sm align-middle" style="min-width:620px;font-size:.85rem;margin:0;">
-            <thead>
-                <tr style="font-size:.73rem;text-transform:uppercase;letter-spacing:.04em;">
-                    <th>Kurs</th>
-                    <th class="text-center">Öquvçilar</th>
-                    <th class="text-center">Darslar</th>
-                    <th class="text-center">Tekşirilmagan vazifa</th>
-                    <th class="text-center">Örtaça test bali</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in course_perf %}
-                <tr>
-                    <td style="font-weight:600;">{{ c.name }}</td>
-                    <td class="text-center">{{ c.students }}</td>
-                    <td class="text-center">{{ c.lessons }}</td>
-                    <td class="text-center">
-                        {% if c.pending %}<span style="background:rgba(245,158,11,0.12);color:#b45309;font-weight:700;font-size:.76rem;padding:3px 10px;border-radius:999px;">{{ c.pending }}</span>
-                        {% else %}<span style="background:rgba(16,185,129,0.12);color:#059669;font-weight:700;font-size:.76rem;padding:3px 10px;border-radius:999px;">0</span>{% endif %}
-                    </td>
-                    <td class="text-center" style="font-weight:700;">{{ c.avg_score }}%</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-
-    <!-- Tezkor havolalar -->
-    <div class="db-section-header" style="animation-delay:0.1s;">
-        <i class="bi bi-lightning-charge-fill"></i>
-        <h2>Tezkor havolalar</h2>
-    </div>
-
-    <div class="db-quick-grid">
-        <a href="{% url 'admin_users' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#3b82f6;"><i class="bi bi-people-fill"></i></div>
-            <span class="db-quick-label">Foydalanuvçilar</span>
+    <section class="au-card au-rv" aria-labelledby="au-attn">
+      <div class="au-card-h"><div><h3 id="au-attn">Diqqat talab qiladi</h3><p>Bugun hal qiliş kerak bölganlar</p></div></div>
+      <div class="au-list">
+        <a class="au-li" href="{% url 'homework_submissions' %}">
+          <span class="au-ico" data-t="warn"><i class="bi bi-journal-check"></i></span>
+          <span class="au-grow t" style="font-weight:500">Tekşirilmagan vazifalar</span><b class="au-num">{{ pending_homeworks }}</b><i class="bi bi-chevron-right au-faint"></i>
         </a>
-        <a href="{% url 'admin_teachers' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#10b981;"><i class="bi bi-person-workspace"></i></div>
-            <span class="db-quick-label">Öqituvçilar</span>
+        <a class="au-li" href="{% url 'admin_balance_management' %}">
+          <span class="au-ico" data-t="bad"><i class="bi bi-exclamation-circle"></i></span>
+          <span class="au-grow t" style="font-weight:500">Qarzdor öquvçilar</span><b class="au-num">{{ finance.month_unpaid_count }}</b><i class="bi bi-chevron-right au-faint"></i>
         </a>
-        <a href="{% url 'admin_professions' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#8b5cf6;"><i class="bi bi-mortarboard-fill"></i></div>
-            <span class="db-quick-label">Kurslar</span>
+        <a class="au-li" href="{% url 'admin_enrollment_requests' %}">
+          <span class="au-ico"><i class="bi bi-inbox"></i></span>
+          <span class="au-grow t" style="font-weight:500">Kursga yoziliş sörovlari</span><i class="bi bi-chevron-right au-faint"></i>
         </a>
-        <a href="{% url 'admin_balance_management' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#f59e0b;"><i class="bi bi-wallet2"></i></div>
-            <span class="db-quick-label">Balans</span>
+        <a class="au-li" href="{% url 'admin_help_requests' %}">
+          <span class="au-ico" data-t="acc"><i class="bi bi-life-preserver"></i></span>
+          <span class="au-grow t" style="font-weight:500">Yordam xatlari</span><i class="bi bi-chevron-right au-faint"></i>
         </a>
-        <a href="{% url 'admin_messages' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#06b6d4;"><i class="bi bi-envelope-fill"></i></div>
-            <span class="db-quick-label">Xabarlar</span>
+        <a class="au-li" href="{% url 'admin_users' %}">
+          <span class="au-ico" data-t="bad"><i class="bi bi-slash-circle"></i></span>
+          <span class="au-grow t" style="font-weight:500">Bloklangan hisoblar</span><b class="au-num">{{ blocked_users }}</b><i class="bi bi-chevron-right au-faint"></i>
         </a>
+      </div>
+    </section>
+  </div>
 
-        <a href="{% url 'admin_manage_coins' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#eab308;"><i class="bi bi-coin"></i></div>
-            <span class="db-quick-label">Coinlar</span>
-        </a>
+  <!-- ===== Asosiy KPI ===== -->
+  <div class="au-grid au-g4 au-mt">
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'admin_users' %}" data-au-spark="au-users-spark">
+      <div class="au-kpi-top"><span class="au-ico"><i class="bi bi-mortarboard"></i></span>
+        <span class="au-delta {% if growth.user_change >= 0 %}up{% else %}down{% endif %}"><i class="bi bi-arrow-{% if growth.user_change >= 0 %}up{% else %}down{% endif %}-short"></i>{{ growth.user_change }}%</span></div>
+      <div class="au-kpi-val" data-count="{{ total_students }}">{{ total_students }}</div>
+      <div class="au-kpi-label">Öquvçilar</div>
+      <div class="au-kpi-sub">{{ total_users }} ta foydalanuvçi · {{ online_users }} onlayn</div>
+    </a>
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'admin_teachers' %}">
+      <div class="au-kpi-top"><span class="au-ico" data-t="acc"><i class="bi bi-person-workspace"></i></span></div>
+      <div class="au-kpi-val" data-count="{{ total_teachers }}">{{ total_teachers }}</div>
+      <div class="au-kpi-label">Öqituvçilar</div>
+      <div class="au-kpi-sub">{{ total_professions }} ta kurs</div>
+    </a>
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'admin_balance_management' %}">
+      <div class="au-kpi-top"><span class="au-ico" data-t="ok"><i class="bi bi-wallet2"></i></span>
+        <span class="au-delta {% if finance.revenue_change >= 0 %}up{% else %}down{% endif %}"><i class="bi bi-arrow-{% if finance.revenue_change >= 0 %}up{% else %}down{% endif %}-short"></i>{{ finance.revenue_change }}%</span></div>
+      <div class="au-kpi-val"><span data-count="{{ finance.month_revenue }}">{{ finance.month_revenue }}</span><small>söm</small></div>
+      <div class="au-kpi-label">Yiğilgan tölovlar (oy)</div>
+      <div class="au-kpi-sub">{{ finance.month_paid_count }} ta tölov · ötgan oyga nisbatan</div>
+    </a>
+    <a class="au-card au-hov au-kpi au-rv" href="{% url 'admin_balance_management' %}">
+      <div class="au-kpi-top"><span class="au-ico" data-t="{% if finance.month_unpaid %}bad{% else %}ok{% endif %}"><i class="bi bi-exclamation-circle"></i></span></div>
+      <div class="au-kpi-val"><span data-count="{{ finance.month_unpaid }}">{{ finance.month_unpaid }}</span><small>söm</small></div>
+      <div class="au-kpi-label">Tölanmagan (qarzdorlik)</div>
+      <div class="au-kpi-sub">{{ finance.month_unpaid_count }} ta qarzdor</div>
+    </a>
+  </div>
 
-        <a href="{% url 'admin_books' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#a855f7;"><i class="bi bi-book-fill"></i></div>
-            <span class="db-quick-label">Kitoblar</span>
-        </a>
-        <a href="{% url 'admin_help_requests' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#ef4444;"><i class="bi bi-question-circle-fill"></i></div>
-            <span class="db-quick-label">Sörovlar</span>
-        </a>
-        <a href="{% url 'admin_certificates' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#0ea5e9;"><i class="bi bi-award-fill"></i></div>
-            <span class="db-quick-label">Sertifikatlar</span>
-        </a>
-        <a href="{% url 'admin_discounts' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#f97316;"><i class="bi bi-percent"></i></div>
-            <span class="db-quick-label">Çegirmalar</span>
-        </a>
-    </div>
+  <!-- ===== Kurslar ===== -->
+  <div class="au-grid au-g3 au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-cd">
+      <div class="au-card-h"><div><h3 id="au-cd">Kurslar böyiça</h3><p>Öquvçi yozilişlari taqsimoti</p></div><a class="au-link" href="{% url 'admin_professions' %}">Barçasi <i class="bi bi-arrow-right"></i></a></div>
+      {% if course_perf %}
+      <div class="au-donut-wrap" data-au-donut="au-course-donut"></div>
+      <div class="au-list">
+        {% for c in course_perf|slice:":4" %}
+        <div class="au-li" style="padding:7px 4px"><i style="width:9px;height:9px;border-radius:3px;flex-shrink:0;background:var(--au-c{{ forloop.counter }})"></i><span class="au-grow t" style="font-weight:500">{{ c.name }}</span><b class="au-num">{{ c.students }}</b></div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="au-empty"><i class="bi bi-collection"></i>Kurslar mavjud emas</div>{% endif %}
+    </section>
 
-    {% if pending_homeworks > 0 %}
-    <div class="db-alert-bar warn">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <span><strong>{{ pending_homeworks }}</strong> ta uyga vazifa tekşirilişini kutmoqda</span>
-        <a href="{% url 'homework_submissions' %}">Köriş →</a>
-    </div>
-    {% endif %}
-
-    <!-- Asosiy Statistika -->
-    <div class="db-section-header">
-        <i class="bi bi-grid-3x3-gap-fill"></i>
-        <h2>Asosiy statistika</h2>
-    </div>
-
-    <div class="db-stats-grid">
-        <a href="{% url 'admin_users' %}" class="db-stat blue" style="text-decoration:none;">
-            <div class="db-stat-icon"><i class="bi bi-people"></i></div>
-            <div class="db-stat-num">{{ total_users }}</div>
-            <div class="db-stat-label">Foydalanuvçilar</div>
-        </a>
-        <a href="{% url 'admin_teachers' %}" class="db-stat green" style="text-decoration:none;">
-            <div class="db-stat-icon"><i class="bi bi-person-workspace"></i></div>
-            <div class="db-stat-num">{{ total_teachers }}</div>
-            <div class="db-stat-label">Öqituvçilar</div>
-        </a>
-        <a href="{% url 'admin_users' %}" class="db-stat orange" style="text-decoration:none;">
-            <div class="db-stat-icon"><i class="bi bi-mortarboard"></i></div>
-            <div class="db-stat-num">{{ total_students }}</div>
-            <div class="db-stat-label">Öquvçilar</div>
-        </a>
-        <div class="db-stat cyan online-card">
-            <div class="db-stat-icon"><i class="bi bi-broadcast"></i></div>
-            <div class="db-stat-num">{{ online_users }} <span class="db-online-dot"></span></div>
-            <div class="db-stat-label">Online</div>
-        </div>
-        <div class="db-stat pink">
-            <div class="db-stat-icon"><i class="bi bi-people-fill"></i></div>
-            <div class="db-stat-num">{{ total_parents }}</div>
-            <div class="db-stat-label">Ota-onalar</div>
-        </div>
-        <a href="{% url 'admin_users' %}" class="db-stat red" style="text-decoration:none;">
-            <div class="db-stat-icon"><i class="bi bi-slash-circle"></i></div>
-            <div class="db-stat-num">{{ blocked_users }}</div>
-            <div class="db-stat-label">Bloklangan</div>
-        </a>
-        <a href="{% url 'admin_manage_coins' %}" class="db-stat purple" style="text-decoration:none;">
-            <div class="db-stat-icon"><i class="bi bi-coin"></i></div>
-            <div class="db-stat-num">{{ total_coins }}</div>
-            <div class="db-stat-label">Jami coinlar</div>
-        </a>
-    </div>
-
-    <!-- Öquv statistikasi -->
-    <div class="db-section-header">
-        <i class="bi bi-book"></i>
-        <h2>Öquv jarayoni</h2>
-    </div>
-
-    <div class="db-info-grid">
-        <div class="db-info-card">
-            <div class="db-info-icon blue"><i class="bi bi-briefcase"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_professions }}</div>
-                <div class="db-info-label">Kurslar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon green"><i class="bi bi-play-circle"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_videos }}</div>
-                <div class="db-info-label">Video darslar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon orange"><i class="bi bi-question-circle"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_tests }}</div>
-                <div class="db-info-label">Testlar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon purple"><i class="bi bi-person-plus"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_enrollments }}</div>
-                <div class="db-info-label">Yozilganlar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="bi bi-award"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_certificates }}</div>
-                <div class="db-info-label">Sertifikatlar</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Mahsulot statistikasi -->
-    <div class="db-section-header">
-        <i class="bi bi-shop-window"></i>
-        <h2>Market & Deploy</h2>
-    </div>
-
-    <div class="db-info-grid">
-        <div class="db-info-card">
-            <div class="db-info-icon green"><i class="bi bi-shop"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_products }}</div>
-                <div class="db-info-label">Mahsulotlar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon blue"><i class="bi bi-check-circle"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ active_products }}</div>
-                <div class="db-info-label">Faol mahsulot</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon orange"><i class="bi bi-bag-check"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_purchases }}</div>
-                <div class="db-info-label">Xaridlar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon purple"><i class="bi bi-coin"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_coins_spent }}</div>
-                <div class="db-info-label">Sarflangan coin</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="db-info-grid" style="margin-top:-0.75rem;">
-        <div class="db-info-card">
-            <div class="db-info-icon cyan"><i class="bi bi-code-slash"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_deploys }}</div>
-                <div class="db-info-label">Jami loyihalar</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon green"><i class="bi bi-check-circle"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ active_deploys }}</div>
-                <div class="db-info-label">Faol deploy</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon red"><i class="bi bi-x-circle"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ inactive_deploys }}</div>
-                <div class="db-info-label">Nofaol deploy</div>
-            </div>
-        </div>
-        <div class="db-info-card">
-            <div class="db-info-icon blue"><i class="bi bi-eye"></i></div>
-            <div class="db-info-text">
-                <div class="db-info-num">{{ total_deploy_views }}</div>
-                <div class="db-info-label">Körişlar</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Test va Vazifalar -->
-    <div class="db-section-header">
-        <i class="bi bi-clipboard-data"></i>
-        <h2>Test va Vazifalar</h2>
-    </div>
-
-    <div class="db-summary-grid">
-        <div class="db-summary-card">
-            <div class="db-summary-head">
-                <i class="bi bi-check-circle"></i> Test natijalari
-            </div>
-            <div class="db-summary-body">
-                <div class="db-summary-item">
-                    <h3>{{ total_test_results }}</h3>
-                    <small>Jami</small>
-                </div>
-                <div class="db-summary-item">
-                    <h3 class="text-success">{{ passed_tests }}</h3>
-                    <small>Ötgan</small>
-                </div>
-                <div class="db-summary-item">
-                    <h3 class="text-primary">{{ avg_test_score }}%</h3>
-                    <small>Örtaça</small>
-                </div>
-            </div>
-        </div>
-        <div class="db-summary-card">
-            <div class="db-summary-head">
-                <i class="bi bi-file-text"></i> Uyga vazifalar
-            </div>
-            <div class="db-summary-body">
-                <div class="db-summary-item">
-                    <h3>{{ pending_homeworks|add:graded_homeworks }}</h3>
-                    <small>Jami</small>
-                </div>
-                <div class="db-summary-item">
-                    <h3 class="text-warning">{{ pending_homeworks }}</h3>
-                    <small>Kutilmoqda</small>
-                </div>
-                <div class="db-summary-item">
-                    <h3 class="text-success">{{ graded_homeworks }}</h3>
-                    <small>Baholangan</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Kurslar & Oxirgi faollar -->
-    <div class="db-section-header">
-        <i class="bi bi-table"></i>
-        <h2>Kurslar va Faollar</h2>
-    </div>
-
-    <div class="db-table-grid">
-        <!-- Kurslar statistikasi -->
-        <div class="db-table-card">
-            <div class="db-table-head">
-                <span><i class="bi bi-briefcase"></i> Kurslar statistikasi</span>
-                <a href="{% url 'admin_professions' %}">Barçasi</a>
-            </div>
-            <div class="db-table-body">
-                {% if profession_stats %}
-                <div class="table-responsive" tabindex="0" role="region" aria-label="Jadval">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Kurs</th>
-                                <th class="text-center">Öquvçi</th>
-                                <th class="text-center">Ustoz</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for p in profession_stats %}
-                            <tr>
-                                <td><span class="db-user-name">{{ p.name }}</span></td>
-                                <td class="text-center"><span class="badge bg-primary" style="border-radius:8px;">{{ p.student_count }}</span></td>
-                                <td class="text-center"><span class="badge bg-success" style="border-radius:8px;">{{ p.teacher_count }}</span></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="db-empty">Kurslar mavjud emas</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Oxirgi faol foydalanuvçilar -->
-        <div class="db-table-card">
-            <div class="db-table-head">
-                <span><i class="bi bi-clock-history"></i> Oxirgi faollar</span>
-                <a href="{% url 'admin_users' %}">Barçasi</a>
-            </div>
-            <div class="db-table-body">
-                {% if recent_users %}
-                <div class="table-responsive" tabindex="0" role="region" aria-label="Jadval">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Foydalanuvçi</th>
-                                <th>Vaqt</th>
-                                <th class="text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for u in recent_users %}
-                            <tr>
-                                <td>
-                                    <span class="db-user-name">{{ u.full_name }}</span>
-                                    <div class="db-user-sub">@{{ u.username }}</div>
-                                </td>
-                                <td><small class="text-muted">{{ u.last_activity|timesince }}</small></td>
-                                <td class="text-center">
-                                    {% if u.is_online %}
-                                    <span class="db-badge-online">Online</span>
-                                    {% else %}
-                                    <span class="db-badge-offline">Offline</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="db-empty">Ma'lumot yöq</div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Oxirgi harakatlar -->
-    <!-- Haftalik statistika -->
-    <div class="db-section-header">
-        <i class="bi bi-graph-up"></i>
-        <h2>Oxirgi 7 kun</h2>
-    </div>
-
-    <div class="db-full-card">
-        <div class="db-table-head">
-            <span><i class="bi bi-calendar-week"></i> Haftalik statistika</span>
-        </div>
-        <div class="db-weekly-grid">
-            {% for day in daily_stats %}
-            <div class="db-week-day">
-                <div class="db-week-date">{{ day.date|date:"d.m" }}</div>
-                <div class="db-week-val">
-                    <span class="db-week-badge users" title="Yangi foydalanuvçilar">
-                        <i class="bi bi-person-plus"></i> {{ day.users }}
-                    </span>
-                    <span class="db-week-badge enrolls" title="Kursga yozilganlar">
-                        <i class="bi bi-mortarboard"></i> {{ day.enrollments }}
-                    </span>
-                </div>
-            </div>
+    <section class="au-card au-span2 au-rv" aria-labelledby="au-cp">
+      <div class="au-card-h"><div><h3 id="au-cp">Kurslar samaradorligi</h3><p>TOP-10: öquvçi, dars, tekşiruv va örtaça test bali</p></div></div>
+      {% if course_perf %}
+      <div class="au-tbl-wrap" tabindex="0" role="region" aria-label="Kurslar samaradorligi jadvali">
+        <table class="au-tbl" style="min-width:600px">
+          <thead><tr><th>Kurs</th><th class="c">Öquvçilar</th><th class="c">Darslar</th><th class="c">Tekşirilmagan</th><th style="min-width:170px">Örtaça test bali</th></tr></thead>
+          <tbody>
+            {% for c in course_perf %}
+            <tr>
+              <td style="font-weight:600">{{ c.name }}</td>
+              <td class="c au-num">{{ c.students }}</td>
+              <td class="c au-num">{{ c.lessons }}</td>
+              <td class="c">{% if c.pending %}<span class="au-badge" data-t="warn">{{ c.pending }}</span>{% else %}<span class="au-badge" data-t="ok">0</span>{% endif %}</td>
+              <td><div class="au-row"><div class="au-prog" style="flex:1;min-width:70px"><span data-pct="{{ c.avg_score|stringformat:'s' }}"></span></div><b class="au-num" style="width:52px;text-align:right;font-size:12.5px">{{ c.avg_score }}%</b></div></td>
+            </tr>
             {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="au-empty"><i class="bi bi-table"></i>Hali ma'lumot yöq</div>{% endif %}
+    </section>
+  </div>
+
+  <!-- ===== Tezkor havolalar ===== -->
+  <h2 class="au-h2 au-rv"><i class="bi bi-lightning-charge" style="color:var(--au-primary-text)"></i>Tezkor havolalar</h2>
+  <div class="au-chips au-rv">
+    <a class="au-chip" href="{% url 'admin_users' %}"><span class="au-ico sm"><i class="bi bi-people-fill"></i></span><span><b style="font-size:14px">Foydalanuvçilar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_teachers' %}"><span class="au-ico sm" data-t="ok"><i class="bi bi-person-workspace"></i></span><span><b style="font-size:14px">Öqituvçilar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_professions' %}"><span class="au-ico sm" data-t="acc"><i class="bi bi-mortarboard-fill"></i></span><span><b style="font-size:14px">Kurslar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_balance_management' %}"><span class="au-ico sm" data-t="warn"><i class="bi bi-wallet2"></i></span><span><b style="font-size:14px">Balans</b></span></a>
+    <a class="au-chip" href="{% url 'admin_messages' %}"><span class="au-ico sm" data-t="acc"><i class="bi bi-envelope-fill"></i></span><span><b style="font-size:14px">Xabarlar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_manage_coins' %}"><span class="au-ico sm" data-t="warn"><i class="bi bi-coin"></i></span><span><b style="font-size:14px">Coinlar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_books' %}"><span class="au-ico sm"><i class="bi bi-book-fill"></i></span><span><b style="font-size:14px">Kitoblar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_help_requests' %}"><span class="au-ico sm" data-t="bad"><i class="bi bi-question-circle-fill"></i></span><span><b style="font-size:14px">Sörovlar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_certificates' %}"><span class="au-ico sm" data-t="acc"><i class="bi bi-award-fill"></i></span><span><b style="font-size:14px">Sertifikatlar</b></span></a>
+    <a class="au-chip" href="{% url 'admin_discounts' %}"><span class="au-ico sm" data-t="warn"><i class="bi bi-percent"></i></span><span><b style="font-size:14px">Çegirmalar</b></span></a>
+  </div>
+
+  <!-- ===== Öquv jarayoni + test/vazifalar ===== -->
+  <div class="au-grid au-gmain au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-edu">
+      <div class="au-card-h"><div><h3 id="au-edu">Öquv jarayoni va tizim</h3><p>Umumiy körsatkiçlar</p></div></div>
+      <div class="au-chips">
+        <div class="au-chip"><span class="au-ico sm"><i class="bi bi-briefcase"></i></span><span><b data-count="{{ total_professions }}">{{ total_professions }}</b><small>Kurslar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="ok"><i class="bi bi-play-circle"></i></span><span><b data-count="{{ total_videos }}">{{ total_videos }}</b><small>Video darslar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="warn"><i class="bi bi-question-circle"></i></span><span><b data-count="{{ total_tests }}">{{ total_tests }}</b><small>Testlar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="acc"><i class="bi bi-person-plus"></i></span><span><b data-count="{{ total_enrollments }}">{{ total_enrollments }}</b><small>Yozilganlar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="warn"><i class="bi bi-award"></i></span><span><b data-count="{{ total_certificates }}">{{ total_certificates }}</b><small>Sertifikatlar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm"><i class="bi bi-people-fill"></i></span><span><b data-count="{{ total_parents }}">{{ total_parents }}</b><small>Ota-onalar ({{ active_parents }} faol)</small></span></div>
+        <a class="au-chip" href="{% url 'admin_manage_coins' %}"><span class="au-ico sm" data-t="warn"><i class="bi bi-coin"></i></span><span><b data-count="{{ total_coins }}">{{ total_coins }}</b><small>Jami coinlar</small></span></a>
+        <div class="au-chip"><span class="au-ico sm" data-t="ok"><i class="bi bi-shop"></i></span><span><b data-count="{{ total_products }}">{{ total_products }}</b><small>Mahsulotlar ({{ active_products }} faol)</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="acc"><i class="bi bi-bag-check"></i></span><span><b data-count="{{ total_purchases }}">{{ total_purchases }}</b><small>Xaridlar</small></span></div>
+        <div class="au-chip"><span class="au-ico sm" data-t="warn"><i class="bi bi-coin"></i></span><span><b data-count="{{ total_coins_spent }}">{{ total_coins_spent }}</b><small>Sarflangan coin</small></span></div>
+      </div>
+    </section>
+
+    <section class="au-card au-rv" aria-labelledby="au-tests">
+      <div class="au-card-h"><div><h3 id="au-tests">Test va vazifalar</h3><p>Birinçi urinişlar böyiça</p></div><a class="au-link" href="{% url 'homework_submissions' %}">Vazifalar <i class="bi bi-arrow-right"></i></a></div>
+      <div class="au-donut-wrap" data-au-donut="au-test-donut"></div>
+      <div class="au-grid au-g3" style="--au-gap:8px;text-align:center">
+        <div class="au-chip" style="display:block;padding:10px 6px"><b data-count="{{ total_test_results }}">{{ total_test_results }}</b><small>Jami test</small></div>
+        <div class="au-chip" style="display:block;padding:10px 6px"><b data-count="{{ passed_tests }}">{{ passed_tests }}</b><small>Ötgan</small></div>
+        <div class="au-chip" style="display:block;padding:10px 6px"><b>{{ avg_test_score }}%</b><small>Örtaça</small></div>
+      </div>
+      <div class="au-list" style="margin-top:10px">
+        <a class="au-li" href="{% url 'homework_submissions' %}"><span class="au-ico sm" data-t="warn"><i class="bi bi-hourglass-split"></i></span><span class="au-grow t" style="font-weight:500">Vazifa: kutilmoqda</span><b class="au-num">{{ pending_homeworks }}</b></a>
+        <div class="au-li"><span class="au-ico sm" data-t="ok"><i class="bi bi-check2-circle"></i></span><span class="au-grow t" style="font-weight:500">Vazifa: baholangan</span><b class="au-num">{{ graded_homeworks }}</b></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== Kurslar statistikasi, oxirgi faollar, harakatlar ===== -->
+  <div class="au-grid au-g3 au-mt">
+    <section class="au-card au-rv" aria-labelledby="au-ps">
+      <div class="au-card-h"><div><h3 id="au-ps">Kurslar statistikasi</h3><p>Öquvçi va ustozlar soni</p></div><a class="au-link" href="{% url 'admin_professions' %}">Barçasi <i class="bi bi-arrow-right"></i></a></div>
+      {% if profession_stats %}
+      <div class="au-tbl-wrap" tabindex="0" role="region" aria-label="Kurslar statistikasi" style="max-height:360px;overflow:auto">
+        <table class="au-tbl">
+          <thead><tr><th>Kurs</th><th class="c">Öquvçi</th><th class="c">Ustoz</th></tr></thead>
+          <tbody>
+            {% for p in profession_stats %}
+            <tr><td style="font-weight:600">{{ p.name }}</td><td class="c"><span class="au-badge" data-t="info">{{ p.student_count }}</span></td><td class="c"><span class="au-badge" data-t="ok">{{ p.teacher_count }}</span></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}<div class="au-empty"><i class="bi bi-briefcase"></i>Kurslar mavjud emas</div>{% endif %}
+    </section>
+
+    <section class="au-card au-rv" aria-labelledby="au-ru">
+      <div class="au-card-h"><div><h3 id="au-ru">Oxirgi faollar</h3><p>Sönggi kirgan foydalanuvçilar</p></div><a class="au-link" href="{% url 'admin_users' %}">Barçasi <i class="bi bi-arrow-right"></i></a></div>
+      {% if recent_users %}
+      <div class="au-list">
+        {% for u in recent_users %}
+        <div class="au-li">
+          <span class="au-av" data-c="{{ forloop.counter|divisibleby:2|yesno:'2,1' }}">{{ u.first_name|slice:":1" }}{{ u.last_name|slice:":1" }}</span>
+          <div class="au-grow"><div class="t">{{ u.full_name }}</div><div class="s">@{{ u.username }} · {{ u.last_activity|timesince }} oldin</div></div>
+          {% if u.is_online %}<span class="au-badge" data-t="ok">Online</span>{% else %}<span class="au-badge">Offline</span>{% endif %}
         </div>
-    </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="au-empty"><i class="bi bi-clock-history"></i>Ma'lumot yöq</div>{% endif %}
+    </section>
+
+    <section class="au-card au-rv" aria-labelledby="au-ra">
+      <div class="au-card-h"><div><h3 id="au-ra">Oxirgi harakatlar</h3><p>Coin va tizim jurnali</p></div></div>
+      {% if recent_activities %}
+      <div class="au-list">
+        {% for a in recent_activities|slice:":7" %}
+        <div class="au-li">
+          <span class="au-ico sm" data-t="acc"><i class="bi bi-activity"></i></span>
+          <div class="au-grow"><div class="t">{{ a.user.full_name|default:a.user.username|default:"Tizim" }}</div><div class="s" title="{{ a.description }}">{{ a.description|truncatechars:70 }}</div></div>
+          <small class="au-faint" style="white-space:nowrap">{{ a.created_at|timesince }}</small>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="au-empty"><i class="bi bi-activity"></i>Hali harakatlar yöq</div>{% endif %}
+    </section>
+  </div>
 
 </div>
 
-<!-- Maintenance Modal — body darajasida, db-page dan taşqarida -->
-<div class="mm-overlay" id="maintOverlay">
-    <div class="mm-backdrop" onclick="closeMaintModal()"></div>
-    <div class="mm-dialog">
+<!-- Texnik xizmat modal'i (mavjud POST forma va CSRF saqlangan) -->
+<div class="au-page">
+<div class="au-modal-bd" id="maintOverlay" onclick="if(event.target===this)closeMaintModal()">
+  <div class="au-modal" role="dialog" aria-modal="true" aria-labelledby="mmTitle">
+    <form method="POST" action="{% url 'toggle_maintenance' %}">
+      {% csrf_token %}
+      <div class="au-modal-b">
         {% if maintenance.is_active %}
-        <div class="mm-strip safe"></div>
-        <div class="mm-body">
-            <div class="mm-icon safe">
-                <i class="bi bi-power"></i>
-            </div>
-            <h3 class="mm-title">Tizimni qayta yoqiş</h3>
-            <p class="mm-desc">Texnik xizmat rejimini öçirib, tizimni barça foydalanuvçilar uçun oçmoqçimisiz?</p>
-            <div class="mm-warn-list">
-                <div class="mm-warn-item green">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Öquvçilar tizimga kirişga ruxsat oladi
-                </div>
-                <div class="mm-warn-item green">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Öqituvçilar tizimga kirişga ruxsat oladi
-                </div>
-                <div class="mm-warn-item green">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Barça funksiyalar işga tuşadi
-                </div>
-            </div>
+        <span class="au-ico" data-t="ok" style="width:52px;height:52px;font-size:22px"><i class="bi bi-power"></i></span>
+        <h3 id="mmTitle">Tizimni qayta yoqiş</h3>
+        <p class="au-muted" style="font-size:14px">Texnik xizmat rejimini öçirib, tizimni barça foydalanuvçilar uçun oçmoqçimisiz?</p>
+        <div class="au-list">
+          <div class="au-li"><i class="bi bi-check-circle-fill" style="color:var(--au-ok)"></i>Öquvçilar tizimga kirişga ruxsat oladi</div>
+          <div class="au-li"><i class="bi bi-check-circle-fill" style="color:var(--au-ok)"></i>Öqituvçilar tizimga kirişga ruxsat oladi</div>
+          <div class="au-li"><i class="bi bi-check-circle-fill" style="color:var(--au-ok)"></i>Barça funksiyalar işga tuşadi</div>
         </div>
-        <form method="POST" action="{% url 'toggle_maintenance' %}">
-            {% csrf_token %}
-            <div class="mm-footer">
-                <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                    <i class="bi bi-x-lg"></i> Bekor qiliş
-                </button>
-                <button type="submit" class="mm-btn mm-btn-success">
-                    <i class="bi bi-power"></i> Tizimni yoqiş
-                </button>
-            </div>
-        </form>
         {% else %}
-        <div class="mm-strip warn"></div>
-        <div class="mm-body">
-            <div class="mm-icon warn">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <h3 class="mm-title">Tizimni öçiriş</h3>
-            <p class="mm-desc">Texnik xizmat rejimini yoqmoqçimisiz? Faqat adminlar tizimga kirişga ruxsat oladi.</p>
-            <div class="mm-warn-list">
-                <div class="mm-warn-item red">
-                    <i class="bi bi-x-circle-fill"></i>
-                    Öquvçilar tizimga kira olmaydi
-                </div>
-                <div class="mm-warn-item red">
-                    <i class="bi bi-x-circle-fill"></i>
-                    Öqituvçilar tizimga kira olmaydi
-                </div>
-                <div class="mm-warn-item green">
-                    <i class="bi bi-shield-check"></i>
-                    Faqat adminlar işlaşda davom etadi
-                </div>
-            </div>
+        <span class="au-ico" data-t="bad" style="width:52px;height:52px;font-size:22px"><i class="bi bi-exclamation-triangle-fill"></i></span>
+        <h3 id="mmTitle">Tizimni öçiriş</h3>
+        <p class="au-muted" style="font-size:14px">Texnik xizmat rejimini yoqmoqçimisiz? Faqat adminlar tizimga kirişga ruxsat oladi.</p>
+        <div class="au-list">
+          <div class="au-li"><i class="bi bi-x-circle-fill" style="color:var(--au-bad)"></i>Öquvçilar tizimga kira olmaydi</div>
+          <div class="au-li"><i class="bi bi-x-circle-fill" style="color:var(--au-bad)"></i>Öqituvçilar tizimga kira olmaydi</div>
+          <div class="au-li"><i class="bi bi-shield-check" style="color:var(--au-ok)"></i>Faqat adminlar işlaşda davom etadi</div>
         </div>
-        <form method="POST" action="{% url 'toggle_maintenance' %}">
-            {% csrf_token %}
-            <div style="padding: 0 2rem;">
-                <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvçilarga körsatiladigan xabar...">{{ maintenance.message }}</textarea>
-            </div>
-            <div class="mm-footer">
-                <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                    <i class="bi bi-x-lg"></i> Bekor qiliş
-                </button>
-                <button type="submit" class="mm-btn mm-btn-danger">
-                    <i class="bi bi-tools"></i> Öçiriş
-                </button>
-            </div>
-        </form>
+        <label for="mmMsg" style="font-size:12.5px;font-weight:600" class="au-muted">Foydalanuvçilarga körsatiladigan xabar</label>
+        <textarea id="mmMsg" name="maintenance_message" placeholder="Foydalanuvçilarga körsatiladigan xabar...">{{ maintenance.message }}</textarea>
         {% endif %}
-    </div>
+      </div>
+      <div class="au-modal-f">
+        <button type="button" class="au-btn" onclick="closeMaintModal()"><i class="bi bi-x-lg"></i> Bekor qiliş</button>
+        {% if maintenance.is_active %}
+        <button type="submit" class="au-btn success"><i class="bi bi-power"></i> Tizimni yoqiş</button>
+        {% else %}
+        <button type="submit" class="au-btn danger"><i class="bi bi-tools"></i> Öçiriş</button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
 </div>
+</div>
+{% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/aurora-ui.js' %}?v=20261105" defer></script>
 <script>
-/* Live date/time */
-function updateDateTime() {
-    var now = new Date();
-    var days = ['Yakşanba','Duşanba','Seşanba','Çorşanba','Payşanba','Juma','Şanba'];
-    var months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
-    var h = now.getHours().toString().padStart(2,'0');
-    var m = now.getMinutes().toString().padStart(2,'0');
-    var s = now.getSeconds().toString().padStart(2,'0');
-    var el = document.getElementById('liveDateTime');
-    if (el) el.textContent = days[now.getDay()] + ', ' + now.getDate() + '-' + months[now.getMonth()] + ' ' + now.getFullYear() + '  •  ' + h + ':' + m + ':' + s;
-}
-updateDateTime();
-setInterval(updateDateTime, 1000);
-
-/* Number counter animation */
-document.addEventListener('DOMContentLoaded', function() {
-    var nums = document.querySelectorAll('.db-stat-num, .db-info-num, .db-summary-item h3');
-    var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (!entry.isIntersecting) return;
-            var el = entry.target;
-            if (el.dataset.counted) return;
-            el.dataset.counted = '1';
-            var text = el.textContent.trim();
-            var suffix = text.replace(/[\d,.]/g, '').trim();
-            var numStr = text.replace(/[^\d.]/g, '');
-            var target = parseFloat(numStr);
-            if (isNaN(target) || target === 0) return;
-            var duration = 800;
-            var start = performance.now();
-            var isFloat = numStr.indexOf('.') !== -1;
-            function step(ts) {
-                var p = Math.min((ts - start) / duration, 1);
-                p = 1 - Math.pow(1 - p, 3);
-                var val = Math.round(target * p);
-                if (isFloat) val = (target * p).toFixed(1);
-                el.textContent = val + (suffix ? ' ' + suffix : '');
-                if (p < 1) requestAnimationFrame(step);
-                else el.textContent = text;
-            }
-            requestAnimationFrame(step);
-        });
-    }, {threshold: 0.3});
-    nums.forEach(function(el) { observer.observe(el); });
-});
-
-/* Maintenance modal */
+(function () {
+  var days = ['Yakşanba', 'Duşanba', 'Seşanba', 'Çorşanba', 'Payşanba', 'Juma', 'Şanba'];
+  var months = ['yanvar', 'fevral', 'mart', 'aprel', 'may', 'iyun', 'iyul', 'avgust', 'sentyabr', 'oktyabr', 'noyabr', 'dekabr'];
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    var now = new Date(), el = document.getElementById('liveDateTime');
+    if (el) el.textContent = days[now.getDay()] + ', ' + now.getDate() + '-' + months[now.getMonth()] + ' ' + now.getFullYear() + ' · ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+  }
+  tick(); setInterval(tick, 30000);
+  var h = new Date().getHours(), g = document.querySelector('[data-au-greet]');
+  if (g) g.textContent = h < 5 ? 'Xayrli tun' : h < 11 ? 'Xayrli tong' : h < 17 ? 'Xayrli kun' : 'Xayrli keç';
+})();
+/* Texnik xizmat modal'i */
+var _maintPrev = null;
 function showMaintModal() {
-    var overlay = document.getElementById('maintOverlay');
-    overlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
+  _maintPrev = document.activeElement;
+  document.getElementById('maintOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function () { var f = document.querySelector('#maintOverlay textarea, #maintOverlay button'); if (f) f.focus(); }, 60);
 }
 function closeMaintModal() {
-    var overlay = document.getElementById('maintOverlay');
-    overlay.classList.remove('show');
-    document.body.style.overflow = '';
+  document.getElementById('maintOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+  if (_maintPrev && _maintPrev.focus) _maintPrev.focus();
 }
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeMaintModal();
-});
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.getElementById('maintOverlay').classList.contains('show')) closeMaintModal(); });
 </script>
 {% endblock %}

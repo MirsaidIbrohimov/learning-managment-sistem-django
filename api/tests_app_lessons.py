@@ -240,7 +240,7 @@ class AppLessonsTests(TestCase):
         self.assertEqual(r['score'], 50)
         self.assertTrue(r['passed'])
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, 1)
+        self.assertEqual(self.student.coins, 105)  # 1 töğri × 5 + 100 ötganlik bonusi
         wrong = [a for a in r['answers'] if not a['is_correct']][0]
         self.assertEqual(wrong['correct_answer'], '4')
 
@@ -252,7 +252,7 @@ class AppLessonsTests(TestCase):
         self.assertEqual(one['id'], two['id'])
         self.assertEqual(TestResult.objects.filter(test=self.test, student=self.student).count(), 1)
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, 2)
+        self.assertEqual(self.student.coins, 110)  # 2 × 5 + 100, faqat bir marta
 
     def test_answer_of_another_question_gets_no_credit(self, *_):
         data = self._start()
@@ -373,7 +373,7 @@ class AppLessonsTests(TestCase):
         result = TestResult.objects.get(test=self.test, student=self.student)
         self.assertEqual((result.score, result.correct_answers, result.passed), (50, 1, True))
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, 1)
+        self.assertEqual(self.student.coins, 105)
 
     def test_web_lesson_opens_when_allowed(self, *_):
         from accounts.models import StudentLessonToken

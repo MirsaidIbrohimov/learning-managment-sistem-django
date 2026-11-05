@@ -597,8 +597,9 @@
 
         if (attempt.coin_awarded && attempt.coins_earned > 0) {
             const rate = bootstrap.coin_per_correct;
+            const bonus = attempt.passed ? ` + ${bootstrap.coin_pass_bonus} coin ötganlik bonusi` : '';
             const coinMsg = createEl('p', { className: 'qt-result-coin' });
-            coinMsg.innerHTML = `<i class="bi bi-coin"></i> <strong>+${attempt.coins_earned} coin</strong> qölga kiritdingiz! (har bir töğri javob uçun ${rate} coin)`;
+            coinMsg.innerHTML = `<i class="bi bi-coin"></i> <strong>+${attempt.coins_earned} coin</strong> qölga kiritdingiz! (${attempt.correct_count} ta töğri × ${rate} coin${bonus})`;
             el.resultCard.appendChild(coinMsg);
         } else if (isPending) {
             el.resultCard.appendChild(createEl('p', {

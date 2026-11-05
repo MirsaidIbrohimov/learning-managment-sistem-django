@@ -19,6 +19,8 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
 
+from accounts.coin_rules import TEST_COINS_PER_CORRECT, TEST_PASS_BONUS
+
 from . import analytics
 from .models import Attempt, Quiz, QuizRetryPayment
 from .permissions import can_take_quiz, quiz_prerequisites_met
@@ -283,7 +285,8 @@ class QuizTakeView(StudentRequiredMixin, TemplateView):
             'student_name': student.get_full_name() or student.username,
             'student_coins': student.coins,
             'is_premium': student.is_premium,
-            'coin_per_correct': 2 if student.is_premium else 1,
+            'coin_per_correct': TEST_COINS_PER_CORRECT,
+            'coin_pass_bonus': TEST_PASS_BONUS,
             'retry_payment_required': settings_.retry_payment_required if settings_ else False,
             'retry_payment_amount': str(settings_.retry_payment_amount) if settings_ else None,
         }
