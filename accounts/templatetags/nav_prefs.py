@@ -20,3 +20,12 @@ def get_weather_effect(context):
     """{% get_weather_effect as weather_effect %} — premium tugagan bölsa effekt öçiq, tanlov saqlanib qoladi."""
     user = context.get('user')
     return user.weather_effect if can_customize(user) else 'off'
+
+
+@register.simple_tag(takes_context=True)
+def get_wallpaper(context):
+    """{% get_wallpaper as wp %} — orqa fon rasmi (ruxsat yöq yoki rasm yöq bölsa None)."""
+    from accounts.wallpaper import get_wallpaper as _get
+
+    user = context.get('user')
+    return _get(user) if user is not None else None

@@ -229,6 +229,11 @@ class CustomUser(AbstractUser):
     profile_banner = models.CharField(max_length=20, choices=PROFILE_BANNER_CHOICES, default='none', verbose_name="Profil banneri")
     gold_theme = models.BooleanField(default=False, verbose_name="Oltin mavzu")
     weather_effect = models.CharField(max_length=20, default='off', verbose_name="Ob-havo effekti")
+    # 🖼 Orqa fon rasmi (Premium + admin/öqituvçi; mantiq: accounts/wallpaper.py)
+    wallpaper = models.ImageField(upload_to='wallpapers/', blank=True, null=True, verbose_name="Orqa fon rasmi")
+    wallpaper_style = models.JSONField(default=dict, blank=True, verbose_name="Orqa fon sozlamalari")
+    banner_image = models.ImageField(upload_to='banners/', blank=True, null=True, verbose_name="Profil banneri rasmi")
+    banner_style = models.JSONField(default=dict, blank=True, verbose_name="Banner rasmi sozlamalari")
 
     # Telegram
     telegram_id = models.BigIntegerField(null=True, blank=True, unique=True, verbose_name="Telegram ID")
@@ -1771,6 +1776,52 @@ class NavigationPreference(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.layout}"
+
+    def as_dict(self):
+        return {key: getattr(self, key) for key in self.DEFAULTS}
+
+
+class PremiumSettings(models.Model):
+    """💎 Premium sozlamalar: 3D shakl va sessiya xavfsizligi (mantiq: accounts/premium_settings.py).
+
+    Premium tugasa saqlangan tanlov öçmaydi, lekin standart qiymatlar qöllanadi.
+    """
+    SHAPE_CHOICES = [
+        ('sphere', "Shar"), ('cube', "Kub"), ('torus', "Donut"), ('heart', "Yurak"), ('dna', "DNK"),
+        ('galaxy', "Galaktika"), ('planet', "Sayyora"), ('infinity', "Çeksizlik"), ('star', "Yulduz"),
+    ]
+    PALETTE_CHOICES = [
+        ('aurora', "Aurora"), ('gold', "Oltin"), ('fire', "Olov"), ('ocean', "Okean"),
+        ('emerald', "Zumrad"), ('sakura', "Sakura"), ('rainbow', "Kamalak"),
+    ]
+    SPEED_CHOICES = [('off', "Töxtatilgan"), ('slow', "Sekin"), ('normal', "Odatiy"), ('fast', "Tez")]
+    # Daqiqalarda; 120 — saytning standart qiymati
+    IDLE_CHOICES = [
+        (30, "30 daqiqa"), (60, "1 soat"), (120, "2 soat (standart)"), (240, "4 soat"),
+        (480, "8 soat"), (1440, "1 kun"), (10080, "7 kun"),
+    ]
+    DEFAULTS = {'orb_shape': 'sphere', 'orb_palette': 'aurora', 'orb_speed': 'normal',
+                'loader_shape': 'cube', 'loader_palette': 'aurora',
+                'idle_timeout_minutes': 120, 'logout_on_ip_change': True}
+
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='premium_settings')
+    orb_shape = models.CharField(max_length=12, choices=SHAPE_CHOICES, default='sphere', verbose_name="3D shakl")
+    orb_palette = models.CharField(max_length=12, choices=PALETTE_CHOICES, default='aurora', verbose_name="3D shakl rangi")
+    orb_speed = models.CharField(max_length=8, choices=SPEED_CHOICES, default='normal', verbose_name="Aylaniş tezligi")
+    # Sayt yuklanayotganda körinadigan animatsiya: shar ↔ tanlangan shakl
+    loader_shape = models.CharField(max_length=12, choices=SHAPE_CHOICES, default='cube', verbose_name="Yuklaniş shakli")
+    loader_palette = models.CharField(max_length=12, choices=PALETTE_CHOICES, default='aurora', verbose_name="Yuklaniş rangi")
+    idle_timeout_minutes = models.PositiveIntegerField(choices=IDLE_CHOICES, default=120,
+                                                       verbose_name="Faolsizlikda çiqariş (daqiqa)")
+    logout_on_ip_change = models.BooleanField(default=True, verbose_name="IP özgarsa çiqariş")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Premium sozlama"
+        verbose_name_plural = "Premium sozlamalar"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.orb_shape}"
 
     def as_dict(self):
         return {key: getattr(self, key) for key in self.DEFAULTS}

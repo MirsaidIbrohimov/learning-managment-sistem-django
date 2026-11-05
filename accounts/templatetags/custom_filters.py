@@ -236,6 +236,33 @@ def current_promo(user):
 
 
 @register.filter
+def deco_banner_layer(user):
+    """Banner rasmi qatlami: {{ user|deco_banner_layer }} — {{ user|deco_banner }} klassli element içida."""
+    from accounts.premium_deco import banner_layer
+    return banner_layer(user)
+
+
+@register.filter
+def orb_attrs(user):
+    """3D shakl: <div data-pf-orb {{ user|orb_attrs }}> (premium tanlovi yoki standart)."""
+    from accounts.premium_settings import orb_attrs as _attrs
+    return _attrs(user)
+
+
+@register.filter
+def loader_attrs(user):
+    """Yuklaniş animatsiyasi: <canvas class="morph-ldr" {{ user|loader_attrs }}>."""
+    from accounts.premium_settings import loader_attrs as _attrs
+    return _attrs(user)
+
+
+@register.filter
+def can_wallpaper(user):
+    from accounts.wallpaper import can_use_wallpaper
+    return can_use_wallpaper(user)
+
+
+@register.filter
 def deco_theme(user):
     from accounts.premium_bonus import is_active_premium
 

@@ -260,10 +260,11 @@ class PaymentCheckMiddleware:
 
 class SessionTimeoutMiddleware:
     """
-    Session timeout qöllaydi
+    Session timeout qöllaydi. Standart 2 soat; Premium a'zo "Premium sozlamalar"da
+    30 daqiqadan 7 kungaça tanlay oladi (accounts/premium_settings.py).
     """
     
-    SESSION_TIMEOUT = 2 * 60 * 60  # 2 soat
+    SESSION_TIMEOUT = 2 * 60 * 60  # 2 soat (standart)
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -275,9 +276,16 @@ class SessionTimeoutMiddleware:
         if request.user.is_authenticated:
             now = timezone.now().timestamp()
             last_activity = request.session.get('_last_activity')
+            from .premium_settings import idle_timeout_seconds
+            timeout = idle_timeout_seconds(request.user)
+            # Uzoqroq muddat tanlangan bölsa, session cookie ham şunça yaşaşi kerak
+            # (aks holda SESSION_COOKIE_AGE=2 soatda baribir tugaydi).
+            if request.session.get('_idle_timeout') != timeout:
+                request.session['_idle_timeout'] = timeout
+                request.session.set_expiry(timeout if timeout > self.SESSION_TIMEOUT else None)
 
             if last_activity:
-                if now - last_activity > self.SESSION_TIMEOUT:
+                if now - last_activity > timeout:
                     session_key = request.session.session_key
                     if session_key:
                         from .models import UserSession
@@ -869,10 +877,15 @@ class WiFiAutoLogoutMiddleware:
             from django.contrib.auth import logout as auth_logout
             from django.contrib import messages
             
+            from .premium_settings import logout_on_ip_change
+
             current_ip = get_client_ip(request)
             session_ip = request.session.get('user_login_ip')
             
             if not session_ip:
+                request.session['user_login_ip'] = current_ip
+            elif session_ip != current_ip and not logout_on_ip_change(request.user):
+                # Premium a'zo bu himoyani öçirgan: yangi IP eslab qolinadi, sessiya davom etadi
                 request.session['user_login_ip'] = current_ip
             elif session_ip != current_ip:
                 # IP (Wi-Fi) özgardi -> logout qilamiz

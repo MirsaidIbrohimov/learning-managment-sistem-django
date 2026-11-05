@@ -57,6 +57,14 @@
         return c ? ' ' + esc(c) : '';
     }
 
+    // 🖼 Banner rasmi qatlami (server faqat ruxsati bor foydalanuvçi uçun qaytaradi)
+    function bannerLayer(s) {
+        var b = s.deco && s.deco.banner_img;
+        if (!b) return '';
+        return '<span class="pd-bimg" aria-hidden="true" style="--wp-dim:' + esc(b.dim) + '"><span style="background-image:url(&quot;' + esc(b.url) +
+            '&quot;);background-position:' + esc(b.position) + ';filter:' + esc(b.filter) + ';transform:' + esc(b.transform) + '"></span></span>';
+    }
+
     function studentHref(s) {
         if (s.is_you) return '/profile/';
         if (IS_PREMIUM || IS_STAFF) return '/students/' + s.id + '/';
@@ -209,7 +217,7 @@
             var avatar = s.photo
                 ? '<img src="' + esc(s.photo) + '" alt="' + esc(s.first_name) + '" data-lb-photo="' + esc(s.photo) + '" data-lb-name="' + esc(s.full_name) + '" style="cursor:zoom-in;">'
                 : '<span>' + esc(s.initials) + '</span>';
-            html += '<a href="' + href + '" class="top-3-item top-3-position-' + pos + blurred + deco(s, 'banner') + '">' +
+            html += '<a href="' + href + '" class="top-3-item top-3-position-' + pos + blurred + deco(s, 'banner') + '">' + bannerLayer(s) +
                 '<div class="crown-badge">' + pos + '</div>' +
                 '<div class="avatar-circle' + deco(s, 'frame') + '">' + avatar + '</div>' +
                 '<div class="player-info">' +
@@ -253,7 +261,7 @@
                 if (s.is_premium) name += ' <i class="bi bi-patch-check-fill premium-star"></i>';
                 if (s.is_you) name += '<span class="lb-badge">Siz</span>';
 
-                html += '<a href="' + studentHref(s) + '" class="lb-row' + isYou + isPrem + deco(s, 'banner') + '" style="animation-delay:' + delay + 'ms">' +
+                html += '<a href="' + studentHref(s) + '" class="lb-row' + isYou + isPrem + deco(s, 'banner') + '" style="animation-delay:' + delay + 'ms">' + bannerLayer(s) +
                     '<div><span class="lb-rank">' + rank + '</span></div>' +
                     '<div class="lb-user">' + avatar + '<div class="lb-user-info"><div class="lb-user-name' + premNameCls + '">' + name + '</div>' +
                     '<div class="lb-username">@' + esc(s.username) + '</div></div></div>' +

@@ -81,6 +81,40 @@ window.MZChat = (function(){
         return h;
     }
 
+    // Initsial avatar rangi: kalit böyiça barqaror (mz-c0 … mz-c7)
+    function avaCls(key){
+        var h = 0, str = String(key||'');
+        for(var i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) | 0; }
+        return 'mz-c' + (Math.abs(h) % 8);
+    }
+
+    // 🖼 Banner rasmi qatlami (server faqat ruxsati bor foydalanuvçi uçun qaytaradi)
+    function bannerLayer(b){
+        if(!b) return '';
+        return '<span class="pd-bimg" aria-hidden="true" style="--wp-dim:'+esc(b.dim)+'"><span style="background-image:url(&quot;'+esc(b.url)+
+            '&quot;);background-position:'+esc(b.position)+';filter:'+esc(b.filter)+';transform:'+esc(b.transform)+'"></span></span>';
+    }
+
+    // Tezkor javoblar: "/" yozilganda körinadi
+    var QUICK_REPLIES = [
+        ['/salom', "Assalomu alaykum! 👋"],
+        ['/rahmat', "Katta rahmat! 🙏"],
+        ['/ok', "Tuşunarli, rahmat 👍"],
+        ['/savol', "Bir savolim bor edi, vaqtingiz bormi?"],
+        ['/vazifa', "Uyga vazifani bajarib, yuklab qöydim ✅"],
+        ['/ertaga', "Ertaga darsda körişamiz! 📚"],
+        ['/kechikaman', "Uzr, biroz keçikib qolaman ⏰"],
+    ];
+    var QUICK_TEACHER = [
+        ['/baho', "Vazifangiz tekşirildi, natijani körib çiqing ✅"],
+        ['/dars', "Bugungi dars materiallari guruhga yuklandi 📎"],
+        ['/qayta', "Vazifani yana bir bor körib, qayta yuboring 🔁"],
+    ];
+
+    function isWide(){ return window.matchMedia('(min-width: 1200px)').matches; }
+    function infoPref(){ try { return localStorage.getItem('mzInfo') !== '0'; } catch(e){ return true; } }
+    function setInfoPref(on){ try { localStorage.setItem('mzInfo', on ? '1' : '0'); } catch(e){} }
+
     function urlFor(key, id, kind){
         var u = state.cfg.urls[key];
         if(kind) u = u.replace('KIND', kind);
@@ -107,6 +141,8 @@ window.MZChat = (function(){
                 var cur = findItem('dm', state.currentId);
                 if(cur) updateHeaderSub(cur);
             }
+            // DM uçun kartani qayta çizamiz (arzon); guruh a'zolari esa har poll'da qayta yuklanmaydi
+            if(isInfoOpen()){ if(state.currentKind==='dm') refreshInfoContent(); else renderInfoCard(); }
         }).catch(function(){});
     }
 
@@ -116,7 +152,7 @@ window.MZChat = (function(){
         row.dataset.kind = it.kind; row.dataset.id = it.id;
         var avaHtml = it.photo
             ? '<img class="mz-row-ava" src="'+esc(it.photo)+'">'
-            : '<div class="mz-row-ava-fb">'+esc(it.initials||'?')+'</div>';
+            : '<div class="mz-row-ava-fb '+avaCls(it.kind+it.id)+'">'+esc(it.initials||'?')+'</div>';
         var dotHtml = it.kind==='dm' ? ('<span class="mz-row-dot '+(it.is_online?'on':'off')+'"></span>') : '';
         var kindBadge = it.kind==='group' ? '<span class="mz-row-kind group"><i class="bi bi-people-fill"></i></span>' : '';
         var pre = it.is_mine_last ? 'Siz: ' : '';
@@ -128,7 +164,7 @@ window.MZChat = (function(){
             lastTxt = lastTxt.replace(/^\s*(📎|📷|🖼)\s*/,'');
         }
         row.innerHTML =
-            '<div style="position:relative;flex:0 0 48px;">'+avaHtml+dotHtml+kindBadge+'</div>'+
+            '<div style="position:relative;flex:0 0 46px;">'+avaHtml+dotHtml+kindBadge+'</div>'+
             '<div class="mz-row-body">'+
                 '<div class="mz-row-top"><div class="mz-row-name">'+esc(it.name)+'</div><div class="mz-row-time">'+esc(it.last_at||'')+'</div></div>'+
                 '<div class="mz-row-bottom"><div class="mz-row-last">'+lastIc+esc(pre)+esc(lastTxt)+'</div>'+
@@ -154,8 +190,18 @@ window.MZChat = (function(){
         dom.unreadCount.classList.toggle('show', n > 0);
     }
 
+    function updateSideCounts(){
+        var items = state.items||[];
+        if(dom.sideCount) dom.sideCount.textContent = items.length || '';
+        document.querySelectorAll('.mz-filter-num').forEach(function(el){
+            var n = items.filter(function(it){ return it.kind===el.dataset.num; }).length;
+            el.textContent = n || '';
+        });
+    }
+
     function renderSidebar(){
         var q = (dom.search.value||'').trim().toLowerCase();
+        updateSideCounts();
         var list = (state.items||[]).filter(function(it){
             if(state.filter==='unread'){ if(!it.unread) return false; }
             else if(state.filter!=='all' && it.kind!==state.filter) return false;
@@ -247,6 +293,7 @@ window.MZChat = (function(){
         if(dom.paneFiles) dom.paneFiles.innerHTML = '';
         switchInfoTab('members');
         if(isInfoOpen()) refreshInfoContent();
+        else if(isWide() && infoPref()) openInfo();
 
         dom.shell.classList.add('mz-chat-open');
         document.querySelectorAll('.mz-row').forEach(function(r){
@@ -291,10 +338,22 @@ window.MZChat = (function(){
         if(item.photo){
             dom.headAva.outerHTML = '<img src="'+esc(item.photo)+'" class="mz-ava" id="mzHeadAva">';
         } else {
-            dom.headAva.outerHTML = '<div class="mz-ava-fb" id="mzHeadAva">'+(kind==='group' ? '<i class="bi bi-people-fill"></i>' : esc(item.initials||'?'))+'</div>';
+            dom.headAva.outerHTML = '<div class="mz-ava-fb '+avaCls(kind+item.id)+'" id="mzHeadAva">'+(kind==='group' ? '<i class="bi bi-people-fill"></i>' : esc(item.initials||'?'))+'</div>';
         }
         dom.headAva = document.getElementById('mzHeadAva');
         dom.pinBtn.classList.toggle('pinned', !!item.pinned);
+        renderHeadPill(item, kind);
+    }
+
+    // Sarlavha öngidagi holat belgisi: ONLAYN / rol / GURUH
+    function renderHeadPill(item, kind){
+        if(!dom.headPill) return;
+        var text = '', cls = 'mz-head-pill';
+        if(kind==='group'){ text = 'Guruh'; cls += ' group'; }
+        else if(item && item.is_online){ text = 'Onlayn'; cls += ' on'; }
+        else if(item && item.role_label){ text = item.role_label; }
+        dom.headPill.className = cls;
+        dom.headPill.textContent = text;
     }
 
     // Oçiq DM suhbat headerida "Online / Oxirgi faollik: ..." matnini
@@ -304,6 +363,7 @@ window.MZChat = (function(){
         var textEl = document.getElementById('mzHeadSubText');
         if(!textEl) return;
         var nextSub = item.sub||'';
+        renderHeadPill(item, 'dm');
         if(textEl.textContent === nextSub) return;
         dom.headSub.innerHTML = '<span class="mz-dot '+(item.is_online?'on':'off')+'"></span><span id="mzHeadSubText" class="mz-sub-fade">'+esc(nextSub)+'</span>';
     }
@@ -333,6 +393,8 @@ window.MZChat = (function(){
     function reconcile(list, forceScroll){
         var loading = document.getElementById('mzBodyLoading');
         if(loading) loading.remove();
+        // Suhbat oçilganda qöyilgan skelet joy-tutgiçlar haqiqiy xabarlar kelişi bilan olib taşlanadi
+        dom.body.querySelectorAll('.mz-skel').forEach(function(el){ el.remove(); });
 
         if(!list.length){
             if(!dom.body.children.length){
@@ -389,7 +451,10 @@ window.MZChat = (function(){
             dom.scrollBtn.classList.add('has-new');
         }
         updateScrollBtn();
-        if(hasNew && isInfoOpen() && state.infoTab==='files') renderFiles();
+        if(hasNew && isInfoOpen()){
+            if(state.infoTab==='files') renderFiles();
+            renderInfoCard();
+        }
     }
 
     // Insert a "New messages" divider before the first unread incoming message
@@ -468,7 +533,7 @@ window.MZChat = (function(){
         if(isGroup && !m.is_me && m.sender){
             avaHtml = m.sender.photo
                 ? '<img class="mz-msg-ava" src="'+esc(m.sender.photo)+'">'
-                : '<div class="mz-msg-ava-fb">'+esc(m.sender.initials||'?')+'</div>';
+                : '<div class="mz-msg-ava-fb '+avaCls('dm'+(m.sender.id||m.sender.name))+'">'+esc(m.sender.initials||'?')+'</div>';
         }
         var bubble = '<div class="mz-bubble-wrap"><div class="mz-bubble">';
         if(isGroup && !m.is_me && m.sender){
@@ -508,7 +573,35 @@ window.MZChat = (function(){
     // Telegram/Discord-style grouping: collapse consecutive same-sender bubbles
     // (within 5 min) by tagging .mz-grouped. Runs after every reconcile so it
     // stays correct as messages are added/edited/removed incrementally.
+    function dayLabel(ts){
+        var d = new Date(ts*1000), now = new Date();
+        var day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        var diff = Math.round((today - day) / 86400000);
+        if(diff === 0) return 'Bugun';
+        if(diff === 1) return 'Keça';
+        var months = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentyabr','oktyabr','noyabr','dekabr'];
+        return d.getDate()+'-'+months[d.getMonth()]+(d.getFullYear()!==now.getFullYear() ? ' '+d.getFullYear() : '');
+    }
+    function applyDays(){
+        dom.body.querySelectorAll('.mz-day').forEach(function(el){ el.remove(); });
+        var last = '';
+        dom.body.querySelectorAll('.mz-row-msg').forEach(function(row){
+            var ts = parseInt(row.dataset.ts||0, 10);
+            if(!ts) return;
+            var label = dayLabel(ts);
+            if(label === last) return;
+            last = label;
+            var el = document.createElement('div');
+            el.className = 'mz-day';
+            el.textContent = label;
+            var anchor = row.previousElementSibling && row.previousElementSibling.classList.contains('mz-new-divider') ? row.previousElementSibling : row;
+            anchor.parentNode.insertBefore(el, anchor);
+        });
+    }
+
     function applyGrouping(){
+        applyDays();
         var prev = null;
         dom.body.querySelectorAll('.mz-row-msg').forEach(function(row){
             var grouped = false;
@@ -828,6 +921,9 @@ window.MZChat = (function(){
 
     // ───────────────────────── Misc UI wiring ─────────────────────────
     function autoGrow(){
+        // Yoziş maydoni yaşirin (display:none) bölganda scrollHeight 0 — balandlik 0px bölib
+        // qolmasin: CSS'dagi asl balandlikka qaytaramiz, körinişi bilan qayta hisoblanadi.
+        if(!dom.input.offsetParent){ dom.input.style.height = ''; return; }
         dom.input.style.height = 'auto';
         dom.input.style.height = Math.min(dom.input.scrollHeight, 120) + 'px';
     }
@@ -859,10 +955,10 @@ window.MZChat = (function(){
         refreshInfoContent();
     }
     function refreshInfoContent(){
+        renderInfoCard();
         if(state.currentKind==='group'){
             loadGroupMembers(state.currentId);
         } else if(state.currentKind==='dm'){
-            hideInfoStats();
             var it = findItem('dm', state.currentId);
             renderMembers(it ? [{
                 name: it.name, photo: it.photo, initials: it.initials,
@@ -925,11 +1021,59 @@ window.MZChat = (function(){
             if(ha.tagName === 'IMG'){
                 dom.infoAva.outerHTML = '<img src="'+ha.getAttribute('src')+'" class="mz-info-ava" id="mzInfoAva">';
             } else {
-                dom.infoAva.outerHTML = '<div class="mz-info-ava" id="mzInfoAva">'+ha.innerHTML+'</div>';
+                var c = (ha.className.match(/mz-c\d/) || [''])[0];
+                dom.infoAva.outerHTML = '<div class="mz-info-ava '+c+'" id="mzInfoAva">'+ha.innerHTML+'</div>';
             }
             dom.infoAva = document.getElementById('mzInfoAva');
         }
         if(dom.headSub && dom.infoSub) dom.infoSub.innerHTML = dom.headSub.innerHTML;
+        renderInfoCard();
+    }
+
+    // Öng panel: banner, amallar, teglar, ma'lumot va asosiy tugma (video'dagi kontakt kartasi)
+    function renderInfoCard(){
+        if(!dom.infoActs || !state.currentKind) return;
+        var kind = state.currentKind;
+        var it = findItem(kind, state.currentId) || {};
+        var acts = '<span class="mz-info-act green" data-info-act="write" title="Xabar yoziş"><i class="bi bi-chat-dots-fill"></i></span>';
+        if(kind==='dm' && it.profile_url){
+            acts += '<a class="mz-info-act pink" href="'+esc(it.profile_url)+'" title="Profil"><i class="bi bi-person-badge-fill"></i></a>';
+        } else if(kind==='group'){
+            acts += '<span class="mz-info-act pink" data-info-act="members" title="A\'zolar"><i class="bi bi-people-fill"></i></span>';
+        }
+        acts += '<span class="mz-info-act blue" data-info-act="files" title="Fayllar"><i class="bi bi-folder2-open"></i></span>';
+        dom.infoActs.innerHTML = acts;
+
+        dom.infoBanner.innerHTML = kind==='dm' ? bannerLayer(it.banner) : '';
+
+        var tags = [];
+        if(kind==='dm'){
+            if(it.role_label) tags.push(['', it.role_label]);
+            if(it.is_online) tags.push(['ok', 'Onlayn']);
+            if(it.username) tags.push(['', '@'+it.username]);
+        } else {
+            tags.push(['', 'Guruh çati']);
+            if(it.can_moderate) tags.push(['gold', 'Moderator']);
+        }
+        if(it.pinned) tags.push(['gold', 'Mahkamlangan']);
+        if(it.unread) tags.push(['hot', it.unread+' ta yangi']);
+        dom.infoTags.innerHTML = tags.map(function(t){ return '<span class="mz-info-tag '+t[0]+'">'+esc(t[1])+'</span>'; }).join('');
+
+        if(kind==='dm'){
+            dom.infoStats.innerHTML =
+                '<div class="mz-kv">Holat<b class="'+(it.is_online?'online':'')+'">'+esc(it.is_online ? 'Onlayn' : ((it.sub||'').split(' • ')[0] || 'Oflayn'))+'</b></div>'+
+                '<div class="mz-kv">Xabarlar<b>'+Object.keys(state.msgCache).length+'</b></div>'+
+                '<div class="mz-kv">Fayllar<b>'+fileCount()+'</b></div>';
+            dom.infoStats.style.display = '';
+        }
+
+        if(kind==='dm' && it.profile_url){
+            dom.infoCta.href = it.profile_url;
+            dom.infoCta.innerHTML = '<i class="bi bi-person-lines-fill"></i> Profilni köriş';
+            dom.infoCta.hidden = false;
+        } else {
+            dom.infoCta.hidden = true;
+        }
     }
 
     function switchInfoTab(tab){
@@ -976,10 +1120,10 @@ window.MZChat = (function(){
         if(!dom.infoStats) return;
         var files = fileCount();
         dom.infoStats.innerHTML =
-            '<div class="mz-stat"><div class="mz-stat-num">'+(s.members||0)+'</div><div class="mz-stat-lbl">A\'zo</div></div>'+
-            '<div class="mz-stat"><div class="mz-stat-num online">'+(s.online||0)+'</div><div class="mz-stat-lbl">Online</div></div>'+
-            '<div class="mz-stat"><div class="mz-stat-num">'+files+'</div><div class="mz-stat-lbl">Fayl</div></div>';
-        dom.infoStats.style.display = 'flex';
+            '<div class="mz-kv">A\'zolar<b>'+(s.members||0)+'</b></div>'+
+            '<div class="mz-kv">Onlayn<b class="online">'+(s.online||0)+'</b></div>'+
+            '<div class="mz-kv">Fayllar<b>'+files+'</b></div>';
+        dom.infoStats.style.display = '';
     }
     function hideInfoStats(){
         if(dom.infoStats){ dom.infoStats.style.display = 'none'; dom.infoStats.innerHTML = ''; }
@@ -989,7 +1133,7 @@ window.MZChat = (function(){
         var roleCls = (m.role==='admin'||m.role==='assistant_admin') ? 'admin' : (m.role==='teacher' ? 'teacher' : 'student');
         var pic = m.photo
             ? '<img class="mz-member-ava" src="'+esc(m.photo)+'">'
-            : '<div class="mz-member-ava-fb">'+esc(m.initials||'?')+'</div>';
+            : '<div class="mz-member-ava-fb '+avaCls('dm'+(m.id||m.name))+'">'+esc(m.initials||'?')+'</div>';
         var status = m.is_online ? 'Online' : 'Oflayn';
         var roleLabel = m.role_label || '';
         return '<div class="mz-member">'+
@@ -1082,11 +1226,18 @@ window.MZChat = (function(){
         if(dom.videoBtn) dom.videoBtn.addEventListener('click', function(){
             mzToast("Video qönğiroq tez kunda qöşiladi", 'bi-camera-video');
         });
-        if(dom.infoBtn) dom.infoBtn.addEventListener('click', toggleInfo);
+        if(dom.infoBtn) dom.infoBtn.addEventListener('click', function(){ toggleInfo(); setInfoPref(isInfoOpen()); });
         if(dom.fullBtn) dom.fullBtn.addEventListener('click', toggleFullscreen);
         document.addEventListener('fullscreenchange', syncFullscreenState);
         document.addEventListener('webkitfullscreenchange', syncFullscreenState);
-        if(dom.infoClose) dom.infoClose.addEventListener('click', closeInfo);
+        if(dom.infoClose) dom.infoClose.addEventListener('click', function(){ closeInfo(); if(isWide()) setInfoPref(false); });
+        if(dom.infoActs) dom.infoActs.addEventListener('click', function(e){
+            var b = e.target.closest('[data-info-act]');
+            if(!b) return;
+            var act = b.dataset.infoAct;
+            if(act==='write'){ if(!isWide()) closeInfo(); dom.input.focus(); }
+            else { switchInfoTab(act); dom.paneMembers.parentNode.scrollTo({top: dom.paneMembers.offsetTop - 60, behavior:'smooth'}); }
+        });
         if(dom.infoBackdrop) dom.infoBackdrop.addEventListener('click', closeInfo);
         dom.infoTabs.forEach(function(t){
             t.addEventListener('click', function(){ switchInfoTab(t.dataset.tab); });
@@ -1114,6 +1265,14 @@ window.MZChat = (function(){
         dom.replyClose.addEventListener('click', onReplyClose);
         dom.form.addEventListener('submit', onFormSubmit);
         dom.input.addEventListener('input', onInputTyping);
+        // Tezkor javoblar menyusi Enter'ni yuboriş tugmasidan oldin uşlaşi kerak (capture)
+        dom.input.addEventListener('keydown', onQuickKey, true);
+        dom.input.addEventListener('input', renderQuick);
+        dom.input.addEventListener('blur', function(){ setTimeout(closeQuick, 150); });
+        if(dom.quick) dom.quick.addEventListener('mousedown', function(e){
+            var item = e.target.closest('.mz-quick-item');
+            if(item){ e.preventDefault(); pickQuick(parseInt(item.dataset.i, 10)); }
+        });
         dom.input.addEventListener('keydown', function(e){
             if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); dom.form.requestSubmit(); }
         });
@@ -1157,6 +1316,46 @@ window.MZChat = (function(){
             if(st && st.kind && st.id){ openConversation(st.kind, st.id, false); }
             else { closeConversation(false); }
         });
+    }
+
+    // ───────────────────────── Tezkor javoblar ─────────────────────────
+    var quick = {list: [], sel: 0};
+    function renderQuick(){
+        if(!dom.quick) return;
+        var v = dom.input.value;
+        if(v.charAt(0) !== '/' || /\s/.test(v)){ closeQuick(); return; }
+        var all = QUICK_REPLIES.concat(state.cfg.isTeacher || state.cfg.isAdmin ? QUICK_TEACHER : []);
+        quick.list = all.filter(function(q){ return q[0].indexOf(v.toLowerCase()) === 0; });
+        if(!quick.list.length){ closeQuick(); return; }
+        quick.sel = Math.min(quick.sel, quick.list.length - 1);
+        dom.quick.innerHTML = '<div class="mz-quick-head">Tezkor javoblar</div>' + quick.list.map(function(q, i){
+            return '<div class="mz-quick-item'+(i===quick.sel?' sel':'')+'" role="option" data-i="'+i+'"><code>'+esc(q[0])+'</code><span>'+esc(q[1])+'</span></div>';
+        }).join('');
+        dom.quick.hidden = false;
+    }
+    function closeQuick(){ if(dom.quick){ dom.quick.hidden = true; quick.list = []; quick.sel = 0; } }
+    function pickQuick(i){
+        var q = quick.list[i];
+        if(!q) return;
+        dom.input.value = q[1];
+        closeQuick();
+        dom.input.focus();
+        autoGrow();
+    }
+    function onQuickKey(e){
+        if(!dom.quick || dom.quick.hidden || !quick.list.length) return;
+        if(e.key==='ArrowDown' || e.key==='ArrowUp'){
+            e.preventDefault();
+            var n = quick.list.length;
+            quick.sel = (quick.sel + (e.key==='ArrowDown' ? 1 : n - 1)) % n;
+            renderQuick();
+        } else if(e.key==='Enter' || e.key==='Tab'){
+            e.preventDefault(); e.stopImmediatePropagation();
+            pickQuick(quick.sel);
+        } else if(e.key==='Escape'){
+            e.stopPropagation();
+            closeQuick();
+        }
     }
 
     function cacheDom(){
@@ -1209,6 +1408,13 @@ window.MZChat = (function(){
         dom.infoTabs = Array.prototype.slice.call(document.querySelectorAll('.mz-info-tab'));
         dom.paneMembers = document.getElementById('mzPaneMembers');
         dom.paneFiles = document.getElementById('mzPaneFiles');
+        dom.sideCount = document.getElementById('mzSideCount');
+        dom.headPill = document.getElementById('mzHeadPill');
+        dom.quick = document.getElementById('mzQuick');
+        dom.infoBanner = document.getElementById('mzInfoBanner');
+        dom.infoActs = document.getElementById('mzInfoActs');
+        dom.infoTags = document.getElementById('mzInfoTags');
+        dom.infoCta = document.getElementById('mzInfoCta');
     }
 
     function init(cfg){
@@ -1226,6 +1432,9 @@ window.MZChat = (function(){
         setInterval(loadSidebar, POLL_SIDEBAR_MS);
 
         if(state.currentKind && state.currentId){
+            if(dom.headAva && dom.headAva.classList.contains('mz-ava-fb')) dom.headAva.classList.add(avaCls(state.currentKind+state.currentId));
+            if(state.currentKind==='group') renderHeadPill(null, 'group');
+            if(isWide() && infoPref()) openInfo();
             loadMessages(true);
             state.pollTimer = setInterval(loadMessages, POLL_MSG_MS);
             startTypingPoll();

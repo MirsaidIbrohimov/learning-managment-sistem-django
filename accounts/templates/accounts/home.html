@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load static %}
+{% load static custom_filters %}
 {% block title %}Boş sahifa | IT Creative{% endblock %}
 {% block extra_css %}{% include 'accounts/dashboard/_motion_css.html' %}{% endblock %}
 
@@ -26,7 +26,7 @@
         <a class="btn3" data-mag href="{% url 'professions' %}"><i class="bi bi-compass"></i> Kurslarni kaşf etiş</a>
       </div>
     </div>
-    <div class="hero3-r" data-pf-orb aria-hidden="true">
+    <div class="hero3-r" data-pf-orb {{ user|orb_attrs }} aria-hidden="true">
       <div class="fchip glass f1"><i class="bi bi-coin"></i><span><b>{{ user.coins|default:0 }} coin</b><small>Balans</small></span></div>
       <div class="fchip glass f2"><i class="bi bi-fire"></i><span><b>{{ user.streak_days|default:0 }} kun</b><small>Ketma-ket faollik</small></span></div>
       <div class="fchip glass f3"><i class="bi bi-lightning-charge"></i><span><b>LVL {{ level_number|default:1 }}</b><small>{{ xp_to_next|default:100 }} XP qoldi</small></span></div>
