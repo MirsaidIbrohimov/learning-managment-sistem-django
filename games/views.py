@@ -1480,7 +1480,8 @@ def _clean_audience(request):
     from accounts.models import StudyGroup
 
     audience_type = request.POST.get('audience_type', 'all')
-    if audience_type not in dict(Competition.AUDIENCE_CHOICES):
+    # 'courses' — ustoz musobaqasi rejimi (admin formasida kurs tanlovi yöq)
+    if audience_type not in ('all', 'groups', 'students'):
         audience_type = 'all'
 
     group_ids = [gid for gid in request.POST.getlist('group_ids') if gid.isdigit()]

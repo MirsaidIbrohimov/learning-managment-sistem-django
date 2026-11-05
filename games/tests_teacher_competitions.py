@@ -414,3 +414,62 @@ class TeacherAnyGameCompetitionTests(TestCase):
         resp = self.client.get(reverse('games:teacher_competitions'))
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Şaxmat kubogi')
+
+
+@SKIP_SESSION_MIDDLEWARE
+@mock.patch('telegram_bot.utils.notify_group')
+@mock.patch('telegram_bot.utils.notify_user')
+@mock.patch('telegram_bot.utils.notify_competition_started')
+class TeacherCompetitionAudienceTests(TestCase):
+    """Kimlar uçun: hammaga yoki ustoz kurslariga yozilgan barça öquvçilar."""
+
+    def setUp(self):
+        from accounts.models import CourseEnrollment
+
+        self.teacher = make_user('ustoz3', role='teacher', coins=500)
+        self.my_course = Profession.objects.create(name='Python', photo='p.jpg', description='-')
+        self.other_course = Profession.objects.create(name='Dizayn', photo='p.jpg', description='-')
+        self.teacher.teaching_professions.add(self.my_course)
+        self.mine, self.stranger, self.late = make_user('mine'), make_user('stranger'), make_user('late')
+        CourseEnrollment.objects.create(user=self.mine, profession=self.my_course)
+        CourseEnrollment.objects.create(user=self.stranger, profession=self.other_course)
+        self.game = Game.objects.create(title='Typing', slug='typing-a', game_type='typing')
+        Prompt.objects.create(game=self.game, text='salom dunyo bu test matni', usage='both')
+        self.client.force_login(self.teacher)
+
+    def post(self, **extra):
+        now = timezone.localtime()
+        data = {'title': 'Kubok', 'game': self.game.pk,
+                'start_time': (now - timedelta(minutes=5)).strftime('%Y-%m-%dT%H:%M'),
+                'end_time': (now + timedelta(hours=2)).strftime('%Y-%m-%dT%H:%M'),
+                'max_attempts': 3, 'is_active': 'on', 'coin_1st': 100, 'coin_2nd': 0, 'coin_3rd': 0, **extra}
+        return self.client.post(reverse('games:teacher_competition_add'), data)
+
+    def test_courses_audience_includes_later_enrollees_only_from_my_courses(self, *_):
+        from accounts.models import CourseEnrollment
+
+        self.post(audience_type='courses', profession_ids=[self.my_course.pk, self.other_course.pk])
+        comp = Competition.objects.get()
+        self.assertEqual((comp.audience_type, list(comp.professions.all()), comp.max_attempts),
+                         ('courses', [self.my_course], 3))  # begona kurs tanlanmaydi
+        self.assertTrue(comp.is_user_allowed(self.mine))
+        self.assertFalse(comp.is_user_allowed(self.stranger))
+        CourseEnrollment.objects.create(user=self.late, profession=self.my_course)
+        self.assertTrue(comp.is_user_allowed(self.late))
+        visible = Competition.objects.filter(Competition.visible_q(self.late)).distinct()
+        self.assertEqual(list(visible), [comp])
+        self.assertEqual(coins(self.teacher), 400)
+
+    def test_all_audience_is_open_to_everyone_but_paid_by_teacher(self, *_):
+        self.post(audience_type='all')
+        comp = Competition.objects.get()
+        self.assertEqual(comp.audience_type, 'all')
+        self.assertTrue(comp.is_user_allowed(self.stranger))
+        self.assertEqual((comp.prize_source, coins(self.teacher)), ('teacher', 400))
+
+    def test_form_renders_game_cards_and_audiences(self, *_):
+        resp = self.client.get(reverse('games:teacher_competition_add'))
+        self.assertContains(resp, 'class="tc-game"')
+        self.assertContains(resp, 'value="courses"')
+        self.assertContains(resp, 'name="profession_ids"')
+        self.assertContains(resp, f'value="{self.game.pk}:v2"')
