@@ -178,6 +178,13 @@
 }
 
 /* Students picker */
+.sgf-hint { font-size: .82rem; color: #6c757d; margin: -4px 0 12px; line-height: 1.5; }
+.sgf-period { height: 38px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px; background: rgba(99, 102, 241, .08); color: #4f46e5; font-weight: 700; font-size: .88rem; }
+.sgf-period.bad { background: rgba(239, 68, 68, .1); color: #dc2626; }
+.sgf-cur { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.sgf-cur span { font-size: .68rem; font-weight: 700; padding: 1px 7px; border-radius: 6px; background: rgba(245, 158, 11, .14); color: #b45309; }
+.sgf-empty { padding: 18px; text-align: center; color: #6c757d; font-size: .88rem; }
+.sgf-student-item[hidden] { display: none !important; }
 .sgf-students {
     background: var(--bg-color);
     border: 2px solid var(--border-color);
@@ -385,9 +392,33 @@
             </div>
         </div>
 
+        <!-- Guruh davri -->
+        <div class="sgf-card">
+            <h6><i class="bi bi-calendar-range"></i> Guruh davri</h6>
+            <p class="sgf-hint">Guruh boşlaniş sanasidan tugaş sanasigaça <b>faol</b> böladi va davomatda körinadi. Tugaş sanasidan keyin avtomatik <b>arxivga</b> ötadi va davomatda körinmaydi. Davomiyligi: <b>kamida 1 oy, köpi bilan 9 oy</b>.</p>
+            <div class="sgf-grid-3">
+                <div class="sgf-field">
+                    <label><i class="bi bi-calendar-plus"></i> Boşlaniş sanasi {% if not group %}<span class="req">*</span>{% endif %}</label>
+                    <input type="date" name="start_date" class="form-control" {% if not group %}required{% endif %}
+                           value="{% if group.start_date %}{{ group.start_date|date:'Y-m-d' }}{% elif not group %}{{ today|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-calendar-x"></i> Tugaş sanasi {% if not group %}<span class="req">*</span>{% endif %}</label>
+                    <input type="date" name="end_date" class="form-control" {% if not group %}required{% endif %}
+                           value="{% if group.end_date %}{{ group.end_date|date:'Y-m-d' }}{% endif %}">
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-hourglass-split"></i> Davomiyligi</label>
+                    <div class="sgf-period" id="sgfPeriod">—</div>
+                </div>
+            </div>
+            {% if group %}<p class="sgf-hint" style="margin:10px 0 0">Böş qoldirilsa — muddatsiz guruh (eski guruhlar uçun).</p>{% endif %}
+        </div>
+
         <!-- Kunlar va vaqt -->
         <div class="sgf-card">
             <h6><i class="bi bi-calendar-week"></i> Dars kunlari va vaqti</h6>
+            <p class="sgf-hint">Dars qaysi kunlari va soat neçada bölişini belgilang — bu öquvçi va öqituvçining dars jadvalida körinadi.</p>
 
             <div class="sgf-field">
                 <label><i class="bi bi-calendar-check"></i> Kunlarni tanlang <span class="req">*</span></label>
@@ -434,6 +465,11 @@
         <!-- Öquvçilar -->
         <div class="sgf-card">
             <h6><i class="bi bi-people-fill"></i> Öquvçilar</h6>
+            {% if only_ungrouped %}
+            <p class="sgf-hint"><i class="bi bi-info-circle"></i> Bu yerda tanlangan kursda hali <b>guruhi yöq</b> öquvçilar körinadi. Boşqa guruhdagi öquvçini köçiriş — admin işi.</p>
+            {% else %}
+            <p class="sgf-hint"><i class="bi bi-info-circle"></i> Öquvçining hozirgi guruhlari ismi yonida körsatilgan — guruhni almaştiriş uçun eskisidan olib, yangisiga qöşing.</p>
+            {% endif %}
 
             <div class="sgf-students">
                 <input type="text" id="studentSearch" class="sgf-students-search"
@@ -444,7 +480,7 @@
                 </div>
                 <div class="sgf-students-list" id="studentsList">
                     {% for s in students %}
-                    <label class="sgf-student-item" data-name="{{ s.first_name|lower }} {{ s.last_name|lower }} {{ s.phone|default:'' }}">
+                    <label class="sgf-student-item" data-name="{{ s.first_name|lower }} {{ s.last_name|lower }} {{ s.phone|default:'' }}"{% if only_ungrouped %} data-prof="{{ s.prof_ids }}"{% endif %}>
                         <input type="checkbox" name="students" value="{{ s.pk }}"
                                {% if s.pk in selected_students %}checked{% endif %}>
                         <div class="avatar">
@@ -457,11 +493,13 @@
                         <div class="info">
                             <div class="name">{{ s.first_name }} {{ s.last_name }}</div>
                             {% if s.phone %}<div class="phone">{{ s.phone }}</div>{% endif %}
+                            {% if s.cur_groups %}<div class="sgf-cur">{% for cg in s.cur_groups %}{% if not group or cg.pk != group.pk %}<span><i class="bi bi-people"></i> {{ cg.name }}</span>{% endif %}{% endfor %}</div>{% endif %}
                         </div>
                         <div class="check-mark"><i class="bi bi-check-lg"></i></div>
                     </label>
                     {% endfor %}
                 </div>
+                {% if only_ungrouped %}<div class="sgf-empty" id="sgfNoStudents" hidden><i class="bi bi-emoji-smile"></i> Bu kursdagi barça öquvçilar allaqaçon guruhlarga bölingan.</div>{% endif %}
             </div>
         </div>
 
@@ -544,8 +582,65 @@ studentSearch.addEventListener('input', function() {
 
 updateStudentCount();
 
+// Guruh davri: davomiylik
+const startDate = document.querySelector('input[name="start_date"]'), endDate = document.querySelector('input[name="end_date"]');
+function updatePeriod() {
+    const el = document.getElementById('sgfPeriod');
+    if (!startDate.value || !endDate.value) { el.textContent = '—'; return; }
+    const days = Math.round((new Date(endDate.value) - new Date(startDate.value)) / 86400000) + 1;
+    el.textContent = days > 0 ? (days >= 30 ? Math.round(days / 30 * 10) / 10 + ' oy (' + days + ' kun)' : days + ' kun') : '—';
+    const ok = periodOk();
+    el.classList.toggle('bad', !ok);
+}
+// Davomiylik: kamida 1 oy, köpi bilan 9 oy (serverda ham tekşiriladi)
+function addMonths(iso, m) {
+    const d = new Date(iso + 'T00:00:00'), day = d.getDate();
+    d.setDate(1); d.setMonth(d.getMonth() + m);
+    d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function periodOk() {
+    if (!startDate.value || !endDate.value) return true;
+    return endDate.value >= addMonths(startDate.value, 1) && endDate.value <= addMonths(startDate.value, 9);
+}
+function syncLimits() {
+    if (!startDate.value) return;
+    endDate.min = addMonths(startDate.value, 1);
+    endDate.max = addMonths(startDate.value, 9);
+}
+startDate.addEventListener('change', syncLimits); syncLimits();
+startDate.addEventListener('change', updatePeriod); endDate.addEventListener('change', updatePeriod); updatePeriod();
+
+// Öqituvçi: faqat tanlangan kursdagi guruhsiz öquvçilar
+const profSelect = document.querySelector('select[name="profession"]');
+function filterByProfession() {
+    if (!studentsList.querySelector('[data-prof]')) return;
+    const pid = profSelect.value;
+    let visible = 0;
+    studentsList.querySelectorAll('.sgf-student-item').forEach(item => {
+        const ok = pid && (' ' + item.dataset.prof + ' ').includes(' ' + pid + ' ');
+        item.hidden = !ok;
+        if (!ok) { item.querySelector('input').checked = false; updateStudentCheckedState(item); }
+        else visible++;
+    });
+    const empty = document.getElementById('sgfNoStudents');
+    if (empty) empty.hidden = !pid || visible > 0;
+    updateStudentCount();
+}
+if (profSelect) { profSelect.addEventListener('change', filterByProfession); filterByProfession(); }
+
 // Form validation
 document.getElementById('sgfForm').addEventListener('submit', function(e) {
+    if (startDate.value && endDate.value && endDate.value < startDate.value) {
+        e.preventDefault();
+        alert("Tugaş sanasi boşlaniş sanasidan oldin bölişi mumkin emas!");
+        return;
+    }
+    if (!periodOk()) {
+        e.preventDefault();
+        alert("Guruh davomiyligi kamida 1 oy, köpi bilan 9 oy bölişi kerak!");
+        return;
+    }
     const days = document.querySelectorAll('input[name="days"]:checked').length;
     if (days === 0) {
         e.preventDefault();

@@ -3,6 +3,7 @@
 {% block title %}Sörovlar - Admin Panel{% endblock %}
 
 {% block extra_css %}
+<style>.egs-select{min-width:210px;max-width:280px}.egs-none{font-size:.78rem;font-weight:600;color:#dc2626}</style>
 <style>
     /* ===== Stat Summary Cards ===== */
     .enroll-stats {
@@ -651,9 +652,10 @@
                         <td class="text-center">
                             {% if req.status == 'pending' %}
                             <div class="btn-group">
-                                <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="d-inline">
+                                <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="d-inline-flex gap-1 align-items-center">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-success btn-sm" title="Qabul qiliş">
+                                    {% url 'admin_study_group_create' as create_url %}{% include 'partials/_enroll_group_select.html' with show_teacher=True %}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Qabul qiliş" {% if not req.group_options %}disabled{% endif %}>
                                         <i class="bi bi-check-lg"></i> Qabul
                                     </button>
                                 </form>
@@ -790,9 +792,10 @@
 
         {% if req.status == 'pending' %}
         <div class="enroll-mobile-actions">
-            <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="flex-fill">
+            <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="flex-fill d-grid gap-1">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success w-100">
+                {% url 'admin_study_group_create' as create_url %}{% include 'partials/_enroll_group_select.html' with show_teacher=True %}
+                <button type="submit" class="btn btn-success w-100" {% if not req.group_options %}disabled{% endif %}>
                     <i class="bi bi-check-lg me-1"></i>Qabul
                 </button>
             </form>

@@ -1,0 +1,380 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Premium sozlamalar | IT Creative{% endblock %}
+
+{% block extra_css %}
+<style>
+.ps-page { max-width: 1080px; margin: 0 auto; padding: 8px 0 40px; animation: fadeInUp .4s ease; }
+.ps-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 20px; padding: 20px 22px; margin-bottom: 16px; scroll-margin-top: 90px; }
+.ps-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ps-head h1 { font-size: 1.45rem; font-weight: 800; margin: 0; }
+.ps-head p, .ps-muted { margin: 2px 0 0; color: var(--bs-secondary-color); font-size: .9rem; }
+.ps-card h2 { font-size: 1.08rem; font-weight: 800; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+.ps-label { font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--bs-secondary-color); margin: 18px 0 10px; }
+.ps-lock { border-radius: 16px; padding: 14px 18px; margin-bottom: 16px; background: rgba(245, 158, 11, .1); color: #b45309; font-weight: 600; }
+.ps-nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.ps-nav a { padding: 7px 14px; border-radius: 999px; border: 1px solid var(--bs-border-color); font-weight: 700; font-size: .84rem; text-decoration: none; color: inherit; }
+.ps-nav a:hover { border-color: #f59e0b; }
+
+/* 3D shakl */
+.ps-shape-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .ps-shape-grid { grid-template-columns: 1fr; } }
+.ps-orb-wrap { position: sticky; top: 90px; border-radius: 20px; overflow: hidden; border: 1px solid var(--bs-border-color);
+    background: radial-gradient(80% 70% at 50% 40%, rgba(124, 58, 237, .14), transparent 70%), var(--bs-secondary-bg); }
+.ps-orb { position: relative; height: 340px; }
+.ps-orb canvas { position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+.ps-ldr-wrap { display: grid; place-items: center; min-height: 300px; }
+.ps-ldr { width: 230px !important; height: 230px !important; }
+.ps-orb-cap { position: absolute; left: 12px; bottom: 10px; font-size: .76rem; font-weight: 700; color: var(--bs-secondary-color); }
+.ps-opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+.ps-opt input, .ps-sw input, .ps-seg input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.ps-opt label { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; cursor: pointer; text-align: center;
+    border: 2px solid var(--bs-border-color); border-radius: 14px; font-weight: 700; font-size: .84rem; transition: border-color .15s, transform .15s; }
+.ps-opt label i { font-size: 1.5rem; color: #7c3aed; }
+.ps-opt label:hover { transform: translateY(-2px); }
+.ps-opt input:checked + label, .ps-seg input:checked + label { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, .14); }
+.ps-opt input:focus-visible + label, .ps-sw input:focus-visible + label, .ps-seg input:focus-visible + label { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.ps-sws { display: flex; flex-wrap: wrap; gap: 10px; }
+.ps-sw { position: relative; }
+.ps-sw label { display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border: 2px solid var(--bs-border-color); border-radius: 999px; cursor: pointer; font-weight: 700; font-size: .84rem; }
+.ps-sw label span { width: 26px; height: 26px; border-radius: 50%; }
+.ps-sw input:checked + label { border-color: #f59e0b; }
+.pal-aurora { background: linear-gradient(135deg, #7c3aed, #22d3ee); }
+.pal-gold { background: linear-gradient(135deg, #b45309, #fcd34d); }
+.pal-fire { background: linear-gradient(135deg, #b91c1c, #fb923c); }
+.pal-ocean { background: linear-gradient(135deg, #1d4ed8, #22d3ee); }
+.pal-emerald { background: linear-gradient(135deg, #047857, #34d399); }
+.pal-sakura { background: linear-gradient(135deg, #db2777, #f9a8d4); }
+.pal-rainbow { background: conic-gradient(#ef4444, #f59e0b, #84cc16, #06b6d4, #6366f1, #d946ef, #ef4444); }
+.ps-seg { display: flex; flex-wrap: wrap; gap: 6px; position: relative; }
+.ps-seg label { padding: 7px 14px; border: 2px solid var(--bs-border-color); border-radius: 11px; cursor: pointer; font-size: .84rem; font-weight: 700; }
+
+/* Xavfsizlik — himoya darajasi, tayyor rejimlar, ixçam tanlov */
+.sec-meter { display: flex; align-items: center; gap: 16px; padding: 16px 18px; border-radius: 18px; margin-top: 14px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--lvl) 14%, transparent), transparent 75%); border: 1px solid color-mix(in srgb, var(--lvl) 35%, transparent);
+    transition: background .3s, border-color .3s; --lvl: #10b981; }
+.sec-meter[data-level="mid"] { --lvl: #f59e0b; }
+.sec-meter[data-level="low"] { --lvl: #ef4444; }
+.sec-shield { position: relative; width: 58px; height: 58px; flex-shrink: 0; border-radius: 18px; display: grid; place-items: center; font-size: 1.7rem; color: #fff; background: var(--lvl); box-shadow: 0 12px 26px -12px var(--lvl); transition: background .3s; }
+.sec-meter-body { flex: 1; min-width: 0; }
+.sec-meter-title { font-weight: 800; font-size: 1.02rem; }
+.sec-meter-title b { color: var(--lvl); }
+.sec-bars { display: flex; gap: 5px; margin: 8px 0 6px; }
+.sec-bars i { flex: 1; height: 7px; border-radius: 99px; background: var(--bs-secondary-bg); transition: background .3s; }
+.sec-bars i.on { background: var(--lvl); }
+.sec-meter-sum { font-size: .82rem; color: var(--bs-secondary-color); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.sec-meter-sum span { display: inline-flex; align-items: center; gap: 5px; }
+
+.sec-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 640px) { .sec-presets { grid-template-columns: 1fr; } }
+.sec-preset { display: flex; align-items: center; gap: 10px; padding: 12px 14px; text-align: left; border: 2px solid var(--bs-border-color); border-radius: 14px; background: var(--bs-body-bg); color: inherit; transition: border-color .15s, transform .15s; }
+.sec-preset:hover { transform: translateY(-2px); }
+.sec-preset.active { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, .14); }
+.sec-preset > i { width: 38px; height: 38px; flex-shrink: 0; border-radius: 11px; display: grid; place-items: center; font-size: 1.1rem; }
+.sec-preset b { display: block; font-size: .9rem; }
+.sec-preset small { color: var(--bs-secondary-color); font-size: .76rem; }
+
+.sec-block { margin-top: 12px; padding: 16px 18px; border: 1px solid var(--bs-border-color); border-radius: 16px; }
+.sec-block-head { display: flex; align-items: center; gap: 12px; }
+.sec-block-head > i { width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; display: grid; place-items: center; font-size: 1.15rem; }
+.sec-block-head b { display: block; font-size: .98rem; }
+.sec-block-head small { color: var(--bs-secondary-color); font-size: .8rem; }
+.ic-blue { background: rgba(59, 130, 246, .12); color: #3b82f6; }
+.ic-green { background: rgba(16, 185, 129, .12); color: #10b981; }
+.ic-amber { background: rgba(245, 158, 11, .14); color: #d97706; }
+.ic-violet { background: rgba(139, 92, 246, .12); color: #8b5cf6; }
+
+.sec-pills { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; position: relative; }
+@media (max-width: 640px) { .sec-pills { grid-template-columns: repeat(4, 1fr); } }
+.sec-pills input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.sec-pills label { padding: 9px 4px; text-align: center; border: 2px solid var(--bs-border-color); border-radius: 12px; cursor: pointer; font-weight: 800; font-size: .86rem; transition: border-color .15s, background .15s; }
+.sec-pills input:checked + label { border-color: var(--tone, #f59e0b); background: color-mix(in srgb, var(--tone, #f59e0b) 10%, transparent); color: var(--tone, #f59e0b); }
+.sec-pills input:focus-visible + label, .sec-toggle input:focus-visible + .sec-track { outline: 2px solid #3b82f6; outline-offset: 2px; }
+.sec-desc { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: .86rem; }
+.ps-tag { flex-shrink: 0; padding: 3px 9px; border-radius: 8px; font-size: .72rem; font-weight: 800; }
+.ps-tag.safe { color: #047857; background: rgba(16, 185, 129, .12); }
+.ps-tag.std { color: #1d4ed8; background: rgba(59, 130, 246, .12); }
+.ps-tag.comfy { color: #b45309; background: rgba(245, 158, 11, .14); }
+.ps-tag.risk { color: #b91c1c; background: rgba(239, 68, 68, .12); }
+
+.sec-toggle { display: flex; align-items: center; gap: 14px; cursor: pointer; margin: 0; }
+.sec-toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.sec-track { position: relative; width: 52px; height: 30px; flex-shrink: 0; margin-left: auto; border-radius: 99px; background: var(--bs-secondary-bg); border: 1px solid var(--bs-border-color); transition: background .2s; }
+.sec-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); transition: transform .2s; }
+.sec-toggle input:checked + .sec-track { background: #10b981; border-color: #10b981; }
+.sec-toggle input:checked + .sec-track::after { transform: translateX(22px); }
+.sec-state { font-size: .78rem; font-weight: 800; }
+.sec-state.on { color: #10b981; }
+.sec-state.off { color: #ef4444; }
+.ps-warn { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: .84rem; background: rgba(239, 68, 68, .08); color: #b91c1c; }
+.ps-warn[hidden] { display: none; }
+
+.sec-more { margin-top: 12px; }
+.sec-more summary { cursor: pointer; font-size: .82rem; font-weight: 700; color: #3b82f6; list-style: none; display: inline-flex; align-items: center; gap: 5px; }
+.sec-more summary::-webkit-details-marker { display: none; }
+.sec-more summary i { transition: transform .2s; }
+.sec-more[open] summary i { transform: rotate(90deg); }
+.sec-more-body { margin-top: 8px; padding: 12px 14px; border-radius: 12px; background: var(--bs-secondary-bg); font-size: .84rem; line-height: 1.55; }
+.sec-more-body p { margin: 0 0 6px; }
+.sec-more-body p:last-child { margin: 0; }
+.ps-ip { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+
+.sec-keep { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 760px) { .sec-keep { grid-template-columns: 1fr; } }
+.sec-keep div { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 14px; background: var(--bs-secondary-bg); font-size: .8rem; line-height: 1.45; color: var(--bs-secondary-color); }
+.sec-keep i { color: #10b981; font-size: 1.05rem; }
+
+.sec-bar { position: sticky; bottom: 12px; z-index: 5; display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 10px 10px 10px 16px; border-radius: 16px;
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); box-shadow: 0 16px 40px -20px rgba(0, 0, 0, .45); }
+.sec-bar-text { flex: 1; font-size: .84rem; color: var(--bs-secondary-color); }
+.sec-bar.dirty .sec-bar-text { color: #d97706; font-weight: 700; }
+.sec-bar .ps-save { width: auto; margin: 0; }
+.ps-save { border: 0; border-radius: 12px; padding: 12px 22px; font-weight: 800; color: #1a1206; width: 100%; margin-top: 18px; background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.ps-save:disabled { opacity: .5; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ps-page">
+    {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">{{ message }}</div>{% endfor %}
+
+    <div class="ps-card ps-head">
+        <div>
+            <h1><i class="bi bi-gem" style="color:#f59e0b"></i> Premium sozlamalar</h1>
+            <p>3D shaklni özingizga moslang va hisobingiz xavfsizligini boşqaring.</p>
+        </div>
+        <div class="ps-nav">
+            <a href="#shape"><i class="bi bi-box"></i> 3D shakl</a>
+            <a href="#loader"><i class="bi bi-hourglass"></i> Yuklaniş</a>
+            <a href="#security"><i class="bi bi-shield-lock"></i> Xavfsizlik</a>
+            <a href="{% url 'profile' %}"><i class="bi bi-arrow-left"></i> Profil</a>
+        </div>
+    </div>
+
+    {% if not is_active_premium %}
+    <div class="ps-lock"><i class="bi bi-lock-fill"></i> Bu sozlamalar faqat Premium a'zolar uçun. Shakllarni sinab körişingiz mumkin, saqlaş uçun <a href="{% url 'coin:buy_premium_page' %}">Premium oling</a>.</div>
+    {% endif %}
+
+    <!-- ═══ 3D shakl ═══ -->
+    <form method="post" class="ps-card" id="shape">
+        {% csrf_token %}<input type="hidden" name="section" value="shape">
+        <h2><i class="bi bi-box" style="color:#7c3aed"></i> 3D shakl</h2>
+        <p class="ps-muted">Bosh sahifa va profilingizdagi jonli 3D shakl. Tanlaganingiz chap tomonda darhol körinadi — siçqonçani ustiga olib boring, u reaksiya qiladi.</p>
+        <div class="ps-shape-grid" style="margin-top:14px">
+            <div class="ps-orb-wrap">
+                <div class="ps-orb" data-pf-orb data-shape="{{ prefs.orb_shape }}" data-palette="{{ prefs.orb_palette }}" data-speed="{{ prefs.orb_speed }}" aria-hidden="true"></div>
+                <div class="ps-orb-cap"><i class="bi bi-eye"></i> Jonli namuna</div>
+            </div>
+            <div>
+                <div class="ps-label" style="margin-top:0">Shakl</div>
+                <div class="ps-opts">
+                    {% for value, label in shapes %}
+                    <div class="ps-opt">
+                        <input type="radio" name="orb_shape" value="{{ value }}" id="sh-{{ value }}" data-orb="shape" {% if prefs.orb_shape == value %}checked{% endif %}>
+                        <label for="sh-{{ value }}"><i class="bi {% if value == 'sphere' %}bi-circle-fill{% elif value == 'cube' %}bi-box-fill{% elif value == 'torus' %}bi-life-preserver{% elif value == 'heart' %}bi-heart-fill{% elif value == 'dna' %}bi-bezier2{% elif value == 'galaxy' %}bi-stars{% elif value == 'planet' %}bi-globe2{% elif value == 'infinity' %}bi-infinity{% else %}bi-star-fill{% endif %}"></i>{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="ps-label">Rang</div>
+                <div class="ps-sws">
+                    {% for value, label in palettes %}
+                    <div class="ps-sw">
+                        <input type="radio" name="orb_palette" value="{{ value }}" id="pal-{{ value }}" data-orb="palette" {% if prefs.orb_palette == value %}checked{% endif %}>
+                        <label for="pal-{{ value }}"><span class="pal-{{ value }}"></span>{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="ps-label">Aylaniş tezligi</div>
+                <div class="ps-seg">
+                    {% for value, label in speeds %}
+                    <input type="radio" name="orb_speed" value="{{ value }}" id="sp-{{ value }}" data-orb="speed" {% if prefs.orb_speed == value %}checked{% endif %}><label for="sp-{{ value }}">{{ label }}</label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="ps-save" {% if not is_active_premium %}disabled{% endif %}><i class="bi bi-check-lg"></i> Shaklni saqlaş</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- ═══ Yuklaniş animatsiyasi ═══ -->
+    <form method="post" class="ps-card" id="loader">
+        {% csrf_token %}<input type="hidden" name="section" value="loader">
+        <h2><i class="bi bi-hourglass-split" style="color:#06b6d4"></i> Yuklaniş animatsiyasi</h2>
+        <p class="ps-muted">Sahifa yuklanayotganda markazda aylanadigan shakl. U shar va siz tanlagan shakl orasida silliq almaşib turadi.</p>
+        <div class="ps-shape-grid" style="margin-top:14px">
+            <div class="ps-orb-wrap ps-ldr-wrap">
+                <canvas class="morph-ldr ps-ldr" id="psLdr" data-shape="{{ prefs.loader_shape }}" data-palette="{{ prefs.loader_palette }}" aria-hidden="true"></canvas>
+                <div class="ps-orb-cap"><i class="bi bi-eye"></i> Jonli namuna</div>
+            </div>
+            <div>
+                <div class="ps-label" style="margin-top:0">Shakl</div>
+                <div class="ps-opts">
+                    {% for value, label in shapes %}
+                    <div class="ps-opt">
+                        <input type="radio" name="loader_shape" value="{{ value }}" id="ls-{{ value }}" data-ldr="shape" {% if prefs.loader_shape == value %}checked{% endif %}>
+                        <label for="ls-{{ value }}"><i class="bi {% if value == 'sphere' %}bi-circle-fill{% elif value == 'cube' %}bi-box-fill{% elif value == 'torus' %}bi-life-preserver{% elif value == 'heart' %}bi-heart-fill{% elif value == 'dna' %}bi-bezier2{% elif value == 'galaxy' %}bi-stars{% elif value == 'planet' %}bi-globe2{% elif value == 'infinity' %}bi-infinity{% else %}bi-star-fill{% endif %}"></i>{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="ps-label">Rang</div>
+                <div class="ps-sws">
+                    {% for value, label in palettes %}
+                    <div class="ps-sw">
+                        <input type="radio" name="loader_palette" value="{{ value }}" id="lp-{{ value }}" data-ldr="palette" {% if prefs.loader_palette == value %}checked{% endif %}>
+                        <label for="lp-{{ value }}"><span class="pal-{{ value }}"></span>{{ label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="ps-save" {% if not is_active_premium %}disabled{% endif %}><i class="bi bi-check-lg"></i> Yuklaniş animatsiyasini saqlaş</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- ═══ Xavfsizlik ═══ -->
+    <form method="post" class="ps-card" id="security">
+        {% csrf_token %}<input type="hidden" name="section" value="security">
+        <h2><i class="bi bi-shield-lock" style="color:#10b981"></i> Xavfsizlik va sessiya</h2>
+        <p class="ps-muted">Hisobingiz qaçon avtomatik yopilişini tanlang. Tayyor rejimdan birini bosing yoki pastda özingiz sozlang.</p>
+
+        <div class="sec-meter" id="secMeter" data-level="high" aria-live="polite">
+            <div class="sec-shield"><i class="bi bi-shield-fill-check" id="secShieldIc"></i></div>
+            <div class="sec-meter-body">
+                <div class="sec-meter-title">Himoya darajasi: <b id="secLevel">Yuqori</b></div>
+                <div class="sec-bars"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="sec-meter-sum">
+                    <span><i class="bi bi-hourglass-split"></i> <span id="secSumIdle">2 soat</span> faolsizlikdan keyin çiqariladi</span>
+                    <span><i class="bi bi-wifi"></i> IP tekşiruvi: <b id="secSumIp">yoqilgan</b></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="ps-label">Tayyor rejimlar</div>
+        <div class="sec-presets">
+            <button type="button" class="sec-preset" data-idle="30" data-ip="1"><i class="bi bi-shield-lock-fill ic-green"></i><span><b>Maksimal himoya</b><small>30 daqiqa · IP tekşiruvi yoqilgan</small></span></button>
+            <button type="button" class="sec-preset" data-idle="120" data-ip="1"><i class="bi bi-sliders ic-blue"></i><span><b>Muvozanat</b><small>2 soat · IP tekşiruvi yoqilgan</small></span></button>
+            <button type="button" class="sec-preset" data-idle="480" data-ip="0"><i class="bi bi-cup-hot-fill ic-amber"></i><span><b>Qulaylik</b><small>8 soat · IP tekşiruvi öçiq</small></span></button>
+        </div>
+
+        <div class="sec-block">
+            <div class="sec-block-head">
+                <i class="bi bi-hourglass-split ic-violet"></i>
+                <span><b>Faolsizlikda avtomatik çiqariş</b><small>Saytda hech narsa qilmasangiz, şunça vaqtdan keyin hisobingiz yopiladi</small></span>
+            </div>
+            <div class="sec-pills" role="radiogroup" aria-label="Faolsizlik muddati">
+                {% for value, label in idle_choices %}
+                <input type="radio" name="idle_timeout_minutes" value="{{ value }}" id="idle-{{ value }}" {% if prefs.idle_timeout_minutes == value %}checked{% endif %}
+                       data-label="{{ label }}" data-tag="{% if value <= 60 %}safe{% elif value <= 120 %}std{% elif value <= 480 %}comfy{% else %}risk{% endif %}"
+                       data-tag-text="{% if value <= 60 %}Xavfsiz{% elif value <= 120 %}Standart{% elif value <= 480 %}Qulay{% else %}Ehtiyot böling{% endif %}"
+                       data-desc="{% if value <= 30 %}Umumiy kompyuterlar (öquv xonasi, internet-kafe) uçun eng yaxşisi.{% elif value <= 60 %}Xavfsiz — uzun tanaffusdan keyin qayta kirasiz.{% elif value <= 120 %}Köpçilik uçun mos muvozanat. Saytning standart qiymati.{% elif value <= 480 %}Şaxsiy qurilmada uzoq dars qilganda qulay.{% else %}Faqat parol bilan himoyalangan şaxsiy qurilmada tanlang.{% endif %}">
+                <label for="idle-{{ value }}">{% if value < 60 %}{{ value }} daq{% elif value < 1440 %}{% widthratio value 60 1 %} soat{% else %}{% widthratio value 1440 1 %} kun{% endif %}</label>
+                {% endfor %}
+            </div>
+            <div class="sec-desc"><span class="ps-tag std" id="secTag">Standart</span><span id="secDesc"></span></div>
+            <details class="sec-more">
+                <summary><i class="bi bi-chevron-right"></i> Batafsil: bu nima va nima uçun kerak?</summary>
+                <div class="sec-more-body">
+                    <p>Sahifa oçmasangiz, tugma bosmasangiz va hech narsa yozmasangiz — bu faolsizlik hisoblanadi. Tanlangan vaqt ötgaç, hisobingiz yopiladi va qayta kirişingiz kerak böladi.</p>
+                    <p>Bu kompyuter yoki telefoningizni oçiq qoldirib ketsangiz, boşqa odam hisobingizdan foydalana olmasligi uçun kerak. Qisqa muddat — xavfsizroq, uzoq muddat — qulayroq.</p>
+                </div>
+            </details>
+        </div>
+
+        <div class="sec-block">
+            <label class="sec-toggle" for="psIp">
+                <span class="sec-block-head">
+                    <i class="bi bi-wifi ic-blue"></i>
+                    <span><b>IP manzil özgarsa, hisobdan çiqariş</b><small>Hozirgi IP: <span class="ps-ip">{{ client_ip|default:"—" }}</span> · <span class="sec-state" id="secIpState"></span></small></span>
+                </span>
+                <input type="checkbox" role="switch" name="logout_on_ip_change" id="psIp" {% if prefs.logout_on_ip_change %}checked{% endif %}>
+                <span class="sec-track" aria-hidden="true"></span>
+            </label>
+            <div class="ps-warn" id="psIpWarn" {% if prefs.logout_on_ip_change %}hidden{% endif %}><i class="bi bi-exclamation-triangle-fill"></i> Himoya öçiq: ögirlangan sessiya boşqa tarmoqdan ham işlaşi mumkin. Faqat öz qurilmangizda öçiring.</div>
+            <details class="sec-more">
+                <summary><i class="bi bi-chevron-right"></i> Batafsil: IP qaçon özgaradi?</summary>
+                <div class="sec-more-body">
+                    <p><b>IP manzil</b> — internetga ulangan tarmoğingizning raqamli manzili.</p>
+                    <p>U Wi-Fi'dan mobil internetga (yoki aksinça) ötganda, boşqa Wi-Fi'ga ulanganda yoki VPN yoqilganda özgaradi. Ba'zi mobil operatorlar IP'ni özi ham almaştiradi.</p>
+                    <p><b>Yoqilgan</b> bölsa, kimdir sessiyangizni ögirlab boşqa joydan oçmoqçi bölsa, u darhol yopiladi (tavsiya etiladi). <b>Öçirilgan</b> bölsa, tarmoq almaşganda hisobdan çiqib ketmaysiz.</p>
+                </div>
+            </details>
+        </div>
+
+        <div class="ps-label">Har doim işlaydigan himoyalar</div>
+        <div class="sec-keep">
+            <div><i class="bi bi-phone"></i><span>Bir vaqtda faqat bitta qurilmada kiriş — boşqa joydan kirilsa, oldingi sessiya yopiladi.</span></div>
+            <div><i class="bi bi-key"></i><span>Parolni özgartiriş va Telegramni uziş — faqat tasdiqlaş kodi bilan.</span></div>
+            <div><i class="bi bi-arrow-counterclockwise"></i><span>Premium tugasa, standart himoya (2 soat, IP tekşiruvi) qayta yoqiladi.</span></div>
+        </div>
+
+        <div class="sec-bar" id="secBar">
+            <span class="sec-bar-text" id="secBarText">Özgarişlar yöq</span>
+            <button type="submit" class="ps-save" {% if not is_active_premium %}disabled{% endif %}><i class="bi bi-shield-check"></i> Saqlaş</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="{% static 'js/orb-shapes.js' %}?v=20261105"></script>
+<script src="{% static 'js/profile-orb.js' %}?v=20261105"></script>
+<script>
+(function () {
+    // Tanlov darhol jonli namunada körinadi (saqlamasdan oldin)
+    document.querySelectorAll('[data-orb]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            if (window.ProfileOrb && ProfileOrb.set) ProfileOrb.set({ [input.dataset.orb]: input.value });
+        });
+    });
+    // Yuklaniş animatsiyasi: jonli namuna (base.html'dagi MorphLoader)
+    var ldr = document.getElementById('psLdr');
+    if (ldr && window.MorphLoader) MorphLoader.run(ldr);
+    document.querySelectorAll('[data-ldr]').forEach(function (input) {
+        input.addEventListener('change', function () { ldr.dataset[input.dataset.ldr] = input.value; });
+    });
+
+    // Xavfsizlik: himoya darajasi, tayyor rejimlar va saqlanmagan özgarişlar
+    var sec = document.getElementById('security'), ip = document.getElementById('psIp');
+    var idles = Array.prototype.slice.call(sec.querySelectorAll('[name="idle_timeout_minutes"]'));
+    var presets = Array.prototype.slice.call(sec.querySelectorAll('.sec-preset'));
+    var LEVELS = { high: ['Yuqori', 'bi-shield-fill-check'], mid: ["Örta", 'bi-shield-fill-exclamation'], low: ['Past', 'bi-shield-fill-x'] };
+    var TONE = { safe: '#10b981', std: '#3b82f6', comfy: '#f59e0b', risk: '#ef4444' };
+    function current() { var c = idles.filter(function (r) { return r.checked; })[0] || idles[2]; return c; }
+    var initial = current().value + '|' + ip.checked;
+    function render() {
+        var c = current(), minutes = +c.value;
+        var score = (minutes <= 60 ? 3 : minutes <= 120 ? 2 : minutes <= 480 ? 1 : 0) + (ip.checked ? 2 : 0);
+        var level = score >= 4 ? 'high' : score >= 1 ? 'mid' : 'low';
+        var meter = document.getElementById('secMeter');
+        meter.dataset.level = level;
+        document.getElementById('secLevel').textContent = LEVELS[level][0];
+        document.getElementById('secShieldIc').className = 'bi ' + LEVELS[level][1];
+        meter.querySelectorAll('.sec-bars i').forEach(function (bar, i) { bar.classList.toggle('on', i < score); });
+        document.getElementById('secSumIdle').textContent = c.dataset.label.replace(/\s*\(.*\)/, '');
+        document.getElementById('secSumIp').textContent = ip.checked ? 'yoqilgan' : "öçiq";
+        var tag = document.getElementById('secTag');
+        tag.className = 'ps-tag ' + c.dataset.tag; tag.textContent = c.dataset.tagText;
+        document.getElementById('secDesc').textContent = c.dataset.desc;
+        sec.querySelector('.sec-pills').style.setProperty('--tone', TONE[c.dataset.tag]);
+        var st = document.getElementById('secIpState');
+        st.className = 'sec-state ' + (ip.checked ? 'on' : 'off'); st.textContent = ip.checked ? 'Yoqilgan' : "Öçiq";
+        document.getElementById('psIpWarn').hidden = ip.checked;
+        presets.forEach(function (b) { b.classList.toggle('active', b.dataset.idle === c.value && (b.dataset.ip === '1') === ip.checked); });
+        var dirty = (c.value + '|' + ip.checked) !== initial;
+        document.getElementById('secBar').classList.toggle('dirty', dirty);
+        document.getElementById('secBarText').textContent = dirty ? 'Saqlanmagan özgarişlar bor' : 'Özgarişlar yöq';
+    }
+    presets.forEach(function (b) {
+        b.addEventListener('click', function () {
+            var r = idles.filter(function (x) { return x.value === b.dataset.idle; })[0];
+            if (r) r.checked = true;
+            ip.checked = b.dataset.ip === '1';
+            render();
+        });
+    });
+    sec.addEventListener('change', render);
+    render();
+})();
+</script>
+{% endblock %}

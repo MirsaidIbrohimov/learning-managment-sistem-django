@@ -903,6 +903,25 @@ def _group_initials(name):
     return '??'
 
 
+_PROFILE_URLS = {'student': 'student_public_profile', 'teacher': 'teacher_public_profile'}
+
+
+def _partner_card(partner):
+    """Çatdagi öng ma'lumot paneli uçun: rol, profil havolasi va banner rasmi."""
+    from django.urls import reverse
+
+    from accounts.wallpaper import get_banner
+
+    url_name = _PROFILE_URLS.get(partner.role)
+    return {
+        'username': partner.username,
+        'role': partner.role,
+        'role_label': partner.get_role_display(),
+        'profile_url': reverse(url_name, args=[partner.pk]) if url_name else '',
+        'banner': get_banner(partner),
+    }
+
+
 @login_required
 @rate_limited('chat_sidebar')
 @require_http_methods(["GET"])
@@ -937,6 +956,7 @@ def sidebar(request):
             'is_online': partner.is_online,
             'sub': _online_sub(partner),
             'last_message': (m.message[:60] if m.message else ('📎 Fayl' if m.file else '')),
+            **_partner_card(partner),
             'is_mine_last': m.sender_id == me.pk,
             'last_at': _format_relative_time(m.created_at),
             'ts': m.created_at.timestamp(),

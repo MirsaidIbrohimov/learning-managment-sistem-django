@@ -1,0 +1,11 @@
+{# Yoziliş sörovini tasdiqlaşda guruh tanlaş (accounts/study_groups.py: attach_group_options). Guruhsiz öquvçi qöşilmaydi. #}
+{% if req.group_options %}
+<select name="group" class="form-select form-select-sm egs-select" required aria-label="Guruhni tanlang">
+    <option value="">👥 Guruhni tanlang…</option>
+    {% for g in req.group_options %}
+    <option value="{{ g.pk }}">{{ g.name }} — {{ g.days_display }}, {{ g.time_range }}{% if g.status == 'upcoming' %} (kelgusi){% endif %}{% if g.teacher and show_teacher %} · {{ g.teacher.first_name }}{% endif %}</option>
+    {% endfor %}
+</select>
+{% else %}
+<span class="egs-none"><i class="bi bi-exclamation-triangle-fill"></i> Bu kursda guruh yöq — avval <a href="{{ create_url }}">guruh oçing</a></span>
+{% endif %}

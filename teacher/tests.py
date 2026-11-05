@@ -1,8 +1,10 @@
 """Öqituvçi: öquvçilar coinlari, kursga qöshish/chiqarish va kurs sörovlari."""
 import itertools
+from datetime import timedelta
 from unittest import mock
 
 from django.test import TestCase, modify_settings
+from django.utils import timezone
 from django.urls import reverse
 
 from accounts.models import (
@@ -109,12 +111,19 @@ class TeacherStudentManagementTests(TestCase):
         self.assertIn(111, [c.args[0] for c in notify_user.call_args_list])
 
         self.client.force_login(self.teacher)
+        # Guruhsiz tasdiqlab bölmaydi: öquvçi albatta biror guruhga qöşiladi
+        from accounts.models import StudyGroup
         self.client.post(reverse('teacher:review_request', args=['enroll', req.pk, 'approve']))
+        self.assertFalse(CourseEnrollment.objects.filter(user=newbie, profession=self.course).exists())
+        group = StudyGroup.objects.create(name='A', profession=self.course, teacher=self.teacher,
+                                          start_time='09:00', end_time='11:00', days_mask=1)
+        self.client.post(reverse('teacher:review_request', args=['enroll', req.pk, 'approve']), {'group': group.pk})
         self.assertTrue(CourseEnrollment.objects.filter(user=newbie, profession=self.course).exists())
+        self.assertIn(newbie, group.students.all())
         req.refresh_from_db()
         self.assertEqual((req.status, req.reviewed_by), ('approved', self.teacher))
         # Ikkinçi marta bosiş heç narsa qilmaydi
-        self.client.post(reverse('teacher:review_request', args=['enroll', req.pk, 'approve']))
+        self.client.post(reverse('teacher:review_request', args=['enroll', req.pk, 'approve']), {'group': group.pk})
         self.assertEqual(TeacherStudentAction.objects.filter(action='approve_enroll').count(), 1)
 
     def test_teacher_cannot_review_foreign_request(self, *_):
@@ -189,6 +198,8 @@ class TeacherStudentInfoAndGroupsTests(TestCase):
             'start_time': '14:00', 'end_time': '16:00', 'days': ['1', '3', '5'],
             'students': [self.newbie.pk, self.stranger.pk],
             'teacher': self.other_teacher.pk,
+            'start_date': timezone.localdate().isoformat(),
+            'end_date': (timezone.localdate() + timedelta(days=62)).isoformat(),
         }
         data.update(extra)
         return self.client.post(url, data)
@@ -213,11 +224,12 @@ class TeacherStudentInfoAndGroupsTests(TestCase):
             name='Begona', profession=self.foreign, teacher=self.other_teacher,
             start_time='10:00', end_time='11:00', days_mask=1,
         )
-        resp = self.client.get(reverse('teacher:study_group_edit', args=[foreign_group.pk]))
-        self.assertEqual(resp.status_code, 404)
-        resp = self.client.post(reverse('teacher:study_group_delete', args=[foreign_group.pk]))
-        self.assertEqual(resp.status_code, 404)
-        self.assertTrue(StudyGroup.objects.filter(pk=foreign_group.pk).exists())
+        # Öqituvçi hech bir guruhni (özinikini ham) tahrirlay/öçira olmaydi — faqat admin
+        for name in ('teacher:study_group_edit', 'teacher:study_group_delete'):
+            resp = self.client.post(reverse(name, args=[foreign_group.pk]), {'name': 'Hacked'})
+            self.assertRedirects(resp, reverse('teacher:study_groups'), fetch_redirect_response=False)
+        foreign_group.refresh_from_db()
+        self.assertEqual(foreign_group.name, 'Begona')
 
     def test_admin_group_url_redirects_teacher_to_own_panel(self):
         resp = self.client.get(reverse('admin_study_groups'))

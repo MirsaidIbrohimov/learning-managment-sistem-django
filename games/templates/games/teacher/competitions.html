@@ -1,13 +1,13 @@
 {% extends 'teacher/base_teacher.html' %}
 
-{% block title %}Yoziş musobaqalari - Öqituvçi paneli{% endblock %}
-{% block topbar_title %}Yoziş musobaqalari{% endblock %}
+{% block title %}Musobaqalar - Öqituvçi paneli{% endblock %}
+{% block topbar_title %}Musobaqalar{% endblock %}
 
 {% block teacher_content %}
 {% include 'games/teacher/_styles.html' %}
 <div class="tc">
     <div class="tc-head">
-        <h1><i class="bi bi-trophy"></i> Yoziş musobaqalari</h1>
+        <h1><i class="bi bi-trophy"></i> Musobaqalar</h1>
         <span class="tc-coin" title="Coin balansingiz"><b>₵</b>{{ user.coins }}</span>
         <a href="{% url 'games:teacher_competition_add' %}" class="tc-btn"><i class="bi bi-plus-lg"></i> Yangi musobaqa</a>
     </div>
@@ -20,6 +20,7 @@
     </div>
 
     <p class="tc-note mb-3"><i class="bi bi-info-circle"></i>
+        Istalgan yoqilgan öyindan (yoziş, söz yasaş, shifr, Jumanji, şaxmat va boşqalar) musobaqa yoqişingiz mumkin.
         Sovrin <b>sizning coin hisobingizdan</b> tölanadi: musobaqa yaratilganda fond bron qilinadi,
         tugaganda ğoliblarga ötadi, işlatilmagan qismi (iştirokçi yetmasa) va öçirilgan musobaqa fondi sizga qaytadi.
     </p>
@@ -37,7 +38,7 @@
                     {% if not comp.is_active and comp.status != 'ended' %}<span class="tc-pill off"><i class="bi bi-pause-circle"></i> Öçirilgan</span>{% endif %}
                 </h4>
                 <div class="meta">
-                    <span class="tc-pill"><i class="bi bi-keyboard"></i> {{ comp.game.title }}</span>
+                    <span class="tc-pill"><i class="bi {{ comp.game.icon|default:'bi-controller' }}"></i> {{ comp.game.title }}</span>
                     <span class="tc-pill"><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m H:i" }} — {{ comp.end_time|date:"d.m H:i" }}</span>
                     <span class="tc-pill"><i class="bi bi-people"></i> {{ comp.audience_display }}</span>
                     <span class="tc-pill"><i class="bi bi-person-check"></i> {{ comp.participants_count }} iştirokçi</span>
@@ -47,7 +48,11 @@
                 </div>
             </div>
             <div class="acts">
-                <a href="{% url 'games:competition_leaderboard' comp.pk %}" class="tc-btn ghost sm"><i class="bi bi-bar-chart-fill"></i> Reyting</a>
+                {% if comp.leaderboard_url %}<a href="{{ comp.leaderboard_url }}" class="tc-btn ghost sm"><i class="bi bi-bar-chart-fill"></i> Reyting</a>{% endif %}
+                {% if comp.game.game_type == 'jumanji' and comp.status == 'active' and comp.is_active %}
+                {% if comp.live_session %}<a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="tc-btn sm"><i class="bi bi-door-open"></i> Xonaga kiriş</a>
+                {% else %}<form method="post" action="{% url 'games:jumanji_open_lobby' comp.pk %}">{% csrf_token %}<button class="tc-btn sm" type="submit"><i class="bi bi-dice-5"></i> Lobby oçiş</button></form>{% endif %}
+                {% endif %}
                 {% if comp.status != 'ended' %}
                 <a href="{% url 'games:teacher_competition_edit' comp.pk %}" class="tc-btn ghost sm"><i class="bi bi-pencil"></i> Tahrirlaş</a>
                 <form method="post" action="{% url 'games:teacher_competition_toggle' comp.pk %}">{% csrf_token %}
@@ -73,7 +78,7 @@
     {% else %}
     <div class="tc-empty">
         <i class="bi bi-flag"></i>
-        Hali musobaqa yöq. Guruhingiz uçun birinçi yoziş musobaqasini yoqing!
+        Hali musobaqa yöq. Guruhingiz uçun istalgan öyindan birinçi musobaqani yoqing!
         <div class="mt-3"><a href="{% url 'games:teacher_competition_add' %}" class="tc-btn"><i class="bi bi-rocket-takeoff"></i> Musobaqa yaratiş</a></div>
     </div>
     {% endif %}

@@ -292,8 +292,9 @@ class LeaderboardDecorationTests(PremiumFeatureBase):
     def test_coins_tab_returns_decorations_for_active_premium_only(self):
         rows = self.rows()
         self.assertEqual(rows['lb-fancy']['deco'], {
-            'frame': 'pd-frame pd-frame-neon', 'name': 'pd-name pd-name-gold', 'banner': 'pd-bnr pd-bnr-ocean'})
-        self.assertEqual(rows['lb-plain']['deco'], {'frame': '', 'name': '', 'banner': ''})
+            'frame': 'pd-frame pd-frame-neon', 'name': 'pd-name pd-name-gold', 'banner': 'pd-bnr pd-bnr-ocean',
+            'banner_img': None})
+        self.assertEqual(rows['lb-plain']['deco'], {'frame': '', 'name': '', 'banner': '', 'banner_img': None})
 
     def test_expired_premium_decorations_disappear(self):
         CustomUser.objects.filter(pk=self.fancy.pk).update(premium_expires_at=timezone.now() - timedelta(minutes=1))

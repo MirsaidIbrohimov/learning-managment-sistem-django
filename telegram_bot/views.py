@@ -177,6 +177,7 @@ def unlink_telegram(request):
     code = ''.join(secrets.choice('0123456789') for _ in range(6))
     cache_key = f'tg_unlink_code_{request.user.id}'
     cache.set(cache_key, code, 300)  # 5 daqiqa
+    cache.delete(f'tg_unlink_tries_{request.user.id}')
 
     notify_user(
         request.user.telegram_id,
@@ -189,46 +190,66 @@ def unlink_telegram(request):
 
     # AJAX sörov bölsa JSON qaytariş
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'ok': True, 'message': 'Kod yuborildi'})
+        return JsonResponse({'ok': True, 'message': 'Kod yuborildi', 'expires_in': 300,
+                             'username': request.user.telegram_username or ''})
 
     messages.info(request, "Tasdiqlaş kodi Telegram ga yuborildi! ✅")
     return redirect('profile')
+
+
+UNLINK_MAX_TRIES = 5
 
 
 @login_required
 @require_POST
 def confirm_unlink_telegram(request):
     """Telegramni uziş — kodni tasdiqlaş"""
+    import secrets
+
     from django.core.cache import cache
 
     next_url = _safe_next(request)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def fail(text, expired=False):
+        # Profildagi tasdiqlaş oynasi xatoni sahifani qayta yuklamasdan körsatadi
+        if is_ajax:
+            return JsonResponse({'ok': False, 'error': text, 'expired': expired})
+        messages.error(request, text)
+        return redirect(next_url)
 
     if not request.user.telegram_id:
-        messages.error(request, "Telegram ulanmagan!")
-        return redirect(next_url)
+        return fail("Telegram ulanmagan!")
 
     code = request.POST.get('unlink_code', '').strip()
     if not code:
-        messages.error(request, "Kodni kiriting!")
-        return redirect(next_url)
+        return fail("Kodni kiriting!")
 
     cache_key = f'tg_unlink_code_{request.user.id}'
+    tries_key = f'tg_unlink_tries_{request.user.id}'
     correct_code = cache.get(cache_key)
 
     if not correct_code:
-        messages.error(request, "Kod muddati tugagan! Qaytadan urinib köring.")
-        return redirect(next_url)
+        return fail("Kod muddati tugagan! Qaytadan urinib köring.", expired=True)
 
-    if code != correct_code:
-        messages.error(request, "Kod notöğri!")
-        return redirect(next_url)
+    if not secrets.compare_digest(code, correct_code):
+        # 6 xonali kodni tanlab topişning oldini oliş: 5 ta notöğri urinişdan keyin kod bekor qilinadi
+        tries = cache.get(tries_key, 0) + 1
+        cache.set(tries_key, tries, 300)
+        if tries >= UNLINK_MAX_TRIES:
+            cache.delete_many([cache_key, tries_key])
+            return fail("Juda köp notöğri uriniş. Yangi kod söraşingiz kerak.", expired=True)
+        return fail(f"Kod notöğri! Yana {UNLINK_MAX_TRIES - tries} ta uriniş qoldi.")
 
     # Kod töğri — uziş
-    cache.delete(cache_key)
+    cache.delete_many([cache_key, tries_key])
     request.user.telegram_id = None
     request.user.telegram_username = None
     request.user.save(update_fields=['telegram_id', 'telegram_username'])
     messages.success(request, "Telegram muvaffaqiyatli uzildi! 🔓")
+    if is_ajax:
+        from django.shortcuts import resolve_url
+        return JsonResponse({'ok': True, 'redirect': resolve_url(next_url)})
     return redirect(next_url)
 
 

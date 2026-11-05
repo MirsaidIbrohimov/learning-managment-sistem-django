@@ -1842,8 +1842,8 @@ def _daily_quote(today):
 def _next_study_lesson(user):
     """Öquvçining keyingi jadval darsi — countdown uçun aniq vaqt bilan."""
     try:
-        groups = list(StudyGroup.objects.filter(
-            students=user, is_active=True
+        groups = list(StudyGroup.objects.running().filter(
+            students=user
         ).select_related('profession', 'teacher'))
     except Exception:
         return None
@@ -13858,8 +13858,10 @@ def admin_enrollment_requests(request):
     unenroll_approved = CourseUnenrollRequest.objects.filter(status='approved').count()
     unenroll_rejected = CourseUnenrollRequest.objects.filter(status='rejected').count()
     
+    from .study_groups import attach_group_options
+
     context = {
-        'enrollment_requests': requests_qs,
+        'enrollment_requests': attach_group_options(list(requests_qs), request.user),
         'unenroll_requests': unenroll_qs,
         'professions': professions,
         'status_filter': status_filter,
@@ -13887,8 +13889,12 @@ def approve_enrollment_request(request, pk):
     
     if request.method == 'POST':
         from .course_membership import approve_enrollment
-        if approve_enrollment(enrollment_request, request.user):
-            messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
+        from .study_groups import resolve_group
+        group = resolve_group(request.user, enrollment_request.profession, request.POST.get('group'))
+        if group is None:
+            messages.error(request, "Öquvçini qaysi guruhga qöşişni tanlang. Guruhsiz öquvçi kursga qöşilmaydi.")
+        elif approve_enrollment(enrollment_request, request.user, group):
+            messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi va «{group.name}» guruhiga qöşildi!")
         else:
             messages.info(request, "Bu sörov allaqaçon körib çiqilgan.")
     
@@ -17949,6 +17955,45 @@ def _parse_time(value):
             return None
 
 
+def _parse_date(value):
+    """'YYYY-MM-DD' -> date (notöğri bölsa None)."""
+    from datetime import datetime as _dt
+    try:
+        return _dt.strptime((value or '').strip(), '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+GROUP_MIN_MONTHS, GROUP_MAX_MONTHS = 1, 9
+
+
+def _add_months(day, months):
+    import calendar
+    month = day.month - 1 + months
+    year, month = day.year + month // 12, month % 12 + 1
+    return day.replace(year=year, month=month, day=min(day.day, calendar.monthrange(year, month)[1]))
+
+
+def _group_period_errors(start_date, end_date, required):
+    errors = []
+    if required and (not start_date or not end_date):
+        errors.append("Guruhning boşlaniş va tugaş sanasini kiriting.")
+    if start_date and end_date and end_date < start_date:
+        errors.append("Tugaş sanasi boşlaniş sanasidan oldin bölişi mumkin emas.")
+    elif start_date and end_date and not (
+            _add_months(start_date, GROUP_MIN_MONTHS) <= end_date <= _add_months(start_date, GROUP_MAX_MONTHS)):
+        errors.append(f"Guruh davomiyligi kamida {GROUP_MIN_MONTHS} oy, köpi bilan {GROUP_MAX_MONTHS} oy bölişi kerak.")
+    if required and end_date and end_date < timezone.localdate():
+        errors.append("Tugaş sanasi ötib ketgan — bunday guruh darhol arxivga tuşadi.")
+    return errors
+
+
+def _teacher_group_readonly(request):
+    """Öqituvçi guruhni tahrirlay va öçira olmaydi (faqat admin)."""
+    messages.error(request, "Guruhni tahrirlaş va öçiriş faqat admin uçun. Özgartiriş kerak bölsa, adminga murojaat qiling.")
+    return redirect('teacher:study_groups')
+
+
 def _study_group_panel_context(user):
     """Guruh sahifalarini foydalanuvçining öz panelida oçiş sozlamalari."""
     if user.role == 'teacher':
@@ -18037,9 +18082,30 @@ def admin_study_groups(request):
     day_filter = request.GET.get('day', '')
     teacher_id = request.GET.get('teacher', '')
     view_mode = request.GET.get('view', 'list')  # list yoki schedule
+    # current — faol + kelgusi (standart), active, upcoming, archived, all
+    status_filter = request.GET.get('status', 'current')
+    if status_filter not in ('current', 'active', 'upcoming', 'archived', 'all'):
+        status_filter = 'current'
 
     scope = _study_group_scope(request.user)
-    groups = scope['groups'].select_related('profession', 'teacher').prefetch_related('students')
+    all_groups = scope['groups']
+    today = timezone.localdate()
+    status_counts = {
+        'current': all_groups.not_archived().count(),
+        'active': all_groups.running().count(),
+        'upcoming': all_groups.not_archived().filter(start_date__gt=today).count(),
+        'archived': all_groups.archived().count(),
+        'all': all_groups.count(),
+    }
+    if status_filter == 'current':
+        all_groups = all_groups.not_archived()
+    elif status_filter == 'active':
+        all_groups = all_groups.running()
+    elif status_filter == 'upcoming':
+        all_groups = all_groups.not_archived().filter(start_date__gt=today)
+    elif status_filter == 'archived':
+        all_groups = all_groups.archived()
+    groups = all_groups.select_related('profession', 'teacher', 'created_by').prefetch_related('students')
 
     if q:
         groups = groups.filter(Q(name__icontains=q) | Q(profession__name__icontains=q))
@@ -18059,10 +18125,11 @@ def admin_study_groups(request):
 
     groups = groups.order_by('start_time', 'name')
 
-    # Haftalik köriniş uçun kunlar böyiça guruhlaş — list of dicts
+    # Haftalik jadvalda faqat hozir dars ötilayotgan guruhlar
     weekly_by_day = []
+    running_groups = [g for g in groups if g.is_running]
     for d_num, d_name in StudyGroup.DAYS_OF_WEEK:
-        day_groups = [g for g in groups if g.has_day(d_num)]
+        day_groups = [g for g in running_groups if g.has_day(d_num)]
         day_groups.sort(key=lambda x: x.start_time)
         weekly_by_day.append({
             'day_num': d_num,
@@ -18086,8 +18153,20 @@ def admin_study_groups(request):
         'selected_day': day_filter,
         'view_mode': view_mode,
         'total_groups': groups.count(),
-        'active_groups': sum(1 for g in groups if g.is_active),
+        'active_groups': sum(1 for g in groups if g.is_running),
+        'status_filter': status_filter,
+        'status_counts': status_counts,
+        'can_edit_groups': request.user.is_admin_or_assistant,
     }
+    if request.user.role == 'teacher':
+        # Öqituvçi faqat guruhsiz öquvçilarni guruhga qöşa oladi
+        from .study_groups import ungrouped_students
+        ungrouped = {}
+        for g in groups:
+            if g.status in ('active', 'upcoming'):
+                if g.profession_id not in ungrouped:
+                    ungrouped[g.profession_id] = list(ungrouped_students(g.profession))
+                g.ungrouped = ungrouped[g.profession_id]
     context.update(_study_group_panel_context(request.user))
     return render(request, 'accounts/admin/study_groups.html', context)
 
@@ -18118,8 +18197,10 @@ def admin_study_group_create(request):
         description = request.POST.get('description', '').strip()
         days_mask = _parse_days_from_request(request)
         student_ids = request.POST.getlist('students')
+        start_date = _parse_date(request.POST.get('start_date'))
+        end_date = _parse_date(request.POST.get('end_date'))
 
-        errors = []
+        errors = _group_period_errors(start_date, end_date, required=True)
         if not name:
             errors.append("Guruh nomi kiritilişi şart.")
         if not profession_id:
@@ -18151,16 +18232,36 @@ def admin_study_group_create(request):
                 room=room,
                 color=color,
                 description=description,
+                start_date=start_date,
+                end_date=end_date,
                 created_by=request.user,
             )
             if student_ids:
-                group.students.set(scope['students'].filter(pk__in=student_ids))
+                allowed = scope['students']
+                if request.user.role == 'teacher':
+                    from .study_groups import ungrouped_students
+                    allowed = ungrouped_students(group.profession, allowed)
+                group.students.set(allowed.filter(pk__in=student_ids))
             messages.success(request, f"'{group.name}' guruhi yaratildi.")
             return redirect(panel_context['study_groups_url'])
 
     professions = scope['professions']
     teachers = scope['teachers']
     students = scope['students']
+
+    if request.user.role == 'teacher':
+        # Öqituvçiga faqat guruhsiz öquvçilar körinadi (qaysi kursda guruhsizligi bilan)
+        from .study_groups import ungrouped_students
+        by_student = {}
+        for p in professions:
+            for st in ungrouped_students(p, students):
+                by_student.setdefault(st.pk, [st, []])[1].append(p.pk)
+        students = []
+        for st, prof_ids in by_student.values():
+            st.prof_ids = ' '.join(map(str, prof_ids))
+            students.append(st)
+    else:
+        students = _students_with_current_groups(students)
 
     context = {
         'professions': professions,
@@ -18170,6 +18271,8 @@ def admin_study_group_create(request):
         'group': None,
         'selected_days': [],
         'selected_students': [],
+        'only_ungrouped': request.user.role == 'teacher',
+        'today': timezone.localdate(),
     }
     context.update(panel_context)
     return render(request, 'accounts/admin/study_group_form.html', context)
@@ -18186,6 +18289,8 @@ def admin_study_group_edit(request, pk):
 
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_edit':
         return redirect('yordamchi_study_group_edit', pk=pk)
+    if request.user.role == 'teacher':
+        return _teacher_group_readonly(request)
 
     panel_context = _study_group_panel_context(request.user)
     scope = _study_group_scope(request.user)
@@ -18204,8 +18309,10 @@ def admin_study_group_edit(request, pk):
         days_mask = _parse_days_from_request(request)
         student_ids = request.POST.getlist('students')
         is_active = request.POST.get('is_active') == 'on'
+        start_date = _parse_date(request.POST.get('start_date'))
+        end_date = _parse_date(request.POST.get('end_date'))
 
-        errors = []
+        errors = _group_period_errors(start_date, end_date, required=False)
         if not name:
             errors.append("Guruh nomi kiritilişi şart.")
         if not profession_id:
@@ -18237,6 +18344,8 @@ def admin_study_group_edit(request, pk):
             group.color = color
             group.description = description
             group.is_active = is_active
+            group.start_date = start_date
+            group.end_date = end_date
             group.save()
             group.students.set(scope['students'].filter(pk__in=student_ids))
             messages.success(request, f"'{group.name}' guruhi yangilandi.")
@@ -18249,7 +18358,7 @@ def admin_study_group_edit(request, pk):
     context = {
         'professions': professions,
         'teachers': teachers,
-        'students': students,
+        'students': _students_with_current_groups(students),
         'days_of_week': StudyGroup.DAYS_OF_WEEK,
         'group': group,
         'selected_days': group.get_days_list(),
@@ -18269,6 +18378,8 @@ def admin_study_group_delete(request, pk):
         return teacher_redirect
     if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_delete':
         return redirect('yordamchi_study_group_delete', pk=pk)
+    if request.user.role == 'teacher':
+        return _teacher_group_readonly(request)
 
     panel_context = _study_group_panel_context(request.user)
     group = get_object_or_404(_study_group_scope(request.user)['groups'], pk=pk)
@@ -18281,6 +18392,33 @@ def admin_study_group_delete(request, pk):
         'group': group,
         **panel_context,
     })
+
+
+def _students_with_current_groups(students):
+    """Admin formasi uçun: har bir öquvçining hozirgi (arxiv bölmagan) guruhlari — `cur_groups`."""
+    from django.db.models import Prefetch
+    return students.prefetch_related(Prefetch(
+        'study_groups', queryset=StudyGroup.objects.not_archived().only('id', 'name', 'profession_id'),
+        to_attr='cur_groups',
+    ))
+
+
+@login_required
+def teacher_study_group_add_students(request, pk):
+    """Öqituvçi: guruhsiz öquvçilarni öz guruhiga qöşadi (boşqa guruhdagini köçira olmaydi)."""
+    from .study_groups import ungrouped_students
+
+    if request.method != 'POST' or request.user.role != 'teacher':
+        return redirect('teacher:study_groups')
+    group = get_object_or_404(StudyGroup.objects.not_archived(), pk=pk, teacher=request.user)
+    allowed = ungrouped_students(group.profession).filter(pk__in=request.POST.getlist('students'))
+    added = list(allowed)
+    if added:
+        group.students.add(*added)
+        messages.success(request, f"«{group.name}» guruhiga {len(added)} ta öquvçi qöşildi.")
+    else:
+        messages.info(request, "Qöşiladigan guruhsiz öquvçi tanlanmadi.")
+    return redirect('teacher:study_groups')
 
 
 # ==================== STUDENT & TEACHER — DARS JADVALIM ====================
@@ -18346,10 +18484,10 @@ def my_study_schedule(request):
     """Öquvçi yoki öqituvçining şaxsiy dars jadvali."""
     user = request.user
     if user.role == 'student':
-        groups = StudyGroup.objects.filter(students=user, is_active=True)
+        groups = StudyGroup.objects.running().filter(students=user)
         role_label = 'student'
     elif user.role == 'teacher':
-        groups = StudyGroup.objects.filter(teacher=user, is_active=True)
+        groups = StudyGroup.objects.running().filter(teacher=user)
         role_label = 'teacher'
     else:
         # Admin uçun ham körsatiladi, lekin admin panelga yönaltirilişi ma'qul
@@ -18479,10 +18617,11 @@ def attendance_home(request):
         messages.error(request, "Sizda bu sahifaga kiriş huquqi yöq!")
         return redirect('home')
 
+    # Davomatda faqat boşlaniş va tugaş sanasi orasidagi (faol) guruhlar; arxiv körinmaydi
     if user.role == 'teacher':
-        groups = StudyGroup.objects.filter(teacher=user, is_active=True)
+        groups = StudyGroup.objects.running().filter(teacher=user)
     else:
-        groups = StudyGroup.objects.filter(is_active=True)
+        groups = StudyGroup.objects.running()
 
     groups = groups.select_related('profession', 'teacher').prefetch_related('students').order_by('name')
 
@@ -18546,6 +18685,10 @@ def attendance_mark(request, group_pk):
     if not _can_mark_attendance(user, group):
         messages.error(request, "Sizda bu guruh uçun davomat qöyiş huquqi yöq!")
         return redirect('attendance_home')
+    # Arxiv / hali boşlanmagan guruhga öqituvçi davomat qöya olmaydi (admin tuzatiş uçun kira oladi)
+    if not user.is_admin_or_assistant and not group.is_running:
+        messages.error(request, f"«{group.name}» guruhi {group.status_label.lower()} — davomat faqat faol guruhlarda qöyiladi.")
+        return redirect('attendance_home')
 
     # Sana - GET dan yoki bugungi
     date_str = request.GET.get('date') or request.POST.get('date')
@@ -18556,6 +18699,9 @@ def attendance_mark(request, group_pk):
             selected_date = timezone.localdate()
     else:
         selected_date = timezone.localdate()
+    if not group.date_in_period(selected_date):
+        messages.error(request, f"Bu sana guruh davriga ({group.period_display}) kirmaydi.")
+        return redirect('attendance_home')
 
     students = list(group.students.filter(is_blocked=False).order_by('first_name', 'last_name'))
     existing = {a.student_id: a for a in StudentAttendance.objects.filter(group=group, date=selected_date)}

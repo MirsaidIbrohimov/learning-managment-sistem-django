@@ -219,7 +219,7 @@ def teacher_dashboard(request):
     # (attendance_mark ham _can_mark_attendance bilan şuni tekşiradi).
     from accounts.models import StudyGroup, StudentAttendance
     my_groups = list(
-        StudyGroup.objects.filter(teacher=user, is_active=True)
+        StudyGroup.objects.running().filter(teacher=user)
         .select_related('profession')
         .annotate(n_students=Count('students', distinct=True))
         .order_by('start_time', 'name')
@@ -2739,8 +2739,10 @@ def teacher_course_requests(request):
         enroll_qs = enroll_qs.filter(status=status)
         unenroll_qs = unenroll_qs.filter(status=status)
 
+    from accounts.study_groups import attach_group_options
+
     context = {
-        'enroll_requests': enroll_qs[:200],
+        'enroll_requests': attach_group_options(list(enroll_qs[:200]), request.user),
         'unenroll_requests': unenroll_qs[:200],
         'status': status,
         'enroll_pending': CourseEnrollmentRequest.objects.filter(profession__in=professions, status='pending').count(),
@@ -2766,8 +2768,13 @@ def teacher_review_request(request, kind, pk, decision):
     note = request.POST.get('message', '').strip()[:500]
 
     if kind == 'enroll' and decision == 'approve':
-        done = cm.approve_enrollment(req, request.user)
-        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursiga qabul qilindi."
+        from accounts.study_groups import resolve_group
+        group = resolve_group(request.user, req.profession, request.POST.get('group'))
+        if group is None:
+            messages.error(request, "Öquvçini qaysi guruhga qöşişni tanlang. Guruhsiz öquvçi kursga qöşilmaydi.")
+            return redirect('teacher:course_requests')
+        done = cm.approve_enrollment(req, request.user, group)
+        ok_msg = f"{req.user.full_name} '{req.profession.name}' kursiga qabul qilindi va «{group.name}» guruhiga qöşildi."
     elif kind == 'enroll':
         done = cm.reject_enrollment(req, request.user, note)
         ok_msg = f"{req.user.full_name} sörovi rad etildi."

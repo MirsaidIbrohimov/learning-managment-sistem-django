@@ -1,6 +1,6 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-{% load custom_filters %}
+{% load custom_filters nav_prefs %}
 
 {% block title %}{% if initial_partner %}{{ initial_partner|premium_name }} bilan suhbat{% elif initial_group %}{{ initial_group.name }} — Guruh çati{% else %}Suhbatlar{% endif %} | IT Creative{% endblock %}
 
@@ -9,24 +9,29 @@
 {% block content %}
 <div class="container-fluid px-2 px-md-3 py-3" id="mzPageWrap">
 <div class="mz-shell {% if initial_kind %}mz-chat-open{% endif %}" id="mzShell">
+    {% get_wallpaper as wp %}
+    <div class="mz-scene" aria-hidden="true">
+        {% if wp %}<div class="mz-scene-img" style="background-image:url('{{ wp.url }}');background-position:{{ wp.position }}"></div>{% else %}<div class="mz-scene-def"></div>{% endif %}
+        <span class="mz-sparks"></span>
+    </div>
 
     <!-- ============ SIDEBAR ============ -->
     <aside class="mz-side" id="mzSide">
         <div class="mz-side-head">
             <div class="mz-side-top-row">
-                <div class="mz-side-title">Suhbatlar</div>
+                <div class="mz-side-title">Suhbatlar <span class="mz-side-count" id="mzSideCount"></span></div>
                 <div class="mz-compose-btn" title="Yangi xabar" id="mzComposeBtn"><i class="bi bi-pencil-square"></i></div>
             </div>
             <div class="mz-search">
                 <i class="bi bi-search"></i>
-                <input type="text" id="mzSearch" placeholder="Qidiruv yoki yangi xabar...">
+                <input type="text" id="mzSearch" placeholder="Suhbatlarni qidiriş yoki yangi xabar...">
             </div>
         </div>
         <div class="mz-filters">
             <div class="mz-filter {% if not initial_filter or initial_filter == 'all' %}active{% endif %}" data-filter="all">Hammasi</div>
-            <div class="mz-filter {% if initial_filter == 'unread' %}active{% endif %}" data-filter="unread">Öqilmagan<span class="mz-filter-count" id="mzUnreadCount"></span></div>
-            <div class="mz-filter {% if initial_filter == 'dm' %}active{% endif %}" data-filter="dm">Şaxsiy</div>
-            <div class="mz-filter {% if initial_filter == 'group' %}active{% endif %}" data-filter="group">Guruhlar</div>
+            <div class="mz-filter {% if initial_filter == 'unread' %}active{% endif %}" data-filter="unread"><i class="bi bi-envelope"></i> Öqilmagan<span class="mz-filter-count" id="mzUnreadCount"></span></div>
+            <div class="mz-filter {% if initial_filter == 'dm' %}active{% endif %}" data-filter="dm"><i class="bi bi-chat-dots"></i> Şaxsiy <span class="mz-filter-num" data-num="dm"></span></div>
+            <div class="mz-filter {% if initial_filter == 'group' %}active{% endif %}" data-filter="group"><i class="bi bi-people"></i> Guruhlar <span class="mz-filter-num" data-num="group"></span></div>
         </div>
         <div class="mz-list" id="mzList">
             <div class="mz-empty" id="mzListLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>
@@ -54,6 +59,7 @@
                     <div class="mz-h-sub" id="mzHeadSub">{{ members_count }} a'zo</div>
                 </div>
             {% endif %}
+            <span class="mz-head-pill" id="mzHeadPill"></span>
             <div class="mz-head-actions">
                 <div class="mz-icon-btn mz-optional" id="mzCallBtn" title="Audio qönğiroq"><i class="bi bi-telephone"></i></div>
                 <div class="mz-icon-btn mz-optional" id="mzVideoBtn" title="Video qönğiroq"><i class="bi bi-camera-video"></i></div>
@@ -70,6 +76,7 @@
                 <div class="mz-h-name text-truncate" id="mzHeadName"></div>
                 <div class="mz-h-sub" id="mzHeadSub"></div>
             </div>
+            <span class="mz-head-pill" id="mzHeadPill"></span>
             <div class="mz-head-actions">
                 <div class="mz-icon-btn mz-optional" id="mzCallBtn" title="Audio qönğiroq"><i class="bi bi-telephone"></i></div>
                 <div class="mz-icon-btn mz-optional" id="mzVideoBtn" title="Video qönğiroq"><i class="bi bi-camera-video"></i></div>
@@ -99,13 +106,14 @@
                 <span class="x" id="mzFileClear"><i class="bi bi-x-lg"></i></span>
             </div>
             <div class="mz-emoji-panel" id="mzEmojiPanel" style="display:none;"></div>
+            <div class="mz-quick" id="mzQuick" role="listbox" aria-label="Tezkor javoblar" hidden></div>
             <form class="mz-form" id="mzForm" autocomplete="off">
                 <label class="mz-attach" title="Fayl biriktiriş">
                     <i class="bi bi-paperclip"></i>
                     <input type="file" id="mzFile" hidden>
                 </label>
                 <div class="mz-emoji-btn" id="mzEmojiBtn" title="Emoji"><i class="bi bi-emoji-smile"></i></div>
-                <textarea class="mz-input" id="mzInput" rows="1" placeholder="Xabar yozing..."></textarea>
+                <textarea class="mz-input" id="mzInput" rows="1" placeholder="Xabar yozing…" data-ph-wide="Xabar yozing…  ( / — tezkor javoblar)"></textarea>
                 <button type="submit" class="mz-send" id="mzSend" title="Yuboriş"><i class="bi bi-send-fill"></i></button>
             </form>
         </div>
@@ -138,19 +146,25 @@
     <aside class="mz-info" id="mzInfo">
         <div class="mz-info-head">
             <span class="mz-info-title">Ma'lumot</span>
-            <span class="mz-info-x" id="mzInfoClose"><i class="bi bi-x-lg"></i></span>
-        </div>
-        <div class="mz-info-hero">
-            <div class="mz-info-ava" id="mzInfoAva"><i class="bi bi-people-fill"></i></div>
-            <div class="mz-info-name" id="mzInfoName"></div>
-            <div class="mz-info-sub" id="mzInfoSub"></div>
-        </div>
-        <div class="mz-info-stats" id="mzInfoStats" style="display:none;"></div>
-        <div class="mz-info-tabs">
-            <div class="mz-info-tab active" data-tab="members" id="mzTabMembers">A'zolar</div>
-            <div class="mz-info-tab" data-tab="files" id="mzTabFiles">Fayllar</div>
+            <span class="mz-info-x" id="mzInfoClose" title="Yopiş"><i class="bi bi-x-lg"></i></span>
         </div>
         <div class="mz-info-scroll" id="mzInfoScroll">
+            <div class="mz-info-banner" id="mzInfoBanner"></div>
+            <div class="mz-info-hero">
+                <div class="mz-info-ava" id="mzInfoAva"><i class="bi bi-people-fill"></i></div>
+                <div class="mz-info-name" id="mzInfoName"></div>
+                <div class="mz-info-sub" id="mzInfoSub"></div>
+                <div class="mz-info-acts" id="mzInfoActs"></div>
+            </div>
+            <div class="mz-info-section-label">Teglar</div>
+            <div class="mz-info-tags" id="mzInfoTags"></div>
+            <div class="mz-info-section-label">Ma'lumot</div>
+            <div class="mz-info-stats" id="mzInfoStats"></div>
+            <a class="mz-info-cta" id="mzInfoCta" href="#" hidden></a>
+            <div class="mz-info-tabs">
+                <div class="mz-info-tab active" data-tab="members" id="mzTabMembers">A'zolar</div>
+                <div class="mz-info-tab" data-tab="files" id="mzTabFiles">Fayllar</div>
+            </div>
             <div class="mz-info-pane" id="mzPaneMembers"></div>
             <div class="mz-info-pane" id="mzPaneFiles" style="display:none;"></div>
         </div>
@@ -181,12 +195,62 @@ document.getElementById('mzComposeBtn')?.addEventListener('click', () => {
     if (s) { s.value = ''; s.focus(); s.dispatchEvent(new Event('input')); }
 });
 
+// Joy yetarli bölsa placeholder'da "/" maslahati ham körinadi; tor joyda ikki qatorga tuşib, yoziş maydonini buzmasin
+(function () {
+    const inp = document.getElementById('mzInput');
+    if (!inp || !window.ResizeObserver) return;
+    const short = inp.placeholder;
+    new ResizeObserver(() => { inp.placeholder = inp.clientWidth > 300 ? inp.dataset.phWide : short; }).observe(inp);
+})();
+
+// Filtr çiplari: siçqonça bilan sudrab, g'ildirak bilan yoki barmoq bilan çapga-öngga suriladi
+(function () {
+    const row = document.querySelector('.mz-filters');
+    if (!row) return;
+    const edges = () => {
+        row.classList.toggle('can-l', row.scrollLeft > 2);
+        row.classList.toggle('can-r', row.scrollLeft + row.clientWidth < row.scrollWidth - 2);
+    };
+    let startX = 0, startLeft = 0, down = false, moved = false;
+    row.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse' || e.button !== 0) return;
+        down = true; moved = false; startX = e.clientX; startLeft = row.scrollLeft;
+    });
+    window.addEventListener('pointermove', e => {
+        if (!down) return;
+        const dx = e.clientX - startX;
+        if (!moved && Math.abs(dx) > 5) { moved = true; row.classList.add('dragging'); }
+        if (moved) row.scrollLeft = startLeft - dx;
+    });
+    window.addEventListener('pointerup', () => {
+        if (!down) return;
+        down = false;
+        // Sudrab bölingandan keyingi "click" filtrni almaştirib yubormasin
+        if (moved) setTimeout(() => row.classList.remove('dragging'), 0);
+    });
+    row.addEventListener('wheel', e => {
+        if (row.scrollWidth <= row.clientWidth || Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+        e.preventDefault();
+        row.scrollLeft += e.deltaY;
+    }, {passive: false});
+    row.addEventListener('scroll', edges, {passive: true});
+    window.addEventListener('resize', edges);
+    row.addEventListener('click', e => {
+        const chip = e.target.closest('.mz-filter');
+        if (chip) chip.scrollIntoView({behavior: 'smooth', inline: 'nearest', block: 'nearest'});
+    });
+    const active = row.querySelector('.mz-filter.active');
+    if (active) row.scrollLeft = Math.max(0, active.offsetLeft - row.offsetLeft - 16);
+    edges();
+})();
+
 MZChat.init({
     initialKind: {% if initial_kind %}"{{ initial_kind }}"{% else %}null{% endif %},
     initialId: {% if initial_id %}{{ initial_id }}{% else %}null{% endif %},
     filter: "{{ initial_filter|default:'all' }}",
     csrf: "{{ csrf_token }}",
     isAdmin: {% if is_admin_global %}true{% else %}false{% endif %},
+    isTeacher: {% if request.user.is_teacher %}true{% else %}false{% endif %},
     initialCanModerate: {% if initial_can_moderate %}true{% else %}false{% endif %},
     urls: {
         sidebar:       "{% url 'api_chat_sidebar' %}",

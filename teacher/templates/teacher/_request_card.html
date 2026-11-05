@@ -18,9 +18,10 @@
 
     {% if req.status == 'pending' %}
     <div class="cr-actions">
-        <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'approve' %}">
+        <form method="POST" action="{% url 'teacher:review_request' kind req.pk 'approve' %}" class="d-flex flex-wrap gap-1 align-items-center">
             {% csrf_token %}
-            <button type="submit" class="btn btn-primary btn-sm"
+            {% if kind == 'enroll' %}{% url 'teacher:study_group_create' as create_url %}{% include 'partials/_enroll_group_select.html' %}{% endif %}
+            <button type="submit" class="btn btn-primary btn-sm" {% if kind == 'enroll' and not req.group_options %}disabled{% endif %}
                     onclick="return confirm('{% if kind == 'enroll' %}Öquvçini kursga qabul qilasizmi?{% else %}Öquvçini kursdan çiqarasizmi? Kursdan olingan coinlar ayiriladi.{% endif %}')">
                 <i class="bi bi-check-lg"></i> Tasdiqlaş
             </button>

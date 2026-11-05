@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}{{ teacher.full_name }} - Öqituvçi | IT Creative{% endblock %}
 
@@ -103,6 +103,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     position: relative;
 }
+.tp-banner.pd-bnr-img::before { display: none; }
 .tp-banner::before {
     content: '';
     position: absolute;
@@ -410,7 +411,7 @@
 
 <!-- Hero -->
 <div class="tp-hero anim-up d1">
-    <div class="tp-banner"></div>
+    <div class="tp-banner {{ teacher|deco_banner }}">{{ teacher|deco_banner_layer }}</div>
     <div class="tp-hero-body">
         <div class="tp-ava-wrap">
             <div class="tp-ava" {% if teacher.photo %}style="cursor:pointer" onclick="openPhotoLightbox('{{ teacher.photo.url }}')"{% endif %}>

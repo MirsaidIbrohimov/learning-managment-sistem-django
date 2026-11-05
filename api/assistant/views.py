@@ -614,6 +614,13 @@ def enrollment_request_review(request, pk):
     action = request.data.get('action')
     if action not in ('approve', 'reject'):
         return Response({'error': "action 'approve' yoki 'reject' bölişi kerak"}, status=400)
+    group = None
+    if action == 'approve':
+        # Guruhsiz öquvçi kursga qöşilmaydi: tasdiqlaşda guruh majburiy
+        from accounts.study_groups import resolve_group
+        group = resolve_group(request.user, req.profession, request.data.get('group_id'))
+        if group is None:
+            return Response({'error': "group_id majburiy: şu kursning arxiv bölmagan guruhini tanlang"}, status=400)
     req.status = 'approved' if action == 'approve' else 'rejected'
     if hasattr(req, 'reviewed_by'):
         req.reviewed_by = request.user
@@ -623,6 +630,7 @@ def enrollment_request_review(request, pk):
     if action == 'approve':
         from accounts.models import CourseEnrollment
         CourseEnrollment.objects.get_or_create(user=req.user, profession=req.profession)
+        group.students.add(req.user)
     log_action(request, 'requests.enrollment_review', target=req,
                description=f"Kursga yoziliş sörovi {action}: {req.user.username} -> {req.profession.name}")
     return Response(CourseEnrollmentRequestSerializer(req).data)

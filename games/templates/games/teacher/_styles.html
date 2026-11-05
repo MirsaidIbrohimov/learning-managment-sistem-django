@@ -67,5 +67,44 @@
 .tc-comp form{margin:0}
 .tc-empty{text-align:center;padding:48px 20px;border-radius:24px;border:1px dashed var(--tc-line);color:var(--tc-muted)}
 .tc-empty i{font-size:2.6rem;display:block;margin-bottom:8px}
+.tc-f select{color-scheme:light dark}
+.tc-f select option{background:var(--bs-body-bg);color:var(--bs-body-color)}
+/* Öyin tanlaş kartalari (dropdown o'rniga) */
+.tc-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:320px;overflow:auto;padding:2px}
+.tc-game{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:var(--tc-field);border:1.5px solid var(--tc-line);cursor:pointer;margin:0;transition:border-color .15s,transform .15s}
+.tc-game:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--tc-acc) 50%,var(--tc-line))}
+.tc-game input{position:absolute;opacity:0;pointer-events:none}
+.tc-game-ic{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:18px;color:var(--tc-acc);background:color-mix(in srgb,var(--tc-acc) 12%,transparent)}
+.tc-game-txt{min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.tc-game-txt b{font-weight:700;font-size:.92rem;color:var(--bs-body-color);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc-game-txt small{font-size:.74rem;color:var(--tc-muted)}
+.tc-game-ok{margin-left:auto;color:var(--tc-acc);opacity:0;transition:opacity .15s}
+.tc-game:has(input:checked){border-color:var(--tc-acc);background:color-mix(in srgb,var(--tc-acc) 9%,var(--tc-field));box-shadow:0 0 0 3px color-mix(in srgb,var(--tc-acc) 18%,transparent)}
+.tc-game:has(input:checked) .tc-game-ok{opacity:1}
+.tc-game:has(input:checked) .tc-game-ic{color:#fff;background:linear-gradient(135deg,var(--tc-acc),var(--tc-acc2))}
+.tc-game:has(input:focus-visible){outline:2px solid var(--tc-acc);outline-offset:2px}
+/* Kimlar uçun: 4 ta karta */
+.tc-aud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tc-aud label{margin:0;cursor:pointer}
+.tc-aud input{position:absolute;opacity:0;pointer-events:none}
+.tc-aud span{display:flex;flex-direction:column;align-items:flex-start;gap:2px;height:100%;padding:11px 12px;border-radius:14px;background:var(--tc-field);border:1.5px solid var(--tc-line);transition:border-color .15s}
+.tc-aud span i{font-size:18px;color:var(--tc-acc2);margin-bottom:4px}
+.tc-aud span b{font-size:.9rem;color:var(--bs-body-color)}
+.tc-aud span small{font-size:.72rem;color:var(--tc-muted);line-height:1.3}
+.tc-aud input:checked+span{border-color:var(--tc-acc2);background:color-mix(in srgb,var(--tc-acc2) 9%,var(--tc-field));box-shadow:0 0 0 3px color-mix(in srgb,var(--tc-acc2) 16%,transparent)}
+.tc-aud input:disabled+span{opacity:.45;cursor:not-allowed}
+.tc-aud input:focus-visible+span{outline:2px solid var(--tc-acc2);outline-offset:2px}
+/* Urinişlar soni: −/+ va tezkor tanlov */
+.tc-att{display:flex;align-items:center;gap:10px;flex-wrap:wrap;transition:opacity .2s}
+.tc-att.off{opacity:.4}
+.tc-step{display:flex;align-items:center;border-radius:14px;background:var(--tc-field);border:1px solid var(--tc-line);overflow:hidden}
+.tc-step button{width:44px;height:46px;border:0;background:none;color:var(--bs-body-color);font-size:16px}
+.tc-step button:hover{background:color-mix(in srgb,var(--tc-acc) 12%,transparent);color:var(--tc-acc)}
+.tc .tc-step input{width:64px!important;height:46px!important;border:0!important;border-radius:0!important;background:none!important;text-align:center;font:700 18px 'JetBrains Mono',monospace!important;-moz-appearance:textfield}
+.tc-step input::-webkit-inner-spin-button,.tc-step input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.tc-chips{display:flex;gap:6px;flex-wrap:wrap}
+.tc-chips button{min-width:42px;height:38px;padding:0 10px;border-radius:11px;border:1px solid var(--tc-line);background:var(--tc-field);color:var(--bs-body-color);font:700 14px 'JetBrains Mono',monospace}
+.tc-chips button.on{border-color:var(--tc-acc);color:var(--tc-acc);background:color-mix(in srgb,var(--tc-acc) 12%,transparent)}
+@media(max-width:700px){.tc-aud{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.tc-stats{grid-template-columns:repeat(2,1fr)}.tc-comp{grid-template-columns:1fr}.tc-comp .acts{justify-content:flex-start}}
 </style>

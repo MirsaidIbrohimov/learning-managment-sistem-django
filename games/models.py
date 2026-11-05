@@ -84,6 +84,7 @@ class Prompt(models.Model):
 class Competition(models.Model):
     AUDIENCE_CHOICES = (
         ('all', 'Hammaga'),
+        ('courses', "Kurs öquvçilari"),
         ('groups', 'Tanlangan guruhlar'),
         ('students', "Tanlangan öquvçilar"),
     )
@@ -104,6 +105,11 @@ class Competition(models.Model):
         'accounts.StudyGroup', blank=True, related_name='competitions',
         verbose_name="Guruhlar",
         help_text="Faqat 'Tanlangan guruhlar' rejimida işlatiladi.",
+    )
+    professions = models.ManyToManyField(
+        'accounts.Profession', blank=True, related_name='competitions',
+        verbose_name="Kurslar",
+        help_text="Faqat 'Kurs öquvçilari' rejimida: şu kurslarga yozilgan barça öquvçilar (keyin qöşilganlar ham).",
     )
     participants = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name='invited_competitions',
@@ -204,6 +210,7 @@ class Competition(models.Model):
             return models.Q()
         return (
             models.Q(audience_type='all')
+            | models.Q(audience_type='courses', professions__enrollments__user=user)
             | models.Q(audience_type='groups', groups__students=user)
             | models.Q(audience_type='students', participants=user)
         )
@@ -216,6 +223,8 @@ class Competition(models.Model):
             return True
         if self.audience_type == 'all':
             return True
+        if self.audience_type == 'courses':
+            return self.professions.filter(enrollments__user=user).exists()
         if self.audience_type == 'groups':
             return self.groups.filter(students=user).exists()
         if self.audience_type == 'students':
@@ -230,6 +239,10 @@ class Competition(models.Model):
         """
         from accounts.models import CustomUser
 
+        if self.audience_type == 'courses':
+            return CustomUser.objects.filter(
+                role='student', is_active=True, enrollments__profession__in=self.professions.all()
+            ).distinct()
         if self.audience_type == 'groups':
             return CustomUser.objects.filter(
                 role='student', is_active=True, study_groups__in=self.groups.all()
@@ -248,6 +261,9 @@ class Competition(models.Model):
         if self.audience_type == 'students':
             count = self.participants.count()
             return f"{count} ta öquvçi"
+        if self.audience_type == 'courses':
+            names = [p.name for p in self.professions.all()]
+            return ("Kurs öquvçilari: " + ', '.join(names)) if names else 'Kurslar tanlanmagan'
         return 'Hammaga oçiq'
 
     def user_attempts_count(self, user):
@@ -325,8 +341,13 @@ class Competition(models.Model):
         nothing_to_pay = self.prize_total == 0 and self.prize_reserved == 0
         if self.game.game_type == 'jumanji' or nothing_to_pay:
             if self.game.game_type == 'jumanji':
-                Competition.objects.filter(pk=self.pk).update(coins_awarded=True)
-                self.coins_awarded = True
+                if self.jumanji_live_session():
+                    return  # öyin hali davom etmoqda — tugagaç hisob-kitob qilinadi
+                if Competition.objects.filter(pk=self.pk, coins_awarded=False).update(coins_awarded=True):
+                    self.coins_awarded = True
+                    if self.is_teacher_funded:
+                        # Sessiyalarda tölanmay qolgan fond ustozga qaytadi
+                        prize_escrow.refund(self, f"Musobaqa sovrin fondining işlatilmagan qismi: {self.title}")
             return
 
         with transaction.atomic():

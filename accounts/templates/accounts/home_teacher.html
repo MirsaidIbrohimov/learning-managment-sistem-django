@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load static %}
+{% load static custom_filters %}
 {% block title %}Boş sahifa — Öqituvçi | IT Creative{% endblock %}
 {% block extra_css %}{% include 'accounts/dashboard/_motion_css.html' %}{% endblock %}
 
@@ -24,7 +24,7 @@
         <i class="bi bi-search"></i><input type="search" name="q" placeholder="Öquvçini ism yoki username böyiça qidiriş…" aria-label="Öquvçi qidiriş"><button type="submit">Qidiriş</button>
       </form>
     </div>
-    <div class="hero3-r" data-pf-orb aria-hidden="true">
+    <div class="hero3-r" data-pf-orb {{ user|orb_attrs }} aria-hidden="true">
       <div class="fchip glass f1"><i class="bi bi-clipboard-check"></i><span><b>{{ pending_homeworks }} ta</b><small>Tekşiriş kutilmoqda</small></span></div>
       <div class="fchip glass f2"><i class="bi bi-graph-up-arrow"></i><span><b>{{ avg_score }}%</b><small>Örtaça ball (30 kun)</small></span></div>
       <div class="fchip glass f3"><i class="bi bi-broadcast"></i><span><b>{{ online_now }} onlayn</b><small>Hozir saytda</small></span></div>

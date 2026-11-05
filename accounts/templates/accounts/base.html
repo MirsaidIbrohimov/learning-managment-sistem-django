@@ -71,6 +71,7 @@
 
 <body{% if request.user.is_authenticated and request.user.is_premium %} class="is-premium{% with theme=request.user|deco_theme %}{% if theme %} {{ theme }}{% endif %}{% endwith %}"{% endif %}>
 {% include 'partials/_brand_intro.html' %}
+{% include 'partials/wallpaper/_layer.html' %}
 <a class="ds-skip-link" href="#main-content">Asosiy tarkibga ötiş</a>
 <!-- 📡 Offline Overlay -->
 <div class="offline-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineSubtitle">
@@ -433,12 +434,13 @@
 <!-- ⏳ Page Loading -->
 <div id="pageLoader">
   <div class="ldr-box">
-    <div class="ldr-core" aria-hidden="true"><canvas class="morph-ldr"></canvas></div>
+    <div class="ldr-core" aria-hidden="true"><canvas class="morph-ldr" {{ request.user|loader_attrs }}></canvas></div>
     <div class="ldr-word">IT Creative Academy</div>
     <div class="ldr-status" id="ldrStatus" role="status">Bilim tarmoğiga ulanmoqda</div>
     <div class="ldr-bar"><i></i></div>
   </div>
 </div>
+<script src="{% static 'js/orb-shapes.js' %}?v=20261105"></script>
 {% include 'partials/_morph_loader.html' %}
 <script>
 (function(){

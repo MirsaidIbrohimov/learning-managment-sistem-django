@@ -1,4 +1,4 @@
-"""Ustoz musobaqalari: ustoz öz guruhlari uçun yoziş musobaqasini yoqadi.
+"""Ustoz musobaqalari: ustoz öz guruhlari uçun istalgan yoqilgan öyindan musobaqa yoqadi.
 
 Sovrin fondi ustozning öz coin hisobidan bron qilinadi (qarang: prize_escrow).
 Ustoz faqat özi yaratgan musobaqalarni köradi va boşqaradi, auditoriya esa
@@ -20,7 +20,8 @@ from accounts.models import CustomUser, StudyGroup
 from . import prize_escrow
 from .models import Competition, Game
 
-TEACHER_GAME_TYPES = ('typing',)
+# Musobaqa rejimi bor öyin turlari (quiz — alohida musobaqa sahifasi yöq)
+TEACHER_GAME_TYPES = ('typing', 'word_builder', 'cipher', 'external', 'jumanji')
 MAX_ATTEMPTS_LIMIT = 20
 
 
@@ -38,16 +39,50 @@ def teacher_only(view_func):
 # ---------- Ustoz doirasi (scope) ----------
 
 def _scope_groups(user):
-    qs = StudyGroup.objects.filter(is_active=True)
+    qs = StudyGroup.objects.running()
     if user.role != 'admin':
         qs = qs.filter(teacher=user)
     return qs.select_related('profession').annotate(student_count=Count('students', distinct=True)).order_by('name')
 
 
+def _scope_professions(user):
+    """Ustoz dars beradigan kurslar (admin — barçasi) va har biridagi öquvçilar soni."""
+    from accounts.models import Profession
+
+    qs = Profession.objects.all() if user.role == 'admin' else user.teaching_professions.all()
+    return qs.annotate(student_count=Count('enrollments__user', distinct=True)).order_by('name')
+
+
 def _scope_students(user):
+    """Tanlaş mumkin bölgan öquvçilar: ustoz guruhlaridagi va kurslariga yozilganlar."""
     return (CustomUser.objects
-            .filter(role='student', is_active=True, study_groups__in=_scope_groups(user))
+            .filter(role='student', is_active=True)
+            .filter(Q(study_groups__in=_scope_groups(user)) | Q(enrollments__profession__in=_scope_professions(user)))
             .distinct().order_by('first_name', 'last_name'))
+
+
+# Kimlar uçun: hammaga, kurslarim, guruhlarim, tanlangan öquvçilar
+TEACHER_AUDIENCES = ('all', 'courses', 'groups', 'students')
+
+
+def game_cards(games):
+    """Öyin tanlaş kartalari: (qiymat, nom, izoh, ikonka). Yoziş öyini — klassik va 2.0 poyga."""
+    kinds = {
+        'typing': "Yoziş tezligi", 'word_builder': "Söz yasaş", 'cipher': "Shifrni oçiş",
+        'external': "Mini öyin", 'jumanji': "Jonli doska öyini",
+    }
+    cards = []
+    for g in games:
+        icon = g.icon or 'bi-controller'
+        if g.game_type == 'typing':
+            cards.append({'value': str(g.pk), 'game': g, 'ui': 'classic', 'title': g.title,
+                          'hint': "Klassik yoziş maşqi", 'icon': 'bi-keyboard'})
+            cards.append({'value': f'{g.pk}:v2', 'game': g, 'ui': 'v2', 'title': g.title,
+                          'hint': "Yoziş maşqi 2.0 — poyga", 'icon': 'bi-flag-fill'})
+        else:
+            cards.append({'value': str(g.pk), 'game': g, 'ui': 'classic', 'title': g.title,
+                          'hint': kinds.get(g.game_type, ''), 'icon': icon})
+    return cards
 
 
 def _own_competition(user, pk):
@@ -57,8 +92,22 @@ def _own_competition(user, pk):
     )
 
 
-def _typing_games():
+def _teacher_games():
     return Game.objects.filter(is_active=True, game_type__in=TEACHER_GAME_TYPES).order_by('title')
+
+
+def _game_not_ready(game):
+    """Musobaqa uçun öyinda kontent yetarlimi; yetmasa — xato matni."""
+    checks = {
+        'typing': lambda: game.competition_prompts().exists(),
+        'word_builder': lambda: game.word_rounds.filter(is_active=True).exists(),
+        'cipher': lambda: game.cipher_puzzles.filter(is_active=True).exists(),
+        'jumanji': lambda: game.jumanji_questions.filter(is_active=True).exists(),
+    }
+    check = checks.get(game.game_type)
+    if check and not check():
+        return f"\"{game.title}\" öyinida musobaqa uçun topşiriqlar yöq. Administratorga murojaat qiling."
+    return None
 
 
 # ---------- Forma ----------
@@ -91,15 +140,15 @@ def _clean_form(request, user, competition=None):
         'coin_1st': _non_negative_int(post.get('coin_1st')),
         'coin_2nd': _non_negative_int(post.get('coin_2nd')),
         'coin_3rd': _non_negative_int(post.get('coin_3rd')),
-        'audience_type': post.get('audience_type') if post.get('audience_type') in ('groups', 'students') else 'groups',
+        'audience_type': post.get('audience_type') if post.get('audience_type') in TEACHER_AUDIENCES else 'groups',
     }
 
     from .views import parse_game_choice
-    game, data['play_ui'] = parse_game_choice(post.get('game'), _typing_games())
+    game, data['play_ui'] = parse_game_choice(post.get('game'), _teacher_games())
     if not game:
-        errors.append("Yoziş öyinini tanlang.")
-    elif not game.competition_prompts().exists():
-        errors.append(f"\"{game.title}\" öyinida musobaqa uçun matnlar yöq. Administratorga murojaat qiling.")
+        errors.append("Öyinni tanlang.")
+    elif _game_not_ready(game):
+        errors.append(_game_not_ready(game))
     data['game'] = game
 
     if not data['title']:
@@ -116,14 +165,19 @@ def _clean_form(request, user, competition=None):
 
     # Auditoriya faqat ustozning öz doirasidan — boşqa guruh id'larini yuboriş foyda bermaydi.
     ids = lambda name: [int(x) for x in post.getlist(name) if x.isdigit()]
-    if data['audience_type'] == 'groups':
+    data['group_ids'], data['student_ids'], data['profession_ids'] = [], [], []
+    if data['audience_type'] == 'all':
+        pass  # platformadagi barça öquvçilar; sovrin baribir ustoz hisobidan
+    elif data['audience_type'] == 'courses':
+        data['profession_ids'] = list(_scope_professions(user).filter(pk__in=ids('profession_ids')).values_list('pk', flat=True))
+        if not data['profession_ids']:
+            errors.append("Kamida bitta kursingizni tanlang.")
+    elif data['audience_type'] == 'groups':
         data['group_ids'] = list(_scope_groups(user).filter(pk__in=ids('group_ids')).values_list('pk', flat=True))
-        data['student_ids'] = []
         if not data['group_ids']:
             errors.append("Kamida bitta guruhingizni tanlang.")
     else:
         data['student_ids'] = list(_scope_students(user).filter(pk__in=ids('student_ids')).values_list('pk', flat=True))
-        data['group_ids'] = []
         if not data['student_ids']:
             errors.append("Kamida bitta öquvçini tanlang.")
     return data, errors
@@ -146,25 +200,36 @@ def _form_context(user, competition=None, data=None):
             'coin_1st': competition.coin_1st, 'coin_2nd': competition.coin_2nd, 'coin_3rd': competition.coin_3rd,
             'group_ids': list(competition.groups.values_list('pk', flat=True)),
             'student_ids': list(competition.participants.values_list('pk', flat=True)),
+            'profession_ids': list(competition.professions.values_list('pk', flat=True)),
         }
     if data is None:
         now = timezone.localtime().replace(second=0, microsecond=0)
         data = {
-            'game': _typing_games().first(), 'play_ui': 'v2', 'title': '', 'start_time': now,
+            'game': _teacher_games().first(), 'play_ui': 'v2', 'title': '', 'start_time': now,
             'end_time': now + timezone.timedelta(hours=1), 'max_attempts': 1,
-            'allow_retry': False, 'is_active': True, 'audience_type': 'groups',
+            'allow_retry': False, 'is_active': True, 'audience_type': 'courses',
             'coin_1st': 0, 'coin_2nd': 0, 'coin_3rd': 0, 'group_ids': [], 'student_ids': [],
+            'profession_ids': list(_scope_professions(user).values_list('pk', flat=True)),
         }
     else:
         for key in ('start_time', 'end_time'):
             if data.get(key):
                 data[key] = timezone.localtime(data[key])
     prizes_locked = bool(competition and competition.status != 'upcoming')
+    games = _teacher_games()
+    professions = _scope_professions(user)
     return {
         'competition': competition,
         'form': data,
-        'games': _typing_games(),
+        'games': games,
+        'game_cards': game_cards(games),
+        'selected_game_value': (f"{data['game'].pk}:v2" if data.get('game') and data.get('play_ui') == 'v2'
+                                else str(data['game'].pk) if data.get('game') else ''),
         'study_groups': groups,
+        'my_professions': professions,
+        'my_course_students': CustomUser.objects.filter(
+            role='student', is_active=True, enrollments__profession__in=professions).distinct().count(),
+        'attempt_choices': (1, 2, 3, 5, 10),
         'students_data': students,
         'prizes_locked': prizes_locked,
         # Tahrirda joriy bron ham "mavjud" hisoblanadi — fond qayta taqsimlanadi.
@@ -181,12 +246,25 @@ def _apply(competition, data):
 def _save_audience(competition, data):
     competition.groups.set(data['group_ids'])
     competition.participants.set(data['student_ids'])
+    competition.professions.set(data.get('profession_ids', []))
 
 
 def _notify_started(competition):
     from telegram_bot.utils import notify_competition_started
     competition.refresh_from_db()
     notify_competition_started(competition)
+
+
+def _participants_count(comp):
+    kind = comp.game.game_type
+    if kind == 'word_builder':
+        return comp.word_attempts.values('user').distinct().count()
+    if kind == 'cipher':
+        return comp.cipher_attempts.values('user').distinct().count()
+    if kind == 'jumanji':
+        from .models import JumanjiPlayer
+        return JumanjiPlayer.objects.filter(session__competition=comp).values('user').distinct().count()
+    return comp.attempts.values('user').distinct().count()
 
 
 # ---------- Views ----------
@@ -203,8 +281,15 @@ def competitions(request):
 
     own = (base.select_related('game')
            .prefetch_related('groups')
-           .annotate(participants_count=Count('attempts__user', distinct=True))
            .order_by('-start_time'))
+    from django.urls import reverse
+    for comp in own:
+        comp.participants_count = _participants_count(comp)
+        kind = comp.game.game_type
+        comp.leaderboard_url = (reverse('games:word_game_leaderboard', args=[comp.pk]) if kind == 'word_builder'
+                                else '' if kind == 'jumanji' else reverse('games:competition_leaderboard', args=[comp.pk]))
+        if kind == 'jumanji':
+            comp.live_session = comp.jumanji_live_session()
 
     reserved = own.filter(coins_awarded=False).aggregate(s=Sum('prize_reserved'))['s'] or 0
     return render(request, 'games/teacher/competitions.html', {

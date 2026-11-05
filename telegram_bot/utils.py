@@ -134,7 +134,7 @@ def _competition_started_text(competition):
             coins_text += f"   🥉 3-örin: {competition.coin_3rd} coin"
 
     audience_text = ""
-    if competition.audience_type == 'groups':
+    if competition.audience_type in ('groups', 'courses'):
         audience_text = f"\n👥 Kimlar uçun: <b>{competition.audience_display}</b>"
     elif competition.audience_type == 'students':
         audience_text = "\n👥 Kimlar uçun: <b>maxsus tanlangan öquvçilar</b>"

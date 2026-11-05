@@ -1,0 +1,310 @@
+{% extends 'accounts/base.html' %}
+{% load static custom_filters %}
+
+{% block title %}{{ page.title }} | Premium{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/wallpaper.css' %}">
+<style>
+.wpc-page { max-width: 1080px; margin: 0 auto; padding: 8px 0 40px; animation: fadeInUp .4s ease; }
+.wpc-head { padding: 16px 20px; border-radius: 18px; background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.wpc-head h1 { font-size: 1.45rem; font-weight: 800; margin: 0; }
+.wpc-head p { margin: 2px 0 0; color: var(--bs-secondary-color); font-size: .9rem; }
+.wpc-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .wpc-grid { grid-template-columns: 1fr; } }
+.wpc-card { background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; padding: 18px 20px; margin-bottom: 14px; }
+.wpc-card h2 { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--bs-secondary-color); margin: 0 0 12px; display: flex; align-items: center; gap: 6px; }
+.wpc-sticky { position: sticky; top: 84px; }
+
+/* Namuna: kiçik sahifa maketi */
+.wpc-preview { position: relative; aspect-ratio: 16 / 10; border-radius: 16px; overflow: hidden; background: var(--bs-secondary-bg); isolation: isolate; }
+.wpc-preview .itc-wp { position: absolute; z-index: 0; }
+.wpc-mock { position: absolute; inset: 0; z-index: 1; display: grid; grid-template-rows: 30px 1fr; gap: 10px; padding: 10px; }
+.wpc-mock-bar, .wpc-mock-card { background: color-mix(in srgb, var(--bs-body-bg) 82%, transparent); backdrop-filter: blur(8px); border-radius: 10px; box-shadow: 0 6px 18px -10px rgba(0, 0, 0, .35); }
+.wpc-mock-bar { display: flex; align-items: center; gap: 6px; padding: 0 10px; }
+.wpc-mock-bar i { width: 8px; height: 8px; border-radius: 50%; background: var(--bs-secondary-color); opacity: .5; }
+.wpc-mock-body { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-content: start; }
+.wpc-mock-card { padding: 12px; font-size: .78rem; }
+.wpc-mock-card b { display: block; font-size: .9rem; margin-bottom: 4px; }
+.wpc-mock-card span { display: block; height: 6px; border-radius: 4px; background: var(--bs-secondary-color); opacity: .25; margin-top: 6px; }
+.wpc-bprev { display: grid; gap: 10px; }
+.wpc-hero { position: relative; display: flex; align-items: center; gap: 14px; min-height: 150px; padding: 22px; border-radius: 20px; border: 1px solid var(--bs-border-color); background: var(--bs-secondary-bg); }
+.wpc-hero b { display: block; font-size: 1.3rem; font-weight: 800; }
+.wpc-hero small { color: var(--bs-secondary-color); font-weight: 600; }
+.wpc-hero-av, .wpc-lb-av { flex-shrink: 0; display: grid; place-items: center; overflow: hidden; border-radius: 50%; color: #fff; font-weight: 800; background: linear-gradient(135deg, #7c3aed, #ec4899); }
+.wpc-hero-av { width: 72px; height: 72px; font-size: 1.5rem; }
+.wpc-lb-av { width: 36px; height: 36px; font-size: .8rem; }
+.wpc-hero-av img, .wpc-lb-av img { width: 100%; height: 100%; object-fit: cover; }
+.wpc-where { font-size: .78rem; font-weight: 700; color: var(--bs-secondary-color); }
+.wpc-lbrow { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--bs-border-color); background: var(--bs-secondary-bg); }
+.wpc-rank { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; font-weight: 800; color: #1a1206; background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.wpc-coins { font-weight: 800; color: #d97706; }
+.wpc-format { margin-top: 10px; padding: 10px 12px; border-radius: 12px; font-size: .82rem; line-height: 1.45; background: rgba(59, 130, 246, .08); }
+.wpc-format i { color: #3b82f6; }
+.wpc-empty[hidden] { display: none !important; }
+.wpc-hero .wpc-empty { inset: auto 12px 10px auto; display: block; padding: 4px 10px; font-size: .75rem; border-radius: 10px; background: var(--bs-body-bg); }
+.wpc-empty { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; text-align: center; color: var(--bs-secondary-color); font-weight: 600; padding: 20px; }
+.wpc-compare { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Yuklaş */
+.wpc-drop { display: flex; align-items: center; gap: 14px; padding: 16px; border: 2px dashed var(--bs-border-color); border-radius: 14px; cursor: pointer; transition: border-color .15s, background .15s; }
+.wpc-drop:hover, .wpc-drop.drag { border-color: #f59e0b; background: rgba(245, 158, 11, .06); }
+.wpc-drop i { font-size: 1.7rem; color: #f59e0b; }
+.wpc-drop small { display: block; color: var(--bs-secondary-color); }
+.wpc-drop input { display: none; }
+
+/* Filtrlar */
+.wpc-presets { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 10px; }
+.wpc-preset { border: 2px solid var(--bs-border-color); border-radius: 12px; padding: 4px; background: none; cursor: pointer; text-align: center; font-size: .76rem; font-weight: 600; color: inherit; }
+.wpc-preset.active { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, .14); }
+.wpc-thumb { height: 54px; border-radius: 8px; margin-bottom: 4px; background: linear-gradient(135deg, #7c3aed, #ec4899 50%, #f59e0b) center / cover no-repeat; }
+
+/* Slayderlar */
+.wpc-range { margin-bottom: 12px; }
+.wpc-range label { display: flex; justify-content: space-between; font-size: .86rem; font-weight: 600; margin-bottom: 2px; }
+.wpc-range output { color: var(--bs-secondary-color); font-variant-numeric: tabular-nums; }
+.wpc-range input { width: 100%; accent-color: #f59e0b; }
+.wpc-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.wpc-seg { position: relative; }
+.wpc-seg input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.wpc-seg label { padding: 6px 12px; border: 2px solid var(--bs-border-color); border-radius: 10px; cursor: pointer; font-size: .84rem; font-weight: 600; }
+.wpc-seg input:checked + label { border-color: #f59e0b; }
+
+.wpc-lock { border-radius: 18px; padding: 16px 18px; margin-bottom: 14px; background: rgba(245, 158, 11, .1); color: #b45309; font-weight: 600; }
+.wpc-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.wpc-btn { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+.wpc-save { flex: 1; justify-content: center; color: #1a1206; background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+.wpc-save:disabled { opacity: .5; }
+.wpc-ghost { background: var(--bs-secondary-bg); color: inherit; }
+.wpc-danger { background: rgba(239, 68, 68, .12); color: #dc2626; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wpc-page">
+    {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">{{ message }}</div>{% endfor %}
+
+    <div class="wpc-head">
+        <div>
+            <h1><i class="bi {{ page.icon }}" style="color:#f59e0b"></i> {{ page.title }}</h1>
+            <p>{{ page.intro }}</p>
+        </div>
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'profile' %}"><i class="bi bi-arrow-left"></i> Profil</a>
+    </div>
+
+    {% if not can_use_wallpaper %}
+    <div class="wpc-lock"><i class="bi bi-lock-fill"></i> {{ page.title }} faqat Premium a'zolar uçun. Rasm tanlab sinab körişingiz mumkin, saqlaş uçun <a href="{% url 'coin:buy_premium_page' %}">Premium oling</a>.</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="wpcForm">
+        {% csrf_token %}
+        <div class="wpc-grid">
+            <div class="wpc-sticky">
+                <div class="wpc-card">
+                    <h2><i class="bi bi-eye"></i> Oldindan köriş</h2>
+                    {% if kind == 'banner' %}
+                    <div class="wpc-bprev">
+                        <div class="wpc-hero pd-bnr-img">
+                            <span class="pd-bimg" data-wp-layer style="--wp-dim:{{ wp_style.dim }}"><span{% if wp_url %} style="background-image:url('{{ wp_url }}')"{% endif %}></span></span>
+                            <div class="wpc-hero-av {{ user|deco_frame }}">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ user.get_initials }}{% endif %}</div>
+                            <div class="min-w-0"><b class="{{ user|deco_name }}">{{ user.full_name|default:user.username }}</b><small>@{{ user.username }} · Profil</small></div>
+                            <div class="wpc-empty" id="wpcEmpty"{% if wp_url %} hidden{% endif %}><i class="bi bi-card-image"></i> Rasm tanlang — banner darhol körinadi</div>
+                        </div>
+                        <div class="wpc-where">Reyting va çatda şunday körinadi:</div>
+                        <div class="wpc-lbrow pd-bnr-img">
+                            <span class="pd-bimg" data-wp-layer style="--wp-dim:{{ wp_style.dim }}"><span{% if wp_url %} style="background-image:url('{{ wp_url }}')"{% endif %}></span></span>
+                            <span class="wpc-rank">1</span>
+                            <span class="wpc-lb-av">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ user.get_initials }}{% endif %}</span>
+                            <b class="flex-grow-1 text-truncate">{{ user.full_name|default:user.username }}</b>
+                            <span class="wpc-coins"><i class="bi bi-coin"></i> {{ user.coins|default:0 }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="wpc-preview">
+                        <div class="itc-wp" id="wpcMini" data-wp-layer style="--wp-dim:{{ wp_style.dim }}"><div class="itc-wp-img"{% if wp_url %} style="background-image:url('{{ wp_url }}')"{% endif %}></div></div>
+                        <div class="wpc-mock">
+                            <div class="wpc-mock-bar"><i></i><i></i><i></i></div>
+                            <div class="wpc-mock-body">
+                                <div class="wpc-mock-card"><b>Darslarim</b>Bugungi mavzu<span></span><span style="width:60%"></span></div>
+                                <div class="wpc-mock-card"><b>Natijalar</b>Haftalik reyting<span></span><span style="width:40%"></span></div>
+                            </div>
+                        </div>
+                        <div class="wpc-empty" id="wpcEmpty"{% if wp_url %} hidden{% endif %}><div><i class="bi bi-image" style="font-size:2rem"></i><br>Rasm tanlang — fon şu yerda va butun sahifada darhol körinadi</div></div>
+                    </div>
+                    {% endif %}
+                    <div class="wpc-compare">
+                        <button type="button" class="wpc-btn wpc-ghost btn-sm" id="wpcHold"><i class="bi bi-layers-half"></i> Bosib turing — asl rasm</button>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="wpc-card">
+                    <h2><i class="bi bi-upload"></i> Rasm</h2>
+                    <label class="wpc-drop" id="wpcDrop">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <span><b id="wpcFileName">{% if wp_url %}Rasmni almaştiriş{% else %}Rasm tanlang yoki şu yerga taşlang{% endif %}</b><small>JPG, PNG yoki WEBP · 10 MB gaça</small></span>
+                        <input type="file" name="image" id="wpcFile" accept="image/jpeg,image/png,image/webp">
+                    </label>
+                    <div class="wpc-format"><i class="bi bi-info-circle"></i> {{ page.format }}</div>
+                </div>
+
+                <div class="wpc-card">
+                    <h2><i class="bi bi-magic"></i> Filtrlar</h2>
+                    <div class="wpc-presets" id="wpcPresets"></div>
+                </div>
+
+                <div class="wpc-card">
+                    <h2><i class="bi bi-sliders"></i> Sozlamalar</h2>
+                    {% with s=wp_style %}
+                    <div class="wpc-range"><label for="r-brightness">Yorqinlik <output data-for="brightness" data-unit="%"></output></label><input type="range" id="r-brightness" name="brightness" min="30" max="150" value="{{ s.brightness }}"></div>
+                    <div class="wpc-range"><label for="r-contrast">Kontrast <output data-for="contrast" data-unit="%"></output></label><input type="range" id="r-contrast" name="contrast" min="50" max="160" value="{{ s.contrast }}"></div>
+                    <div class="wpc-range"><label for="r-saturate">Töyinganlik <output data-for="saturate" data-unit="%"></output></label><input type="range" id="r-saturate" name="saturate" min="0" max="200" value="{{ s.saturate }}"></div>
+                    <div class="wpc-range"><label for="r-blur">Xiralik (blur) <output data-for="blur" data-unit="px"></output></label><input type="range" id="r-blur" name="blur" min="0" max="20" value="{{ s.blur }}"></div>
+                    <div class="wpc-range"><label for="r-grayscale">Oq-qora <output data-for="grayscale" data-unit="%"></output></label><input type="range" id="r-grayscale" name="grayscale" min="0" max="100" value="{{ s.grayscale }}"></div>
+                    <div class="wpc-range"><label for="r-sepia">Sepiya (retro) <output data-for="sepia" data-unit="%"></output></label><input type="range" id="r-sepia" name="sepia" min="0" max="100" value="{{ s.sepia }}"></div>
+                    <div class="wpc-range"><label for="r-hue">Rang tusi <output data-for="hue" data-unit="°"></output></label><input type="range" id="r-hue" name="hue" min="0" max="360" value="{{ s.hue }}"></div>
+                    <div class="wpc-range"><label for="r-zoom">Kattalaştiriş <output data-for="zoom" data-unit="%"></output></label><input type="range" id="r-zoom" name="zoom" min="100" max="200" value="{{ s.zoom }}"></div>
+                    <div class="wpc-range"><label for="r-dim">Parda (matn yaxşi öqilişi uçun) <output data-for="dim" data-unit="%"></output></label><input type="range" id="r-dim" name="dim" min="0" max="80" value="{{ s.dim }}"></div>
+                    <div class="wpc-range">
+                        <label>Joylaşuv</label>
+                        <div class="wpc-seg">
+                            {% for value, label in positions %}
+                            <input type="radio" name="position" value="{{ value }}" id="pos-{{ value }}" {% if s.position == value %}checked{% endif %}><label for="pos-{{ value }}">{{ label }}</label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endwith %}
+                </div>
+
+                <div class="wpc-actions">
+                    <button type="submit" class="wpc-btn wpc-save" {% if not can_use_wallpaper %}disabled{% endif %}><i class="bi bi-check-lg"></i> Saqlaş</button>
+                    <button type="button" class="wpc-btn wpc-ghost" id="wpcReset"><i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalaş</button>
+                    {% if wp_url and can_use_wallpaper %}<button type="submit" form="wpcRemove" class="wpc-btn wpc-danger"><i class="bi bi-trash"></i> Rasmni olib taşlaş</button>{% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+    <form method="post" id="wpcRemove" onsubmit="return confirm('Rasm olib taşlansinmi?')">{% csrf_token %}<input type="hidden" name="action" value="remove"></form>
+</div>
+
+{{ wp_defaults|json_script:"wpcDefaults" }}
+<script>
+(function () {
+    const form = document.getElementById('wpcForm');
+    const defaults = JSON.parse(document.getElementById('wpcDefaults').textContent);
+    const KEYS = ['brightness', 'contrast', 'saturate', 'blur', 'grayscale', 'sepia', 'hue', 'zoom', 'dim'];
+    const PRESETS = [
+        ['Asl', {}],
+        ['Oq-qora', {grayscale: 100, contrast: 110}],
+        ['Retro', {sepia: 60, contrast: 110, saturate: 80}],
+        ['Iliq', {sepia: 30, saturate: 130, brightness: 105}],
+        ['Sovuq', {hue: 190, saturate: 70, brightness: 105}],
+        ['Yorqin', {brightness: 115, saturate: 140, contrast: 110}],
+        ['Drama', {contrast: 135, saturate: 80, brightness: 85}],
+        ['Neon', {hue: 280, saturate: 170, contrast: 115}],
+        ['Tuman', {blur: 8, brightness: 105, dim: 35}],
+        ['Tungi', {brightness: 60, saturate: 110, dim: 40}],
+    ];
+    const isWallpaper = {% if kind == 'wallpaper' %}true{% else %}false{% endif %};
+    const layers = Array.from(document.querySelectorAll('[data-wp-layer]'));
+    let imageUrl = layers[0].firstElementChild.style.backgroundImage || '';
+
+    // Butun sahifa foni: saqlangan qatlam bölmasa yaratiladi (sinab köriş uçun).
+    if (isWallpaper) {
+        let pageLayer = document.getElementById('itcWallpaper');
+        if (!pageLayer) {
+            pageLayer = document.createElement('div');
+            pageLayer.className = 'itc-wp';
+            pageLayer.id = 'itcWallpaper';
+            pageLayer.setAttribute('aria-hidden', 'true');
+            pageLayer.innerHTML = '<div class="itc-wp-img"></div>';
+            document.body.prepend(pageLayer);
+        }
+        layers.push(pageLayer);
+    }
+
+    function values() {
+        const v = {};
+        KEYS.forEach(k => v[k] = +form.elements[k].value);
+        v.position = (form.querySelector('input[name="position"]:checked') || {}).value || 'center';
+        return v;
+    }
+    function filterOf(v) {
+        return `brightness(${v.brightness}%) contrast(${v.contrast}%) saturate(${v.saturate}%) blur(${v.blur}px) ` +
+               `grayscale(${v.grayscale}%) sepia(${v.sepia}%) hue-rotate(${v.hue}deg)`;
+    }
+    function render(original) {
+        const v = values();
+        const scale = v.zoom / 100 * (v.blur ? 1.06 : 1);
+        layers.forEach(layer => {
+            const img = layer.firstElementChild;
+            img.style.backgroundImage = imageUrl;
+            img.style.backgroundPosition = v.position;
+            img.style.filter = original ? 'none' : filterOf(v);
+            img.style.transform = `scale(${scale})`;
+            layer.style.setProperty('--wp-dim', original ? 0 : v.dim / 100);
+        });
+        if (isWallpaper) document.documentElement.classList.toggle('has-wp', !!imageUrl);
+        document.getElementById('wpcEmpty').hidden = !!imageUrl;
+        form.querySelectorAll('output[data-for]').forEach(o => o.textContent = v[o.dataset.for] + o.dataset.unit);
+        document.querySelectorAll('.wpc-preset').forEach(b => {
+            const p = {...defaults, ...PRESETS[+b.dataset.i][1]};
+            b.classList.toggle('active', KEYS.every(k => +p[k] === v[k]));
+            const thumb = b.firstElementChild;
+            if (imageUrl) thumb.style.backgroundImage = imageUrl;
+        });
+    }
+    function apply(preset) {
+        const p = {...defaults, ...preset};
+        KEYS.forEach(k => form.elements[k].value = p[k]);
+        render();
+    }
+
+    const box = document.getElementById('wpcPresets');
+    PRESETS.forEach(([name, p], i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wpc-preset';
+        b.dataset.i = i;
+        b.innerHTML = '<div class="wpc-thumb"></div>';
+        b.firstElementChild.style.filter = filterOf({...defaults, ...p});
+        b.append(name);
+        b.addEventListener('click', () => apply(p));
+        box.append(b);
+    });
+
+    form.addEventListener('input', e => { if (e.target.type !== 'file') render(); });
+    document.getElementById('wpcReset').addEventListener('click', () => apply({}));
+
+    // Rasm tanlanişi bilan darhol namuna (serverga yuborilmasdan).
+    const file = document.getElementById('wpcFile');
+    function useFile(f) {
+        if (!f || !/^image\/(jpeg|png|webp)$/.test(f.type)) { alert("Faqat JPG, PNG yoki WEBP rasm tanlang."); file.value = ''; return; }
+        if (f.size > 10 * 1024 * 1024) { alert("Rasm hajmi 10 MB dan oşmasligi kerak."); file.value = ''; return; }
+        imageUrl = `url("${URL.createObjectURL(f)}")`;
+        document.getElementById('wpcFileName').textContent = f.name;
+        render();
+    }
+    file.addEventListener('change', () => useFile(file.files[0]));
+    const drop = document.getElementById('wpcDrop');
+    ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+    drop.addEventListener('drop', e => {
+        const f = e.dataTransfer.files[0];
+        if (!f) return;
+        const dt = new DataTransfer();
+        dt.items.add(f);
+        file.files = dt.files;
+        useFile(f);
+    });
+
+    // Asl rasm bilan soliştiriş (filtrsiz)
+    const hold = document.getElementById('wpcHold');
+    hold.addEventListener('pointerdown', () => render(true));
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => hold.addEventListener(ev, () => render()));
+
+    render();
+})();
+</script>
+{% endblock %}

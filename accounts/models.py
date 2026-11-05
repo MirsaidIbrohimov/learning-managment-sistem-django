@@ -229,6 +229,11 @@ class CustomUser(AbstractUser):
     profile_banner = models.CharField(max_length=20, choices=PROFILE_BANNER_CHOICES, default='none', verbose_name="Profil banneri")
     gold_theme = models.BooleanField(default=False, verbose_name="Oltin mavzu")
     weather_effect = models.CharField(max_length=20, default='off', verbose_name="Ob-havo effekti")
+    # 🖼 Orqa fon rasmi (Premium + admin/öqituvçi; mantiq: accounts/wallpaper.py)
+    wallpaper = models.ImageField(upload_to='wallpapers/', blank=True, null=True, verbose_name="Orqa fon rasmi")
+    wallpaper_style = models.JSONField(default=dict, blank=True, verbose_name="Orqa fon sozlamalari")
+    banner_image = models.ImageField(upload_to='banners/', blank=True, null=True, verbose_name="Profil banneri rasmi")
+    banner_style = models.JSONField(default=dict, blank=True, verbose_name="Banner rasmi sozlamalari")
 
     # Telegram
     telegram_id = models.BigIntegerField(null=True, blank=True, unique=True, verbose_name="Telegram ID")
@@ -1771,6 +1776,52 @@ class NavigationPreference(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.layout}"
+
+    def as_dict(self):
+        return {key: getattr(self, key) for key in self.DEFAULTS}
+
+
+class PremiumSettings(models.Model):
+    """💎 Premium sozlamalar: 3D shakl va sessiya xavfsizligi (mantiq: accounts/premium_settings.py).
+
+    Premium tugasa saqlangan tanlov öçmaydi, lekin standart qiymatlar qöllanadi.
+    """
+    SHAPE_CHOICES = [
+        ('sphere', "Shar"), ('cube', "Kub"), ('torus', "Donut"), ('heart', "Yurak"), ('dna', "DNK"),
+        ('galaxy', "Galaktika"), ('planet', "Sayyora"), ('infinity', "Çeksizlik"), ('star', "Yulduz"),
+    ]
+    PALETTE_CHOICES = [
+        ('aurora', "Aurora"), ('gold', "Oltin"), ('fire', "Olov"), ('ocean', "Okean"),
+        ('emerald', "Zumrad"), ('sakura', "Sakura"), ('rainbow', "Kamalak"),
+    ]
+    SPEED_CHOICES = [('off', "Töxtatilgan"), ('slow', "Sekin"), ('normal', "Odatiy"), ('fast', "Tez")]
+    # Daqiqalarda; 120 — saytning standart qiymati
+    IDLE_CHOICES = [
+        (30, "30 daqiqa"), (60, "1 soat"), (120, "2 soat (standart)"), (240, "4 soat"),
+        (480, "8 soat"), (1440, "1 kun"), (10080, "7 kun"),
+    ]
+    DEFAULTS = {'orb_shape': 'sphere', 'orb_palette': 'aurora', 'orb_speed': 'normal',
+                'loader_shape': 'cube', 'loader_palette': 'aurora',
+                'idle_timeout_minutes': 120, 'logout_on_ip_change': True}
+
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='premium_settings')
+    orb_shape = models.CharField(max_length=12, choices=SHAPE_CHOICES, default='sphere', verbose_name="3D shakl")
+    orb_palette = models.CharField(max_length=12, choices=PALETTE_CHOICES, default='aurora', verbose_name="3D shakl rangi")
+    orb_speed = models.CharField(max_length=8, choices=SPEED_CHOICES, default='normal', verbose_name="Aylaniş tezligi")
+    # Sayt yuklanayotganda körinadigan animatsiya: shar ↔ tanlangan shakl
+    loader_shape = models.CharField(max_length=12, choices=SHAPE_CHOICES, default='cube', verbose_name="Yuklaniş shakli")
+    loader_palette = models.CharField(max_length=12, choices=PALETTE_CHOICES, default='aurora', verbose_name="Yuklaniş rangi")
+    idle_timeout_minutes = models.PositiveIntegerField(choices=IDLE_CHOICES, default=120,
+                                                       verbose_name="Faolsizlikda çiqariş (daqiqa)")
+    logout_on_ip_change = models.BooleanField(default=True, verbose_name="IP özgarsa çiqariş")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Premium sozlama"
+        verbose_name_plural = "Premium sozlamalar"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.orb_shape}"
 
     def as_dict(self):
         return {key: getattr(self, key) for key in self.DEFAULTS}
@@ -3852,6 +3903,34 @@ class CourseBundleItem(models.Model):
 
 # ==================== GURUHLAR & DARS JADVALI ====================
 
+class StudyGroupQuerySet(models.QuerySet):
+    """Guruh davri (start_date … end_date) böyiça filtrlar. Sana yöq bölsa — çeklanmagan."""
+
+    def running(self, day=None):
+        """Hozir dars ötilayotgan (faol) guruhlar — davomat şularda körinadi."""
+        from django.db.models import Q
+        from django.utils import timezone
+
+        day = day or timezone.localdate()
+        return self.filter(is_active=True).filter(
+            Q(start_date__isnull=True) | Q(start_date__lte=day),
+            Q(end_date__isnull=True) | Q(end_date__gte=day),
+        )
+
+    def not_archived(self, day=None):
+        """Faol + hali boşlanmagan guruhlar (tugaş sanasi ötmagan)."""
+        from django.db.models import Q
+        from django.utils import timezone
+
+        day = day or timezone.localdate()
+        return self.filter(is_active=True).filter(Q(end_date__isnull=True) | Q(end_date__gte=day))
+
+    def archived(self, day=None):
+        from django.utils import timezone
+
+        return self.filter(end_date__lt=day or timezone.localdate())
+
+
 class StudyGroup(models.Model):
     """Guruh — dars jadvali bilan boğliq öquv guruhi.
 
@@ -3914,12 +3993,18 @@ class StudyGroup(models.Model):
     )
     description = models.TextField(blank=True, verbose_name="Izoh")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
+    # Guruh davri: boşlaniş sanasidan tugaş sanasigaça faol (davomatda körinadi),
+    # tugaş sanasidan keyin — arxiv. Eski guruhlarda böş bölişi mumkin (çeklanmagan).
+    start_date = models.DateField(null=True, blank=True, verbose_name="Boşlaniş sanasi")
+    end_date = models.DateField(null=True, blank=True, verbose_name="Tugaş sanasi")
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='created_study_groups',
         verbose_name="Kim yaratgan",
     )
+
+    objects = StudyGroupQuerySet.as_manager()
 
     class Meta:
         ordering = ['start_time', 'name']
@@ -3984,6 +4069,40 @@ class StudyGroup(models.Model):
     @property
     def students_count(self):
         return self.students.count()
+
+    # --- Guruh davri ---
+    STATUS_LABELS = {'active': "Faol", 'upcoming': "Kelgusi", 'archived': "Arxiv", 'inactive': "Nofaol"}
+
+    @property
+    def status(self):
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        if self.end_date and self.end_date < today:
+            return 'archived'
+        if not self.is_active:
+            return 'inactive'
+        if self.start_date and self.start_date > today:
+            return 'upcoming'
+        return 'active'
+
+    @property
+    def status_label(self):
+        return self.STATUS_LABELS[self.status]
+
+    @property
+    def is_running(self):
+        return self.status == 'active'
+
+    @property
+    def period_display(self):
+        if not (self.start_date or self.end_date):
+            return ''
+        fmt = lambda d: d.strftime('%d.%m.%Y') if d else '…'
+        return f"{fmt(self.start_date)} — {fmt(self.end_date)}"
+
+    def date_in_period(self, day):
+        return (not self.start_date or day >= self.start_date) and (not self.end_date or day <= self.end_date)
 
 
 class StudentAttendance(models.Model):

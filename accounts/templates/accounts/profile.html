@@ -12,7 +12,7 @@
   {% for message in messages %}<div class="alert3 {{ message.tags }}" role="status"><i class="bi bi-info-circle"></i> {{ message }}</div>{% endfor %}
 
   <!-- ═══ HERO ═══ -->
-  <section class="hero3 glass {{ user|deco_banner }}" id="overview">
+  <section class="hero3 glass {{ user|deco_banner }}" id="overview">{{ user|deco_banner_layer }}
     <div class="hero3-l">
       <div class="hero3-id">
         <div class="ava {{ user|deco_frame }}">
@@ -28,6 +28,9 @@
       <div class="hero3-act">
         <a class="btn3 acc" href="{% url 'profile_edit' %}" data-mag><i class="bi bi-pencil-square"></i> Profilni tahrirlaş</a>
         {% if user.is_premium %}<a class="btn3" href="{% url 'premium_customize' %}" data-mag><i class="bi bi-gem" style="color:#f59e0b"></i> Profilni bezaş</a>{% endif %}
+        {% if user|can_wallpaper or user.is_premium %}<a class="btn3" href="{% url 'wallpaper_customize' %}" data-mag><i class="bi bi-image" style="color:#f59e0b"></i> Orqa fonni bezaş</a>
+        <a class="btn3" href="{% url 'banner_customize' %}" data-mag><i class="bi bi-card-image" style="color:#f59e0b"></i> Banner rasmi</a>{% endif %}
+        {% if user.is_premium %}<a class="btn3" href="{% url 'premium_settings' %}" data-mag><i class="bi bi-sliders" style="color:#f59e0b"></i> 3D shakl va xavfsizlik</a>{% endif %}
         {% if user.is_admin %}
           <a class="btn3" href="{% url 'admin_dashboard' %}" data-mag><i class="bi bi-grid-1x2"></i> Boşqaruv paneli</a>
         {% elif user.is_teacher %}
@@ -38,7 +41,7 @@
         {% endif %}
       </div>
     </div>
-    <div class="hero3-r" data-pf-orb aria-hidden="true">
+    <div class="hero3-r" data-pf-orb {{ user|orb_attrs }} aria-hidden="true">
       {% if user.is_teacher and not user.is_admin %}
         <div class="fchip glass f1"><i class="bi bi-book"></i><span><b>{{ profile_summary.courses }} ta kurs</b><small>Dars beraman</small></span></div>
         <div class="fchip glass f2"><i class="bi bi-people"></i><span><b>{{ profile_summary.students }}</b><small>Öquvçilarim</small></span></div>
@@ -93,6 +96,7 @@
         <div style="margin-top:10px">
           <a class="lnk" href="{% url 'change_password' %}"><i class="bi bi-key"></i><span>Parolni özgartiriş<small>Hisobingizni himoya qiling</small></span><i class="bi bi-chevron-right"></i></a>
           <a class="lnk" href="{% url 'my_devices' %}"><i class="bi bi-laptop"></i><span>Qurilmalar<small>Kiriş seanslarini boşqaring</small></span><i class="bi bi-chevron-right"></i></a>
+          {% if user.is_premium %}<a class="lnk" href="{% url 'premium_settings' %}#security"><i class="bi bi-shield-lock"></i><span>Sessiya xavfsizligi<small>Avtomatik çiqariş va IP tekşiruvini sozlang</small></span><i class="bi bi-chevron-right"></i></a>{% endif %}
         </div>
         <div class="tg3"><i class="bi bi-telegram"></i><div>Telegram<small>{% if user.telegram_id %}{{ user.telegram_username|default:"Ulangan" }}{% else %}Bildirişnomalarni oling{% endif %}</small></div>
           {% if user.telegram_id %}<form method="post" action="{% url 'telegram_bot:unlink_telegram' %}" id="tgUnlinkForm" style="margin-left:auto">{% csrf_token %}<button type="submit" class="btn3">Uziş</button></form>
@@ -262,26 +266,66 @@
     </div>
   </div>
 
-  {% if user.telegram_id %}
-  <!-- Telegram uziş tasdiqlaş oynasi -->
-  <div class="tg-ov" id="tgUnlinkOverlay" role="dialog" aria-modal="true" aria-labelledby="tgUnlinkTitle">
-    <div class="box glass">
-      <div class="ic"><i class="bi bi-telegram"></i></div>
-      <h3 id="tgUnlinkTitle">Telegramni uziş</h3>
-      <p>Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
-      <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
-        {% csrf_token %}
-        <input aria-label="Telegram tasdiqlaş kodi" required type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
-        <div class="btns">
-          <button type="submit" class="btn3 danger"><i class="bi bi-check-lg"></i> Tasdiqlaş</button>
-          <button type="button" class="btn3" id="tgUnlinkCancel">Bekor qiliş</button>
-        </div>
-      </form>
-      <small><i class="bi bi-clock"></i> Kod 5 daqiqa amal qiladi</small>
-    </div>
-  </div>
-  {% endif %}
 </div>
+{% if user.telegram_id %}
+<!-- ═══ Telegram uziş: tasdiqlaş kodi oynasi (.pf3 tashqarisida — position:fixed buzilmasin) ═══ -->
+<div class="tgm" id="tgUnlinkOverlay" role="dialog" aria-modal="true" aria-labelledby="tgUnlinkTitle" hidden>
+  <div class="tgm-card">
+    <button type="button" class="tgm-x" id="tgUnlinkCancel" aria-label="Yopiş"><i class="bi bi-x-lg"></i></button>
+    <div class="tgm-hero"><span class="tgm-ring"></span><i class="bi bi-telegram"></i></div>
+    <h3 id="tgUnlinkTitle">Telegramni uziş</h3>
+    <p class="tgm-sub">Tasdiqlaş kodi <b>{% if user.telegram_username %}@{{ user.telegram_username }}{% else %}Telegram{% endif %}</b> hisobingizga yuborildi. 6 xonali kodni kiriting.</p>
+    <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="unlink_code" id="tgUnlinkCodeInput">
+      <div class="tgm-otp" id="tgOtp">
+        {% for i in "123456" %}<input type="text" inputmode="numeric" maxlength="1" autocomplete="{% if forloop.first %}one-time-code{% else %}off{% endif %}" aria-label="Kodning {{ i }}-raqami">{% endfor %}
+      </div>
+      <div class="tgm-msg" id="tgMsg" role="alert" aria-live="polite"></div>
+      <button type="submit" class="tgm-btn" id="tgSubmit" disabled><i class="bi bi-shield-check"></i> <span>Tasdiqlaş va uziş</span></button>
+    </form>
+    <div class="tgm-foot">
+      <span id="tgTimer"><i class="bi bi-clock"></i> Kod <b id="tgLeft">5:00</b> amal qiladi</span>
+      <button type="button" class="tgm-link" id="tgResend" disabled>Kodni qayta yuboriş</button>
+    </div>
+    <p class="tgm-note"><i class="bi bi-info-circle"></i> Uzilgandan keyin bildirişnomalar Telegram'ga kelmaydi. Istalgan vaqtda qayta ulaşingiz mumkin.</p>
+  </div>
+</div>
+<style>
+.tgm{position:fixed;inset:0;z-index:100001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(7,11,22,.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transition:opacity .22s ease}
+.tgm[hidden]{display:none}
+.tgm.show{opacity:1}
+.tgm-card{position:relative;width:100%;max-width:410px;padding:30px 26px 22px;border-radius:26px;text-align:center;background:var(--bs-body-bg);border:1px solid var(--bs-border-color);box-shadow:0 40px 90px -30px rgba(0,0,0,.6);transform:translateY(14px) scale(.97);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.tgm.show .tgm-card{transform:none}
+.tgm-x{position:absolute;top:14px;right:14px;width:34px;height:34px;border:0;border-radius:11px;background:var(--bs-secondary-bg);color:var(--bs-secondary-color);display:grid;place-items:center}
+.tgm-x:hover{color:var(--bs-body-color)}
+.tgm-hero{position:relative;width:76px;height:76px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;font-size:2.1rem;color:#fff;background:linear-gradient(135deg,#2AABEE,#1e88d6);box-shadow:0 18px 40px -14px rgba(34,158,217,.8)}
+.tgm-ring{position:absolute;inset:-7px;border-radius:50%;border:2px solid rgba(34,158,217,.35);animation:tgmPulse 2s ease-out infinite}
+@keyframes tgmPulse{from{transform:scale(.9);opacity:1}to{transform:scale(1.25);opacity:0}}
+.tgm h3{font-size:1.25rem;font-weight:800;margin:0 0 6px}
+.tgm-sub{color:var(--bs-secondary-color);font-size:.9rem;line-height:1.5;margin:0 0 18px}
+.tgm-otp{display:flex;justify-content:center;gap:8px}
+.tgm-otp input{width:48px;height:58px;padding:0;border-radius:14px;border:2px solid var(--bs-border-color);background:var(--bs-secondary-bg);color:var(--bs-body-color);font:800 1.5rem 'JetBrains Mono',monospace;text-align:center;outline:none;transition:border-color .15s,box-shadow .15s,transform .15s}
+.tgm-otp input:focus{border-color:#229ED9;box-shadow:0 0 0 4px rgba(34,158,217,.18);transform:translateY(-2px)}
+.tgm-otp input.filled{border-color:#229ED9;background:var(--bs-body-bg)}
+.tgm-otp.err input{border-color:#ef4444;animation:tgmShake .35s}
+.tgm-otp.ok input{border-color:#10b981;background:rgba(16,185,129,.08)}
+@keyframes tgmShake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.tgm-msg{min-height:22px;margin:10px 0 4px;font-size:.85rem;font-weight:600;color:#ef4444}
+.tgm-msg.ok{color:#10b981}
+.tgm-btn{width:100%;border:0;border-radius:14px;padding:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 14px 30px -14px rgba(220,38,38,.8);transition:opacity .15s,transform .15s}
+.tgm-btn:disabled{opacity:.45;box-shadow:none}
+.tgm-btn:not(:disabled):active{transform:scale(.98)}
+.tgm-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;font-size:.84rem;color:var(--bs-secondary-color)}
+.tgm-foot b{font-variant-numeric:tabular-nums;color:var(--bs-body-color)}
+.tgm-foot .expired{color:#ef4444;font-weight:700}
+.tgm-link{border:0;background:none;padding:0;font-weight:700;color:#229ED9}
+.tgm-link:disabled{color:var(--bs-secondary-color);opacity:.7}
+.tgm-note{margin:14px 0 0;padding:10px 12px;border-radius:12px;font-size:.78rem;line-height:1.45;color:var(--bs-secondary-color);background:var(--bs-secondary-bg);text-align:left}
+@media (max-width:400px){.tgm-otp{gap:6px}.tgm-otp input{width:42px;height:52px}}
+@media (prefers-reduced-motion:reduce){.tgm,.tgm-card,.tgm-ring,.tgm-otp input{animation:none!important;transition:none!important}}
+</style>
+{% endif %}
 {% if user.photo %}
 <div class="pf-lightbox" id="pfPhotoLightbox" role="dialog" aria-modal="true" aria-label="Profil rasmi" hidden>
   <button type="button" class="pf-lightbox-x" aria-label="Yopiş"><i class="bi bi-x-lg"></i></button>
@@ -326,35 +370,127 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script src="{% static 'js/profile-orb.js' %}"></script>
+<script src="{% static 'js/orb-shapes.js' %}?v=20261105"></script>
+<script src="{% static 'js/profile-orb.js' %}?v=20261105"></script>
 <script src="{% static 'js/profile-motion.js' %}"></script>
 <script src="{% static 'js/social-connect.js' %}" defer></script>
 {% if user.telegram_id %}
 <script>
+/* Telegram uziş: kod yuboriş → 6 katakli kod oynasi → AJAX tasdiqlaş (xato oynaning özida körinadi) */
 (function () {
-  var form = document.getElementById('tgUnlinkForm'), overlay = document.getElementById('tgUnlinkOverlay');
-  var codeInput = document.getElementById('tgUnlinkCodeInput');
-  if (!form || !overlay) return;
-  var close = function () { overlay.classList.remove('show'); };
-  codeInput.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
-  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
-  document.getElementById('tgUnlinkCancel').addEventListener('click', close);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.classList.contains('show')) close(); });
+  var form = document.getElementById('tgUnlinkForm'), ov = document.getElementById('tgUnlinkOverlay');
+  if (!form || !ov) return;
+  var confirmForm = document.getElementById('tgConfirmForm'), hidden = document.getElementById('tgUnlinkCodeInput');
+  var otp = document.getElementById('tgOtp'), boxes = Array.prototype.slice.call(otp.querySelectorAll('input'));
+  var msg = document.getElementById('tgMsg'), submit = document.getElementById('tgSubmit');
+  var left = document.getElementById('tgLeft'), timerBox = document.getElementById('tgTimer'), resend = document.getElementById('tgResend');
+  var csrf = form.querySelector('[name=csrfmiddlewaretoken]').value, timer = null, deadline = 0, resendAt = 0, busy = false;
 
-  // Uziş: kod yuboriş va oynani oçiş
+  function say(text, ok) { msg.textContent = text || ''; msg.classList.toggle('ok', !!ok); }
+  function code() { return boxes.map(function (b) { return b.value; }).join(''); }
+  function sync() {
+    boxes.forEach(function (b) { b.classList.toggle('filled', !!b.value); });
+    otp.classList.remove('err');
+    submit.disabled = busy || code().length !== 6 || Date.now() > deadline;
+  }
+  function clearBoxes() { boxes.forEach(function (b) { b.value = ''; }); sync(); boxes[0].focus(); }
+  function fill(digits, from) {
+    digits = digits.replace(/\D/g, '').slice(0, 6 - from);
+    for (var k = 0; k < digits.length; k++) boxes[from + k].value = digits[k];
+    sync();
+    var next = Math.min(from + digits.length, 5);
+    boxes[next].focus();
+    if (code().length === 6) send();
+  }
+  function tick() {
+    var now = Date.now(), s = Math.max(0, Math.round((deadline - now) / 1000));
+    if (s > 0) {
+      timerBox.innerHTML = '<i class="bi bi-clock"></i> Kod <b>' + Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2) + '</b> amal qiladi';
+    } else {
+      timerBox.innerHTML = '<span class="expired"><i class="bi bi-exclamation-circle"></i> Kod muddati tugadi</span>';
+    }
+    var r = Math.max(0, Math.round((resendAt - now) / 1000));
+    resend.disabled = r > 0 || busy;
+    resend.textContent = r > 0 ? 'Qayta yuboriş (' + r + ')' : 'Kodni qayta yuboriş';
+    sync();
+  }
+  function open() {
+    ov.hidden = false; document.body.style.overflow = 'hidden';
+    requestAnimationFrame(function () { ov.classList.add('show'); });
+    clearBoxes();
+  }
+  function close() {
+    ov.classList.remove('show'); document.body.style.overflow = '';
+    clearInterval(timer);
+    setTimeout(function () { ov.hidden = true; }, 220);
+  }
+  function requestCode(btn) {
+    var html = btn && btn.innerHTML;
+    if (btn) { btn.disabled = true; btn.textContent = '…'; }
+    return fetch(form.action, { method: 'POST', credentials: 'same-origin',
+      headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+      .then(function (d) {
+        deadline = Date.now() + (d.expires_in || 300) * 1000; resendAt = Date.now() + 60000;
+        clearInterval(timer); timer = setInterval(tick, 1000); tick();
+        say('');
+        return true;
+      })
+      .catch(function () { alert("Kod yuborilmadi. Internetni tekşirib, qayta urinib köring."); return false; })
+      .finally(function () { if (btn) { btn.disabled = false; btn.innerHTML = html; } });
+  }
+  function send() {
+    if (busy || code().length !== 6) return;
+    busy = true; sync(); hidden.value = code();
+    submit.querySelector('span').textContent = 'Tekşirilmoqda…';
+    fetch(confirmForm.action, { method: 'POST', credentials: 'same-origin', body: new FormData(confirmForm),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.ok) {
+          otp.classList.add('ok'); say('Telegram uzildi ✓', true);
+          setTimeout(function () { location.href = d.redirect || location.href; }, 700);
+          return;
+        }
+        busy = false;
+        if (d.expired) { deadline = 0; resendAt = 0; }
+        say(d.error || 'Kod notöğri!');
+        otp.classList.remove('err'); void otp.offsetWidth; otp.classList.add('err');
+        boxes.forEach(function (b) { b.value = ''; });
+        boxes.forEach(function (b) { b.classList.remove('filled'); });
+        boxes[0].focus(); tick();
+      })
+      .catch(function () { busy = false; say("Server bilan aloqa yöq. Qayta urinib köring."); tick(); })
+      .finally(function () { submit.querySelector('span').textContent = 'Tasdiqlaş va uziş'; });
+  }
+
+  boxes.forEach(function (b, i) {
+    b.addEventListener('input', function () {
+      var v = b.value.replace(/\D/g, '');
+      b.value = '';
+      if (v) fill(v, i); else sync();
+    });
+    b.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !b.value && i > 0) { boxes[i - 1].value = ''; boxes[i - 1].focus(); sync(); e.preventDefault(); }
+      else if (e.key === 'ArrowLeft' && i > 0) boxes[i - 1].focus();
+      else if (e.key === 'ArrowRight' && i < 5) boxes[i + 1].focus();
+    });
+    b.addEventListener('paste', function (e) {
+      e.preventDefault();
+      fill((e.clipboardData || window.clipboardData).getData('text'), i);
+    });
+    b.addEventListener('focus', function () { b.select(); });
+  });
+  confirmForm.addEventListener('submit', function (e) { e.preventDefault(); send(); });
+  resend.addEventListener('click', function () { requestCode(null).then(function (ok) { if (ok) { clearBoxes(); say('Yangi kod yuborildi', true); } }); });
+  document.getElementById('tgUnlinkCancel').addEventListener('click', close);
+  ov.addEventListener('click', function (e) { if (e.target === ov) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !ov.hidden) close(); });
+
+  // "Uziş" tugmasi: kod yuboriladi va oyna oçiladi
   form.addEventListener('submit', function (e) {
     e.preventDefault();
-    var btn = form.querySelector('button[type="submit"]'), html = btn.innerHTML;
-    btn.disabled = true; btn.textContent = '…';
-    fetch(form.action, {
-      method: 'POST',
-      headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value, 'X-Requested-With': 'XMLHttpRequest' },
-      credentials: 'same-origin'
-    }).then(function (r) {
-      btn.disabled = false; btn.innerHTML = html;
-      if (r.ok) { codeInput.value = ''; overlay.classList.add('show'); setTimeout(function () { codeInput.focus(); }, 100); }
-      else alert('Xatolik yuz berdi!');
-    }).catch(function () { btn.disabled = false; btn.innerHTML = html; alert("Server bilan aloqa yöq!"); });
+    requestCode(form.querySelector('button[type="submit"]')).then(function (ok) { if (ok) open(); });
   });
 })();
 </script>

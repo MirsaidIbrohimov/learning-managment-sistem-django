@@ -32,6 +32,7 @@
 .pc-lock { border-radius: 18px; padding: 16px 18px; margin-bottom: 14px; background: rgba(245, 158, 11, .1); color: #b45309; font-weight: 600; }
 .pc-save { border: 0; border-radius: 12px; padding: 12px 22px; font-weight: 700; color: #1a1206; width: 100%; background: linear-gradient(135deg, #fbbf24, #f59e0b); }
 .pc-save:disabled { opacity: .5; }
+.pc-own { display: inline-flex; align-items: center; gap: 6px; margin: -4px 0 12px; font-weight: 700; font-size: .86rem; color: #d97706; text-decoration: none; }
 </style>
 {% endblock %}
 
@@ -39,7 +40,7 @@
 <div class="pc-page">
     {% for message in messages %}<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">{{ message }}</div>{% endfor %}
 
-    <div class="pc-preview {{ user|deco_banner }}" id="pcPreview">
+    <div class="pc-preview {{ user|deco_banner }}" id="pcPreview">{{ user|deco_banner_layer }}
         <div class="pc-av {{ user|deco_frame }}" id="pcAv">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}{{ user.get_initials }}{% endif %}</div>
         <div>
             <h1 class="pc-pname"><span class="{{ user|deco_name }}" id="pcName">{{ user.full_name|default:user.username }}</span></h1>
@@ -77,6 +78,8 @@
         </div>
         <div class="pc-card">
             <h2><i class="bi bi-image"></i> Profil banneri</h2>
+            <a class="pc-own" href="{% url 'banner_customize' %}"><i class="bi bi-card-image"></i> Öz rasmingizni qöying — filtr va sozlamalar bilan <i class="bi bi-arrow-right"></i></a>
+            {% if user.banner_image %}<div class="pc-sub mb-2">Öz rasmingiz qöyilgan — u tayyor bannerlardan ustun turadi.</div>{% endif %}
             <div class="pc-opts">
                 {% for value, label in banners %}
                 <div class="pc-opt">
@@ -107,6 +110,7 @@
             const el = document.getElementById(id);
             el.className = el.className.split(' ').filter(c => !c.startsWith(cls.split(' ')[0])).join(' ');
             if (input.value !== empty) el.className += ' ' + cls + input.value;
+            if (el.querySelector('.pd-bimg')) el.className += ' pd-bnr pd-bnr-img';  // öz rasmi ustun turadi
         });
     });
     document.getElementById('pcGold').addEventListener('change', function () {

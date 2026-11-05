@@ -1,0 +1,12 @@
+/* 🖼 Orqa fon rasmi (accounts/wallpaper.py). Qatlam kontent ortida, sahifa foni şaffof bölib qoladi. */
+html.has-wp body { background: transparent !important; }
+html.has-wp .au-bg { display: none; }
+.itc-wp { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; --wp-dim: .25; }
+.itc-wp-img {
+  position: absolute; inset: 0; background-size: cover; background-repeat: no-repeat; background-position: center;
+  transition: filter .2s ease, transform .2s ease;
+}
+/* Matn öqilişi uçun parda: yorug mavzuda oq, tungi mavzuda qora */
+.itc-wp::after { content: ""; position: absolute; inset: 0; background: rgba(255, 255, 255, var(--wp-dim)); }
+html[data-bs-theme="dark"] .itc-wp::after { background: rgba(0, 0, 0, var(--wp-dim)); }
+@media print { .itc-wp { display: none !important; } }
