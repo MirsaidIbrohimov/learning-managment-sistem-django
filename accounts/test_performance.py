@@ -30,7 +30,7 @@ class PerformanceQueryTests(TestCase):
             PostLike.objects.create(post=post, user=cls.author)
             PostComment.objects.create(post=post, user=cls.student, content='One')
             PostComment.objects.create(post=post, user=cls.author, content='Two')
-            cls.post_id = post.pk
+            cls.post_token = post.token
 
     def setUp(self):
         cache.clear()  # Isolated locmem test cache only; never production Redis.
@@ -83,4 +83,4 @@ class PerformanceQueryTests(TestCase):
             self.assertEqual(len([c.user.username for c in context['comments']]), 2)
             return HttpResponse('ok')
         with patch('blog.views.render', side_effect=capture), self.assertNumQueries(2):
-            post_detail(self.request, self.post_id)
+            post_detail(self.request, self.post_token)

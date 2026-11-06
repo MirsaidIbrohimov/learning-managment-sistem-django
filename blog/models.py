@@ -1,5 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.utils.crypto import get_random_string
+
+
+def new_url_token():
+    return get_random_string(12)
 
 
 class Post(models.Model):
@@ -11,6 +16,7 @@ class Post(models.Model):
         ('other', 'Boşqa'),
     )
     
+    token = models.CharField(max_length=16, unique=True, default=new_url_token, editable=False)
     title = models.CharField(max_length=300, verbose_name="Sarlavha")
     content = models.TextField(verbose_name="Matn")
     image = models.ImageField(upload_to='posts/', blank=True, null=True, verbose_name="Rasm")

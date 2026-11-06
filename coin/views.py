@@ -49,9 +49,16 @@ def market_list(request):
 
 
 @login_required
-def market_detail(request, pk):
+def legacy_market_redirect(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    return redirect('coin:market_detail', token=product.token, permanent=True)
+
+
+@login_required
+def market_detail(request, token):
     """Mahsulot detail sahifasi — data API orqali yuklanadi"""
-    return render(request, 'coin/market/detail.html', {'product_id': pk})
+    product = get_object_or_404(Product.objects.only('pk'), token=token)
+    return render(request, 'coin/market/detail.html', {'product_id': product.pk})
 
 
 @login_required

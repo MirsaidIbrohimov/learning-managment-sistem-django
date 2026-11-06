@@ -298,7 +298,7 @@
           + '<div class="mkx-fprice"><b class="mkx-gold">'+formatNum(price)+' coin</b>'
           + (p.has_discount ? '<del>'+formatNum(p.coin_price)+'</del><span class="mkx-save">−'+p.discount_percent+'% Premium</span>' : '') + '</div>'
           + '<div class="mkx-timer" id="mkFeatureTimer"></div>'
-          + '<div class="mkx-links"><a class="mkx-btn gold" href="/market/'+p.id+'/">Batafsil köriş <i class="bi bi-arrow-right"></i></a>'
+          + '<div class="mkx-links"><a class="mkx-btn gold" href="/market/'+p.token+'/">Batafsil köriş <i class="bi bi-arrow-right"></i></a>'
           + '<span class="mkx-btn"><i class="bi bi-heart-fill" style="color:var(--mkt-bad)"></i> '+p.likes_count+'</span></div></div>';
         paintFeatureTimer(remaining());
         wrap.hidden = false;
@@ -323,7 +323,7 @@
             + '<div class="mkx-meta"><span class="mkx-likes'+(p.is_liked?' on':'')+'"><i class="bi bi-heart-fill"></i> '+p.likes_count+'</span><span><i class="bi bi-chat"></i> '+p.comments_count+' izoh</span></div>'
             + '<div class="mkx-foot"><div class="mkx-price">'+price+'</div>'
             + '<div class="mkx-acts"><button type="button" class="mkx-like'+(p.is_liked?' liked':'')+'" data-id="'+p.id+'" aria-label="Yoqtiriş" aria-pressed="'+(p.is_liked?'true':'false')+'"><i class="bi '+(p.is_liked?'bi-heart-fill':'bi-heart')+'"></i></button>'
-            + '<a href="/market/'+p.id+'/" class="mkx-btn mkx-more">Batafsil</a></div></div></div></article>';
+            + '<a href="/market/'+p.token+'/" class="mkx-btn mkx-more">Batafsil</a></div></div></div></article>';
     }
 
     async function loadProducts(pg) {

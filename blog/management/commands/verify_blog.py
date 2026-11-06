@@ -35,11 +35,11 @@ class Command(BaseCommand):
 
         # 3. Test Like (Coin logic)
         factory = RequestFactory()
-        request = factory.get(f'/blog/{post.pk}/like/')
+        request = factory.get(f'/blog/{post.token}/like/')
         request.user = student
         
         # Execute view
-        toggle_like(request, pk=post.pk)
+        toggle_like(request, token=post.token)
         
         student.refresh_from_db()
         if student.coins == 1:

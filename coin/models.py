@@ -1,5 +1,10 @@
 from django.db import models
 from django.conf import settings
+from django.utils.crypto import get_random_string
+
+
+def new_url_token():
+    return get_random_string(12)
 
 
 # =========================
@@ -7,6 +12,7 @@ from django.conf import settings
 # =========================
 
 class Product(models.Model):
+    token = models.CharField(max_length=16, unique=True, default=new_url_token, editable=False)
     name = models.CharField(max_length=200, verbose_name="Mahsulot nomi")
     description = models.TextField(verbose_name="Mahsulot haqida")
     image = models.ImageField(upload_to='products/', verbose_name="Rasm")

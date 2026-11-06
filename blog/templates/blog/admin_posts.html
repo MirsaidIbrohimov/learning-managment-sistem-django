@@ -64,7 +64,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td>
-                            <a href="{% url 'blog:post_detail' post.pk %}" class="text-decoration-none">
+                            <a href="{% url 'blog:post_detail' post.token %}" class="text-decoration-none">
                                 <strong>{{ post.title|truncatechars:50 }}</strong>
                             </a>
                         </td>
@@ -96,13 +96,13 @@
                         </td>
                         <td>{{ post.created_at|date:"d.m.Y H:i" }}</td>
                         <td class="action-btns">
-                            <a href="{% url 'blog:post_detail' post.pk %}" class="btn btn-sm btn-outline-info" title="Köriş">
+                            <a href="{% url 'blog:post_detail' post.token %}" class="btn btn-sm btn-outline-info" title="Köriş">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'blog:post_edit' post.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlaş">
+                            <a href="{% url 'blog:post_edit' post.token %}" class="btn btn-sm btn-outline-primary" title="Tahrirlaş">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <a href="{% url 'blog:post_delete' post.pk %}" class="btn btn-sm btn-outline-danger" title="Öçiriş">
+                            <a href="{% url 'blog:post_delete' post.token %}" class="btn btn-sm btn-outline-danger" title="Öçiriş">
                                 <i class="bi bi-trash"></i>
                             </a>
                         </td>

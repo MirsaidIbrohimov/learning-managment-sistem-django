@@ -388,10 +388,10 @@
         </div>
         {% if user.is_teacher or user.is_admin %}
         <div class="pd-admin-btns">
-          <a href="{% url 'blog:post_edit' post.pk %}" class="pd-admin-btn edit">
+          <a href="{% url 'blog:post_edit' post.token %}" class="pd-admin-btn edit">
             <i class="bi bi-pencil"></i> Tahrirlaş
           </a>
-          <a href="{% url 'blog:post_delete' post.pk %}" class="pd-admin-btn del"
+          <a href="{% url 'blog:post_delete' post.token %}" class="pd-admin-btn del"
              onclick="return confirm('Postni öçirmoqçimisiz?')">
             <i class="bi bi-trash3"></i> Öçiriş
           </a>
@@ -404,7 +404,7 @@
 
       <!-- Actions -->
       <div class="pd-actions">
-        <a href="{% url 'blog:toggle_like' post.pk %}"
+        <a href="{% url 'blog:toggle_like' post.token %}"
            class="pd-like-btn {% if is_liked %}liked{% else %}not-liked{% endif %}">
           <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
           {{ post.likes.count }} like

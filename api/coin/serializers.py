@@ -14,7 +14,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'image', 'coin_price', 'discounted_price', 'has_discount', 'discount_percent', 'stock', 'is_active', 'premium_only', 'is_early_access', 'public_at', 'likes_count', 'comments_count', 'is_liked', 'created_at']
+        fields = ['id', 'token', 'name', 'description', 'image', 'coin_price', 'discounted_price', 'has_discount', 'discount_percent', 'stock', 'is_active', 'premium_only', 'is_early_access', 'public_at', 'likes_count', 'comments_count', 'is_liked', 'created_at']
 
     def _user(self):
         request = self.context.get('request')
@@ -51,11 +51,12 @@ class ProductCommentSerializer(serializers.ModelSerializer):
 class ProductPurchaseSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_image = serializers.ImageField(source='product.image', read_only=True)
+    product_token = serializers.CharField(source='product.token', read_only=True)
     can_cancel = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = ProductPurchase
-        fields = ['id', 'product', 'product_name', 'product_image', 'coins_spent', 'purchased_at', 'is_delivered', 'status', 'can_cancel', 'cancelled_at']
+        fields = ['id', 'product', 'product_name', 'product_image', 'product_token', 'coins_spent', 'purchased_at', 'is_delivered', 'status', 'can_cancel', 'cancelled_at']
 
 
 class CoinTransactionSerializer(serializers.ModelSerializer):

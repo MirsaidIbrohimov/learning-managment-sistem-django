@@ -2890,7 +2890,7 @@ def global_search(request):
             except Exception:
                 img = ''
             prod_items.append({'title': pr.name, 'subtitle': f"{pr.coin_price} coin",
-                               'url': reverse('coin:market_detail', args=[pr.pk]), 'image': img})
+                               'url': reverse('coin:market_detail', args=[pr.token]), 'image': img})
         if prod_items:
             groups.append({'key': 'market', 'kind': 'simple', 'label': 'Market',
                            'icon': 'bi-bag-heart-fill', 'color': '#22C55E', 'items': prod_items})
@@ -2922,7 +2922,7 @@ def global_search(request):
             except Exception:
                 img = ''
             post_items.append({'title': po.title, 'subtitle': (po.content or '')[:90],
-                               'url': reverse('blog:post_detail', args=[po.pk]), 'image': img})
+                               'url': reverse('blog:post_detail', args=[po.token]), 'image': img})
         if post_items:
             groups.append({'key': 'blog', 'kind': 'simple', 'label': 'Blog',
                            'icon': 'bi-newspaper', 'color': '#EC4899', 'items': post_items})

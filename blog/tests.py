@@ -76,7 +76,7 @@ class PostDetailCommentTests(TestCase):
 
     def test_random_comment_is_not_saved_and_error_is_shown(self):
         response = self.client.post(
-            reverse('blog:post_detail', args=[self.post.pk]),
+            reverse('blog:post_detail', args=[self.post.token]),
             {'content': 'fdvjhbf sdfjvhfdsjv'},
         )
 

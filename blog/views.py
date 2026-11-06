@@ -37,8 +37,12 @@ def post_list(request):
         'filter_type': filter_type
     })
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post.objects.select_related('author'), pk=pk, is_published=True)
+def legacy_post_redirect(request, pk):
+    post = get_object_or_404(Post, pk=pk, is_published=True)
+    return redirect('blog:post_detail', token=post.token, permanent=True)
+
+def post_detail(request, token):
+    post = get_object_or_404(Post.objects.select_related('author'), token=token, is_published=True)
     comments = post.comments.select_related('user').all()
     is_liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
     liked_comment_ids = (
@@ -65,7 +69,7 @@ def post_detail(request, pk):
             
             if recent_comment:
                 messages.warning(request, "Siz 1 soatda faqat 1 ta izoh yozişingiz mumkin. Keyinroq urinib köring.")
-                return redirect('blog:post_detail', pk=pk)
+                return redirect('blog:post_detail', token=token)
             
             comment = form.save(commit=False)
             comment.post = post
@@ -83,7 +87,7 @@ def post_detail(request, pk):
                 action_type='comment_post',
                 description=f"Postga izoh qoldirdi: {post.title}"
             )
-            return redirect('blog:post_detail', pk=pk)
+            return redirect('blog:post_detail', token=token)
     else:
         form = CommentForm()
         
@@ -109,7 +113,7 @@ def post_create(request):
             post.save()
 
             type_name = dict(Post.POST_TYPES).get(post.post_type, post.post_type)
-            post_url = request.build_absolute_uri(reverse('blog:post_detail', args=[post.pk]))
+            post_url = request.build_absolute_uri(reverse('blog:post_detail', args=[post.token]))
 
             import threading
 
@@ -156,8 +160,8 @@ def post_create(request):
     return render(request, 'blog/post_form.html', {'form': form})
 
 @login_required
-def toggle_like(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+def toggle_like(request, token):
+    post = get_object_or_404(Post, token=token)
     like = PostLike.objects.filter(post=post, user=request.user).first()
     
     if like:
@@ -177,7 +181,7 @@ def toggle_like(request, pk):
         )
         messages.success(request, f"Like bosildi (+{coin_amount} coin)")
         
-    return redirect('blog:post_detail', pk=pk)
+    return redirect('blog:post_detail', token=token)
 
 
 @login_required
@@ -206,8 +210,8 @@ def admin_posts(request):
 
 
 @login_required
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+def post_edit(request, token):
+    post = get_object_or_404(Post, token=token)
     
     if not request.user.is_admin and post.author != request.user:
         messages.error(request, "Bu postni tahrirlaş huquqingiz yöq!")
@@ -226,8 +230,8 @@ def post_edit(request, pk):
 
 
 @login_required
-def post_delete(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+def post_delete(request, token):
+    post = get_object_or_404(Post, token=token)
     
     if not request.user.is_admin and post.author != request.user:
         messages.error(request, "Bu postni öçiriş huquqingiz yöq!")
@@ -262,4 +266,4 @@ def toggle_comment_like(request, pk):
         )
         messages.success(request, f"Like bosildi (+{coin_amount} coin izoh egasiga)")
     
-    return redirect('blog:post_detail', pk=comment.post.pk)
+    return redirect('blog:post_detail', token=comment.post.token)

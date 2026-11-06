@@ -69,9 +69,9 @@ def sitemap_xml(request):
     from blog.models import Post
 
     for post in Post.objects.filter(is_published=True).only(
-        'pk', 'title', 'image', 'updated_at', 'created_at'
+        'pk', 'token', 'title', 'image', 'updated_at', 'created_at'
     ).iterator():
-        path = reverse('blog:post_detail', args=[post.pk])
+        path = reverse('blog:post_detail', args=[post.token])
         url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
         ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, path.lstrip('/'))
         lastmod = post.updated_at or post.created_at

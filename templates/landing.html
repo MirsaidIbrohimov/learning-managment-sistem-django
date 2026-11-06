@@ -470,7 +470,7 @@
     <div class="news-head"><div><div class="lbl rv">06 — Blog</div><h2 class="rv">IT dunyosidan <em>yangiliklar</em></h2></div><a class="btn mag rv" href="{% url 'blog:post_list' %}">Barça postlar <i class="bi bi-arrow-up-right"></i></a></div>
     <div class="posts">
       {% for post in posts %}
-      <a class="post glass rv" href="{% url 'blog:post_detail' post.pk %}"><div class="img"><div style="{% if post.image %}background:url('{{ post.image.url }}') center/cover{% else %}background:linear-gradient(135deg,{% cycle '#0e7490,#7c3aed' '#be185d,#f59e0b' '#15803d,#22d3ee' %}){% endif %}">{% if not post.image %}<i class="bi bi-journal-richtext"></i>{% endif %}</div></div>
+      <a class="post glass rv" href="{% url 'blog:post_detail' post.token %}"><div class="img"><div style="{% if post.image %}background:url('{{ post.image.url }}') center/cover{% else %}background:linear-gradient(135deg,{% cycle '#0e7490,#7c3aed' '#be185d,#f59e0b' '#15803d,#22d3ee' %}){% endif %}">{% if not post.image %}<i class="bi bi-journal-richtext"></i>{% endif %}</div></div>
         <div class="bd"><div class="t"><b>#{{ post.get_post_type_display|lower }}</b><span>{{ post.created_at|date:"d.m.Y" }}</span></div><h3>{{ post.title }}</h3><p style="color:var(--muted);font-size:14px">{{ post.content|striptags|truncatewords:16 }}</p></div></a>
       {% endfor %}
     </div>

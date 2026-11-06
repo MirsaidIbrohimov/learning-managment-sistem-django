@@ -25,8 +25,10 @@ urlpatterns = [
     path('market/coin-promo/activate/', promo_views.coin_promo_activate, name='coin_promo_activate'),
     path('market/promo/receipt/<int:pk>/', promo_views.promo_receipt, name='promo_receipt'),
     path('dashboard/promo-codes/', promo_views.admin_promo_codes, name='admin_promo_codes'),
-    path('market/<int:pk>/', views.market_detail, name='market_detail'),
     path('market/my-purchases/', views.my_purchases, name='my_purchases'),
+    # Eski raqamli havolalar (/market/5/) tokenli manzilga yönaltiriladi.
+    path('market/<int:pk>/', views.legacy_market_redirect),
+    path('market/<str:token>/', views.market_detail, name='market_detail'),
     
     # Admin: Products
     path('dashboard/products/', views.admin_products, name='admin_products'),
