@@ -24,3 +24,13 @@ def application(environ, start_response):
         filtered = [(k, v) for k, v in headers if k.lower() not in ('x-powered-by', 'server')]
         return start_response(status, filtered, exc_info)
     return _application(environ, custom_start_response)
+
+
+
+
+
+
+
+
+
+
